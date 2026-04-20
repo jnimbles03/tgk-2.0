@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — GIS Mapping Service (service-area lookup) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking GIS mapping service (ArcGIS-style service-area evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#1A5276;--v-accent:#E31C3D;--v-bg:#EDF1F4;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.mp{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
+.m-head{height:32px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:11px;flex-shrink:0;}
+.m-logo{font-family:var(--brand-font);font-weight:700;letter-spacing:0.02em;}
+.m-tabs{display:flex;gap:14px;margin-left:12px;font-size:10.5px;font-weight:500;opacity:0.9;}
+.m-tabs span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;font-weight:600;}
+.m-user{margin-left:auto;opacity:0.85;font-size:10px;}
+.m-subhead{height:26px;background:#F4F6F9;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:10px;color:var(--ink-mid);flex-shrink:0;}
+.m-cmd{font-weight:500;}
+.m-coords{margin-left:auto;font-family:"SF Mono",Menlo,monospace;font-size:9.5px;color:var(--ink-soft);}
+.m-body{flex:1;display:grid;grid-template-columns:150px 1fr;overflow:hidden;}
+.m-layers{background:#fff;border-right:1px solid var(--line);padding:10px 10px;font-size:10px;}
+.m-layers h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
+.m-layers .lyr{display:flex;align-items:center;gap:6px;padding:3px 0;color:var(--ink-mid);}
+.m-layers .lyr .sw{width:12px;height:4px;border-radius:2px;background:var(--v-accent);}
+.m-layers .lyr.on{color:var(--ink);font-weight:600;}
+.m-canvas{position:relative;background:#E8EEE0;overflow:hidden;}
+.m-tile{position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent 49%,rgba(120,130,100,0.22) 49.8%,rgba(120,130,100,0.22) 50.2%,transparent 50%) 0 0/120px 100%,
+  linear-gradient(0deg,transparent 49%,rgba(120,130,100,0.18) 49.8%,rgba(120,130,100,0.18) 50.2%,transparent 50%) 0 0/100% 90px,
+  linear-gradient(180deg,#E2EEDA,#D6E4CF);}
+.m-roads{position:absolute;inset:0;background:
+  linear-gradient(86deg,transparent 45%,#D4D0C2 46%,#D4D0C2 49%,transparent 50%) 0 18%/100% 100%,
+  linear-gradient(174deg,transparent 42%,#D4D0C2 43%,#D4D0C2 46%,transparent 47%) 0 0/100% 100%,
+  linear-gradient(92deg,transparent 62%,#D4D0C2 63%,#D4D0C2 66%,transparent 67%) 0 0/100% 100%;opacity:0.9;}
+.m-parcels{position:absolute;inset:10% 12% 14% 14%;border:1px dashed rgba(70,90,60,0.35);background:
+  repeating-linear-gradient(0deg,transparent 0 24px,rgba(70,90,60,0.14) 24px 25px),
+  repeating-linear-gradient(90deg,transparent 0 28px,rgba(70,90,60,0.14) 28px 29px);}
+.m-pin{position:absolute;width:14px;height:18px;transform:translate(-50%,-100%);}
+.m-pin::before{content:"";position:absolute;inset:0;background:var(--v-accent);clip-path:polygon(50% 100%,10% 40%,50% 0,90% 40%);box-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.m-pin span{position:absolute;left:50%;top:20%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#fff;}
+.m-pin.q::before{background:#A93434;opacity:0.85;}
+.m-popup{position:absolute;left:52%;top:12%;background:#fff;border:1px solid var(--line-strong);border-radius:6px;padding:8px 10px;font-size:10px;min-width:200px;box-shadow:0 6px 20px rgba(0,0,0,0.12);}
+.m-popup h5{font-size:10.5px;font-weight:600;color:var(--v-head);margin-bottom:4px;}
+.m-popup .pr{display:flex;justify-content:space-between;padding:2px 0;font-size:10px;border-bottom:1px dashed var(--line);}
+.m-popup .pr:last-child{border-bottom:0;}
+.m-popup .pr .k{color:var(--ink-soft);}
+.m-scale{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,0.86);border:1px solid var(--line);border-radius:3px;padding:3px 6px;font-size:9.5px;color:var(--ink-mid);font-family:"SF Mono",Menlo,monospace;}
+.m-foot{padding:6px 12px 8px;background:rgba(255,255,255,0.9);border-top:1px solid var(--line);flex-shrink:0;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="mp">
+  <div class="m-head">
+    <span class="m-logo">TX-HHSC GeoCheck (ArcGIS-evocative)</span>
+    <span class="m-tabs"><span class="on">Map</span><span class="">Layers</span><span class="">Tables</span><span class="">Print</span></span>
+    <span class="m-user">Delgado, A.</span>
+  </div>
+  <div class="m-subhead">
+    <span class="m-cmd">Basemap ▾</span><span class="m-cmd">Add Layer</span><span class="m-cmd">Select</span><span class="m-cmd">Measure</span><span class="m-cmd">Export</span>
+    <span class="m-coords">Lat 30.2061  Lng -97.8036  EPSG:4326</span>
+  </div>
+  <div class="m-body">
+    <div class="m-layers">
+      <h6>Layers</h6>
+      <div class="lyr on"><span class="sw"></span>Service Area · SNAP (county)</div><div class="lyr on"><span class="sw" style="background:#A93434;"></span>Applicant Address</div><div class="lyr on"><span class="sw" style="background:#4A3E6B;"></span>Quarter-mile Pins</div><div class="lyr"><span class="sw" style="background:#276B36;"></span>School Zones</div><div class="lyr"><span class="sw" style="background:#0F6FC6;"></span>Flood Hazard</div><div class="lyr"><span class="sw" style="background:#8C2B2B;"></span>Food Desert Overlay</div><div class="lyr"><span class="sw" style="background:#E87722;"></span>County Boundary</div>
+    </div>
+    <div class="m-canvas">
+      <div class="m-tile"></div>
+      <div class="m-roads"></div>
+      <div class="m-parcels"></div>
+      <div class="m-pin" style="left:52%;top:44%;"><span></span></div>
+      <div class="m-pin q" style="left:38%;top:58%;"></div>
+      <div class="m-pin q" style="left:66%;top:38%;"></div>
+      <div class="m-pin q" style="left:30%;top:30%;"></div>
+      <div class="m-pin q" style="left:72%;top:62%;"></div>
+      <div class="m-popup"><h5>3412 Elmridge Ln, Austin, TX 78745</h5><div class="pr"><span class="k">Parcel</span><span>044-216-091</span></div><div class="pr"><span class="k">County</span><span>Travis Co., TX</span></div><div class="pr"><span class="k">Service Area</span><span style="color:#276B36;font-weight:600;">In area</span></div><div class="pr"><span class="k">Food Desert</span><span style="color:#A93434;font-weight:600;">Yes (2km)</span></div><div class="pr"><span class="k">Flood Zone</span><span>X — minimal</span></div><div class="pr"><span class="k">Matched to case</span><span>CCR-2026-047812</span></div></div>
+      <div class="m-scale">0 &nbsp;&nbsp;&nbsp; 500 ft</div>
+    </div>
+  </div>
+  <div class="m-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Service-area result is a screenshot pasted into the case notes. There is no machine-readable 'in area = true' field downstream.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-gis-mapping-service-public-sector.html",
+  "vendor": "GIS mapping service (ArcGIS-style service-area evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "map",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>

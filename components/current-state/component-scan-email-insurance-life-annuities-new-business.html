@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Scan / Email Intake | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Scan-to-email intake queue (evocation) in a Insurance — Life & Annuities — New Business workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#2E5472;--v-accent:#C58B3F;--v-bg:#F3F5F8;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.em{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
+.em-head{height:34px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 14px;gap:14px;font-size:11px;flex-shrink:0;}
+.em-logo{font-family:var(--brand-font);font-weight:700;}
+.em-search{background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:3px;font-size:10.5px;color:#E6EEF5;flex:1;max-width:340px;margin-left:10px;}
+.em-user{margin-left:auto;opacity:0.85;font-size:10px;}
+.em-body{flex:1;display:grid;grid-template-columns:140px 250px 1fr;overflow:hidden;background:#fff;}
+.em-fold{background:#F3F5F7;border-right:1px solid var(--line);padding:10px 0;font-size:10.5px;}
+.em-fold .fd{padding:4px 14px;color:var(--ink-mid);display:flex;justify-content:space-between;}
+.em-fold .fd.on{background:rgba(0,0,0,0.05);color:var(--v-accent);font-weight:600;}
+.em-fold .fd .n{font-size:9.5px;color:var(--ink-soft);}
+.em-fold h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);padding:8px 14px 3px;font-weight:600;}
+.em-list{background:#fff;border-right:1px solid var(--line);overflow-y:auto;}
+.em-item{padding:8px 12px;border-bottom:1px solid var(--line);font-size:10px;}
+.em-item.on{background:rgba(0,0,0,0.03);border-left:3px solid var(--v-accent);padding-left:9px;}
+.em-item .from{font-weight:600;color:var(--ink);display:flex;justify-content:space-between;}
+.em-item .from .t{font-size:9px;color:var(--ink-soft);font-weight:400;}
+.em-item .subj{color:var(--ink);margin:2px 0;}
+.em-item .prev{color:var(--ink-soft);font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.em-item .chip{margin-top:3px;}
+.em-thread{padding:14px 18px;overflow-y:auto;font-size:10.5px;}
+.em-subject{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px;}
+.em-msg{border-left:3px solid var(--v-accent);padding:8px 12px;margin-bottom:10px;background:rgba(0,0,0,0.02);border-radius:0 6px 6px 0;}
+.em-msg.quoted{border-left-color:var(--line-strong);background:rgba(0,0,0,0.04);margin-left:20px;opacity:0.85;}
+.em-msg.quoted.deep{margin-left:40px;opacity:0.75;}
+.em-msg-head{font-size:10px;margin-bottom:4px;display:flex;justify-content:space-between;}
+.em-msg-head .who{font-weight:600;}
+.em-msg-head .when{color:var(--ink-soft);}
+.em-msg-body{font-size:10.5px;line-height:1.5;color:var(--ink);}
+.em-msg-body p{margin-bottom:6px;}
+.em-msg-body .attach{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:#fff;border:1px solid var(--line);border-radius:4px;font-size:9.5px;margin-top:4px;}
+.em-msg-body .attach svg{width:10px;height:10px;}
+.em-foot{padding:8px 14px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="em">
+  <div class="em-head">
+    <span class="em-logo">Outlook Web (NB Intake Mailbox)</span>
+    <span class="em-search">Search mail</span>
+    <span class="em-user">nbintake@verdant-life.example</span>
+  </div>
+  <div class="em-body">
+    <div class="em-fold">
+      <h6>Mailbox</h6>
+<div class="fd on">Inbox <span class="n">118</span></div>
+<div class="fd">Needs-Indexing <span class="n">27</span></div>
+<div class="fd">Unknown-App <span class="n">9</span></div>
+<div class="fd">Processed</div>
+<h6>Filters</h6>
+<div class="fd">from: scanner@</div>
+<div class="fd">from: *@agent.</div>
+    </div>
+    <div class="em-list">
+      <div class="em-item on"><div class="from"><span>scanner-agt0418@verdant-life.example</span><span class="t">Today 08:17</span></div><div class="subj">SCAN_20260417_08_14.PDF (14 pp)</div><div class="prev">[No subject — scan image attached]</div><span class="chip warn">no case #</span></div>
+<div class="em-item"><div class="from"><span>rios.m@agent.example</span><span class="t">Today 07:54</span></div><div class="subj">Fwd: Fwd: Delivery receipt — Okafor</div><div class="prev">Please process. Thanks — Rios</div></div>
+<div class="em-item"><div class="from"><span>Piedmont Health</span><span class="t">Yest 16:02</span></div><div class="subj">APS records — SAMUEL OKAFOR</div><div class="prev">Encrypted zip · password sent separately…</div><span class="chip warn">encrypted</span></div>
+<div class="em-item"><div class="from"><span>scanner-agt1127@verdant-life.example</span><span class="t">Yest 12:30</span></div><div class="subj">SCAN_20260416_12_28.PDF (3 pp)</div><div class="prev">[No subject]</div></div>
+    </div>
+    <div class="em-thread">
+      <div class="em-subject">SCAN_20260417_08_14.PDF (14 pp)</div>
+<div class="em-msg"><div class="em-msg-head"><span class="who">scanner-agt0418@verdant-life.example</span><span class="when">Today 08:17</span></div>
+<div class="em-msg-body"><p>[Auto-generated — agent office multifunction scan-to-email. No recipient fields, no case number, no subject.]</p>
+<span class="attach"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg> SCAN_20260417_08_14.PDF · 14 pp · 4.2 MB</span></div></div>
+<div class="em-msg"><div class="em-msg-head"><span class="who">NB Intake — Clerk note</span><span class="when">Today 08:42</span></div>
+<div class="em-msg-body"><p>Opened attachment — looks like a new-business application for <b>OKAFOR, SAMUEL</b>, DOB 03/18/1981. Matching to <b>APP-2026-7418829</b>. Will queue for indexing.</p>
+<p><em>Still no idea whether this is the original packet, the re-signed version, or a duplicate.</em></p></div></div>
+    </div>
+  </div>
+  <div class="em-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Intake inbox receives scans with no metadata — every document is a mystery to be matched to a case number by hand.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-scan-email-insurance-life-annuities-new-business.html",
+  "vendor": "Scan-to-email intake queue (evocation)",
+  "scope": "Insurance \u2014 Life & Annuities \u2014 New Business",
+  "state": "Current",
+  "useCase": "New business \u2014 20-yr Level Term life application",
+  "archetype": "email"
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — External Data Vendors | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking External-data / ISO ClaimSearch feed (terminal evocation) in a Insurance — P&C — Claims Lifecycle workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#0B1E2F;--v-accent:#F8C96A;--v-bg:#000;--v-head-ink:#9FD3FF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.tm{flex:1;display:flex;flex-direction:column;background:#0A0A0A;}
+.tm-titlebar{height:24px;background:var(--v-head);color:#DDD;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10px;flex-shrink:0;font-family:"SF Mono",Menlo,Consolas,monospace;}
+.tm-logo{font-weight:700;color:#F8C96A;}
+.tm-sess{color:#BBB;}
+.tm-user{margin-left:auto;color:#9CC0EA;}
+.tm-screen{flex:1;background:#000;padding:14px 18px;overflow:hidden;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;line-height:1.45;color:#7CF47C;letter-spacing:0.02em;}
+.tm-inner{position:relative;}
+.tm-inner::before{content:"";position:absolute;inset:-14px -18px;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.03) 0 1px,transparent 1px 3px);pointer-events:none;}
+.tm-line{white-space:pre;}
+.tm-line.hdr{color:#FFD976;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+.tm-line.em{color:#F3FFD9;}
+.tm-line.lbl{color:#5CA85C;}
+.tm-line.val{color:#B8FBA2;}
+.tm-line.warn{color:#F76D4A;font-weight:700;}
+.tm-line.hl{background:#7CF47C;color:#000;padding:0 3px;display:inline-block;}
+.tm-caret{display:inline-block;width:9px;height:13px;background:#7CF47C;margin-left:2px;vertical-align:middle;animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+.tm-status{height:22px;background:#1A1A1A;color:#F8C96A;padding:0 12px;display:flex;align-items:center;gap:18px;font-family:"SF Mono",Menlo,monospace;font-size:10px;flex-shrink:0;border-top:1px solid #333;}
+.tm-foot{padding:6px 12px;background:#1A1A1A;flex-shrink:0;}
+.tm-foot .friction{background:rgba(255,82,82,0.14);color:#F98A76;border-color:rgba(255,82,82,0.36);}
+.tm-foot .friction svg{stroke:#F98A76;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="tm">
+  <div class="tm-titlebar">
+    <span class="tm-logo">DATASCAN · External Data Aggregator</span>
+    <span class="tm-sess">ENV=prod · FEEDS=CARFAX,LEXIS,ISO-CL,POLICE · tail -f lookup</span>
+    <span class="tm-user">SVC-XDATA-03 · terminal</span>
+  </div>
+  <div class="tm-screen">
+    <div class="tm-inner"><div class="tm-line hdr">DATASCAN · EXTERNAL DATA AGGREGATOR · CLAIM CROSS-REF</div>
+<div class="tm-line ">-----------------------------------------------------------------</div>
+<div class="tm-line lbl">> XDATA_PULL --claim=CLM-AUTO-2026-00441 --vin=2HGF****3812</div>
+<div class="tm-line em">QUERYING ISO CLAIMSEARCH, CARFAX, LEXIS, POLICE RECORDS...</div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">ISO CLAIMSEARCH — prior claim matches</div>
+<div class="tm-line lbl">  DATE       | CARRIER           | TYPE  | AMOUNT   | VIN-MATCH</div>
+<div class="tm-line ">  ---------- | ----------------- | ----- | -------- | ---------</div>
+<div class="tm-line lbl">  2023-08-14 | <span class='tm-line val' style='display:inline'>COVENANT IND.</span>      | COMP  | $2,118   | <span class='tm-line val' style='display:inline'>FULL</span></div>
+<div class="tm-line lbl">             | <span class='tm-line val' style='display:inline'>Glass — windshield replacement · closed</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">CARFAX — title & service history</div>
+<div class="tm-line lbl">  TITLE BRAND........: <span class='tm-line val' style='display:inline'>CLEAN · TX · 2022-03-08</span></div>
+<div class="tm-line lbl">  SVC RECORDS........: <span class='tm-line val' style='display:inline'>6 entries · last 2025-11 · no prior collision repair</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">LEXIS — driver history (policy holder)</div>
+<div class="tm-line lbl">  LIC STATE..........: <span class='tm-line val' style='display:inline'>TX · valid</span></div>
+<div class="tm-line lbl">  MVR 36M............: <span class='tm-line val' style='display:inline'>0 violations · 0 accidents</span></div>
+<div class="tm-line lbl">  RISK FLAG..........: <span class='tm-line val' style='display:inline'>NONE</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">POLICE — incident lookup</div>
+<div class="tm-line lbl">  APD INCIDENT #.....: <span class='tm-line warn' style='display:inline'>NOT FILED (private property · no injury)</span></div>
+<div class="tm-line lbl">  NOTE...............: <span class='tm-line warn' style='display:inline'>Lot operator = HARBOR PARK LLC · surveillance on record</span></div>
+<div class="tm-line "></div>
+<div class="tm-line em">XDATA PULL COMPLETE · 4 SOURCES · 1 CROSS-MATCH · 1 OPERATIONAL GAP</div>
+<div class="tm-line lbl">EXPORT.............: CLM-00441_XDATA_20260411.txt  (dropped into imaging queue)</div>
+<div class="tm-line lbl">> <span class='tm-caret'></span></div></div>
+  </div>
+  <div class="tm-status"><span>PF1=HELP</span><span>PF3=EXIT</span><span>PF5=EXPORT</span><span>PF8=SOURCES</span><span style="margin-left:auto;">XDATA 10:14:02 CT</span></div>
+  <div class="tm-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>External data pull lands as a text file in imaging — the adjuster reads it, summarizes it in their diary, and the raw record never surfaces in the claim UI.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-external-data-vendors-insurance-pc-claims-lifecycle.html",
+  "vendor": "External-data / ISO ClaimSearch feed (terminal evocation)",
+  "scope": "Insurance \u2014 P&C \u2014 Claims Lifecycle",
+  "state": "Current",
+  "useCase": "Auto claim \u2014 parking-lot side-swipe, first-party repair",
+  "archetype": "terminal"
+}
+</script>
+</body>
+</html>

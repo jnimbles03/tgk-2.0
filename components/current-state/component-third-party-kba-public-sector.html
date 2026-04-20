@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Third-Party KBA (Knowledge-Based Authentication) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Third-party KBA (quiz challenge evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#1F3558;--v-accent:#1F9D55;--v-bg:#EEF1F5;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.lg{flex:1;display:flex;flex-direction:column;background:#EEF1F5;}
+.lg-head{height:32px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10.5px;flex-shrink:0;}
+.lg-logo{font-family:var(--brand-font);font-weight:700;}
+.lg-actions{display:inline-flex;gap:6px;margin-left:auto;}
+.lg-user{font-size:10px;opacity:0.9;margin-left:14px;}
+.lg-subhead{height:24px;background:#F4F6F9;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:20px;font-size:10px;color:var(--ink-mid);flex-shrink:0;}
+.lg-body{flex:1;display:grid;grid-template-columns:1fr 220px;overflow:hidden;}
+.lg-doc-pane{background:#fff;padding:16px 22px;overflow:auto;font-family:"Times New Roman","Times",serif;font-size:11px;line-height:1.6;color:#1A1A1A;}
+.lg-doc-pane h3{font-family:"Times New Roman",serif;font-size:12px;font-weight:700;margin-bottom:6px;text-align:center;}
+.lg-doc-pane p{margin-bottom:8px;}
+.lg-doc-pane .ins{background:rgba(48,140,72,0.16);color:#1A5A2A;text-decoration:underline;text-decoration-color:#1A5A2A;}
+.lg-doc-pane .del{background:rgba(255,82,82,0.14);color:#882020;text-decoration:line-through;}
+.lg-doc-pane .cmt{background:#FFF3B8;padding:0 2px;}
+.lg-comments{background:#F4F6F9;border-left:1px solid var(--line);padding:10px;overflow:hidden;font-size:10px;}
+.lg-comments h5{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
+.lg-cmt{background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin-bottom:6px;}
+.lg-cmt .who{font-weight:600;font-size:10px;color:var(--v-accent);}
+.lg-cmt .when{font-size:9px;color:var(--ink-soft);}
+.lg-cmt .txt{font-size:9.5px;color:var(--ink);margin-top:3px;line-height:1.4;}
+.lg-foot{padding:6px 12px 10px;background:#fff;flex-shrink:0;border-top:1px solid var(--line);}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="lg">
+  <div class="lg-head">
+    <span class="lg-logo">IDVerify — KBA Quiz</span>
+    <span class="lg-doc">KBA_Challenge_Set_17 &middot; ref QZN-2026-09814</span>
+    <span class="lg-actions"><span class="chip warn">Redline · 14 open</span><span class="chip stale">Reviewer 2/3</span></span>
+    <span class="lg-user">Applicant session · IP 198.51.100.42</span>
+  </div>
+  <div class="lg-subhead">
+    <span>Track Changes: On</span><span>All Markup ▾</span><span>Accept ▾</span><span>Reject ▾</span><span>Next</span><span>Previous</span>
+  </div>
+  <div class="lg-body">
+    <div class="lg-doc-pane">
+<h3 style="font-family:var(--ui-font);">Identity Verification Quiz &middot; Set 17</h3>
+<p style="font-family:var(--ui-font);font-size:11px;">Please answer <b>4 of 5</b> correctly to continue. Session expires in 09:41.</p>
+<p style="margin-top:10px;font-family:var(--ui-font);font-size:11px;"><b>1.</b> Which of the following street addresses have you been associated with in the last 10 years?</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;margin-left:14px;">&bigcirc; 3412 Elmridge Ln &nbsp;&nbsp; &bigcirc; 211 W Dolphin Ave &nbsp;&nbsp; &bigcirc; 8045 Ranchview Dr &nbsp;&nbsp; &bigcirc; None of the above</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:11px;"><b>2.</b> Which of the following were lien-holders on a vehicle titled in your name?</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;margin-left:14px;">&bigcirc; Cascade Credit Union &nbsp;&nbsp; &bigcirc; Capital Auto Finance &nbsp;&nbsp; &bigcirc; Alderwood Bank &nbsp;&nbsp; &bigcirc; Trinity Auto Trust &nbsp;&nbsp; &bigcirc; None</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:11px;"><b>3.</b> At which of the following employers have you received a W-2?</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;margin-left:14px;">&bigcirc; Bluebonnet Market &nbsp;&nbsp; &bigcirc; Mainspring Labs &nbsp;&nbsp; &bigcirc; Northgate Hospitality &nbsp;&nbsp; &bigcirc; Palomino Staffing &nbsp;&nbsp; &bigcirc; None</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:11px;"><b>4.</b> In what month was a mortgage originated in your name on any property you&rsquo;ve owned?</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;margin-left:14px;">&bigcirc; June 2012 &nbsp;&nbsp; &bigcirc; March 2015 &nbsp;&nbsp; &bigcirc; October 2018 &nbsp;&nbsp; &bigcirc; I&rsquo;ve never held a mortgage</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:11px;"><b>5.</b> Which phone number has been associated with you?</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;margin-left:14px;">&bigcirc; (512) 555-0148 &nbsp;&nbsp; &bigcirc; (210) 555-0311 &nbsp;&nbsp; &bigcirc; (737) 555-0907 &nbsp;&nbsp; &bigcirc; None of the above</p>
+<p style="margin-top:12px;font-family:var(--ui-font);font-size:10.5px;color:#6A1111;"><b>Notice.</b> Two previous attempts were scored &ldquo;insufficient data&rdquo; because the applicant has limited credit history. A third failure will route this case to <b>in-person identity proofing</b> at a county office (60-mile round trip).</p>
+</div>
+    <div class="lg-comments">
+<h5>Session Meta</h5>
+<div class="lg-cmt"><div class="who">IDVerify &middot; system</div><div class="when">Attempt 3 of 3</div><div class="txt">Data source: 3 national credit bureaus + DMV. Coverage for this applicant is <b>thin file</b>.</div></div>
+<div class="lg-cmt"><div class="who">Delgado, A.</div><div class="when">04/02 09:14</div><div class="txt">If she fails #3 again, escalate to notarized in-person proofing packet. Do not email the fallback form.</div></div>
+<div class="lg-cmt"><div class="who">Policy-Bot</div><div class="when">NIST SP 800-63 IAL2</div><div class="txt">Remote identity proofing permitted only where all evidence is verifiable at IAL2. Fallback must be in-person.</div></div>
+</div>
+  </div>
+  <div class="lg-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>KBA is a 'thin-file trap' for low-income applicants. Two failures auto-route this applicant to a 60-mile in-person proofing trip.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-third-party-kba-public-sector.html",
+  "vendor": "Third-party KBA (quiz challenge evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "legal",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — SSN / ITIN Verification | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking SSN / ITIN verification service (SSA-CBSV evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#143A6B;--v-accent:#E31C3D;--v-bg:#EEF1F5;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.lg{flex:1;display:flex;flex-direction:column;background:#EEF1F5;}
+.lg-head{height:32px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10.5px;flex-shrink:0;}
+.lg-logo{font-family:var(--brand-font);font-weight:700;}
+.lg-actions{display:inline-flex;gap:6px;margin-left:auto;}
+.lg-user{font-size:10px;opacity:0.9;margin-left:14px;}
+.lg-subhead{height:24px;background:#F4F6F9;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:20px;font-size:10px;color:var(--ink-mid);flex-shrink:0;}
+.lg-body{flex:1;display:grid;grid-template-columns:1fr 220px;overflow:hidden;}
+.lg-doc-pane{background:#fff;padding:16px 22px;overflow:auto;font-family:"Times New Roman","Times",serif;font-size:11px;line-height:1.6;color:#1A1A1A;}
+.lg-doc-pane h3{font-family:"Times New Roman",serif;font-size:12px;font-weight:700;margin-bottom:6px;text-align:center;}
+.lg-doc-pane p{margin-bottom:8px;}
+.lg-doc-pane .ins{background:rgba(48,140,72,0.16);color:#1A5A2A;text-decoration:underline;text-decoration-color:#1A5A2A;}
+.lg-doc-pane .del{background:rgba(255,82,82,0.14);color:#882020;text-decoration:line-through;}
+.lg-doc-pane .cmt{background:#FFF3B8;padding:0 2px;}
+.lg-comments{background:#F4F6F9;border-left:1px solid var(--line);padding:10px;overflow:hidden;font-size:10px;}
+.lg-comments h5{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
+.lg-cmt{background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin-bottom:6px;}
+.lg-cmt .who{font-weight:600;font-size:10px;color:var(--v-accent);}
+.lg-cmt .when{font-size:9px;color:var(--ink-soft);}
+.lg-cmt .txt{font-size:9.5px;color:var(--ink);margin-top:3px;line-height:1.4;}
+.lg-foot{padding:6px 12px 10px;background:#fff;flex-shrink:0;border-top:1px solid var(--line);}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="lg">
+  <div class="lg-head">
+    <span class="lg-logo">SSA-CBSV &middot; Consent-Based Verification (evocative)</span>
+    <span class="lg-doc">Form SSA-89_Rodriguez_Maria_signed.pdf</span>
+    <span class="lg-actions"><span class="chip warn">Redline · 14 open</span><span class="chip stale">Reviewer 2/3</span></span>
+    <span class="lg-user">Case TX-CCR-2026-047812</span>
+  </div>
+  <div class="lg-subhead">
+    <span>Track Changes: On</span><span>All Markup ▾</span><span>Accept ▾</span><span>Reject ▾</span><span>Next</span><span>Previous</span>
+  </div>
+  <div class="lg-body">
+    <div class="lg-doc-pane">
+<h3 style="font-family:var(--ui-font);">Form SSA-89 — Authorization for the Social Security Administration (SSA) to Release Social Security Number (SSN) Verification</h3>
+<p style="font-family:var(--ui-font);font-size:11px;">I authorize the SSA to verify my Social Security Number (SSN) to the requesting party named below for the purpose(s) stated.</p>
+
+<p style="margin-top:10px;font-family:var(--ui-font);font-size:11px;"><b>Name (as shown on SSN card):</b> <span class="cmt">Maria A. Rodriguez</span></p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Date of Birth:</b> <span class="cmt">09/14/1978</span> &nbsp;&nbsp;&nbsp; <b>Place of Birth:</b> <span class="cmt">Del Rio, TX</span></p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Social Security Number:</b> <span class="cmt">XXX-XX-8421</span></p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Requesting Party:</b> Texas Health &amp; Human Services Commission &middot; CCR-2026-047812</p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Purpose:</b> SNAP Recertification (identity verification)</p>
+
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:11px;"><b>Signature of Number Holder:</b>
+<span class="ins">&nbsp;Maria A. Rodriguez&nbsp;</span> &nbsp;&nbsp; <b>Date:</b> <span class="ins">04/08/2026</span></p>
+
+<p style="margin-top:14px;font-family:var(--ui-font);font-size:11px;color:#6A1111;">
+<b>SSA Response (CBSV):</b> <span class="del">Match</span> <span class="ins">No Match — Name/DOB combination</span>
+</p>
+<p style="font-family:var(--ui-font);font-size:10.5px;">
+Note from requesting party: Applicant reports her last name change (2015) was never filed with SSA. Manual reconciliation will require a notarized name-change affidavit or a re-submission of SS-5.
+</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:10px;color:#4A3E6B;">
+This form was faxed inbound on 04/08. Page 3 (prescriber signature block on reverse) was <b>cropped during scan</b>. OCR confidence 41%. Manual re-key required.
+</p>
+</div>
+    <div class="lg-comments">
+<h5>Case Notes</h5>
+<div class="lg-cmt"><div class="who">SSA-CBSV</div><div class="when">04/09 06:11</div><div class="txt">Response code 6 (No Match on Name/DOB). Case flagged for manual reconciliation.</div></div>
+<div class="lg-cmt"><div class="who">Delgado, A.</div><div class="when">04/10 09:42</div><div class="txt">Called applicant. She confirmed a 2015 marriage and name change that was <b>never filed with SSA</b>. Requesting notarized name-change affidavit. Adds 7–10 calendar days to recert.</div></div>
+<div class="lg-cmt"><div class="who">Policy</div><div class="when">TX.HHSC.SNAP.2026.R4</div><div class="txt">If CBSV returns &ldquo;No Match&rdquo; and affidavit is pending, eligibility may proceed with signed attestation — but notice-of-decision is held until SSA updates.</div></div>
+</div>
+  </div>
+  <div class="lg-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>CBSV returned 'No Match' on a name change SSA never recorded. Recert holds until a notarized affidavit is scanned back.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-ssn-itin-verification-public-sector.html",
+  "vendor": "SSN / ITIN verification service (SSA-CBSV evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "legal",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>
