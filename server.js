@@ -8,49 +8,90 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const Database = require('@replit/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
-const STORE_PATH = path.join(__dirname, 'feedback-store.json');
+const LEGACY_STORE_PATH = path.join(__dirname, 'feedback-store.json');
+const KV_KEY = 'feedback:list';
+
+const db = new Database();
 
 app.use(express.json({ limit: '64kb' }));
 
 // --------- Default landing ---------
 app.get('/', (req, res) => res.redirect('/index-unified.html'));
 
-// --------- Feedback store helpers ---------
-function readStore() {
+// --------- Feedback store helpers (Replit KV-backed) ---------
+async function readStore() {
   try {
-    if (!fs.existsSync(STORE_PATH)) return [];
-    return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8') || '[]');
-  } catch (e) { return []; }
+    const raw = await db.get(KV_KEY);
+    if (raw == null) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string') {
+      try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+    }
+    if (raw && typeof raw === 'object' && 'value' in raw) {
+      const v = raw.value;
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; } }
+    }
+    return [];
+  } catch (e) {
+    console.error('readStore error:', e?.message || e);
+    return [];
+  }
 }
-function writeStore(items) {
-  fs.writeFileSync(STORE_PATH, JSON.stringify(items, null, 2));
+async function writeStore(items) {
+  await db.set(KV_KEY, items);
 }
 
-// --------- Public feedback API ---------
-app.post('/api/feedback', (req, res) => {
-  const { project, category, message, reporter, context } = req.body || {};
-  if (!message || typeof message !== 'string' || message.trim().length < 3) {
-    return res.status(400).json({ error: 'message required' });
+// One-time migration: pull any legacy file-based items into KV
+(async () => {
+  try {
+    if (!fs.existsSync(LEGACY_STORE_PATH)) return;
+    const legacy = JSON.parse(fs.readFileSync(LEGACY_STORE_PATH, 'utf8') || '[]');
+    if (!Array.isArray(legacy) || legacy.length === 0) return;
+    const current = await readStore();
+    const seen = new Set(current.map(i => i.id));
+    const merged = current.concat(legacy.filter(i => i && i.id && !seen.has(i.id)));
+    if (merged.length !== current.length) {
+      await writeStore(merged);
+      console.log(`Migrated ${merged.length - current.length} legacy feedback item(s) to KV.`);
+    }
+    fs.renameSync(LEGACY_STORE_PATH, LEGACY_STORE_PATH + '.migrated');
+  } catch (e) {
+    console.warn('Legacy migration skipped:', e?.message || e);
   }
-  const item = {
-    id: crypto.randomUUID(),
-    created_at: new Date().toISOString(),
-    project: (project || 'tgk-2.0').slice(0, 60),
-    category: (category || 'other').slice(0, 30),
-    message: message.slice(0, 2000),
-    reporter: (reporter || '').toString().slice(0, 120) || null,
-    context: context || {},
-    status: 'new'
-  };
-  const items = readStore();
-  items.push(item);
-  writeStore(items);
-  res.json({ ok: true, id: item.id });
+})();
+
+// --------- Public feedback API ---------
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { project, category, message, reporter, context } = req.body || {};
+    if (!message || typeof message !== 'string' || message.trim().length < 3) {
+      return res.status(400).json({ error: 'message required' });
+    }
+    const item = {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      project: (project || 'tgk-2.0').slice(0, 60),
+      category: (category || 'other').slice(0, 30),
+      message: message.slice(0, 2000),
+      reporter: (reporter || '').toString().slice(0, 120) || null,
+      context: context || {},
+      status: 'new'
+    };
+    const items = await readStore();
+    items.push(item);
+    await writeStore(items);
+    res.json({ ok: true, id: item.id });
+  } catch (e) {
+    console.error('feedback POST error:', e?.message || e);
+    res.status(500).json({ error: 'store error' });
+  }
 });
 
 // --------- Basic Auth gate for /admin ---------
@@ -74,26 +115,31 @@ function requireAdmin(req, res, next) {
 }
 
 // --------- Admin: list, JSON export, status update, delete ---------
-app.get('/admin/feedback.json', requireAdmin, (req, res) => {
-  res.json(readStore());
+app.get('/admin/feedback.json', requireAdmin, async (req, res) => {
+  try { res.json(await readStore()); }
+  catch (e) { res.status(500).json({ error: 'store error' }); }
 });
 
-app.post('/admin/feedback/:id/status', requireAdmin, (req, res) => {
-  const { status } = req.body || {};
-  const allowed = ['new', 'reviewed', 'resolved', 'wontfix'];
-  if (!allowed.includes(status)) return res.status(400).json({ error: 'bad status' });
-  const items = readStore();
-  const it = items.find(x => x.id === req.params.id);
-  if (!it) return res.status(404).json({ error: 'not found' });
-  it.status = status;
-  writeStore(items);
-  res.json({ ok: true });
+app.post('/admin/feedback/:id/status', requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body || {};
+    const allowed = ['new', 'reviewed', 'resolved', 'wontfix'];
+    if (!allowed.includes(status)) return res.status(400).json({ error: 'bad status' });
+    const items = await readStore();
+    const it = items.find(x => x.id === req.params.id);
+    if (!it) return res.status(404).json({ error: 'not found' });
+    it.status = status;
+    await writeStore(items);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'store error' }); }
 });
 
-app.delete('/admin/feedback/:id', requireAdmin, (req, res) => {
-  const items = readStore().filter(x => x.id !== req.params.id);
-  writeStore(items);
-  res.json({ ok: true });
+app.delete('/admin/feedback/:id', requireAdmin, async (req, res) => {
+  try {
+    const items = (await readStore()).filter(x => x.id !== req.params.id);
+    await writeStore(items);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'store error' }); }
 });
 
 app.get('/admin/feedback', requireAdmin, (req, res) => {
