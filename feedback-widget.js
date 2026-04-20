@@ -24,7 +24,7 @@
   window.__TGK_FEEDBACK_WIDGET__ = true;
 
   const CONFIG = {
-    endpoint: window.FEEDBACK_ENDPOINT || null,
+    endpoint: (window.FEEDBACK_ENDPOINT === undefined) ? '/api/feedback' : window.FEEDBACK_ENDPOINT,
     project:  window.FEEDBACK_PROJECT  || 'tgk-2.0',
     storageKey: 'tgk-feedback-queue'
   };
