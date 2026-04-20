@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const Database = require('@replit/database');
+const OpenAI = require('openai');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,21 @@ const LEGACY_STORE_PATH = path.join(__dirname, 'feedback-store.json');
 const KV_KEY = 'feedback:list';
 
 const db = new Database();
+
+// --------- LLM client (Replit AI Integrations: no key needed) ---------
+const llm = (process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY)
+  ? new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined
+    })
+  : null;
+const PROJECT_FILES = (() => {
+  try {
+    return fs.readdirSync(__dirname).filter(f =>
+      /\.(html|js|css)$/i.test(f) && !f.startsWith('feedback-store')
+    );
+  } catch { return []; }
+})();
 
 app.use(express.json({ limit: '64kb' }));
 
@@ -57,6 +73,21 @@ async function writeStore(items) {
   await db.set(KV_KEY, items);
 }
 
+// Serialize all read-modify-write mutations through one in-process queue so
+// concurrent requests (e.g. a slow background analysis racing a status change)
+// can't overwrite each other. Safe because we're deployed on a single VM.
+let writeChain = Promise.resolve();
+function mutateStore(mutator) {
+  const next = writeChain.then(async () => {
+    const items = await readStore();
+    const result = await mutator(items);
+    await writeStore(items);
+    return result;
+  });
+  writeChain = next.catch(() => {}); // keep the chain alive even on failure
+  return next;
+}
+
 // One-time migration: pull any legacy file-based items into KV
 (async () => {
   try {
@@ -76,6 +107,79 @@ async function writeStore(items) {
   }
 })();
 
+// --------- LLM-driven triage ---------
+const ANALYSIS_SYSTEM = `You are the triage analyst for "TGK 2.0", an interactive HTML demo with multiple Docusign-themed vertical pages and a feedback widget.
+You receive a single user-submitted feedback item and return a structured analysis as strict JSON.
+Be concise, concrete, and pragmatic. Base file guesses on the provided file list and the page the user was on.
+Output JSON ONLY matching this schema:
+{
+  "severity": 1-5 integer (1=trivial, 5=blocking),
+  "complexity": 1-5 integer (1=tiny tweak, 5=large refactor),
+  "confidence": 0.0-1.0 number (your confidence in this analysis),
+  "category_confirmed": one of "design"|"content"|"bug"|"other",
+  "summary": one short sentence describing the underlying issue,
+  "suggested_fix": one or two sentences describing the concrete change,
+  "likely_files": array of up to 3 filenames from the provided list (or [] if unsure),
+  "recommended_action": one of "auto-fix"|"propose-and-wait"|"needs-human-decision",
+  "rationale": one sentence explaining why you chose that action
+}`;
+
+async function analyzeFeedback(item) {
+  if (!llm) throw new Error('LLM not configured');
+  const userPayload = {
+    project: item.project,
+    user_category: item.category,
+    message: item.message,
+    reporter: item.reporter,
+    page_context: item.context || {},
+    available_files: PROJECT_FILES
+  };
+  const resp = await llm.chat.completions.create({
+    model: 'gpt-5.1',
+    messages: [
+      { role: 'system', content: ANALYSIS_SYSTEM },
+      { role: 'user', content: JSON.stringify(userPayload) }
+    ],
+    response_format: { type: 'json_object' }
+  });
+  const raw = resp.choices?.[0]?.message?.content || '{}';
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+  return {
+    severity: clampInt(parsed.severity, 1, 5, 3),
+    complexity: clampInt(parsed.complexity, 1, 5, 3),
+    confidence: clampFloat(parsed.confidence, 0, 1, 0.5),
+    category_confirmed: ['design','content','bug','other'].includes(parsed.category_confirmed) ? parsed.category_confirmed : item.category,
+    summary: String(parsed.summary || '').slice(0, 240),
+    suggested_fix: String(parsed.suggested_fix || '').slice(0, 600),
+    likely_files: Array.isArray(parsed.likely_files) ? parsed.likely_files.filter(f => typeof f === 'string').slice(0, 5) : [],
+    recommended_action: ['auto-fix','propose-and-wait','needs-human-decision'].includes(parsed.recommended_action) ? parsed.recommended_action : 'needs-human-decision',
+    rationale: String(parsed.rationale || '').slice(0, 300),
+    analyzed_at: new Date().toISOString()
+  };
+}
+function clampInt(v, lo, hi, dflt) { const n = parseInt(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : dflt; }
+function clampFloat(v, lo, hi, dflt) { const n = parseFloat(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : dflt; }
+
+async function runAnalysisAndPersist(itemId) {
+  if (!llm) return;
+  try {
+    const snapshot = (await readStore()).find(x => x.id === itemId);
+    if (!snapshot) return;
+    const analysis = await analyzeFeedback(snapshot);
+    const applied = await mutateStore(items => {
+      const target = items.find(x => x.id === itemId);
+      if (!target) return false;
+      target.analysis = analysis;
+      return true;
+    });
+    if (applied) broadcast('analysis', { id: itemId, analysis });
+  } catch (e) {
+    console.error('analysis error:', e?.message || e);
+    broadcast('analysis-error', { id: itemId, error: e?.message || 'analysis failed' });
+  }
+}
+
 // --------- Public feedback API ---------
 app.post('/api/feedback', async (req, res) => {
   try {
@@ -93,11 +197,11 @@ app.post('/api/feedback', async (req, res) => {
       context: context || {},
       status: 'new'
     };
-    const items = await readStore();
-    items.push(item);
-    await writeStore(items);
+    await mutateStore(items => { items.push(item); });
     broadcast('feedback', item);
     res.json({ ok: true, id: item.id });
+    // Fire-and-forget: analyze in background so the user's POST stays fast
+    if (llm) runAnalysisAndPersist(item.id);
   } catch (e) {
     console.error('feedback POST error:', e?.message || e);
     res.status(500).json({ error: 'store error' });
@@ -135,19 +239,50 @@ app.post('/admin/feedback/:id/status', requireAdmin, async (req, res) => {
     const { status } = req.body || {};
     const allowed = ['new', 'reviewed', 'resolved', 'wontfix'];
     if (!allowed.includes(status)) return res.status(400).json({ error: 'bad status' });
-    const items = await readStore();
-    const it = items.find(x => x.id === req.params.id);
-    if (!it) return res.status(404).json({ error: 'not found' });
-    it.status = status;
-    await writeStore(items);
+    const found = await mutateStore(items => {
+      const it = items.find(x => x.id === req.params.id);
+      if (!it) return false;
+      it.status = status;
+      return true;
+    });
+    if (!found) return res.status(404).json({ error: 'not found' });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'store error' }); }
 });
 
 app.delete('/admin/feedback/:id', requireAdmin, async (req, res) => {
   try {
-    const items = (await readStore()).filter(x => x.id !== req.params.id);
-    await writeStore(items);
+    await mutateStore(items => {
+      const idx = items.findIndex(x => x.id === req.params.id);
+      if (idx >= 0) items.splice(idx, 1);
+    });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'store error' }); }
+});
+
+app.post('/admin/feedback/:id/analyze', requireAdmin, async (req, res) => {
+  if (!llm) return res.status(503).json({ error: 'LLM not configured' });
+  const exists = (await readStore()).some(x => x.id === req.params.id);
+  if (!exists) return res.status(404).json({ error: 'not found' });
+  res.json({ ok: true, queued: true });
+  runAnalysisAndPersist(req.params.id);
+});
+
+app.post('/admin/feedback/:id/decision', requireAdmin, async (req, res) => {
+  try {
+    const { decision } = req.body || {};
+    const allowed = ['approved', 'rejected', 'pending'];
+    if (!allowed.includes(decision)) return res.status(400).json({ error: 'bad decision' });
+    const decided_at = new Date().toISOString();
+    const found = await mutateStore(items => {
+      const it = items.find(x => x.id === req.params.id);
+      if (!it) return false;
+      it.decision = decision;
+      it.decided_at = decided_at;
+      return true;
+    });
+    if (!found) return res.status(404).json({ error: 'not found' });
+    broadcast('decision', { id: req.params.id, decision, decided_at });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'store error' }); }
 });
@@ -211,6 +346,34 @@ function adminHtml() {
   }
   .actions button.danger { color:#C62828; border-color:#FFD0D0; }
   .actions button:hover { border-color:#4C00FF; color:#4C00FF; }
+  .ai { margin-top:10px; padding:10px 12px; border-radius:10px; background:#F2EEFF; border:1px solid #E0D5FF; }
+  .ai .ai-head { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .ai .ai-pill { padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+  .ai .sev-1, .ai .cmp-1 { background:#E0F7EE; color:#0E7C4A; }
+  .ai .sev-2, .ai .cmp-2 { background:#E0F7EE; color:#0E7C4A; }
+  .ai .sev-3, .ai .cmp-3 { background:#FFF4D6; color:#7A5300; }
+  .ai .sev-4, .ai .cmp-4 { background:#FFE6E6; color:#C62828; }
+  .ai .sev-5, .ai .cmp-5 { background:#FFE6E6; color:#C62828; }
+  .ai .conf { background:#EDE7FF; color:#4C00FF; }
+  .ai .rec-auto-fix              { background:#E0F7EE; color:#0E7C4A; }
+  .ai .rec-propose-and-wait      { background:#FFF4D6; color:#7A5300; }
+  .ai .rec-needs-human-decision  { background:#FFE6E6; color:#C62828; }
+  .ai .ai-summary { font-size:13px; margin:6px 0 4px; color:#130032; font-weight:600; }
+  .ai .ai-fix { font-size:12.5px; margin:2px 0 6px; color:#130032; }
+  .ai .ai-files { font-size:11px; color:#4C00FF; }
+  .ai .ai-files code { background:#fff; padding:1px 5px; border-radius:4px; margin-right:4px; font-family: ui-monospace, Menlo, monospace; }
+  .ai .ai-rationale { font-size:11px; color:rgba(19,0,50,.6); margin-top:6px; font-style:italic; }
+  .ai .ai-decision-row { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .ai .ai-decision-row button { padding:5px 10px; font-size:11.5px; border-radius:6px; border:1px solid rgba(19,0,50,.12); background:#fff; cursor:pointer; font-family: inherit; color:#130032; }
+  .ai .ai-decision-row button.approve { border-color:#A8E6C5; color:#0E7C4A; }
+  .ai .ai-decision-row button.approve:hover { background:#E0F7EE; }
+  .ai .ai-decision-row button.reject { border-color:#FFD0D0; color:#C62828; }
+  .ai .ai-decision-row button.reject:hover { background:#FFE6E6; }
+  .ai .ai-decision-row button.reanalyze:hover { border-color:#4C00FF; color:#4C00FF; }
+  .ai .decision-pill { padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .ai .decision-approved { background:#E0F7EE; color:#0E7C4A; }
+  .ai .decision-rejected { background:#FFE6E6; color:#C62828; }
+  .ai .ai-pending { font-size:12px; color:rgba(19,0,50,.6); padding:4px 0; }
   .empty { text-align:center; padding:60px 20px; color: rgba(19,0,50,.5); font-size:14px; }
   details { margin-top:6px; }
   details summary { cursor:pointer; font-size:11.5px; color: rgba(19,0,50,.6); }
@@ -279,6 +442,32 @@ function adminHtml() {
     list.innerHTML = items.map(it => {
       const ctx = it.context || {};
       const where = [ctx.pathname, ctx.activeMode, ctx.activeView].filter(Boolean).join(' · ');
+      const a = it.analysis;
+      const decisionPill = it.decision && it.decision !== 'pending'
+        ? '<span class="decision-pill decision-'+esc(it.decision)+'">'+esc(it.decision)+'</span>' : '';
+      const aiBlock = a ? \`<div class="ai">
+        <div class="ai-head">
+          <span class="ai-pill sev-\${a.severity}">Sev \${a.severity}/5</span>
+          <span class="ai-pill cmp-\${a.complexity}">Complexity \${a.complexity}/5</span>
+          <span class="ai-pill conf">Confidence \${Math.round((a.confidence||0)*100)}%</span>
+          <span class="ai-pill rec-\${esc(a.recommended_action)}">\${esc(a.recommended_action.replace(/-/g,' '))}</span>
+          \${decisionPill}
+        </div>
+        <div class="ai-summary">\${esc(a.summary || '—')}</div>
+        <div class="ai-fix"><strong>Suggested fix:</strong> \${esc(a.suggested_fix || '—')}</div>
+        \${a.likely_files && a.likely_files.length ? '<div class="ai-files"><strong>Likely files:</strong> '+a.likely_files.map(f=>'<code>'+esc(f)+'</code>').join('')+'</div>' : ''}
+        <div class="ai-rationale">\${esc(a.rationale || '')}</div>
+        <div class="ai-decision-row">
+          <button class="approve" data-id="\${it.id}" data-action="approve">Approve fix</button>
+          <button class="reject"  data-id="\${it.id}" data-action="reject">Reject</button>
+          <button class="reanalyze" data-id="\${it.id}" data-action="reanalyze">Re-analyze</button>
+        </div>
+      </div>\` : \`<div class="ai">
+        <div class="ai-pending" data-pending-id="\${it.id}">AI triage pending… (analysis runs the moment a submission arrives)</div>
+        <div class="ai-decision-row">
+          <button class="reanalyze" data-id="\${it.id}" data-action="reanalyze">Run analysis now</button>
+        </div>
+      </div>\`;
       return \`<div class="card" data-card-id="\${esc(it.id)}">
         <div class="row">
           <div class="body">
@@ -287,7 +476,8 @@ function adminHtml() {
             <div class="meta">\${esc(fmt(it.created_at))} \${it.reporter ? '· '+esc(it.reporter) : ''}</div>
             <div class="msg">\${esc(it.message)}</div>
             \${where ? '<div><span class="ctx">'+esc(where)+'</span></div>' : ''}
-            <details><summary>Context</summary><pre>\${esc(JSON.stringify(ctx, null, 2))}</pre></details>
+            \${aiBlock}
+            <details><summary>Raw context</summary><pre>\${esc(JSON.stringify(ctx, null, 2))}</pre></details>
           </div>
           <div class="actions">
             <select data-id="\${it.id}" class="set-status">
@@ -316,13 +506,30 @@ function adminHtml() {
     }
   });
   list.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button[data-action="delete"]');
+    const btn = e.target.closest('button[data-action]');
     if (!btn) return;
-    if (!confirm('Delete this feedback item?')) return;
     const id = btn.dataset.id;
-    await fetch('/admin/feedback/' + id, { method: 'DELETE' });
-    data = data.filter(x => x.id !== id);
-    render();
+    const action = btn.dataset.action;
+    if (action === 'delete') {
+      if (!confirm('Delete this feedback item?')) return;
+      await fetch('/admin/feedback/' + id, { method: 'DELETE' });
+      data = data.filter(x => x.id !== id);
+      render();
+    } else if (action === 'approve' || action === 'reject') {
+      const decision = action === 'approve' ? 'approved' : 'rejected';
+      await fetch('/admin/feedback/' + id + '/decision', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ decision })
+      });
+      const it = data.find(x => x.id === id);
+      if (it) { it.decision = decision; it.decided_at = new Date().toISOString(); }
+      render();
+    } else if (action === 'reanalyze') {
+      btn.disabled = true; btn.textContent = 'Analyzing…';
+      await fetch('/admin/feedback/' + id + '/analyze', { method: 'POST' });
+      // The 'analysis' SSE event will refresh the card when it lands.
+    }
   });
   q.addEventListener('input', render);
   fcat.addEventListener('change', render);
@@ -362,6 +569,33 @@ function adminHtml() {
         data.push(item);
         render();
         flash(item.id);
+      } catch {}
+    });
+    es.addEventListener('analysis', (ev) => {
+      try {
+        const { id, analysis } = JSON.parse(ev.data);
+        const it = data.find(x => x.id === id);
+        if (!it) { load(); return; }
+        it.analysis = analysis;
+        render();
+        flash(id);
+      } catch {}
+    });
+    es.addEventListener('decision', (ev) => {
+      try {
+        const { id, decision, decided_at } = JSON.parse(ev.data);
+        const it = data.find(x => x.id === id);
+        if (!it) return;
+        it.decision = decision;
+        it.decided_at = decided_at;
+        render();
+      } catch {}
+    });
+    es.addEventListener('analysis-error', (ev) => {
+      try {
+        const { id, error } = JSON.parse(ev.data);
+        const card = list.querySelector('[data-card-id="' + id + '"] .ai-pending');
+        if (card) card.textContent = 'Analysis failed: ' + error;
       } catch {}
     });
     es.onerror = () => { setLive('off'); load(); };
