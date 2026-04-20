@@ -357,6 +357,34 @@
     setQueue([]);
     updateBadge();
   }
+  let flushing = false;
+  async function flushQueue() {
+    if (flushing || !CONFIG.endpoint) return;
+    const q = getQueue();
+    if (q.length === 0) return;
+    flushing = true;
+    const remaining = [];
+    let sent = 0;
+    for (const item of q) {
+      try {
+        const res = await fetch(CONFIG.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        if (res.ok) sent++;
+        else remaining.push(item);
+      } catch (e) {
+        remaining.push(item);
+      }
+    }
+    setQueue(remaining);
+    updateBadge();
+    refreshExportButton();
+    flushing = false;
+    if (sent > 0) console.info(`[tgk-feedback] flushed ${sent} queued item(s) to server`);
+  }
+
   function exportQueue() {
     const q = getQueue();
     if (q.length === 0) return;
@@ -585,6 +613,8 @@
         });
         if (res.ok) {
           delivery = 'sent';
+          // Opportunistic: server is reachable, push any backlog too
+          flushQueue();
         } else {
           enqueue(payload);
         }
@@ -617,4 +647,13 @@
 
   // --------- Init ---------
   updateBadge();
+
+  // Auto-flush any items queued in this browser to the server (run shortly after
+  // load so we don't compete with critical page work, and again whenever the tab
+  // regains focus or the network comes back online).
+  setTimeout(flushQueue, 1500);
+  window.addEventListener('online', flushQueue);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') flushQueue();
+  });
 })();
