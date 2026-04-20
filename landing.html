@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGK 2.0 — Discovery Hub | Docusign IAM</title>
+<meta name="description" content="Pick a vertical, subvertical, and use case to launch an interactive current-state vs. future-state discovery walkthrough.">
+
+<style>
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");
+    font-weight: 500; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");
+    font-weight: 600; font-style: normal; font-display: swap;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+  :root {
+    --ds-cobalt:       #4C00FF;
+    --ds-inkwell:      #130032;
+    --ds-deep-violet:  #26065D;
+    --ds-mist:         #CBC2FF;
+    --ds-poppy:        #FF5252;
+    --ds-ecru:         #F8F3F0;
+    --ds-white:        #FFFFFF;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--ds-inkwell);
+    color: var(--ds-inkwell);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ===== ANIMATED MESH BACKGROUND ===== */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    background: linear-gradient(160deg,
+      var(--ds-inkwell) 0%,
+      var(--ds-deep-violet) 25%,
+      var(--ds-cobalt) 60%,
+      #6B2FFF 100%);
+  }
+  .bg-mesh::before, .bg-mesh::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(140px); opacity: 0.42;
+    animation: float 22s ease-in-out infinite;
+  }
+  .bg-mesh::before {
+    width: 720px; height: 720px;
+    background: radial-gradient(circle, var(--ds-poppy) 0%, transparent 70%);
+    top: -260px; right: -220px;
+  }
+  .bg-mesh::after {
+    width: 620px; height: 620px;
+    background: radial-gradient(circle, var(--ds-mist) 0%, transparent 70%);
+    bottom: -220px; left: -160px;
+    animation-delay: -10s; animation-direction: reverse;
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(30px, -40px) scale(1.05); }
+    66%      { transform: translate(-20px, 30px) scale(0.95); }
+  }
+  .bg-mesh .scribble {
+    position: absolute; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.08);
+    pointer-events: none;
+  }
+  .bg-mesh .scribble-1 { width: 520px; height: 520px; top: 8%; right: -120px; transform: rotate(-15deg); }
+  .bg-mesh .scribble-2 { width: 360px; height: 360px; bottom: 6%; left: -90px; border-color: rgba(255, 82, 82, 0.14); transform: rotate(20deg); }
+
+  /* ===== LANDING CARD ===== */
+  .shell {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  .landing-card {
+    background: var(--ds-white);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(19, 0, 50, 0.35), 0 0 0 1px rgba(255,255,255,0.08);
+    max-width: 660px; width: 100%; overflow: hidden;
+    font-family: "DSIndigo", "Inter", Helvetica, Arial, sans-serif;
+  }
+
+  /* ===== HEADER ===== */
+  .landing-header {
+    background: linear-gradient(150deg, var(--ds-inkwell) 0%, var(--ds-deep-violet) 30%, var(--ds-cobalt) 70%, #6B2FFF 100%);
+    padding: 48px 48px 40px;
+    color: white; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .landing-header::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .landing-header::after {
+    content: ''; position: absolute; width: 300px; height: 300px;
+    border: 2px solid rgba(255,255,255,0.07); border-radius: 50%;
+    top: -120px; right: -60px; pointer-events: none;
+  }
+  .landing-header .scribble-accent {
+    position: absolute; width: 200px; height: 200px;
+    border: 2px solid rgba(255,82,82,0.12); border-radius: 50%;
+    bottom: -80px; left: -40px; pointer-events: none;
+  }
+  .landing-logo { margin-bottom: 20px; position: relative; }
+  .landing-logo svg { display: inline-block; }
+  .lh-badge {
+    display: inline-block; padding: 5px 16px; border-radius: 4px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(4px);
+    position: relative;
+  }
+  .landing-header h1 {
+    font-size: 30px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.5px;
+    position: relative; color: white;
+  }
+  .landing-header p {
+    font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6;
+    position: relative; max-width: 500px; margin: 0 auto;
+  }
+
+  /* ===== BODY ===== */
+  .landing-body { padding: 36px 48px 24px; }
+
+  .landing-section {
+    margin-bottom: 28px;
+    opacity: 0;
+    transform: translateY(6px);
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s var(--ease), transform 0.35s var(--ease), max-height 0.45s var(--ease), margin-bottom 0.35s var(--ease);
+  }
+  .landing-section.visible {
+    opacity: 1; transform: translateY(0);
+    max-height: 1200px;
+  }
+  .landing-section.always-visible {
+    opacity: 1; transform: translateY(0); max-height: 1200px;
+  }
+  .landing-section > label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600;
+    color: rgba(19, 0, 50, 0.45);
+    letter-spacing: 0.5px; margin-bottom: 12px;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+  }
+  .landing-section > label .step-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--ds-cobalt); color: white;
+    font-size: 10px; font-weight: 700; letter-spacing: 0;
+    font-family: "Inter", sans-serif;
+  }
+
+  .option-grid { display: grid; gap: 12px; }
+  .option-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .option-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .option-grid.cols-1 { grid-template-columns: 1fr; }
+
+  .option-card {
+    padding: 20px 16px;
+    border: 2px solid rgba(19, 0, 50, 0.08);
+    border-radius: 12px;
+    text-align: center; cursor: pointer;
+    transition: all 0.2s var(--ease);
+    background: var(--ds-white);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .option-card::before {
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    transition: opacity 0.2s;
+    background: linear-gradient(135deg, rgba(76, 0, 255, 0.02) 0%, rgba(76, 0, 255, 0.06) 100%);
+  }
+  .option-card:hover {
+    border-color: var(--ds-mist);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(19, 0, 50, 0.07);
+  }
+  .option-card:hover::before { opacity: 1; }
+  .option-card.selected {
+    border-color: var(--ds-cobalt);
+    background: rgba(76, 0, 255, 0.03);
+    box-shadow: 0 0 0 4px rgba(76, 0, 255, 0.08), 0 4px 14px rgba(19, 0, 50, 0.07);
+  }
+  .option-card.selected::before { opacity: 1; }
+  .option-card.empty {
+    opacity: 0.55; cursor: not-allowed;
+    border-style: dashed;
+    background: rgba(19, 0, 50, 0.02);
+  }
+  .option-card.empty:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
+  .option-card .oc-title {
+    font-size: 13px; font-weight: 600; color: var(--ds-inkwell);
+    position: relative;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  .option-card .oc-sub {
+    font-size: 11px; color: rgba(19, 0, 50, 0.45);
+    position: relative; line-height: 1.4;
+    font-family: "Inter", sans-serif;
+    margin-top: 3px;
+  }
+  .option-card .oc-soon {
+    display: inline-block;
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(19, 0, 50, 0.4);
+    background: rgba(19, 0, 50, 0.04);
+    padding: 3px 7px; border-radius: 3px;
+    margin-top: 4px;
+    font-family: "Inter", sans-serif;
+    width: fit-content;
+  }
+
+  /* Use-case cards — slightly different density */
+  .usecase-list {
+    display: grid; gap: 10px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .usecase-list.dense { grid-template-columns: 1fr 1fr; }
+  }
+  .usecase-card {
+    padding: 16px 18px;
+    border: 2px solid rgba(19, 0, 50, 0.08);
+    border-radius: 10px;
+    background: var(--ds-white);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: all 0.18s var(--ease);
+    position: relative;
+  }
+  .usecase-card:hover {
+    border-color: var(--ds-mist);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(19, 0, 50, 0.08);
+  }
+  .usecase-card.selected {
+    border-color: var(--ds-cobalt);
+    background: rgba(76, 0, 255, 0.03);
+    box-shadow: 0 0 0 4px rgba(76, 0, 255, 0.08), 0 4px 14px rgba(19, 0, 50, 0.07);
+  }
+  .usecase-card .uc-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(19, 0, 50, 0.18);
+    flex-shrink: 0;
+    transition: background 0.18s var(--ease);
+  }
+  .usecase-card.selected .uc-dot { background: var(--ds-cobalt); }
+  .usecase-card .uc-meta { flex: 1; min-width: 0; }
+  .usecase-card .uc-title {
+    font-size: 14px; font-weight: 600; color: var(--ds-inkwell);
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    line-height: 1.25; letter-spacing: -0.01em;
+  }
+  .usecase-card .uc-sub {
+    font-size: 11.5px; color: rgba(19, 0, 50, 0.5); margin-top: 2px;
+    font-family: "Inter", sans-serif; line-height: 1.4;
+  }
+  .usecase-card .uc-arrow {
+    color: rgba(19, 0, 50, 0.25); flex-shrink: 0;
+    transition: color 0.18s var(--ease), transform 0.18s var(--ease);
+  }
+  .usecase-card:hover .uc-arrow,
+  .usecase-card.selected .uc-arrow {
+    color: var(--ds-cobalt);
+    transform: translateX(2px);
+  }
+  .usecase-card.empty {
+    cursor: default; opacity: 0.6;
+    border-style: dashed; background: rgba(19, 0, 50, 0.02);
+  }
+  .usecase-card.empty:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
+
+  /* Empty state for "no use cases yet" */
+  .empty-state {
+    padding: 24px 18px;
+    border: 2px dashed rgba(19, 0, 50, 0.12);
+    border-radius: 10px;
+    background: rgba(19, 0, 50, 0.015);
+    text-align: center;
+    color: rgba(19, 0, 50, 0.45);
+    font-size: 12.5px;
+    font-family: "Inter", sans-serif;
+    line-height: 1.6;
+  }
+  .empty-state strong {
+    display: block;
+    color: rgba(19, 0, 50, 0.6);
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ===== ACTIONS ===== */
+  .landing-actions {
+    padding: 0 48px 24px;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .launch-btn {
+    flex: 1; padding: 14px 28px;
+    border-radius: 8px; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    transition: all 0.2s var(--ease);
+    letter-spacing: -0.01em;
+  }
+  .launch-btn.primary {
+    background: var(--ds-cobalt); color: var(--ds-white);
+    box-shadow: 0 4px 16px rgba(76, 0, 255, 0.35);
+  }
+  .launch-btn.primary:hover:not(:disabled) {
+    background: var(--ds-deep-violet);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(76, 0, 255, 0.45);
+  }
+  .launch-btn.primary:active { transform: translateY(0); }
+  .launch-btn.primary:disabled {
+    background: rgba(19, 0, 50, 0.12);
+    color: rgba(19, 0, 50, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .launch-hint {
+    font-size: 11.5px; color: rgba(19, 0, 50, 0.45);
+    font-family: "Inter", sans-serif;
+    white-space: nowrap;
+  }
+
+  /* ===== FOOTER ===== */
+  .landing-footer {
+    padding: 0 48px 28px;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(19, 0, 50, 0.4);
+    line-height: 1.6;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+  }
+  .landing-footer strong {
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    color: rgba(19, 0, 50, 0.55);
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  .landing-footer a {
+    color: var(--ds-cobalt); text-decoration: none; font-weight: 500;
+  }
+  .landing-footer a:hover { text-decoration: underline; }
+  .landing-footer p { margin-top: 8px; }
+
+  /* ===== BREADCRUMB ===== */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-family: "Inter", sans-serif;
+    color: rgba(19, 0, 50, 0.5);
+    margin-bottom: 18px;
+    min-height: 18px;
+  }
+  .breadcrumb .crumb {
+    padding: 2px 8px; border-radius: 4px;
+    background: rgba(76, 0, 255, 0.06);
+    color: var(--ds-cobalt); font-weight: 600;
+  }
+  .breadcrumb .sep { color: rgba(19, 0, 50, 0.25); font-weight: 500; }
+  .breadcrumb .placeholder { color: rgba(19, 0, 50, 0.3); font-style: italic; }
+
+  @media (max-width: 640px) {
+    .landing-header { padding: 36px 28px 32px; }
+    .landing-body { padding: 28px 28px 20px; }
+    .landing-actions { padding: 0 28px 20px; }
+    .landing-footer { padding: 0 28px 24px; }
+    .option-grid.cols-3 { grid-template-columns: 1fr; }
+    .landing-header h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true">
+  <span class="scribble scribble-1"></span>
+  <span class="scribble scribble-2"></span>
+</div>
+
+<div class="shell">
+  <div class="landing-card">
+
+    <!-- HEADER -->
+    <div class="landing-header">
+      <div class="scribble-accent"></div>
+      <div class="landing-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 241.4" width="220" height="44" aria-label="Docusign"><g><g fill="#FFFFFF"><path d="M1169.2,109.7v78.7h-28.9v-73.5c0-17.9-7.7-27.9-22.7-27.9s-24.9,10.5-27.7,28.1c-0.8,4.2-1,10.7-1,24.4v48.8H1060v-125h25.6c0.1,1.1,0.7,12.3,0.7,13c0,0.9,1.1,1.4,1.8,0.8c10.6-8.4,22.3-16.2,38.6-16.2C1153.5,60.9,1169.2,79,1169.2,109.7z"/><path d="M1013.4,63.4l-0.9,14.3c-0.1,0.9-1.2,1.4-1.8,0.8c-3.5-3.3-16.4-17.5-38.3-17.5c-31.4,0-54.5,27.1-54.5,63.9l0,0c0,37.3,22.9,64.5,54.5,64.5c21.1,0,34-13.7,36.4-16.7c0.7-0.8,2-0.3,2,0.7c-0.3,3.8-0.8,13.3-4,21.4c-4,10.2-13,19.7-31.1,19.7c-14.9,0-28.1-5.7-40.6-17.9L920,217.3c13.7,15.5,35.3,24.2,58.8,24.2c37.8,0,60.5-25.9,60.5-68.2V63.4H1013.4z M978.6,163.2c-18.7,0-31.9-16.2-31.9-38.3S959.9,87,978.6,87c18.7,0,31.9,15.7,31.9,37.9C1010.4,147.1,997.2,163.2,978.6,163.2z"/><path d="M857.5,151.3c0,23.7-19.9,39.6-49.1,39.6c-22.9,0-43.3-8.9-55.5-21.6l0,0l0,0l9.5-22.6c9.2,8.3,24,20.2,45.1,20.2c14.7,0,23.2-6.5,23.2-14.7c0-9.5-11.7-12-25.7-14.7c-19.9-4.2-46.3-11-46.3-38.1c0-22.7,18.4-38.3,45.6-38.3c20.9,0,38.9,8,51.3,18.4l-14.2,19.9c-12-9.5-24.6-14.2-37.1-14.2s-18.7,5.2-18.7,12.7c0,10.5,13.5,13.2,23.4,15.2C833.9,117.9,857.5,125.4,857.5,151.3z"/><path d="M434.9,60.9c-35.3,0-60.7,27.4-60.7,65s25.4,65,60.7,65s60.8-27.4,60.8-65S470.3,60.9,434.9,60.9z M434.9,164.7c-18.7,0-31.9-15.9-31.9-38.9c0-22.9,12.9-38.9,31.9-38.9c18.9,0,31.9,15.9,31.9,38.9S453.6,164.7,434.9,164.7z"/><path d="M505.9,125.9c0-37.1,25.4-65,59.3-65c26.9,0,46.6,13.5,55.8,38.9l-25.6,9.7c-7-15.7-16.2-22.4-30.1-22.4c-17.4,0-30.4,16.4-30.4,38.9c0,22.4,12.9,38.9,30.4,38.9c14,0,23.1-6.7,30.1-22.4l25.6,9.7c-9.2,25.4-28.9,38.9-55.8,38.9C531.3,190.9,505.9,163,505.9,125.9L505.9,125.9L505.9,125.9L505.9,125.9z"/><path d="M351.4,5.3c-0.5,0-1.1,0.1-1.6,0.4l-18.8,10c-0.4,0.2-0.6,0.6-0.6,1v59.5c0,1-1.2,1.4-1.9,0.8c-2.8-2.4-9.3-8.5-18.3-12.7c-4.7-2.2-11.6-3.4-17.9-3.4c-31.6,0-54.5,27.4-54.5,65s22.9,65,54.5,65c16.6,0,29.1-8.7,36.7-16.5c0.5-0.5,0.8-0.8,1.3-1.3c0.7-0.7,1.9-0.3,1.9,0.7l1,14.6h26.1V6.1c0-0.4-0.3-0.8-0.8-0.8C358.5,5.3,351.4,5.3,351.4,5.3z M298.5,164.7c-18.9,0-31.9-15.9-31.9-38.9S279.9,87,298.5,87c18.7,0,31.9,15.9,31.9,38.9C330.4,148.8,317.5,164.7,298.5,164.7z"/><path d="M891.5,63.8l-18.1,9.6c-0.4,0.2-0.6,0.6-0.6,1v114h28.9V64.1c0-0.4-0.3-0.8-0.8-0.8h-7.8C892.5,63.4,892,63.5,891.5,63.8z"/><path d="M887.2,43.1c9.6,0,17.4-7.8,17.4-17.4s-7.8-17.4-17.4-17.4c-9.6,0-17.4,7.8-17.4,17.4S877.6,43.1,887.2,43.1z"/><path d="M742.5,63.3v67.9c0,51.5-28.8,59.6-54.5,59.6s-54.5-8.2-54.5-59.6V63.3h28.8v75.1c0,7.3,1.8,26.3,25.7,26.3s25.7-18.9,25.7-26.3V63.3H742.5z"/></g><g fill="#FFFFFF"><path d="M1185.7,175.6v1.8h-4.1v10.9h-2v-10.9h-4.1v-1.8H1185.7z M1200,188.3h-2v-10l-3.9,7.5h-1.1l-3.9-7.4v9.9h-2v-12.7h2.6l3.8,7.3l3.8-7.3h2.6L1200,188.3L1200,188.3z"/></g></g><g><path fill="#4C00FF" d="M139.5,139.5V189c0,2.6-2.1,4.7-4.7,4.7H4.7c-2.6,0-4.7-2.1-4.7-4.7V59c0-2.6,2.1-4.7,4.7-4.7h49.4v80.5c0,2.6,2.1,4.7,4.7,4.7H139.5L139.5,139.5z"/><path fill="#FF5252" d="M193.7,69.7c0,41.6-24.3,69.7-54.2,69.8V87.1c0-1.5-0.6-3-1.7-4l-27.2-27.2c-1.1-1.1-2.5-1.7-4-1.7H54.2V4.8c0-2.6,2.1-4.7,4.7-4.7h73.3C167,0,193.7,28,193.7,69.7z"/><path fill="#FFFFFF" d="M137.8,83c1.1,1.1,1.7,2.5,1.7,4v52.4H58.9c-2.6,0-4.7-2.1-4.7-4.7V54.2h52.4c1.5,0,3,0.6,4,1.7L137.8,83z"/></g></svg>
+      </div>
+      <div class="lh-badge">Interactive Discovery Hub</div>
+      <h1>Pick a vertical. Pick a use case. Walk the flow.</h1>
+      <p>Every use case opens as an interactive current-state vs. future-state process map — click any step to see where friction lives today and how Docusign IAM transforms it.</p>
+    </div>
+
+    <!-- BODY -->
+    <div class="landing-body">
+
+      <!-- BREADCRUMB -->
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="placeholder">Start by choosing a vertical below</span>
+      </div>
+
+      <!-- STAGE 1: VERTICAL -->
+      <div class="landing-section always-visible">
+        <label><span class="step-pill">1</span> Select Your Vertical</label>
+        <div class="option-grid cols-3" id="verticalGrid"></div>
+      </div>
+
+      <!-- STAGE 2: SUBVERTICAL -->
+      <div class="landing-section" id="subverticalSection">
+        <label><span class="step-pill">2</span> Select Your Subvertical</label>
+        <div class="option-grid cols-3" id="subverticalGrid"></div>
+      </div>
+
+      <!-- STAGE 3: USE CASE -->
+      <div class="landing-section" id="useCaseSection">
+        <label><span class="step-pill">3</span> Choose a Use Case to Walk Through</label>
+        <div id="useCaseGrid"></div>
+      </div>
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="landing-actions">
+      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch Interactive Walkthrough &rarr;</button>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="landing-footer">
+      <span>Current state vs. future state &bull; Built for discovery conversations</span>
+      <p>Also explore: <a href="index.html">Story Demo Experience</a> &bull; <a href="index-playbook.html">SE Playbook</a></p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==========================================================
+     CATALOG — edit this to add new use cases.
+     Each entry points to one of the existing process HTML files.
+     ========================================================== -->
+<script id="catalog-data" type="application/json">
+{
+  "financial-services": {
+    "title": "Financial Services",
+    "subtitle": "Banking, wealth, insurance",
+    "subverticals": {
+      "wealth": {
+        "title": "Wealth Management",
+        "subtitle": "Advisors & investors",
+        "useCases": [
+          {
+            "title": "Wealth Management Onboarding",
+            "subtitle": "New client onboarding — account opening, funding, paperwork",
+            "href": "wealth-onboarding.html"
+          }
+        ]
+      },
+      "banking": {
+        "title": "Banking / CU",
+        "subtitle": "Retail & commercial",
+        "useCases": [
+          {
+            "title": "Retail Banking Deposit Account Opening",
+            "subtitle": "Application through KYC, funding, card issuance",
+            "href": "banking-deposits.html"
+          }
+        ]
+      },
+      "insurance": {
+        "title": "Insurance",
+        "subtitle": "Carriers & agents — P&C and Life",
+        "useCases": [
+          {
+            "title": "Property & Casualty Insurance",
+            "subtitle": "Quote, bind, policy servicing",
+            "href": "insurance-pc.html"
+          },
+          {
+            "title": "Life Insurance",
+            "subtitle": "Underwriting, policy issuance, beneficiary updates",
+            "href": "insurance-life.html"
+          }
+        ]
+      }
+    }
+  },
+  "hls": {
+    "title": "Healthcare & Life Sciences",
+    "subtitle": "Pharma, payer, provider",
+    "subverticals": {
+      "life-sciences": {
+        "title": "Life Sciences",
+        "subtitle": "Pharma, biotech, medical devices",
+        "useCases": [
+          {
+            "title": "Patient Support Program Enrollment",
+            "subtitle": "PSP design through nurse educator support & adherence",
+            "href": "hls-discovery-process-map.html"
+          }
+        ]
+      },
+      "providers": {
+        "title": "Providers",
+        "subtitle": "Hospitals, health systems, physician groups",
+        "useCases": []
+      },
+      "payers": {
+        "title": "Payers",
+        "subtitle": "Health plans & administrators",
+        "useCases": []
+      }
+    }
+  },
+  "public-sector": {
+    "title": "Public Sector",
+    "subtitle": "Federal, state & local, education",
+    "subverticals": {
+      "federal": {
+        "title": "Federal",
+        "subtitle": "Federal agencies & programs",
+        "useCases": [
+          {
+            "title": "Application for Benefits",
+            "subtitle": "VA, Medicare, federal benefit program intake",
+            "href": "public-sector-benefits.html"
+          },
+          {
+            "title": "Government Employee Onboarding",
+            "subtitle": "Federal HR hire-to-badge flow",
+            "href": "public-sector-employee-onboarding.html"
+          },
+          {
+            "title": "Vendor Compliance Intake",
+            "subtitle": "Federal procurement, FedRAMP, certifications",
+            "href": "public-sector-vendor-compliance.html"
+          }
+        ]
+      },
+      "state-local": {
+        "title": "State & Local",
+        "subtitle": "States, counties, cities",
+        "useCases": [
+          {
+            "title": "Application for Benefits",
+            "subtitle": "SNAP, Medicaid, housing assistance intake",
+            "href": "public-sector-benefits.html"
+          },
+          {
+            "title": "Annual Eligibility Recertification",
+            "subtitle": "Decoupled-from-signature recert flow",
+            "href": "public-sector-recertification.html"
+          },
+          {
+            "title": "Commercial License & Permit",
+            "subtitle": "Professional boards, local permitting",
+            "href": "public-sector-licensing.html"
+          },
+          {
+            "title": "311 Citizen Reporting & Field Inspection",
+            "subtitle": "QR-code intake to field worker dispatch",
+            "href": "public-sector-311.html"
+          },
+          {
+            "title": "Government Employee Onboarding",
+            "subtitle": "State/local HR hire-to-badge flow",
+            "href": "public-sector-employee-onboarding.html"
+          },
+          {
+            "title": "Vendor Compliance Intake",
+            "subtitle": "State procurement & vendor certifications",
+            "href": "public-sector-vendor-compliance.html"
+          }
+        ]
+      },
+      "education": {
+        "title": "Education",
+        "subtitle": "K-12, higher-ed, research institutions",
+        "useCases": []
+      }
+    }
+  }
+}
+</script>
+
+<script>
+(function () {
+  const CATALOG = JSON.parse(document.getElementById('catalog-data').textContent);
+
+  const verticalGrid    = document.getElementById('verticalGrid');
+  const subvertSection  = document.getElementById('subverticalSection');
+  const subvertGrid     = document.getElementById('subverticalGrid');
+  const useCaseSection  = document.getElementById('useCaseSection');
+  const useCaseGrid     = document.getElementById('useCaseGrid');
+  const launchBtn       = document.getElementById('launchBtn');
+  const breadcrumb      = document.getElementById('breadcrumb');
+
+  const state = {
+    vertical: null,
+    subvertical: null,
+    useCase: null
+  };
+
+  // ---------- Render vertical cards ----------
+  Object.entries(CATALOG).forEach(([key, v]) => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.dataset.value = key;
+    card.innerHTML = `
+      <div class="oc-title">${v.title}</div>
+      <div class="oc-sub">${v.subtitle}</div>
+    `;
+    card.addEventListener('click', () => selectVertical(key));
+    verticalGrid.appendChild(card);
+  });
+
+  function selectVertical(key) {
+    state.vertical = key;
+    state.subvertical = null;
+    state.useCase = null;
+
+    document.querySelectorAll('#verticalGrid .option-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.value === key);
+    });
+
+    renderSubverticals(key);
+    subvertSection.classList.add('visible');
+    useCaseSection.classList.remove('visible');
+    useCaseGrid.innerHTML = '';
+    updateLaunch();
+    updateBreadcrumb();
+  }
+
+  function renderSubverticals(verticalKey) {
+    const vert = CATALOG[verticalKey];
+    subvertGrid.innerHTML = '';
+    Object.entries(vert.subverticals).forEach(([key, sv]) => {
+      const isEmpty = !sv.useCases || sv.useCases.length === 0;
+      const card = document.createElement('div');
+      card.className = 'option-card' + (isEmpty ? ' empty' : '');
+      card.dataset.value = key;
+      card.innerHTML = `
+        <div class="oc-title">${sv.title}</div>
+        <div class="oc-sub">${sv.subtitle}</div>
+        ${isEmpty ? '<span class="oc-soon">Coming soon</span>' : ''}
+      `;
+      card.addEventListener('click', () => {
+        if (!isEmpty) selectSubvertical(key);
+      });
+      subvertGrid.appendChild(card);
+    });
+  }
+
+  function selectSubvertical(key) {
+    state.subvertical = key;
+    state.useCase = null;
+
+    document.querySelectorAll('#subverticalGrid .option-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.value === key);
+    });
+
+    renderUseCases(state.vertical, key);
+    useCaseSection.classList.add('visible');
+    updateLaunch();
+    updateBreadcrumb();
+  }
+
+  function renderUseCases(verticalKey, subvertKey) {
+    const sv = CATALOG[verticalKey].subverticals[subvertKey];
+    useCaseGrid.innerHTML = '';
+    if (!sv.useCases || sv.useCases.length === 0) {
+      useCaseGrid.innerHTML = `
+        <div class="empty-state">
+          <strong>No use cases authored yet</strong>
+          This subvertical is on the roadmap. Pick another subvertical or check back later.
+        </div>
+      `;
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'usecase-list' + (sv.useCases.length > 1 ? ' dense' : '');
+
+    sv.useCases.forEach((uc, i) => {
+      const card = document.createElement('div');
+      card.className = 'usecase-card';
+      card.dataset.index = i;
+      card.innerHTML = `
+        <span class="uc-dot" aria-hidden="true"></span>
+        <div class="uc-meta">
+          <div class="uc-title">${uc.title}</div>
+          <div class="uc-sub">${uc.subtitle}</div>
+        </div>
+        <svg class="uc-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+        </svg>
+      `;
+      card.addEventListener('click', () => selectUseCase(i));
+      card.addEventListener('dblclick', () => {
+        selectUseCase(i);
+        launchUseCase();
+      });
+      list.appendChild(card);
+    });
+
+    useCaseGrid.appendChild(list);
+  }
+
+  function selectUseCase(index) {
+    state.useCase = index;
+    document.querySelectorAll('#useCaseGrid .usecase-card').forEach((c, i) => {
+      c.classList.toggle('selected', i === index);
+    });
+    updateLaunch();
+    updateBreadcrumb();
+  }
+
+  function updateLaunch() {
+    const ready = state.vertical && state.subvertical && state.useCase !== null;
+    launchBtn.disabled = !ready;
+    if (ready) {
+      const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
+      launchBtn.innerHTML = `Launch &ldquo;${uc.title}&rdquo; &rarr;`;
+    } else {
+      launchBtn.innerHTML = 'Launch Interactive Walkthrough &rarr;';
+    }
+  }
+
+  function updateBreadcrumb() {
+    const parts = [];
+    if (state.vertical) parts.push(CATALOG[state.vertical].title);
+    if (state.subvertical) parts.push(CATALOG[state.vertical].subverticals[state.subvertical].title);
+    if (state.useCase !== null) {
+      parts.push(CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase].title);
+    }
+
+    if (parts.length === 0) {
+      breadcrumb.innerHTML = '<span class="placeholder">Start by choosing a vertical below</span>';
+      return;
+    }
+
+    breadcrumb.innerHTML = parts.map((p, i) => {
+      const isLast = i === parts.length - 1;
+      return `<span class="crumb">${p}</span>${isLast ? '' : '<span class="sep">&rsaquo;</span>'}`;
+    }).join('');
+  }
+
+  window.launchUseCase = function () {
+    if (launchBtn.disabled) return;
+    const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
+    window.location.href = uc.href;
+  };
+
+  // Keyboard — Enter launches when ready
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !launchBtn.disabled) {
+      launchUseCase();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Process Flow Discovery Toolkit — Internal Playbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;450;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111113;
+    --surface: #19191d;
+    --surface-2: #1f1f24;
+    --surface-3: #26262c;
+    --border: rgba(255,255,255,0.04);
+    --border-hover: rgba(255,255,255,0.1);
+    --ink: #e8e4df;
+    --ink-dim: #908a82;
+    --ink-muted: #5a564f;
+    --accent: #c4a46c;
+    --accent-dim: rgba(196,164,108,0.1);
+    --green: #7cb89a;
+    --green-dim: rgba(124,184,154,0.08);
+    --amber: #c9a84c;
+    --amber-dim: rgba(201,168,76,0.08);
+    --red: #c47a6e;
+    --red-dim: rgba(196,122,110,0.07);
+    --blue: #7ea8c4;
+    --radius: 12px;
+    --transition: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: rgba(17,17,19,0.85);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .topbar-badge {
+    background: rgba(196,122,110,0.06);
+    color: var(--red);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(196,122,110,0.1);
+  }
+
+  .topbar-title {
+    font-size: 12.5px;
+    font-weight: 450;
+    color: var(--ink-muted);
+    letter-spacing: 0.03em;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 100px 40px 72px;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    opacity: 0.9;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.75rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--ink-dim);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+    padding-left: 2px;
+  }
+
+  /* ── THE PLAY: STEP-BY-STEP ── */
+  .playbook {
+    display: grid;
+    gap: 0;
+    margin-bottom: 72px;
+    position: relative;
+  }
+
+  .playbook::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 36px;
+    bottom: 36px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    opacity: 0.25;
+  }
+
+  .play-step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    position: relative;
+  }
+
+  .play-step + .play-step {
+    border-top: 1px solid var(--border);
+  }
+
+  .step-marker {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .step-marker.setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(196,164,108,0.15); }
+  .step-marker.engage { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(201,168,76,0.12); }
+  .step-marker.extract { background: var(--green-dim); color: var(--green); border: 1px solid rgba(124,184,154,0.12); }
+  .step-marker.close { background: var(--red-dim); color: var(--red); border: 1px solid rgba(196,122,110,0.1); }
+
+  .step-body h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  .step-body .step-subtitle {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    font-style: italic;
+    margin-bottom: 14px;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .step-body p {
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    line-height: 1.75;
+    margin-bottom: 10px;
+  }
+
+  .script-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 14px 0;
+    position: relative;
+  }
+
+  .script-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .script-box p {
+    font-size: 13px;
+    color: var(--ink);
+    font-style: italic;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+  }
+
+  .do-dont {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .do-box, .dont-box {
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .do-box {
+    background: var(--green-dim);
+    border: 1px solid rgba(124,184,154,0.1);
+    color: var(--green);
+  }
+
+  .dont-box {
+    background: var(--red-dim);
+    border: 1px solid rgba(196,122,110,0.08);
+    color: var(--red);
+  }
+
+  .do-box strong, .dont-box strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ── TOOLKIT GRID ── */
+  .toolkit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1px;
+    margin-bottom: 72px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .tool-card {
+    background: var(--surface);
+    padding: 36px 30px 32px;
+    text-decoration: none;
+    color: inherit;
+    transition: background var(--transition), box-shadow var(--transition);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .tool-card::after {
+    content: '';
+    position: absolute;
+    bottom: 28px;
+    right: 30px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+
+  .tool-card:hover {
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+
+  .tool-card:hover::after {
+    opacity: 0.5;
+    transform: translateX(0);
+  }
+
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 17px;
+  }
+
+  .tool-icon.banking { background: rgba(126,168,196,0.08); border: 1px solid rgba(126,168,196,0.1); }
+  .tool-icon.pc { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.1); }
+  .tool-icon.life { background: rgba(196,122,110,0.06); border: 1px solid rgba(196,122,110,0.08); }
+  .tool-icon.wealth { background: rgba(124,184,154,0.06); border: 1px solid rgba(124,184,154,0.08); }
+
+  .tool-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+    letter-spacing: -0.005em;
+  }
+
+  .tool-card .vertical-tag {
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .tool-card.banking .vertical-tag { color: var(--blue); }
+  .tool-card.pc .vertical-tag { color: var(--amber); }
+  .tool-card.life .vertical-tag { color: var(--red); }
+  .tool-card.wealth .vertical-tag { color: var(--green); }
+
+  .tool-card .desc {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+    flex: 1;
+    font-weight: 300;
+  }
+
+  .tool-card .steps-count {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tool-card .steps-count span {
+    background: var(--surface-3);
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-weight: 500;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── OBJECTION HANDLERS ── */
+  .objections {
+    margin-bottom: 72px;
+  }
+
+  .objection {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+    overflow: hidden;
+    transition: background var(--transition);
+  }
+
+  .objection:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .objection:hover {
+    background: rgba(255,255,255,0.01);
+  }
+
+  .objection-q {
+    padding: 20px 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    user-select: none;
+  }
+
+  .objection-q::before {
+    content: '›';
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 300;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    width: 12px;
+    text-align: center;
+  }
+
+  .objection.open .objection-q::before {
+    transform: rotate(90deg);
+  }
+
+  .objection-q .q-tag {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: var(--amber-dim);
+    padding: 3px 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+
+  .objection-q .q-text {
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--ink);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .objection-a {
+    display: none;
+    padding: 0 4px 24px 32px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .objection.open .objection-a {
+    display: block;
+  }
+
+  /* ── CHEAT SHEET ── */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-bottom: 72px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .cheat-card {
+    background: var(--surface);
+    padding: 28px;
+  }
+
+  .cheat-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cheat-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .cheat-card li {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .cheat-card li:last-child { border-bottom: none; }
+
+  .cheat-card li::before {
+    content: '—';
+    color: var(--ink-muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 48px 40px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    font-weight: 300;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2rem; }
+    .hero { padding: 60px 24px 48px; }
+    .wrap { padding: 0 24px 60px; }
+    .do-dont { grid-template-columns: 1fr; }
+    .cheat-grid { grid-template-columns: 1fr; }
+    .toolkit-grid { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-badge">Internal Only</span>
+    <span class="topbar-title">Discovery Toolkit — Process Flow Playbook</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="https://cdn.prod.website-files.com/67d160f23e7ffa1df23339fc/6810d5d554303d5faf140a5d_DSHoriz_IAM.svg" alt="Docusign" style="height:24px;width:auto;filter:brightness(0) invert(1);opacity:0.3;">
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">The Discovery-as-Demo Playbook</div>
+  <h1>They Think It's a Demo.<br>You're Running Discovery.</h1>
+  <p>These interactive process flows are designed to look like educational product overviews. In reality, every click is a discovery question. Here's how to run the play.</p>
+  <div style="width:48px;height:1px;background:var(--accent);margin:40px auto 0;opacity:0.4;"></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ── THE PLAY ── -->
+  <div class="section-label">The Play — Step by Step</div>
+
+  <div class="playbook">
+
+    <!-- STEP 1: BEFORE THE CALL -->
+    <div class="play-step">
+      <div class="step-marker setup">01</div>
+      <div class="step-body">
+        <h3>Before the Call — Pick the Right Board</h3>
+        <div class="step-subtitle">What the customer sees: nothing yet</div>
+        <p>Select the process flow that matches their primary use case. If you're not sure, ask your champion: <em>"What's the process you lose the most sleep over?"</em> That's your board.</p>
+        <div class="do-dont">
+          <div class="do-box">
+            <strong>Do</strong>
+            Pre-load the HTML in a browser tab, collapsed (no steps expanded). Have it ready to screenshare casually — "I put something together to make sure we're talking about the right things."
+          </div>
+          <div class="dont-box">
+            <strong>Don't</strong>
+            Send the file ahead of time. The magic is in the live conversation, not the artifact. You lose all the discovery if they click through it alone.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: OPEN THE FRAME -->
+    <div class="play-step">
+      <div class="step-marker setup">02</div>
+      <div class="step-body">
+        <h3>Open the Frame — "Let Me Show You How We Think About This"</h3>
+        <div class="step-subtitle">What the customer sees: a clean, impressive process map</div>
+        <p>Share your screen. Show the full flow without expanding anything. Let them absorb the visual. This immediately signals: <em>we understand your world</em>.</p>
+        <div class="script-box">
+          <div class="script-label">Say This</div>
+          <p>"Before we jump into product, I want to make sure we're anchored on how your process actually works today. We put together a simplified view of the [mortgage / claims / onboarding] lifecycle — does this look roughly right for how you run it?"</p>
+        </div>
+        <p>This does two things: (1) earns credibility by showing you've done your homework, and (2) gives them permission to correct you — which is <em>pure discovery gold</em>. Every correction is intel.</p>
+      </div>
+    </div>
+
+    <!-- STEP 3: CLICK THROUGH TOGETHER -->
+    <div class="play-step">
+      <div class="step-marker engage">03</div>
+      <div class="step-body">
+        <h3>Walk the Flow — Click Each Step Together</h3>
+        <div class="step-subtitle">What the customer sees: a well-prepared demo of how you can help</div>
+        <p>Start from Step 1. Click to expand. They see the current-state panel on the left. <strong>This is your moment.</strong> Before you pivot to the future-state panel on the right, pause and ask about <em>their</em> current state.</p>
+        <div class="script-box">
+          <div class="script-label">The Money Question (Ask at Every Step)</div>
+          <p>"So on the left here we've captured what we typically see — [describe the current state pain]. How close is this to what you're dealing with? Is it worse? Better? Totally different?"</p>
+        </div>
+        <p>Then <strong>shut up and listen</strong>. They will tell you:</p>
+        <p>
+          &bull; What system they use (point solution intel)<br>
+          &bull; What's broken about it (pain = urgency)<br>
+          &bull; What they've already tried to fix it (competitive intel)<br>
+          &bull; Who owns the problem (org chart / buying committee intel)
+        </p>
+        <div class="do-dont">
+          <div class="do-box">
+            <strong>Do</strong>
+            Take notes on what they say per step. Map their actual pain to the specific IAM product on the right side. This becomes your proposal's backbone.
+          </div>
+          <div class="dont-box">
+            <strong>Don't</strong>
+            Rush to show the future state. The longer they talk about current state, the more discovery you're extracting. The future state is your reward for being patient.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: THE POINT SOLUTION MOVE -->
+    <div class="play-step">
+      <div class="step-marker engage">04</div>
+      <div class="step-body">
+        <h3>Acknowledge the Immovable — "We're Not Trying to Replace That"</h3>
+        <div class="step-subtitle">What the customer sees: a vendor who actually gets it</div>
+        <p>At each step, call out the point solution that owns that part of the process. This is the most disarming thing you can do. Customers are <em>bracing</em> for you to pitch a rip-and-replace. When you don't, trust skyrockets.</p>
+        <div class="script-box">
+          <div class="script-label">Say This</div>
+          <p>"Your [Guidewire / FIS / Schwab custodian / LOS] — that's staying. That's your system of record and we have zero interest in displacing it. What we're looking at is the agreement layer that wraps around it — the documents, signatures, data capture, and workflows that your core system was never designed to handle well."</p>
+        </div>
+        <p>Now ask: <em>"What are the biggest gaps between what [core system] does well and what falls through the cracks?"</em> — You'll get a roadmap of exactly where to land.</p>
+      </div>
+    </div>
+
+    <!-- STEP 5: REVEAL THE FUTURE STATE -->
+    <div class="play-step">
+      <div class="step-marker extract">05</div>
+      <div class="step-body">
+        <h3>Reveal the Right Side — "Here's Where We Plug In"</h3>
+        <div class="step-subtitle">What the customer sees: a targeted, modular solution (not a boil-the-ocean pitch)</div>
+        <p>Now walk through the future state panel. But only emphasize the steps where <em>they told you</em> they have pain. Skip or breeze past the steps where they said things are fine.</p>
+        <div class="script-box">
+          <div class="script-label">Say This</div>
+          <p>"Based on what you just described around [their specific pain], this is the part I'd focus on. [Product X] plugs in right here, alongside your existing [core system], and specifically solves [the exact thing they complained about]."</p>
+        </div>
+        <p>You're not presenting features. You're reflecting their own words back to them through the lens of your solution. This is the highest-converting motion in enterprise sales.</p>
+      </div>
+    </div>
+
+    <!-- STEP 6: THE SCORECARD -->
+    <div class="play-step">
+      <div class="step-marker extract">06</div>
+      <div class="step-body">
+        <h3>Build the Scorecard Live — "Let's Map This Out"</h3>
+        <div class="step-subtitle">What the customer sees: collaborative problem-solving</div>
+        <p>As you finish walking the flow, summarize what you heard. For each step, give it a quick traffic-light score based on what they told you:</p>
+        <p>
+          <span style="color:#34d399;">&#9679; Green</span> — "You're solid here, no action needed"<br>
+          <span style="color:#fbbf24;">&#9679; Yellow</span> — "There's friction, worth exploring"<br>
+          <span style="color:#f87171;">&#9679; Red</span> — "This is costing you time/money/risk, we should prioritize this"
+        </p>
+        <p>This gives you a <strong>mutual action plan</strong> that the customer helped create. They own it. They can't unsee it.</p>
+        <div class="script-box">
+          <div class="script-label">Close With This</div>
+          <p>"So if I'm hearing you right, Steps [X] and [Y] are where the biggest pain is. What if we did a deeper dive on just those two — brought in our solutions team to show you exactly how [Product] handles that, using your actual documents and workflows? Would that be valuable?"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: AFTER THE CALL -->
+    <div class="play-step">
+      <div class="step-marker close">07</div>
+      <div class="step-body">
+        <h3>After the Call — Send the Artifact, Keep the Intel</h3>
+        <div class="step-subtitle">What the customer sees: a thoughtful follow-up</div>
+        <p><strong>Now</strong> you can send them the HTML file. It becomes a leave-behind that reinforces every pain point they surfaced. They'll share it internally, and it does your selling for you inside the account.</p>
+        <p>Meanwhile, you now have:</p>
+        <p>
+          &bull; <strong>Current stack</strong> — every point solution by name<br>
+          &bull; <strong>Pain by process step</strong> — prioritized by the customer themselves<br>
+          &bull; <strong>Competitive intel</strong> — what they've tried, what failed<br>
+          &bull; <strong>Org chart clues</strong> — who owns each step = who's on the buying committee<br>
+          &bull; <strong>Next steps</strong> — a deep-dive they asked for, not one you pitched
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TOOLKIT ── -->
+  <div class="section-label">Your Boards — Pick the Right One</div>
+
+  <div class="toolkit-grid">
+    <a href="banking-deposits.html" class="tool-card banking">
+      <div class="tool-icon banking">🏦</div>
+      <div class="vertical-tag">Banking</div>
+      <h3>Deposit Account Opening</h3>
+      <div class="desc">Application → KYC → Compliance → Account Setup → Funding. Point solutions: FIS, Fiserv, Jack Henry core banking. Where we land: the agreement wrapper around account origination.</div>
+      <div class="steps-count"><span>5 steps</span> + 1 endpoint</div>
+    </a>
+
+    <a href="insurance-pc.html" class="tool-card pc">
+      <div class="tool-icon pc">🛡️</div>
+      <div class="vertical-tag">Insurance — P&C</div>
+      <h3>Policy Generation & Claims</h3>
+      <div class="desc">Two lanes: New Business (quote to bind) and Claims (FNOL to settlement). Point solutions: Guidewire, Duck Creek, Xactimate. Where we land: document workflows the PAS can't handle.</div>
+      <div class="steps-count"><span>5 + 5 steps</span> across 2 lanes</div>
+    </a>
+
+    <a href="insurance-life.html" class="tool-card life">
+      <div class="tool-icon life">❤️</div>
+      <div class="vertical-tag">Insurance — Life</div>
+      <h3>Policy Generation & Death Claims</h3>
+      <div class="desc">Two lanes: New Business (app through delivery) and Death Claims (notification to settlement). Point solutions: ALIP, Sapiens, Swiss Re MAGNUM. Where we land: the 40% NIGO problem.</div>
+      <div class="steps-count"><span>5 + 5 steps</span> across 2 lanes</div>
+    </a>
+
+    <a href="wealth-onboarding.html" class="tool-card wealth">
+      <div class="tool-icon wealth">📈</div>
+      <div class="vertical-tag">Wealth Management</div>
+      <h3>New Account Onboarding</h3>
+      <div class="desc">Discovery → Application → KYC → Account Setup/ACAT → IPS/Advisory Agreement → Funding. Point solutions: Schwab, Pershing, Orion. Where we land: the 20+ signature pages per account.</div>
+      <div class="steps-count"><span>6 steps</span> + 1 endpoint</div>
+    </a>
+  </div>
+
+  <!-- ── OBJECTION HANDLERS ── -->
+  <div class="section-label">When They Push Back — Handle It</div>
+
+  <div class="objections">
+    <div class="objection" onclick="this.classList.toggle('open')">
+      <div class="objection-q">
+        <span class="q-tag">Objection</span>
+        <span class="q-text">"We already have eSignature — what's different about this?"</span>
+      </div>
+      <div class="objection-a">
+        <strong>Reframe:</strong> "That's exactly why this conversation is valuable. You've got signing handled — that's Step 5 of a 7-step process. The question is: what happens in Steps 1 through 4 before the signature, and Steps 6 and 7 after? That's where 80% of the cycle time lives, and that's what IAM is designed for."<br><br>
+        Then click on the pre-signature steps in the process flow to show the gap visually.
+      </div>
+    </div>
+
+    <div class="objection" onclick="this.classList.toggle('open')">
+      <div class="objection-q">
+        <span class="q-tag">Objection</span>
+        <span class="q-text">"Our [core system] vendor says they can do all of this."</span>
+      </div>
+      <div class="objection-a">
+        <strong>Reframe:</strong> "They probably can do some of it — and that's fine. The question isn't 'can they build it,' it's 'have they built it, and is it any good?' Show me the document collaboration experience in [Guidewire / FIS / Schwab]. Show me the mobile-first application form. Show me the intelligent document repository."<br><br>
+        Pause. Let silence work. Then: "That's the gap we fill. Not replacing them — completing them."
+      </div>
+    </div>
+
+    <div class="objection" onclick="this.classList.toggle('open')">
+      <div class="objection-q">
+        <span class="q-tag">Objection</span>
+        <span class="q-text">"This seems like a big implementation. We don't have bandwidth."</span>
+      </div>
+      <div class="objection-a">
+        <strong>Reframe:</strong> "That's actually the whole point of this view. You don't do all of this at once. Look — [click on the step they said was most painful]. If we just solved this one step, what would that be worth? One step, one integration, one quick win. Then we expand when you're ready."<br><br>
+        The modularity of the process flow visual does this work for you. Point at a single box.
+      </div>
+    </div>
+
+    <div class="objection" onclick="this.classList.toggle('open')">
+      <div class="objection-q">
+        <span class="q-tag">Objection</span>
+        <span class="q-text">"Can you just send us pricing?"</span>
+      </div>
+      <div class="objection-a">
+        <strong>Reframe:</strong> "I could, but it would be meaningless without knowing which of these steps matter to you. That's like asking for a renovation quote before I've seen the house. Give me 20 minutes with this process map and I'll give you a scoped proposal that actually makes sense for your situation."<br><br>
+        This is a buying signal disguised as a brush-off. They want to move forward — they just want to shortcut discovery. Don't let them.
+      </div>
+    </div>
+
+    <div class="objection" onclick="this.classList.toggle('open')">
+      <div class="objection-q">
+        <span class="q-tag">Objection</span>
+        <span class="q-text">"We need to involve [IT / Compliance / Operations] before we go further."</span>
+      </div>
+      <div class="objection-a">
+        <strong>Reframe:</strong> "Perfect — that's exactly who should see this. What if we ran this same walkthrough with them? They'll see we're not proposing to rip out their systems. In fact, [click the point solution callout], we're specifically designed to wrap around what they've already built."<br><br>
+        Ask: "Who on that team owns the [step they flagged as painful]?" — Now you have your next meeting AND you're mapping the buying committee.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHEAT SHEET ── -->
+  <div class="section-label">Quick Reference — Discovery Questions by Step Type</div>
+
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <h4>📋 Application / Intake Steps</h4>
+      <ul>
+        <li>What does your current application experience look like? Paper, PDF, online?</li>
+        <li>What's your NIGO (Not In Good Order) rate? How much rework does that cause?</li>
+        <li>How does application data get into your system of record?</li>
+        <li>What's the mobile experience like for customers?</li>
+        <li>How many times does the same data get re-keyed across systems?</li>
+      </ul>
+    </div>
+    <div class="cheat-card">
+      <h4>📁 Document Collection Steps</h4>
+      <ul>
+        <li>How do you collect supporting documents today? Email? Portal?</li>
+        <li>What percentage of processor time is spent chasing missing docs?</li>
+        <li>How many systems does someone need to log into to see the full file?</li>
+        <li>What happens when a document is rejected — what's the back-and-forth look like?</li>
+        <li>Who has visibility into document status? Just the processor, or the customer too?</li>
+      </ul>
+    </div>
+    <div class="cheat-card">
+      <h4>🔍 Underwriting / Review Steps</h4>
+      <ul>
+        <li>What does the underwriter's desktop look like? How many screens/systems?</li>
+        <li>How are underwriting decisions communicated back to the workflow?</li>
+        <li>What custom or exception documents get generated from underwriting findings?</li>
+        <li>What's your average cycle time from submission to decision?</li>
+        <li>Are there any third-party data sources you wish were integrated?</li>
+      </ul>
+    </div>
+    <div class="cheat-card">
+      <h4>✍️ Signing / Closing Steps</h4>
+      <ul>
+        <li>What's your wet-signature vs. eSignature split today?</li>
+        <li>How do you handle remote or out-of-state customers?</li>
+        <li>What does the closing / signing ceremony look like end to end?</li>
+        <li>How are signed documents stored and retrieved after execution?</li>
+        <li>Have you explored remote online notarization? What's holding you back?</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── GOLDEN RULES ── -->
+  <div class="section-label">Golden Rules</div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-bottom:72px;background:var(--border);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
+    <div style="background:var(--surface);padding:32px 28px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:16px;">01</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:500;margin-bottom:10px;">Earn the Right</div>
+      <div style="font-size:12.5px;color:var(--ink-dim);line-height:1.65;font-weight:300;">Never show the future state before they've talked about their current state. The current-state panel is your opening. The future-state panel is your reward.</div>
+    </div>
+    <div style="background:var(--surface);padding:32px 28px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:16px;">02</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:500;margin-bottom:10px;">Name Their Systems</div>
+      <div style="font-size:12.5px;color:var(--ink-dim);line-height:1.65;font-weight:300;">Say "Guidewire," say "FIS," say "Schwab." When you name their system and say you're not replacing it, trust jumps. They stop defending and start collaborating.</div>
+    </div>
+    <div style="background:var(--surface);padding:32px 28px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:16px;">03</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:500;margin-bottom:10px;">Sell One Box</div>
+      <div style="font-size:12.5px;color:var(--ink-dim);line-height:1.65;font-weight:300;">The whole flow is 5-7 steps. Your deal is 1-2 steps. Find the red box, point at it, and build the proposal around just that. Land and expand is the motion.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Internal Use Only — Docusign IAM Discovery Toolkit — Do not distribute externally without removing this playbook
+</div>
+
+</body>
+</html>
