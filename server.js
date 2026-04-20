@@ -21,6 +21,15 @@ const db = new Database();
 
 app.use(express.json({ limit: '64kb' }));
 
+// --------- SSE clients for live admin updates ---------
+const sseClients = new Set();
+function broadcast(event, payload) {
+  const data = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
+  for (const res of sseClients) {
+    try { res.write(data); } catch {}
+  }
+}
+
 // --------- Default landing ---------
 app.get('/', (req, res) => res.redirect('/index-unified.html'));
 
@@ -87,6 +96,7 @@ app.post('/api/feedback', async (req, res) => {
     const items = await readStore();
     items.push(item);
     await writeStore(items);
+    broadcast('feedback', item);
     res.json({ ok: true, id: item.id });
   } catch (e) {
     console.error('feedback POST error:', e?.message || e);
@@ -140,6 +150,21 @@ app.delete('/admin/feedback/:id', requireAdmin, async (req, res) => {
     await writeStore(items);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'store error' }); }
+});
+
+app.get('/admin/feedback/stream', requireAdmin, (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+  res.flushHeaders?.();
+  res.write('retry: 3000\n\n');
+  res.write(`event: hello\ndata: {"ok":true}\n\n`);
+  sseClients.add(res);
+  const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch {} }, 25000);
+  req.on('close', () => { clearInterval(ping); sseClients.delete(res); });
 });
 
 app.get('/admin/feedback', requireAdmin, (req, res) => {
@@ -254,7 +279,7 @@ function adminHtml() {
     list.innerHTML = items.map(it => {
       const ctx = it.context || {};
       const where = [ctx.pathname, ctx.activeMode, ctx.activeView].filter(Boolean).join(' · ');
-      return \`<div class="card">
+      return \`<div class="card" data-card-id="\${esc(it.id)}">
         <div class="row">
           <div class="body">
             <span class="pill cat-\${esc(it.category)}">\${esc(it.category)}</span>
@@ -303,7 +328,46 @@ function adminHtml() {
   fcat.addEventListener('change', render);
   fstatus.addEventListener('change', render);
   load();
-  setInterval(load, 30000); // auto-refresh every 30s
+
+  // ---- Live updates via Server-Sent Events ----
+  const liveBadge = document.createElement('span');
+  liveBadge.id = 'live';
+  liveBadge.style.cssText = 'margin-left:8px;font-size:11px;padding:3px 8px;border-radius:999px;background:#FFE6E6;color:#C62828;';
+  liveBadge.textContent = '○ connecting…';
+  document.querySelector('header .meta')?.appendChild(liveBadge);
+
+  function setLive(state) {
+    if (state === 'on')      { liveBadge.style.background='#E0F7EE'; liveBadge.style.color='#0E7C4A'; liveBadge.textContent='● live'; }
+    else if (state === 'off'){ liveBadge.style.background='#FFE6E6'; liveBadge.style.color='#C62828'; liveBadge.textContent='○ reconnecting…'; }
+    else                     { liveBadge.style.background='#EEEEF3'; liveBadge.style.color='#444';   liveBadge.textContent='○ ' + state; }
+  }
+
+  function flash(id) {
+    requestAnimationFrame(() => {
+      const card = list.querySelector('[data-card-id="' + id + '"]');
+      if (!card) return;
+      card.style.transition = 'background-color 1.6s ease';
+      card.style.backgroundColor = '#FFF8D6';
+      setTimeout(() => { card.style.backgroundColor = '#fff'; }, 60);
+    });
+  }
+
+  function connect() {
+    const es = new EventSource('/admin/feedback/stream');
+    es.addEventListener('hello', () => setLive('on'));
+    es.addEventListener('feedback', (ev) => {
+      try {
+        const item = JSON.parse(ev.data);
+        if (data.find(x => x.id === item.id)) return;
+        data.push(item);
+        render();
+        flash(item.id);
+      } catch {}
+    });
+    es.onerror = () => { setLive('off'); load(); };
+  }
+  connect();
+  setInterval(load, 120000); // safety-net resync every 2 min in case any events were missed
 </script>
 </body></html>`;
 }
