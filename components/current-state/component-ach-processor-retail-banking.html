@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — ACH Processor (NACHA) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking ACH processor (NACHA batch console evocation) in a Retail Banking workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#0D2642;--v-accent:#5CBDB9;--v-bg:#000;--v-head-ink:#F8C96A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.tm{flex:1;display:flex;flex-direction:column;background:#0A0A0A;}
+.tm-titlebar{height:24px;background:var(--v-head);color:#DDD;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10px;flex-shrink:0;font-family:"SF Mono",Menlo,Consolas,monospace;}
+.tm-logo{font-weight:700;color:#F8C96A;}
+.tm-sess{color:#BBB;}
+.tm-user{margin-left:auto;color:#9CC0EA;}
+.tm-screen{flex:1;background:#000;padding:14px 18px;overflow:hidden;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;line-height:1.45;color:#7CF47C;letter-spacing:0.02em;}
+.tm-inner{position:relative;}
+.tm-inner::before{content:"";position:absolute;inset:-14px -18px;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.03) 0 1px,transparent 1px 3px);pointer-events:none;}
+.tm-line{white-space:pre;}
+.tm-line.hdr{color:#FFD976;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+.tm-line.em{color:#F3FFD9;}
+.tm-line.lbl{color:#5CA85C;}
+.tm-line.val{color:#B8FBA2;}
+.tm-line.warn{color:#F76D4A;font-weight:700;}
+.tm-line.hl{background:#7CF47C;color:#000;padding:0 3px;display:inline-block;}
+.tm-caret{display:inline-block;width:9px;height:13px;background:#7CF47C;margin-left:2px;vertical-align:middle;animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+.tm-status{height:22px;background:#1A1A1A;color:#F8C96A;padding:0 12px;display:flex;align-items:center;gap:18px;font-family:"SF Mono",Menlo,monospace;font-size:10px;flex-shrink:0;border-top:1px solid #333;}
+.tm-foot{padding:6px 12px;background:#1A1A1A;flex-shrink:0;}
+.tm-foot .friction{background:rgba(255,82,82,0.14);color:#F98A76;border-color:rgba(255,82,82,0.36);}
+.tm-foot .friction svg{stroke:#F98A76;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="tm">
+  <div class="tm-titlebar">
+    <span class="tm-logo">ACHWAVE · NACHA File Processor</span>
+    <span class="tm-sess">OPERATOR TERM 014 · PROD-ACH-01 · tail -f</span>
+    <span class="tm-user">ACHOPS-BATCH-03 · on-call</span>
+  </div>
+  <div class="tm-screen">
+    <div class="tm-inner"><div class="tm-line hdr">ACHWAVE — NACHA FILE PROCESSOR · BATCH POST-RUN</div>
+<div class="tm-line ">-----------------------------------------------------------------</div>
+<div class="tm-line lbl">FILE...............: <span class='tm-line val' style='display:inline'>NBT_ACH_04-17-2026_B2.ACH</span></div>
+<div class="tm-line lbl">ODFI...............: <span class='tm-line val' style='display:inline'>NORTHBRIDGE BANK &amp; TRUST · 102000076</span></div>
+<div class="tm-line lbl">CYCLE..............: <span class='tm-line val' style='display:inline'>NIGHT-2  (WINDOW 02:15 — 04:00 CT)</span></div>
+<div class="tm-line lbl">TOTAL ENTRIES......: <span class='tm-line val' style='display:inline'>41,882</span>   TOTAL DOLLARS: <span class='tm-line val' style='display:inline'>$18,441,207.44</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">VALIDATION</div>
+<div class="tm-line lbl">  HEADER............: <span class='tm-line val' style='display:inline'>PASS</span></div>
+<div class="tm-line lbl">  ROUTING NUM CHECK.: <span class='tm-line warn' style='display:inline'>*** 217 ENTRIES FAILED ***</span>   (pre-2023 BOFA RTN mapping)</div>
+<div class="tm-line lbl">  DUP-DETECT........: <span class='tm-line val' style='display:inline'>3 duplicates suppressed</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">RETURNS QUEUE</div>
+<div class="tm-line lbl">  R01 Insufficient funds .............: <span class='tm-line val' style='display:inline'>184</span></div>
+<div class="tm-line lbl">  R03 No account ......................: <span class='tm-line warn' style='display:inline'>41</span></div>
+<div class="tm-line lbl">  R10 Customer advises unauthorized ...: <span class='tm-line warn' style='display:inline'>12</span>   <span class='tm-line warn' style='display:inline'>SLA: NOTIFY BANKER &lt; 24H</span></div>
+<div class="tm-line lbl">  R29 Corporate not authorized ........: <span class='tm-line val' style='display:inline'>3</span></div>
+<div class="tm-line "></div>
+<div class="tm-line em">OUTPUT.............: <span class='tm-line hl' style='display:inline'>POSTED — with 217 exceptions routed to Core Banking exception queue</span></div>
+<div class="tm-line lbl">EXCEPTION ROUTING..: <span class='tm-line val' style='display:inline'>IBM MQ → XQ.BANK.ACH.EXC · depth 4,120</span></div>
+<div class="tm-line lbl">NEXT WINDOW........: <span class='tm-line val' style='display:inline'>NIGHT-3 (WEEKEND HOLDING — returns process Monday)</span></div>
+<div class="tm-line "></div>
+<div class="tm-line lbl">> <span class='tm-caret'></span></div></div>
+  </div>
+  <div class="tm-status"><span>PF1=HELP</span><span>PF3=EXIT</span><span>PF5=REPROCESS</span><span>PF8=RET QUEUE</span><span style="margin-left:auto;">BATCH B2  02:47:14 CT</span></div>
+  <div class="tm-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>R10 unauthorized returns arrive Saturday — the SLA clock starts Monday, after the customer already saw the debit.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-ach-processor-retail-banking.html",
+  "vendor": "ACH processor (NACHA batch console evocation)",
+  "scope": "Retail Banking",
+  "state": "Current",
+  "useCase": "Account opening \u2014 joint checking + savings",
+  "archetype": "terminal"
+}
+</script>
+</body>
+</html>

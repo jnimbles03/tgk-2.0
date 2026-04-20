@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Generic eSign Tool | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Generic (non-Docusign) eSignature vendor (evocation) in a Retail Banking workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#1B2F4A;--v-accent:#2E7D32;--v-bg:#EEF1F5;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.lg{flex:1;display:flex;flex-direction:column;background:#EEF1F5;}
+.lg-head{height:32px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10.5px;flex-shrink:0;}
+.lg-logo{font-family:var(--brand-font);font-weight:700;}
+.lg-actions{display:inline-flex;gap:6px;margin-left:auto;}
+.lg-user{font-size:10px;opacity:0.9;margin-left:14px;}
+.lg-subhead{height:24px;background:#F4F6F9;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:20px;font-size:10px;color:var(--ink-mid);flex-shrink:0;}
+.lg-body{flex:1;display:grid;grid-template-columns:1fr 220px;overflow:hidden;}
+.lg-doc-pane{background:#fff;padding:16px 22px;overflow:auto;font-family:"Times New Roman","Times",serif;font-size:11px;line-height:1.6;color:#1A1A1A;}
+.lg-doc-pane h3{font-family:"Times New Roman",serif;font-size:12px;font-weight:700;margin-bottom:6px;text-align:center;}
+.lg-doc-pane p{margin-bottom:8px;}
+.lg-doc-pane .ins{background:rgba(48,140,72,0.16);color:#1A5A2A;text-decoration:underline;text-decoration-color:#1A5A2A;}
+.lg-doc-pane .del{background:rgba(255,82,82,0.14);color:#882020;text-decoration:line-through;}
+.lg-doc-pane .cmt{background:#FFF3B8;padding:0 2px;}
+.lg-comments{background:#F4F6F9;border-left:1px solid var(--line);padding:10px;overflow:hidden;font-size:10px;}
+.lg-comments h5{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
+.lg-cmt{background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin-bottom:6px;}
+.lg-cmt .who{font-weight:600;font-size:10px;color:var(--v-accent);}
+.lg-cmt .when{font-size:9px;color:var(--ink-soft);}
+.lg-cmt .txt{font-size:9.5px;color:var(--ink);margin-top:3px;line-height:1.4;}
+.lg-foot{padding:6px 12px 10px;background:#fff;flex-shrink:0;border-top:1px solid var(--line);}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="lg">
+  <div class="lg-head">
+    <span class="lg-logo">PAPERSIGN — eSignature (generic / non-Docusign)</span>
+    <span class="lg-doc">NBT_JointAccount_SignaturePacket_v3.pdf</span>
+    <span class="lg-actions"><span class="chip warn">Redline · 14 open</span><span class="chip stale">Reviewer 2/3</span></span>
+    <span class="lg-user">Applicant session · IP 198.51.100.42</span>
+  </div>
+  <div class="lg-subhead">
+    <span>Track Changes: On</span><span>All Markup ▾</span><span>Accept ▾</span><span>Reject ▾</span><span>Next</span><span>Previous</span>
+  </div>
+  <div class="lg-body">
+    <div class="lg-doc-pane">
+<h3 style="font-family:var(--ui-font);">NBT JOINT ACCOUNT SIGNATURE PACKET &middot; v3 (generic eSign)</h3>
+<p style="font-family:var(--ui-font);font-size:11px;">This packet bundles four signatures in one session: account agreement, truth-in-savings, joint-and-survivor tenancy, and electronic communications consent.</p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Applicant:</b> Ramirez, Carla &nbsp;&nbsp; <b>Joint:</b> Ramirez, Luis (spouse)</p>
+<p style="font-family:var(--ui-font);font-size:11px;"><b>Session:</b> PS-2026-51228  <b>IP:</b> 198.51.100.42  <b>Device:</b> iOS · FaceID-verified</p>
+<p style="margin-top:12px;font-family:var(--ui-font);font-size:10.5px;">
+1. Acknowledgment of Terms and Conditions ............. <span class="ins">SIGNED 04/16 10:22</span><br>
+2. Truth-in-Savings Disclosure ......................... <span class="ins">SIGNED 04/16 10:23</span><br>
+3. Joint Tenancy with Right of Survivorship ........... <span class="del">SIGNED 04/16 10:24</span> &nbsp; <span style="color:#A93434;">(voided — wrong state schedule)</span><br>
+4. Electronic Communications Consent ................... <span style="color:#A93434;">NOT SIGNED</span>
+</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:10.5px;color:#6A1111;">
+<b>Envelope status.</b> 2 of 4 signatures captured. Signature #3 was auto-voided by the template engine because the wrong state schedule was merged. The applicant must re-open the envelope to re-sign the replacement — no notification was sent because email failed to a deprecated alias.
+</p>
+<p style="margin-top:8px;font-family:var(--ui-font);font-size:10px;color:#4A3E6B;">
+Audit trail is exportable as a PDF, but the signed certificate of completion will not generate until all four signatures land. Retention routing to ImageVault is manual.
+</p>
+</div>
+    <div class="lg-comments">
+<h5>Envelope events</h5>
+<div class="lg-cmt"><div class="who">PaperSign · system</div><div class="when">04/16 10:24</div><div class="txt">Signature #3 voided — merge diff: wrong state schedule pulled (CO vs TX).</div></div>
+<div class="lg-cmt"><div class="who">Email bounce</div><div class="when">04/16 10:25</div><div class="txt">Re-signing link bounced to <b>noreply-acctopen@nbt.example</b> — deprecated mailbox. Recipient unreachable.</div></div>
+<div class="lg-cmt"><div class="who">Chen, P.</div><div class="when">04/16 11:02</div><div class="txt">Called customer. Walked through re-send. Support ticket INC-2026-99218 open. &ldquo;This is the third template we&rsquo;ve hit this week with wrong state merge.&rdquo;</div></div>
+</div>
+  </div>
+  <div class="lg-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Envelope stalled at 2/4 signatures. Void + resend loop has to be walked over the phone because the re-sign email bounced.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-generic-esign-tool-retail-banking.html",
+  "vendor": "Generic (non-Docusign) eSignature vendor (evocation)",
+  "scope": "Retail Banking",
+  "state": "Current",
+  "useCase": "Account opening \u2014 joint checking + savings",
+  "archetype": "legal"
+}
+</script>
+</body>
+</html>

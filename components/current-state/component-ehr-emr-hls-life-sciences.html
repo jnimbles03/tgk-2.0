@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — EHR / EMR (Rheumatology) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking a Cerner/PowerChart-style EHR patient chart in an HLS Patient Support workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Light.woff2") format("woff2");font-weight:300;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --brand-font:"DSIndigo","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --ui-font:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+
+  /* EHR palette — blue banner, mid-blue tab strip, light body */
+  --ehr-menu:#E8EAEE;
+  --ehr-menu-ink:#303030;
+  --ehr-banner:#1A3A6B;
+  --ehr-banner-hi:#2B54A0;
+  --ehr-tab:#2E6FB8;
+  --ehr-tab-active:#FFFFFF;
+  --ehr-body:#F6F8FB;
+  --ehr-accent:#2B6CB0;
+  --ehr-row:#FFFFFF;
+  --ehr-row-alt:#F1F4F8;
+  --ehr-caution:#F4D27A;
+  --ehr-caution-ink:#6C4A00;
+  --ehr-text:#1D2530;
+  --ehr-subtle:#5B6675;
+  --ehr-rule:#C9D2DD;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ehr-text);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+
+.mock{
+  width:100%;max-width:960px;aspect-ratio:16/10;
+  background:var(--ehr-body);border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.35;
+}
+.mock-wm{
+  position:absolute;bottom:7px;right:9px;font-family:var(--ui-font);font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);opacity:0.6;
+  background:rgba(255,255,255,0.75);padding:3px 7px;border-radius:4px;
+  border:1px solid var(--line);pointer-events:none;z-index:5;
+}
+.phi-wm{
+  position:absolute;top:7px;right:9px;font-family:var(--ui-font);font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;color:#A93434;
+  background:rgba(255,82,82,0.12);padding:3px 7px;border-radius:4px;
+  border:1px solid rgba(255,82,82,0.32);pointer-events:none;font-weight:600;z-index:5;
+}
+
+/* ── Top menu bar ── */
+.menu{
+  height:22px;background:var(--ehr-menu);color:var(--ehr-menu-ink);
+  display:flex;align-items:center;padding:0 10px;gap:16px;font-size:10.5px;
+  border-bottom:1px solid var(--ehr-rule);flex-shrink:0;
+}
+.menu .underline{text-decoration:underline;text-underline-offset:2px;}
+.menu .spacer{flex:1;}
+.menu .mini{display:inline-flex;gap:8px;align-items:center;color:var(--ehr-subtle);}
+.menu .mini svg{width:12px;height:12px;stroke-width:1.8;}
+
+/* ── Patient tabs row ── */
+.ptabs{
+  height:24px;background:#D8DCE2;display:flex;align-items:flex-end;padding:0 6px;gap:2px;flex-shrink:0;
+  border-bottom:1px solid var(--ehr-banner);
+}
+.ptab{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 10px;
+  background:#B9C1CC;color:#1D2530;font-size:10px;
+  border-radius:4px 4px 0 0;border:1px solid #97A2B0;border-bottom:0;
+}
+.ptab.active{background:var(--ehr-banner);color:#fff;border-color:var(--ehr-banner);}
+.ptab .x{opacity:0.7;font-weight:600;}
+.ptab svg{width:10px;height:10px;}
+
+/* ── Patient banner (the iconic strip) ── */
+.banner{
+  background:var(--ehr-banner);color:#fff;display:flex;align-items:stretch;height:58px;flex-shrink:0;
+  border-bottom:1px solid #0F2648;
+}
+.banner .avatar{
+  width:58px;display:flex;align-items:center;justify-content:center;
+  background:#C5CEDD;color:#2E3E5A;flex-shrink:0;border-right:1px solid #0F2648;
+}
+.banner .avatar svg{width:32px;height:32px;stroke:#2E3E5A;stroke-width:1.5;}
+.banner .b-col{padding:5px 10px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-right:1px solid rgba(255,255,255,0.12);}
+.banner .b-name{font-weight:700;color:#FFE27A;font-size:12px;letter-spacing:0.02em;}
+.banner .b-meta{font-size:10px;color:#E2E8F2;line-height:1.35;}
+.banner .b-meta b{color:#fff;font-weight:600;}
+.banner .b-facility{color:#E2E8F2;font-weight:500;font-size:10.5px;padding:0 12px;display:flex;align-items:center;gap:6px;}
+.banner .b-facility svg{width:12px;height:12px;}
+.banner .b-covid{background:var(--ehr-banner-hi);color:#E2E8F2;flex:1;display:flex;align-items:center;justify-content:center;font-size:10.5px;}
+.banner .b-allergies{background:#F4D27A;color:#6C4A00;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;}
+.banner .b-allergies svg{width:12px;height:12px;stroke:#6C4A00;stroke-width:2;}
+.banner .b-weight{background:#FFE27A;color:#6C4A00;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;white-space:nowrap;}
+.banner .b-acp{background:#F4D27A;color:#6C4A00;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;white-space:nowrap;}
+.banner .b-acp svg{width:12px;height:12px;stroke:#6C4A00;stroke-width:2;}
+.banner .b-ews{background:#6B2929;color:#fff;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;}
+.banner .b-btn{background:var(--ehr-banner-hi);color:#fff;padding:0 10px;display:flex;align-items:center;gap:5px;font-size:10px;border-left:1px solid rgba(255,255,255,0.14);}
+.banner .b-btn svg{width:11px;height:11px;}
+
+/* ── Section tabs ── */
+.stabs{
+  height:26px;background:#3F7FC9;display:flex;align-items:flex-end;padding:0 6px;gap:2px;flex-shrink:0;
+  border-bottom:1px solid var(--ehr-rule);
+}
+.stab{
+  display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 12px;
+  background:#2E6FB8;color:#D6E4F5;font-size:10.5px;border-radius:4px 4px 0 0;
+}
+.stab .x{opacity:0.7;}
+.stab.active{background:#fff;color:var(--ehr-text);font-weight:600;border:1px solid var(--ehr-rule);border-bottom:0;}
+.stab.active .x{color:var(--ehr-subtle);}
+.stab.plus{background:#2E6FB8;color:#D6E4F5;padding:0 10px;font-size:12px;font-weight:600;}
+
+/* ── Body: left rail / main / right rail ── */
+.work{flex:1;display:grid;grid-template-columns:165px 1fr 170px;min-height:0;}
+
+.lrail{
+  background:#fff;border-right:1px solid var(--ehr-rule);
+  padding:6px 0 6px 0;overflow:hidden;display:flex;flex-direction:column;
+  font-size:10.5px;color:var(--ehr-text);
+}
+.lrail .li{
+  padding:3px 12px;line-height:1.35;cursor:default;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.lrail .li:hover{background:#E9F0F9;}
+.lrail .li.active{border-left:3px solid var(--ehr-accent);padding-left:9px;background:#fff;font-weight:600;color:var(--ehr-accent);}
+.lrail .li .count{color:var(--ehr-subtle);font-size:10px;font-weight:400;}
+.lrail .sep{border-top:1px solid var(--ehr-rule);margin:8px 0;}
+.lrail h6{text-transform:none;font-size:10.5px;color:var(--ehr-subtle);padding:2px 12px 4px;font-weight:600;letter-spacing:0;}
+.lrail .li.note{color:var(--ehr-accent);}
+
+.main{padding:10px 12px;overflow:hidden;display:flex;flex-direction:column;gap:8px;min-width:0;}
+.main-head{display:flex;align-items:center;gap:10px;}
+.main-head h2{font-family:var(--ui-font);font-size:13px;font-weight:600;color:var(--ehr-text);margin-right:auto;}
+.main-head .plus{width:18px;height:18px;border:1px solid var(--ehr-rule);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--ehr-accent);font-weight:700;font-size:12px;}
+.segmented{display:inline-flex;border:1px solid var(--ehr-rule);border-radius:3px;overflow:hidden;background:#fff;}
+.segmented span{padding:3px 10px;font-size:10px;color:var(--ehr-subtle);border-right:1px solid var(--ehr-rule);}
+.segmented span:last-child{border-right:0;}
+.segmented span.on{background:var(--ehr-accent);color:#fff;font-weight:600;}
+.main .refresh{color:var(--ehr-accent);}
+.main .refresh svg{width:13px;height:13px;}
+
+.sub-card{background:#fff;border:1px solid var(--ehr-rule);border-radius:3px;}
+.sub-card-head{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--ehr-rule);}
+.sub-card-head h3{font-size:12px;font-weight:600;color:var(--ehr-text);margin-right:auto;}
+.sub-card-head .tabs{display:flex;gap:14px;font-size:10.5px;color:var(--ehr-subtle);}
+.sub-card-head .tabs .t.on{color:var(--ehr-accent);font-weight:600;border-bottom:2px solid var(--ehr-accent);padding-bottom:4px;margin-bottom:-6px;}
+.modify-btn{border:1px solid var(--ehr-rule);background:#fff;color:var(--ehr-text);font-size:10px;padding:3px 10px;border-radius:3px;}
+
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--ehr-rule);}
+.cards-grid .c{padding:7px 10px 8px;border-right:1px solid var(--ehr-rule);}
+.cards-grid .c:last-child{border-right:0;}
+.cards-grid .c h4{font-size:10.5px;font-weight:600;color:var(--ehr-text);margin-bottom:5px;}
+.cards-grid .c .row{font-size:10px;line-height:1.45;color:var(--ehr-text);}
+.cards-grid .c .row b{font-weight:600;}
+.cards-grid .c .kind{color:var(--ehr-subtle);font-size:9.5px;text-transform:none;margin-top:4px;}
+.cards-grid .c .empty{color:var(--ehr-subtle);font-style:italic;font-size:10px;}
+
+.team-card{background:#fff;border:1px solid var(--ehr-rule);border-radius:3px;}
+.team-head{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--ehr-rule);}
+.team-head h3{font-size:12px;font-weight:600;color:var(--ehr-text);margin-right:auto;}
+.team-head .icons{display:flex;gap:8px;color:var(--ehr-subtle);}
+.team-head .icons svg{width:13px;height:13px;}
+
+.team-table{width:100%;border-collapse:collapse;font-size:10px;}
+.team-table thead th{text-align:left;padding:4px 10px;background:#E9EEF5;color:var(--ehr-subtle);font-weight:600;border-bottom:1px solid var(--ehr-rule);font-size:10px;}
+.team-table tbody td{padding:4px 10px;border-bottom:1px solid #EDF0F4;vertical-align:middle;}
+.team-table tr.group td{background:#F6F8FB;color:var(--ehr-subtle);font-size:9.5px;text-transform:none;font-style:italic;padding:3px 10px;}
+.team-table tr.empty td{color:var(--ehr-subtle);font-style:italic;}
+
+/* Right rail (AI check-in prep) */
+.rrail{background:#fff;border-left:1px solid var(--ehr-rule);padding:0;overflow:hidden;display:flex;flex-direction:column;font-size:10px;color:var(--ehr-text);}
+.rrail-tabs{display:flex;border-bottom:1px solid var(--ehr-rule);}
+.rrail-tabs .rt{padding:5px 10px;font-size:10px;color:var(--ehr-subtle);}
+.rrail-tabs .rt.on{background:#fff;color:var(--ehr-accent);font-weight:600;border-bottom:2px solid var(--ehr-accent);padding-bottom:3px;}
+.rrail h5{padding:6px 10px 3px;font-size:11px;font-weight:600;color:var(--ehr-text);}
+.rrail p{padding:0 10px 6px;font-size:9.5px;color:var(--ehr-text);line-height:1.45;}
+.rrail ul{padding:0 10px 6px 24px;font-size:9.5px;color:var(--ehr-text);}
+.rrail ul li{list-style:disc;}
+.rrail .fa{padding:6px 10px;border-top:1px solid var(--ehr-rule);}
+.rrail .fa h6{font-size:10px;font-weight:600;color:var(--ehr-accent);margin-bottom:3px;}
+.rrail .fa p{padding:0;color:var(--ehr-subtle);font-size:9.5px;font-style:italic;}
+.rrail .supporting{border-top:1px solid var(--ehr-rule);padding:6px 10px;margin-top:auto;font-size:9px;color:var(--ehr-subtle);}
+.rrail .supporting b{color:var(--ehr-accent);font-weight:600;}
+
+/* Subtle friction badge in stabs area */
+.friction{
+  position:absolute;top:112px;right:178px;z-index:4;
+  background:rgba(255,82,82,0.14);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;letter-spacing:0.02em;
+}
+.friction svg{width:10px;height:10px;stroke:#A93434;stroke-width:2;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+  <!-- ── Top menu bar ── -->
+  <div class="menu">
+    <span><span class="underline">T</span>ask</span>
+    <span><span class="underline">E</span>dit</span>
+    <span><span class="underline">V</span>iew</span>
+    <span><span class="underline">P</span>atient</span>
+    <span><span class="underline">C</span>hart</span>
+    <span><span class="underline">L</span>inks</span>
+    <span><span class="underline">H</span>elp</span>
+    <span class="spacer"></span>
+    <span class="mini"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> List</span>
+  </div>
+
+  <!-- ── Patient tabs row ── -->
+  <div class="ptabs">
+    <span class="ptab active">
+      <svg viewBox="0 0 24 24" stroke="#fff"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4.3-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>
+      CHEN, SARAH
+      <span class="x">×</span>
+    </span>
+  </div>
+
+  <!-- ── Patient banner ── -->
+  <div class="banner">
+    <div class="avatar">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 4.5-6.5 8-6.5s6.5 2 8 6.5"/></svg>
+    </div>
+    <div class="b-col" style="min-width:172px;">
+      <div class="b-name">CHEN, SARAH</div>
+      <div class="b-meta"><b>Sex</b>:&nbsp;F&nbsp; <b>57y</b>&nbsp; <b>DOB</b>:&nbsp;04/12/1968&nbsp; <b>MRN</b>:&nbsp;00482194</div>
+      <div class="b-meta"><b>FIN</b>:&nbsp;000487579&nbsp; <b>RC</b>&nbsp;RheumaCare</div>
+    </div>
+    <div class="b-covid">COVID:&lt;Not Ordered&gt;</div>
+    <div class="b-allergies">
+      <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+      Allergies (2): shellfish, sulfa
+    </div>
+    <div class="b-weight">62 kg ;Weight Dosing</div>
+    <div class="b-acp">
+      <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+      Advance Care Pl…
+    </div>
+    <div class="b-ews">EWS</div>
+    <div class="b-btn">Advisories</div>
+    <div class="b-btn">Risks</div>
+  </div>
+
+  <!-- ── Section tabs ── -->
+  <div class="stabs">
+    <span class="stab">
+      <svg viewBox="0 0 24 24" stroke="#D6E4F5"><path d="M3 11h18M3 6h18M3 16h14"/></svg>
+      RheumaCare
+      <span class="x">×</span>
+    </span>
+    <span class="stab">Patient Summary <span class="x">×</span></span>
+    <span class="stab active">Enrollment <span class="x">×</span></span>
+    <span class="stab">Active Case <span class="x">×</span></span>
+    <span class="stab">Close Case <span class="x">×</span></span>
+    <span class="stab plus">+</span>
+  </div>
+
+  <!-- ── Friction badge (floating) ── -->
+  <div class="friction">
+    <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+    PSP referral packet lives outside chart — fax-to-hub pending
+  </div>
+
+  <!-- ── Work area ── -->
+  <div class="work">
+
+    <!-- Left navigation -->
+    <div class="lrail">
+      <div class="li">Care Plan</div>
+      <div class="li">Check-In Prep</div>
+      <div class="li">Screenings and Assessments <span class="count">(0)</span></div>
+      <div class="li">Documents <span class="count">(28)</span></div>
+      <div class="li">Recommendations</div>
+      <div class="li">Quick Links</div>
+      <div class="li">Activity Log <span class="count">(0)</span></div>
+      <div class="li active">Social Determinants Assessments</div>
+      <div class="li">Demographics</div>
+      <div class="li">Care Team <span class="count">(4)</span></div>
+      <div class="li">Home Medications <span class="count">(4)</span></div>
+      <div class="li">Allergies <span class="count">(2)</span></div>
+      <div class="li">Immunizations</div>
+      <div class="li">Interventions</div>
+      <div class="li">Reminders</div>
+      <div class="li">Histories</div>
+      <div class="li">Observation Notifications</div>
+      <div class="li">Patient Education…</div>
+      <div class="li">Visits List</div>
+      <div class="sep"></div>
+      <h6>Create Note</h6>
+      <div class="li note">Case Summary Note</div>
+      <div class="li note">Care Plan Note</div>
+      <div class="li note">Select Other Note</div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main">
+
+      <!-- Page title -->
+      <div class="main-head">
+        <h2>Social Determinants Assessments</h2>
+        <span class="plus">+</span>
+        <span class="segmented">
+          <span class="on">All Visits</span>
+          <span>Last 6 months</span>
+          <span>Last 1 years</span>
+          <span>Last 18 months</span>
+        </span>
+        <span class="refresh"><svg viewBox="0 0 24 24"><path d="M20 11A8 8 0 1 1 12 4l4 2"/><path d="M16 3v3h-3"/></svg></span>
+      </div>
+
+      <!-- Demographics card -->
+      <div class="sub-card">
+        <div class="sub-card-head">
+          <h3>Demographics</h3>
+          <span class="refresh"><svg viewBox="0 0 24 24"><path d="M20 11A8 8 0 1 1 12 4l4 2"/><path d="M16 3v3h-3"/></svg></span>
+          <span class="tabs">
+            <span class="t on">Information</span>
+            <span class="t">Sticky Notes (0)</span>
+          </span>
+          <button class="modify-btn">Modify Patient Information…</button>
+        </div>
+        <div class="cards-grid">
+          <div class="c">
+            <h4>Addresses</h4>
+            <div class="row"><b>Home</b></div>
+            <div class="row">7800 Rock Creek Pkwy</div>
+            <div class="row">Kansas City, MO 64117</div>
+            <div class="kind" style="margin-top:4px;"><b>Mailing</b></div>
+            <div class="row">7800 Rock Creek Pkwy</div>
+            <div class="row">Kansas City, MO 64117</div>
+          </div>
+          <div class="c">
+            <h4>Contact Information</h4>
+            <div class="row"><b>Home Phone</b></div>
+            <div class="row">(555) 123-6789</div>
+            <div class="row" style="margin-top:4px;"><b>Home Email</b></div>
+            <div class="row">sarahc@mail.example</div>
+            <div class="row" style="margin-top:4px;color:var(--ehr-subtle);">Preferred</div>
+          </div>
+          <div class="c">
+            <h4>Emergency Contact</h4>
+            <div class="empty">No Results Found</div>
+          </div>
+          <div class="c">
+            <h4>Health Plans</h4>
+            <div class="empty">No Results Found</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Care Team card -->
+      <div class="team-card">
+        <div class="team-head">
+          <h3>Care Team (4)</h3>
+          <span class="icons">
+            <svg viewBox="0 0 24 24"><path d="M20 11A8 8 0 1 1 12 4l4 2"/><path d="M16 3v3h-3"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </span>
+        </div>
+        <table class="team-table">
+          <thead><tr><th style="width:32%;">Role</th><th style="width:22%;">Name</th><th style="width:22%;">Service / Team</th><th>Contact</th></tr></thead>
+          <tbody>
+            <tr class="group"><td colspan="4"><b>This Visit</b></td></tr>
+            <tr class="empty"><td colspan="4">No Care Team Members</td></tr>
+            <tr class="group"><td colspan="4"><b>Ongoing</b></td></tr>
+            <tr><td>Care Coordinator</td><td>Anderson, Carey</td><td>–</td><td>(913) 555-4421 (Business)</td></tr>
+            <tr><td>Case Manager</td><td>Purley, James</td><td>–</td><td>(345) 678-3466 (Mobile, Ext:34567)</td></tr>
+            <tr><td>Primary Care Physician</td><td>Walsh MD, Phil</td><td>–</td><td>(345) 555-0902</td></tr>
+            <tr class="group"><td colspan="4"><b>Personal</b></td></tr>
+            <tr><td>–</td><td>Chen, Robert (Spouse)</td><td>–</td><td>(727) 233-3333 (Mobile)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Right rail: AI Check-In Prep -->
+    <div class="rrail">
+      <div class="rrail-tabs">
+        <span class="rt">Entry</span>
+        <span class="rt on">Check&nbsp;In&nbsp;Prep</span>
+      </div>
+      <h5>Sarah Chen is a 57…</h5>
+      <p>F presenting with seropositive rheumatoid arthritis (M06.9); referred today for specialty biologic initiation. Also diagnosed with:</p>
+      <ul>
+        <li>Hypertension</li>
+        <li>Anxiety</li>
+      </ul>
+      <p>Last successful infusion attempt <b>March 31, 2025</b> and any corresponding…</p>
+      <div class="fa">
+        <h6>Future Appointments</h6>
+        <p>No Future Appointments on file.</p>
+      </div>
+      <div class="supporting"><b>Supporting Facts</b> &middot; AI Generated: March 17, 2026 · low-confidence flags (3)</div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-ehr-emr-hls-life-sciences.html",
+  "vendor": "EHR / EMR (Cerner/PowerChart-style)",
+  "scope": "HLS \u2014 Life Sciences",
+  "state": "Current",
+  "useCase": "Patient Support Program Enrollment",
+  "drug": "REVALUMAB (fictional)",
+  "patientName": "Chen, Sarah",
+  "dob": "1968-04-12",
+  "mrn": "00482194",
+  "icd10": "M06.9",
+  "prescriber": "Patel, R. MD",
+  "modeledAfter": "Cerner PowerChart / Oracle Health patient chart — Social Determinants Assessments view"
+}
+</script>
+</body>
+</html>

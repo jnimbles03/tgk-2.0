@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Referral Email Threads (Producer) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Producer referral email thread (evocation) in a Insurance — P&C — Policy Generation workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#2E5472;--v-accent:#C58B3F;--v-bg:#F3F5F8;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.em{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
+.em-head{height:34px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 14px;gap:14px;font-size:11px;flex-shrink:0;}
+.em-logo{font-family:var(--brand-font);font-weight:700;}
+.em-search{background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:3px;font-size:10.5px;color:#E6EEF5;flex:1;max-width:340px;margin-left:10px;}
+.em-user{margin-left:auto;opacity:0.85;font-size:10px;}
+.em-body{flex:1;display:grid;grid-template-columns:140px 250px 1fr;overflow:hidden;background:#fff;}
+.em-fold{background:#F3F5F7;border-right:1px solid var(--line);padding:10px 0;font-size:10.5px;}
+.em-fold .fd{padding:4px 14px;color:var(--ink-mid);display:flex;justify-content:space-between;}
+.em-fold .fd.on{background:rgba(0,0,0,0.05);color:var(--v-accent);font-weight:600;}
+.em-fold .fd .n{font-size:9.5px;color:var(--ink-soft);}
+.em-fold h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);padding:8px 14px 3px;font-weight:600;}
+.em-list{background:#fff;border-right:1px solid var(--line);overflow-y:auto;}
+.em-item{padding:8px 12px;border-bottom:1px solid var(--line);font-size:10px;}
+.em-item.on{background:rgba(0,0,0,0.03);border-left:3px solid var(--v-accent);padding-left:9px;}
+.em-item .from{font-weight:600;color:var(--ink);display:flex;justify-content:space-between;}
+.em-item .from .t{font-size:9px;color:var(--ink-soft);font-weight:400;}
+.em-item .subj{color:var(--ink);margin:2px 0;}
+.em-item .prev{color:var(--ink-soft);font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.em-item .chip{margin-top:3px;}
+.em-thread{padding:14px 18px;overflow-y:auto;font-size:10.5px;}
+.em-subject{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px;}
+.em-msg{border-left:3px solid var(--v-accent);padding:8px 12px;margin-bottom:10px;background:rgba(0,0,0,0.02);border-radius:0 6px 6px 0;}
+.em-msg.quoted{border-left-color:var(--line-strong);background:rgba(0,0,0,0.04);margin-left:20px;opacity:0.85;}
+.em-msg.quoted.deep{margin-left:40px;opacity:0.75;}
+.em-msg-head{font-size:10px;margin-bottom:4px;display:flex;justify-content:space-between;}
+.em-msg-head .who{font-weight:600;}
+.em-msg-head .when{color:var(--ink-soft);}
+.em-msg-body{font-size:10.5px;line-height:1.5;color:var(--ink);}
+.em-msg-body p{margin-bottom:6px;}
+.em-msg-body .attach{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:#fff;border:1px solid var(--line);border-radius:4px;font-size:9.5px;margin-top:4px;}
+.em-msg-body .attach svg{width:10px;height:10px;}
+.em-foot{padding:8px 14px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="em">
+  <div class="em-head">
+    <span class="em-logo">Outlook Web (Producer → UW)</span>
+    <span class="em-search">Search mail</span>
+    <span class="em-user">rios.j@anchor-cove.example</span>
+  </div>
+  <div class="em-body">
+    <div class="em-fold">
+      <h6>Favorites</h6>
+<div class="fd on">Inbox <span class="n">38</span></div>
+<div class="fd">Sent</div>
+<div class="fd">Drafts</div>
+<h6>Folders</h6>
+<div class="fd">CA-Renewals-Q2</div>
+<div class="fd">CA-Wildfire-Appeals</div>
+<div class="fd">Client-Calls</div>
+    </div>
+    <div class="em-list">
+      <div class="em-item on"><div class="from"><span>Mendes, R. (Covenant UW)</span><span class="t">Thu 11:02</span></div><div class="subj">RE: Harrington — wildfire zone appeal path</div><div class="prev">Appeal goes through CoreLogic directly — not a carrier decision…</div><span class="chip warn">critical</span></div>
+<div class="em-item"><div class="from"><span>Harrington, K. (client)</span><span class="t">Wed 18:44</span></div><div class="subj">Re: renewal — 18% is a lot</div><div class="prev">Kim here. We haven't had any claims, the shop hasn't changed. Why the bump?</div><span class="chip warn">client anxiety</span></div>
+<div class="em-item"><div class="from"><span>Anchor Cove Ops</span><span class="t">Wed 09:20</span></div><div class="subj">Q2 renewal book — 12 open</div><div class="prev">42 CA renewals have SAM-2 → SAM-3 risk · 12 already rezoned…</div></div>
+<div class="em-item"><div class="from"><span>Meridian Casualty UW</span><span class="t">Tue 14:30</span></div><div class="subj">Quote Q-MC-CA-26-991 · Harrington Bakery</div><div class="prev">Attached quote $8,120 · wildfire surcharge 14.8%…</div></div>
+    </div>
+    <div class="em-thread">
+      <div class="em-subject">RE: Harrington — wildfire zone appeal path</div>
+<div class="em-msg"><div class="em-msg-head"><span class="who">Mendes, R. (Covenant UW)</span><span class="when">Thu 04/16 11:02</span></div>
+<div class="em-msg-body"><p>Jen — appeal goes through CoreLogic directly. Carrier doesn't override the vendor zone.</p>
+<p>If client can provide: (1) recent brush-clearance receipt, (2) photo evidence of upwind defensible space, (3) CAL FIRE defensible space certificate — I can open a factor-adjustment request. ~30 days.</p>
+<p>Quote v3 still expires 04/29. If appeal succeeds, I'll reissue at the lower factor.</p>
+<span class="attach"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg> Factor_Adjust_Request_form.pdf</span></div></div>
+<div class="em-msg quoted"><div class="em-msg-head"><span class="who">Rios, J. (Anchor Cove)</span><span class="when">Wed 04/15 16:44</span></div>
+<div class="em-msg-body"><p>Is there a path for Harrington to appeal the zone upgrade? Property is the same as last year.</p></div></div>
+<div class="em-msg quoted deep"><div class="em-msg-head"><span class="who">Harrington, K. (client)</span><span class="when">Wed 04/15 08:11</span></div>
+<div class="em-msg-body"><p>Jen — Kim here. Why is the renewal up so much? We haven't had any claims.</p></div></div>
+    </div>
+  </div>
+  <div class="em-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Three actors, three systems, one thread: client ask → producer → UW → vendor. The bill lands first, the explanation follows.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-referral-email-threads-insurance-pc-policy-generation.html",
+  "vendor": "Producer referral email thread (evocation)",
+  "scope": "Insurance \u2014 P&C \u2014 Policy Generation",
+  "state": "Current",
+  "useCase": "BOP renewal \u2014 small-business bakery, California wildfire zone recalc",
+  "archetype": "email"
+}
+</script>
+</body>
+</html>

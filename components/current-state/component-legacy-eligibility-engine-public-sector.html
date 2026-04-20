@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Legacy Eligibility Engine | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Legacy eligibility engine (mainframe green-screen evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#0A2238;--v-accent:#7CF47C;--v-bg:#000;--v-head-ink:#F8C96A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.tm{flex:1;display:flex;flex-direction:column;background:#0A0A0A;}
+.tm-titlebar{height:24px;background:var(--v-head);color:#DDD;display:flex;align-items:center;padding:0 12px;gap:14px;font-size:10px;flex-shrink:0;font-family:"SF Mono",Menlo,Consolas,monospace;}
+.tm-logo{font-weight:700;color:#F8C96A;}
+.tm-sess{color:#BBB;}
+.tm-user{margin-left:auto;color:#9CC0EA;}
+.tm-screen{flex:1;background:#000;padding:14px 18px;overflow:hidden;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;line-height:1.45;color:#7CF47C;letter-spacing:0.02em;}
+.tm-inner{position:relative;}
+.tm-inner::before{content:"";position:absolute;inset:-14px -18px;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.03) 0 1px,transparent 1px 3px);pointer-events:none;}
+.tm-line{white-space:pre;}
+.tm-line.hdr{color:#FFD976;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+.tm-line.em{color:#F3FFD9;}
+.tm-line.lbl{color:#5CA85C;}
+.tm-line.val{color:#B8FBA2;}
+.tm-line.warn{color:#F76D4A;font-weight:700;}
+.tm-line.hl{background:#7CF47C;color:#000;padding:0 3px;display:inline-block;}
+.tm-caret{display:inline-block;width:9px;height:13px;background:#7CF47C;margin-left:2px;vertical-align:middle;animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+.tm-status{height:22px;background:#1A1A1A;color:#F8C96A;padding:0 12px;display:flex;align-items:center;gap:18px;font-family:"SF Mono",Menlo,monospace;font-size:10px;flex-shrink:0;border-top:1px solid #333;}
+.tm-foot{padding:6px 12px;background:#1A1A1A;flex-shrink:0;}
+.tm-foot .friction{background:rgba(255,82,82,0.14);color:#F98A76;border-color:rgba(255,82,82,0.36);}
+.tm-foot .friction svg{stroke:#F98A76;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="tm">
+  <div class="tm-titlebar">
+    <span class="tm-logo">TIERS-LEGACY / ELIG-RULES-87</span>
+    <span class="tm-sess">SESSION: TN3270 · PRD-ELIG-01 · CICS01 · LU TX015</span>
+    <span class="tm-user">DELGADOA  TERM TX015</span>
+  </div>
+  <div class="tm-screen">
+    <div class="tm-inner"><div class="tm-line hdr">TIERS ELIGIBILITY DETERMINATION SYSTEM — ELIG-RULES-87 (R4.12)</div>
+<div class="tm-line ">-------------------------------------------------------------------------</div>
+<div class="tm-line lbl">CASE NUMBER....: <span class='tm-line val' style='display:inline'>CCR-2026-047812</span>     PROGRAM..: <span class='tm-line val' style='display:inline'>SNAP</span>     ACTION..: <span class='tm-line val' style='display:inline'>RECERT</span></div>
+<div class="tm-line lbl">CLIENT.........: <span class='tm-line val' style='display:inline'>RODRIGUEZ, MARIA A.</span>            SSN..: <span class='tm-line val' style='display:inline'>XXX-XX-8421</span>   DOB..: <span class='tm-line val' style='display:inline'>09/14/1978</span></div>
+<div class="tm-line lbl">ADDRESS........: <span class='tm-line val' style='display:inline'>3412 ELMRIDGE LN / AUSTIN TX 78745</span>       CNTY..: <span class='tm-line val' style='display:inline'>TRAVIS</span></div>
+<div class="tm-line lbl">HOUSEHOLD......: <span class='tm-line val' style='display:inline'>03</span>    DEP-MINORS: <span class='tm-line val' style='display:inline'>02</span>    INCOME-DECLD: <span class='tm-line val' style='display:inline'>$2146.00/MO</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">RULE EXECUTION — GROSS/NET INCOME TEST (FPL 130%/100%)</div>
+<div class="tm-line lbl">  GROSS MO INCOME VS FPL 130% (HH=3).........: <span class='tm-line val' style='display:inline'>PASS  2146.00 &lt; 2836.00</span></div>
+<div class="tm-line lbl">  NET MO INCOME VS FPL 100% (HH=3)...........: <span class='tm-line warn' style='display:inline'>*** UNABLE *** — MISSING EVIDENCE</span></div>
+<div class="tm-line lbl">  REQUIRED: PAYSTUB-02-14-2026...............: <span class='tm-line warn' style='display:inline'>MISSING</span></div>
+<div class="tm-line lbl">  REQUIRED: PAYSTUB-02-28-2026...............: <span class='tm-line warn' style='display:inline'>MISSING</span></div>
+<div class="tm-line lbl">  SHELTER-DEDUCTION..........................: <span class='tm-line val' style='display:inline'>APPLIED  $624.00</span></div>
+<div class="tm-line "></div>
+<div class="tm-line hdr">OVERRIDES / CLEARANCES</div>
+<div class="tm-line lbl">  ELIG OVERRIDE CODE.........................: <span class='tm-line val' style='display:inline'>--</span></div>
+<div class="tm-line lbl">  FLAGS......................................: <span class='tm-line warn' style='display:inline'>HOLD-INC-EVID</span>   RECERT-DUE..: <span class='tm-line val' style='display:inline'>04/30/2026</span></div>
+<div class="tm-line "></div>
+<div class="tm-line em">RESULT.........: <span class='tm-line hl' style='display:inline'>BLOCKED — AWAITING INCOME EVIDENCE</span></div>
+<div class="tm-line "></div>
+<div class="tm-line lbl">COMMAND ===> <span class='tm-caret'></span></div></div>
+  </div>
+  <div class="tm-status"><span>PF1=HELP</span><span>PF3=EXIT</span><span>PF4=NOTES</span><span>PF5=OVERRIDE</span><span>PF9=RERUN</span><span style="margin-left:auto;">ROW 024  COL 013</span></div>
+  <div class="tm-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Eligibility rules live in a 1987 COBOL codebase. Overrides are a 5-keystroke command and leave no audit beyond a green-screen log.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-legacy-eligibility-engine-public-sector.html",
+  "vendor": "Legacy eligibility engine (mainframe green-screen evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "terminal",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>

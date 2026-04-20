@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — ServiceNow Source-to-Pay | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking ServiceNow Source-to-Pay (workspace evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#032D42;--v-accent:#62D84E;--v-bg:#F3F5F7;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.console{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
+.c-head{height:34px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:0.01em;}
+.c-logo{font-family:var(--brand-font);}
+.c-tabs{display:flex;gap:18px;font-weight:500;opacity:0.88;font-size:10.5px;margin-left:12px;}
+.c-tabs span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;}
+.c-user{margin-left:auto;opacity:0.85;font-size:10px;font-weight:400;}
+.c-crumb{height:26px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:10.5px;color:var(--ink-mid);flex-shrink:0;}
+.c-crumb b{color:var(--ink);font-weight:600;}
+.c-body{flex:1;display:grid;grid-template-columns:160px 1fr 200px;min-height:0;}
+.c-nav{background:#fff;border-right:1px solid var(--line);padding:10px 0;overflow:hidden;font-size:10.5px;}
+.c-nav .ni{padding:5px 14px;display:flex;align-items:center;gap:8px;color:var(--ink-mid);}
+.c-nav .ni svg{width:13px;height:13px;stroke:var(--ink-soft);}
+.c-nav .ni.on{color:var(--v-accent);font-weight:600;border-left:3px solid var(--v-accent);padding-left:11px;background:rgba(0,0,0,0.02);}
+.c-nav .ni.on svg{stroke:var(--v-accent);}
+.c-nav h6{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);padding:8px 14px 4px;font-weight:600;}
+.c-main{padding:12px 16px;overflow:hidden;}
+.c-main h2{font-family:var(--brand-font);font-size:14px;font-weight:600;margin-bottom:6px;}
+.c-main .kv{display:grid;grid-template-columns:140px 1fr;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
+.c-main .kv .k{color:var(--ink-soft);}
+.c-main .kv .v{color:var(--ink);font-weight:500;}
+.c-main .sec{margin-top:8px;}
+.c-main table{width:100%;border-collapse:collapse;font-size:10px;background:#fff;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+.c-main th{background:rgba(0,0,0,0.04);text-align:left;padding:5px 8px;font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);border-bottom:1px solid var(--line);font-weight:600;}
+.c-main td{padding:5px 8px;border-bottom:1px solid var(--line);font-size:10px;}
+.c-main tr:last-child td{border-bottom:0;}
+.c-aside{background:#fff;border-left:1px solid var(--line);padding:10px 12px;font-size:10px;overflow:hidden;}
+.c-aside h5{font-size:10.5px;font-weight:600;color:var(--v-accent);margin-bottom:6px;}
+.c-aside .task{padding:5px 0;border-bottom:1px solid var(--line);}
+.c-aside .task:last-child{border-bottom:0;}
+.c-aside .task .due{font-size:9.5px;color:#A93434;font-weight:600;}
+.c-foot{padding:8px 12px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="console">
+  <div class="c-head">
+    <span class="c-logo">Source-to-Pay · Now Platform (evocative)</span>
+    <span class="c-tabs"><span class="">Requests</span><span class="on">Purchase Orders</span><span class="">Receipts</span><span class="">Invoices</span><span class="">Suppliers</span></span>
+    <span class="c-user">Beck, R. — Contracting Officer</span>
+  </div>
+  <div class="c-crumb"><b>Purchase Orders</b> &nbsp;&gt;&nbsp; PO-2026-18421 · VerifyWorks Screening · $142,500/yr  <span class="chip warn">Signature Pending</span></div>
+  <div class="c-body">
+    <div class="c-nav">
+      <div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 12 3 3 5-6"/></svg> My Requests</div><div class="ni on"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M9 6V4h6v2"/></svg> Purchase Orders</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg> Contracts</div><div class="ni"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Suppliers</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-4M12 15V7M17 15v-9"/></svg> Spend Analysis</div><h6>Filters</h6><div class="ni" style="font-size:10px;">Pending Approval (23)</div><div class="ni" style="font-size:10px;">Awaiting W-9 (47)</div><div class="ni" style="font-size:10px;">Contract Signature (8)</div>
+    </div>
+    <div class="c-main">
+<h2>PO-2026-18421 — Background Screening (VerifyWorks)</h2>
+<div class="kv"><span class="k">Supplier</span><span class="v">VerifyWorks Screening LLC</span></div>
+<div class="kv"><span class="k">Contract #</span><span class="v">CTR-TX-HHSC-2026-0412</span></div>
+<div class="kv"><span class="k">Term / Ceiling</span><span class="v">1 yr / $142,500</span></div>
+<div class="kv"><span class="k">W-9 / TIN</span><span class="v warn">Trailing-space in TIN — vendor-master match fails</span></div>
+<div class="kv"><span class="k">FedRAMP Status</span><span class="v ok">Moderate — JAB auth, current</span></div>
+<div class="kv"><span class="k">Approvals</span><span class="v">1 of 3 complete</span></div>
+<div class="sec">
+<table><thead><tr><th>Step</th><th>Assignee</th><th>Status</th><th>Updated</th></tr></thead>
+<tbody>
+<tr><td>Draft contract</td><td>Beck, R.</td><td><span class="chip ok">Done</span></td><td>04/09 14:22</td></tr>
+<tr><td>Legal review (track-changes)</td><td>Okafor, E.</td><td><span class="chip ok">Done</span></td><td>04/12 10:08</td></tr>
+<tr><td>CIO sign-off (FedRAMP scope)</td><td>Zhang, W.</td><td><span class="chip warn">Pending</span></td><td>since 04/12</td></tr>
+<tr><td>Contracting Officer signature</td><td>Beck, R.</td><td><span class="chip stale">Not started</span></td><td>—</td></tr>
+<tr><td>Supplier countersignature</td><td>VerifyWorks</td><td><span class="chip stale">Not started</span></td><td>—</td></tr>
+</tbody></table>
+</div></div>
+    <div class="c-aside">
+<h5>Supplier Risk Flags</h5>
+<div class="task"><div><b>Vendor master mismatch</b> — TIN has trailing space in 47 rows</div><div class="due">Blocks AP match</div></div>
+<div class="task"><div>Supplier portal login not set</div><div class="due">Needed for signature</div></div>
+<h5 style="margin-top:8px;">Next Approver</h5>
+<div style="font-size:9.5px;color:var(--ink-mid);">CIO &middot; Zhang, W. &middot; on-call rotation puts Dr. Pham as backup for any approval sitting &gt;3 days</div>
+</div>
+  </div>
+  <div class="c-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Signature required at 3 separate steps, each in a different system. 47 vendors block AP match over a trailing-space TIN.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-servicenow-source-to-pay-public-sector.html",
+  "vendor": "ServiceNow Source-to-Pay (workspace evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "console",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>

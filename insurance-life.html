@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Insurance &mdash; Current State vs. Future State | Docusign IAM</title>
+<meta name="description" content="Process-flow view of the Life Insurance journey today versus with Docusign IAM.">
+
+<link rel="icon" type="image/svg+xml" href="./assets/favicon/favicon-32.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./assets/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon/android-chrome-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./assets/favicon/android-chrome-512.png">
+<link rel="shortcut icon" href="./assets/favicon/favicon.ico">
+
+<style>
+@font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+:root {
+  --ds-cobalt:       #4C00FF;
+  --ds-inkwell:      #130032;
+  --ds-deep-violet:  #26065D;
+  --ds-mist:         #CBC2FF;
+  --ds-poppy:        #FF5252;
+  --ds-ecru:         #F8F3F0;
+  --ds-white:        #FFFFFF;
+
+  --bg:              #F7F4F1;
+  --surface:         #FFFFFF;
+  --surface-raised:  #FFFFFF;
+  --ink:             var(--ds-inkwell);
+  --ink-mid:         #4A3E6B;
+  --ink-soft:        #6E6189;
+  --line:            rgba(19, 0, 50, 0.08);
+  --line-strong:     rgba(19, 0, 50, 0.14);
+  --on-mesh:         rgba(255, 255, 255, 0.95);
+  --on-mesh-soft:    rgba(255, 255, 255, 0.68);
+  --on-mesh-faint:   rgba(255, 255, 255, 0.38);
+
+  --current-bg:      rgba(255, 82, 82, 0.05);
+  --current-border:  rgba(255, 82, 82, 0.18);
+  --current-ink:     #A93434;
+  --future-bg:       rgba(76, 0, 255, 0.04);
+  --future-border:   rgba(76, 0, 255, 0.14);
+  --future-ink:      var(--ds-cobalt);
+
+  --iam-bg:          rgba(203, 194, 255, 0.28);
+  --iam-border:      rgba(76, 0, 255, 0.18);
+  --iam-ink:         var(--ds-deep-violet);
+
+  --brand-font: "DSIndigo", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --ui-font:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  --node-size: 84px;
+  --node-size-sm: 64px;
+
+  --ease:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  font-family: var(--ui-font);
+  background: var(--ds-inkwell);
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  position: relative;
+}
+
+.bg-mesh {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden;
+  background: linear-gradient(160deg,
+    var(--ds-inkwell)     0%,
+    var(--ds-deep-violet) 25%,
+    var(--ds-cobalt)     60%,
+    #6B2FFF             100%);
+}
+.bg-mesh::before, .bg-mesh::after {
+  content: ""; position: absolute;
+  border-radius: 50%; filter: blur(140px); opacity: 0.42;
+  animation: mesh-float 22s ease-in-out infinite;
+}
+.bg-mesh::before {
+  width: 720px; height: 720px;
+  background: radial-gradient(circle, var(--ds-poppy) 0%, transparent 70%);
+  top: -260px; right: -220px;
+}
+.bg-mesh::after {
+  width: 620px; height: 620px;
+  background: radial-gradient(circle, var(--ds-mist) 0%, transparent 70%);
+  bottom: -220px; left: -160px;
+  animation-delay: -10s; animation-direction: reverse;
+}
+.bg-mesh .scribble {
+  position: absolute; border-radius: 50%;
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+.bg-mesh .scribble-1 { width: 520px; height: 520px; top: 8%; right: -120px; transform: rotate(-15deg); }
+.bg-mesh .scribble-2 { width: 360px; height: 360px; bottom: 6%; left: -90px; border-color: rgba(255, 82, 82, 0.14); transform: rotate(20deg); }
+@keyframes mesh-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(30px, -40px) scale(1.05); }
+  66%      { transform: translate(-20px, 30px) scale(0.95); }
+}
+
+::selection { background: var(--ds-cobalt); color: var(--ds-white); }
+h1, h2, h3, h4 { font-family: var(--brand-font); letter-spacing: -0.02em; color: var(--ink); }
+
+svg.icon, .icon-wrap svg, .node-icon svg, .lane-icon svg,
+.legend-swatch svg, .point-chip svg, .iam-tag svg,
+.state-label svg, .panel-close svg, .kbd-hint svg, .endpoint-badge svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.page-header { max-width: 1240px; margin: 0 auto; padding: 56px 32px 12px; text-align: center; }
+.page-header .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; font-family: var(--brand-font); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; color: var(--on-mesh); }
+.page-header .logo .logo-mark { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08), 0 0 18px rgba(255, 82, 82, 0.35); flex-shrink: 0; }
+.page-header .logo .logo-word { display: inline-block; }
+.page-header .logo .logo-word b { font-weight: 700; }
+.page-header h1 { font-family: var(--brand-font); font-weight: 600; font-size: clamp(28px, 3.2vw, 40px); line-height: 1.1; color: var(--on-mesh); margin-bottom: 10px; letter-spacing: -0.02em; }
+.page-header .eyebrow { font-family: var(--ui-font); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ds-mist); margin-bottom: 14px; }
+.page-header .subtitle { font-family: var(--ui-font); font-size: 14px; color: var(--on-mesh-soft); max-width: 640px; margin: 0 auto; line-height: 1.6; }
+
+.legend { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 24px 32px 8px; }
+.legend-item { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-mesh-soft); }
+.legend-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+.legend-swatch.current { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(255, 82, 82, 0.55); }
+.legend-swatch.future  { background: rgba(255, 255, 255, 0.94); border: 1.5px solid var(--ds-cobalt); }
+.legend-swatch.point   { background: rgba(255, 82, 82, 0.22); border: 1px solid rgba(255, 82, 82, 0.55); }
+.legend-swatch.iam     { background: var(--ds-mist); border: 1px solid rgba(255, 255, 255, 0.4); }
+
+.point-solutions-bar { max-width: 1240px; margin: 28px auto 16px; padding: 18px 32px; background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--r-md); box-shadow: 0 18px 40px rgba(19, 0, 50, 0.22); display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.point-solutions-bar .ps-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--current-ink); display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.point-solutions-bar .ps-label svg { width: 14px; height: 14px; }
+.point-solutions-bar .ps-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.point-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--current-bg); border: 1px solid var(--current-border); font-size: 12px; font-weight: 500; color: var(--current-ink); white-space: nowrap; }
+.point-chip svg { width: 12px; height: 12px; }
+
+.container { max-width: 1240px; margin: 0 auto; padding: 24px 32px 96px; }
+.swim-lane { background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--r-lg); padding: 36px 28px 40px; margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 28px 72px rgba(19, 0, 50, 0.32); }
+
+.lane-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 32px; padding: 0 4px; }
+.lane-icon { width: 44px; height: 44px; border-radius: var(--r-sm); background: var(--iam-bg); border: 1px solid var(--iam-border); display: flex; align-items: center; justify-content: center; color: var(--ds-cobalt); flex-shrink: 0; }
+.lane-icon svg { width: 20px; height: 20px; }
+.lane-meta { flex: 1; min-width: 0; }
+.lane-title { font-family: var(--brand-font); font-size: 18px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 4px; }
+.lane-subtitle { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); }
+
+.kbd-hint { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--ink-soft); font-size: 11px; font-weight: 500; flex-shrink: 0; }
+.kbd-hint svg { width: 12px; height: 12px; }
+.kbd-hint kbd { font-family: var(--ui-font); font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 3px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+
+.flow { display: flex; align-items: flex-start; padding: 8px 4px 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.flow::-webkit-scrollbar { height: 8px; }
+.flow::-webkit-scrollbar-track { background: transparent; }
+.flow::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+
+.node { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; width: 120px; cursor: pointer; position: relative; transition: transform 0.2s var(--ease); background: none; border: none; padding: 0; font-family: inherit; }
+.node:hover { transform: translateY(-2px); }
+.node:focus { outline: none; }
+.node:focus-visible .node-circle { box-shadow: 0 0 0 3px rgba(76, 0, 255, 0.28); }
+.node-circle { width: var(--node-size); height: var(--node-size); border-radius: 50%; background: var(--surface); border: 2px solid var(--ds-cobalt); color: var(--ds-cobalt); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 2px 14px rgba(76, 0, 255, 0.07); transition: all 0.3s var(--ease); }
+.node:hover .node-circle { box-shadow: 0 6px 22px rgba(76, 0, 255, 0.15); }
+.node.active .node-circle { background: var(--ds-cobalt); color: var(--ds-white); box-shadow: 0 6px 26px rgba(76, 0, 255, 0.32); }
+.node-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+.node-icon svg { width: 100%; height: 100%; }
+.node-step-badge { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--ink); color: var(--ds-white); font-family: var(--ui-font); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: center; line-height: 1; border: 2px solid var(--surface); }
+.node-label { font-family: var(--ui-font); font-size: 12px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.35; max-width: 110px; letter-spacing: -0.005em; }
+.node.active .node-label { color: var(--ds-cobalt); }
+.node.endpoint .node-circle { background: var(--ds-deep-violet); border-color: var(--ds-deep-violet); color: var(--ds-white); }
+.node.endpoint.active .node-circle { background: var(--ds-cobalt); border-color: var(--ds-cobalt); }
+.node.endpoint .endpoint-badge { position: absolute; bottom: -8px; right: -4px; width: 22px; height: 22px; border-radius: 50%; background: var(--ds-poppy); color: var(--ds-white); display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
+.node.endpoint .endpoint-badge svg { width: 12px; height: 12px; stroke-width: 2.2; }
+
+.connector { display: flex; align-items: center; height: var(--node-size); flex-shrink: 0; padding: 0 2px; color: var(--line-strong); }
+.connector-line { width: 44px; height: 2px; background: currentColor; position: relative; }
+.connector-line::after { content: ""; position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 7px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+
+.panel-scrim { position: fixed; inset: 0; background: rgba(19, 0, 50, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease); z-index: 100; }
+.panel-scrim.open { opacity: 1; pointer-events: auto; }
+
+.panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 16px)); width: min(1080px, calc(100vw - 48px)); max-height: calc(100vh - 48px); background: var(--surface); border-radius: var(--r-xl); box-shadow: 0 30px 80px rgba(19, 0, 50, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease), transform 0.4s var(--ease-out); z-index: 101; display: flex; flex-direction: column; overflow: hidden; }
+.panel.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); }
+
+.panel-header { padding: 28px 36px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; gap: 20px; }
+.panel-step { font-family: var(--ui-font); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-cobalt); margin-bottom: 6px; }
+.panel-lane-chip { display: inline-block; font-family: var(--ui-font); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-deep-violet); background: var(--iam-bg); border: 1px solid var(--iam-border); padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+.panel-title { font-family: var(--brand-font); font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1.2; letter-spacing: -0.015em; }
+.panel-title-wrap { flex: 1; min-width: 0; }
+.panel-nav { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.panel-nav button { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); color: var(--ink-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s var(--ease); }
+.panel-nav button:hover:not(:disabled) { background: var(--ds-cobalt); color: var(--ds-white); border-color: var(--ds-cobalt); }
+.panel-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+.panel-nav button svg { width: 14px; height: 14px; stroke-width: 2; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.panel-close { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); color: var(--ink-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 6px; transition: all 0.18s var(--ease); }
+.panel-close:hover { background: var(--ds-poppy); color: var(--ds-white); border-color: var(--ds-poppy); }
+.panel-close svg { width: 14px; height: 14px; stroke-width: 2; }
+
+.panel-body { padding: 28px 36px 36px; overflow-y: auto; flex: 1; }
+.state-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 560px) { .state-grid { grid-template-columns: 1fr; } }
+
+.state-card { border-radius: var(--r-md); padding: 22px 24px; border: 1px solid transparent; min-width: 0; }
+.state-card.current { background: var(--current-bg); border-color: var(--current-border); }
+.state-card.future { background: var(--future-bg); border-color: var(--future-border); }
+
+.state-label { font-family: var(--ui-font); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.state-card.current .state-label { color: var(--current-ink); }
+.state-card.future  .state-label { color: var(--future-ink); }
+.state-label svg { width: 12px; height: 12px; stroke-width: 2.2; }
+
+.state-heading { font-family: var(--brand-font); font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 12px; line-height: 1.35; }
+.state-items { list-style: none; padding: 0; margin: 0 0 16px; }
+.state-items li { position: relative; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--ink-mid); margin-bottom: 8px; }
+.state-items li::before { content: ""; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; }
+.state-card.current .state-items li::before { background: var(--current-ink); }
+.state-card.future  .state-items li::before { background: var(--ds-cobalt); }
+
+.state-media { width: 100%; margin-top: 16px; border-radius: var(--r-sm); overflow: hidden; background: rgba(255, 255, 255, 0.6); display: flex; align-items: center; justify-content: center; position: relative; }
+.state-media.empty { min-height: 140px; border: 2px dashed var(--current-border); background: repeating-linear-gradient(45deg, rgba(255, 82, 82, 0.02) 0, rgba(255, 82, 82, 0.02) 10px, transparent 10px, transparent 20px); color: var(--current-ink); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-style: italic; text-align: center; padding: 18px; gap: 6px; flex-direction: column; }
+.state-card.future .state-media.empty { border-color: var(--future-border); background: repeating-linear-gradient(45deg, rgba(76, 0, 255, 0.02) 0, rgba(76, 0, 255, 0.02) 10px, transparent 10px, transparent 20px); color: var(--future-ink); }
+.state-media.empty svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.7; }
+.state-media.empty .sm-hint { opacity: 0.85; }
+.state-media.empty .sm-hint-sub { font-size: 10px; font-weight: 500; letter-spacing: 0.04em; text-transform: none; font-style: normal; opacity: 0.55; margin-top: -2px; }
+.state-media img, .state-media video { display: block; width: 100%; height: auto; max-height: 220px; object-fit: cover; border: 1px solid var(--line); border-radius: var(--r-sm); }
+.state-media .sm-frame { position: relative; width: 100%; height: 280px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); }
+.state-media .sm-frame iframe { position: absolute; top: 0; left: 0; width: 200%; height: 560px; transform: scale(0.5); transform-origin: 0 0; border: 0; display: block; background: #fff; pointer-events: none; }
+.state-media .sm-frame-meta { position: absolute; inset: auto 0 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; background: linear-gradient(180deg, rgba(19,0,50,0) 0%, rgba(19,0,50,0.78) 55%, rgba(19,0,50,0.92) 100%); color: #fff; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+.state-media .sm-frame-meta .sm-frame-label { opacity: 0.9; }
+.state-media .sm-frame-meta .sm-frame-open { display: inline-flex; align-items: center; gap: 4px; opacity: 0.85; }
+.state-media .sm-frame-meta .sm-frame-open svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.state-media { align-items: stretch; }
+.state-media:has(.sm-frame-link) { padding: 0; background: transparent; }
+.state-media a.sm-frame-link { display: block; width: 100%; flex: 1 1 100%; align-self: stretch; text-decoration: none; color: inherit; pointer-events: auto; border-radius: var(--r-sm); transition: box-shadow 0.2s var(--ease); }
+.state-media a.sm-frame-link:hover { box-shadow: 0 0 0 2px var(--ds-cobalt); }
+.state-media a.sm-frame-link:hover .sm-frame-meta .sm-frame-open { opacity: 1; }
+
+.iam-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.iam-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--iam-bg); border: 1px solid var(--iam-border); color: var(--iam-ink); font-size: 11px; font-weight: 600; letter-spacing: 0.01em; }
+.iam-tag svg { width: 11px; height: 11px; }
+
+.card-point-solutions { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--current-border); }
+.card-point-solutions .ps-mini-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--current-ink); margin-bottom: 8px; }
+.card-point-solutions .ps-mini-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.card-point-solutions .point-chip { font-size: 11px; padding: 4px 9px; }
+
+.panel-footer { padding: 14px 36px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 11px; color: var(--ink-soft); background: var(--bg); }
+.panel-footer .pf-dots { display: inline-flex; gap: 4px; }
+.panel-footer .pf-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); transition: background 0.2s var(--ease); }
+.panel-footer .pf-dots span.active { background: var(--ds-cobalt); }
+
+.page-footer { max-width: 1240px; margin: 0 auto; padding: 24px 32px 56px; text-align: center; font-size: 11px; color: var(--on-mesh-faint); letter-spacing: 0.04em; }
+.page-footer a { color: var(--ds-mist); text-decoration: none; }
+.page-footer a:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true">
+  <span class="scribble scribble-1"></span>
+  <span class="scribble scribble-2"></span>
+</div>
+
+<header class="page-header">
+  <div class="logo" aria-label="Docusign">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 241.4" width="200" height="40" role="img" aria-label="Docusign"><g><g fill="#FFFFFF"><path d="M1169.2,109.7v78.7h-28.9v-73.5c0-17.9-7.7-27.9-22.7-27.9s-24.9,10.5-27.7,28.1c-0.8,4.2-1,10.7-1,24.4v48.8H1060v-125h25.6c0.1,1.1,0.7,12.3,0.7,13c0,0.9,1.1,1.4,1.8,0.8c10.6-8.4,22.3-16.2,38.6-16.2C1153.5,60.9,1169.2,79,1169.2,109.7z"/><path d="M1013.4,63.4l-0.9,14.3c-0.1,0.9-1.2,1.4-1.8,0.8c-3.5-3.3-16.4-17.5-38.3-17.5c-31.4,0-54.5,27.1-54.5,63.9l0,0c0,37.3,22.9,64.5,54.5,64.5c21.1,0,34-13.7,36.4-16.7c0.7-0.8,2-0.3,2,0.7c-0.3,3.8-0.8,13.3-4,21.4c-4,10.2-13,19.7-31.1,19.7c-14.9,0-28.1-5.7-40.6-17.9L920,217.3c13.7,15.5,35.3,24.2,58.8,24.2c37.8,0,60.5-25.9,60.5-68.2V63.4H1013.4z M978.6,163.2c-18.7,0-31.9-16.2-31.9-38.3S959.9,87,978.6,87c18.7,0,31.9,15.7,31.9,37.9C1010.4,147.1,997.2,163.2,978.6,163.2z"/><path d="M857.5,151.3c0,23.7-19.9,39.6-49.1,39.6c-22.9,0-43.3-8.9-55.5-21.6l0,0l0,0l9.5-22.6c9.2,8.3,24,20.2,45.1,20.2c14.7,0,23.2-6.5,23.2-14.7c0-9.5-11.7-12-25.7-14.7c-19.9-4.2-46.3-11-46.3-38.1c0-22.7,18.4-38.3,45.6-38.3c20.9,0,38.9,8,51.3,18.4l-14.2,19.9c-12-9.5-24.6-14.2-37.1-14.2s-18.7,5.2-18.7,12.7c0,10.5,13.5,13.2,23.4,15.2C833.9,117.9,857.5,125.4,857.5,151.3z"/><path d="M434.9,60.9c-35.3,0-60.7,27.4-60.7,65s25.4,65,60.7,65s60.8-27.4,60.8-65S470.3,60.9,434.9,60.9z M434.9,164.7c-18.7,0-31.9-15.9-31.9-38.9c0-22.9,12.9-38.9,31.9-38.9c18.9,0,31.9,15.9,31.9,38.9S453.6,164.7,434.9,164.7z"/><path d="M505.9,125.9c0-37.1,25.4-65,59.3-65c26.9,0,46.6,13.5,55.8,38.9l-25.6,9.7c-7-15.7-16.2-22.4-30.1-22.4c-17.4,0-30.4,16.4-30.4,38.9c0,22.4,12.9,38.9,30.4,38.9c14,0,23.1-6.7,30.1-22.4l25.6,9.7c-9.2,25.4-28.9,38.9-55.8,38.9C531.3,190.9,505.9,163,505.9,125.9L505.9,125.9L505.9,125.9L505.9,125.9z"/><path d="M351.4,5.3c-0.5,0-1.1,0.1-1.6,0.4l-18.8,10c-0.4,0.2-0.6,0.6-0.6,1v59.5c0,1-1.2,1.4-1.9,0.8c-2.8-2.4-9.3-8.5-18.3-12.7c-4.7-2.2-11.6-3.4-17.9-3.4c-31.6,0-54.5,27.4-54.5,65s22.9,65,54.5,65c16.6,0,29.1-8.7,36.7-16.5c0.5-0.5,0.8-0.8,1.3-1.3c0.7-0.7,1.9-0.3,1.9,0.7l1,14.6h26.1V6.1c0-0.4-0.3-0.8-0.8-0.8C358.5,5.3,351.4,5.3,351.4,5.3z M298.5,164.7c-18.9,0-31.9-15.9-31.9-38.9S279.9,87,298.5,87c18.7,0,31.9,15.9,31.9,38.9C330.4,148.8,317.5,164.7,298.5,164.7z"/><path d="M891.5,63.8l-18.1,9.6c-0.4,0.2-0.6,0.6-0.6,1v114h28.9V64.1c0-0.4-0.3-0.8-0.8-0.8h-7.8C892.5,63.4,892,63.5,891.5,63.8z"/><path d="M887.2,43.1c9.6,0,17.4-7.8,17.4-17.4s-7.8-17.4-17.4-17.4c-9.6,0-17.4,7.8-17.4,17.4S877.6,43.1,887.2,43.1z"/><path d="M742.5,63.3v67.9c0,51.5-28.8,59.6-54.5,59.6s-54.5-8.2-54.5-59.6V63.3h28.8v75.1c0,7.3,1.8,26.3,25.7,26.3s25.7-18.9,25.7-26.3V63.3H742.5z"/></g><g fill="#FFFFFF"><path d="M1185.7,175.6v1.8h-4.1v10.9h-2v-10.9h-4.1v-1.8H1185.7z M1200,188.3h-2v-10l-3.9,7.5h-1.1l-3.9-7.4v9.9h-2v-12.7h2.6l3.8,7.3l3.8-7.3h2.6L1200,188.3L1200,188.3z"/></g></g><g><path fill="#4C00FF" d="M139.5,139.5V189c0,2.6-2.1,4.7-4.7,4.7H4.7c-2.6,0-4.7-2.1-4.7-4.7V59c0-2.6,2.1-4.7,4.7-4.7h49.4v80.5c0,2.6,2.1,4.7,4.7,4.7H139.5L139.5,139.5z"/><path fill="#FF5252" d="M193.7,69.7c0,41.6-24.3,69.7-54.2,69.8V87.1c0-1.5-0.6-3-1.7-4l-27.2-27.2c-1.1-1.1-2.5-1.7-4-1.7H54.2V4.8c0-2.6,2.1-4.7,4.7-4.7h73.3C167,0,193.7,28,193.7,69.7z"/><path fill="#FFFFFF" d="M137.8,83c1.1,1.1,1.7,2.5,1.7,4v52.4H58.9c-2.6,0-4.7-2.1-4.7-4.7V54.2h52.4c1.5,0,3,0.6,4,1.7L137.8,83z"/></g></svg>
+  </div>
+  <div class="eyebrow">Interactive Discovery</div>
+  <h1>Life Insurance &mdash; Current State vs. Future State</h1>
+  <p class="subtitle">
+    Two parallel processes &mdash; new business &amp; policy issue and death claims &mdash; viewed side by side.
+    Click any node to see how Docusign IAM replaces the friction between agent, carrier,
+    underwriter, beneficiary, and reinsurer.
+  </p>
+</header>
+
+<div class="legend" role="list">
+  <div class="legend-item" role="listitem"><span class="legend-swatch future"></span><span>Docusign-powered step</span></div>
+  <div class="legend-item" role="listitem"><span class="legend-swatch iam"></span><span>IAM product</span></div>
+  <div class="legend-item" role="listitem"><span class="legend-swatch point"></span><span>Point solution (non-displaceable)</span></div>
+</div>
+
+<section class="point-solutions-bar" aria-label="Point solutions that cannot be displaced">
+  <div class="ps-label">
+    <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    Point Solutions
+  </div>
+  <div class="ps-chips">
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>PAS (ALIP / Sapiens / Majesco / Oracle OIPA)</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Underwriting Engine (Swiss Re MAGNUM / RGA AURA)</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>MIB / Rx / MVR Data</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Illustration System</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Claims Administration</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Death Verification (SSDI / DMF)</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Payment / Treasury Rails</span>
+    <span class="point-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>Reinsurance Reporting</span>
+  </div>
+</section>
+
+<main class="container">
+  <section class="swim-lane" aria-label="New business and policy issue flow" data-lane="new-business">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+      </div>
+      <div class="lane-meta">
+        <div class="lane-title">New Business &amp; Policy Issue</div>
+        <div class="lane-subtitle">Agent &middot; Applicant &middot; Underwriter &middot; Application &rarr; In-Force</div>
+      </div>
+      <div class="kbd-hint">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/></svg>
+        <kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate
+      </div>
+    </div>
+    <div class="flow" id="flow-new-business" role="list"></div>
+  </section>
+
+  <section class="swim-lane" aria-label="Death claims flow" data-lane="death-claims">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.4 3.2 8.3 8 9 4.8-.7 8-4.6 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div class="lane-meta">
+        <div class="lane-title">Death Claims</div>
+        <div class="lane-subtitle">Beneficiary &middot; Claims Examiner &middot; Treasury &middot; Notification &rarr; Payment</div>
+      </div>
+      <div class="kbd-hint">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/></svg>
+        <kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate
+      </div>
+    </div>
+    <div class="flow" id="flow-death-claims" role="list"></div>
+  </section>
+</main>
+
+<div class="panel-scrim" id="scrim" aria-hidden="true"></div>
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" aria-hidden="true">
+  <div class="panel-header">
+    <div class="panel-title-wrap">
+      <div class="panel-step"><span id="panelStep">Step 01</span><span class="panel-lane-chip" id="panelLaneChip">New Business</span></div>
+      <div class="panel-title" id="panelTitle">[Step title]</div>
+    </div>
+    <div class="panel-nav">
+      <button id="panelPrev" aria-label="Previous step"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+      <button id="panelNext" aria-label="Next step"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+    </div>
+    <button class="panel-close" id="panelClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+
+  <div class="panel-body">
+    <div class="state-grid">
+      <div class="state-card current">
+        <div class="state-label">
+          <svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v5"/><circle cx="12" cy="18" r=".6" fill="currentColor" stroke="none"/></svg>
+          Current state
+        </div>
+        <div class="state-heading" id="currentHeading"></div>
+        <ul class="state-items" id="currentItems"></ul>
+        <div class="state-media" id="currentMedia"></div>
+        <div id="currentPoints"></div>
+      </div>
+      <div class="state-card future">
+        <div class="state-label">
+          <svg viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+          Future state with Docusign IAM
+        </div>
+        <div class="state-heading" id="futureHeading"></div>
+        <ul class="state-items" id="futureItems"></ul>
+        <div class="state-media" id="futureMedia"></div>
+        <div class="iam-tags" id="futureTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-footer">
+    <div id="panelFooterLeft">
+      <kbd style="font-family:var(--ui-font);font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px;background:var(--surface);border:1px solid var(--line);color:var(--ink)">ESC</kbd>
+      &nbsp;to close &nbsp;&middot;&nbsp;
+      <kbd style="font-family:var(--ui-font);font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px;background:var(--surface);border:1px solid var(--line);color:var(--ink)">&larr;</kbd>
+      <kbd style="font-family:var(--ui-font);font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px;background:var(--surface);border:1px solid var(--line);color:var(--ink)">&rarr;</kbd>
+      &nbsp;to navigate
+    </div>
+    <div class="pf-dots" id="pfDots"></div>
+  </div>
+</div>
+
+<footer class="page-footer">
+  Built by <a href="#" onclick="return false;">TGK Capital &times; Docusign</a> &middot; For discovery conversations only
+</footer>
+
+<script id="icon-library" type="application/json">
+{
+  "user":         "<circle cx='12' cy='8' r='4'/><path d='M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8'/>",
+  "users":        "<circle cx='9' cy='8' r='3.5'/><path d='M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6'/><circle cx='17' cy='9' r='2.5'/><path d='M21 19c0-2.8-1.8-5-4-5'/>",
+  "building":     "<rect x='4' y='3' width='16' height='18' rx='1.5'/><path d='M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2'/><path d='M10 21v-3h4v3'/>",
+  "document":     "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5'/><path d='M9 13h6M9 17h4'/>",
+  "signature":    "<path d='M3 20h18'/><path d='M5 17c1.5-7 3-10 5-10 1.2 0 1.5 1.5.5 4-.8 2-2 3.5-2.5 5-.4 1.2.2 1.6 1 1 1.5-1 2.5-2.5 4-2.5 1 0 1.5.8 1 2l-.5 1c-.3.7.2 1 .8.5l2.5-2'/>",
+  "shield-check": "<path d='M12 3 4 6v6c0 4.4 3.2 8.3 8 9 4.8-.7 8-4.6 8-9V6l-8-3Z'/><path d='m9 12 2 2 4-4'/>",
+  "bank":         "<path d='M3 10 12 4l9 6'/><path d='M5 10v8M9 10v8M15 10v8M19 10v8'/><path d='M3 20h18'/>",
+  "phone":        "<path d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.2 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0 1 22 16.9Z'/>",
+  "mail":         "<rect x='3' y='5' width='18' height='14' rx='2'/><path d='m3 7 9 6 9-6'/>",
+  "inbox":        "<path d='M22 12h-6l-2 3h-4l-2-3H2'/><path d='M5.5 6.5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-5.5A2 2 0 0 0 16.8 6H7.2a2 2 0 0 0-1.7.5Z'/>",
+  "handshake":    "<path d='M11 17 7.5 13.5a2 2 0 0 1 0-2.8L11 7.5'/><path d='M13 7.5 16.5 11a2 2 0 0 1 0 2.8L13 17'/><path d='M3 12h3M18 12h3'/>",
+  "checklist":    "<rect x='4' y='4' width='16' height='16' rx='2'/><path d='m8 9 2 2 4-4'/><path d='M8 15h8'/>",
+  "calculator":   "<rect x='5' y='3' width='14' height='18' rx='2'/><path d='M8 7h8'/><path d='M8 12h1M12 12h1M16 12h0'/><path d='M8 16h1M12 16h1M16 16h0'/>",
+  "search":       "<circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/>",
+  "card":         "<rect x='3' y='6' width='18' height='12' rx='2'/><path d='M3 10h18'/><path d='M7 15h2'/>",
+  "chart-up":     "<path d='m3 17 6-6 4 4 8-8'/><path d='M15 7h6v6'/>",
+  "clock":        "<circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/>",
+  "warning":      "<path d='M12 3 2 20h20L12 3Z'/><path d='M12 10v5'/><circle cx='12' cy='18' r='.6' fill='currentColor' stroke='none'/>",
+  "check":        "<path d='m5 12 5 5 9-9'/>",
+  "spark":        "<path d='M12 3v6M12 15v6M3 12h6M15 12h6M6 6l4 4M14 14l4 4M6 18l4-4M14 10l4-4'/>",
+  "workflow":     "<rect x='3' y='4' width='6' height='6' rx='1.5'/><rect x='15' y='4' width='6' height='6' rx='1.5'/><rect x='9' y='14' width='6' height='6' rx='1.5'/><path d='M12 14V7'/><path d='M6 10v2a2 2 0 0 0 2 2h1'/><path d='M18 10v2a2 2 0 0 1-2 2h-1'/>",
+  "folder":       "<path d='M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z'/>",
+  "database":     "<ellipse cx='12' cy='5' rx='8' ry='3'/><path d='M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5'/><path d='M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6'/>",
+  "flag":         "<path d='M4 21V4'/><path d='M4 4h12l-2 4 2 4H4'/>"
+}
+</script>
+
+<script id="steps-new-business" type="application/json">
+[
+  {
+    "icon": "document",
+    "label": "Application",
+    "heading": "Application intake",
+    "current": {
+      "heading": "Agent rekeys data into PAS from paper or drop-ticket",
+      "items": [
+        "Paper or PDF application filled by agent during kitchen-table meeting",
+        "Applicant data rekeyed into the illustration system and PAS",
+        "Drop-ticket models still require inbound call to fill gaps",
+        "NIGO (not-in-good-order) rates of 25-40% trigger cycles of rework"
+      ],
+      "points": ["Illustration System", "Paper / PDF Forms"],
+      "media": { "type": "component", "src": "./components/current-state/component-illustration-system-insurance-life-annuities-new-business.html", "label": "Illustration System — live mock" }
+    },
+    "future": {
+      "heading": "Structured digital application wired to the PAS",
+      "items": [
+        "eApp Web Form adapts to product, jurisdiction, and distribution model",
+        "Applicant data validated at entry and flows into PAS as structured fields",
+        "Agent and applicant eSign in a single envelope with replacement forms",
+        "NIGO collapses because required fields enforce completeness upfront"
+      ],
+      "tags": ["Web Forms", "eSignature", "Navigator"]
+    }
+  },
+  {
+    "icon": "search",
+    "label": "Evidence Gathering",
+    "heading": "Evidence gathering",
+    "current": {
+      "heading": "APS, paramed, and MIB orders chased through portals and faxes",
+      "items": [
+        "Attending Physician Statements (APS) ordered by fax; delivered 30-60 days later",
+        "Paramed exam scheduling handled by a third-party vendor via phone",
+        "MIB, Rx, and MVR pulls run one-at-a-time from separate portals",
+        "Every missing record extends time-to-issue by 2-4 weeks"
+      ],
+      "points": ["APS Retrieval Vendor", "Paramed Vendor", "MIB / Rx / MVR Data"],
+      "media": { "type": "component", "src": "./components/current-state/component-aps-retrieval-vendor-insurance-life-annuities-new-business.html", "label": "APS Retrieval Vendor — live mock" }
+    },
+    "future": {
+      "heading": "Orchestrated evidence gathering with live status",
+      "items": [
+        "Maestro orchestrates APS, paramed, MIB, Rx, and MVR in parallel",
+        "Applicant authorizations (HIPAA) captured in the same envelope as the app",
+        "Vendor responses attach to the case with tamper-evident audit trail",
+        "Case status visible to agent and applicant in real time"
+      ],
+      "tags": ["Maestro", "Web Forms", "Navigator"]
+    }
+  },
+  {
+    "icon": "checklist",
+    "label": "Underwriting",
+    "heading": "Underwriting decision",
+    "current": {
+      "heading": "Underwriter toggles between PAS, UW engine, and email threads",
+      "items": [
+        "Case manager shuttles evidence between PAS and underwriting engine",
+        "Manual referrals and counter-offers tracked in email",
+        "Assumptions, debits/credits, and overrides documented inconsistently",
+        "Average time-to-decision: 30-45 days for fully underwritten cases"
+      ],
+      "points": ["Underwriting Engine", "PAS", "Referral Email Threads"],
+      "media": { "type": "component", "src": "./components/current-state/component-underwriting-engine-insurance-life-annuities-new-business.html", "label": "Underwriting Engine — live mock" }
+    },
+    "future": {
+      "heading": "Decision captured as structured workflow and data",
+      "items": [
+        "Accelerated UW triggered automatically when evidence thresholds are met",
+        "Referrals and counter-offers routed through structured workflow",
+        "Full decision rationale preserved as structured data, not prose",
+        "Time-to-decision collapses for the majority of cases"
+      ],
+      "tags": ["Maestro", "Navigator", "Workspaces"]
+    }
+  },
+  {
+    "icon": "handshake",
+    "label": "Policy Issuance",
+    "heading": "Policy issuance",
+    "current": {
+      "heading": "Policy package assembled by PAS and mailed or emailed",
+      "items": [
+        "Policy specs, riders, and illustrations assembled in the PAS",
+        "Package printed and mailed, or attached to an email with wet-sign cover",
+        "Corrections require full repackage and resend",
+        "Amendments and endorsements treated as separate one-off documents"
+      ],
+      "points": ["PAS", "Doc Assembly"],
+      "media": { "type": "component", "src": "./components/current-state/component-doc-assembly-insurance-life-annuities-new-business.html", "label": "Doc Assembly — live mock" }
+    },
+    "future": {
+      "heading": "Policy package generated and executed as one agreement",
+      "items": [
+        "Policy docs auto-assembled from underwriting data and illustration",
+        "Amendments and endorsements included in a single signing ceremony",
+        "Version control tracks every change across the policy lifecycle",
+        "Executed policy returns to PAS as structured data"
+      ],
+      "tags": ["Document Generation", "eSignature", "Navigator"]
+    }
+  },
+  {
+    "icon": "mail",
+    "label": "Delivery & Acceptance",
+    "heading": "Delivery &amp; acceptance",
+    "current": {
+      "heading": "Policy delivered by agent; delivery receipt collected on paper",
+      "items": [
+        "Agent meets applicant in person to deliver the policy",
+        "Delivery receipt, amendments, and 1035 forms signed on paper",
+        "Documents scanned and emailed back to the carrier",
+        "Free-look window often extends because delivery isn't recorded in real time"
+      ],
+      "points": ["Paper Delivery Receipts", "Scan / Email"],
+      "media": { "type": "component", "src": "./components/current-state/component-paper-delivery-receipts-insurance-life-annuities-new-business.html", "label": "Paper Delivery Receipts — live mock" }
+    },
+    "future": {
+      "heading": "Digital delivery with live acceptance tracking",
+      "items": [
+        "Policy delivered electronically with embedded delivery receipt",
+        "Amendments, 1035 exchanges, and payment authorizations in one envelope",
+        "Free-look window triggered by timestamped delivery event",
+        "Carrier sees delivery and acceptance status in real time"
+      ],
+      "tags": ["eSignature", "Navigator", "Identify"]
+    }
+  },
+  {
+    "icon": "chart-up",
+    "label": "In-Force Management",
+    "heading": "In-force policy management",
+    "endpoint": true,
+    "current": {
+      "heading": "Policy PDF sits in imaging; service requests handled one-off",
+      "items": [
+        "Policy document lives as a flat PDF in imaging",
+        "Beneficiary changes, loans, and surrenders handled as one-off forms",
+        "Agent has no proactive signal of coverage gaps or lapse risk",
+        "Reinstatements and renewals require re-keying data from the original policy"
+      ],
+      "points": ["PAS", "Imaging"],
+      "media": { "type": "component", "src": "./components/current-state/component-imaging-insurance-life-annuities-new-business.html", "label": "Imaging — live mock" }
+    },
+    "future": {
+      "heading": "Policy as a living agreement record",
+      "items": [
+        "Beneficiary changes, loans, and service requests generated off structured data",
+        "Lapse-risk and cross-sell signals surfaced proactively to agent and carrier",
+        "Conversions and rider exercises handled as structured workflow",
+        "One view across the in-force book for servicing and retention"
+      ],
+      "tags": ["Navigator", "Maestro", "Web Forms"]
+    }
+  }
+]
+</script>
+
+<script id="steps-death-claims" type="application/json">
+[
+  {
+    "icon": "phone",
+    "label": "Death Notification",
+    "heading": "Death notification",
+    "current": {
+      "heading": "Beneficiary calls a contact center in a moment of grief",
+      "items": [
+        "First touch is a phone call; call handler takes notes in free text",
+        "Beneficiary must recite policy number they may not have",
+        "Multiple policies across the carrier's book rarely surfaced on first call",
+        "Follow-up paperwork mailed 3-7 days later"
+      ],
+      "points": ["Contact Center", "Claims Administration"],
+      "media": { "type": "component", "src": "./components/current-state/component-contact-center-insurance-life-annuities-death-claims.html", "label": "Contact Center — live mock" }
+    },
+    "future": {
+      "heading": "Compassionate, multi-channel intake with structured capture",
+      "items": [
+        "Web, mobile, agent, or funeral-home channel all land in the same schema",
+        "Policy lookup by decedent name/SSN surfaces all applicable policies",
+        "Claim auto-opened in claims system with structured data on arrival",
+        "Next-step packet generated immediately, not 3-7 days later"
+      ],
+      "tags": ["Web Forms", "Navigator", "Maestro"]
+    }
+  },
+  {
+    "icon": "document",
+    "label": "Claim Filing",
+    "heading": "Claim filing",
+    "current": {
+      "heading": "Beneficiary completes multiple paper forms with notary",
+      "items": [
+        "Claim forms, W-9, and beneficiary statements mailed as a packet",
+        "Certified death certificate required as a wet original",
+        "Notarization required on certain forms depending on state",
+        "NIGO on claim packets often exceeds 30% on first submission"
+      ],
+      "points": ["Paper Claim Forms", "Notary"],
+      "media": { "type": "component", "src": "./components/current-state/component-paper-claim-forms-insurance-life-annuities-death-claims.html", "label": "Paper Claim Forms — live mock" }
+    },
+    "future": {
+      "heading": "Digital claim packet with guided completion",
+      "items": [
+        "Beneficiary completes claim forms via guided Web Form",
+        "Death certificate uploaded, with remote online notarization when required",
+        "W-9, tax withholding, and payment election in the same envelope",
+        "Completeness checks eliminate most NIGO at submission"
+      ],
+      "tags": ["Web Forms", "eSignature", "Notary", "Identify"]
+    }
+  },
+  {
+    "icon": "shield-check",
+    "label": "Verification",
+    "heading": "Verification &amp; investigation",
+    "current": {
+      "heading": "Examiner chases death verification across disparate sources",
+      "items": [
+        "SSDI / DMF checks run manually; result copied into claim file",
+        "Contestable-period investigations triggered by free-text flags",
+        "Fraud and MIB re-pulls run in separate systems",
+        "Verification cycle adds 2-6 weeks to contestable-period claims"
+      ],
+      "points": ["Death Verification (SSDI / DMF)", "MIB", "Fraud Tools"],
+      "media": { "type": "component", "src": "./components/current-state/component-death-verification-ssdi-dmf-insurance-life-annuities-death-claims.html", "label": "Death Verification (SSDI / DMF) — live mock" }
+    },
+    "future": {
+      "heading": "Automated verification with structured risk signals",
+      "items": [
+        "SSDI / DMF and MIB checks orchestrated and attached to the claim",
+        "Contestable-period flags fire off structured policy and evidence data",
+        "Fraud signals scored against case attributes, not examiner intuition",
+        "Claim file stays tamper-evident and audit-ready"
+      ],
+      "tags": ["Maestro", "Navigator", "Extract"]
+    }
+  },
+  {
+    "icon": "users",
+    "label": "Beneficiary Review",
+    "heading": "Beneficiary review",
+    "current": {
+      "heading": "Named beneficiaries reconciled by hand against policy record",
+      "items": [
+        "Beneficiary designations scattered across PAS, imaging, and paper files",
+        "Predeceased beneficiaries and trust changes often only surface at claim time",
+        "Disputes between beneficiaries trigger interpleader and litigation",
+        "Minor-beneficiary and guardianship setup handled as one-off paperwork"
+      ],
+      "points": ["Claims Administration", "Imaging", "Legal"],
+      "media": { "type": "component", "src": "./components/current-state/component-claims-administration-insurance-life-annuities-death-claims.html", "label": "Claims Administration — live mock" }
+    },
+    "future": {
+      "heading": "Structured beneficiary record with live chain-of-custody",
+      "items": [
+        "Beneficiary changes tracked as structured data across the policy lifecycle",
+        "Predeceased and trust changes flagged automatically at claim open",
+        "Dispute workflows routed through structured escalation, not email",
+        "Minor-beneficiary and guardianship docs generated from the claim envelope"
+      ],
+      "tags": ["Navigator", "Workspaces", "Maestro"]
+    }
+  },
+  {
+    "icon": "handshake",
+    "label": "Settlement & Payment",
+    "heading": "Settlement &amp; payment",
+    "endpoint": true,
+    "current": {
+      "heading": "Release signed on paper; payment cut 7-14 days after approval",
+      "items": [
+        "Release and settlement docs mailed for wet signature",
+        "Retained-asset account setup handled as a separate workflow",
+        "Payment batch-issued by treasury, reconciled to claims system manually",
+        "Reinsurance recovery and 1099-R reporting handled after-the-fact"
+      ],
+      "points": ["Payment / Treasury", "Reinsurance Reporting"],
+      "media": { "type": "component", "src": "./components/current-state/component-payment-treasury-insurance-life-annuities-death-claims.html", "label": "Payment / Treasury — live mock" }
+    },
+    "future": {
+      "heading": "Release signed and paid in one orchestrated flow",
+      "items": [
+        "Release, retained-asset election, and tax forms in a single envelope",
+        "Beneficiary signs and gets paid in the same session",
+        "Reinsurance recovery and 1099-R reporting triggered off structured data",
+        "Cycle time from notification to payment collapses to days"
+      ],
+      "tags": ["Document Generation", "eSignature", "Payments", "Maestro"]
+    }
+  }
+]
+</script>
+
+<script>
+(function () {
+  const ICONS = JSON.parse(document.getElementById('icon-library').textContent);
+  const LANES = [
+    { id: 'new-business', label: 'New Business', mount: 'flow-new-business', steps: JSON.parse(document.getElementById('steps-new-business').textContent) },
+    { id: 'death-claims', label: 'Death Claims', mount: 'flow-death-claims', steps: JSON.parse(document.getElementById('steps-death-claims').textContent) }
+  ];
+
+  const scrim = document.getElementById('scrim');
+  const panel = document.getElementById('panel');
+  const panelStep = document.getElementById('panelStep');
+  const panelLaneChip = document.getElementById('panelLaneChip');
+  const panelTitle = document.getElementById('panelTitle');
+  const currentHeading = document.getElementById('currentHeading');
+  const currentItems = document.getElementById('currentItems');
+  const currentPoints = document.getElementById('currentPoints');
+  const currentMedia = document.getElementById('currentMedia');
+  const futureHeading = document.getElementById('futureHeading');
+  const futureItems = document.getElementById('futureItems');
+  const futureTags = document.getElementById('futureTags');
+  const futureMedia = document.getElementById('futureMedia');
+  const prevBtn = document.getElementById('panelPrev');
+  const nextBtn = document.getElementById('panelNext');
+  const closeBtn = document.getElementById('panelClose');
+  const pfDots = document.getElementById('pfDots');
+
+  function renderMedia(el, media, which) {
+    const labelHint = which === 'current' ? 'Current-state screenshot, GIF, or video' : 'Future-state screenshot, GIF, or video';
+    if (!media) {
+      el.className = 'state-media empty';
+      el.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="9" cy="11" r="1.5"/>
+          <path d="m21 17-5-5-4 4-3-3-6 6"/>
+        </svg>
+        <span class="sm-hint">${labelHint}</span>
+        <span class="sm-hint-sub">drop into ./assets/media/ and set <code>media</code> on this step</span>
+      `;
+      return;
+    }
+    const spec = typeof media === 'string' ? { src: media } : media;
+    const src = spec.src;
+    const typeFromExt = src.match(/\.(mp4|webm|mov)(\?|$)/i) ? 'video' : (src.match(/\.html?(\?|#|$)/i) ? 'component' : 'image');
+    const type = (spec.type || typeFromExt).toLowerCase();
+    el.className = 'state-media';
+    if (type === 'video') {
+      el.innerHTML = `<video autoplay muted loop playsinline ${spec.poster ? `poster="${spec.poster}"` : ''}><source src="${src}"></video>`;
+    } else if (type === 'component') {
+      const label = spec.label || (which === 'current' ? 'Live mock' : 'Live future-state mock');
+      const alt = spec.alt || (which === 'current' ? 'Current-state interactive mock' : 'Future-state interactive mock');
+      el.innerHTML = `
+        <a class="sm-frame-link" href="${src}" target="_blank" rel="noopener" aria-label="${alt} — open in new tab">
+          <div class="sm-frame">
+            <iframe src="${src}" title="${alt}" tabindex="-1" scrolling="no"></iframe>
+            <div class="sm-frame-meta">
+              <span class="sm-frame-label">${label}</span>
+              <span class="sm-frame-open">
+                Open
+                <svg viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg>
+              </span>
+            </div>
+          </div>
+        </a>
+      `;
+    } else {
+      el.innerHTML = `<img src="${src}" alt="${spec.alt || (which === 'current' ? 'Current state' : 'Future state')}" loading="lazy">`;
+    }
+  }
+
+  let activeLaneId = null;
+  let activeIndex = null;
+
+  function svg(iconKey) {
+    const paths = ICONS[iconKey] || ICONS['spark'];
+    return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+  }
+
+  function getLane(id) { return LANES.find(l => l.id === id); }
+
+  // Render all lanes
+  LANES.forEach(lane => {
+    const flowEl = document.getElementById(lane.mount);
+    lane.steps.forEach((step, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'node' + (step.endpoint ? ' endpoint' : '');
+      btn.type = 'button';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', `${lane.label} step ${i + 1}: ${step.label}`);
+      btn.dataset.index = String(i);
+      btn.dataset.lane = lane.id;
+      btn.innerHTML = `
+        <div class="node-circle">
+          <span class="node-step-badge">${String(i + 1).padStart(2, '0')}</span>
+          <span class="node-icon">${svg(step.icon)}</span>
+          ${step.endpoint ? `<span class="endpoint-badge"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>` : ''}
+        </div>
+        <div class="node-label">${step.label}</div>
+      `;
+      btn.addEventListener('click', () => openPanel(lane.id, i));
+      flowEl.appendChild(btn);
+
+      if (i < lane.steps.length - 1) {
+        const c = document.createElement('div');
+        c.className = 'connector';
+        c.setAttribute('aria-hidden', 'true');
+        c.innerHTML = '<div class="connector-line"></div>';
+        flowEl.appendChild(c);
+      }
+    });
+  });
+
+  function renderPanel(laneId, i) {
+    const lane = getLane(laneId);
+    const step = lane.steps[i];
+    panelStep.textContent = `Step ${String(i + 1).padStart(2, '0')} of ${String(lane.steps.length).padStart(2, '0')}`;
+    panelLaneChip.textContent = lane.label;
+    panelTitle.textContent = step.heading || step.label;
+
+    currentHeading.textContent = step.current.heading || '';
+    currentItems.innerHTML = (step.current.items || []).map(t => `<li>${t}</li>`).join('');
+
+    if (step.current.points && step.current.points.length) {
+      currentPoints.innerHTML = `
+        <div class="card-point-solutions">
+          <div class="ps-mini-label">Point solutions in play</div>
+          <div class="ps-mini-chips">
+            ${step.current.points.map(p => `
+              <span class="point-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+                ${p}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      currentPoints.innerHTML = '';
+    }
+
+    futureHeading.textContent = step.future.heading || '';
+    futureItems.innerHTML = (step.future.items || []).map(t => `<li>${t}</li>`).join('');
+    futureTags.innerHTML = (step.future.tags || []).map(t => `
+      <span class="iam-tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-9"/></svg>
+        ${t}
+      </span>
+    `).join('');
+
+    renderMedia(currentMedia, step.current.media, 'current');
+    renderMedia(futureMedia,  step.future.media,  'future');
+
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === lane.steps.length - 1;
+
+    // Node active state — only nodes in the active lane
+    document.querySelectorAll('.node').forEach(n => {
+      const matches = n.dataset.lane === laneId && Number(n.dataset.index) === i;
+      n.classList.toggle('active', matches);
+    });
+    // Rebuild pf dots for the active lane
+    pfDots.innerHTML = '';
+    for (let k = 0; k < lane.steps.length; k++) {
+      const dot = document.createElement('span');
+      if (k === i) dot.classList.add('active');
+      pfDots.appendChild(dot);
+    }
+  }
+
+  function openPanel(laneId, i) {
+    activeLaneId = laneId;
+    activeIndex = i;
+    renderPanel(laneId, i);
+    scrim.classList.add('open');
+    panel.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    scrim.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closePanel() {
+    scrim.classList.remove('open');
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+    scrim.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+    Array.from(pfDots.children).forEach(d => d.classList.remove('active'));
+    if (activeLaneId !== null && activeIndex !== null) {
+      const btn = document.querySelector(`.node[data-lane="${activeLaneId}"][data-index="${activeIndex}"]`);
+      if (btn) btn.focus();
+    }
+    activeLaneId = null;
+    activeIndex = null;
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if (activeLaneId !== null && activeIndex > 0) renderPanel(activeLaneId, --activeIndex);
+  });
+  nextBtn.addEventListener('click', () => {
+    const lane = getLane(activeLaneId);
+    if (lane && activeIndex < lane.steps.length - 1) renderPanel(activeLaneId, ++activeIndex);
+  });
+  closeBtn.addEventListener('click', closePanel);
+  scrim.addEventListener('click', closePanel);
+
+  document.addEventListener('keydown', (e) => {
+    if (activeLaneId === null) return;
+    const lane = getLane(activeLaneId);
+    if (e.key === 'Escape') closePanel();
+    else if (e.key === 'ArrowLeft' && activeIndex > 0) renderPanel(activeLaneId, --activeIndex);
+    else if (e.key === 'ArrowRight' && activeIndex < lane.steps.length - 1) renderPanel(activeLaneId, ++activeIndex);
+  });
+})();
+</script>
+
+<script src="feedback-widget.js" defer></script>
+</body>
+</html>

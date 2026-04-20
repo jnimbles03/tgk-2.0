@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Applicant Tracking System | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking ATS (candidate workflow evocation) in a Public Sector workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --v-head:#1A4C6B;--v-accent:#E87722;--v-bg:#F3F6F8;--v-head-ink:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+
+.console{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
+.c-head{height:34px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:0.01em;}
+.c-logo{font-family:var(--brand-font);}
+.c-tabs{display:flex;gap:18px;font-weight:500;opacity:0.88;font-size:10.5px;margin-left:12px;}
+.c-tabs span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;}
+.c-user{margin-left:auto;opacity:0.85;font-size:10px;font-weight:400;}
+.c-crumb{height:26px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:10.5px;color:var(--ink-mid);flex-shrink:0;}
+.c-crumb b{color:var(--ink);font-weight:600;}
+.c-body{flex:1;display:grid;grid-template-columns:160px 1fr 200px;min-height:0;}
+.c-nav{background:#fff;border-right:1px solid var(--line);padding:10px 0;overflow:hidden;font-size:10.5px;}
+.c-nav .ni{padding:5px 14px;display:flex;align-items:center;gap:8px;color:var(--ink-mid);}
+.c-nav .ni svg{width:13px;height:13px;stroke:var(--ink-soft);}
+.c-nav .ni.on{color:var(--v-accent);font-weight:600;border-left:3px solid var(--v-accent);padding-left:11px;background:rgba(0,0,0,0.02);}
+.c-nav .ni.on svg{stroke:var(--v-accent);}
+.c-nav h6{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);padding:8px 14px 4px;font-weight:600;}
+.c-main{padding:12px 16px;overflow:hidden;}
+.c-main h2{font-family:var(--brand-font);font-size:14px;font-weight:600;margin-bottom:6px;}
+.c-main .kv{display:grid;grid-template-columns:140px 1fr;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
+.c-main .kv .k{color:var(--ink-soft);}
+.c-main .kv .v{color:var(--ink);font-weight:500;}
+.c-main .sec{margin-top:8px;}
+.c-main table{width:100%;border-collapse:collapse;font-size:10px;background:#fff;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+.c-main th{background:rgba(0,0,0,0.04);text-align:left;padding:5px 8px;font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);border-bottom:1px solid var(--line);font-weight:600;}
+.c-main td{padding:5px 8px;border-bottom:1px solid var(--line);font-size:10px;}
+.c-main tr:last-child td{border-bottom:0;}
+.c-aside{background:#fff;border-left:1px solid var(--line);padding:10px 12px;font-size:10px;overflow:hidden;}
+.c-aside h5{font-size:10.5px;font-weight:600;color:var(--v-accent);margin-bottom:6px;}
+.c-aside .task{padding:5px 0;border-bottom:1px solid var(--line);}
+.c-aside .task:last-child{border-bottom:0;}
+.c-aside .task .due{font-size:9.5px;color:#A93434;font-weight:600;}
+.c-foot{padding:8px 12px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+
+</style>
+</head>
+<body>
+<div class="mock">
+
+<div class="console">
+  <div class="c-head">
+    <span class="c-logo">TalentTrack ATS</span>
+    <span class="c-tabs"><span class="">Dashboard</span><span class="">Requisitions</span><span class="on">Candidates</span><span class="">Offers</span><span class="">Reports</span></span>
+    <span class="c-user">Oyinlola, K. — Talent</span>
+  </div>
+  <div class="c-crumb"><b>Candidates</b> &nbsp;&gt;&nbsp; REQ-TX-HHSC-2026-00814 · Eligibility Worker II &nbsp;&gt;&nbsp; Okonkwo, Ifeoma</div>
+  <div class="c-body">
+    <div class="c-nav">
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg> Dashboard</div><div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M9 6V4h6v2"/></svg> Requisitions <span style="margin-left:auto;font-size:9px;color:var(--ink-soft);">12</span></div><div class="ni on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Candidates <span style="margin-left:auto;color:#A93434;font-weight:600;">3</span></div><div class="ni"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg> Offers</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-4M12 15V7M17 15v-9"/></svg> Reports</div><h6>Pipeline</h6><div class="ni" style="font-size:10px;">Applied (41)</div><div class="ni" style="font-size:10px;">Screening (18)</div><div class="ni on" style="font-size:10px;">Interview (6)</div><div class="ni" style="font-size:10px;">Offer (2)</div>
+    </div>
+    <div class="c-main">
+<h2>Okonkwo, Ifeoma — Eligibility Worker II</h2>
+<div class="kv"><span class="k">Candidate ID</span><span class="v">CND-00781342</span></div>
+<div class="kv"><span class="k">Stage</span><span class="v">Interview · Panel 2 of 2</span></div>
+<div class="kv"><span class="k">Source</span><span class="v">Indeed (paid) &middot; applied 03/21</span></div>
+<div class="kv"><span class="k">Resume on file</span><span class="v">resume_okonkwo_v3.pdf (v3 overrides v1+v2)</span></div>
+<div class="kv"><span class="k">Scores</span><span class="v">Panel 1: 4.2 · Panel 2: pending</span></div>
+<div class="kv"><span class="k">Consent / EEOC</span><span class="v warn">Candidate declined to self-identify (optional)</span></div>
+<div class="sec">
+<table><thead><tr><th>Activity</th><th>When</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Applied</td><td>03/21 10:04</td><td>Indeed apply-with-profile</td></tr>
+<tr><td>Resume screened</td><td>03/22 14:11</td><td>Auto-scored 78 / 100</td></tr>
+<tr><td>Phone screen</td><td>03/29 11:00</td><td>Recruiter: Oyinlola</td></tr>
+<tr><td>Panel 1 (4-person)</td><td>04/05 13:00</td><td>Avg 4.2 / 5</td></tr>
+<tr><td>Panel 2 (hiring mgr)</td><td>04/19 10:30</td><td>Feedback due 04/22</td></tr>
+<tr><td>Offer generation (Workday)</td><td>—</td><td>Requires offer-letter template refresh</td></tr>
+</tbody></table>
+</div></div>
+    <div class="c-aside">
+<h5>Integrations</h5>
+<div class="task"><div>Push → Workday on accept</div><div class="due">Manual today</div></div>
+<div class="task"><div>Order VerifyWorks screening</div><div class="due">On offer-signed</div></div>
+<div class="task"><div>I-9 verify (E-Verify)</div><div class="due">Day 3 of hire</div></div>
+<h5 style="margin-top:8px;">Data Trust</h5>
+<div style="font-size:9.5px;color:var(--ink-mid);">Resume parse confidence 82%. Candidate&rsquo;s phone on file differs from what they listed on application.</div>
+</div>
+  </div>
+  <div class="c-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>ATS → Workday push is manual on accept. Offer letters regenerate from the wrong template when job codes change.</div></div>
+</div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-applicant-tracking-system-public-sector.html",
+  "vendor": "ATS (candidate workflow evocation)",
+  "scope": "Public Sector",
+  "state": "Current",
+  "useCase": "Benefits Eligibility / Recertification (SNAP)",
+  "archetype": "console",
+  "citizen": "Rodriguez, Maria A.",
+  "caseId": "CCR-2026-047812",
+  "program": "SNAP"
+}
+</script>
+</body>
+</html>
