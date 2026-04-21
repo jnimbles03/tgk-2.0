@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Beneficiary review (L&A DC) | TGK 2.0</title>
+<meta name="description" content="Stylized 3-scene loop evoking Docusign IAM products. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap');
+
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --hand-font:"Caveat","Brush Script MT",cursive;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:11px;line-height:1.45;}
+
+/* Scene orchestration — 15s loop */
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;}
+.scene.s1{animation:scene-1 15s ease-in-out infinite;}
+.scene.s2{animation:scene-2 15s ease-in-out infinite;}
+.scene.s3{animation:scene-3 15s ease-in-out infinite;}
+@keyframes scene-1 { 0%,30%{opacity:1;} 34%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes scene-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+/* Docusign top chrome */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* Loop indicator */
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:0.04em;}
+.loop-indicator .li-dots{display:flex;gap:4px;}
+.loop-indicator .li-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);}
+.loop-indicator .li-dot.d1{animation:li-1 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d2{animation:li-2 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d3{animation:li-3 15s ease-in-out infinite;}
+@keyframes li-1 { 0%,30%{background:#fff;transform:scale(1.25);} 34%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-2 { 0%,30%{background:rgba(255,255,255,0.3);transform:scale(1);} 34%,63%{background:#fff;transform:scale(1.25);} 67%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-3 { 0%,63%{background:rgba(255,255,255,0.3);transform:scale(1);} 67%,96%{background:#fff;transform:scale(1.25);} 100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+.loop-indicator .li-label{font-weight:500;position:relative;min-width:154px;display:inline-block;}
+.loop-indicator .li-scene-1,.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{display:inline-block;}
+.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{position:absolute;left:0;opacity:0;}
+.loop-indicator .li-scene-1{animation:li-lbl-1 15s ease-in-out infinite;}
+.loop-indicator .li-scene-2{animation:li-lbl-2 15s ease-in-out infinite;}
+.loop-indicator .li-scene-3{animation:li-lbl-3 15s ease-in-out infinite;}
+@keyframes li-lbl-1 { 0%,30%{opacity:1;} 34%,100%{opacity:0;} }
+@keyframes li-lbl-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes li-lbl-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+/* Shared scene chrome helpers */
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+.scene-chip.warn{background:rgba(169,100,10,0.14);color:var(--warn);}
+.scene-chip.warn .dot{width:5px;height:5px;border-radius:50%;background:var(--warn);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:8px 11px;font-size:9.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:8px 20px 18px;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* --------- Archetype: Web Forms scene --------- */
+.wf-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.wf-form{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;overflow:hidden;}
+.wf-section{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px;}
+.wf-section:first-child{margin-top:0;}
+.wf-row{display:flex;gap:10px;}
+.wf-field{flex:1;display:flex;flex-direction:column;gap:2px;}
+.wf-field .lb{font-size:9.5px;color:var(--ink-soft);font-weight:600;}
+.wf-field .in{height:26px;background:#fbfafd;border:1px solid var(--line-strong);border-radius:5px;padding:4px 8px;display:flex;align-items:center;font-size:10.5px;color:var(--ds-inkwell);font-weight:500;position:relative;overflow:hidden;}
+.wf-field .in .typed{opacity:0;}
+.wf-field .in .caret{width:1.5px;height:14px;background:var(--ds-cobalt);margin-left:2px;animation:blink 1s steps(1) infinite;opacity:0;}
+.wf-field .in.valid{border-color:var(--ok);background:rgba(10,122,58,0.04);}
+.wf-field .in.valid::after{content:"";position:absolute;right:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--ok);}
+.wf-field .in.valid::before{content:"";position:absolute;right:11px;top:50%;transform:translateY(-50%) rotate(45deg);width:3px;height:6px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;z-index:2;}
+@keyframes blink { 50%{opacity:0;} }
+.wf-field .in.f-1 .typed{animation:typed-in 15s linear infinite;animation-delay:-14.2s;}
+.wf-field .in.f-2 .typed{animation:typed-in 15s linear infinite;animation-delay:-13.8s;}
+.wf-field .in.f-3 .typed{animation:typed-in 15s linear infinite;animation-delay:-13.4s;}
+.wf-field .in.f-4 .typed{animation:typed-in 15s linear infinite;animation-delay:-13.0s;}
+.wf-field .in.f-5 .typed{animation:typed-in 15s linear infinite;animation-delay:-12.6s;}
+.wf-field .in.f-6 .typed{animation:typed-in 15s linear infinite;animation-delay:-12.2s;}
+@keyframes typed-in { 0%{opacity:0;} 1%,30%{opacity:1;} 34%,100%{opacity:1;} }
+
+.wf-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.wf-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.wf-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.wf-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.wf-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.wf-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.wf-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.wf-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.wf-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+
+/* --------- Archetype: eSignature scene --------- */
+.esig-body{flex:1;display:grid;grid-template-columns:1fr 260px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.esig-paper{background:var(--ds-white);border:1px solid var(--line-strong);border-radius:6px;padding:14px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 2px 8px rgba(19,0,50,0.06);overflow:hidden;position:relative;}
+.esig-paper .hd{font-family:var(--brand-font);font-size:13px;font-weight:700;color:var(--ds-inkwell);border-bottom:1px solid var(--line);padding-bottom:6px;}
+.esig-paper .intro{font-size:10px;color:var(--ink-mid);line-height:1.55;}
+.esig-paper .intro b{color:var(--ds-inkwell);}
+.esig-rowset{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:10px;color:var(--ink-mid);}
+.esig-rowset .k{color:var(--ink-soft);}
+.esig-rowset .v{color:var(--ds-inkwell);font-weight:600;}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line);}
+.sig-slot{display:flex;flex-direction:column;gap:3px;position:relative;}
+.sig-slot .sig-lbl{font-size:8.5px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;}
+.sig-slot .sig-line{height:26px;border-bottom:1px solid var(--ink-mid);display:flex;align-items:flex-end;padding-bottom:2px;}
+.sig-slot .sig-ink{font-family:var(--hand-font);font-size:18px;color:var(--ds-cobalt);line-height:1;opacity:0;transform:translateY(4px);}
+.sig-slot .sig-stamp{position:absolute;right:0;bottom:28px;font-size:8px;color:var(--ok);font-weight:600;letter-spacing:0.04em;opacity:0;}
+.sig-slot .sig-stamp::before{content:"✓ ";font-weight:700;}
+.sig-slot.sg-1 .sig-ink{animation:sig-ink 15s linear infinite;animation-delay:-9.5s;}
+.sig-slot.sg-2 .sig-ink{animation:sig-ink 15s linear infinite;animation-delay:-8.2s;}
+.sig-slot.sg-3 .sig-ink{animation:sig-ink 15s linear infinite;animation-delay:-6.9s;}
+.sig-slot.sg-1 .sig-stamp{animation:sig-stamp 15s linear infinite;animation-delay:-9.3s;}
+.sig-slot.sg-2 .sig-stamp{animation:sig-stamp 15s linear infinite;animation-delay:-8.0s;}
+.sig-slot.sg-3 .sig-stamp{animation:sig-stamp 15s linear infinite;animation-delay:-6.7s;}
+@keyframes sig-ink { 0%{opacity:0;transform:translateY(4px);} 2%,33%{opacity:1;transform:translateY(0);} 34%,100%{opacity:1;} }
+@keyframes sig-stamp { 0%{opacity:0;} 2%,33%{opacity:1;} 34%,100%{opacity:1;} }
+
+.esig-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.rp-card{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;align-items:center;gap:9px;position:relative;}
+.rp-card .rp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--brand-font);font-weight:700;font-size:11px;color:#fff;flex-shrink:0;}
+.rp-card.r-1 .rp-av{background:linear-gradient(135deg,#4C00FF,#26065D);}
+.rp-card.r-2 .rp-av{background:linear-gradient(135deg,#7A50F5,#4C00FF);}
+.rp-card.r-3 .rp-av{background:linear-gradient(135deg,#2D6A4F,#1B4332);}
+.rp-card .rp-body{flex:1;min-width:0;}
+.rp-card .rp-name{font-size:11px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.rp-card .rp-role{font-size:9.5px;color:var(--ink-soft);}
+.rp-card .rp-state{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(110,97,137,0.14);color:var(--ink-soft);}
+.rp-card.r-1 .rp-state{animation:rp-st 15s linear infinite;animation-delay:-9.3s;}
+.rp-card.r-2 .rp-state{animation:rp-st 15s linear infinite;animation-delay:-8.0s;}
+.rp-card.r-3 .rp-state{animation:rp-st 15s linear infinite;animation-delay:-6.7s;}
+@keyframes rp-st { 0%{background:rgba(110,97,137,0.14);color:var(--ink-soft);} 2%,33%{background:rgba(10,122,58,0.14);color:var(--ok);} 34%,100%{background:rgba(10,122,58,0.14);color:var(--ok);} }
+.idv-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.idv-card .idv-head{font-size:9px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.idv-card .idv-head::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);}
+.idv-card .idv-row{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);}
+.idv-card .idv-row .v{color:var(--ds-inkwell);font-weight:600;}
+
+/* --------- Archetype: Maestro scene --------- */
+.ms-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ms-flow{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.ms-flow .hd{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+.ms-flow .hd .live{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse-dot-green 1.6s ease-out infinite;}
+@keyframes pulse-dot-green { 0%{box-shadow:0 0 0 0 rgba(10,122,58,0.55);} 70%{box-shadow:0 0 0 5px rgba(10,122,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,122,58,0);} }
+.ms-lanes{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;flex:1;min-height:0;}
+.ms-lane{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.ms-lane .lh{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;font-weight:700;color:var(--ds-inkwell);}
+.ms-lane .ls{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);}
+.ms-lane .tok{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:10px;color:var(--ink-mid);opacity:0;}
+.ms-lane .tok .tkn{font-weight:600;color:var(--ds-inkwell);}
+.ms-lane .tok .tkm{margin-left:auto;font-size:9px;color:var(--ink-soft);white-space:nowrap;}
+.ms-lane .tok.t-1{animation:tok-in 15s linear infinite;animation-delay:-14.2s;}
+.ms-lane .tok.t-2{animation:tok-in 15s linear infinite;animation-delay:-13.8s;}
+.ms-lane .tok.t-3{animation:tok-in 15s linear infinite;animation-delay:-13.4s;}
+.ms-lane .tok.t-4{animation:tok-in 15s linear infinite;animation-delay:-13.0s;}
+@keyframes tok-in { 0%{opacity:0;transform:translateY(3px);} 2%,30%{opacity:1;transform:translateY(0);} 34%,100%{opacity:1;} }
+.ms-cv{grid-column:4;background:var(--ds-inkwell);color:#fff;border:0;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:104px;border-radius:8px;}
+.ms-cv .hd{color:#fff;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;}
+.ms-cv .big{font-family:var(--brand-font);font-size:28px;font-weight:700;line-height:1;color:#fff;}
+.ms-cv .lbl{font-size:10px;color:var(--ds-mist);}
+
+.ms-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ms-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ms-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ms-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ms-sla{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-sla .big{font-family:var(--brand-font);font-size:22px;font-weight:700;}
+.ms-sla .big .red{color:var(--ds-poppy);}
+.ms-sla .lbl{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ms-sla .cmp{font-size:10px;color:var(--ds-mist);display:flex;align-items:center;gap:6px;margin-top:4px;}
+.ms-sla .cmp .strike{text-decoration:line-through;color:rgba(203,194,255,0.55);}
+.ms-sla .cmp .bg{color:#4DD77E;font-weight:600;}
+
+/* --------- Archetype: Navigator scene --------- */
+.nav-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.nav-record{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.nav-rec-head{display:flex;align-items:flex-start;gap:12px;}
+.nav-mark{width:46px;height:46px;border-radius:10px;background:var(--ds-inkwell);color:var(--ds-mist);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--brand-font);flex-shrink:0;}
+.nav-mark .mk-lg{font-size:13px;font-weight:700;color:#fff;line-height:1;}
+.nav-mark .mk-sm{font-size:8px;color:var(--ds-mist);letter-spacing:0.08em;}
+.nav-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.nav-kick{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);}
+.nav-rtl{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.nav-rsb{font-size:10.5px;color:var(--ink-mid);}
+.nav-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;display:flex;align-items:center;gap:6px;background:rgba(10,122,58,0.14);color:var(--ok);align-self:flex-start;}
+.nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.nav-tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.nav-tab{font-size:10px;font-weight:600;color:var(--ink-soft);padding:2px 0;position:relative;}
+.nav-tab.active{color:var(--ds-cobalt);}
+.nav-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--ds-cobalt);border-radius:2px;}
+.nav-tab .c{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:700;}
+.nav-attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;}
+.nav-attr{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed rgba(19,0,50,0.06);opacity:0;}
+.nav-attr .at-key{color:var(--ink-soft);}
+.nav-attr .at-val{color:var(--ds-inkwell);font-weight:600;}
+.nav-attr.a-1{animation:attr-in 15s linear infinite;animation-delay:-4.5s;}
+.nav-attr.a-2{animation:attr-in 15s linear infinite;animation-delay:-4.3s;}
+.nav-attr.a-3{animation:attr-in 15s linear infinite;animation-delay:-4.1s;}
+.nav-attr.a-4{animation:attr-in 15s linear infinite;animation-delay:-3.9s;}
+.nav-attr.a-5{animation:attr-in 15s linear infinite;animation-delay:-3.7s;}
+.nav-attr.a-6{animation:attr-in 15s linear infinite;animation-delay:-3.5s;}
+@keyframes attr-in { 0%{opacity:0;transform:translateY(2px);} 1%,33%{opacity:1;transform:translateY(0);} 34%,100%{opacity:1;} }
+.nav-tl{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.nav-tl .tlh{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-tl-item{display:flex;align-items:flex-start;gap:9px;position:relative;padding:3px 0;opacity:0;}
+.nav-tl-item::before{content:"";position:absolute;left:4.5px;top:12px;width:1px;bottom:-3px;background:var(--line-strong);}
+.nav-tl-item:last-child::before{display:none;}
+.nav-tl-item .tld{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;margin-top:3px;box-shadow:0 0 0 2px var(--ds-white);}
+.nav-tl-item.cur .tld{background:var(--ds-cobalt);animation:pulse-dot-cobalt 1.6s ease-out infinite;}
+@keyframes pulse-dot-cobalt { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55),0 0 0 2px var(--ds-white);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0),0 0 0 2px var(--ds-white);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0),0 0 0 2px var(--ds-white);} }
+.nav-tl-item .tb{flex:1;line-height:1.3;}
+.nav-tl-item .th{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.nav-tl-item .tm{font-size:9px;color:var(--ink-soft);}
+.nav-tl-item.i-1{animation:tl-in 15s linear infinite;animation-delay:-3.3s;}
+.nav-tl-item.i-2{animation:tl-in 15s linear infinite;animation-delay:-3.0s;}
+.nav-tl-item.i-3{animation:tl-in 15s linear infinite;animation-delay:-2.7s;}
+.nav-tl-item.i-4{animation:tl-in 15s linear infinite;animation-delay:-2.4s;}
+.nav-tl-item.i-5{animation:tl-in 15s linear infinite;animation-delay:-2.1s;}
+@keyframes tl-in { 0%{opacity:0;transform:translateX(-3px);} 1%,33%{opacity:1;transform:translateX(0);} 34%,100%{opacity:1;} }
+
+.nav-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.nav-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.nav-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.nav-ai{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-ai .ah{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:6px;}
+.nav-ai .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.nav-ai .ar{font-size:10px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);opacity:0;}
+.nav-ai .ar:last-child{border-bottom:0;}
+.nav-ai .ar b{color:var(--ds-mist);font-weight:600;}
+.nav-ai .ar.k-1{animation:ai-in 15s linear infinite;animation-delay:-1.8s;}
+.nav-ai .ar.k-2{animation:ai-in 15s linear infinite;animation-delay:-1.5s;}
+.nav-ai .ar.k-3{animation:ai-in 15s linear infinite;animation-delay:-1.2s;}
+@keyframes ai-in { 0%{opacity:0;} 1%,33%{opacity:1;} 34%,100%{opacity:1;} }
+
+/* --------- Archetype: Doc Gen scene (compact) --------- */
+.dg-body{flex:1;display:grid;grid-template-columns:200px 1fr 220px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.dg-tpls{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:12px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.dg-tpls .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.dg-tpl{background:var(--ds-ecru);border:1px solid var(--line);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--ds-inkwell);opacity:0;transform:translateY(4px);}
+.dg-tpl .ico{width:14px;height:16px;background:var(--ds-white);border:1px solid var(--line-strong);border-radius:2px;flex-shrink:0;position:relative;}
+.dg-tpl .ico::before{content:"";position:absolute;top:2px;left:2px;right:2px;height:1px;background:rgba(76,0,255,0.4);border-radius:1px;box-shadow:0 3px 0 rgba(76,0,255,0.25),0 6px 0 rgba(76,0,255,0.2);}
+.dg-tpl .nm{flex:1;font-weight:600;font-size:9.5px;}
+.dg-tpl .ck{width:10px;height:10px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;color:#fff;font-size:7px;font-weight:700;}
+.dg-tpl .ck::before{content:"✓";}
+.dg-tpl.t-1{animation:tpl-in 15s linear infinite;animation-delay:-14.3s;}
+.dg-tpl.t-2{animation:tpl-in 15s linear infinite;animation-delay:-14.1s;}
+.dg-tpl.t-3{animation:tpl-in 15s linear infinite;animation-delay:-13.9s;}
+.dg-tpl.t-4{animation:tpl-in 15s linear infinite;animation-delay:-13.7s;}
+.dg-tpl.t-5{animation:tpl-in 15s linear infinite;animation-delay:-13.5s;}
+.dg-tpl.t-6{animation:tpl-in 15s linear infinite;animation-delay:-13.3s;}
+@keyframes tpl-in { 0%{opacity:0;transform:translateY(4px);} 1.8%,30%{opacity:1;transform:translateY(0);} 34%,100%{opacity:1;} }
+.dg-tpl.t-1 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-13.5s;}
+.dg-tpl.t-2 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-13.3s;}
+.dg-tpl.t-3 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-13.1s;}
+.dg-tpl.t-4 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-12.9s;}
+.dg-tpl.t-5 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-12.7s;}
+.dg-tpl.t-6 .ck{animation:tpl-chk 15s linear infinite;animation-delay:-12.5s;}
+@keyframes tpl-chk { 0%{opacity:0;transform:scale(0.5);} 1.5%,30%{opacity:1;transform:scale(1);} 34%,100%{opacity:1;} }
+
+.dg-pv{background:var(--ds-white);border:1px solid var(--line-strong);border-radius:6px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 8px rgba(19,0,50,0.06);overflow:hidden;}
+.dg-pv .hd{font-family:var(--brand-font);font-size:13px;font-weight:700;color:var(--ds-inkwell);border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:4px;}
+.dg-pv .sb{font-size:9px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:4px;}
+.dg-pv .rw{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-mid);padding:2.5px 0;border-bottom:1px dashed rgba(19,0,50,0.06);opacity:0;}
+.dg-pv .rw .lb{color:var(--ink-soft);} .dg-pv .rw .vl{color:var(--ds-inkwell);font-weight:600;}
+.dg-pv .rw.r-1{animation:pp-in 15s linear infinite;animation-delay:-12.2s;}
+.dg-pv .rw.r-2{animation:pp-in 15s linear infinite;animation-delay:-12.0s;}
+.dg-pv .rw.r-3{animation:pp-in 15s linear infinite;animation-delay:-11.8s;}
+.dg-pv .rw.r-4{animation:pp-in 15s linear infinite;animation-delay:-11.6s;}
+.dg-pv .rw.r-5{animation:pp-in 15s linear infinite;animation-delay:-11.4s;}
+@keyframes pp-in { 0%{opacity:0;transform:translateY(2px);} 1%,30%{opacity:1;transform:translateY(0);} 34%,100%{opacity:1;} }
+.dg-pv .cl{font-size:10px;color:var(--ink-mid);line-height:1.5;margin-top:6px;padding:8px 10px;background:rgba(76,0,255,0.04);border-left:2px solid var(--ds-cobalt);border-radius:4px;opacity:0;animation:pp-in 15s linear infinite;animation-delay:-11.0s;}
+.dg-pv .cl b{color:var(--ds-inkwell);}
+
+.dg-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.dg-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.dg-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.dg-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.dg-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.dg-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.dg-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.dg-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.dg-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+
+/* --------- Archetype: Workspaces scene --------- */
+.ws-body{flex:1;display:grid;grid-template-columns:1fr 260px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ws-col{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.ws-pane{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;}
+.ws-pane .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;justify-content:space-between;}
+.ws-pane .h .cnt{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;font-weight:700;}
+.ws-row{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(19,0,50,0.06);font-size:10px;opacity:0;}
+.ws-row:last-child{border-bottom:0;}
+.ws-row .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7A50F5,#4C00FF);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.ws-row .nm{color:var(--ds-inkwell);font-weight:600;flex:1;min-width:0;}
+.ws-row .mt{color:var(--ink-soft);font-size:9px;margin-left:6px;}
+.ws-row .st{font-size:8px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:2px 6px;border-radius:3px;}
+.ws-row .st.ok{background:rgba(10,122,58,0.14);color:var(--ok);}
+.ws-row .st.pr{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.ws-row .st.wr{background:rgba(169,100,10,0.12);color:var(--warn);}
+.ws-row.w-1{animation:ws-in 15s linear infinite;animation-delay:-7.0s;}
+.ws-row.w-2{animation:ws-in 15s linear infinite;animation-delay:-6.6s;}
+.ws-row.w-3{animation:ws-in 15s linear infinite;animation-delay:-6.2s;}
+.ws-row.w-4{animation:ws-in 15s linear infinite;animation-delay:-5.8s;}
+.ws-row.w-5{animation:ws-in 15s linear infinite;animation-delay:-5.4s;}
+@keyframes ws-in { 0%{opacity:0;transform:translateX(-3px);} 1%,33%{opacity:1;transform:translateX(0);} 34%,100%{opacity:1;} }
+
+.ws-chat{flex:1;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.ws-msg{display:flex;gap:8px;font-size:10px;color:var(--ink-mid);opacity:0;}
+.ws-msg .mav{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.ws-msg .mbd{background:var(--ds-ecru);border-radius:6px;padding:5px 8px;line-height:1.35;max-width:85%;}
+.ws-msg .mbd b{color:var(--ds-inkwell);font-weight:600;}
+.ws-msg.m-1{animation:ws-in 15s linear infinite;animation-delay:-7.3s;}
+.ws-msg.m-2{animation:ws-in 15s linear infinite;animation-delay:-6.2s;}
+.ws-msg.m-3{animation:ws-in 15s linear infinite;animation-delay:-5.2s;}
+.ws-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ws-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ws-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ws-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ws-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="mock">
+<div class="scene s1">
+<div class="ds-topbar">
+<div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+<span class="ds-product">Navigator</span>
+<span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Claim CLM-LA-2026-5571</span>
+<div class="spacer"></div>
+<div class="ds-actions"><span>12:34 PM</span><span class="u-avatar">MR</span></div>
+</div>
+<div class="tenant-bar">
+<div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub">Beneficiary record · structured chain-of-custody</span></div>
+<div class="spacer"></div>
+<span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+</div>
+<div class="nav-body">
+<div class="nav-record">
+<div class="nav-rec-head">
+<div class="nav-mark"><span class="mk-lg">B</span><span class="mk-sm">BENEF</span></div>
+<div class="nav-bd"><div class="nav-kick">Death claim · Beneficiary review</div><div class="nav-rtl">Harrington — beneficiaries reconciled</div><div class="nav-rsb">Primary living · 1 predeceased (Policy 1) · 1 minor (Policy 2)</div></div>
+<span class="nav-chip"><span class="dot"></span>Flagged</span>
+</div>
+<div class="nav-tabs"><div class="nav-tab active">Beneficiaries</div><div class="nav-tab ">History<span class="c">8</span></div><div class="nav-tab ">Trust<span class="c">1</span></div><div class="nav-tab ">Timeline<span class="c">4</span></div></div>
+<div class="nav-attrs"><div class="nav-attr a-1"><span class="at-key">Policy 1 primary</span><span class="at-val">Eleanor Harrington · 100%</span></div><div class="nav-attr a-2"><span class="at-key">Policy 2 primary</span><span class="at-val">Eleanor · 50%</span></div><div class="nav-attr a-3"><span class="at-key">Policy 2 primary</span><span class="at-val">Nathan Harrington · 50%</span></div><div class="nav-attr a-4"><span class="at-key">Nathan · age</span><span class="at-val">16 · minor</span></div><div class="nav-attr a-5"><span class="at-key">Contingent</span><span class="at-val">Family Trust</span></div><div class="nav-attr a-6"><span class="at-key">Last update</span><span class="at-val">2024-08-10</span></div></div>
+<div class="nav-tl"><div class="tlh">Lifecycle</div><div class="nav-tl-item i-1"><span class="tld"></span><div class="tb"><div class="th">Original designation</div><div class="tm">2018-03-11 · Policy 1</div></div></div><div class="nav-tl-item i-2"><span class="tld"></span><div class="tb"><div class="th">Update</div><div class="tm">2020-11-02 · add spouse</div></div></div><div class="nav-tl-item i-3"><span class="tld"></span><div class="tb"><div class="th">Update</div><div class="tm">2024-08-10 · 50/50 split</div></div></div><div class="nav-tl-item i-4 cur"><span class="tld"></span><div class="tb"><div class="th">Flag raised</div><div class="tm">Minor beneficiary</div></div></div><div class="nav-tl-item i-5"><span class="tld"></span><div class="tb"><div class="th"></div><div class="tm"></div></div></div></div>
+</div>
+<div class="nav-side">
+<div class="nav-card"><div class="h">At a glance</div><div class="kv"><span>Minor-beneficiary</span><span class="v">Guardian needed</span></div><div class="kv"><span>Predeceased</span><span class="v">None</span></div><div class="kv"><span>Dispute</span><span class="v">None</span></div><div class="kv"><span>Trust doc</span><span class="v">On file</span></div></div>
+<div class="nav-ai"><div class="ah">AI insights · Agreement Insights</div><div class="ar k-1"><b>Guardianship flag</b> — minor beneficiary on Policy 2</div><div class="ar k-2"><b>No dispute</b> — no interpleader risk</div><div class="ar k-3"><b>Trust</b> — contingent, not triggered</div></div>
+</div>
+</div>
+<div class="handoff">
+<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+<span>Hand off to <b>Docusign Workspaces</b> →</span>
+</div>
+</div>
+<div class="scene s2">
+<div class="ds-topbar">
+<div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+<span class="ds-product">Workspaces</span>
+<span class="ds-crumb">Workspaces<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Beneficiary queue</span>
+<div class="spacer"></div>
+<div class="ds-actions"><span>12:34 PM</span><span class="u-avatar">MR</span></div>
+</div>
+<div class="tenant-bar">
+<div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub">Claims team · guardianship coordination</span></div>
+<div class="spacer"></div>
+<span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+</div>
+<div class="scene-head"><div><div class="scene-title">Workspaces — structured escalation, not email</div><div class="scene-sub">Guardianship setup routed to legal + beneficiary</div></div><span class="scene-chip pending"><span class="dot"></span>1 open</span></div>
+<div class="ws-body">
+<div class="ws-col">
+<div class="ws-pane"><div class="h">Beneficiary tasks<span class="cnt">3 · 1 needs action</span></div><div class="ws-row w-1">
+<div class="av">EH</div>
+<div class="nm">Eleanor Harrington<span class="mt">Primary · adult</span></div>
+<span class="st ok">Verified</span>
+</div><div class="ws-row w-2">
+<div class="av">NH</div>
+<div class="nm">Nathan Harrington<span class="mt">Primary · age 16</span></div>
+<span class="st pr">Guardian setup</span>
+</div><div class="ws-row w-3">
+<div class="av">FT</div>
+<div class="nm">Harrington Family Trust<span class="mt">Contingent</span></div>
+<span class="st ok">Not triggered</span>
+</div><div class="ws-row w-4">
+<div class="av">LG</div>
+<div class="nm">Legal · Mia Velez<span class="mt">Assigned guardianship</span></div>
+<span class="st pr">Drafting</span>
+</div><div class="ws-row w-5">
+<div class="av">OP</div>
+<div class="nm">Operations · Jamie Kim<span class="mt">Claim coordinator</span></div>
+<span class="st ok">On case</span>
+</div></div>
+<div class="ws-chat"><div class="h" style="border:0;padding:0;display:block;margin-bottom:4px">Guardianship thread</div><div class="ws-msg m-1"><div class="mav">MV</div><div class="mbd"><b>Mia Velez</b> · Legal: I've generated the UTMA guardianship packet for Nathan.</div></div><div class="ws-msg m-2"><div class="mav">EH</div><div class="mbd"><b>Eleanor Harrington</b>: Confirmed. Sending to my attorney for review.</div></div><div class="ws-msg m-3"><div class="mav">JK</div><div class="mbd"><b>Jamie Kim</b> · Claim coord: Holding Policy 2 50% disbursement until guardian is named.</div></div></div>
+</div>
+<div class="ws-side"><div class="ws-card"><div class="h">Team</div><div class="kv"><span>Claim coord</span><span class="v">Jamie Kim</span></div><div class="kv"><span>Legal</span><span class="v">Mia Velez</span></div><div class="kv"><span>UW liaison</span><span class="v">Morgan Kwan</span></div></div></div>
+</div>
+<div class="handoff">
+<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+<span>Hand off to <b>Docusign Maestro</b> →</span>
+</div>
+</div>
+<div class="scene s3">
+<div class="ds-topbar">
+<div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+<span class="ds-product">Maestro</span>
+<span class="ds-crumb">Workflows<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Guardianship</span>
+<div class="spacer"></div>
+<div class="ds-actions"><span>12:34 PM</span><span class="u-avatar">MR</span></div>
+</div>
+<div class="tenant-bar">
+<div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub">Guardianship · docs generated from claim envelope</span></div>
+<div class="spacer"></div>
+<span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+</div>
+<div class="scene-head"><div><div class="scene-title">Minor-beneficiary packet auto-assembled</div><div class="scene-sub">UTMA affidavits pulled into the claim envelope</div></div><span class="scene-chip done"><span class="dot"></span>Packet sent</span></div>
+<div class="ms-body">
+<div class="ms-flow"><div class="hd"><span class="live"></span>Orchestration · parallel execution</div>
+<div class="ms-lanes"><div class="ms-lane"><div class="lh">Docs<span class="ls">Complete</span></div><div class="tok t-1"><span class="tkn">UTMA affidavit</span><span class="tkm">Generated</span></div><div class="tok t-2"><span class="tkn">Guardian ID</span><span class="tkm">Requested</span></div><div class="tok t-3"><span class="tkn">Court order</span><span class="tkm">If required</span></div></div><div class="ms-lane"><div class="lh">Flows<span class="ls">Complete</span></div><div class="tok t-1"><span class="tkn">Beneficiary</span><span class="tkm">Eleanor H.</span></div><div class="tok t-2"><span class="tkn">Guardian</span><span class="tkm">TBD</span></div><div class="tok t-3"><span class="tkn">Notary</span><span class="tkm">RON on standby</span></div></div><div class="ms-lane"><div class="lh">Outcome<span class="ls">Complete</span></div><div class="tok t-1"><span class="tkn">Policy 2 · 50% EH</span><span class="tkm">Released</span></div><div class="tok t-2"><span class="tkn">Policy 2 · 50% NH</span><span class="tkm">Held · trust</span></div><div class="tok t-3"><span class="tkn">Policy 1</span><span class="tkm">Fully paid</span></div></div>
+<div class="ms-cv"><div class="hd">Paid</div><div class="big">$625k</div><div class="lbl">So far · $125k in trust</div></div>
+</div></div>
+<div class="ms-side"><div class="ms-card"><div class="h">Claim</div><div class="kv"><span>Claim</span><span class="v">CLM-LA-2026-5571</span></div><div class="kv"><span>Beneficiary</span><span class="v">Eleanor Harrington</span></div><div class="kv"><span>Guardianship</span><span class="v">Pending</span></div></div><div class="ms-sla"><span class="big">2 days</span><span class="lbl">Guardianship cycle</span><span class="cmp"><span class='strike'>Weeks of paper</span></span></div></div>
+</div>
+
+</div>
+<div class="loop-indicator">
+<div class="li-dots"><span class="li-dot d1"></span><span class="li-dot d2"></span><span class="li-dot d3"></span></div>
+<span class="li-label">
+<span class="li-scene-1">1 · Navigator</span>
+<span class="li-scene-2">2 · Workspaces</span>
+<span class="li-scene-3">3 · Maestro</span>
+</span>
+</div>
+</div>
+</body>
+</html>
