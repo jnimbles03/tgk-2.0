@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Docusign Navigator — Underwriting decision (L&A NB) | TGK 2.0</title>
+<meta name="description" content="Stylized animated mock evoking a Docusign IAM flow. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:11px;line-height:1.45;}
+
+/* ---------------- Docusign top chrome ---------------- */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-topbar .ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-topbar .ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.ds-topbar .ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;}
+.ds-topbar .spacer{flex:1;}
+.ds-topbar .ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.ds-topbar .ds-actions .u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;}
+.tenant-bar .spacer{flex:1;}
+.tenant-bar .t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.tenant-bar .t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* Toast */
+.toast{position:absolute;bottom:18px;right:20px;background:var(--ds-inkwell);color:#fff;font-size:10.5px;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(19,0,50,0.35);opacity:0;animation:toast-in 12s ease-in-out infinite;}
+.toast svg{width:12px;height:12px;stroke:#4DD77E;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes toast-in { 0%,82%{opacity:0;transform:translateY(6px);} 88%,96%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-4px);} }
+
+
+.layout{flex:1;display:grid;grid-template-columns:1fr 232px;min-height:0;}
+.canvas{padding:14px 18px;background:var(--ds-ecru);display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.rec-head{display:flex;align-items:flex-start;gap:12px;}
+.rec-head .rec-ico{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#26065D,#130032);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--brand-font);font-weight:700;font-size:15px;}
+.rec-head .rec-meta{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.rec-head .rec-kicker{font-size:9.5px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+.rec-head .rec-title{font-family:var(--brand-font);font-size:16px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.rec-head .rec-sub{font-size:11px;color:var(--ink-mid);}
+.rec-head .rec-status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(10,122,58,0.10);color:var(--ok);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;}
+.rec-head .rec-status::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-top:2px;}
+.tabs .tab{padding:6px 12px;font-size:10.5px;color:var(--ink-mid);font-weight:500;border-bottom:2px solid transparent;}
+.tabs .tab.active{color:var(--ds-cobalt);border-bottom-color:var(--ds-cobalt);font-weight:600;}
+.tabs .tab .tb-count{background:rgba(110,97,137,0.12);color:var(--ink-mid);border-radius:8px;padding:1px 5px;margin-left:4px;font-size:9px;}
+.tabs .tab.active .tb-count{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+
+.rec-body{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;flex:1;min-height:0;}
+.panel{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.panel .p-head{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);}
+.panel .p-head .ai{margin-left:8px;padding:2px 6px;background:linear-gradient(90deg,rgba(76,0,255,0.12),rgba(255,82,82,0.12));border-radius:3px;font-size:9px;color:var(--ds-cobalt);letter-spacing:0.02em;text-transform:none;font-weight:600;}
+
+.attr{display:flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 0;border-bottom:1px dashed var(--line);opacity:0;}
+.attr:last-child{border-bottom:0;}
+.attr .at-key{font-size:9.5px;color:var(--ink-soft);letter-spacing:0.02em;min-width:92px;}
+.attr .at-val{color:var(--ds-inkwell);font-weight:600;flex:1;}
+.attr .at-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;}
+.attr .at-chip.ok{background:rgba(10,122,58,0.10);color:var(--ok);}
+.attr .at-chip.cobalt{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.attr .at-chip.warn{background:rgba(169,100,10,0.12);color:var(--warn);}
+.attr.a-1{animation:attr-in 12s linear infinite;animation-delay:0.6s;}
+.attr.a-2{animation:attr-in 12s linear infinite;animation-delay:1.6s;}
+.attr.a-3{animation:attr-in 12s linear infinite;animation-delay:2.6s;}
+.attr.a-4{animation:attr-in 12s linear infinite;animation-delay:3.6s;}
+.attr.a-5{animation:attr-in 12s linear infinite;animation-delay:4.6s;}
+.attr.a-6{animation:attr-in 12s linear infinite;animation-delay:5.6s;}
+.attr.a-7{animation:attr-in 12s linear infinite;animation-delay:6.6s;}
+@keyframes attr-in { 0%,3%{opacity:0;transform:translateY(3px);} 6%,100%{opacity:1;transform:translateY(0);} }
+
+.timeline{display:flex;flex-direction:column;gap:0;flex:1;}
+.tl-item{display:flex;gap:10px;position:relative;padding:6px 0 6px 0;opacity:0;}
+.tl-item::before{content:"";position:absolute;left:7px;top:18px;bottom:-6px;width:1.5px;background:var(--line);}
+.tl-item:last-child::before{display:none;}
+.tl-item .tl-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ds-cobalt);background:#fff;margin-top:2px;flex-shrink:0;position:relative;z-index:1;}
+.tl-item.active .tl-dot{background:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,0.15);}
+.tl-item .tl-body{flex:1;}
+.tl-item .tl-title{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.tl-item .tl-meta{font-size:9.5px;color:var(--ink-soft);letter-spacing:0.02em;}
+.tl-item.t-1{animation:attr-in 12s linear infinite;animation-delay:1.0s;}
+.tl-item.t-2{animation:attr-in 12s linear infinite;animation-delay:2.8s;}
+.tl-item.t-3{animation:attr-in 12s linear infinite;animation-delay:4.6s;}
+.tl-item.t-4{animation:attr-in 12s linear infinite;animation-delay:6.4s;}
+.tl-item.t-5{animation:attr-in 12s linear infinite;animation-delay:8.0s;}
+
+.side{background:var(--ds-white);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;}
+.side .side-title{font-family:var(--brand-font);font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.side .kv{display:flex;flex-direction:column;gap:6px;}
+.side .kv .kv-row{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:4px 0;border-bottom:1px solid var(--line);}
+.side .kv .kv-row:last-child{border-bottom:0;}
+.side .kv .kv-row .v{font-weight:600;color:var(--ds-inkwell);}
+.side .recs{display:flex;flex-direction:column;gap:6px;}
+.side .rec{display:flex;gap:8px;background:var(--ds-ecru);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:10px;color:var(--ink-mid);line-height:1.4;}
+.side .rec .ai-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--ds-cobalt),var(--ds-poppy));margin-top:4px;flex-shrink:0;}
+.side .rec strong{color:var(--ds-inkwell);font-weight:600;}
+
+</style>
+</head>
+<body>
+
+<div class="mock" role="img" aria-label="Docusign Navigator — Ava Rodriguez — Term Life 20 · $500,000">
+  
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Navigator</span>
+    <span class="ds-crumb">Workspaces<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Underwriting<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Case · TL-CA-2026-18844</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>Saved 12:34 PM</span><span class="u-avatar">MR</span></div>
+  </div>
+  
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub" style="margin-left:6px;">Underwriting decision record</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="layout">
+    <section class="canvas">
+      <div class="rec-head">
+        <div class="rec-ico">UW</div>
+        <div class="rec-meta">
+          <div class="rec-kicker">Underwriting decision — structured record</div>
+          <div class="rec-title">Ava Rodriguez — Term Life 20 · $500,000</div>
+          <div class="rec-sub">Case TL-CA-2026-18844 · Agent Michael Reyes · Covenant Re ceding</div>
+        </div>
+        <span class="rec-status">Auto-accept</span>
+      </div>
+      <div class="tabs"><div class="tab active">Decision</div><div class="tab">Evidence <span class="tb-count">14</span></div><div class="tab">Ceding <span class="tb-count">2</span></div><div class="tab">Activity <span class="tb-count">38</span></div><div class="tab">Agreement <span class="tb-count">1</span></div></div>
+      <div class="rec-body">
+        <div class="panel">
+          <div class="p-head">Extracted attributes <span class="ai">AI extracted</span></div>
+          <div class="attr a-1"><span class="at-key">Risk class</span><span class="at-val">Non-Tobacco Preferred</span><span class="at-chip ok">Matched</span></div><div class="attr a-2"><span class="at-key">Underwriting tier</span><span class="at-val">Auto-accept (RM score 0.04)</span><span class="at-chip cobalt">Automated</span></div><div class="attr a-3"><span class="at-key">Build</span><span class="at-val">5'6" · 142 lb</span><span class="at-chip ok">Within guide</span></div><div class="attr a-4"><span class="at-key">Labs</span><span class="at-val">A1c 5.1 · LDL 98 · HDL 62</span><span class="at-chip ok">Clean</span></div><div class="attr a-5"><span class="at-key">Rx history</span><span class="at-val">No flagged prescriptions</span><span class="at-chip ok">Clean</span></div><div class="attr a-6"><span class="at-key">Motor vehicle</span><span class="at-val">No violations — 5 yr</span><span class="at-chip ok">Clean</span></div><div class="attr a-7"><span class="at-key">Reinsurance</span><span class="at-val">Covenant Re ceding 40% · auto-bound</span><span class="at-chip cobalt">Bound</span></div>
+        </div>
+        <div class="panel">
+          <div class="p-head">Record activity</div>
+          <div class="timeline"><div class="tl-item t-1 active"><span class="tl-dot"></span><div class="tl-body"><div class="tl-title">Application submitted</div><div class="tl-meta">Apr 18 · 2:14 PM via Web Forms</div></div></div><div class="tl-item t-2 active"><span class="tl-dot"></span><div class="tl-body"><div class="tl-title">Evidence gathered</div><div class="tl-meta">Apr 19 · 11:42 AM via Maestro</div></div></div><div class="tl-item t-3 active"><span class="tl-dot"></span><div class="tl-body"><div class="tl-title">Auto-accept triggered</div><div class="tl-meta">Apr 20 · 10:18 AM · RM score 0.04</div></div></div><div class="tl-item t-4 active"><span class="tl-dot"></span><div class="tl-body"><div class="tl-title">Ceding written to treaty</div><div class="tl-meta">Apr 20 · 10:19 AM · Covenant Re</div></div></div><div class="tl-item t-5 active"><span class="tl-dot"></span><div class="tl-body"><div class="tl-title">Packet released to Issuance</div><div class="tl-meta">Apr 20 · 10:20 AM</div></div></div></div>
+        </div>
+      </div>
+    </section>
+    <aside class="side">
+      <div class="side-title">Case summary</div>
+      <div class="kv"><div class="kv-row"><span>Face amount</span><span class="v">$500,000</span></div><div class="kv-row"><span>Premium</span><span class="v">$438/yr</span></div><div class="kv-row"><span>Distribution</span><span class="v">eApp + Agent</span></div><div class="kv-row"><span>Distribution ID</span><span class="v">M-RY-44189</span></div><div class="kv-row"><span>Decision time</span><span class="v">12 days</span></div><div class="kv-row"><span>Legacy comparable</span><span class="v">30–60 days</span></div></div>
+      <div class="side-title" style="margin-top:4px;">Recommendations</div>
+      <div class="recs"><div class="rec"><span class="ai-dot"></span><span><strong>Cross-sell signal:</strong> Ava's dependent child appears eligible for a Child Rider add-on — queue agent outreach post-issue.</span></div><div class="rec"><span class="ai-dot"></span><span><strong>Retention signal:</strong> No at-risk flags. Schedule check-in at year 1 anniversary.</span></div></div>
+    </aside>
+  </div>
+  <div class="toast"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>Decision written to Navigator · released to Policy Issuance</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Docusign Document Generation — Policy package (L&A NB) | TGK 2.0</title>
+<meta name="description" content="Stylized animated mock evoking a Docusign IAM flow. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:11px;line-height:1.45;}
+
+/* ---------------- Docusign top chrome ---------------- */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-topbar .ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-topbar .ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.ds-topbar .ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;}
+.ds-topbar .spacer{flex:1;}
+.ds-topbar .ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.ds-topbar .ds-actions .u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;}
+.tenant-bar .spacer{flex:1;}
+.tenant-bar .t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.tenant-bar .t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* Toast */
+.toast{position:absolute;bottom:18px;right:20px;background:var(--ds-inkwell);color:#fff;font-size:10.5px;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(19,0,50,0.35);opacity:0;animation:toast-in 12s ease-in-out infinite;}
+.toast svg{width:12px;height:12px;stroke:#4DD77E;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes toast-in { 0%,82%{opacity:0;transform:translateY(6px);} 88%,96%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-4px);} }
+
+
+.layout{flex:1;display:grid;grid-template-columns:260px 1fr 232px;min-height:0;}
+.tpl{background:var(--ds-white);border-right:1px solid var(--line);padding:14px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.tpl .tpl-head{font-family:var(--brand-font);font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.tpl .tpl-card{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.tpl .tpl-card .tc-title{font-weight:600;font-size:11px;color:var(--ds-inkwell);}
+.tpl .tpl-card .tc-sub{font-size:9.5px;color:var(--ink-soft);}
+.tpl .tpl-list{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow:hidden;}
+.tpl .tpl-row{display:flex;align-items:center;gap:8px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:10px;color:var(--ink-mid);opacity:0;}
+.tpl .tpl-row .tr-ico{width:18px;height:22px;border:1.5px solid var(--line-strong);border-radius:2px;background:#fff;position:relative;flex-shrink:0;}
+.tpl .tpl-row .tr-ico::before{content:"";position:absolute;top:3px;left:2px;right:2px;height:1.5px;background:var(--line-strong);}
+.tpl .tpl-row .tr-ico::after{content:"";position:absolute;top:6px;left:2px;right:2px;bottom:3px;background:
+  linear-gradient(to bottom,var(--line) 1px,transparent 1px) repeat;background-size:100% 3px;}
+.tpl .tpl-row .tr-name{flex:1;line-height:1.3;}
+.tpl .tpl-row .tr-name strong{display:block;color:var(--ds-inkwell);font-size:10.5px;font-weight:600;}
+.tpl .tpl-row .tr-check{width:12px;height:12px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tpl .tpl-row .tr-check svg{width:8px;height:8px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.tpl .tpl-row.r-1{animation:tpl-in 12s linear infinite;animation-delay:0.6s;}
+.tpl .tpl-row.r-2{animation:tpl-in 12s linear infinite;animation-delay:1.4s;}
+.tpl .tpl-row.r-3{animation:tpl-in 12s linear infinite;animation-delay:2.2s;}
+.tpl .tpl-row.r-4{animation:tpl-in 12s linear infinite;animation-delay:3.0s;}
+.tpl .tpl-row.r-5{animation:tpl-in 12s linear infinite;animation-delay:3.8s;}
+@keyframes tpl-in { 0%,3%{opacity:0;transform:translateX(-4px);} 6%,100%{opacity:1;transform:translateX(0);} }
+
+.preview{background:var(--ds-ecru);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;}
+.preview .pv-eyebrow{font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:10px;}
+.preview .pv-eyebrow .chip{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);padding:2px 7px;border-radius:3px;letter-spacing:0.04em;font-size:9.5px;}
+.preview .pv-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.preview .pv-stack{flex:1;position:relative;display:flex;align-items:flex-start;justify-content:center;}
+.paper{width:260px;background:#fff;border:1px solid var(--line-strong);border-radius:3px;box-shadow:0 4px 16px rgba(19,0,50,0.12);padding:18px 22px;position:absolute;top:0;font-size:9px;line-height:1.5;color:var(--ink-mid);}
+.paper .pp-head{font-family:var(--brand-font);font-size:11px;font-weight:700;color:var(--ds-inkwell);border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:7px;}
+.paper .pp-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted var(--line);font-size:8.5px;}
+.paper .pp-row .pp-v{color:var(--ds-inkwell);font-weight:600;}
+.paper .pp-text{font-size:8px;line-height:1.55;color:var(--ink-mid);margin-top:6px;}
+.paper .pp-sig{margin-top:8px;border-top:1px dashed var(--line-strong);padding-top:5px;display:flex;justify-content:space-between;font-size:8px;color:var(--ink-soft);}
+.paper .pp-sig .pp-s{width:70px;height:12px;border-bottom:1px solid var(--ink-soft);}
+.paper .pp-stamp{position:absolute;bottom:14px;right:16px;border:1.5px solid var(--ds-cobalt);color:var(--ds-cobalt);font-size:7px;font-weight:700;padding:3px 6px;letter-spacing:0.08em;text-transform:uppercase;transform:rotate(-6deg);opacity:0;animation:stamp-in 12s linear infinite;animation-delay:8.5s;}
+@keyframes stamp-in { 0%,70%{opacity:0;transform:rotate(-6deg) scale(0.7);} 75%,100%{opacity:1;transform:rotate(-6deg) scale(1);} }
+
+.paper.pg-1{animation:pg-slide 12s ease-out infinite;animation-delay:4.4s;transform:translate(0,0) rotate(0);z-index:3;}
+.paper.pg-2{animation:pg-slide 12s ease-out infinite;animation-delay:5.2s;transform:translate(0,0) rotate(0);z-index:2;}
+.paper.pg-3{animation:pg-slide 12s ease-out infinite;animation-delay:6.0s;transform:translate(0,0) rotate(0);z-index:1;}
+@keyframes pg-slide { 0%,34%{opacity:0;transform:translate(-30px,-8px) rotate(-3deg);} 40%,100%{opacity:1;transform:translate(0,0) rotate(0);} }
+.paper.pg-2{transform:translate(14px,10px) rotate(1deg);}
+.paper.pg-3{transform:translate(28px,20px) rotate(2deg);}
+
+/* Data chips animating into paper */
+.chip-flow{position:absolute;left:50%;top:-4px;font-size:8px;font-weight:700;background:var(--ds-cobalt);color:#fff;padding:3px 6px;border-radius:3px;opacity:0;}
+.chip-flow.cf-1{animation:cf-fly 12s ease-in-out infinite;animation-delay:1.8s;}
+.chip-flow.cf-2{animation:cf-fly 12s ease-in-out infinite;animation-delay:2.6s;}
+.chip-flow.cf-3{animation:cf-fly 12s ease-in-out infinite;animation-delay:3.4s;}
+@keyframes cf-fly { 0%,9%{opacity:0;transform:translate(-170px,60px);} 14%{opacity:1;} 26%,100%{opacity:0;transform:translate(110px,140px);} }
+
+.side{background:var(--ds-white);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;}
+.side .side-title{font-family:var(--brand-font);font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.side .summary{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:11px 12px;display:flex;flex-direction:column;gap:3px;}
+.side .summary .sm-big{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.side .summary .sm-sub{font-size:9px;color:var(--ds-mist);letter-spacing:0.05em;}
+.side .summary .sm-detail{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+.side .kv{display:flex;flex-direction:column;gap:4px;}
+.side .kv .kv-row{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px solid var(--line);}
+.side .kv .kv-row:last-child{border-bottom:0;}
+.side .kv .kv-row .v{font-weight:600;color:var(--ds-inkwell);}
+.side .handoff{background:linear-gradient(135deg,rgba(76,0,255,0.10),rgba(255,82,82,0.06));border:1px solid rgba(76,0,255,0.25);border-radius:8px;padding:10px 12px;font-size:10px;color:var(--ds-inkwell);line-height:1.4;}
+.side .handoff strong{color:var(--ds-cobalt);font-weight:700;}
+
+</style>
+</head>
+<body>
+
+<div class="mock" role="img" aria-label="Docusign Document Generation — Policy TL-CA-2026-18844 · auto-assembled from UW decision">
+  
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Document Generation</span>
+    <span class="ds-crumb">Workspaces<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Issuance<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Package · TL-CA-2026-18844</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>Saved 12:34 PM</span><span class="u-avatar">MR</span></div>
+  </div>
+  
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub" style="margin-left:6px;">Policy package assembly</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="layout">
+    <aside class="tpl">
+      <div class="tpl-head">Template</div>
+      <div class="tpl-card">
+        <div class="tc-title">Term 20 — California policy package</div>
+        <div class="tc-sub">Template v4.11 · 14 clauses · 3 scheduled endorsements</div>
+      </div>
+      <div class="tpl-head" style="margin-top:4px;">Documents assembled</div>
+      <div class="tpl-list"><div class="tpl-row r-1"><span class="tr-ico"></span><span class="tr-name"><strong>Policy specifications</strong>Master policy · 12 pp</span><span class="tr-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span></div><div class="tpl-row r-2"><span class="tr-ico"></span><span class="tr-name"><strong>Schedule A — Riders</strong>Endorsements bundled</span><span class="tr-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span></div><div class="tpl-row r-3"><span class="tr-ico"></span><span class="tr-name"><strong>Schedule B — Disclosures</strong>CA replacement + privacy</span><span class="tr-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span></div><div class="tpl-row r-4"><span class="tr-ico"></span><span class="tr-name"><strong>Illustration snapshot</strong>Sales illustration attached</span><span class="tr-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span></div><div class="tpl-row r-5"><span class="tr-ico"></span><span class="tr-name"><strong>Free-look notice</strong>30-day California term</span><span class="tr-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span></div></div>
+    </aside>
+    <section class="preview">
+      <div class="pv-eyebrow"><span>Assembly</span><span class="chip">Data-driven merge</span><span>·</span><span>3 pages</span></div>
+      <div class="pv-title">Policy TL-CA-2026-18844 · auto-assembled from UW decision</div>
+      <div class="pv-stack">
+        <span class="chip-flow cf-1">{{owner.legalName}}</span><span class="chip-flow cf-2">{{policy.faceAmount}}</span><span class="chip-flow cf-3">{{uw.riskClass}}</span>
+        <div class="paper pg-1">
+          <div class="pp-head">Term Life 20 — Master Policy</div>
+          <div class="pp-row"><span>Owner</span><span class="pp-v">Ava Rodriguez</span></div><div class="pp-row"><span>Face amount</span><span class="pp-v">$500,000</span></div><div class="pp-row"><span>Premium</span><span class="pp-v">$438/yr</span></div><div class="pp-row"><span>Effective</span><span class="pp-v">May 1, 2026</span></div>
+          <div class="pp-text">This agreement, made between Acme Life & Annuities and the Owner, is based on the application attached as Exhibit A and the underwriting decision record signed on April 20, 2026.</div>
+          <div class="pp-sig"><div><div class="pp-s"></div>Policyholder</div><div><div class="pp-s"></div>Acme officer</div></div>
+          <div class="pp-stamp">Generated</div>
+        </div>
+        <div class="paper pg-2">
+          <div class="pp-head">Schedule A — Riders</div>
+          <div class="pp-text">Attached endorsements and amendments merged automatically from the underwriting decision record.</div>
+          <div class="pp-row"><span>Waiver of Premium</span><span class="pp-v">Included</span></div>
+          <div class="pp-row"><span>Accelerated Death Benefit</span><span class="pp-v">Included</span></div>
+          <div class="pp-row"><span>Child Rider</span><span class="pp-v">Excluded</span></div>
+        </div>
+        <div class="paper pg-3">
+          <div class="pp-head">Schedule B — Disclosures</div>
+          <div class="pp-text">State-specific disclosures and replacement forms auto-selected from applicant's resident jurisdiction.</div>
+          <div class="pp-row"><span>Replacement disclosure</span><span class="pp-v">CA-RL-2024</span></div>
+          <div class="pp-row"><span>Producer disclosure</span><span class="pp-v">Included</span></div>
+          <div class="pp-row"><span>Privacy notice</span><span class="pp-v">Included</span></div>
+        </div>
+      </div>
+    </section>
+    <aside class="side">
+      <div class="side-title">Package summary</div>
+      <div class="summary">
+        <div class="sm-sub">Assembled package</div>
+        <div class="sm-big">$500,000</div>
+        <div class="sm-detail">3 schedules · 14 clauses · effective May 1, 2026</div>
+      </div>
+      <div class="side-title" style="margin-top:2px;">Merge sources</div>
+      <div class="kv"><div class="kv-row"><span>From UW record</span><span class="v">Navigator</span></div><div class="kv-row"><span>From application</span><span class="v">Web Forms</span></div><div class="kv-row"><span>From illustration</span><span class="v">Acme PAS</span></div><div class="kv-row"><span>CA disclosures</span><span class="v">Replacement library</span></div></div>
+      <div class="handoff"><strong>Next:</strong> package hands off to eSignature as a single envelope — applicant + agent sign together; amendments included.</div>
+    </aside>
+  </div>
+  <div class="toast"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>Policy package assembled · envelope prepared</div>
+</div>
+
+</body>
+</html>

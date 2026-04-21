@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Docusign Workspaces — Beneficiary review (L&A DC) | TGK 2.0</title>
+<meta name="description" content="Stylized animated mock evoking a Docusign IAM flow. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:11px;line-height:1.45;}
+
+/* ---------------- Docusign top chrome ---------------- */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-topbar .ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-topbar .ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.ds-topbar .ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;}
+.ds-topbar .spacer{flex:1;}
+.ds-topbar .ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.ds-topbar .ds-actions .u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;}
+.tenant-bar .spacer{flex:1;}
+.tenant-bar .t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.tenant-bar .t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* Toast */
+.toast{position:absolute;bottom:18px;right:20px;background:var(--ds-inkwell);color:#fff;font-size:10.5px;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(19,0,50,0.35);opacity:0;animation:toast-in 12s ease-in-out infinite;}
+.toast svg{width:12px;height:12px;stroke:#4DD77E;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes toast-in { 0%,82%{opacity:0;transform:translateY(6px);} 88%,96%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-4px);} }
+
+
+.layout{flex:1;display:grid;grid-template-columns:1fr 260px;min-height:0;}
+.ws-main{background:var(--ds-ecru);padding:16px 20px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.ws-title-row{display:flex;align-items:flex-start;gap:12px;}
+.ws-title-row .wt-meta{flex:1;}
+.ws-title-row .wt-kicker{font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+.ws-title-row .wt-title{font-family:var(--brand-font);font-size:16px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.ws-title-row .wt-sub{font-size:11px;color:var(--ink-mid);}
+.ws-title-row .wt-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;}
+
+.ws-panels{flex:1;display:grid;grid-template-columns:2fr 1fr;gap:10px;min-height:0;}
+.ws-doc{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:8px;overflow:hidden;position:relative;}
+.ws-doc .wd-title{font-family:var(--brand-font);font-size:11px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.ws-doc .ben-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:10.5px;color:var(--ink-mid);opacity:0;}
+.ws-doc .ben-row .br-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#26065D,#130032);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;flex-shrink:0;}
+.ws-doc .ben-row .br-name{font-weight:600;color:var(--ds-inkwell);line-height:1.3;flex:1;}
+.ws-doc .ben-row .br-name small{display:block;font-size:9px;font-weight:400;color:var(--ink-soft);}
+.ws-doc .ben-row .br-pct{font-family:var(--brand-font);font-size:13px;font-weight:700;color:var(--ds-inkwell);}
+.ws-doc .ben-row .br-flag{font-size:8.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:3px;}
+.ws-doc .ben-row .br-flag.ok{background:rgba(10,122,58,0.10);color:var(--ok);}
+.ws-doc .ben-row .br-flag.warn{background:rgba(169,100,10,0.12);color:var(--warn);}
+.ws-doc .ben-row .br-flag.alert{background:rgba(169,52,52,0.12);color:var(--alert);}
+.ws-doc .ben-row.b-1{animation:tpl-in 12s linear infinite;animation-delay:0.8s;}
+.ws-doc .ben-row.b-2{animation:tpl-in 12s linear infinite;animation-delay:1.6s;}
+.ws-doc .ben-row.b-3{animation:tpl-in 12s linear infinite;animation-delay:2.4s;}
+.ws-doc .ben-row.b-4{animation:tpl-in 12s linear infinite;animation-delay:3.2s;}
+@keyframes tpl-in { 0%,3%{opacity:0;transform:translateX(-4px);} 6%,100%{opacity:1;transform:translateX(0);} }
+
+.ws-doc .pct-bar{flex:1;max-width:110px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:0 6px;position:relative;}
+.ws-doc .pct-bar .pb{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,var(--ds-cobalt),var(--ds-deep-violet));border-radius:3px;}
+
+.ws-chat{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.ws-chat .wc-title{font-family:var(--brand-font);font-size:11px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.ws-chat .cm{display:flex;gap:8px;opacity:0;}
+.ws-chat .cm .cm-av{width:22px;height:22px;border-radius:50%;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-chat .cm .cm-av.legal{background:#7A1D3C;}
+.ws-chat .cm .cm-av.case{background:linear-gradient(135deg,#4C00FF,#26065D);}
+.ws-chat .cm .cm-av.ai{background:linear-gradient(135deg,#FF5252,#B43838);}
+.ws-chat .cm .cm-body{flex:1;}
+.ws-chat .cm .cm-head{font-size:9.5px;color:var(--ink-soft);}
+.ws-chat .cm .cm-head strong{color:var(--ds-inkwell);font-weight:600;}
+.ws-chat .cm .cm-msg{font-size:10.5px;line-height:1.5;color:var(--ink-mid);margin-top:2px;background:var(--ds-ecru);border-radius:6px;padding:6px 9px;}
+.ws-chat .cm .cm-msg strong{color:var(--ds-inkwell);font-weight:600;}
+.ws-chat .cm.c-1{animation:tpl-in 12s linear infinite;animation-delay:3.5s;}
+.ws-chat .cm.c-2{animation:tpl-in 12s linear infinite;animation-delay:5.5s;}
+.ws-chat .cm.c-3{animation:tpl-in 12s linear infinite;animation-delay:7.5s;}
+
+.side{background:var(--ds-white);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;}
+.side .side-title{font-family:var(--brand-font);font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.side .claim{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.side .claim .c-head{font-family:var(--brand-font);font-weight:600;font-size:11px;color:var(--ds-inkwell);}
+.side .claim .c-sub{font-size:9.5px;color:var(--ink-soft);}
+.side .claim .c-row{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed var(--line);}
+.side .claim .c-row:last-child{border-bottom:0;}
+.side .claim .c-row .v{font-weight:600;color:var(--ds-inkwell);}
+.side .team{display:flex;flex-wrap:wrap;gap:4px;}
+.side .team .m{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;background:var(--ds-ecru);border:1px solid var(--line);border-radius:999px;font-size:10px;color:var(--ink-mid);}
+.side .team .m .d{width:7px;height:7px;border-radius:50%;background:var(--ok);}
+.side .escalation{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(255,82,82,0.04));border:1px solid rgba(76,0,255,0.22);border-radius:8px;padding:10px 12px;font-size:10px;color:var(--ds-inkwell);line-height:1.45;}
+.side .escalation strong{color:var(--ds-cobalt);font-weight:700;}
+
+</style>
+</head>
+<body>
+
+<div class="mock" role="img" aria-label="Docusign Workspaces — Beneficiary review — Harrington claim">
+  
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Workspaces</span>
+    <span class="ds-crumb">Workspaces<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Death Claims<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Beneficiary review · CLM-LA-2026-5571</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>Saved 12:34 PM</span><span class="u-avatar">MR</span></div>
+  </div>
+  
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub" style="margin-left:6px;">Beneficiary reconciliation workspace</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="layout">
+    <section class="ws-main">
+      <div class="ws-title-row">
+        <div class="wt-meta">
+          <div class="wt-kicker">Collaborative review</div>
+          <div class="wt-title">Beneficiary review — Harrington claim</div>
+          <div class="wt-sub">Reconciled beneficiary record across both Acme policies. Predeceased and trust changes flagged automatically at claim open; disputes and minor-beneficiary workflows routed through structured escalation — not email.</div>
+        </div>
+        <span class="wt-tag">Structured</span>
+      </div>
+      <div class="ws-panels">
+        <div class="ws-doc">
+          <div class="wd-title">Beneficiary allocation — reconciled</div>
+          
+        <div class="ben-row b-1">
+          <span class="br-av">EH</span>
+          <span class="br-name"><strong>Eleanor Harrington</strong><small>Spouse · Primary (both policies)</small></span>
+          <span class="br-pct">75%</span>
+          <div class="pct-bar"><div class="pb" style="width:75%;"></div></div>
+          <span class="br-flag ok">Verified</span>
+        </div>
+        <div class="ben-row b-2">
+          <span class="br-av">JH</span>
+          <span class="br-name"><strong>James Harrington</strong><small>Son · Contingent (TL) · age 26</small></span>
+          <span class="br-pct">25%</span>
+          <div class="pct-bar"><div class="pb" style="width:25%;"></div></div>
+          <span class="br-flag ok">Verified</span>
+        </div>
+        <div class="ben-row b-3">
+          <span class="br-av">MH</span>
+          <span class="br-name"><strong>Margaret Harrington</strong><small>Daughter · Contingent (WL) · age 23</small></span>
+          <span class="br-pct">0%</span>
+          <div class="pct-bar"><div class="pb" style="width:0%;"></div></div>
+          <span class="br-flag warn">Predeceased</span>
+        </div>
+        <div class="ben-row b-4">
+          <span class="br-av">TR</span>
+          <span class="br-name"><strong>Harrington Family Trust</strong><small>Trust · Contingent (WL) · 2015</small></span>
+          <span class="br-pct">0%</span>
+          <div class="pct-bar"><div class="pb" style="width:0%;"></div></div>
+          <span class="br-flag cobalt">Trust — verify</span>
+        </div>
+        </div>
+        <div class="ws-chat">
+          <div class="wc-title">Activity &amp; comments</div>
+          
+        <div class="cm c-1">
+          <span class="cm-av legal">RN</span>
+          <div class="cm-body">
+            <div class="cm-head"><strong>R. Navarro</strong> &middot; Legal counsel &middot; just now</div>
+            <div class="cm-msg">Confirmed Margaret Harrington predeceased (2023). Her 25% WL contingency flows to <strong>Harrington Family Trust</strong> per policy language §4(c). Documented in record.</div>
+          </div>
+        </div>
+        <div class="cm c-2">
+          <span class="cm-av case">ML</span>
+          <div class="cm-body">
+            <div class="cm-head"><strong>M. Lee</strong> &middot; Claims examiner &middot; just now</div>
+            <div class="cm-msg">Trust certification of trustee attached. Successor trustee <strong>Eleanor Harrington</strong> verified against the 2015 trust instrument. No interpleader required.</div>
+          </div>
+        </div>
+        <div class="cm c-3">
+          <span class="cm-av ai">NA</span>
+          <div class="cm-body">
+            <div class="cm-head"><strong>Navigator AI</strong> &middot; Cross-policy check &middot; just now</div>
+            <div class="cm-msg">Both policies now fully allocated. Ready to advance to <strong>Settlement &amp; Payment</strong>. Primary payee <strong>Eleanor Harrington</strong> · face total <strong>$750,000</strong>.</div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+    <aside class="side">
+      <div class="side-title">Claim record</div>
+      <div class="claim">
+        <div class="c-head">CLM-LA-2026-5571</div>
+        <div class="c-sub">2 policies · TL + WL · face total $750,000</div>
+        <div class="c-row"><span>Primary</span><span class="v">Eleanor Harrington</span></div><div class="c-row"><span>Contingent</span><span class="v">J. Harrington / Trust</span></div><div class="c-row"><span>Disputes</span><span class="v">0</span></div><div class="c-row"><span>Interpleader risk</span><span class="v">None</span></div>
+      </div>
+      <div class="side-title" style="margin-top:2px;">Team</div>
+      <div class="team"><span class="m"><span class="d"></span>R. Navarro · Legal</span><span class="m"><span class="d"></span>M. Lee · Examiner</span><span class="m"><span class="d"></span>S. Reeves · Supervisor</span><span class="m"><span class="d"></span>Navigator AI</span></div>
+      <div class="escalation"><strong>No escalation needed.</strong> Trust instrument matched, beneficiary allocations reconciled. Advancing to Settlement.</div>
+    </aside>
+  </div>
+  <div class="toast"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>Beneficiary record reconciled · advancing to Settlement</div>
+</div>
+
+</body>
+</html>

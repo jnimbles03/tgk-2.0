@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Docusign Web Forms (L&amp;A Application Intake) | TGK 2.0</title>
+<meta name="description" content="Stylized animated mock evoking a Docusign Web Forms intake flow for life insurance new-business. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:11px;line-height:1.45;}
+
+/* ---- App chrome (Docusign product shell) ---- */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-topbar .ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-topbar .ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.ds-topbar .ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;}
+.ds-topbar .spacer{flex:1;}
+.ds-topbar .ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.ds-topbar .ds-actions .u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+/* ---- Tenant subheader (Acme brand bar) ---- */
+.tenant-bar{height:44px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);}
+.tenant-bar .spacer{flex:1;}
+.tenant-bar .t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.tenant-bar .t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* ---- Layout: sidebar + form + side panel ---- */
+.layout{flex:1;display:grid;grid-template-columns:208px 1fr 228px;min-height:0;}
+
+/* ---- Left: step rail ---- */
+.rail{background:var(--ds-white);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:2px;}
+.rail .rail-title{font-family:var(--brand-font);font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+.rail .step{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:6px;font-size:11px;color:var(--ink-mid);position:relative;}
+.rail .step .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-strong);background:#fff;color:var(--ink-soft);font-size:9px;font-weight:700;position:relative;z-index:1;}
+.rail .step .dot svg{width:10px;height:10px;stroke:var(--ds-white);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.rail .step.done .dot{background:var(--ds-cobalt);border-color:var(--ds-cobalt);color:#fff;}
+.rail .step.current{background:rgba(76,0,255,0.06);color:var(--ink);font-weight:600;}
+.rail .step.current .dot{border-color:var(--ds-cobalt);color:var(--ds-cobalt);background:#fff;box-shadow:0 0 0 3px rgba(76,0,255,0.12);}
+.rail .step .s-label{line-height:1.35;padding-top:2px;}
+.rail .step .s-label small{display:block;font-size:9.5px;font-weight:400;color:var(--ink-soft);letter-spacing:0.02em;margin-top:1px;}
+/* vertical connector between rail dots */
+.rail .step::before{content:"";position:absolute;left:19px;top:26px;bottom:-2px;width:1.5px;background:var(--line);z-index:0;}
+.rail .step:last-child::before{display:none;}
+.rail .step.done::before{background:var(--ds-cobalt);}
+
+/* ---- Center: form card ---- */
+.form-wrap{padding:18px 24px 0;overflow:hidden;background:var(--ds-ecru);display:flex;flex-direction:column;gap:12px;}
+.fw-eyebrow{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+.fw-eyebrow .fw-chip{background:rgba(76,0,255,0.08);color:var(--ds-cobalt);padding:2px 7px;border-radius:3px;letter-spacing:0.04em;font-size:9.5px;}
+.fw-title{font-family:var(--brand-font);font-size:18px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;letter-spacing:-0.01em;}
+.fw-sub{font-size:11px;color:var(--ink-mid);line-height:1.5;margin-top:-4px;}
+
+.form-card{flex:1;background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-content:start;box-shadow:0 1px 0 rgba(19,0,50,0.03);}
+.form-card .fc-section{grid-column:1 / -1;font-family:var(--brand-font);font-size:11px;font-weight:600;color:var(--ink);padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.form-card .fc-section .fc-req{font-size:9px;color:var(--ink-soft);font-weight:500;letter-spacing:0.02em;margin-left:auto;}
+
+.field{display:flex;flex-direction:column;gap:3px;position:relative;}
+.field.span2{grid-column:1 / -1;}
+.field label{font-size:9.5px;font-weight:600;color:var(--ink-mid);letter-spacing:0.02em;display:flex;align-items:center;gap:3px;}
+.field label .req{color:var(--ds-poppy);}
+.field .input{height:28px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:11px;color:var(--ink);position:relative;overflow:hidden;}
+.field .input.select::after{content:"";position:absolute;right:10px;top:50%;transform:translateY(-50%) rotate(45deg);width:6px;height:6px;border-right:1.5px solid var(--ink-soft);border-bottom:1.5px solid var(--ink-soft);margin-top:-2px;}
+.field .input .caret{display:inline-block;width:1px;height:12px;background:var(--ds-cobalt);margin-left:1px;animation:caret-blink 1s steps(2) infinite;opacity:0;}
+.field.typing .input{border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,0.08);}
+.field.typing .input .caret{opacity:1;}
+.field .valid{position:absolute;right:8px;top:24px;width:14px;height:14px;display:flex;align-items:center;justify-content:center;background:var(--ok);border-radius:50%;opacity:0;transform:scale(0.6);transition:opacity 0.3s, transform 0.3s;}
+.field .valid svg{width:9px;height:9px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.field.valid .valid{opacity:1;transform:scale(1);}
+.field .v-hint{font-size:9px;color:var(--ok);font-weight:500;margin-top:2px;opacity:0;transition:opacity 0.3s;}
+.field.valid .v-hint{opacity:1;}
+
+/* Masked/typed text */
+.tx{opacity:0;}
+.tx.on{opacity:1;}
+
+/* Conditional section reveal */
+.conditional{grid-column:1 / -1;background:rgba(76,0,255,0.04);border:1px dashed rgba(76,0,255,0.4);border-radius:6px;padding:8px 12px;font-size:10px;color:var(--ds-cobalt);display:flex;align-items:center;gap:8px;opacity:0;max-height:0;overflow:hidden;transition:opacity 0.4s, max-height 0.4s;}
+.conditional.on{opacity:1;max-height:48px;}
+.conditional svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:2;fill:none;flex-shrink:0;}
+.conditional strong{color:var(--ds-inkwell);font-weight:600;}
+
+/* ---- Footer bar (form actions) ---- */
+.form-actions{flex-shrink:0;padding:10px 24px 14px;display:flex;align-items:center;gap:12px;background:var(--ds-ecru);border-top:1px solid var(--line);}
+.form-actions .progress{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden;position:relative;}
+.form-actions .progress .bar{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--ds-cobalt),var(--ds-deep-violet));border-radius:3px;width:0;animation:prog-fill 10s ease-out infinite;}
+.form-actions .p-label{font-size:10px;color:var(--ink-soft);letter-spacing:0.03em;white-space:nowrap;}
+.form-actions .p-label strong{color:var(--ds-inkwell);font-weight:600;}
+.form-actions .btn-ghost{height:30px;padding:0 14px;border-radius:6px;border:1px solid var(--line-strong);background:#fff;font-size:11px;font-weight:500;color:var(--ink-mid);display:flex;align-items:center;gap:6px;}
+.form-actions .btn-primary{height:30px;padding:0 16px;border-radius:6px;background:var(--ds-cobalt);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 1px 0 rgba(19,0,50,0.1);animation:btn-nudge 10s ease-in-out infinite;}
+.form-actions .btn-primary svg{width:11px;height:11px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ---- Right: integration panel ---- */
+.side{background:var(--ds-white);border-left:1px solid var(--line);padding:16px 14px;display:flex;flex-direction:column;gap:10px;}
+.side .side-title{font-family:var(--brand-font);font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.side .sync-card{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.side .sync-card .sc-head{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.side .sync-card .sc-head .sc-pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(10,122,58,0.7);animation:sc-pulse 2s ease-out infinite;}
+.side .sync-card .sc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px solid var(--line);}
+.side .sync-card .sc-row:last-child{border-bottom:0;}
+.side .sync-card .sc-row .sc-val{font-weight:500;color:var(--ds-inkwell);}
+.side .sync-card .sc-row .sc-val svg{width:10px;height:10px;display:inline-block;margin-right:2px;vertical-align:-1px;stroke:var(--ok);stroke-width:2.2;fill:none;}
+
+.side .products{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+.side .product{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:10px;color:var(--ink-mid);}
+.side .product .pg{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8.5px;font-weight:700;flex-shrink:0;letter-spacing:-0.02em;}
+.side .product .pg.wf{background:linear-gradient(135deg,#4C00FF,#26065D);}
+.side .product .pg.es{background:linear-gradient(135deg,#FF5252,#B43838);}
+.side .product .pg.nv{background:linear-gradient(135deg,#26065D,#130032);}
+.side .product .pg.ma{background:linear-gradient(135deg,#1B4E8F,#0A2C5E);}
+.side .product .p-name{font-weight:600;color:var(--ds-inkwell);font-size:10px;flex:1;line-height:1.25;}
+.side .product .p-name small{display:block;font-size:9px;font-weight:400;color:var(--ink-soft);}
+.side .product .p-status{font-size:8.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ok);font-weight:700;}
+.side .product.queued .p-status{color:var(--ink-soft);}
+
+/* Toast */
+.toast{position:absolute;bottom:20px;right:20px;background:var(--ds-inkwell);color:#fff;font-size:10.5px;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(19,0,50,0.35);opacity:0;transform:translateY(6px);}
+.toast svg{width:12px;height:12px;stroke:#4DD77E;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.toast.on{animation:toast-in 10s ease-in-out infinite;}
+
+/* ====== Keyframes ====== */
+@keyframes caret-blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+@keyframes prog-fill   { 0%{width:12%;} 15%{width:28%;} 35%{width:48%;} 55%{width:68%;} 78%{width:92%;} 100%{width:100%;} }
+@keyframes btn-nudge   { 0%,78%{box-shadow:0 1px 0 rgba(19,0,50,0.1);transform:scale(1);} 84%{box-shadow:0 0 0 4px rgba(76,0,255,0.25);transform:scale(1.02);} 92%{box-shadow:0 1px 0 rgba(19,0,50,0.1);transform:scale(1);} 100%{transform:scale(1);} }
+@keyframes sc-pulse    { 0%{box-shadow:0 0 0 0 rgba(10,122,58,0.55);} 70%{box-shadow:0 0 0 9px rgba(10,122,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,122,58,0);} }
+@keyframes toast-in    { 0%,80%{opacity:0;transform:translateY(6px);} 88%{opacity:1;transform:translateY(0);} 97%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-4px);} }
+
+/* Staggered field reveal animations (10s loop shared timeline) */
+@keyframes field-typing { 0%,100%{border-color:var(--line-strong);box-shadow:none;} } /* placeholder, real rule applied per field */
+
+/* Per-field timing — text fade-in + validated-state hit */
+.f-1 .tx { animation: tx-fade 10s linear infinite; animation-delay: 0.9s; }
+.f-1 { animation: field-highlight 10s linear infinite; animation-delay: 0.4s; }
+.f-2 .tx { animation: tx-fade 10s linear infinite; animation-delay: 1.7s; }
+.f-2 { animation: field-highlight 10s linear infinite; animation-delay: 1.3s; }
+.f-3 .tx { animation: tx-fade 10s linear infinite; animation-delay: 2.5s; }
+.f-3 { animation: field-highlight 10s linear infinite; animation-delay: 2.1s; }
+.f-4 .tx { animation: tx-fade 10s linear infinite; animation-delay: 3.2s; }
+.f-4 { animation: field-highlight 10s linear infinite; animation-delay: 2.8s; }
+.f-5 .tx { animation: tx-fade 10s linear infinite; animation-delay: 4.1s; }
+.f-5 { animation: field-highlight 10s linear infinite; animation-delay: 3.7s; }
+.f-6 .tx { animation: tx-fade 10s linear infinite; animation-delay: 4.9s; }
+.f-6 { animation: field-highlight 10s linear infinite; animation-delay: 4.5s; }
+.f-7 .tx { animation: tx-fade 10s linear infinite; animation-delay: 5.7s; }
+.f-7 { animation: field-highlight 10s linear infinite; animation-delay: 5.3s; }
+.f-8 .tx { animation: tx-fade 10s linear infinite; animation-delay: 6.6s; }
+.f-8 { animation: field-highlight 10s linear infinite; animation-delay: 6.2s; }
+.cond-1 { animation: cond-reveal 10s linear infinite; animation-delay: 5.9s; }
+
+@keyframes field-highlight {
+  0%,2%   { border-color: var(--line-strong); box-shadow: none; }
+  3%,6%   { border-color: var(--ds-cobalt);  box-shadow: 0 0 0 3px rgba(76,0,255,0.12); }
+  7%,100% { border-color: rgba(10,122,58,0.55); box-shadow: 0 0 0 0 rgba(10,122,58,0); }
+}
+.field .input { transition: none; } /* animations override directly */
+
+@keyframes tx-fade {
+  0%,4%   { opacity: 0; }
+  6%,100% { opacity: 1; }
+}
+@keyframes cond-reveal {
+  0%,58%  { opacity: 0; max-height: 0; transform: translateY(-2px); }
+  63%,100%{ opacity: 1; max-height: 48px; transform: translateY(0); }
+}
+
+/* Animate the check-valid scaling in after text appears */
+.f-1 .valid, .f-2 .valid, .f-3 .valid, .f-4 .valid, .f-5 .valid, .f-6 .valid, .f-7 .valid, .f-8 .valid {
+  animation: valid-pop 10s linear infinite;
+}
+@keyframes valid-pop {
+  0%,8%   { opacity: 0; transform: scale(0.6); }
+  10%,100%{ opacity: 1; transform: scale(1); }
+}
+.f-2 .valid { animation-delay: 0.9s; } .f-3 .valid { animation-delay: 1.7s; }
+.f-4 .valid { animation-delay: 2.5s; } .f-5 .valid { animation-delay: 3.3s; }
+.f-6 .valid { animation-delay: 4.2s; } .f-7 .valid { animation-delay: 5.1s; }
+.f-8 .valid { animation-delay: 5.9s; }
+
+/* PAS sync row timing */
+.sync-row-1 { animation: row-reveal 10s linear infinite; animation-delay: 1.2s; opacity: 0; }
+.sync-row-2 { animation: row-reveal 10s linear infinite; animation-delay: 3.2s; opacity: 0; }
+.sync-row-3 { animation: row-reveal 10s linear infinite; animation-delay: 5.5s; opacity: 0; }
+.sync-row-4 { animation: row-reveal 10s linear infinite; animation-delay: 7.0s; opacity: 0; }
+@keyframes row-reveal {
+  0%,3%   { opacity: 0; transform: translateX(4px); }
+  6%,100% { opacity: 1; transform: translateX(0); }
+}
+
+.product.q-esig { animation: prod-activate 10s linear infinite; animation-delay: 7.5s; }
+@keyframes prod-activate {
+  0%,75% { filter: none; }
+  78%,100%{
+    filter: drop-shadow(0 0 0 rgba(76,0,255,0));
+  }
+}
+.product.q-esig .p-status { animation: status-flip 10s linear infinite; animation-delay: 7.5s; }
+@keyframes status-flip {
+  0%,78%  { color: var(--ink-soft); }
+  82%,100%{ color: var(--ds-cobalt); }
+}
+
+/* Subtle product-row pulse when it "activates" */
+.product.q-esig { animation: q-pulse 10s ease-in-out infinite; animation-delay: 7.4s; }
+@keyframes q-pulse {
+  0%,77%  { box-shadow: 0 0 0 0 rgba(76,0,255,0); border-color: var(--line); }
+  81%     { box-shadow: 0 0 0 3px rgba(76,0,255,0.18); border-color: rgba(76,0,255,0.35); }
+  90%,100%{ box-shadow: 0 0 0 0 rgba(76,0,255,0); border-color: rgba(76,0,255,0.35); }
+}
+</style>
+</head>
+<body>
+<div class="mock" role="img" aria-label="Docusign Web Forms — Life Insurance New Business Application intake (animated)">
+
+  <!-- Docusign top chrome -->
+  <div class="ds-topbar">
+    <div class="ds-logo">
+      <span class="lg-mark"></span>
+      <span>Docusign</span>
+    </div>
+    <span class="ds-product">Web Forms</span>
+    <span class="ds-crumb">
+      <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      Workspaces <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      Acme Life <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      New Business Intake
+    </span>
+    <div class="spacer"></div>
+    <div class="ds-actions">
+      <span>Saved 12:34 PM</span>
+      <span class="u-avatar">MR</span>
+    </div>
+  </div>
+
+  <!-- Tenant brand bar -->
+  <div class="tenant-bar">
+    <div class="t-brand">
+      <span class="t-dot"></span>
+      <span>Acme Life &amp; Annuities</span>
+      <span class="t-sub" style="font-weight:400;margin-left:6px;">Individual Life — Term 20 eApp</span>
+    </div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+
+  <!-- 3-column layout: rail / form / side -->
+  <div class="layout">
+
+    <!-- Left step rail -->
+    <nav class="rail" aria-label="Form steps">
+      <div class="rail-title">Application</div>
+      <div class="step done">
+        <span class="dot"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        <span class="s-label">Product &amp; Jurisdiction<small>Term Life — California</small></span>
+      </div>
+      <div class="step current">
+        <span class="dot">2</span>
+        <span class="s-label">Applicant Info<small>Required — 8 fields</small></span>
+      </div>
+      <div class="step">
+        <span class="dot">3</span>
+        <span class="s-label">Beneficiaries<small>Primary + contingent</small></span>
+      </div>
+      <div class="step">
+        <span class="dot">4</span>
+        <span class="s-label">Health &amp; Lifestyle<small>Conditional reflexive</small></span>
+      </div>
+      <div class="step">
+        <span class="dot">5</span>
+        <span class="s-label">Replacement &amp; Disclosures<small>State-specific forms</small></span>
+      </div>
+      <div class="step">
+        <span class="dot">6</span>
+        <span class="s-label">Review &amp; eSign<small>Applicant + agent</small></span>
+      </div>
+    </nav>
+
+    <!-- Center form -->
+    <section class="form-wrap">
+      <div class="fw-eyebrow">
+        <span>Step 2 of 6</span>
+        <span class="fw-chip">Smart Fields</span>
+        <span>·</span>
+        <span>Validates against PAS on submit</span>
+      </div>
+      <div class="fw-title">Applicant information</div>
+      <div class="fw-sub">Data entered here validates at the field level and syncs directly to the Acme PAS — no rekey, no NIGO rework.</div>
+
+      <div class="form-card">
+        <div class="fc-section">Personal details <span class="fc-req">* required</span></div>
+
+        <div class="field f-1 valid">
+          <label>Legal first name <span class="req">*</span></label>
+          <div class="input"><span class="tx">Ava</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-2 valid">
+          <label>Legal last name <span class="req">*</span></label>
+          <div class="input"><span class="tx">Rodriguez</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-3 valid">
+          <label>Date of birth <span class="req">*</span></label>
+          <div class="input"><span class="tx">03 / 14 / 1983</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-4 valid">
+          <label>SSN (masked) <span class="req">*</span></label>
+          <div class="input"><span class="tx">•••-••-4471</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-5 valid">
+          <label>Email <span class="req">*</span></label>
+          <div class="input"><span class="tx">ava.rodriguez@email.com</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+          <span class="v-hint">Verified via domain MX lookup</span>
+        </div>
+        <div class="field f-6 valid">
+          <label>Resident state <span class="req">*</span></label>
+          <div class="input select"><span class="tx">California</span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-7 valid">
+          <label>Product selection <span class="req">*</span></label>
+          <div class="input select"><span class="tx">Term Life — 20 Year</span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+        <div class="field f-8 valid">
+          <label>Face amount <span class="req">*</span></label>
+          <div class="input"><span class="tx">$500,000</span><span class="caret"></span></div>
+          <span class="valid"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></span>
+        </div>
+
+        <div class="conditional cond-1">
+          <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
+          <span><strong>California Replacement Policy Disclosure</strong> auto-added to the envelope — state rule matched on resident = CA.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-ghost" type="button">← Back</button>
+        <div class="progress"><div class="bar"></div></div>
+        <span class="p-label"><strong>8 / 8</strong> required complete</span>
+        <button class="btn-primary" type="button">
+          Continue to Beneficiaries
+          <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right side panel: PAS sync + product chain -->
+    <aside class="side">
+      <div class="side-title">Live sync</div>
+      <div class="sync-card">
+        <div class="sc-head">
+          <span class="sc-pulse"></span>
+          Acme Life PAS
+        </div>
+        <div class="sc-row sync-row-1">
+          <span>Policy number</span>
+          <span class="sc-val"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>TL-CA-2026-18844</span>
+        </div>
+        <div class="sc-row sync-row-2">
+          <span>Applicant record</span>
+          <span class="sc-val"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>Created</span>
+        </div>
+        <div class="sc-row sync-row-3">
+          <span>State rules</span>
+          <span class="sc-val"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>CA matched</span>
+        </div>
+        <div class="sc-row sync-row-4">
+          <span>NIGO risk</span>
+          <span class="sc-val" style="color:var(--ok);">0%</span>
+        </div>
+      </div>
+
+      <div class="side-title" style="margin-top:2px;">IAM orchestration</div>
+      <div class="products">
+        <div class="product">
+          <span class="pg wf">WF</span>
+          <span class="p-name">Web Forms<small>Smart intake · active</small></span>
+          <span class="p-status">On</span>
+        </div>
+        <div class="product queued q-esig">
+          <span class="pg es">eS</span>
+          <span class="p-name">eSignature<small>Envelope — queued</small></span>
+          <span class="p-status">Queued</span>
+        </div>
+        <div class="product queued">
+          <span class="pg nv">Nv</span>
+          <span class="p-name">Navigator<small>Agreement record</small></span>
+          <span class="p-status">Standby</span>
+        </div>
+        <div class="product queued">
+          <span class="pg ma">Mo</span>
+          <span class="p-name">Maestro<small>Evidence orchestrator</small></span>
+          <span class="p-status">Standby</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Toast (animated in near end of loop) -->
+  <div class="toast on">
+    <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>
+    Synced to Acme Life PAS &middot; envelope ready to send
+  </div>
+
+</div>
+</body>
+</html>

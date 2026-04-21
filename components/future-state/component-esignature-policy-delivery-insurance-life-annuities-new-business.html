@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Docusign eSignature — Policy delivery envelope (L&A NB) | TGK 2.0</title>
+<meta name="description" content="Stylized animated mock evoking a Docusign IAM flow. Not a literal screenshot of the Docusign product.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:11px;line-height:1.45;}
+
+/* ---------------- Docusign top chrome ---------------- */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-topbar .ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-topbar .ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.ds-topbar .ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;}
+.ds-topbar .spacer{flex:1;}
+.ds-topbar .ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.ds-topbar .ds-actions .u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;}
+.tenant-bar .spacer{flex:1;}
+.tenant-bar .t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.tenant-bar .t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* Toast */
+.toast{position:absolute;bottom:18px;right:20px;background:var(--ds-inkwell);color:#fff;font-size:10.5px;padding:9px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(19,0,50,0.35);opacity:0;animation:toast-in 12s ease-in-out infinite;}
+.toast svg{width:12px;height:12px;stroke:#4DD77E;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes toast-in { 0%,82%{opacity:0;transform:translateY(6px);} 88%,96%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-4px);} }
+
+
+.layout{flex:1;display:grid;grid-template-columns:1fr 256px;min-height:0;}
+.docstage{background:#EDE7E1;padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;position:relative;}
+.ds-toolbar{width:100%;max-width:470px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:10px;font-size:10px;color:var(--ink-mid);}
+.ds-toolbar .page{color:var(--ds-inkwell);font-weight:600;}
+.ds-toolbar .zoom{margin-left:auto;display:flex;gap:3px;color:var(--ink-soft);}
+.ds-toolbar .finish{background:var(--ds-cobalt);color:#fff;font-size:10px;padding:4px 10px;border-radius:5px;font-weight:600;}
+
+.paper{width:100%;max-width:470px;background:#fff;border:1px solid var(--line-strong);border-radius:3px;box-shadow:0 4px 18px rgba(19,0,50,0.14);padding:22px 30px;position:relative;flex:1;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.paper .pp-head{font-family:var(--brand-font);font-size:14px;font-weight:700;color:var(--ds-inkwell);border-bottom:1px solid var(--line);padding-bottom:8px;}
+.paper .pp-body{font-size:9.5px;line-height:1.6;color:var(--ink-mid);}
+.paper .pp-body p{margin-bottom:6px;}
+.paper .pp-block{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 20px;margin-top:6px;}
+.paper .pp-block .pp-fld{display:flex;flex-direction:column;gap:2px;font-size:8.5px;color:var(--ink-soft);}
+.paper .pp-block .pp-fld .val{font-size:10px;color:var(--ds-inkwell);font-weight:600;border-bottom:1px solid var(--line-strong);padding-bottom:1px;}
+
+.paper .sig-slot{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.paper .sig-slot .ss{display:flex;flex-direction:column;gap:4px;}
+.paper .sig-slot .ss-lab{font-size:8.5px;color:var(--ink-soft);font-weight:600;letter-spacing:0.02em;}
+.paper .sig-slot .ss-field{border:2px solid #FFD54F;background:rgba(255,213,79,0.14);border-radius:3px;height:38px;padding:4px 8px;position:relative;display:flex;align-items:center;justify-content:flex-start;}
+.paper .sig-slot .ss-field .ss-hot{position:absolute;top:3px;left:3px;background:#FFD54F;color:var(--ds-inkwell);font-size:7px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:1px 4px;border-radius:2px;}
+.paper .sig-slot .ss-field .ss-sig{font-family:"DSIndigo",cursive;font-size:17px;font-style:italic;color:var(--ds-inkwell);opacity:0;transform:scale(0.9);}
+.paper .sig-slot .ss-field.s-1 .ss-sig{animation:sig-in 12s ease-out infinite;animation-delay:4.2s;}
+.paper .sig-slot .ss-field.s-2 .ss-sig{animation:sig-in 12s ease-out infinite;animation-delay:5.8s;}
+@keyframes sig-in { 0%,34%{opacity:0;transform:scale(0.85) translateY(2px);} 39%,42%{opacity:1;transform:scale(1.03) translateY(0);} 45%,100%{opacity:1;transform:scale(1) translateY(0);} }
+.paper .sig-slot .ss-field.s-1{animation:hot-pulse 12s linear infinite;animation-delay:3.6s;}
+.paper .sig-slot .ss-field.s-2{animation:hot-pulse 12s linear infinite;animation-delay:5.2s;}
+@keyframes hot-pulse { 0%,29%{box-shadow:0 0 0 0 rgba(255,213,79,0);} 32%,36%{box-shadow:0 0 0 5px rgba(255,213,79,0.35);} 40%,100%{box-shadow:0 0 0 0 rgba(255,213,79,0);} }
+
+.paper .pp-date{margin-top:10px;font-size:8.5px;color:var(--ink-soft);display:flex;gap:16px;}
+.paper .pp-date .dv{color:var(--ds-inkwell);font-weight:600;}
+
+/* Top tag - "Sign here" flag */
+.sign-flag{position:absolute;top:-6px;left:-48px;background:#FFD54F;color:var(--ds-inkwell);font-size:8px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;transform:translateY(0);opacity:0;white-space:nowrap;animation:flag-in 12s ease-out infinite;animation-delay:2.8s;}
+.sign-flag::after{content:"";position:absolute;right:-8px;top:50%;transform:translateY(-50%);border-left:8px solid #FFD54F;border-top:6px solid transparent;border-bottom:6px solid transparent;}
+@keyframes flag-in { 0%,22%{opacity:0;transform:translateX(8px);} 26%,60%{opacity:1;transform:translateX(0);} 65%,100%{opacity:0;transform:translateX(-4px);} }
+
+/* Right panel */
+.side{background:var(--ds-white);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;}
+.side .side-title{font-family:var(--brand-font);font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+.side .env-meta{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.side .env-meta .em-title{font-family:var(--brand-font);font-weight:600;font-size:11px;color:var(--ds-inkwell);}
+.side .env-meta .em-id{font-size:9px;color:var(--ink-soft);letter-spacing:0.02em;}
+.side .env-meta .em-status{margin-top:4px;font-size:10px;color:var(--ok);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:6px;}
+.side .env-meta .em-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);}
+
+.side .recipients{display:flex;flex-direction:column;gap:6px;}
+.side .rcp{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:10px;}
+.side .rcp .rc-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;flex-shrink:0;}
+.side .rcp .rc-av.a1{background:linear-gradient(135deg,#1B4E8F,#0A2C5E);}
+.side .rcp .rc-av.a2{background:linear-gradient(135deg,#4C00FF,#26065D);}
+.side .rcp .rc-av.a3{background:linear-gradient(135deg,#0A7A3A,#0D5226);}
+.side .rcp .rc-name{flex:1;line-height:1.3;}
+.side .rcp .rc-name strong{display:block;color:var(--ds-inkwell);font-weight:600;}
+.side .rcp .rc-name small{font-size:8.5px;color:var(--ink-soft);}
+.side .rcp .rc-st{font-size:8.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:3px;}
+.side .rcp .rc-st.signed{background:rgba(10,122,58,0.10);color:var(--ok);}
+.side .rcp .rc-st.pending{background:rgba(110,97,137,0.12);color:var(--ink-soft);}
+.side .rcp.r-1 .rc-st{animation:rc-flip 12s linear infinite;animation-delay:4.0s;}
+.side .rcp.r-2 .rc-st{animation:rc-flip 12s linear infinite;animation-delay:5.6s;}
+@keyframes rc-flip { 0%,32%{background:rgba(110,97,137,0.12);color:var(--ink-soft);} 36%,100%{background:rgba(10,122,58,0.10);color:var(--ok);} }
+.side .rcp.r-1 .rc-st::before{content:"Sent";animation:rc-text 12s linear infinite;animation-delay:4.0s;}
+.side .rcp.r-2 .rc-st::before{content:"Awaiting";animation:rc-text 12s linear infinite;animation-delay:5.6s;}
+@keyframes rc-text {0%,32%{content:"Sent";} 36%,100%{content:"Signed";}}
+
+.side .idv{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(255,82,82,0.04));border:1px solid rgba(76,0,255,0.22);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.side .idv .iv-head{font-weight:700;font-size:10px;color:var(--ds-inkwell);display:flex;align-items:center;gap:6px;}
+.side .idv .iv-head svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:2;fill:none;}
+.side .idv .iv-row{display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink-mid);padding:1px 0;}
+.side .idv .iv-row .v{color:var(--ds-inkwell);font-weight:600;}
+
+</style>
+</head>
+<body>
+
+<div class="mock" role="img" aria-label="Docusign eSignature — Acme Life — Policy delivery + acceptance">
+  
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">eSignature</span>
+    <span class="ds-crumb">Workspaces<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Acme Life<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Delivery<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Envelope · 3b-8102</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>Saved 12:34 PM</span><span class="u-avatar">MR</span></div>
+  </div>
+  
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Acme Life & Annuities</span><span class="t-sub" style="margin-left:6px;">Policy delivery envelope</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="layout">
+    <section class="docstage">
+      <div class="ds-toolbar">
+        <span class="page">Page 1 of 4</span>
+        <span>&middot;</span>
+        <span>Required fields <strong style="color:var(--ds-inkwell)">2 of 2 complete</strong></span>
+        <span class="zoom">100%</span>
+        <span class="finish">Finish</span>
+      </div>
+      <div class="paper">
+        <div class="sign-flag">Sign here</div>
+        <div class="pp-head">Policy TL-CA-2026-18844 — Delivery receipt & acceptance</div>
+        <div class="pp-body"><p>By signing below, the Policyholder acknowledges receipt of Policy TL-CA-2026-18844, accepts coverage effective May 1, 2026, and confirms the 30-day California free-look period begins on the date of this delivery.</p></div>
+        <div class="pp-block"><div class="pp-fld"><span>Policyholder</span><span class="val">Ava Rodriguez</span></div><div class="pp-fld"><span>Policy number</span><span class="val">TL-CA-2026-18844</span></div><div class="pp-fld"><span>Effective</span><span class="val">May 1, 2026</span></div><div class="pp-fld"><span>Producer</span><span class="val">Michael Reyes · M-RY-44189</span></div></div>
+        <div class="sig-slot">
+          <div class="ss">
+            <span class="ss-lab">Policyholder signature</span>
+            <div class="ss-field s-1"><span class="ss-hot">Sign</span><span class="ss-sig">Ava Rodriguez</span></div>
+          </div>
+          <div class="ss">
+            <span class="ss-lab">Producing agent</span>
+            <div class="ss-field s-2"><span class="ss-hot">Sign</span><span class="ss-sig">Michael Reyes</span></div>
+          </div>
+        </div>
+        <div class="pp-date"><span>Date signed <span class="dv">Apr 20, 2026</span></span><span>Location <span class="dv">Oakland, CA</span></span></div>
+      </div>
+    </section>
+    <aside class="side">
+      <div class="side-title">Envelope</div>
+      <div class="env-meta">
+        <div class="em-title">Acme Life — Policy delivery + acceptance</div>
+        <div class="em-id">Env ENV-ACM-2026-08102 · 4 documents</div>
+        <div class="em-status">In progress</div>
+      </div>
+      <div class="side-title" style="margin-top:2px;">Recipients</div>
+      <div class="recipients"><div class="rcp r-1"><span class="rc-av a1">AR</span><span class="rc-name"><strong>Ava Rodriguez</strong><small>Policyholder</small></span><span class="rc-st pending"></span></div><div class="rcp r-2"><span class="rc-av a2">MR</span><span class="rc-name"><strong>Michael Reyes</strong><small>Producing agent</small></span><span class="rc-st pending"></span></div><div class="rcp r-3"><span class="rc-av a3">AL</span><span class="rc-name"><strong>Acme Life Issuance</strong><small>Carrier</small></span><span class="rc-st pending"></span></div></div>
+      <div class="side-title" style="margin-top:2px;">Identity assurance</div>
+      <div class="idv">
+        <div class="iv-head"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v6c0 4 4 7 8 8 4-1 8-4 8-8V7z"/><path d="m9 12 2 2 4-4"/></svg>Docusign Identify</div>
+        <div class="iv-row"><span>Method</span><span class="v">Remote online verification</span></div><div class="iv-row"><span>ID presented</span><span class="v">CA DL · valid</span></div><div class="iv-row"><span>Knowledge-based auth</span><span class="v">Passed</span></div><div class="iv-row"><span>Assurance level</span><span class="v">Kantara LoA2</span></div>
+      </div>
+    </aside>
+  </div>
+  <div class="toast"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg>Policy delivered · free-look window started · sync'd to PAS</div>
+</div>
+
+</body>
+</html>
