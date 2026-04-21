@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — ROI Intake Portal (Fax/Phone/Portal) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking a multi-channel ROI intake queue in a healthcare HIM workflow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  /* Epic-inspired legacy portal tone: deep purple header + gray chrome */
+  --him-bar:#5B2A86;--him-bar-ink:#fff;--him-accent:#8C52B8;
+  --him-body:#F3F1F5;--him-row:#fff;--him-row-alt:#FBF9FC;--him-rule:#D8D3E0;
+  --him-text:#1D1930;--him-sub:#6B6480;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--him-text);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--him-body);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.mock-wm{position:absolute;bottom:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--ink-soft);opacity:0.65;background:rgba(255,255,255,0.72);
+  padding:3px 7px;border-radius:4px;border:1px solid var(--line);pointer-events:none;z-index:5;}
+.phi-wm{position:absolute;top:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:#A93434;background:rgba(255,82,82,0.12);padding:3px 7px;
+  border-radius:4px;border:1px solid rgba(255,82,82,0.32);pointer-events:none;font-weight:600;z-index:5;}
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
+  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;}
+.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
+.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
+.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
+.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
+.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+
+.bar{height:30px;background:var(--him-bar);color:var(--him-bar-ink);display:flex;align-items:center;padding:0 14px;gap:14px;font-size:11px;flex-shrink:0;}
+.bar .brand{font-family:var(--brand-font);font-weight:700;letter-spacing:0.02em;display:inline-flex;align-items:center;gap:8px;}
+.bar .brand svg{width:14px;height:14px;stroke:#fff;}
+.bar .path{opacity:0.75;font-size:10px;}
+.bar .me{margin-left:auto;opacity:0.9;}
+
+.toolstrip{height:28px;background:#fff;border-bottom:1px solid var(--him-rule);display:flex;align-items:center;padding:0 14px;gap:18px;flex-shrink:0;font-size:10.5px;color:var(--him-sub);}
+.toolstrip .t{padding:4px 0;}
+.toolstrip .t.on{color:var(--him-bar);font-weight:600;border-bottom:2px solid var(--him-bar);padding-bottom:2px;}
+
+.sub{height:32px;background:#fff;border-bottom:1px solid var(--him-rule);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
+.sub h1{font-size:13px;font-weight:600;color:var(--him-text);}
+.sub .spacer{flex:1;}
+.sub .btn{border:1px solid var(--him-rule);padding:4px 10px;border-radius:3px;font-size:10px;color:var(--him-text);background:#fff;}
+.sub .btn.primary{background:var(--him-bar);color:#fff;border-color:var(--him-bar);}
+
+.content{flex:1;display:grid;grid-template-columns:192px 1fr 260px;min-height:0;}
+
+.lrail{background:#fff;border-right:1px solid var(--him-rule);padding:8px 0;display:flex;flex-direction:column;gap:1px;overflow:hidden;}
+.lrail h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--him-sub);padding:6px 14px 4px;}
+.lrail .li{padding:5px 14px;font-size:10.5px;color:var(--him-text);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.lrail .li:hover{background:#F4F0F9;}
+.lrail .li.on{background:#F0EAF7;color:var(--him-bar);font-weight:600;border-left:3px solid var(--him-bar);padding-left:11px;}
+.lrail .li .n{background:#E7E0EE;color:var(--him-sub);padding:1px 6px;border-radius:999px;font-size:9px;font-weight:600;}
+.lrail .li.on .n{background:var(--him-bar);color:#fff;}
+.lrail .sep{border-top:1px solid var(--him-rule);margin:6px 0;}
+
+.queue{padding:10px 14px;overflow:hidden;display:flex;flex-direction:column;gap:8px;min-width:0;}
+.q-head{display:flex;align-items:center;gap:8px;}
+.q-head h2{font-size:12px;font-weight:600;}
+.q-head .count{font-size:10px;color:var(--him-sub);}
+.q-head .search{flex:1;display:flex;align-items:center;gap:6px;border:1px solid var(--him-rule);border-radius:3px;padding:3px 8px;background:#fff;font-size:10px;color:var(--him-sub);}
+.q-head .search svg{width:11px;height:11px;}
+.q-head .filter{border:1px solid var(--him-rule);padding:3px 10px;border-radius:3px;font-size:10px;color:var(--him-text);background:#fff;display:inline-flex;align-items:center;gap:5px;}
+.q-head .filter svg{width:10px;height:10px;}
+
+.qtable{width:100%;border-collapse:collapse;font-size:10px;background:#fff;border:1px solid var(--him-rule);border-radius:3px;overflow:hidden;}
+.qtable thead th{background:#F7F4FB;color:var(--him-sub);text-align:left;padding:6px 8px;font-weight:600;border-bottom:1px solid var(--him-rule);font-size:9.5px;letter-spacing:0.02em;}
+.qtable tbody td{padding:6px 8px;border-bottom:1px solid var(--him-rule);vertical-align:middle;}
+.qtable tbody tr:last-child td{border-bottom:0;}
+.qtable tbody tr.alt td{background:var(--him-row-alt);}
+.qtable tbody tr.on td{background:#F0EAF7;}
+.qtable .ch-ch{display:inline-flex;align-items:center;gap:4px;}
+.qtable .ch-ch svg{width:10px;height:10px;stroke:var(--him-sub);stroke-width:2;}
+.qtable td.req{font-weight:600;color:var(--him-bar);}
+.qtable td.age{color:var(--him-text);}
+.qtable td.age.hot{color:#A93434;font-weight:600;}
+.qtable .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
+.qtable .dot.r{background:#E53E3E;}
+.qtable .dot.y{background:#E59A17;}
+.qtable .dot.g{background:#2F855A;}
+
+.rrail{background:#fff;border-left:1px solid var(--him-rule);padding:10px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.rrail h4{font-size:11px;font-weight:600;}
+.rrail h4 small{color:var(--him-sub);font-weight:500;font-size:9.5px;}
+.rrail .kv{font-size:10px;color:var(--him-text);line-height:1.55;}
+.rrail .kv b{color:var(--him-sub);font-weight:500;display:inline-block;width:72px;}
+.rrail .miss{background:#FFE08A;padding:0 4px;border:1px dashed #9A6A00;color:#6C4A00;font-weight:600;font-size:9.5px;}
+.rrail .block{border:1px solid var(--him-rule);border-radius:3px;padding:8px 10px;}
+.rrail .block h5{font-size:10px;font-weight:600;color:var(--him-sub);margin-bottom:4px;}
+.rrail .block p{font-size:9.5px;color:var(--him-text);line-height:1.5;}
+.rrail .act{display:flex;gap:6px;margin-top:auto;}
+.rrail .act .b{flex:1;text-align:center;padding:5px 0;border:1px solid var(--him-rule);border-radius:3px;background:#fff;font-size:10px;color:var(--him-text);}
+.rrail .act .b.warn{background:#A93434;color:#fff;border-color:#A93434;}
+</style>
+</head>
+<body>
+<div class="mock">
+  <span class="phi-wm">PHI · restricted</span>
+
+  <div class="bar">
+    <span class="brand"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>HIM — ROI Request Queue</span>
+    <span class="path">Northstar Regional Health &nbsp;/&nbsp; Intake &nbsp;/&nbsp; Unassigned</span>
+    <span class="me">K.&nbsp;Ramirez · HIM Specialist</span>
+  </div>
+
+  <div class="toolstrip">
+    <span class="t">Home</span>
+    <span class="t on">Intake Queue</span>
+    <span class="t">Fax Inbound</span>
+    <span class="t">In Progress</span>
+    <span class="t">Returned</span>
+    <span class="t">Delivered</span>
+    <span class="t">Audit</span>
+  </div>
+
+  <div class="sub">
+    <h1>Incoming Requests · 03/17/2026</h1>
+    <span class="chip warn">14 rejected / returned today</span>
+    <span class="chip stale">8 awaiting manual triage</span>
+    <span class="spacer"></span>
+    <button class="btn">Export CSV</button>
+    <button class="btn primary">New Request</button>
+  </div>
+
+  <div class="content">
+
+    <div class="lrail">
+      <h6>Channels</h6>
+      <div class="li"><span>Portal (MyChart)</span><span class="n">9</span></div>
+      <div class="li on"><span>Fax Inbound</span><span class="n">23</span></div>
+      <div class="li"><span>Phone</span><span class="n">5</span></div>
+      <div class="li"><span>US Mail</span><span class="n">2</span></div>
+      <div class="li"><span>Email (gen inbox)</span><span class="n">11</span></div>
+      <div class="sep"></div>
+      <h6>Status</h6>
+      <div class="li"><span>Needs triage</span><span class="n">8</span></div>
+      <div class="li"><span>Missing info</span><span class="n">14</span></div>
+      <div class="li"><span>Duplicate</span><span class="n">3</span></div>
+      <div class="li"><span>Ready to verify</span><span class="n">6</span></div>
+      <div class="sep"></div>
+      <h6>Requestor Type</h6>
+      <div class="li"><span>Patient / Self</span><span class="n">17</span></div>
+      <div class="li"><span>Attorney / Legal</span><span class="n">12</span></div>
+      <div class="li"><span>Payer / Plan</span><span class="n">9</span></div>
+      <div class="li"><span>Other Provider</span><span class="n">6</span></div>
+    </div>
+
+    <div class="queue">
+      <div class="q-head">
+        <h2>Fax Inbound</h2><span class="count">showing 1–8 of 23</span>
+        <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>Search by name, DOB, MRN…</div>
+        <button class="filter"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 9v6l-4-2v-4z"/></svg>Filter</button>
+      </div>
+
+      <table class="qtable">
+        <thead>
+          <tr>
+            <th style="width:5%;"></th>
+            <th style="width:16%;">Requestor</th>
+            <th style="width:14%;">Patient</th>
+            <th style="width:10%;">DOB</th>
+            <th style="width:9%;">MRN</th>
+            <th style="width:11%;">Purpose</th>
+            <th style="width:13%;">Channel</th>
+            <th style="width:10%;">Age</th>
+            <th style="width:12%;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="on">
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Pollard &amp; Kemp, LLP</td>
+            <td>Chen, Sarah</td>
+            <td><span class="miss" style="background:#FFE08A;padding:0 4px;border:1px dashed #9A6A00;color:#6C4A00;font-size:9.5px;">blank</span></td>
+            <td>00482194</td>
+            <td>Litigation</td>
+            <td>Fax — 03/17 08:14</td>
+            <td class="age hot">6d · SLA breach</td>
+            <td><span class="dot r"></span>Missing DOB</td>
+          </tr>
+          <tr class="alt">
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Cigna Claims Audit</td>
+            <td>Rivera, Marcos</td>
+            <td>1982-06-09</td>
+            <td>not&nbsp;provided</td>
+            <td>Payer audit</td>
+            <td>Fax — 03/17 09:02</td>
+            <td class="age hot">5d</td>
+            <td><span class="dot r"></span>MRN mismatch</td>
+          </tr>
+          <tr>
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Patient (Self)</td>
+            <td>Nguyen, Thu-Ha</td>
+            <td>1954-11-22</td>
+            <td>00719803</td>
+            <td>Continuing care</td>
+            <td>Fax — 03/17 10:46</td>
+            <td class="age">3d</td>
+            <td><span class="dot y"></span>Auth unreadable</td>
+          </tr>
+          <tr class="alt">
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Social Security Admin</td>
+            <td>Whitfield, Dana</td>
+            <td>1968-02-14</td>
+            <td>00513344</td>
+            <td>Disability</td>
+            <td>Fax — 03/17 11:18</td>
+            <td class="age">3d</td>
+            <td><span class="dot y"></span>Wrong form vsn</td>
+          </tr>
+          <tr>
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Allegheny Law Group</td>
+            <td>Patel, Ronit</td>
+            <td>1979-08-30</td>
+            <td>00402088</td>
+            <td>Litigation</td>
+            <td>Fax — 03/17 12:02</td>
+            <td class="age">2d</td>
+            <td><span class="dot y"></span>Need prov. signature</td>
+          </tr>
+          <tr class="alt">
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">St. Luke's Oncology</td>
+            <td>Lopez, Esperanza</td>
+            <td>1947-03-01</td>
+            <td>00217094</td>
+            <td>Continuing care</td>
+            <td>Fax — 03/17 13:11</td>
+            <td class="age">2d</td>
+            <td><span class="dot g"></span>Ready</td>
+          </tr>
+          <tr>
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Allstate Claims</td>
+            <td>O'Brien, Megan</td>
+            <td>1991-05-17</td>
+            <td>00658932</td>
+            <td>Payer audit</td>
+            <td>Fax — 03/17 14:02</td>
+            <td class="age">2d</td>
+            <td><span class="dot y"></span>Missing payer ID</td>
+          </tr>
+          <tr class="alt">
+            <td><span class="ch-ch"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span></td>
+            <td class="req">Patient (Self)</td>
+            <td>Adeyemi, Kwame</td>
+            <td>1985-12-03</td>
+            <td>00881204</td>
+            <td>Personal copy</td>
+            <td>Fax — 03/17 15:48</td>
+            <td class="age">1d</td>
+            <td><span class="dot g"></span>Ready</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="friction" style="margin-top:4px;">
+        <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+        14 of today's 23 faxes need manual phone / email callbacks before retrieval can begin — no requestor tracking ID to return to.
+      </div>
+    </div>
+
+    <div class="rrail">
+      <h4>Request #2026-10482 <small>· selected</small></h4>
+      <div class="kv"><b>Requestor</b> Pollard &amp; Kemp, LLP</div>
+      <div class="kv"><b>Attorney</b> D. Kemp (JD)</div>
+      <div class="kv"><b>Patient</b> Chen, Sarah</div>
+      <div class="kv"><b>DOB</b> <span class="miss">blank</span> — required</div>
+      <div class="kv"><b>MRN</b> 00482194</div>
+      <div class="kv"><b>Purpose</b> Litigation (Product liability)</div>
+      <div class="kv"><b>Scope</b> 2018-01-01 → present, ALL</div>
+      <div class="kv"><b>Received</b> Fax-in-hub-03 · 03/17 08:14</div>
+
+      <div class="block">
+        <h5>Authorization status</h5>
+        <p><b style="color:#A93434;">Returned to requestor</b> — missing DOB, illegible prescriber signature (p.2 of 5), no payer ID. Needs re-fax. Last attempt: 03/16. No tracking ID — awaiting callback from firm.</p>
+      </div>
+
+      <div class="block">
+        <h5>History on this requestor</h5>
+        <p>Pollard &amp; Kemp submitted 6 requests in the last 30 days — 4 returned for incomplete authorizations. Pattern: wrong form version (2024 vs. 2026).</p>
+      </div>
+
+      <div class="act">
+        <button class="b">Snooze</button>
+        <button class="b">Request callback</button>
+        <button class="b warn">Return</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-intake-portal-hls-roi.html",
+  "vendor": "HIM ROI Queue (Epic/MyChart + fax + phone hybrid)",
+  "scope": "HLS \u2014 Release of Information",
+  "state": "Current",
+  "useCase": "ROI Intake & Authorization",
+  "archetype": "portal-queue",
+  "channels": ["portal", "fax", "phone", "mail", "email"],
+  "modeledAfter": "Epic MyChart Request Records + on-prem HIM queue (fax triage)"
+}
+</script>
+</body>
+</html>

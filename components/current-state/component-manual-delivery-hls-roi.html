@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Manual Record Delivery (Fax/Email/Mail) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking an Outlook compose window being used to send a ROI packet by unencrypted email, with fax and mail as alternate channels. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  /* Outlook-inspired tone */
+  --ol-blue:#0078D4;--ol-banner:#106EBE;--ol-ribbon:#F3F2F1;--ol-rule:#D2D0CE;
+  --ol-body:#FAFAFA;--ol-text:#201F1E;--ol-sub:#605E5C;--ol-side:#EDEBE9;
+  --ol-warn:#A93434;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ol-text);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ol-body);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.mock-wm{position:absolute;bottom:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--ink-soft);opacity:0.65;background:rgba(255,255,255,0.72);
+  padding:3px 7px;border-radius:4px;border:1px solid var(--line);pointer-events:none;z-index:5;}
+.phi-wm{position:absolute;top:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:#A93434;background:rgba(255,82,82,0.12);padding:3px 7px;
+  border-radius:4px;border:1px solid rgba(255,82,82,0.32);pointer-events:none;font-weight:600;z-index:5;}
+
+.titlebar{height:24px;background:var(--ol-banner);color:#fff;display:flex;align-items:center;padding:0 10px;gap:10px;font-size:10.5px;flex-shrink:0;}
+.titlebar .app{font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+.titlebar .app svg{width:12px;height:12px;stroke:#fff;}
+.titlebar .spacer{flex:1;}
+.titlebar .me{opacity:0.9;}
+
+.ribbon{background:var(--ol-ribbon);border-bottom:1px solid var(--ol-rule);display:flex;align-items:center;padding:4px 8px;gap:8px;flex-shrink:0;font-size:10px;color:var(--ol-text);}
+.ribbon .tabs{display:flex;gap:14px;padding-right:14px;border-right:1px solid var(--ol-rule);height:20px;align-items:center;}
+.ribbon .t{padding:2px 0;color:var(--ol-sub);}
+.ribbon .t.on{color:var(--ol-blue);font-weight:600;border-bottom:2px solid var(--ol-blue);padding-bottom:1px;}
+.ribbon .act{display:flex;gap:4px;}
+.ribbon .act .b{padding:3px 8px;border:1px solid transparent;border-radius:3px;font-size:10px;color:var(--ol-text);background:transparent;display:inline-flex;align-items:center;gap:5px;}
+.ribbon .act .b:hover{background:#fff;border-color:var(--ol-rule);}
+.ribbon .act .b.send{background:var(--ol-blue);color:#fff;padding:4px 14px;font-weight:600;}
+.ribbon .act .b svg{width:11px;height:11px;}
+.ribbon .spacer{flex:1;}
+.ribbon .warn{color:var(--ol-warn);font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:5px;}
+.ribbon .warn svg{width:11px;height:11px;stroke:var(--ol-warn);}
+
+.content{flex:1;display:grid;grid-template-columns:200px 1fr 248px;min-height:0;}
+
+.side{background:var(--ol-side);border-right:1px solid var(--ol-rule);padding:10px 0;overflow:hidden;display:flex;flex-direction:column;}
+.side h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ol-sub);padding:5px 14px 4px;}
+.side .li{padding:4px 14px;font-size:10.5px;color:var(--ol-text);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.side .li:hover{background:#fff;}
+.side .li.on{background:#fff;color:var(--ol-blue);font-weight:600;border-left:3px solid var(--ol-blue);padding-left:11px;}
+.side .li .n{color:var(--ol-sub);font-size:10px;font-weight:500;}
+.side .sep{border-top:1px solid var(--ol-rule);margin:6px 0;}
+.side .channels{padding:4px 14px;}
+.side .channels .ch{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px;}
+.side .channels .ch svg{width:11px;height:11px;stroke:var(--ol-sub);}
+.side .channels .ch .st{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:600;}
+.side .channels .ch .st.sent{background:#DFEEE1;color:#276B36;}
+.side .channels .ch .st.q{background:#F5E0B8;color:#7A4A00;}
+.side .channels .ch .st.err{background:#F5D3D3;color:#A93434;}
+
+.compose{padding:10px 14px;overflow:hidden;display:flex;flex-direction:column;gap:6px;min-width:0;}
+.compose .row{display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid var(--ol-rule);padding:4px 0;font-size:10.5px;}
+.compose .row label{width:50px;color:var(--ol-sub);flex-shrink:0;padding-top:2px;font-size:10px;}
+.compose .row .val{flex:1;font-size:10.5px;color:var(--ol-text);}
+.compose .row .val input{border:none;background:transparent;font-size:10.5px;color:var(--ol-text);width:100%;font-family:inherit;}
+.compose .row .chips{display:flex;gap:5px;flex-wrap:wrap;}
+.compose .row .chips .chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:2px;background:#E8EEF6;color:var(--ol-blue);font-size:10px;border:1px solid #D0DEF1;}
+.compose .row .chips .chip.ext{background:#FBE7B8;color:#7A4A00;border-color:#EDCE79;}
+.compose .row .chips .chip.ext::after{content:"EXT";margin-left:5px;font-size:8px;font-weight:700;background:#7A4A00;color:#FBE7B8;padding:0 3px;border-radius:2px;}
+.compose .row.subject .val{font-weight:600;color:var(--ol-text);}
+.compose .attach{display:flex;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--ol-rule);}
+.compose .attach .f{display:flex;align-items:center;gap:6px;border:1px solid var(--ol-rule);padding:4px 8px;border-radius:3px;background:#fff;font-size:10px;}
+.compose .attach .f svg{width:12px;height:12px;stroke:var(--ol-blue);}
+.compose .attach .f .sz{color:var(--ol-sub);font-size:9.5px;}
+.compose .body{flex:1;padding:6px 0;font-size:10.5px;line-height:1.55;color:var(--ol-text);overflow:hidden;}
+.compose .body p{margin-bottom:6px;}
+.compose .body .sig{color:var(--ol-sub);font-size:9.5px;border-top:1px solid var(--ol-rule);padding-top:5px;margin-top:8px;}
+
+.rrail{background:#fff;border-left:1px solid var(--ol-rule);padding:10px 12px;overflow:hidden;display:flex;flex-direction:column;gap:8px;}
+.rrail h4{font-size:11px;font-weight:600;color:var(--ol-text);}
+.rrail h4 small{color:var(--ol-sub);font-weight:500;font-size:9.5px;margin-left:5px;}
+.rrail .block{border:1px solid var(--ol-rule);border-radius:3px;padding:7px 9px;}
+.rrail .block h5{font-size:10px;font-weight:600;color:var(--ol-sub);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;}
+.rrail .block p{font-size:9.5px;color:var(--ol-text);line-height:1.5;}
+.rrail .block p b{font-weight:600;}
+.rrail .warnbox{background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.3);border-radius:3px;padding:7px 9px;font-size:9.5px;color:#A93434;line-height:1.5;}
+.rrail .warnbox b{color:#7A1D1D;}
+.rrail .fee{display:flex;justify-content:space-between;font-size:10px;padding:3px 0;border-bottom:1px dashed var(--ol-rule);}
+.rrail .fee:last-of-type{border-bottom:0;font-weight:700;color:var(--ol-text);padding-top:5px;margin-top:3px;border-top:1px solid var(--ol-text);border-bottom:0;}
+.rrail .fee .n{color:var(--ol-sub);}
+.rrail .act{display:flex;gap:6px;margin-top:auto;}
+.rrail .act .b{flex:1;text-align:center;padding:5px 0;border:1px solid var(--ol-rule);border-radius:3px;background:#fff;font-size:10px;}
+.rrail .act .b.go{background:var(--ol-blue);color:#fff;border-color:var(--ol-blue);}
+</style>
+</head>
+<body>
+<div class="mock">
+  <span class="phi-wm">PHI · restricted</span>
+
+  <div class="titlebar">
+    <span class="app"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Outlook — New message</span>
+    <span class="spacer"></span>
+    <span class="me">K. Ramirez &lt;ramirezk@northstarhealth.org&gt;</span>
+  </div>
+
+  <div class="ribbon">
+    <div class="tabs"><span class="t on">Message</span><span class="t">Insert</span><span class="t">Options</span><span class="t">Format</span></div>
+    <div class="act">
+      <span class="b send"><svg viewBox="0 0 24 24" stroke="#fff"><path d="M3 11l18-8-8 18-2-8z"/></svg>Send</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M21 5H3v14h18z"/><path d="M3 5l9 8 9-8"/></svg>Attach</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/></svg>Follow-up</span>
+      <span class="b"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>High importance</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 16h.01"/></svg>Not encrypted — external recipient</span>
+  </div>
+
+  <div class="content">
+
+    <div class="side">
+      <h6>Folders</h6>
+      <div class="li"><span>Inbox</span><span class="n">214</span></div>
+      <div class="li"><span>Sent Items</span><span class="n">—</span></div>
+      <div class="li on"><span>Drafts</span><span class="n">12</span></div>
+      <div class="li"><span>ROI — Pending</span><span class="n">38</span></div>
+      <div class="li"><span>ROI — Delivered</span><span class="n">—</span></div>
+      <div class="sep"></div>
+      <h6>Delivery channels (this request)</h6>
+      <div class="channels">
+        <div class="ch">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+          Email (unencrypted) <span class="st q">drafting</span>
+        </div>
+        <div class="ch">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5V2h10v3M7 19v3h10v-3"/></svg>
+          Fax — HP LaserJet <span class="st err">busy signal</span>
+        </div>
+        <div class="ch">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 6l9 8 9-8"/></svg>
+          US Mail (cert.) <span class="st q">label queue</span>
+        </div>
+        <div class="ch">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 12h8M12 8v8"/></svg>
+          SFTP (if set up) <span class="st err">no account</span>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <h6>This request</h6>
+      <div class="li"><span>Req #2026-10482</span></div>
+      <div class="li"><span>Chen, Sarah</span></div>
+      <div class="li"><span>187 pp · 124 MB</span></div>
+    </div>
+
+    <div class="compose">
+
+      <div class="row">
+        <label>From</label>
+        <div class="val">K. Ramirez &lt;ramirezk@northstarhealth.org&gt;</div>
+      </div>
+      <div class="row">
+        <label>To</label>
+        <div class="val"><div class="chips">
+          <span class="chip ext">dkemp@pollardkemp.com</span>
+          <span class="chip ext">legalassist@pollardkemp.com</span>
+        </div></div>
+      </div>
+      <div class="row">
+        <label>Cc</label>
+        <div class="val"><div class="chips">
+          <span class="chip">him-roi-log@northstarhealth.org</span>
+        </div></div>
+      </div>
+      <div class="row subject">
+        <label>Subject</label>
+        <div class="val">Medical Records — Chen, Sarah (Req #2026-10482) — PARTIAL [1 of 2]</div>
+      </div>
+
+      <div class="attach">
+        <div class="f">
+          <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>
+          Chen_Sarah_ROI_Packet_p1-187.pdf
+          <span class="sz">(124 MB)</span>
+        </div>
+        <div class="f">
+          <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>
+          Cover_Letter_signed.pdf
+          <span class="sz">(0.4 MB)</span>
+        </div>
+        <div class="f">
+          <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg>
+          Fee_Invoice_2026-10482.pdf
+          <span class="sz">(0.1 MB)</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <p>Mr. Kemp,</p>
+        <p>Attached please find the requested medical records for <b>Chen, Sarah (DOB 04/12/1968)</b> in
+          response to authorization on file under Req #2026-10482. The packet covers 2018-01-01 through present.</p>
+        <p><b>Note:</b> two (2) studies from NorthImaging PACS and six (6) legacy paper records (2020 and prior)
+          could not be retrieved in time and are being pursued separately. Follow-up packet [2 of 2] will be
+          issued once those sources return — please allow an additional 10–14 business days.</p>
+        <p>An invoice for per-page fees is attached ($74.50 + postage — see policy). Payment within 30 days per
+          the signed authorization packet.</p>
+        <p>If you have trouble with the attachment (124 MB), please reply and we will split the file or mail a
+          USB. Our preferred encrypted portal is still being provisioned.</p>
+        <p>Kind regards,<br>K. Ramirez, HIM Specialist<br>Northstar Regional Health</p>
+        <div class="sig">CONFIDENTIALITY NOTICE: This e-mail and attachments may contain PHI. If you are not the intended recipient, please delete and notify the sender. 45 CFR §164.514.</div>
+      </div>
+
+    </div>
+
+    <div class="rrail">
+      <h4>Delivery summary <small>Req #2026-10482</small></h4>
+
+      <div class="block">
+        <h5>Recipient</h5>
+        <p><b>Pollard &amp; Kemp, LLP</b> (Attorney D. Kemp)<br>Purpose: Litigation<br>Auth on file: rev.B (expired form — accepted ad hoc)</p>
+      </div>
+
+      <div class="warnbox">
+        <b>Risk:</b> recipient domain <b>pollardkemp.com</b> is external. No TLS enforcement policy for outbound
+        PHI on this tenant. HHS OCR guidance requires encrypted delivery or equivalent safeguards.
+      </div>
+
+      <div class="block">
+        <h5>Fee estimate</h5>
+        <div class="fee"><span>Pages retrieved</span><span class="n">187</span></div>
+        <div class="fee"><span>First 25 pp @ $1.00</span><span class="n">$25.00</span></div>
+        <div class="fee"><span>Addt'l 162 pp @ $0.25</span><span class="n">$40.50</span></div>
+        <div class="fee"><span>Electronic delivery fee</span><span class="n">$9.00</span></div>
+        <div class="fee"><span>Total (billable)</span><span>$74.50</span></div>
+      </div>
+
+      <div class="block">
+        <h5>Tracking</h5>
+        <p>No delivery receipt. No open/read confirmation.<br>If this email bounces or is quarantined, only Outlook return-to-sender will notify.</p>
+      </div>
+
+      <div class="act">
+        <button class="b">Save to queue</button>
+        <button class="b go">Send</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-manual-delivery-hls-roi.html",
+  "vendor": "Outlook (unencrypted) + fax + US Mail",
+  "scope": "HLS \u2014 Release of Information",
+  "state": "Current",
+  "useCase": "ROI Record Delivery & Fee Capture",
+  "archetype": "desktop-tool",
+  "channels": ["email", "fax", "mail", "sftp"],
+  "modeledAfter": "Microsoft Outlook compose with ROI packet attached, fax + mail as fallback channels"
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — ROI Audit Trail (SharePoint + Excel) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking a fragmented ROI audit trail stitched together from SharePoint folders and an Excel tracker while responding to an OIG audit. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  /* SharePoint + Excel tone */
+  --sp-blue:#1B5A9B;--sp-banner:#0F4778;--sp-rule:#D2D0CE;--sp-body:#FAFAFA;
+  --sp-text:#201F1E;--sp-sub:#605E5C;--sp-side:#F3F2F1;
+  --xl-green:#217346;--xl-grid:#CED1D6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--sp-text);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--sp-body);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.mock-wm{position:absolute;bottom:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--ink-soft);opacity:0.65;background:rgba(255,255,255,0.72);
+  padding:3px 7px;border-radius:4px;border:1px solid var(--line);pointer-events:none;z-index:5;}
+.phi-wm{position:absolute;top:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:#A93434;background:rgba(255,82,82,0.12);padding:3px 7px;
+  border-radius:4px;border:1px solid rgba(255,82,82,0.32);pointer-events:none;font-weight:600;z-index:5;}
+
+.titlebar{height:24px;background:var(--sp-banner);color:#fff;display:flex;align-items:center;padding:0 10px;gap:10px;font-size:10.5px;flex-shrink:0;}
+.titlebar .app{font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+.titlebar .app svg{width:12px;height:12px;stroke:#fff;}
+.titlebar .crumb{opacity:0.85;}
+.titlebar .spacer{flex:1;}
+.titlebar .me{opacity:0.9;}
+
+.subbar{height:32px;background:#fff;border-bottom:1px solid var(--sp-rule);display:flex;align-items:center;padding:0 12px;gap:12px;flex-shrink:0;font-size:10.5px;color:var(--sp-text);}
+.subbar h1{font-size:13px;font-weight:600;color:var(--sp-text);}
+.subbar .badge{background:#F5D3D3;color:#A93434;font-size:9.5px;padding:2px 8px;border-radius:999px;font-weight:600;border:1px solid rgba(255,82,82,0.3);display:inline-flex;align-items:center;gap:5px;}
+.subbar .badge svg{width:10px;height:10px;stroke:#A93434;stroke-width:2;}
+.subbar .spacer{flex:1;}
+.subbar .btn{border:1px solid var(--sp-rule);padding:4px 10px;border-radius:3px;font-size:10px;color:var(--sp-text);background:#fff;}
+
+.content{flex:1;display:grid;grid-template-columns:200px 1fr 1fr;min-height:0;}
+
+.side{background:var(--sp-side);border-right:1px solid var(--sp-rule);padding:10px 0;overflow:hidden;display:flex;flex-direction:column;}
+.side h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--sp-sub);padding:5px 14px 4px;}
+.side .li{padding:4px 14px;font-size:10.5px;color:var(--sp-text);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.side .li:hover{background:#fff;}
+.side .li.on{background:#fff;color:var(--sp-blue);font-weight:600;border-left:3px solid var(--sp-blue);padding-left:11px;}
+.side .li .n{color:var(--sp-sub);font-size:10px;font-weight:500;}
+.side .tree{padding:4px 14px;font-size:10px;color:var(--sp-text);}
+.side .tree .d{display:flex;align-items:center;gap:5px;padding:2px 0;}
+.side .tree .d svg{width:11px;height:11px;stroke:#D3A244;}
+.side .tree .d.sub{padding-left:16px;color:var(--sp-sub);}
+.side .tree .d.sub svg{stroke:var(--sp-sub);}
+.side .sep{border-top:1px solid var(--sp-rule);margin:6px 0;}
+
+/* Files pane (SharePoint) */
+.files{padding:10px 12px;overflow:hidden;display:flex;flex-direction:column;gap:6px;min-width:0;background:#fff;border-right:1px solid var(--sp-rule);}
+.files h3{font-size:11px;font-weight:600;color:var(--sp-text);display:flex;align-items:center;gap:6px;}
+.files h3 .sub{font-size:9.5px;color:var(--sp-sub);font-weight:500;}
+.files .path{font-size:9.5px;color:var(--sp-sub);margin-bottom:2px;display:flex;align-items:center;gap:4px;}
+.files .path b{color:var(--sp-text);font-weight:500;}
+
+.ftab{width:100%;border-collapse:collapse;font-size:10px;}
+.ftab thead th{background:#F8F8F8;color:var(--sp-sub);text-align:left;padding:5px 8px;font-weight:600;border-bottom:1px solid var(--sp-rule);font-size:9.5px;}
+.ftab tbody td{padding:4px 8px;border-bottom:1px solid #F0F0F0;vertical-align:middle;}
+.ftab tbody tr:last-child td{border-bottom:0;}
+.ftab td.fn{display:flex;align-items:center;gap:6px;}
+.ftab td.fn svg{width:11px;height:11px;flex-shrink:0;}
+.ftab td.fn svg.pdf{stroke:#C32A1E;}
+.ftab td.fn svg.xls{stroke:var(--xl-green);}
+.ftab td.fn svg.img{stroke:#1A6FB5;}
+.ftab td.fn svg.eml{stroke:var(--sp-blue);}
+.ftab td.fn svg.folder{stroke:#D3A244;fill:none;}
+.ftab td.fn svg.word{stroke:#1A4E8A;}
+.ftab td.fn a{color:var(--sp-blue);}
+.ftab td.dim{color:var(--sp-sub);}
+.ftab .gap td{background:#F5E0B8;color:#7A4A00;font-style:italic;padding:4px 8px;}
+.ftab .gap td b{color:#7A4A00;}
+
+/* Excel pane */
+.excel{padding:0;overflow:hidden;display:flex;flex-direction:column;min-width:0;background:#fff;}
+.x-title{height:24px;background:var(--xl-green);color:#fff;display:flex;align-items:center;padding:0 12px;gap:12px;font-size:10.5px;flex-shrink:0;}
+.x-title b{font-family:var(--brand-font);font-weight:700;}
+.x-ribbon{background:#F4F6F9;border-bottom:1px solid var(--sp-rule);display:flex;gap:10px;padding:4px 10px;font-size:10px;color:var(--sp-sub);flex-shrink:0;}
+.x-ribbon .t{padding:2px 4px;}
+.x-ribbon .t.on{color:var(--xl-green);font-weight:600;border-bottom:2px solid var(--xl-green);padding-bottom:0;}
+.x-formbar{display:flex;align-items:center;gap:8px;padding:4px 10px;border-bottom:1px solid var(--sp-rule);background:#fff;font-size:10px;flex-shrink:0;}
+.x-cell{width:56px;border:1px solid var(--sp-rule);padding:2px 6px;background:#F9FAFB;font-family:'Menlo',monospace;}
+.x-fx{color:var(--sp-sub);font-style:italic;padding:0 6px;border-right:1px solid var(--sp-rule);}
+.x-formula{flex:1;font-family:'Menlo','SFMono-Regular',monospace;color:var(--sp-text);font-size:10px;}
+.x-gridwrap{flex:1;overflow:hidden;background:#fff;}
+.x-grid{width:100%;border-collapse:collapse;font-size:9.5px;font-family:'SFMono-Regular','Menlo',monospace;}
+.x-grid th{background:#F0F2F6;border:1px solid var(--xl-grid);padding:3px 5px;font-weight:600;font-size:9px;text-align:left;color:var(--sp-sub);}
+.x-grid th.rn{width:22px;text-align:center;color:var(--sp-sub);}
+.x-grid td{border:1px solid #E3E5EA;padding:3px 5px;color:var(--sp-text);}
+.x-grid td.rn{background:#F0F2F6;text-align:center;width:22px;color:var(--sp-sub);}
+.x-grid td.hi{background:rgba(255,82,82,0.12);color:#A93434;font-weight:600;}
+.x-grid td.ok{background:rgba(48,140,72,0.10);color:#276B36;}
+.x-grid td.miss{background:#FFE08A;color:#6C4A00;font-weight:600;}
+.x-grid td.sel{outline:2px solid var(--xl-green);outline-offset:-2px;background:#E6F2EA;}
+.x-sheets{height:22px;background:#FAFBFC;border-top:1px solid var(--sp-rule);display:flex;align-items:center;padding:0 8px;gap:10px;font-size:10px;color:var(--sp-sub);flex-shrink:0;}
+.x-sheets span.on{background:#fff;border:1px solid var(--sp-rule);padding:2px 8px;border-radius:3px 3px 0 0;color:var(--xl-green);font-weight:600;}
+
+.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);color:#A93434;padding:4px 8px;border-radius:4px;font-size:9.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px;margin-top:4px;}
+.friction svg{width:10px;height:10px;stroke:#A93434;stroke-width:2;}
+</style>
+</head>
+<body>
+<div class="mock">
+  <span class="phi-wm">PHI · restricted</span>
+
+  <div class="titlebar">
+    <span class="app"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M7 5v14"/></svg>SharePoint — Northstar HIM</span>
+    <span class="crumb">Documents / ROI-Audit / 2026 / Q1 / 10482-Chen-Sarah</span>
+    <span class="spacer"></span>
+    <span class="me">S. Okafor · Compliance Officer</span>
+  </div>
+
+  <div class="subbar">
+    <h1>ROI Audit Packet · Req #2026-10482</h1>
+    <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/></svg>OIG Audit · evidence due in 6 days</span>
+    <span class="spacer"></span>
+    <button class="btn">+ New folder</button>
+    <button class="btn">Export to PDF</button>
+  </div>
+
+  <div class="content">
+
+    <div class="side">
+      <h6>SharePoint navigation</h6>
+      <div class="tree">
+        <div class="d"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>Documents</div>
+        <div class="d sub"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>ROI-Audit</div>
+        <div class="d sub" style="padding-left:28px;"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>2025 — Q4</div>
+        <div class="d sub" style="padding-left:28px;color:var(--sp-blue);font-weight:600;"><svg viewBox="0 0 24 24" stroke="var(--sp-blue)"><path d="M3 7h6l2 2h10v10H3z"/></svg>2026 — Q1</div>
+        <div class="d sub" style="padding-left:40px;color:var(--sp-blue);font-weight:600;"><svg viewBox="0 0 24 24" stroke="var(--sp-blue)"><path d="M3 7h6l2 2h10v10H3z"/></svg>10482-Chen-Sarah</div>
+      </div>
+      <div class="sep"></div>
+      <h6>Evidence categories</h6>
+      <div class="li"><span>Authorization</span><span class="n">2</span></div>
+      <div class="li"><span>Retrieval (EHR export)</span><span class="n">5</span></div>
+      <div class="li"><span>Redaction QA</span><span class="n">3</span></div>
+      <div class="li"><span>Delivery receipt</span><span class="n">—</span></div>
+      <div class="li"><span>Fee / billing</span><span class="n">2</span></div>
+      <div class="li"><span>Audit-log emails</span><span class="n">14</span></div>
+      <div class="sep"></div>
+      <h6>Other systems queried</h6>
+      <div class="li"><span>Outlook export</span><span class="n">.pst</span></div>
+      <div class="li"><span>Fax log (printed)</span><span class="n">PDF</span></div>
+      <div class="li"><span>Epic audit log</span><span class="n">IT ticket</span></div>
+    </div>
+
+    <div class="files">
+      <div class="path">Documents &gt; ROI-Audit &gt; 2026 &gt; Q1 &gt; <b>10482-Chen-Sarah</b></div>
+      <h3>14 items <span class="sub">· modified by 4 people over 38 days · last change 03/15/2026</span></h3>
+      <table class="ftab">
+        <thead><tr><th style="width:52%;">Name</th><th style="width:16%;">Modified</th><th>By</th></tr></thead>
+        <tbody>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Authorization_v1_received.pdf</a></td><td>02/07</td><td class="dim">K. Ramirez</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Authorization_v2_REV-signed.pdf</a></td><td>02/14</td><td class="dim">K. Ramirez</td></tr>
+          <tr><td class="fn"><svg class="eml" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg><a>FW_ Pollard request — missing DOB.msg</a></td><td>02/09</td><td class="dim">K. Ramirez</td></tr>
+          <tr><td class="fn"><svg class="eml" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg><a>RE_ Resent auth — p.2 signature.msg</a></td><td>02/12</td><td class="dim">D. Kemp (ext.)</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Fax_log_HUB-03_021226.pdf</a></td><td>02/12</td><td class="dim">Auto-gen</td></tr>
+          <tr><td class="fn"><svg class="xls" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/><path d="M10 13l4 4M14 13l-4 4"/></svg><a>Epic_export_manifest.xlsx</a></td><td>02/22</td><td class="dim">IT — T. Lee</td></tr>
+          <tr><td class="fn"><svg class="xls" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/><path d="M10 13l4 4M14 13l-4 4"/></svg><a>Cerner_legacy_export_manifest.xlsx</a></td><td>02/28</td><td class="dim">IT — T. Lee</td></tr>
+          <tr><td class="fn"><svg class="img" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-4-7 6"/></svg><a>PACS_retrieval_screenshot.png</a></td><td>03/02</td><td class="dim">K. Ramirez</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Redaction_QA_v1_COMMENTS.pdf</a></td><td>03/07</td><td class="dim">J. Okoye (QA)</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Redaction_QA_v2_FINAL.pdf</a></td><td>03/10</td><td class="dim">J. Okoye (QA)</td></tr>
+          <tr><td class="fn"><svg class="eml" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg><a>Delivery_email_to_dkemp.msg</a></td><td>03/12</td><td class="dim">K. Ramirez</td></tr>
+          <tr class="gap"><td colspan="3"><b>GAP:</b> no delivery confirmation on file. Requestor receipt not captured — only Outlook "Sent" timestamp.</td></tr>
+          <tr><td class="fn"><svg class="word" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/><path d="M9 13l1 4 1-3 1 3 1-4"/></svg><a>Cover_letter_signed.docx</a></td><td>03/12</td><td class="dim">K. Ramirez</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>Fee_invoice_2026-10482.pdf</a></td><td>03/12</td><td class="dim">Billing</td></tr>
+          <tr class="gap"><td colspan="3"><b>GAP:</b> no link between this invoice and the Oracle billing system entry. Cross-reference lives in the tracker.</td></tr>
+          <tr><td class="fn"><svg class="pdf" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg><a>OIG_audit_evidence_notes.pdf</a></td><td>03/15</td><td class="dim">S. Okafor</td></tr>
+        </tbody>
+      </table>
+      <div class="friction">
+        <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+        No chain-of-custody metadata — edits, deletions, and renames are not preserved across versions.
+      </div>
+    </div>
+
+    <div class="excel">
+      <div class="x-title"><b>Excel</b><span>ROI_Master_Tracker_2026.xlsx — [Shared]</span><span style="margin-left:auto;opacity:0.9;">Editing — S. Okafor</span></div>
+      <div class="x-ribbon">
+        <span class="t">File</span><span class="t">Home</span><span class="t on">Data</span><span class="t">Formulas</span><span class="t">Review</span>
+      </div>
+      <div class="x-formbar"><span class="x-cell">J312</span><span class="x-fx">fx</span><span class="x-formula">=IF(F312="Delivered", H312-B312, "open")</span></div>
+
+      <div class="x-gridwrap">
+        <table class="x-grid">
+          <thead><tr>
+            <th class="rn"></th><th>A&nbsp;Req&nbsp;ID</th><th>B&nbsp;Rcvd</th><th>C&nbsp;Patient</th><th>D&nbsp;Requestor</th>
+            <th>E&nbsp;Purpose</th><th>F&nbsp;Status</th><th>G&nbsp;Redact</th><th>H&nbsp;Delivered</th>
+            <th>I&nbsp;TAT&nbsp;(d)</th><th>J&nbsp;30d&nbsp;SLA</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="rn">309</td><td>2026-10479</td><td>02/01</td><td>Rivera, M.</td><td>Cigna Audit</td><td>Audit</td><td class="ok">Delivered</td><td>03/01</td><td>03/03</td><td>30</td><td class="ok">Met</td></tr>
+            <tr><td class="rn">310</td><td>2026-10480</td><td>02/02</td><td>Nguyen, T.</td><td>Patient</td><td>Care</td><td class="ok">Delivered</td><td>02/18</td><td>02/20</td><td>18</td><td class="ok">Met</td></tr>
+            <tr><td class="rn">311</td><td>2026-10481</td><td>02/04</td><td>Whitfield, D.</td><td>SSA</td><td>Disabil.</td><td>In progress</td><td>—</td><td class="miss">blank</td><td>47</td><td class="hi">Breach</td></tr>
+            <tr><td class="rn">312</td><td>2026-10482</td><td>02/05</td><td>Chen, S.</td><td>Pollard&amp;Kemp</td><td>Litig.</td><td class="sel">In progress</td><td>03/10</td><td class="miss">open</td><td>45</td><td class="hi">Breach</td></tr>
+            <tr><td class="rn">313</td><td>2026-10483</td><td>02/09</td><td>Patel, R.</td><td>Allegheny Law</td><td>Litig.</td><td>Returned</td><td>—</td><td class="miss">—</td><td>41</td><td class="hi">Breach</td></tr>
+            <tr><td class="rn">314</td><td>2026-10484</td><td>02/12</td><td>Lopez, E.</td><td>St.&nbsp;Luke's&nbsp;Onc</td><td>Care</td><td class="ok">Delivered</td><td>03/05</td><td>03/07</td><td>24</td><td class="ok">Met</td></tr>
+            <tr><td class="rn">315</td><td>2026-10485</td><td>02/15</td><td>O'Brien, M.</td><td>Allstate</td><td>Audit</td><td>In progress</td><td>—</td><td class="miss">open</td><td>35</td><td class="hi">Breach</td></tr>
+            <tr><td class="rn">316</td><td>2026-10486</td><td>02/18</td><td>Adeyemi, K.</td><td>Patient</td><td>Personal</td><td class="ok">Delivered</td><td>03/11</td><td>03/12</td><td>22</td><td class="ok">Met</td></tr>
+            <tr><td class="rn">317</td><td>2026-10487</td><td>02/21</td><td>Gupta, A.</td><td>Pfizer Claims</td><td>Audit</td><td>Returned</td><td>—</td><td class="miss">—</td><td>29</td><td>—</td></tr>
+            <tr><td class="rn">318</td><td>2026-10488</td><td>02/24</td><td>King, D.</td><td>Attorney</td><td>Litig.</td><td>In progress</td><td>—</td><td class="miss">open</td><td>26</td><td>—</td></tr>
+            <tr><td class="rn">319</td><td>2026-10489</td><td>03/01</td><td>Morales, V.</td><td>Patient</td><td>Personal</td><td>In progress</td><td>—</td><td class="miss">open</td><td>19</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="x-sheets">
+        <span class="on">Q1-2026</span>
+        <span>Q4-2025</span>
+        <span>Q3-2025</span>
+        <span>Vendors</span>
+        <span>SLA-metrics</span>
+        <span>Fee-bill</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-audit-log-hls-roi.html",
+  "vendor": "SharePoint audit folder + Excel master tracker",
+  "scope": "HLS \u2014 Release of Information",
+  "state": "Current",
+  "useCase": "ROI Archive & Audit-ready Evidence",
+  "archetype": "sharepoint-excel",
+  "modeledAfter": "SharePoint 2013-era document library + shared-drive XLSX tracker — the canonical compliance-reconstruction workflow"
+}
+</script>
+</body>
+</html>

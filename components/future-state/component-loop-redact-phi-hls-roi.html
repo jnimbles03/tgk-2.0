@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Redact PHI (HLS ROI) | TGK 2.0</title>
+<meta name="description" content="Stylized 3-scene loop evoking Docusign IAM products — Extract → Workspaces → Navigator — for HLS Release of Information redaction and QA. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:11px;line-height:1.45;}
+
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;}
+.scene.s1{animation:scene-1 15s ease-in-out infinite;}
+.scene.s2{animation:scene-2 15s ease-in-out infinite;}
+.scene.s3{animation:scene-3 15s ease-in-out infinite;}
+@keyframes scene-1 { 0%,30%{opacity:1;} 34%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes scene-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2F6FB0,#1A3A6B);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:0.04em;}
+.loop-indicator .li-dots{display:flex;gap:4px;}
+.loop-indicator .li-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);}
+.loop-indicator .li-dot.d1{animation:li-1 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d2{animation:li-2 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d3{animation:li-3 15s ease-in-out infinite;}
+@keyframes li-1 { 0%,30%{background:#fff;transform:scale(1.25);} 34%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-2 { 0%,30%{background:rgba(255,255,255,0.3);transform:scale(1);} 34%,63%{background:#fff;transform:scale(1.25);} 67%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-3 { 0%,63%{background:rgba(255,255,255,0.3);transform:scale(1);} 67%,96%{background:#fff;transform:scale(1.25);} 100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+.loop-indicator .li-label{font-weight:500;position:relative;min-width:140px;display:inline-block;}
+.loop-indicator .li-scene-1,.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{display:inline-block;}
+.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{position:absolute;left:0;opacity:0;}
+.loop-indicator .li-scene-1{animation:li-lbl-1 15s ease-in-out infinite;}
+.loop-indicator .li-scene-2{animation:li-lbl-2 15s ease-in-out infinite;}
+.loop-indicator .li-scene-3{animation:li-lbl-3 15s ease-in-out infinite;}
+@keyframes li-lbl-1 { 0%,30%{opacity:1;} 34%,100%{opacity:0;} }
+@keyframes li-lbl-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes li-lbl-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+@keyframes pulse-cobalt { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55),0 0 0 2px var(--ds-white);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0),0 0 0 2px var(--ds-white);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0),0 0 0 2px var(--ds-white);} }
+
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:8px 11px;font-size:9.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:8px 20px 18px;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* Extract scene */
+.ex-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ex-pane{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;}
+.ex-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--line);gap:10px;}
+.ex-head .dt{font-size:11px;font-weight:700;color:var(--ds-inkwell);font-family:var(--brand-font);}
+.ex-head .ds{font-size:9.5px;color:var(--ink-soft);}
+.ex-head .sc{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);display:flex;align-items:center;gap:5px;}
+.ex-head .sc .d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.ex-doc{padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;font-size:9.5px;color:var(--ink-mid);line-height:1.55;}
+.ex-doc .line{display:block;}
+.ex-doc .red{display:inline-block;background:#130032;color:transparent;border-radius:2px;padding:0 3px;position:relative;}
+.ex-doc .red::after{content:attr(data-cat);position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:7.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ds-cobalt);background:#fff;border:1px solid rgba(76,0,255,0.2);border-radius:2px;padding:1px 4px;white-space:nowrap;}
+.ex-doc .kp{background:rgba(76,0,255,0.08);padding:0 2px;border-radius:2px;color:var(--ds-inkwell);}
+.ex-legend{display:flex;gap:10px;padding:6px 14px 10px;border-top:1px solid var(--line);font-size:9px;color:var(--ink-soft);}
+.ex-legend .lg{display:flex;align-items:center;gap:5px;}
+.ex-legend .lg .sw{width:10px;height:10px;border-radius:2px;}
+.ex-legend .sw.sw-red{background:#130032;}
+.ex-legend .sw.sw-kp{background:rgba(76,0,255,0.2);}
+.ex-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ex-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ex-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ex-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ex-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ex-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.ex-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.ex-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ex-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+.ex-cat-list{display:flex;flex-direction:column;gap:3px;}
+.ex-cat-list .ci{display:flex;justify-content:space-between;font-size:10px;}
+.ex-cat-list .ci .cn{color:var(--ink-mid);}
+.ex-cat-list .ci .cv{color:var(--ds-inkwell);font-weight:700;}
+
+/* Workspaces scene */
+.ws-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ws-room{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;}
+.ws-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);}
+.ws-head .t{font-family:var(--brand-font);font-size:12px;font-weight:700;color:var(--ds-inkwell);}
+.ws-head .s{font-size:9.5px;color:var(--ink-soft);margin-left:auto;}
+.ws-mem{display:flex;gap:5px;}
+.ws-mem .av{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--line);}
+.ws-mem .av.him{background:#6B1D7B;}
+.ws-mem .av.leg{background:#A93434;}
+.ws-mem .av.cmp{background:#0B5FA8;}
+.ws-review{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;flex:1;overflow:hidden;}
+.ws-col{border-right:1px solid var(--line);display:flex;flex-direction:column;padding:8px 10px;gap:6px;overflow:hidden;}
+.ws-col:last-child{border-right:0;}
+.ws-col .ch{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;justify-content:space-between;}
+.ws-col .ch .cb{font-size:8px;background:rgba(10,122,58,0.14);color:var(--ok);padding:1px 5px;border-radius:6px;}
+.ws-col .ch .cb.pend{background:rgba(76,0,255,0.1);color:var(--ds-cobalt);}
+.ws-card{background:var(--ds-ecru);border:1px solid var(--line);border-radius:6px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;}
+.ws-card .t{font-size:10px;font-weight:700;color:var(--ds-inkwell);}
+.ws-card .m{font-size:9px;color:var(--ink-soft);}
+.ws-card .st{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-top:3px;padding:2px 5px;border-radius:3px;align-self:flex-start;display:flex;align-items:center;gap:4px;}
+.ws-card .st.ok{background:rgba(10,122,58,0.14);color:var(--ok);}
+.ws-card .st.pend{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.ws-card .st.warn{background:rgba(169,100,10,0.14);color:var(--warn);}
+.ws-card .st .d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.ws-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ws-card-side{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ws-card-side .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ws-card-side .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ws-card-side .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ws-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.ws-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.ws-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ws-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+
+/* Navigator scene (shared) */
+.nav-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.nav-record{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.nav-rec-head{display:flex;align-items:flex-start;gap:12px;}
+.nav-mark{width:46px;height:46px;border-radius:10px;background:var(--ds-inkwell);color:var(--ds-mist);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--brand-font);flex-shrink:0;}
+.nav-mark .mk-lg{font-size:13px;font-weight:700;color:#fff;line-height:1;}
+.nav-mark .mk-sm{font-size:8px;color:var(--ds-mist);letter-spacing:0.08em;}
+.nav-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.nav-kick{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);}
+.nav-rtl{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.nav-rsb{font-size:10.5px;color:var(--ink-mid);}
+.nav-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;display:flex;align-items:center;gap:6px;background:rgba(10,122,58,0.14);color:var(--ok);align-self:flex-start;}
+.nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.nav-tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.nav-tab{font-size:10px;font-weight:600;color:var(--ink-soft);padding:2px 0;position:relative;}
+.nav-tab.active{color:var(--ds-cobalt);}
+.nav-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--ds-cobalt);border-radius:2px;}
+.nav-tab .c{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:700;}
+.nav-attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;}
+.nav-attr{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed rgba(19,0,50,0.06);}
+.nav-attr .at-key{color:var(--ink-soft);}
+.nav-attr .at-val{color:var(--ds-inkwell);font-weight:600;}
+.nav-tl{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.nav-tl .tlh{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-tl-item{display:flex;align-items:flex-start;gap:9px;position:relative;padding:3px 0;}
+.nav-tl-item::before{content:"";position:absolute;left:4.5px;top:12px;width:1px;bottom:-3px;background:var(--line-strong);}
+.nav-tl-item:last-child::before{display:none;}
+.nav-tl-item .tld{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;margin-top:3px;box-shadow:0 0 0 2px var(--ds-white);}
+.nav-tl-item.cur .tld{background:var(--ds-cobalt);animation:pulse-cobalt 1.6s ease-out infinite;}
+.nav-tl-item .tb{flex:1;line-height:1.3;}
+.nav-tl-item .th{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.nav-tl-item .tm{font-size:9px;color:var(--ink-soft);}
+.nav-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.nav-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.nav-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.nav-ai{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-ai .ah{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:6px;}
+.nav-ai .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.nav-ai .ar{font-size:10px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.nav-ai .ar:last-child{border-bottom:0;}
+.nav-ai .ar b{color:var(--ds-mist);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+<!-- Scene 1 — Extract — AI PHI auto-detection -->
+<div class="scene s1">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Extract</span>
+    <span class="ds-crumb">AI analysis<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>PHI redaction</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:41 AM</span><span class="u-avatar">AI</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">AI detection · 18 HIPAA PHI identifiers · every finding attributed</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">PHI auto-detected — every match categorized</div><div class="scene-sub">113 docs scanned · 1,847 candidate identifiers · grouped by HIPAA Safe Harbor category</div></div><span class="scene-chip done"><span class="dot"></span>Scanned in 28s</span></div>
+
+  <div class="ex-body">
+    <div class="ex-pane">
+      <div class="ex-head"><div><div class="dt">Discharge summary · 2023-08-14 (preview)</div><div class="ds">113 / 113 documents scanned · confidence gate 0.92</div></div><span class="sc"><span class="d"></span>Redactions staged</span></div>
+      <div class="ex-doc">
+        <span class="line">Patient <span class="red" data-cat="Name">Chen, Sarah</span> (DOB <span class="red" data-cat="DOB">04/12/1968</span>, MRN <span class="red" data-cat="MRN">00482194</span>) admitted to <span class="kp">Northstar Regional — Rheumatology</span>.</span>
+        <span class="line">Address of record: <span class="red" data-cat="Address">1428 Elmwood Dr, St. Louis MO</span>. Phone <span class="red" data-cat="Phone">(314) 555-0142</span>.</span>
+        <span class="line">Spouse/contact <span class="red" data-cat="Name">Chen, Michael</span> — relationship scoped out by authorization.</span>
+        <span class="line">Primary dx: <span class="kp">rheumatoid arthritis (M06.9)</span>. Comorbid <span class="kp">anxiety (F41.9)</span>. No SUD / MH / HIV content returned per authorization filter.</span>
+        <span class="line">Plan: continue methotrexate; refer to PT. Follow-up with <span class="red" data-cat="Provider">Dr. R. Patel</span> on <span class="red" data-cat="Date">09/01/2023</span>.</span>
+        <span class="line">Encounter #<span class="red" data-cat="Acct">ENC-77401</span> · payer ID <span class="red" data-cat="Payer">BCBS-MO-7722</span>.</span>
+      </div>
+      <div class="ex-legend"><span class="lg"><span class="sw sw-red"></span>Flagged for redaction · 142 on page</span><span class="lg"><span class="sw sw-kp"></span>Clinically relevant · preserved for attorney</span></div>
+    </div>
+    <div class="ex-side">
+      <div class="ex-hero"><span class="l">Items found</span><span class="n">1,847</span><span class="s">Across 113 docs</span></div>
+      <div class="ex-card"><div class="h">By HIPAA category</div>
+        <div class="ex-cat-list">
+          <div class="ci"><span class="cn">Names</span><span class="cv">312</span></div>
+          <div class="ci"><span class="cn">Dates</span><span class="cv">487</span></div>
+          <div class="ci"><span class="cn">Addresses</span><span class="cv">128</span></div>
+          <div class="ci"><span class="cn">Phone / email</span><span class="cv">94</span></div>
+          <div class="ci"><span class="cn">MRN / account</span><span class="cv">316</span></div>
+          <div class="ci"><span class="cn">Provider IDs</span><span class="cv">210</span></div>
+          <div class="ci"><span class="cn">Other identifiers</span><span class="cv">300</span></div>
+        </div>
+      </div>
+      <div class="ex-card"><div class="h">Model</div>
+        <div class="kv"><span>Doc types</span><span class="v">Clinical notes, lab, imaging</span></div>
+        <div class="kv"><span>Confidence gate</span><span class="v">&gt; 0.92</span></div>
+        <div class="kv"><span>Human review</span><span class="v">Required on &lt; 0.92</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Workspaces</b> →</span></div>
+</div>
+
+<!-- Scene 2 — Workspaces — multi-party QA -->
+<div class="scene s2">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Workspaces</span>
+    <span class="ds-crumb">Rooms<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Redaction QA</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:48 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">HIM · Legal · Compliance · all on the same agreement, no email threads</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Three-party QA — one room, clear handoffs</div><div class="scene-sub">Every reviewer sees staged redactions in context, not on separate PDFs</div></div><span class="scene-chip done"><span class="dot"></span>Sign-off in 18 min</span></div>
+
+  <div class="ws-body">
+    <div class="ws-room">
+      <div class="ws-head"><span class="t">ROI 2026-10482 · redaction QA</span><div class="ws-mem"><span class="av him">KR</span><span class="av leg">TN</span><span class="av cmp">MJ</span></div><span class="s">3 members · 0 email threads</span></div>
+      <div class="ws-review">
+        <div class="ws-col">
+          <span class="ch">HIM · K. Ramirez<span class="cb">Done</span></span>
+          <div class="ws-card"><span class="t">Safe Harbor coverage</span><span class="m">18 / 18 categories scanned</span><span class="st ok"><span class="d"></span>Verified</span></div>
+          <div class="ws-card"><span class="t">Spouse / contact names</span><span class="m">3 found · scoped out by auth</span><span class="st ok"><span class="d"></span>Redacted</span></div>
+          <div class="ws-card"><span class="t">Minimum Necessary</span><span class="m">No out-of-scope dx returned</span><span class="st ok"><span class="d"></span>Confirmed</span></div>
+        </div>
+        <div class="ws-col">
+          <span class="ch">Legal · T. Nguyen<span class="cb">Done</span></span>
+          <div class="ws-card"><span class="t">Litigation holds</span><span class="m">No conflicting hold on record</span><span class="st ok"><span class="d"></span>Cleared</span></div>
+          <div class="ws-card"><span class="t">Scope vs. authorization</span><span class="m">Packet matches 2018 → present, ALL</span><span class="st ok"><span class="d"></span>Matches</span></div>
+          <div class="ws-card"><span class="t">Privilege review</span><span class="m">No attorney-client content present</span><span class="st ok"><span class="d"></span>Clean</span></div>
+        </div>
+        <div class="ws-col">
+          <span class="ch">Compliance · M. Johnson<span class="cb pend">Signing</span></span>
+          <div class="ws-card"><span class="t">42 CFR Part 2</span><span class="m">No SUD content (excluded at pull)</span><span class="st ok"><span class="d"></span>Pass</span></div>
+          <div class="ws-card"><span class="t">Redactions flattened</span><span class="m">Non-recoverable raster overlays</span><span class="st ok"><span class="d"></span>Pass</span></div>
+          <div class="ws-card"><span class="t">QA signature</span><span class="m">Compliance approval in progress</span><span class="st pend"><span class="d"></span>Signing</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ws-side">
+      <div class="ws-hero"><span class="l">QA cycle</span><span class="n">18 min</span><span class="s">paper QA = 2 – 4 days</span></div>
+      <div class="ws-card-side"><div class="h">Hand-off trail</div>
+        <div class="kv"><span>HIM &rarr; Legal</span><span class="v">10:42 · 7 min</span></div>
+        <div class="kv"><span>Legal &rarr; Compliance</span><span class="v">10:46 · 4 min</span></div>
+        <div class="kv"><span>Compliance &rarr; Sign</span><span class="v">10:48 · 7 min</span></div>
+        <div class="kv"><span>Email threads</span><span class="v">0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Navigator</b> →</span></div>
+</div>
+
+<!-- Scene 3 — Navigator — redaction record -->
+<div class="scene s3">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Navigator</span>
+    <span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:49 AM</span><span class="u-avatar">MJ</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Redaction record · flattened overlays, QA sign-off, audit-ready</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="nav-body">
+    <div class="nav-record">
+      <div class="nav-rec-head">
+        <div class="nav-mark"><span class="mk-lg">R</span><span class="mk-sm">REDACT</span></div>
+        <div class="nav-bd">
+          <div class="nav-kick">Release of Information · redaction complete</div>
+          <div class="nav-rtl">113 docs · 1,847 findings · signed off by HIM + Legal + Compliance</div>
+          <div class="nav-rsb">Redaction method: flattened raster overlay · non-recoverable</div>
+        </div>
+        <span class="nav-chip"><span class="dot"></span>Signed off</span>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="nav-tab">Record</div>
+        <div class="nav-tab active">Redactions<span class="c">1,847</span></div>
+        <div class="nav-tab">QA signers<span class="c">3</span></div>
+        <div class="nav-tab">History<span class="c">24</span></div>
+      </div>
+
+      <div class="nav-attrs">
+        <div class="nav-attr"><span class="at-key">Docs processed</span><span class="at-val">113</span></div>
+        <div class="nav-attr"><span class="at-key">Findings</span><span class="at-val">1,847</span></div>
+        <div class="nav-attr"><span class="at-key">Auto-redacted</span><span class="at-val">1,843 (&gt; 0.92)</span></div>
+        <div class="nav-attr"><span class="at-key">Human-confirmed</span><span class="at-val">4 low-confidence</span></div>
+        <div class="nav-attr"><span class="at-key">QA signers</span><span class="at-val">HIM · Legal · Compliance</span></div>
+        <div class="nav-attr"><span class="at-key">Method</span><span class="at-val">Flattened raster · irreversible</span></div>
+        <div class="nav-attr"><span class="at-key">Safe Harbor</span><span class="at-val">18 / 18 categories</span></div>
+        <div class="nav-attr"><span class="at-key">Cycle</span><span class="at-val">18 minutes</span></div>
+      </div>
+
+      <div class="nav-tl">
+        <div class="tlh">Redaction lifecycle</div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Extract — AI pre-stage</div><div class="tm">28s · 1,847 candidate findings</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Workspaces — HIM sign-off</div><div class="tm">K. Ramirez · 10:42</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Workspaces — Legal sign-off</div><div class="tm">T. Nguyen · 10:46</div></div></div>
+        <div class="nav-tl-item cur"><span class="tld"></span><div class="tb"><div class="th">Workspaces — Compliance sign-off</div><div class="tm">M. Johnson · 10:48 · record flattened</div></div></div>
+      </div>
+    </div>
+
+    <div class="nav-side">
+      <div class="nav-card"><div class="h">At a glance</div>
+        <div class="kv"><span>QA cycle</span><span class="v">18 min</span></div>
+        <div class="kv"><span>Manual baseline</span><span class="v">2 – 4 days</span></div>
+        <div class="kv"><span>Missed PHI (paper)</span><span class="v">avg 4 per packet</span></div>
+        <div class="kv"><span>Missed PHI (IAM)</span><span class="v">0</span></div>
+      </div>
+      <div class="nav-ai">
+        <div class="ah">Insights</div>
+        <div class="ar"><b>Overlay vs. removal</b> — raster-flattened PDF; burned-in, non-recoverable, even by the recipient.</div>
+        <div class="ar"><b>Defensible</b> — every finding has model confidence + reviewer signature attached.</div>
+        <div class="ar"><b>No re-reviews</b> — legal doesn't rework HIM's pass; each sign-off is scoped to their lane.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loop-indicator">
+  <div class="li-dots"><span class="li-dot d1"></span><span class="li-dot d2"></span><span class="li-dot d3"></span></div>
+  <span class="li-label">
+    <span class="li-scene-1">1 · Extract</span>
+    <span class="li-scene-2">2 · Workspaces</span>
+    <span class="li-scene-3">3 · Navigator</span>
+  </span>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Intake & authorization (HLS ROI) | TGK 2.0</title>
+<meta name="description" content="Stylized 3-scene loop evoking Docusign IAM products — Web Forms → Maestro → Navigator — for an HLS Release of Information intake flow. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:11px;line-height:1.45;}
+
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;}
+.scene.s1{animation:scene-1 15s ease-in-out infinite;}
+.scene.s2{animation:scene-2 15s ease-in-out infinite;}
+.scene.s3{animation:scene-3 15s ease-in-out infinite;}
+@keyframes scene-1 { 0%,30%{opacity:1;} 34%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes scene-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2F6FB0,#1A3A6B);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:0.04em;}
+.loop-indicator .li-dots{display:flex;gap:4px;}
+.loop-indicator .li-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);}
+.loop-indicator .li-dot.d1{animation:li-1 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d2{animation:li-2 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d3{animation:li-3 15s ease-in-out infinite;}
+@keyframes li-1 { 0%,30%{background:#fff;transform:scale(1.25);} 34%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-2 { 0%,30%{background:rgba(255,255,255,0.3);transform:scale(1);} 34%,63%{background:#fff;transform:scale(1.25);} 67%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-3 { 0%,63%{background:rgba(255,255,255,0.3);transform:scale(1);} 67%,96%{background:#fff;transform:scale(1.25);} 100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+.loop-indicator .li-label{font-weight:500;position:relative;min-width:140px;display:inline-block;}
+.loop-indicator .li-scene-1,.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{display:inline-block;}
+.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{position:absolute;left:0;opacity:0;}
+.loop-indicator .li-scene-1{animation:li-lbl-1 15s ease-in-out infinite;}
+.loop-indicator .li-scene-2{animation:li-lbl-2 15s ease-in-out infinite;}
+.loop-indicator .li-scene-3{animation:li-lbl-3 15s ease-in-out infinite;}
+@keyframes li-lbl-1 { 0%,30%{opacity:1;} 34%,100%{opacity:0;} }
+@keyframes li-lbl-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes li-lbl-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:8px 11px;font-size:9.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:8px 20px 18px;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* Web Forms scene */
+.wf-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.wf-form{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;overflow:hidden;}
+.wf-section{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px;}
+.wf-section:first-child{margin-top:0;}
+.wf-row{display:flex;gap:10px;}
+.wf-field{flex:1;display:flex;flex-direction:column;gap:2px;}
+.wf-field .lb{font-size:9.5px;color:var(--ink-soft);font-weight:600;}
+.wf-field .in{height:26px;background:#fbfafd;border:1px solid var(--line-strong);border-radius:5px;padding:4px 8px;display:flex;align-items:center;font-size:10.5px;color:var(--ds-inkwell);font-weight:500;position:relative;overflow:hidden;}
+.wf-field .in.valid{border-color:var(--ok);background:rgba(10,122,58,0.04);}
+.wf-field .in.valid::after{content:"";position:absolute;right:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--ok);}
+.wf-field .in.valid::before{content:"";position:absolute;right:11px;top:50%;transform:translateY(-50%) rotate(45deg);width:3px;height:6px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;z-index:2;}
+.wf-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.wf-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.wf-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.wf-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.wf-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.wf-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.wf-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.wf-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.wf-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+.wf-cond{background:rgba(76,0,255,0.06);border:1px dashed var(--ds-cobalt);border-radius:6px;padding:6px 9px;font-size:9.5px;color:var(--ds-cobalt);margin-top:2px;}
+.wf-cond b{color:var(--ds-inkwell);}
+
+/* Maestro scene */
+.ms-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ms-flow{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.ms-flow .hd{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+.ms-flow .hd .live{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse-green 1.6s ease-out infinite;}
+@keyframes pulse-green { 0%{box-shadow:0 0 0 0 rgba(10,122,58,0.55);} 70%{box-shadow:0 0 0 5px rgba(10,122,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,122,58,0);} }
+.ms-lanes{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;flex:1;min-height:0;}
+.ms-lane{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.ms-lane .lh{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;font-weight:700;color:var(--ds-inkwell);}
+.ms-lane .ls{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);}
+.ms-lane .tok{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:10px;color:var(--ink-mid);}
+.ms-lane .tok .tkn{font-weight:600;color:var(--ds-inkwell);}
+.ms-lane .tok .tkm{margin-left:auto;font-size:9px;color:var(--ink-soft);white-space:nowrap;}
+.ms-cv{grid-column:4;background:var(--ds-inkwell);color:#fff;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:104px;border-radius:8px;}
+.ms-cv .hd{color:#fff;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;}
+.ms-cv .big{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;color:#fff;}
+.ms-cv .lbl{font-size:10px;color:var(--ds-mist);}
+.ms-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ms-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ms-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ms-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ms-sla{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-sla .big{font-family:var(--brand-font);font-size:22px;font-weight:700;}
+.ms-sla .lbl{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ms-sla .cmp{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+.ms-sla .cmp .strike{text-decoration:line-through;color:rgba(203,194,255,0.55);}
+
+/* Navigator scene */
+.nav-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.nav-record{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.nav-rec-head{display:flex;align-items:flex-start;gap:12px;}
+.nav-mark{width:46px;height:46px;border-radius:10px;background:var(--ds-inkwell);color:var(--ds-mist);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--brand-font);flex-shrink:0;}
+.nav-mark .mk-lg{font-size:13px;font-weight:700;color:#fff;line-height:1;}
+.nav-mark .mk-sm{font-size:8px;color:var(--ds-mist);letter-spacing:0.08em;}
+.nav-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.nav-kick{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);}
+.nav-rtl{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.nav-rsb{font-size:10.5px;color:var(--ink-mid);}
+.nav-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;display:flex;align-items:center;gap:6px;background:rgba(10,122,58,0.14);color:var(--ok);align-self:flex-start;}
+.nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.nav-tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.nav-tab{font-size:10px;font-weight:600;color:var(--ink-soft);padding:2px 0;position:relative;}
+.nav-tab.active{color:var(--ds-cobalt);}
+.nav-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--ds-cobalt);border-radius:2px;}
+.nav-tab .c{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:700;}
+.nav-attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;}
+.nav-attr{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed rgba(19,0,50,0.06);}
+.nav-attr .at-key{color:var(--ink-soft);}
+.nav-attr .at-val{color:var(--ds-inkwell);font-weight:600;}
+.nav-tl{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.nav-tl .tlh{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-tl-item{display:flex;align-items:flex-start;gap:9px;position:relative;padding:3px 0;}
+.nav-tl-item::before{content:"";position:absolute;left:4.5px;top:12px;width:1px;bottom:-3px;background:var(--line-strong);}
+.nav-tl-item:last-child::before{display:none;}
+.nav-tl-item .tld{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;margin-top:3px;box-shadow:0 0 0 2px var(--ds-white);}
+.nav-tl-item.cur .tld{background:var(--ds-cobalt);animation:pulse-cobalt 1.6s ease-out infinite;}
+@keyframes pulse-cobalt { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55),0 0 0 2px var(--ds-white);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0),0 0 0 2px var(--ds-white);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0),0 0 0 2px var(--ds-white);} }
+.nav-tl-item .tb{flex:1;line-height:1.3;}
+.nav-tl-item .th{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.nav-tl-item .tm{font-size:9px;color:var(--ink-soft);}
+.nav-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.nav-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.nav-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.nav-ai{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-ai .ah{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:6px;}
+.nav-ai .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.nav-ai .ar{font-size:10px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.nav-ai .ar:last-child{border-bottom:0;}
+.nav-ai .ar b{color:var(--ds-mist);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+<!-- Scene 1 — Web Forms — validated intake form -->
+<div class="scene s1">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Web Forms</span>
+    <span class="ds-crumb">Forms<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI authorization</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:14 AM</span><span class="u-avatar">DK</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Requestor portal · conditional logic + validation</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Single ROI authorization — validated at submit</div><div class="scene-sub">Requestor: Pollard &amp; Kemp, LLP · purpose auto-routes required fields</div></div><span class="scene-chip pending"><span class="dot"></span>In progress</span></div>
+
+  <div class="wf-body">
+    <div class="wf-form">
+      <div class="wf-section">Patient</div>
+      <div class="wf-row">
+        <div class="wf-field"><span class="lb">Full name</span><span class="in valid">Chen, Sarah</span></div>
+        <div class="wf-field"><span class="lb">Date of birth</span><span class="in valid">1968-04-12</span></div>
+        <div class="wf-field"><span class="lb">MRN (optional)</span><span class="in valid">00482194</span></div>
+      </div>
+
+      <div class="wf-section">Purpose of release</div>
+      <div class="wf-row">
+        <div class="wf-field"><span class="lb">Reason</span><span class="in valid">Litigation</span></div>
+        <div class="wf-field"><span class="lb">Date range</span><span class="in valid">2018-01-01 → present</span></div>
+      </div>
+
+      <div class="wf-cond"><b>Conditional:</b> "Litigation" → attorney bar # required · sensitive-category consent auto-shown</div>
+
+      <div class="wf-section">Requestor (attorney)</div>
+      <div class="wf-row">
+        <div class="wf-field"><span class="lb">Firm</span><span class="in valid">Pollard &amp; Kemp, LLP</span></div>
+        <div class="wf-field"><span class="lb">Attorney</span><span class="in valid">D. Kemp, Esq.</span></div>
+        <div class="wf-field"><span class="lb">Bar #</span><span class="in valid">MO 058421</span></div>
+      </div>
+
+      <div class="wf-section">Sensitive categories (HIPAA + 42 CFR Part 2)</div>
+      <div class="wf-row">
+        <div class="wf-field"><span class="lb">Substance use</span><span class="in valid">Excluded</span></div>
+        <div class="wf-field"><span class="lb">Mental health</span><span class="in valid">Excluded</span></div>
+        <div class="wf-field"><span class="lb">HIV / genetic</span><span class="in valid">Excluded</span></div>
+      </div>
+    </div>
+
+    <div class="wf-side">
+      <div class="wf-card"><div class="h">Validation</div>
+        <div class="kv"><span>Required fields</span><span class="v">12 / 12</span></div>
+        <div class="kv"><span>Form version</span><span class="v">ROI-2026 rev.D</span></div>
+        <div class="kv"><span>Payer ID lookup</span><span class="v">Live (Maestro)</span></div>
+        <div class="kv"><span>Authorization template</span><span class="v">Legal-approved</span></div>
+      </div>
+      <div class="wf-hero"><span class="l">Tracking ID</span><span class="n">2026-ROI-10482</span><span class="s">Emailed + SMS on submit</span></div>
+      <div class="wf-card"><div class="h">Completeness</div>
+        <div class="kv"><span>This submit</span><span class="v">100%</span></div>
+        <div class="kv"><span>Requestor avg (paper)</span><span class="v">52%</span></div>
+        <div class="kv"><span>Returns avoided</span><span class="v">4 of last 5</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Maestro</b> →</span></div>
+</div>
+
+<!-- Scene 2 — Maestro — orchestration -->
+<div class="scene s2">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Maestro</span>
+    <span class="ds-crumb">Workflows<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI-intake</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:15 AM</span><span class="u-avatar">DK</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Authorization routing · parallel evidence gathering</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Authorization triage — orchestrated, not manual</div><div class="scene-sub">Req 2026-ROI-10482 routed in parallel: template, payer lookup, queue</div></div><span class="scene-chip done"><span class="dot"></span>Routed in 38s</span></div>
+
+  <div class="ms-body">
+    <div class="ms-flow">
+      <div class="hd"><span class="live"></span>Parallel execution · 3 lanes</div>
+      <div class="ms-lanes">
+        <div class="ms-lane">
+          <div class="lh">Template<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">ROI-2026 rev.D</span><span class="tkm">Auto-selected</span></div>
+          <div class="tok"><span class="tkn">Sensitive block</span><span class="tkm">Excluded</span></div>
+          <div class="tok"><span class="tkn">Legal review</span><span class="tkm">Pre-approved</span></div>
+        </div>
+        <div class="ms-lane">
+          <div class="lh">Lookups<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">Patient match</span><span class="tkm">Epic MRN 00482194</span></div>
+          <div class="tok"><span class="tkn">Bar # verified</span><span class="tkm">MO 058421</span></div>
+          <div class="tok"><span class="tkn">Dup check</span><span class="tkm">Clean</span></div>
+        </div>
+        <div class="ms-lane">
+          <div class="lh">Routing<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">HIM queue</span><span class="tkm">Assigned · K. Ramirez</span></div>
+          <div class="tok"><span class="tkn">Tracking ID</span><span class="tkm">Emailed + SMS</span></div>
+          <div class="tok"><span class="tkn">Next step</span><span class="tkm">Identify (KBA)</span></div>
+        </div>
+        <div class="ms-cv"><div class="hd">Intake</div><div class="big">38s</div><div class="lbl">submit → queued</div></div>
+      </div>
+    </div>
+    <div class="ms-side">
+      <div class="ms-card"><div class="h">Request</div>
+        <div class="kv"><span>ID</span><span class="v">2026-ROI-10482</span></div>
+        <div class="kv"><span>Purpose</span><span class="v">Litigation</span></div>
+        <div class="kv"><span>Scope</span><span class="v">2018 → present, ALL</span></div>
+      </div>
+      <div class="ms-sla">
+        <span class="big">&lt; 1 hr</span>
+        <span class="lbl">Intake cycle</span>
+        <span class="cmp"><span class="strike">3 days paper / fax</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Navigator</b> →</span></div>
+</div>
+
+<!-- Scene 3 — Navigator — tracking record -->
+<div class="scene s3">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Navigator</span>
+    <span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:15 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Authorization record · live tracking for requestor + HIM</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="nav-body">
+    <div class="nav-record">
+      <div class="nav-rec-head">
+        <div class="nav-mark"><span class="mk-lg">R</span><span class="mk-sm">ROI</span></div>
+        <div class="nav-bd">
+          <div class="nav-kick">Release of Information · intake &amp; auth</div>
+          <div class="nav-rtl">Chen, Sarah — authorization live</div>
+          <div class="nav-rsb">Pollard &amp; Kemp, LLP · Litigation · 2018 → present · ALL</div>
+        </div>
+        <span class="nav-chip"><span class="dot"></span>Queued</span>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="nav-tab active">Record</div>
+        <div class="nav-tab">Tracking<span class="c">4</span></div>
+        <div class="nav-tab">Sources<span class="c">5</span></div>
+        <div class="nav-tab">History<span class="c">1</span></div>
+      </div>
+
+      <div class="nav-attrs">
+        <div class="nav-attr"><span class="at-key">Tracking ID</span><span class="at-val">2026-ROI-10482</span></div>
+        <div class="nav-attr"><span class="at-key">Template</span><span class="at-val">ROI-2026 rev.D</span></div>
+        <div class="nav-attr"><span class="at-key">Patient match</span><span class="at-val">Epic MRN 00482194</span></div>
+        <div class="nav-attr"><span class="at-key">Requestor bar</span><span class="at-val">MO 058421 · verified</span></div>
+        <div class="nav-attr"><span class="at-key">Sensitive categories</span><span class="at-val">Excluded (SUD / MH / HIV)</span></div>
+        <div class="nav-attr"><span class="at-key">Assigned</span><span class="at-val">HIM · K. Ramirez</span></div>
+      </div>
+
+      <div class="nav-tl">
+        <div class="tlh">Lifecycle</div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Web Forms submit</div><div class="tm">2026-03-17 10:14 · requestor D. Kemp</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Template selected</div><div class="tm">ROI-2026 rev.D · legal-approved</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Maestro routing</div><div class="tm">10:14:38 · HIM queue</div></div></div>
+        <div class="nav-tl-item cur"><span class="tld"></span><div class="tb"><div class="th">Tracking ID issued</div><div class="tm">Email + SMS to D. Kemp</div></div></div>
+      </div>
+    </div>
+
+    <div class="nav-side">
+      <div class="nav-card"><div class="h">At a glance</div>
+        <div class="kv"><span>Intake time</span><span class="v">&lt; 1 hr</span></div>
+        <div class="kv"><span>Requestor sees</span><span class="v">Live tracker</span></div>
+        <div class="kv"><span>Rework risk</span><span class="v">Near zero</span></div>
+        <div class="kv"><span>Next step</span><span class="v">Identify (KBA)</span></div>
+      </div>
+      <div class="nav-ai">
+        <div class="ah">Insights</div>
+        <div class="ar"><b>No return needed</b> — all 12 required fields valid on submit.</div>
+        <div class="ar"><b>Pattern broken</b> — 4 of last 5 Pollard &amp; Kemp requests returned on paper; this one went through.</div>
+        <div class="ar"><b>Audit-ready</b> — submission captured with IP, timestamp, form version.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loop-indicator">
+  <div class="li-dots"><span class="li-dot d1"></span><span class="li-dot d2"></span><span class="li-dot d3"></span></div>
+  <span class="li-label">
+    <span class="li-scene-1">1 · Web Forms</span>
+    <span class="li-scene-2">2 · Maestro</span>
+    <span class="li-scene-3">3 · Navigator</span>
+  </span>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Verify consent (HLS ROI) | TGK 2.0</title>
+<meta name="description" content="Stylized 3-scene loop evoking Docusign IAM products — Identify → eSignature → Navigator — for HLS Release of Information consent verification. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:11px;line-height:1.45;}
+
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;}
+.scene.s1{animation:scene-1 15s ease-in-out infinite;}
+.scene.s2{animation:scene-2 15s ease-in-out infinite;}
+.scene.s3{animation:scene-3 15s ease-in-out infinite;}
+@keyframes scene-1 { 0%,30%{opacity:1;} 34%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes scene-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2F6FB0,#1A3A6B);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:0.04em;}
+.loop-indicator .li-dots{display:flex;gap:4px;}
+.loop-indicator .li-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);}
+.loop-indicator .li-dot.d1{animation:li-1 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d2{animation:li-2 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d3{animation:li-3 15s ease-in-out infinite;}
+@keyframes li-1 { 0%,30%{background:#fff;transform:scale(1.25);} 34%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-2 { 0%,30%{background:rgba(255,255,255,0.3);transform:scale(1);} 34%,63%{background:#fff;transform:scale(1.25);} 67%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-3 { 0%,63%{background:rgba(255,255,255,0.3);transform:scale(1);} 67%,96%{background:#fff;transform:scale(1.25);} 100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+.loop-indicator .li-label{font-weight:500;position:relative;min-width:140px;display:inline-block;}
+.loop-indicator .li-scene-1,.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{display:inline-block;}
+.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{position:absolute;left:0;opacity:0;}
+.loop-indicator .li-scene-1{animation:li-lbl-1 15s ease-in-out infinite;}
+.loop-indicator .li-scene-2{animation:li-lbl-2 15s ease-in-out infinite;}
+.loop-indicator .li-scene-3{animation:li-lbl-3 15s ease-in-out infinite;}
+@keyframes li-lbl-1 { 0%,30%{opacity:1;} 34%,100%{opacity:0;} }
+@keyframes li-lbl-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes li-lbl-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:8px 11px;font-size:9.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:8px 20px 18px;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* Identify scene */
+.id-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.id-stage{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.id-kick{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.id-who{display:flex;align-items:center;gap:12px;padding:8px 10px;background:var(--ds-ecru);border-radius:8px;border:1px solid var(--line);}
+.id-who .av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--brand-font);font-size:14px;flex-shrink:0;}
+.id-who .nm{display:flex;flex-direction:column;gap:2px;}
+.id-who .nm .n{font-weight:700;color:var(--ds-inkwell);font-size:12px;}
+.id-who .nm .m{font-size:10px;color:var(--ink-soft);}
+.id-who .rt{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:rgba(10,122,58,0.14);color:var(--ok);padding:4px 8px;border-radius:3px;display:flex;align-items:center;gap:5px;}
+.id-who .rt .d{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+.id-steps{display:flex;flex-direction:column;gap:7px;}
+.id-step{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fbfafd;}
+.id-step .sn{width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;position:relative;}
+.id-step .sn::after{content:"";position:absolute;top:50%;left:50%;width:8px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:translate(-50%,-70%) rotate(-45deg);}
+.id-step.cur{background:rgba(76,0,255,0.06);border-color:var(--ds-cobalt);}
+.id-step.cur .sn{background:var(--ds-cobalt);animation:pulse-cobalt 1.6s ease-out infinite;}
+.id-step.cur .sn::after{display:none;}
+.id-step .ib{flex:1;min-width:0;}
+.id-step .it{font-size:11px;font-weight:600;color:var(--ds-inkwell);}
+.id-step .is{font-size:9.5px;color:var(--ink-soft);}
+.id-step .ires{font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);flex-shrink:0;}
+.id-step.cur .ires{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+@keyframes pulse-cobalt { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+.id-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.id-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.id-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.id-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.id-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.id-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.id-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.id-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.id-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+
+/* eSignature scene */
+.esig-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.esig-doc{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.esig-doc .dh{display:flex;justify-content:space-between;align-items:center;}
+.esig-doc .dh .tt{font-size:11px;font-weight:700;color:var(--ds-inkwell);font-family:var(--brand-font);}
+.esig-doc .dh .lc{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);display:flex;align-items:center;gap:5px;}
+.esig-doc .dh .lc .d{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+.esig-page{background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.esig-page .pg-h{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.esig-page .pg-t{font-family:var(--brand-font);font-size:12px;font-weight:700;color:var(--ds-inkwell);}
+.esig-page .pg-p{font-size:9.5px;color:var(--ink-mid);line-height:1.45;}
+.esig-sig{margin-top:auto;border-top:1px dashed var(--line-strong);padding-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.esig-sig .sig-field{display:flex;flex-direction:column;gap:2px;}
+.esig-sig .sig-field .sl{font-size:8.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;}
+.esig-sig .sig-field .sv{font-family:"Brush Script MT",cursive;font-size:18px;color:var(--ds-cobalt);line-height:1;}
+.esig-sig .sig-field .sv.typed{font-family:var(--brand-font);font-size:11px;color:var(--ds-inkwell);font-weight:600;}
+.esig-sig .sig-field .sm{font-size:8.5px;color:var(--ink-soft);}
+.esig-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.esig-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.esig-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.esig-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.esig-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.esig-coc{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.esig-coc .ch{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:5px;}
+.esig-coc .ch::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.esig-coc .cr{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;}
+.esig-coc .cr .l{color:var(--ds-mist);}
+.esig-coc .cr .v{color:#fff;font-weight:600;}
+
+/* Navigator scene (shared with other loops) */
+.nav-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.nav-record{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.nav-rec-head{display:flex;align-items:flex-start;gap:12px;}
+.nav-mark{width:46px;height:46px;border-radius:10px;background:var(--ds-inkwell);color:var(--ds-mist);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--brand-font);flex-shrink:0;}
+.nav-mark .mk-lg{font-size:13px;font-weight:700;color:#fff;line-height:1;}
+.nav-mark .mk-sm{font-size:8px;color:var(--ds-mist);letter-spacing:0.08em;}
+.nav-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.nav-kick{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);}
+.nav-rtl{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.nav-rsb{font-size:10.5px;color:var(--ink-mid);}
+.nav-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;display:flex;align-items:center;gap:6px;background:rgba(10,122,58,0.14);color:var(--ok);align-self:flex-start;}
+.nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.nav-tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.nav-tab{font-size:10px;font-weight:600;color:var(--ink-soft);padding:2px 0;position:relative;}
+.nav-tab.active{color:var(--ds-cobalt);}
+.nav-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--ds-cobalt);border-radius:2px;}
+.nav-tab .c{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:700;}
+.nav-attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;}
+.nav-attr{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed rgba(19,0,50,0.06);}
+.nav-attr .at-key{color:var(--ink-soft);}
+.nav-attr .at-val{color:var(--ds-inkwell);font-weight:600;}
+.nav-tl{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.nav-tl .tlh{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-tl-item{display:flex;align-items:flex-start;gap:9px;position:relative;padding:3px 0;}
+.nav-tl-item::before{content:"";position:absolute;left:4.5px;top:12px;width:1px;bottom:-3px;background:var(--line-strong);}
+.nav-tl-item:last-child::before{display:none;}
+.nav-tl-item .tld{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;margin-top:3px;box-shadow:0 0 0 2px var(--ds-white);}
+.nav-tl-item.cur .tld{background:var(--ds-cobalt);animation:pulse-cobalt 1.6s ease-out infinite;}
+.nav-tl-item .tb{flex:1;line-height:1.3;}
+.nav-tl-item .th{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.nav-tl-item .tm{font-size:9px;color:var(--ink-soft);}
+.nav-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.nav-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.nav-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.nav-ai{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-ai .ah{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:6px;}
+.nav-ai .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.nav-ai .ar{font-size:10px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.nav-ai .ar:last-child{border-bottom:0;}
+.nav-ai .ar b{color:var(--ds-mist);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+<!-- Scene 1 — Identify — MFA + KBA proofing -->
+<div class="scene s1">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Identify</span>
+    <span class="ds-crumb">Identity verification<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Requestor</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:22 AM</span><span class="u-avatar">DK</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Attorney proofing · MFA + KBA + bar-number verification</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Requestor identity — proofed before signing</div><div class="scene-sub">Attorney D. Kemp · three-factor proof · results written to the agreement</div></div><span class="scene-chip pending"><span class="dot"></span>Proofing live</span></div>
+
+  <div class="id-body">
+    <div class="id-stage">
+      <span class="id-kick">Subject</span>
+      <div class="id-who">
+        <div class="av">DK</div>
+        <div class="nm"><span class="n">Daniel Kemp, Esq.</span><span class="m">Pollard &amp; Kemp, LLP · dkemp@pollardkemp.com</span></div>
+        <span class="rt"><span class="d"></span>Verified</span>
+      </div>
+
+      <span class="id-kick">Proofing steps</span>
+      <div class="id-steps">
+        <div class="id-step">
+          <span class="sn"></span>
+          <div class="ib"><div class="it">Knowledge-based auth (KBA)</div><div class="is">5 of 5 correct · address, DOB, prior firm, mortgage, vehicle</div></div>
+          <span class="ires">Pass</span>
+        </div>
+        <div class="id-step">
+          <span class="sn"></span>
+          <div class="ib"><div class="it">Multi-factor (MFA)</div><div class="is">SMS OTP to verified mobile · 2 of 2 attempts clean</div></div>
+          <span class="ires">Pass</span>
+        </div>
+        <div class="id-step cur">
+          <span class="sn">3</span>
+          <div class="ib"><div class="it">Bar-number verification</div><div class="is">MO State Bar API · license MO 058421 · active, no discipline</div></div>
+          <span class="ires">In progress</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="id-side">
+      <div class="id-hero"><span class="l">Proof strength</span><span class="n">NIST IAL2</span><span class="s">KBA + MFA + credential · recorded</span></div>
+      <div class="id-card"><div class="h">Audit</div>
+        <div class="kv"><span>IP</span><span class="v">72.14.201.88</span></div>
+        <div class="kv"><span>Device</span><span class="v">iOS 18 · Chrome</span></div>
+        <div class="kv"><span>Geolocation</span><span class="v">St. Louis, MO</span></div>
+        <div class="kv"><span>Elapsed</span><span class="v">2 min 14 s</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign eSignature</b> →</span></div>
+</div>
+
+<!-- Scene 2 — eSignature — consent signed -->
+<div class="scene s2">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">eSignature</span>
+    <span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>HIPAA authorization</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:24 AM</span><span class="u-avatar">SC</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Patient consent · tamper-evident envelope · Certificate of Completion</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Consent signed — tamper-evident, fully attributed</div><div class="scene-sub">Patient Sarah Chen · attorney D. Kemp · cosigners locked to proofed identity</div></div><span class="scene-chip done"><span class="dot"></span>Completed in 3 min</span></div>
+
+  <div class="esig-body">
+    <div class="esig-doc">
+      <div class="dh"><span class="tt">HIPAA authorization for release of information (ROI-2026 rev.D)</span><span class="lc"><span class="d"></span>Completed</span></div>
+      <div class="esig-page">
+        <span class="pg-h">Page 2 of 3 · acknowledgments</span>
+        <span class="pg-t">I authorize Northstar Regional Health to release the records described above.</span>
+        <span class="pg-p">I understand my rights under HIPAA Privacy Rule 45 CFR 164.508. Sensitive categories (SUD, MH, HIV) are excluded per my election on page 1. This authorization expires 12 months from signature unless revoked in writing. Minimum Necessary applies.</span>
+        <div class="esig-sig">
+          <div class="sig-field"><span class="sl">Patient signature</span><span class="sv">Sarah Chen</span><span class="sm">Signed 2026-03-17 10:23 CST · ID proofed via KBA</span></div>
+          <div class="sig-field"><span class="sl">Attorney attestation</span><span class="sv">Daniel Kemp</span><span class="sm">Signed 2026-03-17 10:24 CST · Bar MO 058421</span></div>
+          <div class="sig-field"><span class="sl">Envelope hash</span><span class="sv typed">SHA-256 · a4f2…9c01</span><span class="sm">Tamper-evident, verifiable at docusign.com</span></div>
+          <div class="sig-field"><span class="sl">Certificate</span><span class="sv typed">Generated automatically</span><span class="sm">CoC PDF stored with record</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="esig-side">
+      <div class="esig-card"><div class="h">Envelope</div>
+        <div class="kv"><span>Envelope ID</span><span class="v">dsx-9f41-02</span></div>
+        <div class="kv"><span>Recipients</span><span class="v">2 of 2 signed</span></div>
+        <div class="kv"><span>Form version</span><span class="v">ROI-2026 rev.D</span></div>
+      </div>
+      <div class="esig-coc">
+        <div class="ch">Certificate of Completion</div>
+        <div class="cr"><span class="l">IP · patient</span><span class="v">98.204.11.6</span></div>
+        <div class="cr"><span class="l">IP · attorney</span><span class="v">72.14.201.88</span></div>
+        <div class="cr"><span class="l">Timestamps</span><span class="v">UTC + local</span></div>
+        <div class="cr"><span class="l">Auth method</span><span class="v">KBA + MFA</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Navigator</b> →</span></div>
+</div>
+
+<!-- Scene 3 — Navigator — authorization indexed -->
+<div class="scene s3">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Navigator</span>
+    <span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:24 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Authorization record · all missing elements resolved, proofed + signed</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="nav-body">
+    <div class="nav-record">
+      <div class="nav-rec-head">
+        <div class="nav-mark"><span class="mk-lg">A</span><span class="mk-sm">AUTH</span></div>
+        <div class="nav-bd">
+          <div class="nav-kick">Release of Information · consent verified</div>
+          <div class="nav-rtl">Authorization signed — proof of identity attached</div>
+          <div class="nav-rsb">Sarah Chen · Pollard &amp; Kemp · ROI 2026-10482 · valid thru 2027-03-17</div>
+        </div>
+        <span class="nav-chip"><span class="dot"></span>Signed</span>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="nav-tab">Record</div>
+        <div class="nav-tab active">Authorization<span class="c">8</span></div>
+        <div class="nav-tab">Cert of Completion<span class="c">1</span></div>
+        <div class="nav-tab">History<span class="c">12</span></div>
+      </div>
+
+      <div class="nav-attrs">
+        <div class="nav-attr"><span class="at-key">Form version</span><span class="at-val">ROI-2026 rev.D</span></div>
+        <div class="nav-attr"><span class="at-key">Expiration</span><span class="at-val">2027-03-17 (12 mo)</span></div>
+        <div class="nav-attr"><span class="at-key">Scope</span><span class="at-val">2018 → present, ALL</span></div>
+        <div class="nav-attr"><span class="at-key">Sensitive exclusions</span><span class="at-val">SUD · MH · HIV</span></div>
+        <div class="nav-attr"><span class="at-key">Proof of ID</span><span class="at-val">KBA + MFA + Bar #</span></div>
+        <div class="nav-attr"><span class="at-key">Cosigners</span><span class="at-val">2 of 2 signed</span></div>
+        <div class="nav-attr"><span class="at-key">Envelope hash</span><span class="at-val">SHA-256 · a4f2…9c01</span></div>
+        <div class="nav-attr"><span class="at-key">Missing elements</span><span class="at-val">None</span></div>
+      </div>
+
+      <div class="nav-tl">
+        <div class="tlh">Authorization lifecycle</div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Intake validated</div><div class="tm">2026-03-17 10:14 · 12 / 12 required fields</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Identify — KBA + MFA + Bar #</div><div class="tm">10:22 · NIST IAL2</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">eSignature — patient + attorney</div><div class="tm">10:24 · envelope dsx-9f41-02</div></div></div>
+        <div class="nav-tl-item cur"><span class="tld"></span><div class="tb"><div class="th">Navigator — record indexed</div><div class="tm">Ready for retrieval step</div></div></div>
+      </div>
+    </div>
+
+    <div class="nav-side">
+      <div class="nav-card"><div class="h">At a glance</div>
+        <div class="kv"><span>Consent cycle</span><span class="v">10 minutes</span></div>
+        <div class="kv"><span>Paper / fax baseline</span><span class="v">4 – 6 days</span></div>
+        <div class="kv"><span>Missing elements</span><span class="v">0</span></div>
+        <div class="kv"><span>Next step</span><span class="v">App Center — EHR pull</span></div>
+      </div>
+      <div class="nav-ai">
+        <div class="ah">Insights</div>
+        <div class="ar"><b>Chain of custody</b> — every element of the authorization is attributable to a proofed identity.</div>
+        <div class="ar"><b>OIG-ready</b> — if this request is audited, the envelope hash + CoC answers 9 of 10 OIG checklist items automatically.</div>
+        <div class="ar"><b>Revocation</b> — one-click revoke tracked against this record, not a filing cabinet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loop-indicator">
+  <div class="li-dots"><span class="li-dot d1"></span><span class="li-dot d2"></span><span class="li-dot d3"></span></div>
+  <span class="li-label">
+    <span class="li-scene-1">1 · Identify</span>
+    <span class="li-scene-2">2 · eSignature</span>
+    <span class="li-scene-3">3 · Navigator</span>
+  </span>
+</div>
+
+</div>
+</body>
+</html>

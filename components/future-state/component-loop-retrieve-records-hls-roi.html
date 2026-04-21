@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future State — Retrieve records (HLS ROI) | TGK 2.0</title>
+<meta name="description" content="Stylized 3-scene loop evoking Docusign IAM products — App Center → Maestro → Navigator — for HLS Release of Information record retrieval. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);}
+body{display:flex;align-items:flex-start;justify-content:center;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:11px;line-height:1.45;}
+
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;}
+.scene.s1{animation:scene-1 15s ease-in-out infinite;}
+.scene.s2{animation:scene-2 15s ease-in-out infinite;}
+.scene.s3{animation:scene-3 15s ease-in-out infinite;}
+@keyframes scene-1 { 0%,30%{opacity:1;} 34%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes scene-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background:var(--ds-inkwell);border-radius:4px;position:relative;}
+.ds-logo .lg-mark::before{content:"";position:absolute;top:3px;left:3px;width:8px;height:16px;background:var(--ds-poppy);border-radius:1.5px;}
+.ds-logo .lg-mark::after{content:"";position:absolute;top:3px;left:11px;width:8px;height:8px;background:var(--ds-cobalt);border-radius:1.5px;}
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2F6FB0,#1A3A6B);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:0.04em;}
+.loop-indicator .li-dots{display:flex;gap:4px;}
+.loop-indicator .li-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.3);}
+.loop-indicator .li-dot.d1{animation:li-1 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d2{animation:li-2 15s ease-in-out infinite;}
+.loop-indicator .li-dot.d3{animation:li-3 15s ease-in-out infinite;}
+@keyframes li-1 { 0%,30%{background:#fff;transform:scale(1.25);} 34%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-2 { 0%,30%{background:rgba(255,255,255,0.3);transform:scale(1);} 34%,63%{background:#fff;transform:scale(1.25);} 67%,100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+@keyframes li-3 { 0%,63%{background:rgba(255,255,255,0.3);transform:scale(1);} 67%,96%{background:#fff;transform:scale(1.25);} 100%{background:rgba(255,255,255,0.3);transform:scale(1);} }
+.loop-indicator .li-label{font-weight:500;position:relative;min-width:140px;display:inline-block;}
+.loop-indicator .li-scene-1,.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{display:inline-block;}
+.loop-indicator .li-scene-2,.loop-indicator .li-scene-3{position:absolute;left:0;opacity:0;}
+.loop-indicator .li-scene-1{animation:li-lbl-1 15s ease-in-out infinite;}
+.loop-indicator .li-scene-2{animation:li-lbl-2 15s ease-in-out infinite;}
+.loop-indicator .li-scene-3{animation:li-lbl-3 15s ease-in-out infinite;}
+@keyframes li-lbl-1 { 0%,30%{opacity:1;} 34%,100%{opacity:0;} }
+@keyframes li-lbl-2 { 0%,30%{opacity:0;} 34%,63%{opacity:1;} 67%,100%{opacity:0;} }
+@keyframes li-lbl-3 { 0%,63%{opacity:0;} 67%,96%{opacity:1;} 100%{opacity:0;} }
+
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+@keyframes pulse-cobalt { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55),0 0 0 2px var(--ds-white);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0),0 0 0 2px var(--ds-white);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0),0 0 0 2px var(--ds-white);} }
+@keyframes pulse-green { 0%{box-shadow:0 0 0 0 rgba(10,122,58,0.55);} 70%{box-shadow:0 0 0 5px rgba(10,122,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,122,58,0);} }
+
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:8px 11px;font-size:9.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:8px 20px 18px;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* App Center scene */
+.ac-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ac-grid{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.ac-hd{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+.ac-hd .live{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse-green 1.6s ease-out infinite;}
+.ac-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ac-tile{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;}
+.ac-tile .tl{display:flex;align-items:center;gap:7px;}
+.ac-tile .tl .tg{width:26px;height:26px;border-radius:6px;background:var(--ds-inkwell);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--brand-font);font-weight:700;font-size:10px;flex-shrink:0;}
+.ac-tile .tl .tg.epic{background:#A60E26;}
+.ac-tile .tl .tg.cerner{background:#0B5FA8;}
+.ac-tile .tl .tg.pacs{background:#2C5B3E;}
+.ac-tile .tl .tg.ironmt{background:#4A3E6B;}
+.ac-tile .tl .tg.sp{background:#0E6BB5;}
+.ac-tile .tl .tg.hl7{background:#7B1F4C;}
+.ac-tile .tn{flex:1;min-width:0;}
+.ac-tile .tn .nm{font-size:10.5px;font-weight:700;color:var(--ds-inkwell);}
+.ac-tile .tn .ty{font-size:9px;color:var(--ink-soft);}
+.ac-tile .st{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;align-self:flex-start;display:flex;align-items:center;gap:5px;background:rgba(10,122,58,0.14);color:var(--ok);}
+.ac-tile .st .d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.ac-tile .st.pend{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.ac-tile .st.pend .d{animation:pulse-dot 1.6s ease-out infinite;}
+.ac-tile .mt{font-size:9px;color:var(--ink-mid);line-height:1.35;}
+.ac-tile .mt b{color:var(--ds-inkwell);}
+
+.ac-cat{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ac-cat .lb{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ds-mist);}
+.ac-cat .big{font-family:var(--brand-font);font-size:22px;font-weight:700;}
+.ac-cat .rt{font-size:10px;color:var(--ds-mist);}
+
+.ac-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ac-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ac-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ac-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ac-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ac-hero{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.ac-hero .n{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;}
+.ac-hero .l{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ac-hero .s{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+
+/* Maestro scene */
+.ms-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ms-flow{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.ms-flow .hd{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+.ms-flow .hd .live{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse-green 1.6s ease-out infinite;}
+.ms-lanes{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:10px;flex:1;min-height:0;}
+.ms-lane{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.ms-lane .lh{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;font-weight:700;color:var(--ds-inkwell);}
+.ms-lane .ls{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(10,122,58,0.14);color:var(--ok);}
+.ms-lane .tok{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:10px;color:var(--ink-mid);}
+.ms-lane .tok .tkn{font-weight:600;color:var(--ds-inkwell);}
+.ms-lane .tok .tkm{margin-left:auto;font-size:9px;color:var(--ink-soft);white-space:nowrap;}
+.ms-cv{grid-column:4;background:var(--ds-inkwell);color:#fff;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:104px;border-radius:8px;}
+.ms-cv .hd{color:#fff;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;}
+.ms-cv .big{font-family:var(--brand-font);font-size:22px;font-weight:700;line-height:1;color:#fff;}
+.ms-cv .lbl{font-size:10px;color:var(--ds-mist);}
+.ms-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ms-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ms-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.ms-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ms-sla{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.ms-sla .big{font-family:var(--brand-font);font-size:22px;font-weight:700;}
+.ms-sla .lbl{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;}
+.ms-sla .cmp{font-size:10px;color:var(--ds-mist);margin-top:4px;}
+.ms-sla .cmp .strike{text-decoration:line-through;color:rgba(203,194,255,0.55);}
+
+/* Navigator scene (shared) */
+.nav-body{flex:1;display:grid;grid-template-columns:1fr 240px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.nav-record{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.nav-rec-head{display:flex;align-items:flex-start;gap:12px;}
+.nav-mark{width:46px;height:46px;border-radius:10px;background:var(--ds-inkwell);color:var(--ds-mist);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--brand-font);flex-shrink:0;}
+.nav-mark .mk-lg{font-size:13px;font-weight:700;color:#fff;line-height:1;}
+.nav-mark .mk-sm{font-size:8px;color:var(--ds-mist);letter-spacing:0.08em;}
+.nav-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.nav-kick{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);}
+.nav-rtl{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.nav-rsb{font-size:10.5px;color:var(--ink-mid);}
+.nav-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;display:flex;align-items:center;gap:6px;background:rgba(10,122,58,0.14);color:var(--ok);align-self:flex-start;}
+.nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.nav-tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.nav-tab{font-size:10px;font-weight:600;color:var(--ink-soft);padding:2px 0;position:relative;}
+.nav-tab.active{color:var(--ds-cobalt);}
+.nav-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--ds-cobalt);border-radius:2px;}
+.nav-tab .c{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);font-size:8.5px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:700;}
+.nav-attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;}
+.nav-attr{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:3px 0;border-bottom:1px dashed rgba(19,0,50,0.06);}
+.nav-attr .at-key{color:var(--ink-soft);}
+.nav-attr .at-val{color:var(--ds-inkwell);font-weight:600;}
+.nav-tl{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.nav-tl .tlh{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-tl-item{display:flex;align-items:flex-start;gap:9px;position:relative;padding:3px 0;}
+.nav-tl-item::before{content:"";position:absolute;left:4.5px;top:12px;width:1px;bottom:-3px;background:var(--line-strong);}
+.nav-tl-item:last-child::before{display:none;}
+.nav-tl-item .tld{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;margin-top:3px;box-shadow:0 0 0 2px var(--ds-white);}
+.nav-tl-item.cur .tld{background:var(--ds-cobalt);animation:pulse-cobalt 1.6s ease-out infinite;}
+.nav-tl-item .tb{flex:1;line-height:1.3;}
+.nav-tl-item .th{font-size:10.5px;font-weight:600;color:var(--ds-inkwell);}
+.nav-tl-item .tm{font-size:9px;color:var(--ink-soft);}
+.nav-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.nav-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.nav-card .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mid);padding:2px 0;}
+.nav-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.nav-ai{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-ai .ah{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:6px;}
+.nav-ai .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:#4DD77E;}
+.nav-ai .ar{font-size:10px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.nav-ai .ar:last-child{border-bottom:0;}
+.nav-ai .ar b{color:var(--ds-mist);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+<!-- Scene 1 — App Center — pre-wired integrations -->
+<div class="scene s1">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">App Center</span>
+    <span class="ds-crumb">Integrations<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI connectors</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:31 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Source systems · wired once, reused on every request</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Source connectors — pre-wired, ready to pull</div><div class="scene-sub">Epic · Cerner · PACS · Iron Mountain · SharePoint · HL7 FHIR</div></div><span class="scene-chip done"><span class="dot"></span>6 of 6 connected</span></div>
+
+  <div class="ac-body">
+    <div class="ac-grid">
+      <div class="ac-hd"><span class="live"></span>Authorized connectors · scoped to ROI 2026-10482</div>
+      <div class="ac-tiles">
+        <div class="ac-tile">
+          <div class="tl"><span class="tg epic">E</span><div class="tn"><div class="nm">Epic (Hyperspace)</div><div class="ty">EHR · FHIR R4</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt"><b>82</b> matching encounters · MRN 00482194</div>
+        </div>
+        <div class="ac-tile">
+          <div class="tl"><span class="tg cerner">C</span><div class="tn"><div class="nm">Cerner PowerChart</div><div class="ty">Legacy EHR · HL7 v2</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt"><b>34</b> pre-migration notes · 2018 – 2021</div>
+        </div>
+        <div class="ac-tile">
+          <div class="tl"><span class="tg pacs">P</span><div class="tn"><div class="nm">PACS — Sectra</div><div class="ty">Imaging · DICOM</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt"><b>18</b> studies · MRI · X-ray · CT</div>
+        </div>
+        <div class="ac-tile">
+          <div class="tl"><span class="tg ironmt">I</span><div class="tn"><div class="nm">Iron Mountain</div><div class="ty">Off-site paper · OCR</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt"><b>5</b> archive boxes · digital ticket auto-filed</div>
+        </div>
+        <div class="ac-tile">
+          <div class="tl"><span class="tg sp">S</span><div class="tn"><div class="nm">SharePoint — HIM</div><div class="ty">Legal holds · case files</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt"><b>3</b> prior ROI packets referenced</div>
+        </div>
+        <div class="ac-tile">
+          <div class="tl"><span class="tg hl7">H</span><div class="tn"><div class="nm">HL7 FHIR gateway</div><div class="ty">Cross-source index</div></div></div>
+          <span class="st"><span class="d"></span>Live</span>
+          <div class="mt">Unified <b>142-item</b> result set</div>
+        </div>
+      </div>
+      <div class="ac-cat"><div><span class="lb">Scope of this pull</span><div class="big">142 items</div></div><div class="rt">Filtered by authorization:<br>2018 → present, sensitive categories excluded</div></div>
+    </div>
+    <div class="ac-side">
+      <div class="ac-hero"><span class="l">Minimum Necessary</span><span class="n">Applied</span><span class="s">Scope honors patient exclusions</span></div>
+      <div class="ac-card"><div class="h">Governance</div>
+        <div class="kv"><span>Connectors</span><span class="v">IAM admin · read-only</span></div>
+        <div class="kv"><span>Rate limits</span><span class="v">Honored</span></div>
+        <div class="kv"><span>PHI in transit</span><span class="v">mTLS · no copy local</span></div>
+        <div class="kv"><span>Refresh</span><span class="v">Per-request token</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Maestro</b> →</span></div>
+</div>
+
+<!-- Scene 2 — Maestro — parallel pulls -->
+<div class="scene s2">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Maestro</span>
+    <span class="ds-crumb">Workflows<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI-retrieval</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:34 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Parallel retrieval · bundled into one authorized packet</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="scene-head"><div><div class="scene-title">Retrieval orchestrated — no IT tickets</div><div class="scene-sub">All three source classes pulled in parallel, bundled under Minimum Necessary</div></div><span class="scene-chip done"><span class="dot"></span>Packet ready in 4 min</span></div>
+
+  <div class="ms-body">
+    <div class="ms-flow">
+      <div class="hd"><span class="live"></span>Parallel retrieval · 3 lanes</div>
+      <div class="ms-lanes">
+        <div class="ms-lane">
+          <div class="lh">Structured EHR<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">Epic FHIR pull</span><span class="tkm">82 items · 1m 20s</span></div>
+          <div class="tok"><span class="tkn">Cerner HL7 pull</span><span class="tkm">34 items · 2m 50s</span></div>
+          <div class="tok"><span class="tkn">Dedup</span><span class="tkm">6 overlaps merged</span></div>
+        </div>
+        <div class="ms-lane">
+          <div class="lh">Imaging<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">PACS DICOM pull</span><span class="tkm">18 studies · 3m 40s</span></div>
+          <div class="tok"><span class="tkn">Compression</span><span class="tkm">DICOMweb streamed</span></div>
+          <div class="tok"><span class="tkn">Thumbnail index</span><span class="tkm">Generated</span></div>
+        </div>
+        <div class="ms-lane">
+          <div class="lh">Archive + legal<span class="ls">Complete</span></div>
+          <div class="tok"><span class="tkn">Iron Mountain</span><span class="tkm">5 boxes · OCR ticket filed</span></div>
+          <div class="tok"><span class="tkn">SharePoint</span><span class="tkm">3 legal-hold refs</span></div>
+          <div class="tok"><span class="tkn">Chain-of-custody</span><span class="tkm">Logged per item</span></div>
+        </div>
+        <div class="ms-cv"><div class="hd">Retrieval</div><div class="big">4 min</div><div class="lbl">All sources</div></div>
+      </div>
+    </div>
+    <div class="ms-side">
+      <div class="ms-card"><div class="h">Packet</div>
+        <div class="kv"><span>Items</span><span class="v">142 assembled</span></div>
+        <div class="kv"><span>After Minimum Necessary</span><span class="v">113</span></div>
+        <div class="kv"><span>Size</span><span class="v">118 MB</span></div>
+      </div>
+      <div class="ms-sla">
+        <span class="big">4 min</span>
+        <span class="lbl">Retrieval cycle</span>
+        <span class="cmp"><span class="strike">10 – 14 days manual</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="handoff"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Hand off to <b>Docusign Navigator</b> →</span></div>
+</div>
+
+<!-- Scene 3 — Navigator — packet record -->
+<div class="scene s3">
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Navigator</span>
+    <span class="ds-crumb">Agreements<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>Northstar Regional Health<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>ROI 2026-10482</span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>10:35 AM</span><span class="u-avatar">KR</span></div>
+  </div>
+  <div class="tenant-bar">
+    <div class="t-brand"><span class="t-dot"></span><span>Northstar Regional Health</span><span class="t-sub">Retrieval record · packet indexed, scoped to the signed authorization</span></div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+  <div class="nav-body">
+    <div class="nav-record">
+      <div class="nav-rec-head">
+        <div class="nav-mark"><span class="mk-lg">P</span><span class="mk-sm">PKT</span></div>
+        <div class="nav-bd">
+          <div class="nav-kick">Release of Information · retrieval packet</div>
+          <div class="nav-rtl">Packet assembled — 113 items indexed</div>
+          <div class="nav-rsb">Chen, Sarah · Epic + Cerner + PACS + Iron Mtn. + SharePoint · scoped by authorization</div>
+        </div>
+        <span class="nav-chip"><span class="dot"></span>Ready</span>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="nav-tab">Record</div>
+        <div class="nav-tab">Authorization<span class="c">8</span></div>
+        <div class="nav-tab active">Sources<span class="c">5</span></div>
+        <div class="nav-tab">History<span class="c">17</span></div>
+      </div>
+
+      <div class="nav-attrs">
+        <div class="nav-attr"><span class="at-key">Epic encounters</span><span class="at-val">82 · de-duped</span></div>
+        <div class="nav-attr"><span class="at-key">Cerner legacy</span><span class="at-val">34 · 2018 – 2021</span></div>
+        <div class="nav-attr"><span class="at-key">PACS studies</span><span class="at-val">18 · DICOMweb</span></div>
+        <div class="nav-attr"><span class="at-key">Iron Mountain</span><span class="at-val">5 boxes · OCR ticket</span></div>
+        <div class="nav-attr"><span class="at-key">SharePoint legal</span><span class="at-val">3 prior holds</span></div>
+        <div class="nav-attr"><span class="at-key">After Min. Necessary</span><span class="at-val">113 items</span></div>
+        <div class="nav-attr"><span class="at-key">Packet size</span><span class="at-val">118 MB</span></div>
+        <div class="nav-attr"><span class="at-key">Sensitive cat. filtered</span><span class="at-val">SUD · MH · HIV</span></div>
+      </div>
+
+      <div class="nav-tl">
+        <div class="tlh">Retrieval lifecycle</div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Authorization signed</div><div class="tm">Envelope dsx-9f41-02</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">App Center — connectors scoped</div><div class="tm">6 of 6 authorized, read-only</div></div></div>
+        <div class="nav-tl-item"><span class="tld"></span><div class="tb"><div class="th">Maestro — parallel pulls</div><div class="tm">10:30 → 10:34 · 4 minutes</div></div></div>
+        <div class="nav-tl-item cur"><span class="tld"></span><div class="tb"><div class="th">Navigator — packet indexed</div><div class="tm">Minimum Necessary filter · 142 → 113</div></div></div>
+      </div>
+    </div>
+
+    <div class="nav-side">
+      <div class="nav-card"><div class="h">At a glance</div>
+        <div class="kv"><span>Retrieval cycle</span><span class="v">4 minutes</span></div>
+        <div class="kv"><span>Manual baseline</span><span class="v">10 – 14 days</span></div>
+        <div class="kv"><span>IT tickets opened</span><span class="v">0</span></div>
+        <div class="kv"><span>Next step</span><span class="v">Extract — PHI redaction</span></div>
+      </div>
+      <div class="nav-ai">
+        <div class="ah">Insights</div>
+        <div class="ar"><b>No backlog</b> — Cerner legacy retrieval used to take a 2-week IT ticket; now 3 minutes.</div>
+        <div class="ar"><b>Scope-locked</b> — packet cannot exceed the signed authorization, even by accident.</div>
+        <div class="ar"><b>Every item traceable</b> — per-item chain-of-custody recorded at pull time.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loop-indicator">
+  <div class="li-dots"><span class="li-dot d1"></span><span class="li-dot d2"></span><span class="li-dot d3"></span></div>
+  <span class="li-label">
+    <span class="li-scene-1">1 · App Center</span>
+    <span class="li-scene-2">2 · Maestro</span>
+    <span class="li-scene-3">3 · Navigator</span>
+  </span>
+</div>
+
+</div>
+</body>
+</html>

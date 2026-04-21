@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Manual PHI Redaction (Adobe Acrobat) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Adobe Acrobat's manual redaction tool being used to scrub PHI from a medical record packet. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  /* Acrobat-inspired tone: dark chrome, red-accent redaction tool */
+  --ac-chrome:#2F2B2B;--ac-chrome-ink:#E2E2E2;--ac-chrome-hi:#3E3939;
+  --ac-accent:#D32F2F;--ac-tool:#3E3939;--ac-tool-on:#D32F2F;
+  --ac-body:#595555;--ac-page:#FDFCF9;--ac-rule:#151515;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:#111;}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ac-body);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
+.mock-wm{position:absolute;bottom:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:#E2E2E2;opacity:0.55;background:rgba(0,0,0,0.35);
+  padding:3px 7px;border-radius:4px;border:1px solid #111;pointer-events:none;z-index:5;}
+.phi-wm{position:absolute;top:7px;right:9px;font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;color:#FFB4B4;background:rgba(255,82,82,0.18);padding:3px 7px;
+  border-radius:4px;border:1px solid rgba(255,82,82,0.4);pointer-events:none;font-weight:600;z-index:5;}
+
+.titlebar{height:26px;background:var(--ac-chrome);color:var(--ac-chrome-ink);display:flex;align-items:center;padding:0 10px;gap:12px;font-size:11px;flex-shrink:0;border-bottom:1px solid var(--ac-rule);}
+.titlebar .app{font-family:var(--brand-font);font-weight:600;display:inline-flex;align-items:center;gap:6px;color:var(--ac-accent);}
+.titlebar .app svg{width:14px;height:14px;stroke:var(--ac-accent);}
+.titlebar .file{opacity:0.85;}
+.titlebar .spacer{flex:1;}
+.titlebar .user{opacity:0.8;}
+
+.menubar{height:22px;background:var(--ac-chrome-hi);color:var(--ac-chrome-ink);display:flex;align-items:center;padding:0 10px;gap:18px;font-size:10.5px;flex-shrink:0;border-bottom:1px solid var(--ac-rule);}
+.menubar .m{padding:2px 0;}
+
+.toolbar{height:32px;background:var(--ac-chrome);color:var(--ac-chrome-ink);display:flex;align-items:center;padding:0 8px;gap:4px;flex-shrink:0;border-bottom:1px solid var(--ac-rule);}
+.toolbar .g{display:flex;gap:3px;padding-right:10px;border-right:1px solid #111;height:20px;align-items:center;}
+.toolbar .g:last-child{border-right:0;}
+.toolbar .b{padding:3px 8px;border:1px solid #111;border-radius:3px;background:var(--ac-tool);font-size:9.5px;color:#CFCFCF;display:inline-flex;align-items:center;gap:5px;}
+.toolbar .b svg{width:11px;height:11px;stroke:#CFCFCF;}
+.toolbar .b.on{background:var(--ac-accent);color:#fff;border-color:#911D1D;}
+.toolbar .b.on svg{stroke:#fff;}
+.toolbar .r{margin-left:auto;font-size:9.5px;color:#B8B8B8;}
+
+.redactbar{height:26px;background:#8D1B1B;color:#FFDADA;display:flex;align-items:center;padding:0 10px;gap:10px;font-size:10px;flex-shrink:0;}
+.redactbar b{color:#fff;}
+.redactbar .spacer{flex:1;}
+.redactbar .action{background:#6A0F0F;border:1px solid #4A0808;padding:2px 8px;border-radius:3px;font-size:10px;color:#fff;}
+
+.work{flex:1;display:grid;grid-template-columns:100px 1fr 224px;min-height:0;background:#595555;}
+
+.pages{background:#3E3939;padding:8px 8px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.pg-th{background:#fff;border:1px solid #111;aspect-ratio:8.5/11;position:relative;opacity:0.85;font-size:8px;color:#333;padding:6px;}
+.pg-th .lbl{position:absolute;bottom:-1px;left:0;right:0;background:#3E3939;color:#E2E2E2;font-size:8px;padding:2px 4px;text-align:center;border-top:1px solid #111;}
+.pg-th.on{border:2px solid var(--ac-accent);}
+.pg-th.done::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#2F855A;border:1px solid #fff;}
+.pg-th.todo::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#E53E3E;border:1px solid #fff;}
+.pg-th .content{font-family:"Courier New",monospace;font-size:5.4px;line-height:1.3;color:#222;overflow:hidden;height:100%;}
+.pg-th .redacted{background:#111;color:#111;padding:0 2px;}
+
+.canvas{display:flex;align-items:center;justify-content:center;overflow:hidden;padding:14px;}
+.doc{width:90%;max-width:520px;aspect-ratio:8.5/11;background:var(--ac-page);box-shadow:0 10px 28px rgba(0,0,0,0.4);padding:20px 26px;font-family:"Segoe UI",Inter,sans-serif;font-size:9.5px;color:#111;line-height:1.45;position:relative;}
+.doc h1{font-size:11px;font-weight:700;margin-bottom:4px;color:#1A3A6B;}
+.doc h2{font-size:10px;font-weight:600;margin:6px 0 2px;color:#1A3A6B;text-transform:uppercase;letter-spacing:0.02em;font-size:8.5px;}
+.doc .kv{display:flex;gap:8px;font-size:9px;line-height:1.55;}
+.doc .kv b{color:#555;font-weight:500;min-width:72px;display:inline-block;}
+.doc .note{margin-top:4px;font-size:9px;line-height:1.55;}
+.doc .hdr{display:flex;gap:12px;border-bottom:1px solid #888;padding-bottom:5px;margin-bottom:6px;align-items:flex-start;}
+.doc .hdr .lft{flex:1;}
+.doc .hdr .mrn{font-size:8.5px;color:#666;text-align:right;}
+.doc .rule{border-top:1px solid #CCC;margin:5px 0;}
+
+/* Redaction overlay boxes (black on page) */
+.rbox{background:#111;color:#111;padding:0 3px;border-radius:1px;display:inline-block;}
+.rbox.slim{padding:0 2px;}
+.rbox.hl{background:#FFE08A;color:#6C4A00;padding:0 3px;border:1px dashed #9A6A00;font-weight:600;}
+/* Red dashed bounding boxes = selected for redaction, not yet applied */
+.pending{background:transparent;border:1.5px dashed var(--ac-accent);padding:0 2px;border-radius:2px;color:#111;}
+
+.miss{background:rgba(255,82,82,0.15);border-bottom:2px solid var(--ac-accent);padding:0 2px;position:relative;}
+.miss::after{content:"·· missed?";position:absolute;top:-12px;left:0;font-size:7.5px;color:var(--ac-accent);font-weight:700;background:#fff;padding:0 3px;border:1px solid var(--ac-accent);border-radius:2px;white-space:nowrap;}
+
+.rrail{background:#2E2B2B;color:#E2E2E2;border-left:1px solid #111;overflow:hidden;display:flex;flex-direction:column;font-size:10px;}
+.rrail h5{padding:8px 12px 6px;font-size:11px;font-weight:600;color:#fff;border-bottom:1px solid #111;}
+.rrail h5 small{color:#A0A0A0;font-weight:500;font-size:9.5px;margin-left:5px;}
+.rrail .section{padding:8px 12px;border-bottom:1px solid #3A3636;}
+.rrail .section h6{font-size:9.5px;text-transform:uppercase;letter-spacing:0.06em;color:#9E9E9E;margin-bottom:4px;}
+.rrail .chk{display:flex;align-items:flex-start;gap:6px;padding:2px 0;font-size:9.5px;}
+.rrail .chk .box{width:10px;height:10px;border:1px solid #B8B8B8;border-radius:2px;flex-shrink:0;margin-top:2px;background:#3E3939;}
+.rrail .chk .box.on{background:var(--ac-accent);border-color:var(--ac-accent);}
+.rrail .chk .txt{flex:1;color:#E2E2E2;}
+.rrail .chk .txt b{color:#fff;font-weight:600;}
+.rrail .chk.off .txt{color:#9E9E9E;}
+.rrail .warn{color:#FFB4B4;font-size:9px;line-height:1.5;}
+.rrail .warn b{color:var(--ac-accent);}
+.rrail .actions{margin-top:auto;padding:8px 12px;border-top:1px solid #111;display:flex;gap:6px;}
+.rrail .actions .b{flex:1;text-align:center;padding:5px 0;border:1px solid #111;border-radius:3px;background:#3E3939;font-size:10px;color:#E2E2E2;}
+.rrail .actions .b.go{background:var(--ac-accent);color:#fff;border-color:#911D1D;}
+</style>
+</head>
+<body>
+<div class="mock">
+  <span class="phi-wm">PHI · restricted</span>
+
+  <div class="titlebar">
+    <span class="app"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/><path d="M9 16h6"/></svg>Acrobat Pro</span>
+    <span class="file">Chen_Sarah_ROI_Packet_v3-REDACT.pdf — p.12 of 187</span>
+    <span class="spacer"></span>
+    <span class="user">K. Ramirez — Redaction Specialist</span>
+  </div>
+
+  <div class="menubar">
+    <span class="m">File</span><span class="m">Edit</span><span class="m">View</span><span class="m">Sign</span><span class="m">Window</span><span class="m">Help</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="g">
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M9 9V5a3 3 0 1 1 6 0v4"/><rect x="6" y="9" width="12" height="11" rx="1"/></svg>Home</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M3 5h14l4 4v10H3z"/></svg>Tools</span>
+    </div>
+    <div class="g">
+      <span class="b"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Find</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="M16 18l2 2 4-4"/></svg>Bookmark</span>
+    </div>
+    <div class="g">
+      <span class="b on"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="1"/></svg>Redact (Mark)</span>
+      <span class="b"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="1" fill="#000"/></svg>Apply Redactions</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg>Sanitize</span>
+    </div>
+    <div class="g">
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg>Add text</span>
+      <span class="b"><svg viewBox="0 0 24 24"><path d="M3 21l18-18"/><path d="M14 3h7v7"/></svg>Draw</span>
+    </div>
+    <span class="r">Zoom 110% · 1 of 187</span>
+  </div>
+
+  <div class="redactbar">
+    <b>Redaction Properties</b>
+    <span>Overlay color: black</span>
+    <span>Outline: none</span>
+    <span>Redaction code: <b>(b)(6) Personal Privacy</b></span>
+    <span>Use overlay text: <b>— blank —</b></span>
+    <span class="spacer"></span>
+    <span>Applied: <b>142</b> / Pending: <b>38</b> / Missed (flagged by QA): <b>4</b></span>
+    <button class="action">Apply Redactions…</button>
+  </div>
+
+  <div class="work">
+
+    <div class="pages">
+      <div class="pg-th done"><div class="content">Progress<br>Note p.10<br><span class="redacted">XXXXX</span><br>Dx: <span class="redacted">XXX</span></div><div class="lbl">10</div></div>
+      <div class="pg-th done"><div class="content">Progress<br>Note p.11<br>HPI:<br><span class="redacted">XXXXXXX</span></div><div class="lbl">11</div></div>
+      <div class="pg-th on"><div class="content" style="font-size:5.6px;">Discharge Summary p.12 — Cardiology<br><br>Pt: Chen, S<br><span class="redacted">XXXX</span><br>Dx: M06.9</div><div class="lbl">12</div></div>
+      <div class="pg-th todo"><div class="content">Path Report<br>p.13<br>Family Hx:<br>mother — cancer</div><div class="lbl">13</div></div>
+      <div class="pg-th todo"><div class="content">SUD Note<br>p.14<br>MAT: ~~~~<br>(42 CFR Pt 2)</div><div class="lbl">14</div></div>
+      <div class="pg-th todo"><div class="content">Psych Note<br>p.15<br>PHQ-9: 14<br>dx: GAD</div><div class="lbl">15</div></div>
+    </div>
+
+    <div class="canvas">
+      <div class="doc">
+        <div class="hdr">
+          <div class="lft">
+            <h1>Northstar Regional Health</h1>
+            <div style="font-size:8.5px;color:#555;">Cardiology · Discharge Summary &nbsp;·&nbsp; 2024-04-12</div>
+          </div>
+          <div class="mrn">
+            Patient: <span class="rbox slim">Chen, Sarah</span><br>
+            MRN: <span class="rbox slim">00482194</span><br>
+            DOB: <span class="rbox slim">04/12/1968</span><br>
+            Addr: <span class="pending">7800 Rock Creek Pkwy, KC MO</span>
+          </div>
+        </div>
+
+        <h2>Admission</h2>
+        <div class="note">
+          Pt <span class="rbox slim">Sarah Chen</span>, 56F, adm. 04/08/2024 via ED w/ substernal chest pain radiating
+          to left arm. Hx of HTN, RA (M06.9), mild OSA. <span class="miss">Spouse Robert Chen at bedside.</span>
+          Refused cath per wishes documented with SW.
+        </div>
+
+        <h2>Hospital course</h2>
+        <div class="note">
+          Troponin trended negative. Echo w/ EF 55%. Referred to <span class="pending">Dr. P. Walsh, MD (PCP)</span>
+          for follow-up <span class="pending">(345) 555-0902</span>. Discharged 04/12 to home.
+          SW note references referral to <span class="miss">Northstar Behavioral Health — anxiety screen PHQ-9 = 11.</span>
+        </div>
+
+        <h2>Medications (active on discharge)</h2>
+        <div class="note">
+          Metoprolol 25 mg BID · Lisinopril 10 mg QD · Methotrexate 15 mg weekly · Adalimumab 40 mg q2w.
+        </div>
+
+        <h2>Follow-up</h2>
+        <div class="note">
+          PCP within 7 days. Rheumatology within 30 days. Patient verbalized understanding. Discharge plan
+          copy sent to <span class="pending">sarahc@mail.example</span>, faxed to <span class="pending">PCP office (345) 555-0902</span>.
+        </div>
+
+        <div class="rule"></div>
+        <div class="note" style="font-size:8.5px;color:#666;">
+          Dictated by <span class="pending">Dr. M. Harlow, MD (Cardiology)</span> · transcribed 04/12/2024 16:42 CT.
+          Page 12 of 187 · Req #2026-10482 · auth D. Kemp, Pollard &amp; Kemp, LLP.
+        </div>
+      </div>
+    </div>
+
+    <div class="rrail">
+      <h5>Redaction checklist <small>HIPAA "Safe Harbor" — 18 identifiers</small></h5>
+
+      <div class="section">
+        <h6>Applied this page</h6>
+        <div class="chk"><div class="box on"></div><div class="txt"><b>Name</b> &nbsp;<span style="color:#9E9E9E;">3 of 5 instances</span></div></div>
+        <div class="chk"><div class="box on"></div><div class="txt"><b>MRN</b> · <b>DOB</b></div></div>
+        <div class="chk"><div class="box on"></div><div class="txt"><b>Dates</b> (relative — not months/days)</div></div>
+      </div>
+
+      <div class="section">
+        <h6>Pending (selected, not applied)</h6>
+        <div class="chk"><div class="box"></div><div class="txt"><b>Geographic</b> &nbsp;<span style="color:#9E9E9E;">street address, ZIP&lt;3</span></div></div>
+        <div class="chk"><div class="box"></div><div class="txt"><b>Phone numbers</b> &nbsp;<span style="color:#9E9E9E;">2 instances</span></div></div>
+        <div class="chk"><div class="box"></div><div class="txt"><b>Email</b> &nbsp;<span style="color:#9E9E9E;">1 instance</span></div></div>
+        <div class="chk"><div class="box"></div><div class="txt"><b>Names — providers</b> &nbsp;<span style="color:#9E9E9E;">2 instances (per policy)</span></div></div>
+      </div>
+
+      <div class="section">
+        <h6>Flagged — needs attention</h6>
+        <div class="chk off"><div class="box"></div><div class="txt warn">Spouse name "<b>Robert Chen</b>" is PHI of a relative — policy says redact on third-party release.</div></div>
+        <div class="chk off"><div class="box"></div><div class="txt warn">Behavioral-health reference on p.15 — <b>separate 42 CFR Part 2 consent required</b>. Not on authorization.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="warn"><b>Overlay ≠ removal.</b> Black boxes are graphic overlays. Apply Redactions + Sanitize before delivery, or names show through.</div>
+      </div>
+
+      <div class="actions">
+        <button class="b">Save draft</button>
+        <button class="b go">QA review</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-manual-redaction-hls-roi.html",
+  "vendor": "Adobe Acrobat — Redaction tool",
+  "scope": "HLS \u2014 Release of Information",
+  "state": "Current",
+  "useCase": "ROI Manual PHI Redaction",
+  "archetype": "desktop-tool",
+  "modeledAfter": "Adobe Acrobat Pro · Redact mode, HIPAA Safe Harbor 18 identifiers checklist"
+}
+</script>
+</body>
+</html>

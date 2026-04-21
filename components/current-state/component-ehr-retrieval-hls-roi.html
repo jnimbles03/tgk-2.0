@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — EHR + PACS Retrieval (HIM scavenger hunt) | TGK 2.0</title>
+<meta name="description" content="Stylized mock evoking Epic/Cerner chart search for an ROI request, with PACS imaging and off-site paper archives referenced separately. Not a literal screenshot.">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+:root{
+  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ui-font:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ehr-banner:#1A3A6B;--ehr-banner-hi:#2B54A0;--ehr-tab:#2E6FB8;
+  --ehr-body:#F6F8FB;--ehr-accent:#2B6CB0;--ehr-rule:#C9D2DD;
+  --ehr-text:#1D2530;--ehr-subtle:#5B6675;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;font-family:var(--ui-font);color:var(--ehr-text);}
+body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--ehr-body);
+  border:1px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.35;}
+.mock-wm{position:absolute;bottom:7px;right:9px;font-family:var(--ui-font);font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);opacity:0.6;
+  background:rgba(255,255,255,0.75);padding:3px 7px;border-radius:4px;
+  border:1px solid var(--line);pointer-events:none;z-index:5;}
+.phi-wm{position:absolute;top:7px;right:9px;font-family:var(--ui-font);font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;color:#A93434;
+  background:rgba(255,82,82,0.12);padding:3px 7px;border-radius:4px;
+  border:1px solid rgba(255,82,82,0.32);pointer-events:none;font-weight:600;z-index:5;}
+
+.menu{height:22px;background:#E8EAEE;color:#303030;display:flex;align-items:center;padding:0 10px;gap:16px;font-size:10.5px;border-bottom:1px solid var(--ehr-rule);flex-shrink:0;}
+.menu .u{text-decoration:underline;text-underline-offset:2px;}
+.menu .s{flex:1;}
+.menu .m{color:var(--ehr-subtle);}
+
+.ptabs{height:24px;background:#D8DCE2;display:flex;align-items:flex-end;padding:0 6px;gap:2px;flex-shrink:0;border-bottom:1px solid var(--ehr-banner);}
+.ptab{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 10px;background:#B9C1CC;color:#1D2530;font-size:10px;border-radius:4px 4px 0 0;border:1px solid #97A2B0;border-bottom:0;}
+.ptab.on{background:var(--ehr-banner);color:#fff;border-color:var(--ehr-banner);}
+.ptab .x{opacity:0.7;font-weight:600;}
+.ptab svg{width:10px;height:10px;}
+
+.banner{background:var(--ehr-banner);color:#fff;display:flex;align-items:stretch;height:58px;flex-shrink:0;border-bottom:1px solid #0F2648;}
+.banner .av{width:58px;display:flex;align-items:center;justify-content:center;background:#C5CEDD;color:#2E3E5A;flex-shrink:0;border-right:1px solid #0F2648;}
+.banner .av svg{width:30px;height:30px;stroke:#2E3E5A;stroke-width:1.5;}
+.banner .col{padding:5px 10px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-right:1px solid rgba(255,255,255,0.12);}
+.banner .nm{font-weight:700;color:#FFE27A;font-size:12px;letter-spacing:0.02em;}
+.banner .mt{font-size:10px;color:#E2E8F2;line-height:1.35;}
+.banner .mt b{color:#fff;font-weight:600;}
+.banner .fac{color:#E2E8F2;font-weight:500;font-size:10.5px;padding:0 12px;display:flex;align-items:center;gap:6px;}
+.banner .fac svg{width:12px;height:12px;}
+.banner .roi{background:#6B2929;color:#fff;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;}
+.banner .roi svg{width:12px;height:12px;stroke:#fff;stroke-width:2;}
+.banner .btn{background:var(--ehr-banner-hi);color:#fff;padding:0 10px;display:flex;align-items:center;gap:5px;font-size:10px;border-left:1px solid rgba(255,255,255,0.14);}
+.banner .spacer{flex:1;}
+
+.stabs{height:26px;background:#3F7FC9;display:flex;align-items:flex-end;padding:0 6px;gap:2px;flex-shrink:0;border-bottom:1px solid var(--ehr-rule);}
+.stab{display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 12px;background:#2E6FB8;color:#D6E4F5;font-size:10.5px;border-radius:4px 4px 0 0;}
+.stab .x{opacity:0.7;}
+.stab.on{background:#fff;color:var(--ehr-text);font-weight:600;border:1px solid var(--ehr-rule);border-bottom:0;}
+.stab.on .x{color:var(--ehr-subtle);}
+
+.work{flex:1;display:grid;grid-template-columns:165px 1fr 236px;min-height:0;}
+
+.lr{background:#fff;border-right:1px solid var(--ehr-rule);padding:6px 0;overflow:hidden;display:flex;flex-direction:column;font-size:10.5px;color:var(--ehr-text);}
+.lr .li{padding:3px 12px;line-height:1.35;display:flex;align-items:center;justify-content:space-between;}
+.lr .li:hover{background:#E9F0F9;}
+.lr .li.on{border-left:3px solid var(--ehr-accent);padding-left:9px;background:#fff;font-weight:600;color:var(--ehr-accent);}
+.lr .li .n{color:var(--ehr-subtle);font-size:10px;font-weight:400;}
+.lr .sep{border-top:1px solid var(--ehr-rule);margin:8px 0;}
+.lr h6{font-size:10px;color:var(--ehr-subtle);padding:4px 12px 4px;font-weight:600;letter-spacing:0.02em;}
+.lr .link{color:var(--ehr-accent);}
+
+.main{padding:10px 12px;overflow:hidden;display:flex;flex-direction:column;gap:8px;min-width:0;}
+.mh{display:flex;align-items:center;gap:10px;}
+.mh h2{font-size:13px;font-weight:600;color:var(--ehr-text);margin-right:auto;}
+.mh .seg{display:inline-flex;border:1px solid var(--ehr-rule);border-radius:3px;overflow:hidden;background:#fff;}
+.mh .seg span{padding:3px 10px;font-size:10px;color:var(--ehr-subtle);border-right:1px solid var(--ehr-rule);}
+.mh .seg span:last-child{border-right:0;}
+.mh .seg span.on{background:var(--ehr-accent);color:#fff;font-weight:600;}
+.mh .refresh{color:var(--ehr-accent);}
+.mh .refresh svg{width:13px;height:13px;}
+
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--ehr-rule);border-radius:3px;padding:4px 8px;background:#fff;font-size:10.5px;color:var(--ehr-subtle);}
+.search svg{width:12px;height:12px;}
+
+.card{background:#fff;border:1px solid var(--ehr-rule);border-radius:3px;}
+.ch{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--ehr-rule);}
+.ch h3{font-size:12px;font-weight:600;color:var(--ehr-text);margin-right:auto;}
+.ch .small{font-size:9.5px;color:var(--ehr-subtle);}
+
+.dt{width:100%;border-collapse:collapse;font-size:10px;}
+.dt thead th{background:#E9EEF5;color:var(--ehr-subtle);text-align:left;padding:4px 10px;font-weight:600;font-size:10px;border-bottom:1px solid var(--ehr-rule);}
+.dt tbody td{padding:4px 10px;border-bottom:1px solid #EDF0F4;vertical-align:middle;}
+.dt tbody tr:last-child td{border-bottom:0;}
+.dt tbody tr.alt td{background:#F6F8FB;}
+.dt tbody tr.off td{color:var(--ehr-subtle);font-style:italic;}
+.dt .tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:2px;font-weight:600;}
+.dt .tag.epic{background:#EADBF5;color:#5B2A86;}
+.dt .tag.cerner{background:#D9E8F6;color:#1A3A6B;}
+.dt .tag.pacs{background:#E1E6DB;color:#3A5023;}
+.dt .tag.paper{background:#F5E6C8;color:#6C4A00;}
+.dt .tag.sp{background:#DDE6EE;color:#1B5A9B;}
+.dt .chk{display:inline-block;width:11px;height:11px;border:1.2px solid var(--ehr-subtle);border-radius:2px;vertical-align:middle;margin-right:4px;background:#fff;}
+.dt .chk.on{background:var(--ehr-accent);border-color:var(--ehr-accent);}
+
+.rr{background:#fff;border-left:1px solid var(--ehr-rule);padding:0;overflow:hidden;display:flex;flex-direction:column;font-size:10px;color:var(--ehr-text);}
+.rr-head{padding:8px 12px;border-bottom:1px solid var(--ehr-rule);}
+.rr-head h4{font-size:11px;font-weight:600;}
+.rr-head small{color:var(--ehr-subtle);font-weight:500;}
+.rr .b{padding:8px 12px;border-bottom:1px solid var(--ehr-rule);font-size:9.5px;}
+.rr .b h5{font-size:10px;font-weight:600;color:var(--ehr-subtle);margin-bottom:4px;}
+.rr .sys{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:9.5px;}
+.rr .sys .name{flex:1;}
+.rr .sys .st{font-size:9px;padding:1px 6px;border-radius:2px;font-weight:600;}
+.rr .sys .st.ok{background:#DFEEE1;color:#276B36;}
+.rr .sys .st.wait{background:#F5E0B8;color:#7A4A00;}
+.rr .sys .st.err{background:#F5D3D3;color:#A93434;}
+.rr .sys .st.todo{background:#E4E9EF;color:var(--ehr-subtle);}
+.rr .next{padding:8px 12px;margin-top:auto;border-top:1px solid var(--ehr-rule);font-size:9px;color:var(--ehr-subtle);}
+.rr .next b{color:var(--ehr-text);}
+
+.friction{position:absolute;top:114px;right:246px;z-index:4;background:rgba(255,82,82,0.14);border:1px solid rgba(255,82,82,0.32);color:#A93434;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;display:inline-flex;align-items:center;gap:5px;letter-spacing:0.02em;}
+.friction svg{width:10px;height:10px;stroke:#A93434;stroke-width:2;}
+</style>
+</head>
+<body>
+<div class="mock">
+  <span class="phi-wm">PHI · restricted</span>
+
+  <div class="menu">
+    <span><span class="u">T</span>ask</span>
+    <span><span class="u">E</span>dit</span>
+    <span><span class="u">V</span>iew</span>
+    <span><span class="u">P</span>atient</span>
+    <span><span class="u">C</span>hart</span>
+    <span><span class="u">L</span>inks</span>
+    <span><span class="u">H</span>elp</span>
+    <span class="s"></span>
+    <span class="m">ROI Workbench (HIM)</span>
+  </div>
+
+  <div class="ptabs">
+    <span class="ptab on"><svg viewBox="0 0 24 24" stroke="#fff"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4.3-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>CHEN, SARAH<span class="x">×</span></span>
+  </div>
+
+  <div class="banner">
+    <div class="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 4.5-6.5 8-6.5s6.5 2 8 6.5"/></svg></div>
+    <div class="col" style="min-width:172px;">
+      <div class="nm">CHEN, SARAH</div>
+      <div class="mt"><b>Sex</b>:&nbsp;F&nbsp; <b>57y</b>&nbsp; <b>DOB</b>:&nbsp;04/12/1968&nbsp; <b>MRN</b>:&nbsp;00482194</div>
+      <div class="mt"><b>FIN</b>:&nbsp;000487579&nbsp; <b>Req</b>&nbsp;#2026-10482 (Litigation)</div>
+    </div>
+    <div class="fac"><svg viewBox="0 0 24 24"><path d="M3 12l9-7 9 7v9H3z"/></svg>Northstar Regional Health</div>
+    <div class="spacer"></div>
+    <div class="roi"><svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-2H4v14h16z"/></svg>ROI · Release Pending</div>
+    <div class="btn">Advisories</div>
+  </div>
+
+  <div class="stabs">
+    <span class="stab">Patient Summary<span class="x">×</span></span>
+    <span class="stab on">Chart Search<span class="x">×</span></span>
+    <span class="stab">Documents<span class="x">×</span></span>
+    <span class="stab">Imaging<span class="x">×</span></span>
+    <span class="stab">External Records<span class="x">×</span></span>
+  </div>
+
+  <div class="friction">
+    <svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+    11 encounters live outside Epic — 4 systems to query by hand.
+  </div>
+
+  <div class="work">
+
+    <div class="lr">
+      <h6>Chart sections</h6>
+      <div class="li on">Results &amp; Reports <span class="n">142</span></div>
+      <div class="li">Encounters <span class="n">38</span></div>
+      <div class="li">Notes <span class="n">211</span></div>
+      <div class="li">Medications <span class="n">17</span></div>
+      <div class="li">Allergies <span class="n">2</span></div>
+      <div class="li">Problems <span class="n">9</span></div>
+      <div class="sep"></div>
+      <h6>External sources</h6>
+      <div class="li link">Cerner (Legacy 2014–2019)</div>
+      <div class="li link">PACS — NorthImaging</div>
+      <div class="li link">Off-site Paper Archive (Iron Mtn.)</div>
+      <div class="li link">SharePoint — Legacy scans</div>
+      <div class="sep"></div>
+      <h6>ROI packet</h6>
+      <div class="li">Selected <span class="n">37 / 142</span></div>
+      <div class="li link">Export to QUE-02</div>
+    </div>
+
+    <div class="main">
+      <div class="mh">
+        <h2>Chart Search — "Chen, Sarah · 2018-01-01 → present · ALL"</h2>
+        <span class="seg"><span class="on">All sources</span><span>Epic</span><span>Cerner</span><span>PACS</span><span>Paper</span></span>
+        <span class="refresh"><svg viewBox="0 0 24 24"><path d="M20 11A8 8 0 1 1 12 4l4 2"/><path d="M16 3v3h-3"/></svg></span>
+      </div>
+
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>Free-text search across encounter notes, reports, results…</div>
+
+      <div class="card">
+        <div class="ch"><h3>Matching items (142)</h3><span class="small">37 selected for ROI packet &nbsp;·&nbsp; missing: 2 PACS studies, 6 legacy paper charts</span></div>
+        <table class="dt">
+          <thead><tr>
+            <th style="width:4%;"></th>
+            <th style="width:10%;">Date</th>
+            <th style="width:30%;">Document</th>
+            <th style="width:10%;">Encounter</th>
+            <th style="width:10%;">Dept.</th>
+            <th style="width:13%;">Source</th>
+            <th style="width:13%;">Location</th>
+            <th style="width:10%;">Status</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="chk on"></span></td><td>2026-02-14</td><td>Rheumatology — Progress Note</td><td>Office visit</td><td>Rheumatology</td><td><span class="tag epic">Epic</span></td><td>Chart</td><td>Retrieved</td></tr>
+            <tr class="alt"><td><span class="chk on"></span></td><td>2025-11-02</td><td>MRI — Left Knee, w/ contrast</td><td>Imaging</td><td>Radiology</td><td><span class="tag pacs">PACS</span></td><td>NorthImaging</td><td>Retrieved</td></tr>
+            <tr><td><span class="chk on"></span></td><td>2025-09-18</td><td>Labs — CBC w/ Diff, CMP, Lipid</td><td>Office visit</td><td>Lab</td><td><span class="tag epic">Epic</span></td><td>Chart</td><td>Retrieved</td></tr>
+            <tr class="alt"><td><span class="chk"></span></td><td>2024-08-04</td><td>CT — Abdomen w/o contrast</td><td>Imaging</td><td>Radiology</td><td><span class="tag pacs">PACS</span></td><td>Offline queue</td><td style="color:#A93434;">Pending pull (48h)</td></tr>
+            <tr><td><span class="chk on"></span></td><td>2024-04-12</td><td>Discharge Summary — Inpatient</td><td>Inpatient</td><td>Med/Surg</td><td><span class="tag epic">Epic</span></td><td>Chart</td><td>Retrieved</td></tr>
+            <tr class="alt off"><td><span class="chk"></span></td><td>2022-06-20</td><td>Cardiology — Echo Report</td><td>Office visit</td><td>Cardiology</td><td><span class="tag cerner">Cerner</span></td><td>Legacy EHR</td><td style="color:#A93434;">Manual export req.</td></tr>
+            <tr class="off"><td><span class="chk"></span></td><td>2021-02-08</td><td>Op Note — Knee Arthroscopy</td><td>Surgery</td><td>Orthopedics</td><td><span class="tag cerner">Cerner</span></td><td>Legacy EHR</td><td style="color:#A93434;">Manual export req.</td></tr>
+            <tr class="alt off"><td><span class="chk"></span></td><td>2020-04-15</td><td>H&amp;P — Initial consult (Rheum)</td><td>Office visit</td><td>Rheumatology</td><td><span class="tag paper">Paper</span></td><td>Iron Mtn. Box 41-C</td><td style="color:#A93434;">Retrieval 7–14d</td></tr>
+            <tr class="off"><td><span class="chk"></span></td><td>2019-11-30</td><td>Scanned — Path report</td><td>Office visit</td><td>Pathology</td><td><span class="tag sp">SharePoint</span></td><td>/HIM/Legacy/2019</td><td style="color:#7A4A00;">PDF, no OCR</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="rr">
+      <div class="rr-head"><h4>ROI packet status</h4><small>Req #2026-10482 · Chen, S.</small></div>
+      <div class="b">
+        <h5>Sources required</h5>
+        <div class="sys"><span class="name">Epic (primary EHR)</span><span class="st ok">37 of 37</span></div>
+        <div class="sys"><span class="name">Cerner (legacy)</span><span class="st wait">awaiting IT export</span></div>
+        <div class="sys"><span class="name">PACS — NorthImaging</span><span class="st err">1 study offline</span></div>
+        <div class="sys"><span class="name">Iron Mtn. paper</span><span class="st todo">ticket not opened</span></div>
+        <div class="sys"><span class="name">SharePoint scans</span><span class="st wait">OCR queue</span></div>
+      </div>
+      <div class="b">
+        <h5>Estimated turnaround</h5>
+        <p style="color:#A93434;font-weight:600;font-size:10px;margin:2px 0 4px;">10–14 days remaining</p>
+        <p style="color:var(--ehr-subtle);font-size:9px;">Cerner export dep. on IT ticket ORA-4428 (Q'd). Iron Mtn. SLA 5 biz days. PACS offline study 48h to stage. No single queue — clerk tracks in spreadsheet.</p>
+      </div>
+      <div class="next"><b>Next step:</b> open IT ticket for Cerner export · email NorthImaging for offline study · submit Iron Mtn. retrieval form.</div>
+    </div>
+
+  </div>
+</div>
+
+<script id="component-config" type="application/json">
+{
+  "component": "component-ehr-retrieval-hls-roi.html",
+  "vendor": "Epic + Cerner + PACS + Paper archive (HIM retrieval workbench)",
+  "scope": "HLS \u2014 Release of Information",
+  "state": "Current",
+  "useCase": "ROI Record Retrieval across EHR + PACS + Archives",
+  "archetype": "ehr",
+  "patientName": "Chen, Sarah",
+  "mrn": "00482194",
+  "modeledAfter": "Epic Chart Search + external-records pane, with legacy Cerner and PACS referenced separately"
+}
+</script>
+</body>
+</html>
