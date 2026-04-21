@@ -774,6 +774,18 @@ svg.icon, .icon-wrap svg, .node-icon svg, .lane-icon svg,
   border-radius: var(--r-sm);
 }
 
+/* Component iframe (live mock) media */
+.state-media .sm-frame { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); aspect-ratio: 16 / 10; }
+.state-media .sm-frame iframe { position: absolute; top: 0; left: 0; width: 960px; height: 600px; transform-origin: 0 0; border: 0; display: block; background: #fff; pointer-events: none; }
+.state-media .sm-frame-meta { position: absolute; inset: auto 0 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; background: linear-gradient(180deg, rgba(19,0,50,0) 0%, rgba(19,0,50,0.78) 55%, rgba(19,0,50,0.92) 100%); color: #fff; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+.state-media .sm-frame-meta .sm-frame-label { opacity: 0.9; }
+.state-media .sm-frame-meta .sm-frame-open { display: inline-flex; align-items: center; gap: 4px; opacity: 0.85; }
+.state-media .sm-frame-meta .sm-frame-open svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.state-media:has(.sm-frame-link) { padding: 0; background: transparent; margin-left: -24px; margin-right: -24px; width: calc(100% + 48px); align-items: stretch; }
+.state-media a.sm-frame-link { display: block; width: 100%; flex: 1 1 100%; align-self: stretch; text-decoration: none; color: inherit; pointer-events: auto; border-radius: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: box-shadow 0.2s var(--ease); }
+.state-media a.sm-frame-link:hover { box-shadow: 0 0 0 2px var(--ds-cobalt); }
+.state-media a.sm-frame-link:hover .sm-frame-meta .sm-frame-open { opacity: 1; }
+
 .iam-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1270,6 +1282,37 @@ svg.icon, .icon-wrap svg, .node-icon svg, .lane-icon svg,
           <source src="${src}">
         </video>
       `;
+    } else if (type === 'component') {
+      const label = spec.label || (which === 'current' ? 'Live mock' : 'Live future-state mock');
+      const alt = spec.alt || (which === 'current' ? 'Current-state interactive mock' : 'Future-state interactive mock');
+      el.innerHTML = `
+        <a class="sm-frame-link" href="${src}" target="_blank" rel="noopener" aria-label="${alt} — open in new tab">
+          <div class="sm-frame">
+            <iframe src="${src}" title="${alt}" tabindex="-1" scrolling="no"></iframe>
+            <div class="sm-frame-meta">
+              <span class="sm-frame-label">${label}</span>
+              <span class="sm-frame-open">
+                Open
+                <svg viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg>
+              </span>
+            </div>
+          </div>
+        </a>
+      `;
+      const fitScale = () => {
+        const frame = el.querySelector('.sm-frame');
+        const iframe = frame && frame.querySelector('iframe');
+        if (!frame || !iframe) return;
+        const w = frame.clientWidth;
+        if (!w) return;
+        const s = w / 960;
+        iframe.style.transform = `scale(${s})`;
+      };
+      requestAnimationFrame(fitScale);
+      if (!el._fitObserver) {
+        el._fitObserver = new ResizeObserver(fitScale);
+        el._fitObserver.observe(el);
+      }
     } else {
       el.innerHTML = `<img src="${src}" alt="${spec.alt || (which === 'current' ? 'Current state' : 'Future state')}" loading="lazy">`;
     }
