@@ -57,16 +57,13 @@
   html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--navy); color: var(--text); line-height: 1.5; }
 
-  /* ===== ANIMATED BACKGROUND ===== */
+  /* ===== ANIMATED BACKGROUND — kept for Scenes 2-5, hidden on landing ===== */
   .bg-mesh {
     position: fixed; inset: 0; z-index: -1; overflow: hidden;
     background:
-      /* subtle grid texture */
       linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 48px 48px,
       linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0 / 48px 48px,
-      /* tiny noise dots */
       radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.5px) 0 0 / 6px 6px,
-      /* base gradient — inkwell → cobalt → violet */
       linear-gradient(160deg, var(--ds-inkwell) 0%, var(--ds-deep-violet) 28%, var(--ds-cobalt) 62%, #6B2FFF 100%);
   }
   .bg-mesh::before, .bg-mesh::after {
@@ -75,14 +72,14 @@
   .bg-mesh::before { width: 720px; height: 720px; background: radial-gradient(circle, #6B2FFF 0%, transparent 70%); top: -260px; right: -220px; }
   .bg-mesh::after { width: 640px; height: 640px; background: radial-gradient(circle, var(--ds-mist) 0%, transparent 70%); bottom: -220px; left: -180px; animation-delay: -10s; animation-direction: reverse; }
   @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -40px) scale(1.05); } 66% { transform: translate(-20px, 30px) scale(0.95); } }
-
-  /* Decorative scribble lines (deck-inspired) */
   .bg-mesh .scribble-1, .bg-mesh .scribble-2 {
     position: absolute; border: 2px solid rgba(255,255,255,0.08); border-radius: 50%;
     pointer-events: none;
   }
   .bg-mesh .scribble-1 { width: 500px; height: 500px; top: 10%; right: -100px; transform: rotate(-15deg); }
   .bg-mesh .scribble-2 { width: 350px; height: 350px; bottom: 5%; left: -80px; border-color: rgba(255,82,82,0.12); transform: rotate(20deg); }
+  /* Refine: hide mesh while landing is active — Ecru surface takes over */
+  body:has(.mode-landing.active) .bg-mesh { display: none; }
 
   /* ===== MODE CONTAINERS ===== */
   .mode { display: none; }
@@ -91,101 +88,112 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* ===== LANDING PAGE (Docusign themed — unified Discovery + Demo Story) ===== */
+  /* ===== LANDING PAGE (refined — Ecru canvas, one Deep Violet hero) ===== */
   .mode-landing {
-    align-items: center; justify-content: center; min-height: 100vh;
-    padding: 40px 20px; position: relative;
+    flex-direction: column; align-items: stretch; justify-content: flex-start;
+    min-height: 100vh; width: 100%;
+    padding: 0; position: relative;
+    background: var(--ds-ecru);
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    color: var(--ds-inkwell);
   }
   .landing-card {
-    background: var(--ds-white); backdrop-filter: blur(20px) saturate(180%);
-    border-radius: 24px; box-shadow: 0 30px 80px rgba(19, 0, 50, 0.35), 0 0 0 1px rgba(255,255,255,0.08);
-    max-width: 1180px; width: 100%; overflow: hidden;
-  }
-  .landing-header {
-    background: linear-gradient(150deg, var(--ds-inkwell) 0%, var(--ds-deep-violet) 30%, var(--ds-cobalt) 70%, #6B2FFF 100%);
-    padding: 56px 72px 48px; color: white; text-align: center; position: relative; overflow: hidden;
-  }
-  .landing-header::before {
-    content: ''; position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-  }
-  .landing-header::after {
-    content: ''; position: absolute; width: 300px; height: 300px; border: 2px solid rgba(255,255,255,0.07);
-    border-radius: 50%; top: -120px; right: -60px; pointer-events: none;
-  }
-  .landing-header .scribble-accent {
-    position: absolute; width: 200px; height: 200px; border: 2px solid rgba(255,82,82,0.12);
-    border-radius: 50%; bottom: -80px; left: -40px; pointer-events: none;
-  }
-  .landing-logo { margin-bottom: 20px; position: relative; }
-  .landing-logo svg { display: inline-block; }
-  .landing-header .lh-badge {
-    display: inline-block; padding: 5px 16px; border-radius: 4px;
-    font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
-    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); margin-bottom: 16px;
-    border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);
-    position: relative;
-  }
-  .landing-header h1 {
-    font-size: 40px; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.8px;
-    position: relative; color: white; white-space: nowrap;
-  }
-  .landing-header p {
-    font-size: 15px; color: rgba(255,255,255,0.68); line-height: 1.6;
-    position: relative; max-width: 760px; margin: 0 auto;
+    background: transparent; backdrop-filter: none;
+    border-radius: 0; box-shadow: none;
+    width: 100%; max-width: none; overflow: visible;
+    display: flex; flex-direction: column; flex: 1;
   }
 
-  /* ===== MODE TOGGLE (Discovery vs Demo Story) ===== */
-  .mode-toggle-wrap { padding: 28px 72px 0; display: flex; justify-content: center; }
+  /* ===== HERO — single confident Deep Violet moment ===== */
+  .landing-header {
+    background: var(--ds-deep-violet);
+    padding: 40px 64px 120px;
+    color: var(--ds-ecru); text-align: left;
+    position: relative; overflow: hidden;
+  }
+  .landing-header::before, .landing-header::after { content: none; }
+  .landing-header .scribble-accent { display: none; }
+  .landing-header-inner { max-width: 1120px; margin: 0 auto; }
+  .landing-logo { margin-bottom: 80px; position: relative; display: block; }
+  .landing-logo svg { display: inline-block; height: 26px; width: auto; }
+  .landing-header .lh-badge {
+    display: inline-block; padding: 0;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+    background: transparent; color: rgba(203, 194, 255, 0.85);
+    margin-bottom: 14px; border: 0; backdrop-filter: none;
+    position: relative;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+  }
+  .landing-header h1 {
+    font-size: clamp(40px, 5.2vw, 64px);
+    font-weight: 500; line-height: 1.08; letter-spacing: -0.02em;
+    margin: 0 0 20px; color: var(--ds-white); white-space: normal;
+    max-width: 17ch; position: relative;
+  }
+  .landing-header p {
+    font-size: 17px; line-height: 1.6; color: rgba(248, 243, 240, 0.72);
+    max-width: 58ch; margin: 0; font-weight: 400;
+    position: relative;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+  }
+
+  /* ===== MODE TOGGLE — hairline pill, overlaps hero/body seam ===== */
+  .mode-toggle-wrap {
+    max-width: 1120px; margin: -28px auto 0; width: 100%;
+    padding: 0 64px; display: flex; justify-content: flex-start;
+    position: relative; z-index: 2;
+  }
   .mode-toggle {
-    display: inline-flex; gap: 4px; padding: 4px;
-    background: rgba(19, 0, 50, 0.04); border-radius: 10px;
-    border: 1px solid rgba(19, 0, 50, 0.05);
+    display: inline-flex; gap: 0; padding: 4px;
+    background: var(--ds-white); border-radius: 10px;
+    border: 0;
+    box-shadow: 0 10px 30px rgba(19, 0, 50, 0.10);
   }
   .mode-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 8px 16px; border: none; background: transparent;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: none; background: transparent;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    font-size: 13px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
+    font-size: 14px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
     border-radius: 7px; cursor: pointer;
-    transition: all 0.18s var(--ease);
-    letter-spacing: -0.01em;
+    transition: color 0.18s var(--ease), background 0.18s var(--ease);
+    letter-spacing: -0.005em;
   }
   .mode-pill svg { flex-shrink: 0; }
   .mode-pill:hover { color: var(--ds-inkwell); }
   .mode-pill.active {
-    background: var(--ds-white); color: var(--ds-cobalt);
-    box-shadow: 0 1px 3px rgba(19, 0, 50, 0.08), 0 0 0 1px rgba(19, 0, 50, 0.04);
+    background: var(--ds-inkwell); color: var(--ds-ecru);
+    box-shadow: none;
   }
   .mode-pill-hint {
     margin-top: 10px; text-align: center;
-    font-size: 11.5px; font-family: "Inter", sans-serif;
+    font-size: 12px; font-family: "DSIndigo", Helvetica, Arial, sans-serif;
     color: rgba(19, 0, 50, 0.45); line-height: 1.5;
   }
 
   /* ===== BODY ===== */
-  .landing-body { padding: 24px 72px 28px; }
+  .landing-body {
+    max-width: 1120px; margin: 0 auto; width: 100%;
+    padding: 56px 64px 0;
+  }
 
   /* ===== BREADCRUMB ===== */
   .breadcrumb {
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    font-size: 11.5px; font-family: "Inter", sans-serif;
-    color: rgba(19, 0, 50, 0.5);
-    margin-bottom: 18px; min-height: 18px;
+    font-size: 13px; font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    color: rgba(19, 0, 50, 0.45);
+    margin-bottom: 48px; min-height: 18px; letter-spacing: 0.01em;
   }
   .breadcrumb .crumb {
-    padding: 2px 8px; border-radius: 4px;
-    background: rgba(76, 0, 255, 0.06);
-    color: var(--ds-cobalt); font-weight: 600;
+    padding: 0; border-radius: 0;
+    background: transparent;
+    color: var(--ds-inkwell); font-weight: 500;
   }
-  .breadcrumb .sep { color: rgba(19, 0, 50, 0.25); font-weight: 500; }
-  .breadcrumb .placeholder { color: rgba(19, 0, 50, 0.3); font-style: italic; }
+  .breadcrumb .sep { color: rgba(19, 0, 50, 0.25); font-weight: 400; padding: 0 4px; }
+  .breadcrumb .placeholder { color: rgba(19, 0, 50, 0.4); font-style: normal; }
 
   /* ===== SECTIONS (progressive disclosure) ===== */
   .landing-section {
-    margin-bottom: 28px;
+    margin-bottom: 56px;
     opacity: 0; transform: translateY(6px);
     max-height: 0; overflow: hidden;
     transition: opacity 0.3s var(--ease), transform 0.35s var(--ease), max-height 0.45s var(--ease), margin-bottom 0.35s var(--ease);
@@ -193,170 +201,174 @@
   .landing-section.visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
   .landing-section.always-visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
   .landing-section > label {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 600; color: rgba(19, 0, 50, 0.45);
-    letter-spacing: 0.5px; margin-bottom: 12px;
+    display: flex; align-items: baseline; gap: 12px;
+    font-size: 14px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
+    letter-spacing: -0.005em; margin-bottom: 20px;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    text-transform: none;
   }
   .landing-section > label .step-pill {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--ds-cobalt); color: white;
-    font-size: 10px; font-weight: 700; letter-spacing: 0;
-    font-family: "Inter", sans-serif;
+    display: inline-block;
+    width: auto; height: auto; border-radius: 0;
+    background: transparent; color: rgba(19, 0, 50, 0.35);
+    font-size: 12px; font-weight: 400; letter-spacing: 0.08em;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
   }
 
   /* ===== OPTION GRIDS & CARDS ===== */
-  .option-grid { display: grid; gap: 12px; }
+  .option-grid { display: grid; gap: 14px; }
   .option-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .option-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
   .option-grid.cols-1 { grid-template-columns: 1fr; }
   .option-card {
-    padding: 22px 20px; border: 2px solid rgba(19, 0, 50, 0.08); border-radius: 14px;
-    text-align: center; cursor: pointer; transition: all 0.2s var(--ease);
+    padding: 24px 22px; border: 1px solid rgba(19, 0, 50, 0.08); border-radius: 12px;
+    text-align: left; cursor: pointer; transition: border-color 0.18s var(--ease), transform 0.18s var(--ease);
     background: var(--ds-white); position: relative; overflow: hidden;
     display: flex; flex-direction: column; gap: 4px; min-width: 0;
   }
-  .option-card::before {
-    content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
-    background: linear-gradient(135deg, rgba(76, 0, 255, 0.02) 0%, rgba(76, 0, 255, 0.06) 100%);
+  .option-card::before { content: none; }
+  .option-card:hover {
+    border-color: rgba(19, 0, 50, 0.3);
+    transform: translateY(-1px);
+    box-shadow: none;
   }
-  .option-card:hover { border-color: var(--ds-mist); transform: translateY(-2px); box-shadow: 0 4px 14px rgba(19, 0, 50, 0.07); }
-  .option-card:hover::before { opacity: 1; }
   .option-card.selected {
-    border-color: var(--ds-cobalt); background: rgba(76, 0, 255, 0.03);
-    box-shadow: 0 0 0 4px rgba(76, 0, 255, 0.08), 0 4px 14px rgba(19, 0, 50, 0.07);
+    border-color: var(--ds-inkwell); background: var(--ds-white);
+    box-shadow: inset 0 0 0 1px var(--ds-inkwell);
   }
-  .option-card.selected::before { opacity: 1; }
   .option-card.empty {
-    opacity: 0.55; cursor: not-allowed;
-    border-style: dashed; background: rgba(19, 0, 50, 0.02);
+    opacity: 0.5; cursor: not-allowed;
+    border-style: dashed; background: transparent;
   }
   .option-card.empty:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
-  .option-card .oc-icon { font-size: 28px; margin-bottom: 8px; position: relative; }
+  .option-card .oc-icon { font-size: 22px; margin-bottom: 12px; color: var(--ds-inkwell); position: relative; }
   .option-card .oc-title {
-    font-size: 15px; font-weight: 600; color: var(--ds-inkwell); position: relative;
+    font-size: 17px; font-weight: 500; color: var(--ds-inkwell); position: relative;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
     letter-spacing: -0.01em; line-height: 1.25;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .option-card .oc-sub {
-    font-size: 12px; color: rgba(19, 0, 50, 0.5);
-    position: relative; line-height: 1.4; margin-top: 4px;
-    font-family: "Inter", sans-serif;
+    font-size: 13.5px; color: rgba(19, 0, 50, 0.55);
+    position: relative; line-height: 1.45; margin-top: 4px; font-weight: 400;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .option-card .oc-soon {
     display: inline-block;
-    font-size: 9.5px; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: rgba(19, 0, 50, 0.4);
-    background: rgba(19, 0, 50, 0.04);
-    padding: 3px 7px; border-radius: 3px;
-    margin-top: 4px; align-self: center;
-    font-family: "Inter", sans-serif;
-    width: fit-content;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.04em; text-transform: none;
+    color: rgba(19, 0, 50, 0.45);
+    background: transparent;
+    padding: 0; border-radius: 0;
+    margin-top: 10px; align-self: flex-start;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    width: auto;
   }
 
   /* ===== USE CASE CARDS (stage 3) ===== */
-  .usecase-list { display: grid; gap: 12px; grid-template-columns: 1fr; }
-  @media (min-width: 640px) {
-    .usecase-list.dense { grid-template-columns: 1fr 1fr; }
-  }
-  @media (min-width: 1024px) {
-    .usecase-list.dense { grid-template-columns: repeat(3, 1fr); }
-  }
+  .usecase-list { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .usecase-list.dense { grid-template-columns: 1fr; } }
+  @media (min-width: 1024px) { .usecase-list.dense { grid-template-columns: 1fr; } }
   .usecase-card {
-    padding: 16px 18px;
-    border: 2px solid rgba(19, 0, 50, 0.08); border-radius: 10px;
+    padding: 18px 22px;
+    border: 1px solid rgba(19, 0, 50, 0.08); border-radius: 10px;
     background: var(--ds-white);
-    display: flex; align-items: center; gap: 14px;
-    cursor: pointer; transition: all 0.18s var(--ease);
+    display: flex; align-items: center; gap: 18px;
+    cursor: pointer; transition: border-color 0.18s var(--ease);
     position: relative;
   }
   .usecase-card:hover {
-    border-color: var(--ds-mist);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(19, 0, 50, 0.08);
+    border-color: rgba(19, 0, 50, 0.3);
+    transform: none;
+    box-shadow: none;
   }
   .usecase-card.selected {
-    border-color: var(--ds-cobalt); background: rgba(76, 0, 255, 0.03);
-    box-shadow: 0 0 0 4px rgba(76, 0, 255, 0.08), 0 4px 14px rgba(19, 0, 50, 0.07);
+    border-color: var(--ds-inkwell); background: var(--ds-white);
+    box-shadow: inset 0 0 0 1px var(--ds-inkwell);
   }
   .usecase-card.unavailable {
     opacity: 0.5; cursor: not-allowed;
-    border-style: dashed; background: rgba(19, 0, 50, 0.02);
+    border-style: dashed; background: transparent;
   }
   .usecase-card.unavailable:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
   .usecase-card .uc-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(19, 0, 50, 0.18); flex-shrink: 0;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(19, 0, 50, 0.25); flex-shrink: 0;
     transition: background 0.18s var(--ease);
   }
-  .usecase-card.selected .uc-dot { background: var(--ds-cobalt); }
+  .usecase-card.selected .uc-dot { background: var(--ds-inkwell); }
   .usecase-card .uc-meta { flex: 1; min-width: 0; }
   .usecase-card .uc-title {
-    font-size: 14.5px; font-weight: 600; color: var(--ds-inkwell);
+    font-size: 15.5px; font-weight: 500; color: var(--ds-inkwell);
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    line-height: 1.25; letter-spacing: -0.01em;
-    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+    line-height: 1.25; letter-spacing: -0.005em;
+    display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .usecase-card .uc-sub {
-    font-size: 12px; color: rgba(19, 0, 50, 0.5); margin-top: 3px;
-    font-family: "Inter", sans-serif; line-height: 1.4;
+    font-size: 13px; color: rgba(19, 0, 50, 0.55); margin-top: 3px;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    line-height: 1.45; font-weight: 400;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .usecase-card .uc-availability {
     display: inline-flex; align-items: center; gap: 4px;
-    font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 2px 6px; border-radius: 3px;
-    font-family: "Inter", sans-serif;
-    background: rgba(19, 0, 50, 0.05);
-    color: rgba(19, 0, 50, 0.45);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+    text-transform: none;
+    padding: 4px 10px; border-radius: 20px;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    background: rgba(19, 0, 50, 0.04);
+    color: rgba(19, 0, 50, 0.55);
   }
   .usecase-card .uc-availability.supported {
-    background: rgba(76, 0, 255, 0.08);
-    color: var(--ds-cobalt);
+    background: var(--ds-mist);
+    color: var(--ds-deep-violet);
   }
   .usecase-card .uc-arrow {
-    color: rgba(19, 0, 50, 0.25); flex-shrink: 0;
+    color: rgba(19, 0, 50, 0.3); flex-shrink: 0;
     transition: color 0.18s var(--ease), transform 0.18s var(--ease);
   }
   .usecase-card:hover:not(.unavailable) .uc-arrow,
   .usecase-card.selected .uc-arrow {
-    color: var(--ds-cobalt); transform: translateX(2px);
+    color: var(--ds-inkwell); transform: translateX(2px);
   }
 
   .empty-state {
-    padding: 24px 18px;
-    border: 2px dashed rgba(19, 0, 50, 0.12); border-radius: 10px;
-    background: rgba(19, 0, 50, 0.015);
-    text-align: center; color: rgba(19, 0, 50, 0.45);
-    font-size: 12.5px; font-family: "Inter", sans-serif; line-height: 1.6;
+    padding: 28px 22px;
+    border: 1px dashed rgba(19, 0, 50, 0.15); border-radius: 10px;
+    background: transparent;
+    text-align: left; color: rgba(19, 0, 50, 0.55);
+    font-size: 13px; font-family: "DSIndigo", Helvetica, Arial, sans-serif; line-height: 1.55;
+    font-weight: 400;
   }
   .empty-state strong {
-    display: block; color: rgba(19, 0, 50, 0.6);
+    display: block; color: var(--ds-inkwell);
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    font-size: 13.5px; margin-bottom: 4px; letter-spacing: -0.01em;
+    font-size: 15px; margin-bottom: 6px; letter-spacing: -0.005em; font-weight: 500;
   }
 
-  /* ===== ACTIONS ===== */
-  .landing-actions { padding: 0 72px 28px; display: flex; gap: 12px; align-items: center; }
+  /* ===== ACTIONS — the one Poppy CTA (single Glow moment) ===== */
+  .landing-actions {
+    max-width: 1120px; margin: 0 auto; width: 100%;
+    padding: 24px 64px 72px; display: flex; gap: 16px;
+    align-items: center; justify-content: flex-end;
+  }
   .launch-btn {
-    flex: 1; padding: 14px 28px; border-radius: 8px; font-size: 15px;
-    font-weight: 600; border: none; cursor: pointer;
+    flex: 0 0 auto; padding: 16px 30px; border-radius: 8px; font-size: 16px;
+    font-weight: 500; border: none; cursor: pointer;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    transition: all 0.2s var(--ease); letter-spacing: -0.01em;
+    transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+    letter-spacing: -0.005em;
   }
   .launch-btn.primary {
-    background: var(--ds-cobalt); color: var(--ds-white);
-    box-shadow: 0 4px 16px rgba(76, 0, 255, 0.35);
+    background: var(--ds-poppy); color: var(--ds-ecru);
+    box-shadow: 0 6px 18px rgba(255, 82, 82, 0.18);
   }
   .launch-btn.primary:hover:not(:disabled) {
-    background: var(--ds-deep-violet); transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(76, 0, 255, 0.45);
+    background: var(--ds-poppy); transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(255, 82, 82, 0.28);
   }
   .launch-btn.primary:active { transform: translateY(0); }
   .launch-btn.primary:disabled {
@@ -365,39 +377,44 @@
     cursor: not-allowed; box-shadow: none;
   }
 
-  /* ===== FOOTER ===== */
+  /* ===== FOOTER (reserved; currently unused in HTML) ===== */
   .landing-footer {
-    padding: 0 72px 32px; text-align: center; font-size: 11px;
-    color: rgba(19, 0, 50, 0.4); line-height: 1.6;
+    max-width: 1120px; margin: 0 auto; width: 100%;
+    padding: 32px 64px 48px; text-align: left; font-size: 12.5px;
+    color: rgba(19, 0, 50, 0.45); line-height: 1.6;
+    border-top: 1px solid rgba(19, 0, 50, 0.08);
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
   }
   .landing-footer .sc-link {
-    cursor: pointer; color: rgba(19, 0, 50, 0.4); margin-top: 8px; display: inline-flex;
+    cursor: pointer; color: rgba(19, 0, 50, 0.45); display: inline-flex;
     align-items: center; gap: 5px; transition: color 0.2s; font-weight: 500;
   }
   .landing-footer .sc-link:hover { color: var(--ds-cobalt); }
   .landing-footer a { color: var(--ds-cobalt); text-decoration: none; font-weight: 500; }
-  .landing-footer a:hover { text-decoration: underline; }
-  .landing-footer p { margin-top: 8px; }
+  .landing-footer a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+  .landing-footer p { margin-top: 0; }
 
   @media (max-width: 900px) {
-    .landing-header { padding: 44px 36px 36px; }
-    .mode-toggle-wrap { padding: 22px 36px 0; }
-    .landing-body { padding: 20px 36px 24px; }
-    .landing-actions { padding: 0 36px 24px; }
-    .landing-footer { padding: 0 36px 26px; }
-    .landing-header h1 { font-size: 30px; white-space: normal; }
+    .landing-header { padding: 32px 28px 96px; }
+    .landing-logo { margin-bottom: 56px; }
+    .mode-toggle-wrap { padding: 0 28px; }
+    .landing-body { padding: 40px 28px 0; }
+    .landing-actions { padding: 20px 28px 48px; }
+    .landing-footer { padding: 24px 28px 32px; }
+    .landing-header h1 { font-size: 36px; white-space: normal; }
   }
   @media (max-width: 640px) {
-    .landing-header { padding: 36px 28px 32px; }
-    .mode-toggle-wrap { padding: 18px 28px 0; }
-    .landing-body { padding: 18px 28px 20px; }
-    .landing-actions { padding: 0 28px 20px; }
-    .landing-footer { padding: 0 28px 24px; }
+    .landing-header { padding: 28px 22px 80px; }
+    .landing-logo { margin-bottom: 40px; }
+    .mode-toggle-wrap { padding: 0 22px; }
+    .landing-body { padding: 32px 22px 0; }
+    .landing-actions { padding: 16px 22px 40px; flex-direction: column; align-items: stretch; justify-content: stretch; }
+    .landing-actions .launch-btn { width: 100%; }
+    .landing-footer { padding: 20px 22px 28px; }
     .option-grid.cols-3 { grid-template-columns: 1fr; }
     .option-card .oc-title, .option-card .oc-sub,
     .usecase-card .uc-title, .usecase-card .uc-sub { white-space: normal; overflow: visible; }
-    .landing-header h1 { font-size: 24px; }
+    .landing-header h1 { font-size: 28px; }
   }
 
   /* ===== "COMING SOON" MODAL ===== */
@@ -1595,30 +1612,33 @@
      ================================================================ -->
 <div class="mode mode-landing active" id="modeLanding">
   <div class="landing-card">
+
+    <!-- HERO — single confident Deep Violet moment -->
     <div class="landing-header">
-      <div class="scribble-accent"></div>
-      <div class="landing-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 241.4" width="220" height="44"><g><g fill="#FFFFFF"><path d="M1169.2,109.7v78.7h-28.9v-73.5c0-17.9-7.7-27.9-22.7-27.9s-24.9,10.5-27.7,28.1c-0.8,4.2-1,10.7-1,24.4v48.8H1060v-125h25.6c0.1,1.1,0.7,12.3,0.7,13c0,0.9,1.1,1.4,1.8,0.8c10.6-8.4,22.3-16.2,38.6-16.2C1153.5,60.9,1169.2,79,1169.2,109.7z"/><path d="M1013.4,63.4l-0.9,14.3c-0.1,0.9-1.2,1.4-1.8,0.8c-3.5-3.3-16.4-17.5-38.3-17.5c-31.4,0-54.5,27.1-54.5,63.9l0,0c0,37.3,22.9,64.5,54.5,64.5c21.1,0,34-13.7,36.4-16.7c0.7-0.8,2-0.3,2,0.7c-0.3,3.8-0.8,13.3-4,21.4c-4,10.2-13,19.7-31.1,19.7c-14.9,0-28.1-5.7-40.6-17.9L920,217.3c13.7,15.5,35.3,24.2,58.8,24.2c37.8,0,60.5-25.9,60.5-68.2V63.4H1013.4z M978.6,163.2c-18.7,0-31.9-16.2-31.9-38.3S959.9,87,978.6,87c18.7,0,31.9,15.7,31.9,37.9C1010.4,147.1,997.2,163.2,978.6,163.2z"/><path d="M857.5,151.3c0,23.7-19.9,39.6-49.1,39.6c-22.9,0-43.3-8.9-55.5-21.6l0,0l0,0l9.5-22.6c9.2,8.3,24,20.2,45.1,20.2c14.7,0,23.2-6.5,23.2-14.7c0-9.5-11.7-12-25.7-14.7c-19.9-4.2-46.3-11-46.3-38.1c0-22.7,18.4-38.3,45.6-38.3c20.9,0,38.9,8,51.3,18.4l-14.2,19.9c-12-9.5-24.6-14.2-37.1-14.2s-18.7,5.2-18.7,12.7c0,10.5,13.5,13.2,23.4,15.2C833.9,117.9,857.5,125.4,857.5,151.3z"/><path d="M434.9,60.9c-35.3,0-60.7,27.4-60.7,65s25.4,65,60.7,65s60.8-27.4,60.8-65S470.3,60.9,434.9,60.9z M434.9,164.7c-18.7,0-31.9-15.9-31.9-38.9c0-22.9,12.9-38.9,31.9-38.9c18.9,0,31.9,15.9,31.9,38.9S453.6,164.7,434.9,164.7z"/><path d="M505.9,125.9c0-37.1,25.4-65,59.3-65c26.9,0,46.6,13.5,55.8,38.9l-25.6,9.7c-7-15.7-16.2-22.4-30.1-22.4c-17.4,0-30.4,16.4-30.4,38.9c0,22.4,12.9,38.9,30.4,38.9c14,0,23.1-6.7,30.1-22.4l25.6,9.7c-9.2,25.4-28.9,38.9-55.8,38.9C531.3,190.9,505.9,163,505.9,125.9L505.9,125.9L505.9,125.9L505.9,125.9z"/><path d="M351.4,5.3c-0.5,0-1.1,0.1-1.6,0.4l-18.8,10c-0.4,0.2-0.6,0.6-0.6,1v59.5c0,1-1.2,1.4-1.9,0.8c-2.8-2.4-9.3-8.5-18.3-12.7c-4.7-2.2-11.6-3.4-17.9-3.4c-31.6,0-54.5,27.4-54.5,65s22.9,65,54.5,65c16.6,0,29.1-8.7,36.7-16.5c0.5-0.5,0.8-0.8,1.3-1.3c0.7-0.7,1.9-0.3,1.9,0.7l1,14.6h26.1V6.1c0-0.4-0.3-0.8-0.8-0.8C358.5,5.3,351.4,5.3,351.4,5.3z M298.5,164.7c-18.9,0-31.9-15.9-31.9-38.9S279.9,87,298.5,87c18.7,0,31.9,15.9,31.9,38.9C330.4,148.8,317.5,164.7,298.5,164.7z"/><path d="M891.5,63.8l-18.1,9.6c-0.4,0.2-0.6,0.6-0.6,1v114h28.9V64.1c0-0.4-0.3-0.8-0.8-0.8h-7.8C892.5,63.4,892,63.5,891.5,63.8z"/><path d="M887.2,43.1c9.6,0,17.4-7.8,17.4-17.4s-7.8-17.4-17.4-17.4c-9.6,0-17.4,7.8-17.4,17.4S877.6,43.1,887.2,43.1z"/><path d="M742.5,63.3v67.9c0,51.5-28.8,59.6-54.5,59.6s-54.5-8.2-54.5-59.6V63.3h28.8v75.1c0,7.3,1.8,26.3,25.7,26.3s25.7-18.9,25.7-26.3V63.3H742.5z"/></g><g fill="#FFFFFF"><path d="M1185.7,175.6v1.8h-4.1v10.9h-2v-10.9h-4.1v-1.8H1185.7z M1200,188.3h-2v-10l-3.9,7.5h-1.1l-3.9-7.4v9.9h-2v-12.7h2.6l3.8,7.3l3.8-7.3h2.6L1200,188.3L1200,188.3z"/></g></g><g><path fill="#4C00FF" d="M139.5,139.5V189c0,2.6-2.1,4.7-4.7,4.7H4.7c-2.6,0-4.7-2.1-4.7-4.7V59c0-2.6,2.1-4.7,4.7-4.7h49.4v80.5c0,2.6,2.1,4.7,4.7,4.7H139.5L139.5,139.5z"/><path fill="#FF5252" d="M193.7,69.7c0,41.6-24.3,69.7-54.2,69.8V87.1c0-1.5-0.6-3-1.7-4l-27.2-27.2c-1.1-1.1-2.5-1.7-4-1.7H54.2V4.8c0-2.6,2.1-4.7,4.7-4.7h73.3C167,0,193.7,28,193.7,69.7z"/><path fill="#FFFFFF" d="M137.8,83c1.1,1.1,1.7,2.5,1.7,4v52.4H58.9c-2.6,0-4.7-2.1-4.7-4.7V54.2h52.4c1.5,0,3,0.6,4,1.7L137.8,83z"/></g></svg>
+      <div class="landing-header-inner">
+        <div class="landing-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 241.4" width="220" height="44"><g><g fill="#FFFFFF"><path d="M1169.2,109.7v78.7h-28.9v-73.5c0-17.9-7.7-27.9-22.7-27.9s-24.9,10.5-27.7,28.1c-0.8,4.2-1,10.7-1,24.4v48.8H1060v-125h25.6c0.1,1.1,0.7,12.3,0.7,13c0,0.9,1.1,1.4,1.8,0.8c10.6-8.4,22.3-16.2,38.6-16.2C1153.5,60.9,1169.2,79,1169.2,109.7z"/><path d="M1013.4,63.4l-0.9,14.3c-0.1,0.9-1.2,1.4-1.8,0.8c-3.5-3.3-16.4-17.5-38.3-17.5c-31.4,0-54.5,27.1-54.5,63.9l0,0c0,37.3,22.9,64.5,54.5,64.5c21.1,0,34-13.7,36.4-16.7c0.7-0.8,2-0.3,2,0.7c-0.3,3.8-0.8,13.3-4,21.4c-4,10.2-13,19.7-31.1,19.7c-14.9,0-28.1-5.7-40.6-17.9L920,217.3c13.7,15.5,35.3,24.2,58.8,24.2c37.8,0,60.5-25.9,60.5-68.2V63.4H1013.4z M978.6,163.2c-18.7,0-31.9-16.2-31.9-38.3S959.9,87,978.6,87c18.7,0,31.9,15.7,31.9,37.9C1010.4,147.1,997.2,163.2,978.6,163.2z"/><path d="M857.5,151.3c0,23.7-19.9,39.6-49.1,39.6c-22.9,0-43.3-8.9-55.5-21.6l0,0l0,0l9.5-22.6c9.2,8.3,24,20.2,45.1,20.2c14.7,0,23.2-6.5,23.2-14.7c0-9.5-11.7-12-25.7-14.7c-19.9-4.2-46.3-11-46.3-38.1c0-22.7,18.4-38.3,45.6-38.3c20.9,0,38.9,8,51.3,18.4l-14.2,19.9c-12-9.5-24.6-14.2-37.1-14.2s-18.7,5.2-18.7,12.7c0,10.5,13.5,13.2,23.4,15.2C833.9,117.9,857.5,125.4,857.5,151.3z"/><path d="M434.9,60.9c-35.3,0-60.7,27.4-60.7,65s25.4,65,60.7,65s60.8-27.4,60.8-65S470.3,60.9,434.9,60.9z M434.9,164.7c-18.7,0-31.9-15.9-31.9-38.9c0-22.9,12.9-38.9,31.9-38.9c18.9,0,31.9,15.9,31.9,38.9S453.6,164.7,434.9,164.7z"/><path d="M505.9,125.9c0-37.1,25.4-65,59.3-65c26.9,0,46.6,13.5,55.8,38.9l-25.6,9.7c-7-15.7-16.2-22.4-30.1-22.4c-17.4,0-30.4,16.4-30.4,38.9c0,22.4,12.9,38.9,30.4,38.9c14,0,23.1-6.7,30.1-22.4l25.6,9.7c-9.2,25.4-28.9,38.9-55.8,38.9C531.3,190.9,505.9,163,505.9,125.9L505.9,125.9L505.9,125.9L505.9,125.9z"/><path d="M351.4,5.3c-0.5,0-1.1,0.1-1.6,0.4l-18.8,10c-0.4,0.2-0.6,0.6-0.6,1v59.5c0,1-1.2,1.4-1.9,0.8c-2.8-2.4-9.3-8.5-18.3-12.7c-4.7-2.2-11.6-3.4-17.9-3.4c-31.6,0-54.5,27.4-54.5,65s22.9,65,54.5,65c16.6,0,29.1-8.7,36.7-16.5c0.5-0.5,0.8-0.8,1.3-1.3c0.7-0.7,1.9-0.3,1.9,0.7l1,14.6h26.1V6.1c0-0.4-0.3-0.8-0.8-0.8C358.5,5.3,351.4,5.3,351.4,5.3z M298.5,164.7c-18.9,0-31.9-15.9-31.9-38.9S279.9,87,298.5,87c18.7,0,31.9,15.9,31.9,38.9C330.4,148.8,317.5,164.7,298.5,164.7z"/><path d="M891.5,63.8l-18.1,9.6c-0.4,0.2-0.6,0.6-0.6,1v114h28.9V64.1c0-0.4-0.3-0.8-0.8-0.8h-7.8C892.5,63.4,892,63.5,891.5,63.8z"/><path d="M887.2,43.1c9.6,0,17.4-7.8,17.4-17.4s-7.8-17.4-17.4-17.4c-9.6,0-17.4,7.8-17.4,17.4S877.6,43.1,887.2,43.1z"/><path d="M742.5,63.3v67.9c0,51.5-28.8,59.6-54.5,59.6s-54.5-8.2-54.5-59.6V63.3h28.8v75.1c0,7.3,1.8,26.3,25.7,26.3s25.7-18.9,25.7-26.3V63.3H742.5z"/></g><g fill="#FFFFFF"><path d="M1185.7,175.6v1.8h-4.1v10.9h-2v-10.9h-4.1v-1.8H1185.7z M1200,188.3h-2v-10l-3.9,7.5h-1.1l-3.9-7.4v9.9h-2v-12.7h2.6l3.8,7.3l3.8-7.3h2.6L1200,188.3L1200,188.3z"/></g></g><g><path fill="#4C00FF" d="M139.5,139.5V189c0,2.6-2.1,4.7-4.7,4.7H4.7c-2.6,0-4.7-2.1-4.7-4.7V59c0-2.6,2.1-4.7,4.7-4.7h49.4v80.5c0,2.6,2.1,4.7,4.7,4.7H139.5L139.5,139.5z"/><path fill="#FF5252" d="M193.7,69.7c0,41.6-24.3,69.7-54.2,69.8V87.1c0-1.5-0.6-3-1.7-4l-27.2-27.2c-1.1-1.1-2.5-1.7-4-1.7H54.2V4.8c0-2.6,2.1-4.7,4.7-4.7h73.3C167,0,193.7,28,193.7,69.7z"/><path fill="#FFFFFF" d="M137.8,83c1.1,1.1,1.7,2.5,1.7,4v52.4H58.9c-2.6,0-4.7-2.1-4.7-4.7V54.2h52.4c1.5,0,3,0.6,4,1.7L137.8,83z"/></g></svg>
+        </div>
+        <div class="lh-badge" id="modeBadge">Demo story</div>
+        <h1 id="landingHeadline">Pick a vertical. Pick a use case. Launch the demo.</h1>
+        <p id="landingSubheadline">A verticalized story demo of the end-to-end workflow &mdash; CRM, portal, agreement desk, and impact summary &mdash; using the selected brand shell.</p>
       </div>
-      <div class="lh-badge" id="modeBadge">Discovery Hub</div>
-      <h1 id="landingHeadline">Pick a vertical. Pick a use case. Walk the flow.</h1>
-      <p id="landingSubheadline">Every use case opens as an interactive current-state vs. future-state process map — click any step to see where friction lives today and how Docusign IAM transforms it.</p>
     </div>
 
-    <!-- MODE TOGGLE -->
+    <!-- MODE TOGGLE — hairline pill, overlaps hero/body seam -->
     <div class="mode-toggle-wrap">
       <div class="mode-toggle" role="tablist" aria-label="Experience mode">
-        <button class="mode-pill active" data-mode="discovery" role="tab" aria-selected="true" id="pillDiscovery">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button class="mode-pill" data-mode="discovery" role="tab" aria-selected="false" id="pillDiscovery">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
           </svg>
           Discovery
         </button>
-        <button class="mode-pill" data-mode="story" role="tab" aria-selected="false" id="pillStory">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button class="mode-pill active" data-mode="story" role="tab" aria-selected="true" id="pillStory">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="6 4 20 12 6 20 6 4"/>
           </svg>
-          Demo Story
+          Demo story
         </button>
       </div>
     </div>
@@ -1632,27 +1652,27 @@
 
       <!-- STAGE 1: VERTICAL -->
       <div class="landing-section always-visible">
-        <label><span class="step-pill">1</span> Select Your Vertical</label>
+        <label><span class="step-pill">01 &mdash;</span> Vertical</label>
         <div class="option-grid cols-3" id="verticalGrid"></div>
       </div>
 
       <!-- STAGE 2: SUBVERTICAL -->
       <div class="landing-section" id="subverticalSection">
-        <label><span class="step-pill">2</span> Select Your Subvertical</label>
+        <label><span class="step-pill">02 &mdash;</span> Subvertical</label>
         <div class="option-grid cols-3" id="subverticalGrid"></div>
       </div>
 
       <!-- STAGE 3: USE CASE -->
       <div class="landing-section" id="useCaseSection">
-        <label><span class="step-pill">3</span> Choose a Use Case</label>
+        <label><span class="step-pill">03 &mdash;</span> Use case</label>
         <div id="useCaseGrid"></div>
       </div>
 
     </div>
 
-    <!-- ACTIONS -->
+    <!-- ACTIONS — the one Poppy CTA -->
     <div class="landing-actions">
-      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch Interactive Walkthrough &rarr;</button>
+      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch the demo &rarr;</button>
     </div>
 
   </div>
@@ -3765,6 +3785,7 @@ function askNavAI() {
             "title": "Wealth Management Onboarding",
             "subtitle": "New client onboarding — account opening, funding, paperwork",
             "discoveryUrl": "wealth-onboarding.html",
+            "storyUrl": "story-shell.html?story=wealth-onboarding",
             "storyMap": { "vertical": "wealth", "workflow": "onboarding" },
             "storyImplemented": true
           },
@@ -3978,7 +3999,7 @@ function askNavAI() {
   const subhead         = document.getElementById('landingSubheadline');
 
   const state = {
-    mode: 'discovery',        // 'discovery' | 'story'
+    mode: 'story',            // 'discovery' | 'story' — default to demo story
     vertical: null,
     subvertical: null,
     useCase: null             // index into current subvertical's useCases
@@ -3986,21 +4007,22 @@ function askNavAI() {
 
   // Initialize from URL params (deep-link support)
   const params = new URLSearchParams(window.location.search);
-  if (params.get('mode') === 'story') state.mode = 'story';
+  const urlMode = params.get('mode');
+  if (urlMode === 'discovery' || urlMode === 'story') state.mode = urlMode;
 
   // Header copy changes per mode
   const MODE_COPY = {
     discovery: {
-      badge: 'Discovery Hub',
+      badge: 'Discovery',
       headline: 'Pick a vertical. Pick a use case. Walk the flow.',
       subhead: 'Every use case opens as an interactive current-state vs. future-state process map — click any step to see where friction lives today and how Docusign IAM transforms it.',
-      launch: 'Open Discovery Walkthrough'
+      launch: 'Open discovery'
     },
     story: {
-      badge: 'Demo Story Experience',
+      badge: 'Demo story',
       headline: 'Pick a vertical. Pick a use case. Launch the demo.',
-      subhead: 'Generate a verticalized story demo that walks through the end-to-end workflow — CRM, portal, agreement desk, and impact summary — using the selected brand shell.',
-      launch: 'Launch Story Demo'
+      subhead: 'A verticalized story demo of the end-to-end workflow — CRM, portal, agreement desk, and impact summary — using the selected brand shell.',
+      launch: 'Launch the demo'
     }
   };
 
