@@ -17,6 +17,10 @@ const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const LEGACY_STORE_PATH = path.join(__dirname, 'feedback-store.json');
 const KV_KEY = 'feedback:list';
+// Slug-gated public read-only feedback endpoint. Knowing the slug acts as a
+// soft gate; the response has PII stripped (reporter, userAgent, full URL).
+// Override via FEEDBACK_PUBLIC_SLUG secret when rotating.
+const FEEDBACK_PUBLIC_SLUG = process.env.FEEDBACK_PUBLIC_SLUG || 'a7k9-mpx2-4wnz-r3dh';
 
 const db = new Database();
 
@@ -204,6 +208,41 @@ app.post('/api/feedback', async (req, res) => {
     if (llm) runAnalysisAndPersist(item.id);
   } catch (e) {
     console.error('feedback POST error:', e?.message || e);
+    res.status(500).json({ error: 'store error' });
+  }
+});
+
+// --------- Public read-only feedback view ---------
+// Slug-gated, CORS-open, PII-stripped. Powers the Cowork pipeline artifact.
+// To rotate the slug: set FEEDBACK_PUBLIC_SLUG secret in Replit and restart.
+app.get(`/api/feedback/public-${FEEDBACK_PUBLIC_SLUG}`, async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cache-Control', 'no-store');
+  try {
+    const items = await readStore();
+    const sanitized = items.map(it => ({
+      id: it.id,
+      created_at: it.created_at,
+      project: it.project,
+      category: it.category,
+      message: it.message,
+      context: it.context ? {
+        pathname: it.context.pathname,
+        activeMode: it.context.activeMode,
+        activeView: it.context.activeView,
+        selectedVertical: it.context.selectedVertical,
+        selectedWorkflow: it.context.selectedWorkflow,
+        viewport: it.context.viewport,
+      } : {},
+      status: it.status,
+      decision: it.decision,
+      decided_at: it.decided_at,
+      analysis: it.analysis,
+      // intentionally dropped: reporter, context.url, context.userAgent
+    }));
+    res.json(sanitized);
+  } catch (e) {
+    console.error('public feedback error:', e?.message || e);
     res.status(500).json({ error: 'store error' });
   }
 });
