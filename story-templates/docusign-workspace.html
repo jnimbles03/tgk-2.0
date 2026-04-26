@@ -26,14 +26,14 @@
     2. Optionally override --tn-primary / --tn-accent in `css`
     3. Everything else is auto-wired via element IDs
 
-  To bolt on the MasterCard Scene 4 splash (~10s intro):
+  To bolt on the MasterCard-style Scene 5 intro splash (~10s intro):
     - Add ?splash=1 to the URL, or
-    - Set `splash:true` on any preset, or
-    - Open this file inside a wrapper scene that already imports
-      /stories/_shared/mastercard-splash.{css,js}.
+    - Set `splash:true` on the active preset.
 
-  The .mock root carries the `workspaces-demo` class so the
-  shared mastercard-splash module's opt-in guard passes.
+  The splash CSS + JS are inlined inside this file (look for .mc-splash
+  in the <style> block and the loadSplash IIFE at the end of the script
+  block). There is no external /stories/_shared/mastercard-splash module —
+  the inlined version is the canonical implementation.
   ============================================================
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&display=swap">
@@ -286,6 +286,36 @@
   .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
   .preset-chip .cur{font-weight:600;color:var(--ink);}
   .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;margin-left:-4px;}
+
+  /* ============ MasterCard-style Scene 5 intro splash (?splash=1) ============
+     Inlined 2026-04-26. Replaces the previous external load of
+     /stories/_shared/mastercard-splash.{css,js}, which referenced files
+     that never existed on disk and silently no-op'd.
+
+     ~10s timeline:
+       0.4s  brand lockup
+       1.3s  line 1 — "For the interview on a page, there's Web Forms."
+       3.0s  line 2 — "For the signature in an envelope, there's eSignature."
+       5.2s  payoff — "For everything else, there's Workspaces."
+       7.0s  descriptor tag
+       8.5s  fade-out begins
+       10.0s removed from DOM
+     ============================================================ */
+  .mc-splash{position:absolute;inset:0;z-index:50;background:var(--ds-inkwell);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 80px;font-family:var(--ui-font);animation:mcFadeOut 1.5s ease 8.5s forwards;}
+  .mc-splash .mc-lockup{position:absolute;top:42px;left:54px;display:flex;align-items:center;gap:9px;opacity:0;animation:mcFadeIn 0.6s ease 0.4s forwards;}
+  .mc-splash .mc-lockup .wm{font-family:var(--tn-wordmark-font);font-style:italic;font-weight:500;font-size:18px;color:var(--ds-ecru);letter-spacing:0.01em;}
+  .mc-splash .mc-lockup .sub{font-size:11px;font-weight:600;color:rgba(248,243,240,0.55);letter-spacing:0.18em;text-transform:uppercase;margin-left:6px;border-left:1px solid rgba(248,243,240,0.22);padding-left:10px;}
+  .mc-splash .mc-lines{display:flex;flex-direction:column;gap:22px;text-align:center;max-width:980px;}
+  .mc-splash .mc-line{font-family:"Fraunces",Georgia,serif;font-style:italic;font-weight:500;font-size:34px;line-height:1.28;color:var(--ds-ecru);opacity:0;}
+  .mc-splash .mc-line em{font-style:italic;font-weight:600;color:#fff;}
+  .mc-splash .mc-l1{animation:mcLineIn 0.8s ease 1.3s forwards;}
+  .mc-splash .mc-l2{animation:mcLineIn 0.8s ease 3.0s forwards;}
+  .mc-splash .mc-l3{font-size:48px;line-height:1.2;animation:mcLineIn 0.8s ease 5.2s forwards;}
+  .mc-splash .mc-accent{background:linear-gradient(92deg,#FF5252 0%,#4B00E9 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-style:italic;font-weight:600;}
+  .mc-splash .mc-descriptor{margin-top:34px;font-family:var(--ui-font);font-style:normal;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:rgba(248,243,240,0.55);opacity:0;animation:mcFadeIn 0.6s ease 7.0s forwards;}
+  @keyframes mcFadeIn{to{opacity:1;}}
+  @keyframes mcLineIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes mcFadeOut{to{opacity:0;visibility:hidden;}}
 </style>
 </head>
 <body>
@@ -892,19 +922,241 @@ const PRESETS = {
     activity:[{kind:"Court order",time:"1h",detail:"<b>Judge Reyes</b> approved the emergency placement order. Williams family is authorized as the placement resource for Jordan."},{kind:"CASA assigned",time:"Yesterday",detail:"Claire Nguyen assigned as Court-Appointed Special Advocate. Reviewed case file and joined workspace.",link:"View assignment"},{kind:"Workspace created",time:"3d",detail:"Maya Thornton opened the workspace using the <b>Emergency Placement</b> template after the initial call from the school."}],
     iris:{heroTitle:"Iris can answer across Jordan's case file.",heroDesc:"Ask about case timeline, visit schedule, reunification benchmarks, or any document in the Williams placement record.",prompt:"Try: \"What's the reunification timeline and when is the next court review?\"",agreements:["Court Placement Order · Signed · 2 pages","Placement Agreement · Signed · 4 pages","Reunification Plan Acknowledgment · Signed · 3 pages","Medical Consent · Signed · 2 pages","Educational Continuity Form · In progress · 3 pages","Williams RFA Certification · On file · 24 pages","CASA Assignment · Acknowledged · 1 page","Visit Schedule · Ready to send · 2 pages"]},
     agent:{title:"Child Welfare Agent",sub:"Placement & Safety",checks:[["Foster family certification","Williams · RFA current · background checks clean"],["Court order validity","Judge Reyes · emergency placement · 60-day review"],["Placement capacity","Williams home · 2 bed + 2 bath · within capacity"],["School continuity","Transfer initiated · Mon 8:00 start planned"],["Medical records handoff","PCP assigned · Rx continuity verified"],["Bio parent rights","Reunification plan signed · visit schedule set"],["CASA engagement","Claire Nguyen assigned · reviewed case file"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Placement is safe, legal, and logistically ready. Priority this week: confirm Mon school start and complete belongings inventory."}
+  },
+
+  "insurance-life": {
+    label:"Insurance · Life",
+    tenant:{name:"Beacon Mutual Life",wordmark:"Beacon",primary:"#2A1850",accent:"#B189D9",markColor:"#B189D9",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 7l14 10M5 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Dear Mrs. Whitfield,",p1:"On behalf of Beacon Mutual, please accept our condolences for the loss of Marcus. We've opened a private workspace for you with the proof of loss, payment election, and beneficiary attestation — three documents, one ceremony, no separate phone call to verify what the funeral home already filed.",p2:"Take whatever time you need. If anything is unclear, call me directly — Beacon has a dedicated bereavement line and you'll reach a person, not a queue.",sender:"Camille Boutros",role:"Senior Claims Examiner · Bereavement Care"},
+    workspace:{title:"Death Claim — Whitfield Family (Policy WC-2026-08214)",avatars:["TW","CB","TR"],moreCount:2,userInitials:"CB",tenantSub:"Bereavement · $750k whole-life · primary beneficiary"},
+    summary:{heroTitle:"Welcome back, Camille — here's where the Whitfield claim stands.",heroLede:"Theresa verified as primary beneficiary, no contestability concerns. Settlement is queued for ACH disbursement within 48 hours; the 1099-INT and tax-treatment summary are auto-drafted.",pct:78,tiles:[{lab:"Open tasks",val:"2",sub:"Tax delivery + retained-asset"},{lab:"Settlement",val:"$750k",sub:"Lump sum · ACH",accent:true},{lab:"Days to close",val:"48 hrs",sub:"Was 7-14 days"},{lab:"Next disbursement",val:"Apr 28",sub:"2 days · ACH wire",warn:true}],list:[{nm:"Beneficiary verified via CLEAR",mt:"Theresa Whitfield · primary · spouse",rt:"11:42 am"},{nm:"Proof of loss signed",mt:"Empathetic intake variant · 3-doc packet",rt:"11:18 am"},{nm:"Workspace created",mt:"Funeral home death notice received overnight",rt:"6h",ok:true}]},
+    sections:[
+      {title:"Claim documents",tasks:[
+        {name:"Proof of loss"},
+        {name:"Payment election",meta:"Lump sum to verified ACH"},
+        {name:"Beneficiary attestation"}]},
+      {title:"Post-settlement",tasks:[
+        {name:"1099-INT delivery"},
+        {name:"Retained-asset election",chip:"If applicable"},
+        {name:"Closing letter and condolence"}]}],
+    activity:[{kind:"Settlement queued",time:"22m",detail:"<b>Treasury</b> queued the $750k lump sum for ACH disbursement to Theresa's verified account. Clearing date Apr 28."},{kind:"CLEAR cleared",time:"1h",detail:"Theresa verified as primary beneficiary. PEP and OFAC screens silent. No contestability flags.",link:"View verification"},{kind:"Workspace created",time:"6h",detail:"Camille opened the workspace from the <b>Death Claim — Empathetic Intake</b> template after the funeral home death notice came in overnight."}],
+    iris:{heroTitle:"Iris can answer across the Whitfield claim file.",heroDesc:"Ask about reinsurance reporting, retained-asset elections, tax treatment, or any document in the executed packet.",prompt:"Try: \"Draft the reinsurance report for this claim against the in-force treaty.\"",agreements:["Proof of Loss · Signed · 3 pages","Payment Election · Signed · 2 pages","Beneficiary Attestation · Signed · 1 page","Death Certificate · From funeral home · 1 page","Original Policy WC-2026-08214 · On file · 28 pages","SSDI/DMF Match Report · Returned clean · 1 page","Reinsurance Treaty Reference · Auto-pulled · 14 pages"]},
+    agent:{title:"Life Claims Agent",sub:"Death Benefit Adjudication",checks:[["Death verification","SSDI + DMF + funeral home certificate · all match"],["Beneficiary identity","Theresa Whitfield · primary · spouse · CLEAR verified"],["Contestability period","Policy 6 years in force · contestable period passed"],["MIB query","No misrepresentation flags · clean"],["Payment authorization","ACH to verified account · routing confirmed"],["Reinsurance trigger","Above $500k threshold · treaty cession applicable"],["Compliance and reserves","Reserve release authorized · reinsurance ceded"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Settlement is fully cleared for ACH disbursement. Reinsurance ceded automatically. Theresa receives payment confirmation Apr 28."}
+  },
+
+  "insurance-pc": {
+    label:"Insurance · P&C",
+    tenant:{name:"Northgate Mutual",wordmark:"Northgate",primary:"#1B2A4E",accent:"#FF8A4D",markColor:"#FF8A4D",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hi Priya,",p1:"We've opened a workspace for the I-78 incident with Patel Logistics' Class-7. Telematics, the responding officer's report, and the towing receipt are already attached. The sworn statement, photo authorization, and assignment of rights are inside — three documents, one ceremony.",p2:"Body shop has been dispatched and a rental will be authorized once you sign the assignment. Call me if you need anything before then.",sender:"Andre Sokolov",role:"Field Adjuster · Commercial Auto"},
+    workspace:{title:"Commercial Auto FNOL — Patel Logistics (Claim CL-2026-31102)",avatars:["PP","AS","BS"],moreCount:3,userInitials:"AS",tenantSub:"Commercial auto · single-vehicle · 04:12 incident"},
+    summary:{heroTitle:"Welcome back, Andre — here's where the Patel claim stands.",heroLede:"Telematics confirms 38 mph at impact, no airbag deploy. Priya verified as authorized contact. Body shop dispatched, rental authorized. Subro indicator green — third party at fault.",pct:42,tiles:[{lab:"Reserve",val:"$28.4k",sub:"Equipment + rental + deductible"},{lab:"Subro potential",val:"High",sub:"Third-party fault confirmed",accent:true},{lab:"Days to repair",val:"7-10",sub:"Body shop estimate"},{lab:"Next milestone",val:"Apr 29",sub:"Initial estimate due",warn:true}],list:[{nm:"Body shop dispatched",mt:"Preferred shop · Class-7 capable · 9 mi",rt:"45m"},{nm:"Sworn statement signed",mt:"Priya Patel · authority verified · 3-doc packet",rt:"1h"},{nm:"FNOL opened",mt:"Telematics alert + officer report attached",rt:"6h",ok:true}]},
+    sections:[
+      {title:"FNOL package",tasks:[
+        {name:"Sworn statement of loss"},
+        {name:"Photo authorization",meta:"From responding officer"},
+        {name:"Assignment of rights"}]},
+      {title:"Investigation and recovery",tasks:[
+        {name:"Body shop initial estimate"},
+        {name:"Subrogation file open",chip:"Third-party at fault"},
+        {name:"Rental vehicle authorization"}]}],
+    activity:[{kind:"Body shop dispatched",time:"45m",detail:"<b>Estimating</b> dispatched the preferred body shop. Class-7 capable, 9 miles from incident location. Initial estimate expected Apr 29."},{kind:"CLEAR cleared",time:"1h",detail:"Priya Patel verified as authorized policy contact. Authority match against Northgate's account record clean.",link:"View verification"},{kind:"FNOL opened",time:"6h",detail:"Andre opened the workspace from the <b>Commercial Auto FNOL</b> template. Telematics extracted automatically; responding officer's photo upload attached at 05:22."}],
+    iris:{heroTitle:"Iris can answer across the Patel FNOL file.",heroDesc:"Ask about subrogation potential, reserve estimate, body shop dispatch, or any uploaded incident evidence.",prompt:"Try: \"Summarize the subrogation case and recommend a recovery action.\"",agreements:["Sworn Statement of Loss · Signed · 4 pages","Photo Authorization · Signed · 1 page","Assignment of Rights · Signed · 2 pages","Telematics Record · Auto-extracted · 6 pages","Responding Officer Report · From state DOT · 3 pages","Towing Vendor Receipt · Vendor uploaded · 1 page","Patel Commercial Auto Policy · On file · 32 pages"]},
+    agent:{title:"Claims Agent",sub:"Commercial Auto · FNOL",checks:[["Coverage verification","Class-7 listed · liability + collision active · no exclusions hit"],["Driver identity","Driver match against Patel roster · CDL current"],["Telematics analysis","38 mph at impact · single-vehicle · airbag did not deploy"],["Fraud signals","No prior-claim cluster · no SIU flags"],["Subrogation potential","Third-party fault indicators present · recovery probability High"],["Reserve estimate","$28.4k initial · equipment + rental + deductible"],["Body shop assignment","Preferred shop dispatched · Class-7 capable · 9 mi"]],summary:"<b>7 checks passed · 0 advisory notes.</b> FNOL is clean, subrogation file is opened, body shop is dispatched. Initial estimate due Apr 29."}
+  },
+
+  "provider-roi": {
+    label:"Provider · Records Release",
+    tenant:{name:"Catalina Medical Center",wordmark:"Catalina",primary:"#0F4D5B",accent:"#5BCDB8",markColor:"#5BCDB8",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Eric,",p1:"Silver Mountain Disability has requested 18 months of your records to support your short-term claim. We've opened a workspace with the HIPAA authorization, scope acknowledgment, and fee acknowledgment inside. You verify your identity, you confirm the scope, you sign once — and Catalina handles everything from there.",p2:"You can review what's in the records packet before it's released. If anything is outside the scope you authorized, it stays in your chart.",sender:"Renata Voss",role:"HIM Specialist · Release of Information"},
+    workspace:{title:"Records Release — Eric Tan to Silver Mountain Disability",avatars:["ET","RV","SM"],moreCount:2,userInitials:"RV",tenantSub:"HIM · 18-month scope · disability claim support"},
+    summary:{heroTitle:"Welcome back, Renata — here's where Eric's release stands.",heroLede:"Eric verified as the patient. HIPAA authorization signed. The retrieval engine assembled 142 pages across 18 months; AI-suggested redactions are queued for your review.",pct:62,tiles:[{lab:"Pages assembled",val:"142",sub:"Across 18 months"},{lab:"Out-of-scope flags",val:"7",sub:"Awaiting your review",accent:true},{lab:"Days to release",val:"<1",sub:"Was 7-14 days"},{lab:"Fee captured",val:"$24",sub:"Per state schedule"}],list:[{nm:"Retrieval complete",mt:"142 pages · clinical notes + labs + imaging",rt:"38m"},{nm:"HIPAA authorization signed",mt:"Eric Tan · CLEAR-verified · 3-doc packet",rt:"1h"},{nm:"Workspace created",mt:"Carrier request from Silver Mountain Disability",rt:"3h",ok:true}]},
+    sections:[
+      {title:"Authorization and scope",tasks:[
+        {name:"HIPAA authorization"},
+        {name:"Scope acknowledgment",meta:"18 months · clinical + labs + imaging"},
+        {name:"Fee acknowledgment",chip:"$24 · state schedule"}]},
+      {title:"Release and audit",tasks:[
+        {name:"Redaction review · 7 flagged spans"},
+        {name:"Encrypted delivery to Silver Mountain"},
+        {name:"Certificate of Completion"}]}],
+    activity:[{kind:"Retrieval complete",time:"38m",detail:"<b>Records Engine</b> assembled 142 pages across the 18-month scope. AI surfaced 7 spans for redaction review — every span requires explicit acknowledgment before release."},{kind:"CLEAR cleared",time:"1h",detail:"Eric Tan verified against Catalina's MRN file. Patient match confirmed — no question whose chart is in scope.",link:"View verification"},{kind:"Workspace created",time:"3h",detail:"Renata opened the workspace from the <b>Carrier ROI Request</b> template after Silver Mountain's submission landed in the HIM queue."}],
+    iris:{heroTitle:"Iris can answer across the Eric Tan release file.",heroDesc:"Ask about scope compliance, redaction guidance, or any document in the assembled records packet.",prompt:"Try: \"Is this borderline span inside the authorized scope?\"",agreements:["HIPAA Authorization · Signed · 3 pages","Scope Acknowledgment · Signed · 2 pages","Fee Acknowledgment · Signed · 1 page","Records Packet · Assembled · 142 pages","Carrier Request from Silver Mountain · Received · 4 pages","Catalina ROI Policy · On file · 12 pages"]},
+    agent:{title:"HIM Compliance Agent",sub:"Release of Information",checks:[["Patient identity","Eric Tan · CLEAR-verified · MRN match clean"],["Authorization scope","18 months · clinical + labs + imaging · explicit"],["Out-of-scope PHI","7 spans flagged for redaction · pending QA"],["Recipient verification","Silver Mountain Disability · vendor on file · current BAA"],["Fee schedule","$24 per state-mandated rate · captured"],["HIPAA compliance","Authorization meets all 6 required elements"],["Audit trail","Certificate of Completion ready · timestamps + scope captured"]],summary:"<b>6 checks passed · 1 in review.</b> Authorization is clean and recipient is verified. Renata's redaction review on the 7 flagged spans is the only remaining step before release."}
+  },
+
+  "slgov-311": {
+    label:"State & Local · 311",
+    tenant:{name:"Greenhaven Public Works",wordmark:"Greenhaven",primary:"#1F3D2C",accent:"#4CAF7A",markColor:"#4CAF7A",mark:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M8 12l3 3 5-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hi Maria,",p1:"Thanks for the report at 1124 Cedar Ave. We dispatched a crew this morning and the patch is complete — the after-photo is in this workspace. Service request SR-2026-71248 is closed and the engineering team has flagged the stretch for a paving review based on the recurrence pattern.",p2:"You'll get an SMS update if anything changes on this stretch. No app, no account — just the same thread.",sender:"Marisol Tran",role:"Operations Coordinator · Streets"},
+    workspace:{title:"Service Request — 1124 Cedar Ave (SR-2026-71248)",avatars:["MC","MT","WB"],moreCount:1,userInitials:"MT",tenantSub:"Streets · Pavement · Pothole · Closed"},
+    summary:{heroTitle:"Welcome back, Marisol — here's what closed at 1124 Cedar Ave.",heroLede:"Wesley patched the pothole at 10:14 with 22 lbs of cold-mix. Maria received the after-photo via SMS. Engineering opened a paving review on the recurring stretch.",pct:100,tiles:[{lab:"Time on site",val:"22 min",sub:"Crew arrival to closeout"},{lab:"Same-day close",val:"100%",sub:"Was 1-7 days",accent:true},{lab:"Repeats this 6mo",val:"3",sub:"Engineering escalation"},{lab:"Citizen rating",val:"5/5",sub:"From SMS prompt"}],list:[{nm:"Service request closed",mt:"Wesley signed completion attestation · before/after photos",rt:"22m"},{nm:"Crew on site",mt:"Cedar Ave crew · 9 mi from depot",rt:"45m"},{nm:"Citizen report received",mt:"QR scan · geo-tagged · photo · classified high-priority",rt:"2h",ok:true}]},
+    sections:[
+      {title:"Request and dispatch",tasks:[
+        {name:"311 intake form"},
+        {name:"Work order dispatch",meta:"Cedar Ave crew"},
+        {name:"Citizen confirmation SMS"}]},
+      {title:"Resolution and audit",tasks:[
+        {name:"Completion attestation"},
+        {name:"Before/after photos"},
+        {name:"Engineering paving review",chip:"3 repeats in 200ft"}]}],
+    activity:[{kind:"Engineering review opened",time:"30m",detail:"<b>Iris</b> flagged 3 pothole repairs in the same 200ft stretch in 6 months. Engineering paving review opened for FY27 capital plan consideration."},{kind:"Service request closed",time:"22m",detail:"Wesley Brown signed the completion attestation with materials (22 lbs cold-mix) and before/after photos. Maria received the closeout SMS.",link:"View attestation"},{kind:"Workspace created",time:"2h",detail:"Auto-created from Maria's QR-code submission at 1124 Cedar Ave. Maestro classified as high-priority pavement and dispatched the on-rotation Cedar Ave crew."}],
+    iris:{heroTitle:"Iris can answer across the 1124 Cedar Ave service history.",heroDesc:"Ask about repair patterns, pavement age, prior reports, or any closeout document.",prompt:"Try: \"Show me every pothole repair on Cedar Ave in the last 18 months.\"",agreements:["311 Intake Form · Submitted · 1 page","Work Order · Dispatched · 2 pages","Completion Attestation · Signed · 2 pages","Before Photo · Geo-tagged · 1 image","After Photo · Geo-tagged · 1 image","Cedar Ave Maintenance History · 18mo · 14 entries"]},
+    agent:{title:"Streets Ops Agent",sub:"311 · Pavement",checks:[["Geolocation match","1124 Cedar Ave · city right-of-way confirmed"],["Issue classification","Streets · Pavement · Pothole · high-priority"],["Crew assignment","Cedar Ave crew · 9 mi · Class-7 capable"],["Materials usage","22 lbs cold-mix · within standard range"],["Time on site","22 min · within target for severity tier"],["Citizen feedback","5/5 rating · closed-loop confirmed"],["Recurrence pattern","3 repairs in 200ft / 6mo · engineering escalated"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Service request closed cleanly with full audit trail. Recurrence pattern surfaced for engineering review — the right escalation made automatically."}
+  },
+
+  "slgov-benefits": {
+    label:"State & Local · Benefits",
+    tenant:{name:"Eastside Health & Human Services",wordmark:"Eastside HHS",primary:"#1A3D52",accent:"#5DA9C9",markColor:"#5DA9C9",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Mrs. Rivera,",p1:"Thank you for applying for SNAP. We've opened a workspace with your application, household composition attestation, and income disclosure. The information you submitted last night is already in the documents — you confirm what's there, you sign once, and your determination follows the same day.",p2:"You qualify for additional programs based on what you submitted. Your caseworker has those queued in the workspace too — none require starting over.",sender:"Devon Walker",role:"Eligibility Specialist · SNAP and adjacent programs"},
+    workspace:{title:"SNAP Application — Rivera Family (Case BC-2026-00482)",avatars:["YR","DW","WC"],moreCount:2,userInitials:"DW",tenantSub:"SNAP · Household of 4 · Fast-track"},
+    summary:{heroTitle:"Welcome back, Devon — here's where the Rivera family's case stands.",heroLede:"Yolanda verified via CLEAR. Determination cleared auto-approval threshold; benefits start in 5 days. WIC and LIHEAP cross-referrals queued in the same workspace.",pct:55,tiles:[{lab:"Open tasks",val:"3",sub:"WIC + LIHEAP + EBT pickup"},{lab:"Determination",val:"Same-day",sub:"Was 10-20 days",accent:true},{lab:"Benefit amount",val:"$782/mo",sub:"4-person household"},{lab:"EBT card delivery",val:"5 days",sub:"USPS standard"}],list:[{nm:"Determination issued",mt:"Auto-approved · letter delivered · EBT queued",rt:"4m"},{nm:"Application signed",mt:"Yolanda Rivera · CLEAR-verified · 3-doc packet",rt:"1h"},{nm:"Application received",mt:"Mobile submission · 14 min · save-and-resume",rt:"Last night",ok:true}]},
+    sections:[
+      {title:"SNAP eligibility",tasks:[
+        {name:"Eligibility application"},
+        {name:"Household composition attestation"},
+        {name:"Income disclosure",meta:"Recent loss documented"}]},
+      {title:"Cross-program enrollment",tasks:[
+        {name:"WIC enrollment",chip:"For youngest child"},
+        {name:"LIHEAP application",chip:"Utility assistance"},
+        {name:"EBT card pickup or delivery"}]}],
+    activity:[{kind:"Determination issued",time:"4m",detail:"<b>Salesforce PSS</b> auto-issued the SNAP determination. Letter delivered to Yolanda; EBT card queued for 5-day delivery. Auto-approval threshold cleared."},{kind:"CLEAR cleared",time:"1h",detail:"Yolanda Rivera verified. SSA cross-reference and address verification clean. The 2-3 day fraud-ops queue is gone for cases like this.",link:"View verification"},{kind:"Application received",time:"Last night",detail:"Yolanda submitted the application from her phone in 14 min. Mobile-first form with save-and-resume; pre-filled from prior agency interaction."}],
+    iris:{heroTitle:"Iris can answer across the Rivera family case file.",heroDesc:"Ask about cross-program eligibility, recertification windows, mid-year reporting requirements, or any document in the case file.",prompt:"Try: \"What other programs is the Rivera family likely eligible for?\"",agreements:["Eligibility Application · Signed · 5 pages","Household Composition Attestation · Signed · 2 pages","Income Disclosure · Signed · 3 pages","Determination Letter · Issued · 2 pages","Prior Touchpoint Record · Pre-filled · 4 pages","Cross-Program Eligibility Analysis · Iris-generated · 2 pages"]},
+    agent:{title:"Eligibility Agent",sub:"SNAP · Cross-program",checks:[["Identity verification","Yolanda Rivera · CLEAR-verified · SSA match clean"],["Household composition","4 members · 2 minor children · validated against birth records"],["Income tier","Recent loss · qualifies under expedited threshold"],["Asset test","Below resource limit · confirmed"],["Auto-approval threshold","Met · no human review required"],["Cross-program likelihood","Medicaid + WIC + LIHEAP all probable matches"],["Recertification window","12 months · auto-scheduled · pre-fill enabled"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Determination cleared auto-approval same-day. WIC and LIHEAP referrals queued in the workspace — no separate application needed."}
+  },
+
+  "slgov-recertification": {
+    label:"State & Local · Recertification",
+    tenant:{name:"Cascade Medicaid",wordmark:"Cascade",primary:"#2B3A52",accent:"#94A3B8",markColor:"#94A3B8",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 12c4-6 12-6 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 16c4-6 12-6 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>'},
+    email:{greeting:"Hi Diane,",p1:"Your annual Medicaid recertification is due in 30 days. We've pre-filled this year's form from the data we already have — you verify it on your phone, confirm anything that's changed, and sign once. No password to remember, no portal account, no trip to the office.",p2:"Most members in your situation finish in under 5 minutes. Your coverage continues without interruption.",sender:"Asha Patel",role:"Continuing Eligibility Specialist"},
+    workspace:{title:"Annual Recertification — Diane Park (Member BC-2025-44192)",avatars:["DP","AP"],moreCount:0,userInitials:"AP",tenantSub:"Medicaid · 12-month renewal · Pre-filled"},
+    summary:{heroTitle:"Welcome back, Asha — here's where Diane's recertification stands.",heroLede:"This year's data pre-filled from connected sources. No income or household changes detected. Auto-approval threshold cleared; coverage renewed for 12 more months.",pct:100,tiles:[{lab:"Time to complete",val:"3 min",sub:"On Diane's phone"},{lab:"Auto-approval rate",val:"78%",sub:"This recert season",accent:true},{lab:"Login support tickets",val:"0",sub:"Standalone Auth wins"},{lab:"Next recert",val:"Apr 2027",sub:"12 months · auto-scheduled"}],list:[{nm:"Coverage renewed",mt:"Auto-approved · letter delivered · 12 more months",rt:"4m"},{nm:"Recert signed",mt:"Diane Park · OTP-verified · 2-doc packet",rt:"7m"},{nm:"Recert notice sent",mt:"Multi-channel · SMS + email · pre-filled link",rt:"This morning",ok:true}]},
+    sections:[
+      {title:"Recertification",tasks:[
+        {name:"Continuing eligibility confirmation"},
+        {name:"Any-changes attestation",meta:"No changes confirmed"}]},
+      {title:"Coverage continued",tasks:[
+        {name:"Renewal letter delivered"},
+        {name:"Coverage period extended",chip:"Through Apr 2027"},
+        {name:"Next recert auto-scheduled"}]}],
+    activity:[{kind:"Coverage renewed",time:"4m",detail:"<b>Dynamics 365</b> auto-issued the renewal. Coverage continues through Apr 2027. Next recert window auto-scheduled with pre-fill enabled."},{kind:"Recert signed",time:"7m",detail:"Diane Park completed the recert in 3 minutes on her phone. OTP-verified, no account required, no password reset.",link:"View attestation"},{kind:"Recert notice sent",time:"This morning",detail:"Multi-channel outreach — SMS for immediacy, email for the formal record. Both link to a pre-filled session: no portal, no password, no trip to the office."}],
+    iris:{heroTitle:"Iris can answer across Diane's enrollment file.",heroDesc:"Ask about coverage period, mid-year reporting, address change process, or any prior recertification.",prompt:"Try: \"What changed in Diane's coverage from last year to this year?\"",agreements:["Continuing Eligibility Confirmation · Signed · 1 page","Any-changes Attestation · Signed · 1 page","Renewal Letter · Issued · 2 pages","Prior Year Recert · On file · 1 page","Original Enrollment · On file · 4 pages","Connected-data Pre-fill Source · Auto-pulled · 3 pages"]},
+    agent:{title:"Continuing Eligibility Agent",sub:"Medicaid · Recert",checks:[["Identity verification","Diane Park · OTP-verified · device fingerprint bound"],["Income source verification","SSA + tax data current · no changes detected"],["Household composition","Single · unchanged from prior cycle"],["Address verification","USPS-confirmed · unchanged"],["Resource test","Below limit · confirmed"],["Auto-approval threshold","Met · no human review required"],["Audit trail","Full attestation chain · device + timestamp + scope captured"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Recertification cleared auto-approval in under 5 minutes. Diane's coverage continues without interruption; the next recert window is already pre-scheduled."}
+  },
+
+  "slgov-vendor-compliance": {
+    label:"State & Local · Vendor Compliance",
+    tenant:{name:"Ridgeview Procurement Office",wordmark:"Ridgeview",primary:"#3A2818",accent:"#E89B5B",markColor:"#E89B5B",mark:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 12h10M7 8h10M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hi Naomi,",p1:"Apex Logistics has two compliance certs expiring in 30 days. We've drafted the recertification packet — updated COI, FedRAMP renewal attestation, and continuing diversity certification. You authenticate on your phone, upload the new certificates, sign once, and Apex stays in good standing without a contract gap.",p2:"No new vendor portal account, no IT support ticket, no PO holds. Just the renewal.",sender:"Olivia Mendez",role:"Compliance Analyst · Vendor Management"},
+    workspace:{title:"Annual Recert — Apex Logistics (VC-2026-01408)",avatars:["NB","OM","RV"],moreCount:1,userInitials:"OM",tenantSub:"Class-A trucking · $4.2M annual · Active"},
+    summary:{heroTitle:"Welcome back, Olivia — here's where the Apex recert stands.",heroLede:"Naomi authenticated, uploaded the renewed COI and FedRAMP cert, signed the packet. Maestro validated all three certs against scope; analyst review cleared in 4 minutes. Apex stays active.",pct:100,tiles:[{lab:"Time in queue",val:"4 min",sub:"Was 3-5 days"},{lab:"Vendors at risk in 90d",val:"14",sub:"$18M contract value",accent:true},{lab:"Cert validation",val:"100%",sub:"Auto-validated by Maestro"},{lab:"Next recert",val:"Apr 2027",sub:"12 months · auto-scheduled"}],list:[{nm:"Recert approved",mt:"Apex stays active · no contract gap · no PO holds",rt:"4m"},{nm:"Recert signed",mt:"Naomi Bashir · OTP-verified · 3-doc packet",rt:"22m"},{nm:"Outreach sent",mt:"Maestro flagged 30 days before expiration · pre-filled",rt:"This morning",ok:true}]},
+    sections:[
+      {title:"Recertification",tasks:[
+        {name:"Updated COI submission"},
+        {name:"FedRAMP renewal attestation"},
+        {name:"Continuing diversity certification"}]},
+      {title:"Contract status",tasks:[
+        {name:"Vendor record updated"},
+        {name:"FY27 contract amendment",chip:"Scope expansion drafted"},
+        {name:"Next renewal calendar set"}]}],
+    activity:[{kind:"Recert approved",time:"4m",detail:"<b>ServiceNow Source-to-Pay</b> updated Apex's status to active. All three certs validated against scope. Next renewal calendar set for 12 months out."},{kind:"Recert signed",time:"22m",detail:"Naomi Bashir signed the 3-doc recert packet. OTP-verified per-rep audit trail; no Ridgeview portal account required.",link:"View attestation"},{kind:"Outreach sent",time:"This morning",detail:"Maestro flagged Apex's COI and FedRAMP expirations 30 days out. Vendor record pulled from ServiceNow; renewal request pre-populated; outreach drafted."}],
+    iris:{heroTitle:"Iris can answer across the Apex Logistics vendor file.",heroDesc:"Ask about cert expiration windows, scope coverage, contract value at risk, or any prior recertification.",prompt:"Try: \"Which vendors expire in the next 90 days and what's the contract value at risk?\"",agreements:["Updated COI · Submitted · 4 pages","FedRAMP Renewal Attestation · Signed · 2 pages","Diversity Certification · Reconfirmed · 3 pages","Apex Master Agreement · On file · 28 pages","Prior Year Recert · On file · 6 pages","FY27 Scope Amendment · Draft · 8 pages"]},
+    agent:{title:"Vendor Compliance Agent",sub:"Source-to-Pay",checks:[["Vendor identity","Apex Logistics · authorized rep CLEAR'd"],["COI validation","Carrier on file · effective dates current · scope adequate"],["FedRAMP attestation","Boundary current · ATO valid through 2027"],["Diversity certification","NMSDC current · annual attestation reconfirmed"],["Contract impact","No PO holds · no service disruption"],["Audit trail","Per-rep attestation chain · device + timestamp captured"],["Next renewal","Auto-scheduled 12 months out · 60-day pre-flag"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Apex stays in good standing. The 14 vendors expiring in the next 90 days are all in Maestro's outreach queue — no manual chase."}
+  },
+
+  "slgov-employee-onboarding": {
+    label:"State & Local · New Hire",
+    tenant:{name:"Cascade County HR",wordmark:"Cascade County",primary:"#3A1B5E",accent:"#B589DB",markColor:"#B589DB",mark:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hi Marcus,",p1:"Welcome to Cascade County! Your background check cleared yesterday and we've opened your new-hire workspace. The offer letter, I-9, W-4, direct deposit, benefits enrollment, and county code of conduct are all inside — six documents, one ceremony, on your phone if you want.",p2:"Day 1 logistics, manager intro, and your first-week training are queued in the same workspace. We'll be ready when you walk in.",sender:"Karina Yusuf",role:"HR Business Partner · Family Services"},
+    workspace:{title:"New Hire Onboarding — Marcus Lee (HR-2026-04812)",avatars:["ML","KY","DH"],moreCount:3,userInitials:"KY",tenantSub:"Caseworker I · Family Services · Start May 5"},
+    summary:{heroTitle:"Welcome back, Karina — here's where Marcus's onboarding stands.",heroLede:"Background cleared, packet signed, IT and Facilities provisioning fired in parallel. Marcus is 2 days ahead of cohort baseline. Day 1 is genuinely Day 1.",pct:82,tiles:[{lab:"Days to Day 1",val:"9",sub:"All systems provisioning"},{lab:"vs cohort baseline",val:"+2 days ahead",sub:"Zero exceptions",accent:true},{lab:"Forms signed",val:"6/6",sub:"Offer + I-9 + W-4 + DD + benefits + COC"},{lab:"Provisioning",val:"3/4",sub:"IT, badge, desk · benefits last"}],list:[{nm:"Onboarding packet signed",mt:"All 6 documents · CLEAR-verified · I-9 + E-Verify clean",rt:"1h"},{nm:"Background cleared",mt:"Federal check returned clean",rt:"Yesterday"},{nm:"Offer extended",mt:"Caseworker I · Family Services · start May 5",rt:"3d",ok:true}]},
+    sections:[
+      {title:"Onboarding documents",tasks:[
+        {name:"Offer letter acceptance"},
+        {name:"I-9 (with CLEAR + E-Verify)",meta:"List A document"},
+        {name:"W-4 + direct deposit"},
+        {name:"Benefits enrollment",chip:"Effective May 5"},
+        {name:"County code of conduct"}]},
+      {title:"Day 1 logistics",tasks:[
+        {name:"IT provisioning",chip:"Laptop imaging · Apr 30"},
+        {name:"Badge and desk assignment"},
+        {name:"FERPA training",chip:"Required before first case"}]}],
+    activity:[{kind:"Provisioning fired",time:"1h",detail:"<b>Maestro</b> fired IT laptop imaging, badge printing, and desk assignment in parallel. Benefits enrollment routed to carrier. All triggered by the executed packet."},{kind:"Packet signed",time:"1h",detail:"Marcus signed all 6 documents in one ceremony on his phone. CLEAR-verified for I-9; E-Verify cleared in the same pass.",link:"View signing"},{kind:"Background cleared",time:"Yesterday",detail:"Federal background check returned clean. Cascade's HR system auto-triggered the onboarding workflow start; Doc Gen drafted the 6-document packet from Workday data."}],
+    iris:{heroTitle:"Iris can answer across the Marcus Lee onboarding file.",heroDesc:"Ask about onboarding velocity, training requirements, benefits effective date, or any document in the executed packet.",prompt:"Try: \"How does Marcus's onboarding velocity compare to the Caseworker I cohort?\"",agreements:["Offer Letter · Signed · 4 pages","I-9 · Signed · 2 pages","W-4 · Signed · 2 pages","Direct Deposit Authorization · Signed · 1 page","Benefits Enrollment · Signed · 6 pages","County Code of Conduct · Signed · 14 pages","FERPA Training Module · Required · 18 pages"]},
+    agent:{title:"HR Onboarding Agent",sub:"Employee Lifecycle",checks:[["Identity verification","Marcus Lee · CLEAR-verified · I-9 List A document"],["Work authorization","E-Verify cleared · same pass as I-9"],["Background clearance","Federal check returned clean · yesterday"],["Document completeness","All 6 onboarding documents signed and certified"],["Provisioning fired","IT laptop · badge · desk · benefits enrollment routed"],["Training requirements","FERPA queued · required before first case assignment"],["Onboarding velocity","2 days ahead of Caseworker I cohort baseline · zero exceptions"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Marcus is on track for a clean Day 1. IT, Facilities, and benefits all provisioning in parallel. FERPA training is the only pre-Day-1 task."}
+  },
+
+  "slgov-licensing": {
+    label:"State & Local · Licensing",
+    tenant:{name:"Northbrook Licensing Bureau",wordmark:"Northbrook",primary:"#3D2A14",accent:"#F2A56B",markColor:"#F2A56B",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M3 21V8l9-5 9 5v13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-7h6v7" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hi Mei,",p1:"Congratulations on Avalon Café! We've opened a workspace with your restaurant license application, regulatory compliance attestation, and inline fee authorization. You verify your identity, you confirm the details, you pay the $480 fee inline, and inspections schedule themselves against the inspector calendar.",p2:"Most first-time restaurant owners pass inspections on the first visit when they prep with the workspace's checklist. We want you open on time.",sender:"Trevor Bowman",role:"Licensing Specialist · Food & Beverage"},
+    workspace:{title:"Restaurant License — Avalon Café (LIC-2026-08820)",avatars:["MO","TB","HI"],moreCount:2,userInitials:"TB",tenantSub:"88 Riverbend Ave · 38 seats · First-time operator"},
+    summary:{heroTitle:"Welcome back, Trevor — here's where the Avalon application stands.",heroLede:"Mei verified ownership of Avalon Café LLC. Application signed, $480 fee paid inline. Health, fire, and ABC inspections scheduled for next week. License will issue once all three clear.",pct:60,tiles:[{lab:"Days to license",val:"~10",sub:"Pending 3 inspections"},{lab:"vs prior process",val:"−6 weeks",sub:"Was 5-15 days per check serial",accent:true},{lab:"Fee captured",val:"$480",sub:"Inline · receipt issued"},{lab:"Inspector capacity",val:"Within target",sub:"Health + ABC · fire backlogged"}],list:[{nm:"Inspections scheduled",mt:"Health Mar 22 · Fire Mar 24 · ABC Mar 26",rt:"30m"},{nm:"Application signed and paid",mt:"Mei Ortega · CLEAR-verified · $480 inline",rt:"1h"},{nm:"Application received",mt:"Adaptive form auto-routed to restaurant path",rt:"This morning",ok:true}]},
+    sections:[
+      {title:"Application and fee",tasks:[
+        {name:"License application"},
+        {name:"Regulatory compliance attestation"},
+        {name:"Fee authorization",chip:"$480 · paid inline"}]},
+      {title:"Inspections and issuance",tasks:[
+        {name:"Health department inspection",meta:"Mar 22 · 10:00"},
+        {name:"Fire marshal inspection",meta:"Mar 24 · 14:00"},
+        {name:"ABC inspection",meta:"Mar 26 · 11:30"}]}],
+    activity:[{kind:"Inspections scheduled",time:"30m",detail:"<b>Oracle PSCR</b> auto-scheduled health, fire, and ABC inspections against the inspector calendar. Mei has all three appointment dates confirmed."},{kind:"Application signed and paid",time:"1h",detail:"Mei Ortega signed the 3-doc packet and the $480 fee processed inline. Receipt issued; license issuance queued pending inspections.",link:"View packet"},{kind:"Application received",time:"This morning",detail:"Adaptive Web Form auto-routed Mei from 'starting a business' to the restaurant permit path. 45 min to complete with save-and-resume."}],
+    iris:{heroTitle:"Iris can answer across the Avalon Café license file.",heroDesc:"Ask about inspection prep, common findings, renewal requirements, or any document in the application.",prompt:"Try: \"What are the most common health-inspection findings for first-time restaurants and how does Avalon prepare?\"",agreements:["License Application · Signed · 6 pages","Regulatory Compliance Attestation · Signed · 4 pages","Fee Authorization · Signed and paid · 1 page","Health Department Inspection Checklist · Pending · 3 pages","Fire Marshal Inspection Checklist · Pending · 2 pages","ABC Inspection Checklist · Pending · 4 pages"]},
+    agent:{title:"Licensing Agent",sub:"Food & Beverage Permits",checks:[["Identity and ownership","Mei Ortega · CLEAR-verified · sole signatory for Avalon Café LLC"],["Property zoning","88 Riverbend Ave · zoned for restaurant use · confirmed"],["Capacity compliance","38 seats · within zoning + fire-code limits"],["Food-handler training","Operator + 4 staff cards verified · current"],["Fee schedule","$480 · paid inline · receipt issued"],["Inspection scheduling","Health + Fire + ABC scheduled · within target windows"],["Renewal calendar","Auto-set 12 months from issuance · pre-fill enabled"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Application is clean and inspections are scheduled. License will auto-issue once all three inspections clear; the renewal cycle starts pre-filled 12 months later."}
+  },
+
+  "banking-deposits": {
+    label:"Banking · Deposits",
+    tenant:{name:"Cedar Federal Credit Union",wordmark:"Cedar Federal",primary:"#0F3D6B",accent:"#6BB6FF",markColor:"#6BB6FF",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M3 21V10l9-7 9 7v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M3 21h18M9 21v-6h6v6" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hi Marcus,",p1:"Welcome to Cedar Federal! We've opened the workspace for your joint checking and high-yield savings accounts. Adaeze's identity verification, the Reg DD disclosures, the E-Sign consent, and the signature card are all inside — four documents, one ceremony, both signers, both phones.",p2:"The accounts open and your $5,000 opening transfer posts the moment the second signature clears. Cedar's compliance team has the complete audit trail.",sender:"Cedar Federal Member Services",role:"Digital Account Opening"},
+    workspace:{title:"Joint Account Opening — Williams Household (DEP-2026-19044)",avatars:["MW","AW","CF"],moreCount:1,userInitials:"CF",tenantSub:"Joint checking + high-yield savings · Existing-member shortcut"},
+    summary:{heroTitle:"The Williams household's accounts are open.",heroLede:"Marcus and Adaeze both verified via CLEAR. Joint checking and high-yield savings live; opening transfer posted in real time. Cross-sell opportunities surfaced for the relationship banker.",pct:100,tiles:[{lab:"Time to fund",val:"Same day",sub:"Was 3-5 business days"},{lab:"Abandonment rate",val:"−40%",sub:"vs. legacy form",accent:true},{lab:"Documents signed",val:"4/4",sub:"Joint app + Reg DD + E-Sign + sig card"},{lab:"Cross-sell flagged",val:"3",sub:"Auto + CD ladder + card"}],list:[{nm:"Accounts opened and funded",mt:"$5,000 opening transfer posted in real time",rt:"7m"},{nm:"Both signers cleared",mt:"Marcus + Adaeze · CLEAR-verified · 4-doc packet",rt:"22m"},{nm:"Application started",mt:"Existing-member shortcut from Cedar's app",rt:"1h",ok:true}]},
+    sections:[
+      {title:"Account opening",tasks:[
+        {name:"Joint application"},
+        {name:"Reg DD disclosures",chip:"Pre-populated"},
+        {name:"E-Sign consent"},
+        {name:"Signature card"}]},
+      {title:"Ongoing servicing",tasks:[
+        {name:"Annual Reg DD refresh",chip:"Click-to-agree"},
+        {name:"Beneficiary update",meta:"Optional"},
+        {name:"Cross-sell opportunities",chip:"3 flagged"}]}],
+    activity:[{kind:"Accounts funded",time:"7m",detail:"<b>Cedar Core</b> booked both accounts and posted the $5,000 opening transfer in real time. Was 3-5 business days; now same morning."},{kind:"Signing complete",time:"22m",detail:"Marcus and Adaeze both signed all four documents in one ceremony. CLEAR-verified for both signers; OFAC and PEP screens silent.",link:"View envelope"},{kind:"Application started",time:"1h",detail:"Marcus tapped 'Open New Account' from Cedar's mobile banking dashboard. Existing-member shortcut path active; Adaeze's joint info pre-routed to her phone."}],
+    iris:{heroTitle:"Iris can answer across the Williams household file.",heroDesc:"Ask about disclosure versions, household product mix, cross-sell opportunities, or any document in the executed packet.",prompt:"Try: \"What products is the Williams household missing relative to similar Cedar households?\"",agreements:["Joint Application · Signed · 4 pages","Reg DD Disclosures · Signed · 8 pages","E-Sign Consent · Signed · 1 page","Signature Card · Signed · 1 page","Existing Member Profile · On file · 6 pages","Cross-sell Opportunity Map · Iris-generated · 2 pages"]},
+    agent:{title:"Deposits Agent",sub:"Account Opening · Servicing",checks:[["Member identity (existing)","Marcus Williams · existing member match clean"],["Joint applicant identity","Adaeze Williams · CLEAR-verified · OFAC + PEP clean"],["Reg DD compliance","Disclosures delivered + acknowledged · current version"],["E-Sign consent","Captured · audit trail bound to signing event"],["Account opening","Joint checking + high-yield savings · core booked"],["Funding","$5,000 opening transfer · posted in real time"],["Cross-sell signals","Auto-loan likely · CD ladder fit · no card on file"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Both accounts open and funded same-day. Compliance audit trail complete. Cross-sell opportunities surfaced for follow-up."}
+  },
+
+  "wealth-discovery": {
+    label:"Wealth · Discovery",
+    tenant:{name:"Cypress Wealth Partners",wordmark:"Cypress",primary:"#1B4D5A",accent:"#5BA1B8",markColor:"#5BA1B8",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 9c2-3 5-3 7 0M5 14c2-3 5-3 7 0M5 19c2-3 5-3 7 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Dear Walter and Esther,",p1:"Welcome to Cypress Wealth Partners. We've opened your household workspace with the IRA rollover, the joint taxable account, the family trust, the advisory agreement, the suitability acknowledgment, and the ADV delivery — six documents across three accounts in one signing ceremony, both of you, on your phones.",p2:"What used to be three appointments and a notary visit is now one ceremony. Reggie or I are reachable any time, and your co-trustee will see only what the trust authorizes him to see.",sender:"Reggie Adesanya",role:"Senior Financial Advisor"},
+    workspace:{title:"Multi-Account Onboarding — Holcomb Family (Engagement WD-2026-00214)",avatars:["WH","EH","CT"],moreCount:2,userInitials:"RA",tenantSub:"IRA rollover + Joint + Family Trust · 3 accounts in one ceremony"},
+    summary:{heroTitle:"Welcome back, Reggie — here's where the Holcomb engagement stands.",heroLede:"Discovery converted to data. Walter and Esther verified via CLEAR. Six documents signed across three accounts. NIGO rate this cycle: 0%. IRA rollover initiated; joint and trust opened.",pct:88,tiles:[{lab:"Cycle time",val:"2-4 days",sub:"Was 2-4 weeks",accent:true},{lab:"NIGO rate",val:"0%",sub:"Was 30%+"},{lab:"Documents signed",val:"6/6",sub:"IRA + joint + trust + advisory"},{lab:"AUM onboarded",val:"$1.4M",sub:"IRA rollover + joint + trust"}],list:[{nm:"Multi-account package signed",mt:"6 docs · 2 signers · CLEAR-verified · co-trustee routed",rt:"42m"},{nm:"Discovery completed",mt:"Digital risk profile + estate intent on Reggie's tablet",rt:"This morning"},{nm:"Engagement opened",mt:"Cypress household profile created",rt:"Yesterday",ok:true}]},
+    sections:[
+      {title:"Account opening",tasks:[
+        {name:"IRA rollover application"},
+        {name:"Joint taxable application"},
+        {name:"Family trust establishment"}]},
+      {title:"Advisory and ongoing CLM",tasks:[
+        {name:"Advisory agreement"},
+        {name:"Suitability acknowledgment"},
+        {name:"ADV delivery + IPS review",chip:"Annual cadence Jan 15"}]}],
+    activity:[{kind:"Co-trustee acknowledgment",time:"15m",detail:"<b>Walter's brother</b> acknowledged co-trustee role on the family trust. Routed automatically through the same envelope; trust is fully constituted."},{kind:"Multi-account package signed",time:"42m",detail:"Walter and Esther both signed all six documents in one ceremony. NIGO rate: 0%. IRA rollover initiated against the prior custodian.",link:"View envelope"},{kind:"Discovery completed",time:"This morning",detail:"Walter and Esther walked through the digital risk profile, retirement goals, and estate intent on Reggie's tablet. Maestro routed the package to setup the moment Reggie hit Submit."}],
+    iris:{heroTitle:"Iris can answer across the Holcomb family agreement set.",heroDesc:"Ask about IPS review triggers, fee schedule, trust restrictions, beneficiary structure, or any document in the executed package.",prompt:"Try: \"When does the next IPS review trigger and what's the fee delta if Esther's circumstances change?\"",agreements:["IRA Rollover Application · Signed · 4 pages","Joint Taxable Application · Signed · 4 pages","Family Trust Establishment · Signed · 14 pages","Advisory Agreement · Signed · 8 pages","Suitability Acknowledgment · Signed · 2 pages","ADV Delivery · Signed · 36 pages","Discovery Profile · From Cypress's planning software · 6 pages"]},
+    agent:{title:"Wealth Onboarding Agent",sub:"Multi-account · CLM",checks:[["Identity verification","Walter + Esther Holcomb · both CLEAR-verified"],["Trust grantor and trustee binding","Both Holcombs as grantors + trustees · co-trustee acknowledged"],["KYC and suitability","Discovery-driven profile · suitable for proposed allocation"],["Account opening","IRA rollover initiated · joint + trust opened at custodian"],["Wire authorization binding","CLEAR-bound · no email-based wire instruction risk"],["IPS and ADV delivery","Both delivered + acknowledged in same ceremony"],["CLM hooks","Renewal triggers + amendment process wired in CLM"]],summary:"<b>7 checks passed · 0 advisory notes.</b> The Holcomb household is fully onboarded across three accounts. NIGO rate 0%, cycle time 2-4 days vs. legacy 2-4 weeks."}
   }
 };
 
 /* Preset ordering used by the chip selector */
 const PRESET_ORDER = [
-  "wealth","wealth-hnw-onboarding","wealth-estate-transition",
-  "banking","banking-commercial-loan-mod",
-  "insurance","insurance-commercial-binding","insurance-disability-claim",
-  "provider",
+  "wealth","wealth-hnw-onboarding","wealth-estate-transition","wealth-discovery",
+  "banking","banking-commercial-loan-mod","banking-deposits",
+  "insurance","insurance-commercial-binding","insurance-disability-claim","insurance-life","insurance-pc",
+  "provider","provider-roi",
   "lifesciences","lifesciences-site-activation","lifesciences-mlr-review",
   "payor","payor-provider-credentialing",
   "fedgov","fedgov-grant-application",
-  "slgov","slgov-foster-care-placement",
+  "slgov","slgov-foster-care-placement","slgov-311","slgov-benefits","slgov-recertification","slgov-vendor-compliance","slgov-employee-onboarding","slgov-licensing",
   "education","education-research-irb",
   "nonprofit"
 ];
@@ -1107,20 +1359,34 @@ sel.addEventListener('change', () => {
   history.replaceState(null, '', '?preset=' + sel.value);
 });
 
-/* Optional: bolt on the MasterCard Scene 4 splash.
-   The .mock carries the `workspaces-demo` opt-in marker so the
-   shared splash module fires without needing data-force. */
+/* Optional MasterCard-style Scene 5 intro splash.
+   Inlined 2026-04-26. CSS is in the <style> block above (.mc-splash + keyframes).
+   Triggered by ?splash=1 OR a preset that sets splash:true. */
 (function loadSplash(){
   const params = new URLSearchParams(location.search);
-  if (params.get('splash') !== '1') return;
-  const l = document.createElement('link');
-  l.rel = 'stylesheet'; l.href = '/stories/_shared/mastercard-splash.css';
-  document.head.appendChild(l);
-  const s = document.createElement('script');
-  s.src = '/stories/_shared/mastercard-splash.js';
-  const p = PRESETS[getPresetFromURL()];
-  s.dataset.descriptor = 'for ' + p.workspace.title.toLowerCase();
-  document.body.appendChild(s);
+  const presetKey = getPresetFromURL();
+  const p = PRESETS[presetKey] || PRESETS.wealth;
+  const splashOn = params.get('splash') === '1' || p.splash === true;
+  if (!splashOn) return;
+  const mock = document.querySelector('.mock');
+  if (!mock) return;
+  const descriptor = 'for ' + ((p.workspace && p.workspace.title) ? p.workspace.title.toLowerCase() : 'everything else');
+  const splash = document.createElement('div');
+  splash.className = 'mc-splash';
+  splash.innerHTML = `
+    <div class="mc-lockup">
+      <span class="wm">Docusign IAM</span>
+      <span class="sub">Workspaces</span>
+    </div>
+    <div class="mc-lines">
+      <div class="mc-line mc-l1">For the interview on a page, there's <em>Web Forms</em>.</div>
+      <div class="mc-line mc-l2">For the signature in an envelope, there's <em>eSignature</em>.</div>
+      <div class="mc-line mc-l3">For everything else, there's <span class="mc-accent">Workspaces</span>.</div>
+      <div class="mc-descriptor">${descriptor}</div>
+    </div>
+  `;
+  mock.insertBefore(splash, mock.firstChild);
+  setTimeout(() => splash.remove(), 10000);
 })();
 </script>
 </body>

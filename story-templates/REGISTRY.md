@@ -12,10 +12,11 @@ for the signature moments in a demo loop. Browser-chrome fidelity, amber CTAs,
 phone mockups, dark CLEAR stages — the stuff that makes the demo feel like a
 real product walk-through.
 
-**Component-level mocks** (under `/components/future-state/`) are the 89+
-inline scene snippets that use the shared Docusign tenant chrome (`.ds-topbar`
+**Component-level mocks** live under `/components/current-state/` (97 files
+as of 2026-04-26 — legacy SoR UIs) and `/components/future-state/` (100 files
+— Docusign-surface mocks). Both sets use the shared tenant chrome (`.ds-topbar`
 + `.tenant-bar` + `.scene-head` + per-scene body). Each story arc is built
-from a combination of both.
+from a combination of story-level templates and component-level mocks.
 
 Story-level templates plug **into** a drill-down iframe inside a component
 mock, or serve as the anchor moment of a story loop. They are not meant to
@@ -52,11 +53,13 @@ and the agent's check list + summary.
 - `#insurance` URL hash
 - Click the bottom-right preset chip to cycle
 
-**Bolt on the MasterCard Scene 4 intro:** add `?splash=1` to the URL.
-The script loads `/stories/_shared/mastercard-splash.css` + `.js`
-automatically and passes a preset-specific `data-descriptor`. The
-`.mock` root carries the `workspaces-demo` opt-in marker so the shared
-splash module's guard passes.
+**Bolt on the MasterCard-style Scene 5 intro:** add `?splash=1` to the URL,
+or set `splash:true` on a preset. The splash CSS + JS are inlined inside
+`docusign-workspace.html` (look for `.mc-splash` in the `<style>` block and
+the `loadSplash` IIFE at the end of the script block). The descriptor tag
+is generated from the active preset's `workspace.title`. There is no
+`/stories/_shared/mastercard-splash.{css,js}` — that external module was
+never built and the inlined version replaces it.
 
 **Adaptation slots (to add a new vertical/subvertical/process):**
 - Append a new entry to `PRESETS` — copy any existing entry and swap
@@ -117,8 +120,9 @@ story grammar as component mocks.
 
 **Best for:** any "multiple things happen in parallel" moment — claim
 investigation, evidence orchestration, onboarding packet assembly, policy
-issuance, recovery workflow. This is the highest-leverage template —
-84 of 95 future-state components follow this pattern.
+issuance, recovery workflow. This is the highest-leverage template — the
+majority of `/components/future-state/` `component-loop-*` files follow this
+pattern (88 of 100 future-state files as of 2026-04-26).
 
 **Adaptation slots:**
 - `.ds-product` + `.ds-crumb` text in topbar
@@ -404,47 +408,27 @@ invent values from memory.
 - **Majesco** / **Oracle OIPA** — L&A policy admin, zero demo
 - **Meditech** — #3 EHR, zero demo
 
-### Multi-tenant story pattern (phase-2 onboarding, Apr 2026)
+### Multi-tenant story pattern (deprecated)
 
-`stories/wealth-onboarding-v2/` introduces a **tenant-swap** pattern that
-lets one story render as different SoR chromes without duplicating HTML.
-The portal URL accepts `?tenant=<id>` where `<id>` is one of the tenants
-declared in the recipe's `tenants` block; `portal-engine.js` merges that
-tenant's brand tokens over the default `brand` block before rendering,
-and propagates the param to every iframe drill-down so sibling scenes
-stay in the same tenant. Scenes load `tenant-config.js` which overrides
-`--tn-primary` / `--tn-accent` and rewrites elements marked with
-`data-tenant-*` attributes at DOMContentLoaded.
+The earlier `stories/wealth-onboarding-v2/` tenant-swap pattern (using
+`?tenant=<id>` to render one story against multiple SoR chromes) has been
+superseded by the shell-based `?vertical=<key>` + per-vertical preset
+pattern. The folder no longer exists. The lesson — *one shell, parameter-
+driven content, no per-tenant HTML duplication* — is now embodied by
+`/stories/_shared/story-shell.html` and `docusign-workspace.html`'s
+`PRESETS` registry. Don't reintroduce `tenant-config.js` or `data-tenant-*`
+attributes; use a preset entry instead.
 
-Current supported tenants: `redtail` (default), `wealthscape`, `schwab`.
+### Chrome↔capture alignment notes (historical)
 
-To port this pattern to another story:
-1. Add a `tenants: { <id>: { primary, primary900, ..., name } }` dict to
-   the recipe.
-2. Copy `stories/wealth-onboarding-v2/tenant-config.js` into the story
-   folder and edit the `TENANTS` object.
-3. In every scene, use `data-tenant-letter`, `data-tenant-brand`,
-   `data-tenant-sub`, `data-tenant-name`, `data-tenant-footer-tag` on the
-   elements that should swap, and load `tenant-config.js` at the bottom.
-
-### Chrome↔capture alignment notes for `/stories/`
-
-The 10 canonical vertical portals are scaffolded with plausible vendor chrome,
-but three stories have chrome branded to a vendor *product line* different
-from what's actually been captured on video. These are playable standalone;
-they will read as mismatched if shown side-by-side with the captured demo.
-Accept-as-invented per audit 2026-04-23 — revisit if a capture of the matching
-product lands.
-
-| Story | Rendered chrome | Captured demo on file | Status |
-|---|---|---|---|
-| `payor-healthedge/` | HealthEdge HealthRules Payer | HealthEdge **Source** (claims editing, different product line) | Invented against HRP public brand |
-| `federal-servicenow/` | ServiceNow for Government (Benefits / HR / FOIA) | ServiceNow **GRC** (different module) | Invented against ServiceNow core UI |
-| `insurance-la-duckcreek/` | Duck Creek **Life** AdminSuite | Duck Creek **Policy / P&C** (Appulate Uplink flow) | Invented L&A chrome (no L&A admin capture exists for any vendor) |
-
-If a demo for any of the matching product lines lands, the chrome should be
-retuned against actual frames. Current state is "brand-accurate for the named
-vendor, not frame-grounded."
+Prior to the shell collapse, three legacy portal folders rendered chrome
+branded to vendor product lines we'd never captured (HealthEdge HRP vs.
+captured Source; ServiceNow Public Sector vs. captured GRC; Duck Creek
+Life vs. captured P&C Policy). Those folders are gone. The alignment
+caveats now live at the **scene template** level — if you ever badge a
+story-template for a vendor product line that doesn't have demo footage,
+mark it as "brand-accurate, not frame-grounded" in any artifact that
+ships externally.
 
 ### Folder-to-slug mapping reference
 

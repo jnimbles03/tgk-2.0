@@ -1,5 +1,13 @@
 # TGK 2.0 — Core Portal per Vertical & Headless Docusign Use Cases
 
+> **Architecture note (2026-04-26).** The per-vertical demo experience
+> ships through one shared shell at `/stories/_shared/story-shell.html`,
+> driven by `?vertical=<key>`. The 5-scene mechanics are described under
+> "How the portals fit into TGK story structure" below. The vertical
+> capability palettes in the body of this doc are still the **spec** —
+> they describe what each vertical *should* do; the shell is the
+> *delivery vehicle*.
+
 Each vertical has one canonical SoR portal that TGK treats as the **host
 environment** for a built-out, rich story. Inside that portal, Docusign
 shows up **headless** — embedded via API/SDK so the host's users never
@@ -456,42 +464,34 @@ attachment ever leaving email."**
 
 ## How the portals fit into TGK story structure
 
-Every vertical demo follows the same **4-scene spine**, with the vendor
-portal acting as the *host environment* rather than a scene of its own:
+Every vertical demo runs through the same **5-scene shell** at
+`/stories/_shared/story-shell.html`. The vendor portal context lives
+inside the shell's iframe templates — not as its own scene, and not as a
+separate per-portal HTML.
 
-1. **Sender experience** — the host operator (banker, underwriter,
-   advisor, adjudicator, study manager) composes the package inside the
-   vendor portal. Starts the Workspace if one is needed, requests digital
-   CLEAR IDV, triggers the broken interview (parallel/sequential webforms
-   plus form selection). Sender never leaves the host chrome.
-2. **Signer experience** — opposite side of the *same* transaction. The
-   signer lands in whichever surface the transaction routes them to (a
-   Workspace for multi-party flows, a direct webform link for simpler
-   ones), fills out forms, completes CLEAR IDV, signs. One concrete
-   customer carried through from Scene 1.
-3. **Headless experience** — the "so what just happened?" beat. Docusign's
-   value shows up *without Docusign chrome*. Two flavors:
-   - **Data landing home.** Navigator has extracted the agreement, the
-     host record is populated (fields, clause repo, obligation calendar),
-     the downstream consumer surface now *has* what it needs.
-   - **Orchestration trace.** Maestro's parallel/sequential lanes rendered
-     in the host's native activity log or workflow view, with before/after
-     SLA proving "eight things happened without a human."
-4. **MasterCard experience (optional)** — a tribute to the MasterCard
-   "For everything else, there's MasterCard" commercials. Opens with a
-   short editorial splash —
-   > *For the interview that fits on one page, there's Webforms.*
-   > *For the handshake that fits in one envelope, there's eSignature.*
-   > *For everything else, there's Workspaces.*
-   — then drops into a working Workspace view for a genuinely complex
-   async multi-party transaction (mortgage close, partner onboarding,
-   clinical site agreement, commercial loan mod). Include Scene 4 only
-   when the transaction genuinely exceeds what Webforms + conditional
-   logic can carry.
+| Scene | Role | Iframe template loaded | Hotspot key |
+|---|---|---|---|
+| 1 | Sender · Agreement Desk | `docusign-agreement-desk.html?preset=<v>` | `agreement_desk` |
+| 2 | Identity · CLEAR | `docusign-clear-idv.html?preset=<v>` | `clear_idv` |
+| 3 | Signing | `docusign-signing-ceremony.html?preset=<v>` | `signing` |
+| 4 | Data · Navigator | `docusign-navigator.html?preset=<v>` | `navigator` |
+| 5 | Workspace | `docusign-workspace.html?preset=<v>[&splash=1]` | `workspace` |
 
-### "For everything else, there's Workspaces" — when to include Scene 4
+**Hotspot coordinates are shared across all 10 verticals** because they
+target Docusign template UI, which doesn't shift per preset. Only the
+per-vertical narration (sidebar copy + per-beat headlines × 5 beats per
+scene) varies.
 
-Scene 4 earns its place when the signature-moment transaction is:
+The conceptual Sender → Signer → Headless → MasterCard heuristic from the
+older 4-scene spine still maps usefully: Scenes 1-2 are sender + signer
+in flight; Scenes 3-4 are signing + the headless data-landing moment;
+Scene 5 is the Workspaces homage. Append `?splash=1` to any vertical to
+bolt on the MasterCard-style intro on Scene 5 — the splash is no longer
+MasterCard-only and any vertical can opt into it.
+
+### "For everything else, there's Workspaces" — when to use the splash
+
+The splash earns its place when the signature-moment transaction is:
 
 - **Async** — participants contribute on their own clock, over days/weeks.
 - **Multi-party** — three or more humans with distinct roles (not just
@@ -505,97 +505,72 @@ Scene 4 earns its place when the signature-moment transaction is:
 Canonical fits: mortgage close, new partner/vendor onboarding, commercial
 loan modification, clinical site agreement, grant application with PI +
 IRB + finance, foster-care placement, benefits orientation packet,
-credentialing. Skip Scene 4 when a single well-composed envelope or a
+credentialing. Skip the splash when a single well-composed envelope or a
 short webform sequence carries the transaction (KYC refresh, admit
 deposit, address change, click-to-agree renewal).
 
 ### Story shells on disk
 
-Each vertical is a **story shell** in `/stories/<vertical>/`. Inside it:
+The recipe.json + per-portal-scene-HTML pattern is gone. Today:
 
-- `recipe.json` carries the story data + a `spineRoles` block mapping each
-  scene role to its HTML file:
+- `/stories/story-<vertical>/index.html` is a thin redirect to
+  `/stories/_shared/story-shell.html?vertical=<key>` (preserves any
+  trailing hash). Eleven folders today, one per vertical key, plus
+  `wealth-hillside-aster` as a vanity URL pointing at `wealth`.
+- `/stories/_shared/story-shell.html` is the only shell. It contains the
+  `VERTICALS` map (per-vertical tenant brand + 5 scenes × 5 beats), the
+  `HOTSPOTS` map (5 surfaces × 5 hotspots, shared), and the runtime that
+  iframes the right Docusign template per scene.
+- Scene templates live at `/story-templates/docusign-*.html`. Each accepts
+  `?preset=<key>` to render the per-vertical brand. The Workspace
+  template additionally accepts `?splash=1` for the MasterCard-style
+  intro (CSS + JS inlined inside `docusign-workspace.html` — there is no
+  separate `mastercard-splash.{css,js}` shared module).
+- Per-vertical Workspace presets (the canonical 10) live at the bottom
+  of `docusign-workspace.html` in the `PRESETS` constant — keys exactly
+  match the shell's vertical keys.
 
-  ```json
-  "spineRoles": {
-    "sender":     "<sender-scene>.html",
-    "signer":     "<signer-scene>.html",
-    "headless":   "<headless-scene>.html",
-    "mastercard": "<mastercard-scene>.html"   // optional; omit when not applicable
-  }
-  ```
-  The legacy `portalDrilldown` key maps 1:1 to `headless` — keep both
-  populated during transition so nothing breaks, rename as you rebuild.
-- The vendor portal chrome is rendered by the portal engine
-  (`portal.html?story=<vertical>`) as the host environment; every scene
-  drills in from the portal's quick-actions and docket rows via iframe.
-- Scene HTMLs sit alongside `recipe.json` and link to
-  `../_shared/scene-chrome.css` for the shared topbar/tenant-bar/footer
-  grammar.
-- The MasterCard scene (when present) has two parts:
-  - **Intro splash** — a shared, auto-injecting module at
-    `/stories/_shared/mastercard-splash.css` +
-    `/stories/_shared/mastercard-splash.js`. Every Scene 4 uses the
-    same Docusign-branded "For everything else, there's Workspaces"
-    intro, with a ~10s timeline, Deep Violet background, Glow accent
-    on "Workspaces," and DS Indigo typography. Per-vertical
-    customization of the descriptor tag is supported via a
-    `data-descriptor` attribute on the script tag.
-  - **Workspace view** — authored per vertical inside
-    `/stories/<vertical>/mastercard-<transaction>.html` as a standard
-    3-column scene (participants rail · active doc + activity thread
-    · documents rail), using the tenant chrome from scene-chrome.css.
+`story-templates/mastercard-workspace.html` is a thin redirect to
+`docusign-workspace.html?splash=1` — it preserves historical links.
+There is no separate inline Scene 5 template anymore.
 
-  A vertical's Scene 4 file only needs the workspace content plus
-  three shared-asset includes:
+### How to add or edit a vertical
 
-  ```html
-  <link rel="stylesheet" href="../_shared/scene-chrome.css">
-  <link rel="stylesheet" href="../_shared/mastercard-splash.css">
-  ...
-  <script src="../_shared/scene-overlay.js"></script>
-  <script src="../_shared/mastercard-splash.js"
-          data-descriptor="for <transaction type> — <parties>"></script>
-  ```
+1. Edit `/stories/_shared/story-shell.html`'s `VERTICALS` map. Each
+   entry takes `label`, `tenant`, `subtitle`, `tenantColor`, `preset`,
+   and a `scenes` array of 5 objects (each with `tag`, `head`, `lede`,
+   and a `beats` array of 5 per-beat objects).
+2. Add a matching entry to `PRESETS` at the bottom of
+   `/story-templates/docusign-workspace.html` so Scene 5 has tenant
+   content. The preset key must match the shell's vertical key.
+3. (Optional) Create a redirect folder at
+   `/stories/story-<vertical>/index.html` for a clean URL.
+4. Pick the SoR badge kit (REGISTRY.md) for any vertical-specific brand
+   work in the iframe templates.
 
-  The standalone template at `story-templates/mastercard-workspace.html`
-  is a fully self-contained reference/preview (inline splash + inline
-  scene-chrome + inline overlay.js) — useful for showing Scene 4 in
-  isolation without the project around it, but production scenes use
-  the shared module so the intro stays canonically one thing.
-
-### Authoring order
-
-When authoring or rebuilding a story:
-1. Pick the vertical + canonical host portal (this file).
-2. Pick the headline use case from the per-vertical list above.
-3. Pick one concrete customer + relationship to carry Scenes 1–2.
-4. Decide the Scene 3 flavor — data-landing-home or orchestration-trace.
-5. Decide whether Scene 4 earns its place (see heuristic above).
-6. Pick the SoR badge kit (REGISTRY.md) and the Docusign capabilities
-   that chain.
-7. Populate `recipe.json` `spineRoles` and author the 3 or 4 scene HTMLs.
+There is no `recipe.json`, no `spineRoles`, no per-portal scene HTML,
+no `portalDrilldown` key. If a build prompt asks you to author one of
+those, the prompt is stale — point it at the shell instead.
 
 ---
 
-## Next build priorities
+## Build status
 
-If the goal is "one really built-out portal per vertical," the order
-matters. Starting from the work already in TGK:
+All **21 verticals** (as of 2026-04-26 PM final pass) have full 5-scene
+narration with 5 beats each in the shell, matching presets in
+`docusign-workspace.html`, tenant brands and colors applied, and a
+working `?splash=1` Workspace intro:
 
-1. **Wealth** — already has `webform-address-change-idv.html` and
-   `portal-engine` infrastructure. Finish the portal with 3–4 more
-   headless Docusign moments layered in (beneficiary update, IPS
-   refresh, click-to-agree for small changes).
-2. **Banking — Consumer Deposits on nCino** — cleanest demo arc, big
-   buyer pool. Start with deposit-opening + KYC refresh.
-3. **HLS Provider — Epic** — most distinctive visual, unique to other
-   demos. Start with the ROI story (we have the EHR template ready).
-4. **Insurance P&C — Guidewire** — now that HazardHub capture exists,
-   build the FNOL-to-payment arc.
-5. **Life Sciences — Veeva Vault** — highest density of vault-specific
-   captures in hand. Start with site-agreement + ICF.
+- Original 10: `wealth`, `banking`, `insurance`, `provider`, `lifesciences`, `payor`, `fedgov`, `slgov`, `education`, `nonprofit`
+- Added 2026-04-26 PM: `insurance-life`, `insurance-pc`, `provider-roi`, `slgov-311`, `slgov-benefits`, `slgov-recertification`, `slgov-vendor-compliance`, `slgov-employee-onboarding`, `slgov-licensing`, `banking-deposits`, `wealth-discovery`
 
-Verticals that require more demo capture first (state/local, federal,
-education, payor) can wait until the canonical portal captures are
-downloaded.
+All 11 new verticals were authored by translating the matching root-level
+sampler HTMLs into the shell pattern. The 11 source samplers were then
+converted to thin redirects pointing to their canonical shell URLs (originals
+preserved in git history). One sampler (`hls-discovery-process-map.html`)
+remains as a standalone process-map artifact.
+
+Open follow-up work is captured in the project root's `CANONICAL.md`
+(per-vertical truth-test matrix and prioritized punch list). Check
+`CANONICAL.md` before starting any vertical-related build to make sure
+you're not duplicating work or building against a stale assumption.
