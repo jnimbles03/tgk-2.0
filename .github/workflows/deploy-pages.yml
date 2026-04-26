@@ -1,0 +1,87 @@
+# =============================================================================
+# Deploy TGK 2.0 to GitHub Pages
+# -----------------------------------------------------------------------------
+# Source repo serves both Replit (with the Express server.js backend) and
+# GitHub Pages (static-only). To keep source files identical for both targets,
+# this workflow copies the repo into _site/, runs a path-prefix rewrite that
+# injects /tgk-2.0/ in front of all root-relative URLs, then ships the result
+# to Pages. Replit serves untouched source. Pages serves the rewritten copy.
+#
+# Manual setup required ONCE in repo settings:
+#   Settings → Pages → Source: "GitHub Actions"
+# =============================================================================
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow only one concurrent deploy; cancel in-flight runs when a new push lands
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage site (rsync, with backend / internal / heavy excludes)
+        run: |
+          mkdir -p _site
+          # Excludes:
+          #   .git/, .github/             — VCS + workflow self
+          #   node_modules/               — gitignored anyway, defensive
+          #   Youtube demos/, attached_assets/, .replit_integration_files/
+          #                                — large or untracked dev resources
+          #   audit/                      — Python tooling, not user-facing
+          #   server.js, package*.json    — Node backend (Replit-only)
+          #   .replit, replit.nix         — Replit config
+          #   .DS_Store, .~lock.*#        — OS / Office cruft
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            --exclude='Youtube demos/' \
+            --exclude='attached_assets/' \
+            --exclude='.replit_integration_files/' \
+            --exclude='audit/' \
+            --exclude='server.js' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='.replit' \
+            --exclude='replit.nix' \
+            --exclude='.DS_Store' \
+            --exclude='.~lock.*#' \
+            --exclude='_site/' \
+            ./ _site/
+
+      - name: Rewrite absolute paths to /tgk-2.0/ prefix
+        run: node .github/scripts/rewrite-paths.mjs _site
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

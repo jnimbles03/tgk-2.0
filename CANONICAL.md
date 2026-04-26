@@ -12,6 +12,29 @@ quoting either as authoritative on count.
 
 ---
 
+## Hosting & deploy
+
+Two targets, one source. Source files use root-relative paths (`/assets/…`,
+`/index-unified.html`, `/api/feedback`). **Do not** convert source paths to
+relative — both targets depend on the absolute form, and the Pages workflow
+adds the prefix automatically.
+
+- **Replit (`server.js` + Express):** the live working environment. Serves
+  source files unchanged at the domain root. Backend routes (`/api/feedback`,
+  `/admin/*`, SSE) only work here. This is where feedback collection runs.
+- **GitHub Pages (`jnimbles03.github.io/tgk-2.0/`):** static-only mirror.
+  Auto-deploys on push to `main` via `.github/workflows/deploy-pages.yml`,
+  which copies the repo into `_site/`, runs `.github/scripts/rewrite-paths.mjs`
+  (prepends `/tgk-2.0/` to all root-relative paths), swaps the legacy
+  `index.html` to `story-demo-classic.html`, and writes a fresh redirect
+  `index.html` → `index-unified.html`. The feedback widget no-ops here
+  (POST 404s silently). Admin console partially renders but its API calls
+  404 — this is intentional while feedback is being phased out.
+
+One-time repo setup: **Settings → Pages → Source: GitHub Actions**.
+
+---
+
 ## Canonical shape (locked 2026-04-26)
 
 One demo experience per vertical, one technology shape across all

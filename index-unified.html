@@ -115,14 +115,14 @@
   .landing-header::before, .landing-header::after { content: none; }
   .landing-header .scribble-accent { display: none; }
   .landing-header-inner { max-width: 1120px; margin: 0 auto; }
-  .landing-logo { margin-bottom: 80px; position: relative; display: inline-block; transition: opacity 0.15s; text-decoration: none; }
+  .landing-logo { margin-bottom: 10px; position: relative; display: inline-block; transition: opacity 0.15s; text-decoration: none; }
   .landing-logo:hover { opacity: 0.78; }
-  .landing-logo svg, .landing-logo img { display: inline-block; height: 26px; width: auto; }
+  .landing-logo svg, .landing-logo img { display: inline-block; height: 40px; width: auto; }
   .landing-header .lh-badge {
-    display: inline-block; padding: 0;
+    display: block; padding: 0;
     font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
     background: transparent; color: rgba(203, 194, 255, 0.85);
-    margin-bottom: 14px; border: 0; backdrop-filter: none;
+    margin-bottom: 84px; border: 0; backdrop-filter: none;
     position: relative;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
   }
@@ -132,9 +132,29 @@
        the long first line doesn't blow past the 1120px container at wide widths. */
     font-size: clamp(36px, 4.4vw, 56px);
     font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
-    margin: 0 0 20px; color: var(--ds-white); white-space: normal;
+    margin: 0; color: var(--ds-white); white-space: normal;
     max-width: 36ch; position: relative;
     text-wrap: balance;
+  }
+  /* Second headline row — sits flush under the h1, same font/size, with an
+     animated chevron canvas in place of a static ">". Canvas animation is
+     driven by initHeadlineChevronCanvas() below. */
+  .landing-headline-cta {
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    font-size: clamp(36px, 4.4vw, 56px);
+    font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--ds-white);
+    margin: 0 0 20px;
+    display: flex; align-items: center;
+    max-width: 36ch;
+  }
+  .landing-headline-cta .headline-chevron {
+    /* Wider than the chevron alone so the booster flame + ember particles
+       have horizontal room to trail behind the ">" without clipping. */
+    display: inline-block;
+    width: 1.6em; height: 1.0em;
+    margin-right: 0.06em;
+    flex-shrink: 0;
   }
   .landing-header p {
     font-size: 17px; line-height: 1.6; color: rgba(248, 243, 240, 0.72);
@@ -455,17 +475,20 @@
 
   @media (max-width: 900px) {
     .landing-header { padding: 32px 28px 96px; }
-    .landing-logo { margin-bottom: 56px; }
+    .landing-logo { margin-bottom: 8px; }
+    .landing-header .lh-badge { margin-bottom: 60px; }
     .mode-toggle-wrap { padding: 0 28px; }
     .landing-body { padding: 40px 28px 0; }
     .landing-actions { padding: 20px 28px 48px; }
     .landing-footer { padding: 24px 28px 32px; }
     .landing-footer-admin { padding: 0 28px 24px; }
     .landing-header h1 { font-size: 36px; white-space: normal; }
+    .landing-headline-cta { font-size: 36px; }
   }
   @media (max-width: 640px) {
     .landing-header { padding: 28px 22px 80px; }
-    .landing-logo { margin-bottom: 40px; }
+    .landing-logo { margin-bottom: 6px; }
+    .landing-header .lh-badge { margin-bottom: 44px; }
     .mode-toggle-wrap { padding: 0 22px; }
     .landing-body { padding: 32px 22px 0; }
     .landing-actions { padding: 16px 22px 40px; flex-direction: column; align-items: stretch; justify-content: stretch; }
@@ -476,6 +499,7 @@
     .option-card .oc-title, .option-card .oc-sub,
     .usecase-card .uc-title, .usecase-card .uc-sub { white-space: normal; overflow: visible; }
     .landing-header h1 { font-size: 28px; }
+    .landing-headline-cta { font-size: 28px; }
   }
 
   /* ===== "COMING SOON" MODAL ===== */
@@ -1680,9 +1704,12 @@
         <a class="landing-logo" href="/index-unified.html" title="Reset to vertical picker" aria-label="Reset to vertical picker">
           <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign" width="200" height="44">
         </a>
-        <div class="lh-badge" id="modeBadge">Demo story</div>
+        <div class="lh-badge" id="modeBadge">TGK 2.0 &mdash; IAM Storylines</div>
         <h1 id="landingHeadline">Pick a vertical. Pick a use case.</h1>
-        <p id="landingSubheadline">A verticalized story demo of the end-to-end workflow &mdash; CRM, portal, agreement desk, and impact summary &mdash; using the selected brand shell.</p>
+        <div class="landing-headline-cta">
+          <canvas class="headline-chevron" id="headlineChevron" aria-hidden="true"></canvas><span id="landingHeadlineCta">Launch Demo</span>
+        </div>
+        <p id="landingSubheadline">A verticalized story demo of the end-to-end workflow &mdash; utilizing Docusign to incrementally improve steps in the process along the way.</p>
       </div>
     </div>
 
@@ -4203,15 +4230,17 @@ function askNavAI() {
   // Header copy changes per mode
   const MODE_COPY = {
     discovery: {
-      badge: 'Discovery',
+      badge: 'TGK 2.0 — IAM Storylines',
       headline: 'Pick a vertical. Pick a use case.',
+      headlineCta: 'Open Discovery',
       subhead: 'Every use case opens as an interactive current-state vs. future-state process map — click any step to see where friction lives today and how Docusign IAM transforms it.',
       launch: 'Open Discovery'
     },
     story: {
-      badge: 'Demo story',
+      badge: 'TGK 2.0 — IAM Storylines',
       headline: 'Pick a vertical. Pick a use case.',
-      subhead: 'A verticalized story demo of the end-to-end workflow — CRM, portal, agreement desk, and impact summary — using the selected brand shell.',
+      headlineCta: 'Launch Demo',
+      subhead: 'A verticalized story demo of the end-to-end workflow — utilizing Docusign to incrementally improve steps in the process along the way.',
       launch: 'Launch Demo'
     }
   };
@@ -4219,8 +4248,9 @@ function askNavAI() {
   function applyModeCopy() {
     const c = MODE_COPY[state.mode];
     if (modeBadge) modeBadge.textContent = c.badge;
-    /* innerHTML so the <br> between sentences renders. Mode copy is static, no XSS risk. */
-    if (headline)  headline.innerHTML    = c.headline;
+    if (headline)  headline.textContent  = c.headline;
+    const headlineCta = document.getElementById('landingHeadlineCta');
+    if (headlineCta) headlineCta.textContent = c.headlineCta;
     if (subhead)   subhead.textContent   = c.subhead;
     pillDiscovery.classList.toggle('active', state.mode === 'discovery');
     pillStory.classList.toggle('active', state.mode === 'story');
@@ -4497,6 +4527,185 @@ function askNavAI() {
   // Initial paint
   applyModeCopy();
   updateLaunch();
+
+  // Headline ">" rendered as a rocket booster — the chevron is the rocket's
+  // nose, with a flickering flame plume and a stream of ember particles
+  // trailing behind it. Reads as "Launch" without getting cartoonish: white-
+  // hot core, brand poppy outer flame, gentle bob on the rocket itself.
+  // Honors prefers-reduced-motion (static chevron, no flame).
+  (function initHeadlineChevronCanvas() {
+    const canvas = document.getElementById('headlineChevron');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0; // logical (CSS) px
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    function sizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      W = Math.max(8, Math.round(rect.width));
+      H = Math.max(8, Math.round(rect.height));
+      canvas.width  = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    sizeCanvas();
+
+    // Rocket geometry — chevron sits on the right side of the canvas so the
+    // exhaust has room to stream leftward. cy nudged a hair below center to
+    // optically align with the headline's cap height.
+    function rocketAnchor(bobX, bobY) {
+      const ARM = H * 0.21; // chevron arm length — keep cx/tailX in sync with this
+      return {
+        cx: W * 0.78 + bobX,
+        cy: H * 0.55 + bobY,
+        armX: ARM,
+        armY: ARM,
+        // Tail point — where the flame and particles emit from.
+        tailX: W * 0.78 + bobX - ARM,
+        tailY: H * 0.55 + bobY,
+      };
+    }
+
+    function drawChevron(a, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(1.75, H * 0.075);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(a.cx - a.armX, a.cy - a.armY);
+      ctx.lineTo(a.cx + a.armX, a.cy);
+      ctx.lineTo(a.cx - a.armX, a.cy + a.armY);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawFlame(a, flicker) {
+      // Flame plume — three stacked elliptical gradients, longest in back,
+      // hottest in front. flicker (0..1) scales length and opacity each frame
+      // so it reads as a live combustion plume rather than a static graphic.
+      const baseLen = H * 0.95;
+      const len = baseLen * (0.78 + flicker * 0.32);
+      const halfLen = len / 2;
+      const cxF = a.tailX - halfLen + H * 0.04; // flame starts just inside the tail
+      const cyF = a.tailY;
+
+      // Outer flame — poppy, soft, widest
+      const wOuter = H * 0.46;
+      const gOuter = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len, cyF);
+      gOuter.addColorStop(0.00, 'rgba(255, 82, 82, 0.55)');
+      gOuter.addColorStop(0.55, 'rgba(255, 82, 82, 0.28)');
+      gOuter.addColorStop(1.00, 'rgba(255, 82, 82, 0.00)');
+      ctx.fillStyle = gOuter;
+      ctx.beginPath();
+      ctx.ellipse(cxF, cyF, halfLen, wOuter * (0.85 + flicker * 0.25), 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mid flame — warm amber, narrower
+      const wMid = H * 0.30;
+      const gMid = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len * 0.78, cyF);
+      gMid.addColorStop(0.00, 'rgba(255, 184, 92, 0.85)');
+      gMid.addColorStop(0.60, 'rgba(255, 130, 70, 0.40)');
+      gMid.addColorStop(1.00, 'rgba(255, 130, 70, 0.00)');
+      ctx.fillStyle = gMid;
+      ctx.beginPath();
+      ctx.ellipse(cxF + len * 0.11, cyF, halfLen * 0.78, wMid * (0.85 + flicker * 0.25), 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner core — white-hot, short and bright
+      const wCore = H * 0.18;
+      const gCore = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len * 0.55, cyF);
+      gCore.addColorStop(0.00, 'rgba(255, 255, 255, 0.95)');
+      gCore.addColorStop(0.55, 'rgba(255, 240, 200, 0.55)');
+      gCore.addColorStop(1.00, 'rgba(255, 220, 160, 0.00)');
+      ctx.fillStyle = gCore;
+      ctx.beginPath();
+      ctx.ellipse(cxF + len * 0.22, cyF, halfLen * 0.55, wCore * (0.9 + flicker * 0.2), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Ember particle system — emitted at the tail, drift leftward, shrink+fade.
+    const particles = [];
+    function spawnParticle(a) {
+      const isCore = Math.random() < 0.35;
+      particles.push({
+        x: a.tailX,
+        y: a.tailY + (Math.random() - 0.5) * H * 0.18,
+        vx: -(H * 0.025 + Math.random() * H * 0.020), // leftward drift, scaled to em
+        vy: (Math.random() - 0.5) * H * 0.004,
+        life: 0,
+        maxLife: 22 + Math.random() * 18,
+        size: (isCore ? 1.4 : 1.0) * (H * 0.04 + Math.random() * H * 0.025),
+        core: isCore,
+      });
+    }
+    function stepParticles(a) {
+      // Emit a couple per frame so the trail feels continuous but not dense.
+      if (Math.random() < 0.85) spawnParticle(a);
+      if (Math.random() < 0.55) spawnParticle(a);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 1;
+        if (p.life >= p.maxLife) particles.splice(i, 1);
+      }
+    }
+    function drawParticles() {
+      for (const p of particles) {
+        const k = 1 - p.life / p.maxLife; // 1 at birth → 0 at death
+        const alpha = k * (p.core ? 0.95 : 0.6);
+        const r = Math.max(0.4, p.size * (0.5 + k * 0.5));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.core ? '#ffffff' : '#FF5252';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      const a = rocketAnchor(0, 0);
+      ctx.clearRect(0, 0, W, H);
+      drawChevron(a, 1);
+      window.addEventListener('resize', () => {
+        sizeCanvas();
+        const a2 = rocketAnchor(0, 0);
+        ctx.clearRect(0, 0, W, H);
+        drawChevron(a2, 1);
+      });
+      return;
+    }
+
+    const start = performance.now();
+    function loop(now) {
+      const t = (now - start) / 1000; // seconds
+      // Rocket bobs slightly — small vertical sway, tinier horizontal sway.
+      const bobX = Math.sin(t * 2.3) * (W * 0.012);
+      const bobY = Math.sin(t * 3.1) * (H * 0.025);
+      const a = rocketAnchor(bobX, bobY);
+      // Flame flicker — composite of two sines so it doesn't pulse mechanically.
+      const flicker = 0.5 + 0.35 * Math.sin(t * 14) + 0.15 * Math.sin(t * 27 + 1.7);
+
+      ctx.clearRect(0, 0, W, H);
+      stepParticles(a);
+      drawParticles();    // particles behind flame for depth
+      drawFlame(a, Math.max(0, Math.min(1, flicker)));
+      drawChevron(a, 1);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    let resizePending = false;
+    window.addEventListener('resize', () => {
+      if (resizePending) return;
+      resizePending = true;
+      requestAnimationFrame(() => { sizeCanvas(); resizePending = false; });
+    });
+  })();
 
   // Animated ">" chevron on the launch CTA — drawn into a <canvas> so the
   // motion isn't tied to CSS keyframes. Renders a primary chevron with a
