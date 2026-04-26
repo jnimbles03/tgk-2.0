@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Agreement Desk — canonical animated template</title>
+<meta name="description" content="Canonical animated Docusign Agreement Desk flow modeled on the real Fontara reference frames. Three scenes: (1) Gmail-style email intake where a requestor sends an agreement request to the desk, (2) Agreement Desk list view with the new ticket arriving as a row, (3) ticket detail with the full Activity feed (email thread + uploaded documents + ticket created), Information sidebar, and tabs. Tenant tokens parameterized per preset. Reusable across all TGK 2.0 verticals — Wealth, Banking, Insurance, Provider, Life Sciences, Payor, Federal Gov, State & Local Gov, Education, Not for Profit. Select via ?preset=<key> or #<key>.">
+<!--
+  ============================================================
+  Docusign Agreement Desk — canonical animated template
+  ============================================================
+  Three scenes, ~22s loop:
+    0.0s   S1  Email intake            requester composes an email to
+                                         the desk with 2 attached docs
+    6.0s   S2  Agreement Desk list     ticket arrives as a top row,
+                                         briefly highlighted; table of
+                                         vertical-specific tickets
+   14.0s   S3  Ticket detail           Activity feed (email thread,
+                                         uploads, created), Information
+                                         sidebar, tabs
+   22.0s   Loop
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-inkwell:#130032; --ds-poppy:#FF5252;
+    --bg:#FFFFFF; --bg-muted:#F7F6F9; --bg-shell:#F3F0EC;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF;
+    --warn:#F59E0B; --warn-soft:#FEF3C7;
+    --new-amber:#FED7AA; --new-amber-ink:#9A3412;
+    --st-finance:#DBEAFE; --st-finance-ink:#1D4ED8;
+    --st-review:#EDE9FE; --st-review-ink:#6D28D9;
+    --st-await:#CCFBF1; --st-await-ink:#0F766E;
+    --st-legal:#FFEDD5; --st-legal-ink:#9A3412;
+    --st-done:#DCFCE7; --st-done-ink:#166534;
+    --st-party:#FCE7F3; --st-party-ink:#9D174D;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --tn-primary:#0F2A1F; --tn-mark:#3FDA99;
+    --tn-wordmark-font:"Fraunces",Georgia,serif;
+    --tn-wordmark-style:italic;
+    --tn-wordmark-weight:500;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+  .mock{width:min(1320px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,0.16),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity 0.5s ease;overflow:hidden;background:#fff;}
+  .scene.on{opacity:1;}
+
+  /* =========== S1 — Gmail compose =========== */
+  .compose-stage{height:100%;background:var(--bg-shell);display:flex;align-items:center;justify-content:center;padding:40px;}
+  .compose{width:min(700px,92%);background:#fff;border-radius:8px;box-shadow:0 20px 50px rgba(19,0,50,0.18),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;}
+  .cps-hdr{background:#404040;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;font-size:13px;font-weight:500;}
+  .cps-hdr .sp{flex:1;}
+  .cps-hdr .ctrl{color:#D4D4D8;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;}
+  .cps-hdr .ctrl svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .cps-row{padding:10px 20px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink);}
+  .cps-row .to{flex:1;color:var(--ink);}
+  .cps-row .ccbcc{color:var(--ink-soft);font-size:12px;}
+  .cps-subj{padding:10px 20px;border-bottom:1px solid var(--hair);font-size:14px;color:var(--ink);}
+  .cps-body{padding:20px 22px 14px;font-size:13.5px;color:var(--ink);line-height:1.6;min-height:200px;}
+  .cps-body p{margin-bottom:12px;}
+  .cps-body .sig{margin-top:18px;}
+  .cps-body .sig .nm{font-weight:700;}
+  .cps-attach{padding:0 22px 14px;display:flex;flex-direction:column;gap:8px;}
+  .cps-doc{display:flex;align-items:center;gap:10px;padding:9px 14px;border:1px solid var(--hair-strong);border-radius:4px;font-size:13px;color:#1D4ED8;max-width:380px;}
+  .cps-doc .dic{width:26px;height:28px;border-radius:3px;background:#1D4ED8;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .cps-foot{border-top:1px solid var(--hair);padding:12px 18px;display:flex;align-items:center;gap:16px;}
+  .cps-send{background:#1A73E8;color:#fff;border:none;border-radius:22px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0;}
+  .cps-send.pulse{animation:sendPulse 1.6s ease-in-out infinite;}
+  @keyframes sendPulse{0%,100%{box-shadow:0 0 0 0 rgba(26,115,232,0);}50%{box-shadow:0 0 0 8px rgba(26,115,232,0.18);}}
+  .cps-send .split{display:inline-block;margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.3);}
+  .cps-tools{display:flex;gap:12px;color:var(--ink-soft);}
+  .cps-tools svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;}
+  .cps-foot .sp{flex:1;}
+  .cps-foot .tr{color:var(--ink-soft);font-size:16px;cursor:pointer;}
+
+  /* =========== S2/S3 shared: Docusign chrome =========== */
+  .dchrome{height:100%;display:flex;flex-direction:column;background:#fff;}
+  .dtop{height:54px;display:flex;align-items:center;padding:0 20px;gap:22px;border-bottom:1px solid var(--hair);flex-shrink:0;}
+  .dtop .grid{width:22px;height:22px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;}
+  .dtop .grid span{background:var(--ink-mid);border-radius:1px;}
+  .dtop .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;color:var(--ds-inkwell);letter-spacing:-0.01em;}
+  .dtop .logo svg{width:20px;height:20px;}
+  .dtabs{display:flex;gap:2px;}
+  .dtab{font-size:13px;font-weight:500;color:var(--ink-mid);padding:18px 14px;position:relative;cursor:pointer;}
+  .dtab.active{color:var(--ink);font-weight:600;}
+  .dtab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2.5px;background:var(--ds-purple);border-radius:2px;}
+  .dtop .sp{flex:1;}
+  .dtop .ic{width:18px;height:18px;color:var(--ink-mid);}
+  .dtop .av{width:28px;height:28px;border-radius:50%;background:#FFD1A8;color:#7B4225;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  /* =========== S2 — Agreement Desk list =========== */
+  .s2-body{flex:1;overflow:auto;padding:28px 32px 32px;}
+  .s2-head{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+  .s2-head h1{font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-0.015em;}
+  .s2-head .sp{flex:1;}
+  .s2-head .btn{padding:9px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;}
+  .s2-head .btn.ghost{background:#fff;border-color:var(--hair-strong);color:var(--ink);}
+  .s2-head .btn.primary{background:var(--ds-purple);color:#fff;}
+
+  .s2-filter{display:flex;gap:10px;margin-bottom:20px;align-items:center;}
+  .s2-search{flex:1;border:1px solid var(--hair-strong);border-radius:6px;padding:8px 14px;font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;background:#fff;max-width:320px;}
+  .s2-search svg{width:13px;height:13px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .drop{border:1px solid var(--hair-strong);border-radius:6px;padding:7px 14px;font-size:12.5px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;background:#fff;cursor:pointer;}
+  .drop svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .filter-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:12.5px;color:var(--ink);font-weight:500;cursor:pointer;}
+  .filter-btn svg{width:14px;height:14px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+
+  table.tickets{width:100%;border-collapse:collapse;font-size:13px;}
+  table.tickets thead th{text-align:left;padding:10px 14px;font-size:11.5px;color:var(--ink-soft);font-weight:500;border-bottom:1px solid var(--hair);}
+  table.tickets thead th .sort{margin-left:3px;color:var(--ink-faint);font-size:10px;}
+  table.tickets tbody td{padding:16px 14px;border-bottom:1px solid var(--hair);color:var(--ink);font-size:13px;vertical-align:middle;}
+  table.tickets tbody tr{transition:background 0.3s ease;}
+  table.tickets tbody tr.new-row{animation:rowArrive 1.2s ease;}
+  @keyframes rowArrive{0%{background:var(--ds-purple-tint);}100%{background:transparent;}}
+  .st-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:500;}
+  .st-chip .dot{width:6px;height:6px;border-radius:50%;}
+  .st-chip.finance{background:var(--st-finance);color:var(--st-finance-ink);}
+  .st-chip.finance .dot{background:var(--st-finance-ink);}
+  .st-chip.review{background:var(--st-review);color:var(--st-review-ink);}
+  .st-chip.review .dot{background:var(--st-review-ink);}
+  .st-chip.await{background:var(--st-await);color:var(--st-await-ink);}
+  .st-chip.await .dot{background:var(--st-await-ink);}
+  .st-chip.legal{background:var(--st-legal);color:var(--st-legal-ink);}
+  .st-chip.legal .dot{background:var(--st-legal-ink);}
+  .st-chip.done{background:var(--st-done);color:var(--st-done-ink);}
+  .st-chip.done .dot{background:var(--st-done-ink);}
+  .st-chip.party{background:var(--st-party);color:var(--st-party-ink);}
+  .st-chip.party .dot{background:var(--st-party-ink);}
+  table.tickets .row-dots{color:var(--ink-faint);font-size:14px;cursor:pointer;}
+
+  /* =========== S3 — Ticket detail =========== */
+  .s3{height:100%;display:flex;flex-direction:column;background:#fff;}
+  .s3-top{padding:18px 32px 0;flex-shrink:0;}
+  .s3-top .row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .s3-back{width:24px;height:24px;cursor:pointer;color:var(--ink-mid);}
+  .s3-back svg{width:100%;height:100%;stroke:currentColor;stroke-width:2;fill:none;}
+  .s3-title{font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;}
+  .new-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:4px;background:var(--new-amber);color:var(--new-amber-ink);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+  .s3-top .sp{flex:1;}
+  .s3-avs{display:flex;align-items:center;}
+  .s3-av{width:26px;height:26px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;margin-left:-6px;}
+  .s3-av:nth-of-type(1){background:#FB923C;margin-left:0;}
+  .s3-av:nth-of-type(2){background:#60A5FA;}
+  .s3-av:nth-of-type(3){background:#F472B6;}
+  .s3-av.more{background:#E4E4E7;color:var(--ink-mid);font-size:10px;}
+  .share-btn{padding:8px 18px;border:1px solid var(--hair-strong);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink);background:#fff;cursor:pointer;margin-left:8px;}
+  .s3-tabs{display:flex;gap:2px;border-bottom:1px solid var(--hair);margin:0 -32px;padding:0 32px;}
+  .s3-tab{font-size:13px;font-weight:500;color:var(--ink-soft);padding:12px 14px;position:relative;cursor:pointer;}
+  .s3-tab.active{color:var(--ds-purple);font-weight:600;}
+  .s3-tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--ds-purple);border-radius:1px;}
+
+  .s3-main{flex:1;display:grid;grid-template-columns:1fr 340px;gap:32px;padding:22px 32px 32px;overflow:auto;}
+  .feed-col h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  .feed-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .feed-head .sp{flex:1;}
+  .send-msg{background:var(--ds-purple);color:#fff;border:none;border-radius:5px;padding:8px 16px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .send-msg svg{width:13px;height:13px;stroke:#fff;stroke-width:2;fill:none;}
+
+  .feed-date{font-size:11.5px;color:var(--ink-soft);margin-bottom:14px;text-transform:none;}
+
+  .feed{position:relative;}
+  .feed::before{content:"";position:absolute;left:16px;top:28px;bottom:28px;width:1px;background:var(--hair);}
+  .feed-item{display:grid;grid-template-columns:34px 1fr;gap:14px;margin-bottom:22px;position:relative;}
+  .fi-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;z-index:2;}
+  .fi-body .t{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:1px;}
+  .fi-body .sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+  .fi-card{background:var(--bg-muted);border:1px solid var(--hair);border-radius:6px;padding:14px 16px;font-size:12.5px;color:var(--ink);line-height:1.65;}
+  .fi-card p{margin-bottom:10px;}
+  .fi-card .sig{margin-top:12px;}
+  .fi-card .sig .nm{font-weight:700;}
+  .fi-actions{margin-top:10px;display:flex;gap:8px;}
+  .fi-actions .btn{padding:5px 14px;border:1px solid var(--hair-strong);border-radius:4px;font-size:11.5px;font-weight:500;color:var(--ink);background:#fff;cursor:pointer;}
+  .fi-doc{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:12.5px;color:#1D4ED8;background:var(--bg-muted);border-radius:4px;margin-top:6px;max-width:360px;}
+  .fi-doc .dic{width:22px;height:24px;border-radius:3px;background:#1D4ED8;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .fi-doc a{color:#1D4ED8;text-decoration:underline;cursor:pointer;}
+
+  .info-col{background:#fff;}
+  .info-card{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:18px 20px;}
+  .info-card .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .info-card .hdr h4{font-size:15px;font-weight:700;color:var(--ink);}
+  .info-card .hdr svg{width:14px;height:14px;stroke:var(--ink-mid);stroke-width:2;fill:none;cursor:pointer;}
+  .info-row{padding:10px 0;border-top:1px solid var(--hair);font-size:12.5px;}
+  .info-row:first-of-type{border-top:none;padding-top:0;}
+  .info-row .k{color:var(--ink-soft);font-size:11px;font-weight:500;margin-bottom:4px;text-transform:none;}
+  .info-row .v{color:var(--ink);}
+  .info-row .v .avi{display:inline-flex;align-items:center;gap:6px;}
+  .info-row .v .avi .av{width:20px;height:20px;border-radius:50%;background:#FB923C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+  .delete-btn{margin-top:12px;width:100%;padding:10px;border:1px solid var(--hair-strong);border-radius:6px;background:#fff;color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .delete-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  /* Progress + preset */
+  .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
+  .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
+  .scene-dots .d.on{background:#fff;width:22px;border-radius:4px;}
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;font-family:var(--ui-font);}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="mock">
+
+    <!-- ======= S1 — Email compose ======= -->
+    <div class="scene on" id="s1">
+      <div class="compose-stage">
+        <div class="compose">
+          <div class="cps-hdr">
+            New Message
+            <div class="sp"></div>
+            <span class="ctrl">—</span>
+            <span class="ctrl"><svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></span>
+            <span class="ctrl">×</span>
+          </div>
+          <div class="cps-row">
+            <span class="to" id="cps-to">procurement@fontara.com</span>
+            <span class="ccbcc">Cc  Bcc</span>
+          </div>
+          <div class="cps-subj" id="cps-subj">New marketing software</div>
+          <div class="cps-body">
+            <p>Hi,</p>
+            <p id="cps-body-main">The marketing team is looking into purchasing 14 licenses for the ad tracking and retargeting software MarketPulse Dynamics. Can you take a look at the MSA and the Order Form, and give us the OK to sign?</p>
+            <p>Thanks in advance,</p>
+            <div class="sig">
+              <div class="nm" id="cps-sender">Maria Santon</div>
+              <div id="cps-role">Director of Marketing</div>
+              <div id="cps-org">Fontara Financial</div>
+            </div>
+          </div>
+          <div class="cps-attach" id="cps-attach"></div>
+          <div class="cps-foot">
+            <button class="cps-send pulse">Send<span class="split">▾</span></button>
+            <div class="cps-tools">
+              <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86l-8.15 14.14A2 2 0 0 0 3.86 21h16.28a2 2 0 0 0 1.72-3l-8.15-14.14a2 2 0 0 0-3.42 0z"/></svg>
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <div class="sp"></div>
+            <span class="tr">⋮</span>
+            <span class="tr">🗑</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= S2 — Agreement Desk list ======= -->
+    <div class="scene" id="s2">
+      <div class="dchrome">
+        <div class="dtop">
+          <div class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="logo">
+            <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+            docusign
+          </div>
+          <div class="dtabs">
+            <div class="dtab">Home</div>
+            <div class="dtab active">Agreements</div>
+            <div class="dtab">Templates</div>
+            <div class="dtab">Reports</div>
+            <div class="dtab">Settings</div>
+          </div>
+          <div class="sp"></div>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="av">SL</div>
+        </div>
+
+        <div class="s2-body">
+          <div class="s2-head">
+            <h1>Agreement Desk</h1>
+            <div class="sp"></div>
+            <button class="btn ghost">Settings</button>
+            <button class="btn primary">Create</button>
+          </div>
+          <div class="s2-filter">
+            <div class="s2-search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Search tickets
+            </div>
+            <div class="drop">Type <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="drop">Owner <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="drop">Status <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="filter-btn"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>All Filters</div>
+          </div>
+
+          <table class="tickets">
+            <thead>
+              <tr>
+                <th>Title <span class="sort">↑↓</span></th>
+                <th>Type <span class="sort">↑↓</span></th>
+                <th>Status <span class="sort">↑↓</span></th>
+                <th>Submitter <span class="sort">↑↓</span></th>
+                <th>Owner <span class="sort">↑↓</span></th>
+                <th>Last Modified <span class="sort">↑↓</span></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ticket-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= S3 — Ticket detail ======= -->
+    <div class="scene" id="s3">
+      <div class="dchrome">
+        <div class="dtop">
+          <div class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="logo">
+            <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+            docusign
+          </div>
+          <div class="dtabs">
+            <div class="dtab">Home</div>
+            <div class="dtab active">Agreements</div>
+            <div class="dtab">Templates</div>
+            <div class="dtab">Reports</div>
+            <div class="dtab">Settings</div>
+          </div>
+          <div class="sp"></div>
+          <div class="av">SL</div>
+        </div>
+
+        <div class="s3">
+          <div class="s3-top">
+            <div class="row">
+              <div class="s3-back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+              <div class="s3-title" id="s3-title">New marketing software</div>
+              <div class="new-chip">New</div>
+              <div class="sp"></div>
+              <div class="s3-avs">
+                <div class="s3-av">DO</div>
+                <div class="s3-av">CU</div>
+                <div class="s3-av">IN</div>
+                <div class="s3-av more">+4</div>
+              </div>
+              <button class="share-btn">Share</button>
+            </div>
+            <div class="s3-tabs">
+              <div class="s3-tab active">Overview</div>
+              <div class="s3-tab">Details</div>
+              <div class="s3-tab">Documents</div>
+              <div class="s3-tab">Approvals</div>
+              <div class="s3-tab">Envelopes</div>
+            </div>
+          </div>
+
+          <div class="s3-main">
+            <div class="feed-col">
+              <div class="feed-head">
+                <h3>Activity feed</h3>
+                <div class="sp"></div>
+                <div class="drop">All Activity <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <button class="send-msg"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Send Message</button>
+              </div>
+              <div class="feed-date">Today</div>
+              <div class="feed" id="feed"></div>
+            </div>
+
+            <aside class="info-col">
+              <div class="info-card">
+                <div class="hdr"><h4>Information</h4><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+                <div class="info-row"><div class="k">Title</div><div class="v" id="info-title">New marketing software</div></div>
+                <div class="info-row"><div class="k">Status</div><div class="v"><span class="new-chip">New</span></div></div>
+                <div class="info-row"><div class="k">Ticket type</div><div class="v" id="info-type">Software purchase</div></div>
+                <div class="info-row"><div class="k">Submitter</div><div class="v"><span class="avi"><span class="av" id="info-sub-av">MS</span><span id="info-sub-name">Maria Santon</span></span></div></div>
+                <div class="info-row"><div class="k">Owner</div><div class="v">Unassigned</div></div>
+                <div class="info-row"><div class="k">Due date</div><div class="v" id="info-due">April 25, 2026</div></div>
+                <div class="info-row"><div class="k">Created</div><div class="v" id="info-created">Apr 16, 2026</div></div>
+              </div>
+              <button class="delete-btn"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Delete Ticket</button>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="scene-dots">
+  <div class="d on" data-s="s1"></div><div class="d" data-s="s2"></div><div class="d" data-s="s3"></div>
+</div>
+
+<div class="preset-chip"><span class="lab">Preset</span><select id="preset-select"></select></div>
+
+<script>
+const PRESETS = {
+  wealth: {label:"Wealth", tenant:"Hillside", tenantDomain:"hillsideadvisors.com", tenantOrg:"Hillside Advisors",
+    sender:"Priya Das", senderInitials:"PD", senderRole:"Head of Compliance",
+    subject:"New RIA platform — Orion Connect license",
+    body:"The compliance team is evaluating an Orion Connect license to replace our current reporting stack. Can you review the MSA and DPA, and confirm we're good to sign?",
+    docs:["Orion Connect MSA.docx","Orion DPA.docx"],
+    ticketType:"Software purchase",
+    tickets:[
+      ["Orion Connect license","Software purchase","finance","Finance Approval","Priya Das","Victoria Lee","Today",true],
+      ["13D filing — Q2","Regulatory","review","Finance Review","Marcus Chen","Victoria Lee","Apr 15"],
+      ["Factset renewal","Software purchase","await","Awaiting Approvals","Richard Almo","Corey Ikso","Apr 15"],
+      ["Custodian DPA — Acme Trust","Privacy and risk","legal","Legal Review","James Blackwood","Victoria Lee","Apr 14"],
+      ["NDA — institutional prospect","Legal","done","Completed","Jonathan Wright","Victoria Lee","Apr 13"],
+      ["Performance reporting SLA","Budget request","await","Awaiting Approvals","Claire Wose","Victoria Lee","Apr 12"],
+      ["Research feed — Bloomberg","Influencer agreement","party","Counterparty Review","Maya Patel","Corey Ikso","Apr 11"],
+      ["Advisor comp plan","Legal","done","Completed","Elena Rodriguez","Corey Ikso","Apr 10"],
+    ]},
+
+  banking: {label:"Banking", tenant:"Meridian", tenantDomain:"meridianbank.com", tenantOrg:"Meridian Commercial Bank",
+    sender:"Diana Holbrook", senderInitials:"DH", senderRole:"CFO, Atlas Manufacturing",
+    subject:"Atlas Mfg. — $2.5M working capital facility",
+    body:"Following up on our conversation — attaching the signed term sheet and our audited financials for 2024 and 2025. Can you review and confirm next steps on the loan agreement?",
+    docs:["Atlas Term Sheet — countersigned.pdf","Atlas FY24 audited.pdf","Atlas FY25 audited.pdf"],
+    ticketType:"Commercial credit",
+    tickets:[
+      ["Atlas Mfg. — $2.5M facility","Commercial credit","finance","Finance Approval","Diana Holbrook","Raj Malhotra","Today",true],
+      ["MidCoast Holdings — MSA renewal","Deposit agreement","review","Credit Review","Marcus Chen","Raj Malhotra","Apr 15"],
+      ["Garcia & Sons — SBA 7(a)","Commercial credit","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["BSA SAR — client 48211","Compliance","legal","Legal Review","James Blackwood","Raj Malhotra","Apr 14"],
+      ["Correspondent — BNY Mellon","Correspondent banking","done","Completed","Jonathan Wright","Raj Malhotra","Apr 13"],
+      ["Treasury RFP — Coastal Corp","Budget request","await","Awaiting Approvals","Claire Wose","Sofia Kim","Apr 12"],
+      ["Syndication — Lehrer Co.","Syndicated credit","party","Counterparty Review","Maya Patel","Raj Malhotra","Apr 11"],
+      ["KYC refresh — MidCoast","Compliance","done","Completed","Elena Rodriguez","Sofia Kim","Apr 10"],
+    ]},
+
+  insurance: {label:"Insurance", tenant:"Sentinel", tenantDomain:"sentinelinsurance.com", tenantOrg:"Sentinel Insurance",
+    sender:"Elena Ramirez", senderInitials:"ER", senderRole:"Policyholder",
+    subject:"Binder request — 412 Briar Lane",
+    body:"Hi Marisol, attaching the signed application and prior-claims disclosure for our homeowners policy. Inspection is scheduled for Thursday — can you confirm the binder is ready to release after it clears?",
+    docs:["Ramirez HO3 Application.pdf","Prior Claims Disclosure.pdf"],
+    ticketType:"Policy binder",
+    tickets:[
+      ["Ramirez — 412 Briar HO3","Policy binder","finance","Underwriting","Elena Ramirez","Marisol Vega","Today",true],
+      ["Reinsurance cession — Q2","Reinsurance","review","Treaty Review","Marcus Chen","Sarah Park","Apr 15"],
+      ["Coastal MGA appointment","Appointment","await","Awaiting Approvals","Richard Almo","Marisol Vega","Apr 15"],
+      ["Privacy notice — state of CA","Privacy and risk","legal","Legal Review","James Blackwood","Sarah Park","Apr 14"],
+      ["NDA — catastrophe model vendor","Legal","done","Completed","Jonathan Wright","Sarah Park","Apr 13"],
+      ["HazardHub data renewal","Software purchase","await","Awaiting Approvals","Claire Wose","Marisol Vega","Apr 12"],
+      ["Treaty wording — Swiss Re","Reinsurance","party","Counterparty Review","Maya Patel","Sarah Park","Apr 11"],
+      ["Producer commission — Vega","Comp","done","Completed","Elena Rodriguez","Sarah Park","Apr 10"],
+    ]},
+
+  provider: {label:"Provider", tenant:"Riverside", tenantDomain:"riversidehealth.org", tenantOrg:"Riverside Health",
+    sender:"Dr. Jordan Kim", senderInitials:"JK", senderRole:"Chief Medical Officer",
+    subject:"Aetna PPO — 2026 rate review",
+    body:"Attaching Aetna's draft 2026 fee schedule and their prior-auth policy update. Can we schedule a review this week to confirm whether we push back or accept the new rates?",
+    docs:["Aetna 2026 Fee Schedule.pdf","Aetna PA Policy Update.pdf"],
+    ticketType:"Payer contract",
+    tickets:[
+      ["Aetna PPO — 2026 rate review","Payer contract","finance","Finance Approval","Dr. Jordan Kim","Daniela Okafor","Today",true],
+      ["BCBS HMO renewal","Payer contract","review","Medical Review","Marcus Chen","Daniela Okafor","Apr 15"],
+      ["Epic EHR add-on — Cadence","Software purchase","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["HIPAA BAA — new vendor","Privacy and risk","legal","Legal Review","James Blackwood","Daniela Okafor","Apr 14"],
+      ["Locum Tenens NDA","Legal","done","Completed","Jonathan Wright","Sofia Kim","Apr 13"],
+      ["New MRI lease — clinic B","Budget request","await","Awaiting Approvals","Claire Wose","Daniela Okafor","Apr 12"],
+      ["Referring physician MOU","Influencer agreement","party","Counterparty Review","Maya Patel","Sofia Kim","Apr 11"],
+      ["Clinical trial — Helix HX-2104","Research","done","Completed","Elena Rodriguez","Daniela Okafor","Apr 10"],
+    ]},
+
+  lifesciences: {label:"Life Sciences", tenant:"Helix", tenantDomain:"helixtx.com", tenantOrg:"Helix Therapeutics",
+    sender:"Dr. Karim Halim", senderInitials:"KH", senderRole:"Principal Investigator, ARC",
+    subject:"ARC activation for HX-2104",
+    body:"Ethan, attaching the countersigned CTA and the 1572 for the ARC site. IRB is at WCG now. Can you confirm what else we need before activation?",
+    docs:["HX-2104 CTA — ARC countersigned.pdf","Form FDA 1572 — Halim.pdf"],
+    ticketType:"Clinical contract",
+    tickets:[
+      ["ARC activation — HX-2104","Clinical contract","finance","Clinical Ops","Dr. Karim Halim","Ethan Park","Today",true],
+      ["CDA — new sponsor (Merck)","Legal","review","Legal Review","Marcus Chen","Ethan Park","Apr 15"],
+      ["CRO invoice — Patheon Q1","Budget request","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["DPA — CRO platform","Privacy and risk","legal","Legal Review","James Blackwood","Ethan Park","Apr 14"],
+      ["Investigator brochure v5","Regulatory","done","Completed","Jonathan Wright","Ethan Park","Apr 13"],
+      ["Safety letter — site 7","Pharmacovigilance","await","Awaiting Approvals","Claire Wose","Sofia Kim","Apr 12"],
+      ["Academic collab — MGH","Influencer agreement","party","Counterparty Review","Maya Patel","Ethan Park","Apr 11"],
+      ["Protocol amendment v3.1","Regulatory","done","Completed","Elena Rodriguez","Ethan Park","Apr 10"],
+    ]},
+
+  payor: {label:"Payor", tenant:"Unity", tenantDomain:"unityhealthplan.com", tenantOrg:"Unity Health Plan",
+    sender:"Marcus Chen", senderInitials:"MC", senderRole:"Senior Member, Unity Silver HMO",
+    subject:"Member enrollment — Silver HMO effective 5/1",
+    body:"Hi, I've attached my completed enrollment application and HIPAA consent. Can you confirm my PCP selection and coverage effective date?",
+    docs:["Enrollment Application — Chen.pdf","HIPAA Consent.pdf"],
+    ticketType:"Member enrollment",
+    tickets:[
+      ["Chen — Silver HMO enrollment","Member enrollment","finance","Eligibility Check","Marcus Chen","Brenda Estevez","Today",true],
+      ["Riverside Health — 2026 rates","Payer contract","review","Credentialing","Maria Costa","Brenda Estevez","Apr 15"],
+      ["CVS Caremark PBM renewal","Vendor","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["Stop-loss reinsurance — Swiss Re","Reinsurance","legal","Legal Review","James Blackwood","Brenda Estevez","Apr 14"],
+      ["Broker appointment — Triangle","Appointment","done","Completed","Jonathan Wright","Sofia Kim","Apr 13"],
+      ["Wellness vendor — Hinge","Vendor","await","Awaiting Approvals","Claire Wose","Brenda Estevez","Apr 12"],
+      ["Provider contract — dermatology","Payer contract","party","Counterparty Review","Maya Patel","Sofia Kim","Apr 11"],
+      ["Network adequacy — zip 94110","Compliance","done","Completed","Elena Rodriguez","Brenda Estevez","Apr 10"],
+    ]},
+
+  fedgov: {label:"Federal Gov", tenant:"DOL", tenantDomain:"dol.gov", tenantOrg:"U.S. Department of Labor",
+    sender:"Taylor Nguyen", senderInitials:"TN", senderRole:"Unemployment Claimant",
+    subject:"Claim UI-2026-48211 — employer response",
+    body:"Attached are my separation documents from Parallax Corp and my completed availability certification for this week. Please let me know if anything else is needed.",
+    docs:["Separation Notice — Parallax.pdf","Availability Cert — Week 17.pdf"],
+    ticketType:"UI claim",
+    tickets:[
+      ["UI-2026-48211 — Nguyen","UI claim","finance","Adjudication","Taylor Nguyen","Claims Services","Today",true],
+      ["IT task order — Booz Allen OY3","Budget request","review","Contracting Review","Marcus Chen","Dean Park","Apr 15"],
+      ["Telecom MSA — Verizon","Software purchase","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["Data use agreement — BLS","Privacy and risk","legal","Legal Review","James Blackwood","Dean Park","Apr 14"],
+      ["IAA — Social Security Admin","Interagency","done","Completed","Jonathan Wright","Dean Park","Apr 13"],
+      ["Grant award — CA DOL","Budget request","await","Awaiting Approvals","Claire Wose","Sofia Kim","Apr 12"],
+      ["Cloud hosting — AWS GovCloud","Vendor","party","Counterparty Review","Maya Patel","Dean Park","Apr 11"],
+      ["Contractor badge renewal","Security","done","Completed","Elena Rodriguez","Sofia Kim","Apr 10"],
+    ]},
+
+  slgov: {label:"State & Local", tenant:"Springfield", tenantDomain:"springfield.gov", tenantOrg:"City of Springfield",
+    sender:"Marissa Rivera", senderInitials:"MR", senderRole:"Applicant, 1420 Oak Street",
+    subject:"Building permit application — 1420 Oak St rebuild",
+    body:"Hi Dean, attaching the permit application and site plans (6 sheets) for the Oak Street rebuild. Our contractor's CSLB license is current. Can you confirm next steps after zoning review?",
+    docs:["Permit Application — 1420 Oak.pdf","Site Plans — 6 sheets.pdf"],
+    ticketType:"Permit application",
+    tickets:[
+      ["BLD-2026-0412 — 1420 Oak","Permit application","finance","Plan Check","Marissa Rivera","Dean Okonkwo","Today",true],
+      ["Foster Construction — Phase 2","Construction","review","Engineering Review","Marcus Chen","Dean Okonkwo","Apr 15"],
+      ["ESRI GIS renewal","Software purchase","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["PRA request — Downtown LLC","Privacy and risk","legal","Legal Review","James Blackwood","Dean Okonkwo","Apr 14"],
+      ["AFSCME Local 89 — reopener","Labor","done","Completed","Jonathan Wright","Dean Okonkwo","Apr 13"],
+      ["Library ILA renewal","Budget request","await","Awaiting Approvals","Claire Wose","Sofia Kim","Apr 12"],
+      ["HUD CDBG — Q2 report","Grant","party","Counterparty Review","Maya Patel","Dean Okonkwo","Apr 11"],
+      ["Contractor license — CA-48821","Compliance","done","Completed","Elena Rodriguez","Sofia Kim","Apr 10"],
+    ]},
+
+  education: {label:"Education", tenant:"Maple Ridge", tenantDomain:"mapleridge.edu", tenantOrg:"Maple Ridge University",
+    sender:"Priya Shah", senderInitials:"PS", senderRole:"Incoming Student",
+    subject:"Enrollment — housing & tuition agreement",
+    body:"Hi Jamal, attaching my completed housing preference form and acceptance of the financial aid offer. Can you confirm the tuition agreement is ready to sign?",
+    docs:["Housing Preferences — Shah.pdf","FA Offer Acceptance — Shah.pdf"],
+    ticketType:"Student onboarding",
+    tickets:[
+      ["Shah — housing + tuition","Student onboarding","finance","Bursar Review","Priya Shah","Jamal Rivers","Today",true],
+      ["NIH R01 — year 2 report","Grant","review","Research Office","Marcus Chen","Nora Becker","Apr 15"],
+      ["Under Armour renewal","Software purchase","await","Awaiting Approvals","Richard Almo","Nora Becker","Apr 15"],
+      ["Study abroad MOU — Madrid","Privacy and risk","legal","Legal Review","James Blackwood","Jamal Rivers","Apr 14"],
+      ["Aramark dining — auto-renew","Vendor","done","Completed","Jonathan Wright","Nora Becker","Apr 13"],
+      ["Title IX intake — case 018","Compliance","await","Awaiting Approvals","Claire Wose","Jamal Rivers","Apr 12"],
+      ["Adjunct appointment — Dr. Lin","Influencer agreement","party","Counterparty Review","Maya Patel","Nora Becker","Apr 11"],
+      ["Transcript verification — 3.72","Records","done","Completed","Elena Rodriguez","Jamal Rivers","Apr 10"],
+    ]},
+
+  nonprofit: {label:"Nonprofit", tenant:"Harbor", tenantDomain:"harborfoundation.org", tenantOrg:"Harbor Foundation",
+    sender:"Rosa Patel", senderInitials:"RP", senderRole:"ED, Safe Streets Initiative",
+    subject:"Safe Streets — signed grantee agreement",
+    body:"Asha, attaching the countersigned grantee agreement and our Q1 budget narrative. Let me know what else you need before the first disbursement.",
+    docs:["Safe Streets — Grantee Agreement countersigned.pdf","Q1 Budget Narrative.pdf"],
+    ticketType:"Grantee onboarding",
+    tickets:[
+      ["Safe Streets — onboarding","Grantee onboarding","finance","Program Review","Rosa Patel","Asha Morgan","Today",true],
+      ["Open Society — matching grant","Partnership","review","Finance Review","Marcus Chen","Asha Morgan","Apr 15"],
+      ["Aramark — event catering","Vendor","await","Awaiting Approvals","Richard Almo","Sofia Kim","Apr 15"],
+      ["Donor intent — gift #488","Privacy and risk","legal","Legal Review","James Blackwood","Asha Morgan","Apr 14"],
+      ["990 filing — FY25","Regulatory","done","Completed","Jonathan Wright","Asha Morgan","Apr 13"],
+      ["Harbor HQ — lease renewal","Budget request","await","Awaiting Approvals","Claire Wose","Sofia Kim","Apr 12"],
+      ["Good Works — fiscal sponsor MOU","Influencer agreement","party","Counterparty Review","Maya Patel","Asha Morgan","Apr 11"],
+      ["CAF — pass-through update","Compliance","done","Completed","Elena Rodriguez","Sofia Kim","Apr 10"],
+    ]}
+};
+const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
+
+const AV_COLORS = ["#FB923C","#60A5FA","#F472B6","#34D399","#A78BFA","#F59E0B","#EC4899","#22D3EE","#EF4444","#84CC16"];
+function avColor(i){ return AV_COLORS[i % AV_COLORS.length]; }
+function initials(n){ return n.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase(); }
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+
+  // S1 — email compose
+  document.getElementById('cps-to').textContent = 'desk@' + p.tenantDomain;
+  document.getElementById('cps-subj').textContent = p.subject;
+  document.getElementById('cps-body-main').textContent = p.body;
+  document.getElementById('cps-sender').textContent = p.sender;
+  document.getElementById('cps-role').textContent = p.senderRole;
+  document.getElementById('cps-org').textContent = p.tenantOrg;
+  const cpsAttach = document.getElementById('cps-attach');
+  cpsAttach.innerHTML = p.docs.map(d => `
+    <div class="cps-doc"><div class="dic">DOC</div>${d}</div>
+  `).join('');
+
+  // S2 — tickets table
+  const rows = document.getElementById('ticket-rows');
+  rows.innerHTML = p.tickets.map((t, i) => {
+    const [title, type, statusKey, statusLabel, submitter, owner, lastMod, isNew] = t;
+    const subInit = initials(submitter);
+    return `<tr class="${isNew ? 'new-row' : ''}">
+      <td>${title}</td>
+      <td style="color:var(--ink-mid);">${type}</td>
+      <td><span class="st-chip ${statusKey}"><span class="dot"></span>${statusLabel}</span></td>
+      <td>${submitter}</td>
+      <td>${owner}</td>
+      <td style="color:var(--ink-mid);">${lastMod}</td>
+      <td><span class="row-dots">⋮</span></td>
+    </tr>`;
+  }).join('');
+
+  // S3 — ticket detail
+  const top = p.tickets[0];
+  const [tTitle, tType, , , tSub] = top;
+  document.getElementById('s3-title').textContent = tTitle;
+  document.getElementById('info-title').textContent = tTitle;
+  document.getElementById('info-type').textContent = p.ticketType;
+  document.getElementById('info-sub-name').textContent = p.sender;
+  document.getElementById('info-sub-av').textContent = p.senderInitials;
+  document.getElementById('info-sub-av').style.background = avColor(0);
+
+  // S3 — activity feed
+  const feed = document.getElementById('feed');
+  const senderAvatar = `<div class="fi-av" style="background:${avColor(0)};">${p.senderInitials}</div>`;
+  feed.innerHTML = `
+    <div class="feed-item">
+      ${senderAvatar}
+      <div class="fi-body">
+        <div class="t">Sent a message</div>
+        <div class="sub">${p.sender} · today at 2:42 PM</div>
+        <div class="fi-card">
+          <p>Hi,</p>
+          <p>${p.body}</p>
+          <p>Thanks in advance,</p>
+          <div class="sig">
+            <div class="nm">${p.sender}</div>
+            <div>${p.senderRole}</div>
+            <div>${p.tenantOrg}</div>
+          </div>
+        </div>
+        <div class="fi-actions">
+          <button class="btn">Reply</button>
+          <button class="btn">Forward</button>
+        </div>
+      </div>
+    </div>
+    <div class="feed-item">
+      ${senderAvatar}
+      <div class="fi-body">
+        <div class="t">Uploaded documents</div>
+        <div class="sub">${p.sender} · today at 2:35 PM</div>
+        ${p.docs.map(d => `<div class="fi-doc"><div class="dic">DOC</div><a>${d}</a></div>`).join('')}
+      </div>
+    </div>
+    <div class="feed-item">
+      ${senderAvatar}
+      <div class="fi-body">
+        <div class="t">Created a ticket</div>
+        <div class="sub">${p.sender} · today at 2:31 PM</div>
+      </div>
+    </div>
+  `;
+}
+
+/* =============================================================
+   Scene controller — supports both auto-advance and manual drive.
+   Clicking Send / a row / Back puts us in manual mode; 8 seconds
+   of idle resumes the auto loop from whichever scene you're on.
+   ============================================================= */
+const SCENES = [{id:"s1", at:0, dur:6000},{id:"s2", at:6000, dur:8000},{id:"s3", at:14000, dur:8000}];
+const TOTAL = 22000;
+const IDLE_RESUME_MS = 8000;
+let t0 = performance.now();
+let mode = "auto";          // "auto" | "manual"
+let manualScene = "s1";
+let lastManualInput = 0;
+
+function showScene(id){
+  document.querySelectorAll('.scene').forEach(x => x.classList.toggle('on', x.id === id));
+  const idx = SCENES.findIndex(s => s.id === id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+  // Retrigger new-row animation when S2 is shown fresh
+  if (id === "s2") {
+    const nr = document.querySelector('#ticket-rows .new-row');
+    if (nr) { nr.style.animation = 'none'; void nr.offsetWidth; nr.style.animation = ''; }
+  }
+}
+function goManual(id){
+  mode = "manual";
+  manualScene = id;
+  lastManualInput = performance.now();
+  showScene(id);
+}
+function render(now){
+  if (mode === "manual") {
+    if (now - lastManualInput > IDLE_RESUME_MS) {
+      // Resume auto loop, re-syncing t0 so current scene continues naturally
+      const sc = SCENES.find(s => s.id === manualScene) || SCENES[0];
+      t0 = now - sc.at;
+      mode = "auto";
+    } else {
+      requestAnimationFrame(render);
+      return;
+    }
+  }
+  const el = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) { if (el >= s.at && el < s.at + s.dur) { active = s; break; } }
+  showScene(active.id);
+  requestAnimationFrame(render);
+}
+
+/* =============================================================
+   Click wiring — Send, row, Back, dots, and hover affordances
+   ============================================================= */
+function wireClicks(){
+  // S1 — Send button → S2
+  const send = document.querySelector('.cps-send');
+  if (send) send.addEventListener('click', () => goManual('s2'));
+
+  // S2 — any row click → S3 (tied to the top/new row's data)
+  document.querySelectorAll('#ticket-rows tr').forEach(row => {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', () => {
+      // If the user clicks a non-top row, swap the detail title to that row's title.
+      const title = row.querySelector('td')?.textContent.trim();
+      if (title) {
+        document.getElementById('s3-title').textContent = title;
+        document.getElementById('info-title').textContent = title;
+      }
+      goManual('s3');
+    });
+    row.addEventListener('mouseenter', () => row.style.background = 'var(--bg-muted)');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+  });
+
+  // S3 — Back arrow → S2
+  const back = document.querySelector('.s3-back');
+  if (back) {
+    back.style.cursor = 'pointer';
+    back.addEventListener('click', () => goManual('s2'));
+  }
+
+  // Scene dots → jump to any scene
+  document.querySelectorAll('.scene-dots .d').forEach(d => {
+    d.style.cursor = 'pointer';
+    d.addEventListener('click', () => goManual(d.dataset.s));
+  });
+}
+// applyPreset re-renders the table, so re-wire clicks whenever it runs
+const _applyPreset = applyPreset;
+applyPreset = function(k){ _applyPreset(k); wireClicks(); };
+
+const sel = document.getElementById("preset-select");
+ORDER.forEach(k => { const o = document.createElement("option"); o.value=k; o.textContent=PRESETS[k].label; sel.appendChild(o); });
+function presetFromURL(){ const p = new URLSearchParams(location.search).get("preset") || location.hash.replace(/^#/,"") || "wealth"; return PRESETS[p] ? p : "wealth"; }
+const initial = presetFromURL(); sel.value = initial; applyPreset(initial);
+sel.addEventListener("change", () => { applyPreset(sel.value); history.replaceState(null, "", "?preset=" + sel.value); });
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

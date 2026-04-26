@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Navigator — canonical animated template</title>
+<meta name="description" content="Canonical animated Docusign Navigator flow modeled on the real UI. Four scenes: (1) Agreements list view with AI-extracted columns and purple ✦ AI-Assisted banner, (2) Insights / Obligations dashboard with AI-Assisted chip and chart grid, (3) document detail with the AI-Assisted review panel docked right, highlighted clauses, (4) Iris AI chat overlay with grounded Q&A. Tenant tokens parameterized per preset. Reusable across all TGK 2.0 verticals. Select via ?preset=<key> or #<key>.">
+<!--
+  ============================================================
+  Docusign Navigator — canonical animated template
+  ============================================================
+  Four scenes, ~28s loop. Everything is Docusign-branded Navigator
+  UI; the only vertical-specific content swaps are agreement names,
+  parties, and the sample AI Q&A shown in Scene 4.
+
+    0.0s   S1  Agreements list            AI banner + extracted rows
+    7.0s   S2  Insights → Obligations     dashboard w/ AI-Assisted chip
+   14.0s   S3  Document detail + AI rail  highlighted clauses + Overview
+   21.0s   S4  Iris AI chat overlay       grounded Q&A with citations
+   28.0s   Loop
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-poppy:#FF5252; --ds-inkwell:#130032;
+    --ai-violet:#A78BFA; --ai-violet-deep:#7C3AED;
+    --bg:#FFFFFF; --bg-muted:#FAFAFB; --bg-shell:#F3F0EC;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF;
+    --warn:#F59E0B; --warn-soft:#FEF3C7;
+    --danger:#DC2626; --danger-soft:#FEE2E2;
+    --chart-teal:#14B8C4; --chart-pink:#EC4899; --chart-blue:#60A5FA;
+    --highlight:#FED7AA;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+  .mock{width:min(1320px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,0.16),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+  /* ============ Top chrome (shared across S1-S3) ============ */
+  .topnav{flex-shrink:0;height:54px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 20px;gap:22px;}
+  .topnav .grid{width:22px;height:22px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;}
+  .topnav .grid span{background:var(--ink-mid);border-radius:1px;}
+  .topnav .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px;color:var(--ds-inkwell);letter-spacing:-0.01em;}
+  .topnav .logo svg{width:22px;height:22px;}
+  .topnav-tabs{display:flex;gap:2px;margin-left:4px;}
+  .tab{font-size:13.5px;font-weight:500;color:var(--ink-mid);padding:18px 14px;position:relative;cursor:pointer;}
+  .tab.active{color:var(--ink);font-weight:600;}
+  .tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2.5px;background:var(--ds-purple);border-radius:2px;}
+  .topnav .sp{flex:1;}
+  .topnav .ic{width:20px;height:20px;color:var(--ink-mid);cursor:pointer;}
+  .topnav .av{width:30px;height:30px;border-radius:50%;background:#FFD1A8;color:#7B4225;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  /* ============ Left rail (shared S1-S3) ============ */
+  .body{flex:1;display:flex;overflow:hidden;min-height:0;}
+  .rail{flex-shrink:0;width:234px;background:#fff;border-right:1px solid var(--hair);padding:16px 14px;gap:4px;display:flex;flex-direction:column;}
+  .rail .cta{background:var(--ds-purple);color:#fff;font-size:13px;font-weight:700;padding:10px 14px;border-radius:5px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;cursor:pointer;letter-spacing:0.01em;}
+  .rail .cta::after{content:"▾";margin-left:6px;font-weight:400;opacity:0.8;}
+  .rail-sec{margin-bottom:6px;}
+  .rail-sec > .hdr{display:flex;align-items:center;gap:8px;padding:8px 8px 6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;}
+  .rail-sec > .hdr .ci{width:15px;height:15px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .rail-sec > .hdr .ic{width:15px;height:15px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .rail-sec > .hdr .sp{flex:1;}
+  .rail-sec > .hdr .chev{width:11px;height:11px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .rail-item{display:block;padding:7px 10px 7px 34px;font-size:12.5px;color:var(--ink-mid);border-radius:5px;cursor:pointer;}
+  .rail-item.active{background:var(--ds-purple-tint);color:var(--ds-purple);font-weight:600;}
+  .rail-item:hover{background:var(--bg-muted);}
+
+  /* ============ Page content ============ */
+  .content{flex:1;overflow:hidden;position:relative;background:#fff;}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity 0.5s ease;overflow:auto;}
+  .scene.on{opacity:1;}
+
+  /* ============ S1 — Agreements list ============ */
+  .s1{padding:22px 28px 28px;}
+  .s1 .ph-hdr{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+  .s1 .ph-hdr h1{font-size:24px;font-weight:700;letter-spacing:-0.015em;color:var(--ink);}
+  .ai-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:14px;background:var(--ds-purple-soft);color:var(--ds-purple);font-size:11.5px;font-weight:600;}
+  .ai-chip .spark{width:12px;height:12px;}
+  .ai-chip .spark svg{width:100%;height:100%;}
+  .s1 .ai-banner{background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border:1px solid var(--ds-purple-soft);border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .s1 .ai-banner .mk{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--ds-purple),var(--ai-violet-deep));color:#fff;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
+  .s1 .ai-banner .mk svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;}
+  .s1 .ai-banner .mk::after{content:"";position:absolute;inset:-3px;border-radius:10px;border:2px solid var(--ds-purple);opacity:0;animation:aiPing 2.4s ease-in-out infinite;}
+  @keyframes aiPing{0%{opacity:0.5;transform:scale(0.92);}70%,100%{opacity:0;transform:scale(1.3);}}
+  .s1 .ai-banner .copy{flex:1;}
+  .s1 .ai-banner .copy h4{font-size:13.5px;color:var(--ink);margin-bottom:2px;font-weight:600;}
+  .s1 .ai-banner .copy p{font-size:12px;color:var(--ink-mid);line-height:1.5;}
+  .s1 .ai-banner .link{font-size:12px;font-weight:600;color:var(--ds-purple);cursor:pointer;}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .pill{border:1px solid var(--hair-strong);border-radius:16px;padding:6px 14px;font-size:12px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;background:#fff;cursor:pointer;}
+  .pill svg{width:9px;height:9px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .pill.primary{background:var(--ds-purple);color:#fff;border-color:var(--ds-purple);font-weight:600;}
+  .pill.primary svg{stroke:#fff;}
+
+  table.agt{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.agt thead th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--hair);font-size:11px;color:var(--ink-soft);text-transform:uppercase;font-weight:600;letter-spacing:0.04em;background:var(--bg-muted);}
+  table.agt thead th.ai{color:var(--ds-purple);}
+  table.agt tbody td{padding:13px 14px;border-bottom:1px solid var(--hair);vertical-align:middle;color:var(--ink);}
+  table.agt .ai-val{display:inline-flex;align-items:center;gap:6px;color:var(--ink);}
+  table.agt .ai-val .spark{width:10px;height:10px;color:var(--ds-purple);}
+  table.agt .status{padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:5px;}
+  table.agt .status.renew{background:#CFFAFE;color:#0E7490;}
+  table.agt .status.term{background:#FEE2E2;color:#B91C1C;}
+  table.agt .status.active{background:var(--ok-soft);color:#166534;}
+  table.agt .doc-name{display:flex;align-items:center;gap:10px;font-weight:500;}
+  table.agt .doc-name .ic{width:26px;height:26px;border-radius:4px;background:var(--ds-purple-soft);color:var(--ds-purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  table.agt .doc-name .ic svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  /* ============ S2 — Insights / Obligations dashboard ============ */
+  .s2{padding:22px 28px 28px;}
+  .s2 .ph-hdr{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .s2 .ph-hdr h1{font-size:26px;font-weight:700;letter-spacing:-0.015em;color:var(--ink);}
+  .s2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .card{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:18px 22px 22px;}
+  .card .t{font-size:14.5px;font-weight:600;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;}
+  .card .t .dots{color:var(--ink-faint);font-size:16px;line-height:1;}
+  .card .sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:16px;}
+
+  /* Bar chart */
+  .barchart{height:180px;display:flex;align-items:flex-end;gap:10px;padding:12px 0 28px;position:relative;border-bottom:1px solid var(--hair);}
+  .barchart .bar{flex:1;background:var(--chart-teal);border-radius:2px 2px 0 0;position:relative;transition:height 1s ease;}
+  .barchart .bar::before{content:attr(data-val);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink);font-weight:600;}
+  .barchart .bar::after{content:attr(data-lab);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--ink-soft);white-space:nowrap;}
+
+  /* Donut chart */
+  .donut-wrap{display:flex;align-items:center;gap:22px;padding:10px 0;}
+  .donut{width:170px;height:170px;position:relative;flex-shrink:0;}
+  .donut svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .donut .seg{fill:none;stroke-width:22;}
+  .legend{flex:1;font-size:12.5px;}
+  .legend .row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:5px 0;}
+  .legend .sw{width:10px;height:10px;border-radius:2px;}
+  .legend .num{font-weight:600;color:var(--ink);}
+  .legend .total{margin-top:8px;padding-top:8px;border-top:1px solid var(--hair);color:var(--ink-mid);}
+
+  /* Horizontal bar */
+  .hbar{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:6px 0;font-size:12px;}
+  .hbar .nm{color:var(--ink);white-space:nowrap;}
+  .hbar .track{height:14px;background:var(--bg-muted);border-radius:2px;overflow:hidden;}
+  .hbar .fill{height:100%;background:var(--chart-teal);border-radius:2px;transition:width 1s ease;}
+  .hbar .fill.violet{background:var(--ds-purple);}
+  .hbar .v{color:var(--ink);font-weight:600;}
+
+  /* ============ S3 — Document detail with AI-Assisted rail ============ */
+  .s3{height:100%;display:flex;flex-direction:column;background:var(--bg-muted);}
+  .s3 .cr{flex-shrink:0;padding:10px 22px;display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid var(--hair);font-size:12px;}
+  .s3 .cr .back{width:20px;height:20px;stroke:var(--ink-mid);stroke-width:2;fill:none;cursor:pointer;}
+  .s3 .cr .b{color:var(--ds-purple);cursor:pointer;}
+  .s3 .cr svg.ch{width:9px;height:9px;stroke:var(--ink-faint);stroke-width:2;fill:none;}
+  .s3 .cr .cur{color:var(--ink);font-weight:600;}
+  .s3 .inner{flex:1;display:flex;overflow:hidden;}
+  .s3 .doc{flex:1;overflow:auto;padding:30px 34px;background:var(--bg-muted);}
+  .doc-paper{background:#fff;max-width:680px;margin:0 auto;padding:44px 52px 54px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border:1px solid var(--hair);font-family:Georgia,serif;font-size:12.5px;line-height:1.72;color:var(--ink);}
+  .doc-paper h4{text-align:center;font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:0.02em;}
+  .doc-paper .section-num{font-weight:700;margin-top:16px;}
+  .doc-paper .hl{background:var(--highlight);padding:1px 3px;border-radius:2px;}
+  .doc-paper p{margin-bottom:10px;}
+
+  .ai-rail{width:340px;border-left:1px solid var(--hair);background:#fff;display:flex;flex-direction:column;flex-shrink:0;}
+  .ai-rail-hdr{padding:14px 18px;border-bottom:1px solid var(--hair);}
+  .ai-rail-hdr .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:14px;background:var(--ds-purple-soft);color:var(--ds-purple);font-size:11px;font-weight:600;margin-bottom:8px;}
+  .ai-rail-hdr h3{font-size:16px;font-weight:700;color:var(--ink);}
+  .ai-rail-hdr p{font-size:11.5px;color:var(--ink-mid);margin-top:2px;}
+  .ai-field-list{flex:1;overflow:auto;padding:6px 18px 18px;}
+  .ai-field{padding:10px 0;border-bottom:1px solid var(--hair);font-size:12.5px;}
+  .ai-field:last-child{border-bottom:none;}
+  .ai-field .k{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:5px;}
+  .ai-field .k svg{width:10px;height:10px;color:var(--ds-purple);}
+  .ai-field .v{color:var(--ink);}
+  .ai-field .v .edit{color:var(--ds-purple);font-size:11px;font-weight:600;margin-left:6px;cursor:pointer;opacity:0;transition:opacity 0.2s;}
+  .ai-field:hover .v .edit{opacity:1;}
+  .rail-tabs-ai{display:flex;border-bottom:1px solid var(--hair);padding:0 18px;}
+  .rail-tabs-ai .tb{padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;position:relative;}
+  .rail-tabs-ai .tb.on{color:var(--ds-purple);}
+  .rail-tabs-ai .tb.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--ds-purple);}
+
+  /* ============ S4 — Iris chat (overlay on S3) ============ */
+  .iris-scrim{position:absolute;inset:0;background:rgba(19,0,50,0.35);z-index:4;opacity:0;transition:opacity 0.35s ease;pointer-events:none;}
+  .iris-scrim.on{opacity:1;}
+  .iris-panel{position:absolute;top:0;right:0;bottom:0;width:min(460px,42%);background:#fff;border-left:1px solid var(--hair);transform:translateX(110%);transition:transform 0.45s cubic-bezier(.2,.8,.2,1);z-index:5;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(19,0,50,0.1);}
+  .iris-panel.on{transform:translateX(0);}
+  .iris-hdr{padding:18px 22px;background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .iris-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ds-purple),var(--ai-violet-deep));color:#fff;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
+  .iris-mark svg{width:16px;height:16px;stroke:#fff;stroke-width:2;fill:none;}
+  .iris-mark::after{content:"";position:absolute;inset:-3px;border-radius:11px;border:2px solid var(--ds-purple);opacity:0;animation:aiPing 2.4s ease-in-out infinite;}
+  .iris-hdr h3{font-size:15px;font-weight:700;color:var(--ink);}
+  .iris-hdr p{font-size:11.5px;color:var(--ink-mid);margin-top:1px;}
+  .iris-hdr .x{margin-left:auto;color:var(--ink-soft);cursor:pointer;font-size:18px;line-height:1;}
+
+  .iris-body{flex:1;overflow:auto;padding:18px 22px;}
+  .iris-q{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:14px;padding:12px 14px;background:var(--bg-muted);border-left:3px solid var(--ds-purple);border-radius:4px;}
+  .iris-a{font-size:13px;color:var(--ink);line-height:1.65;margin-bottom:14px;}
+  .iris-a .cite{display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;padding:0 4px;border-radius:4px;background:var(--ds-purple-soft);color:var(--ds-purple);font-size:10px;font-weight:700;margin:0 2px;vertical-align:baseline;cursor:pointer;}
+  .iris-kv{background:var(--bg-muted);border:1px solid var(--hair);border-radius:6px;padding:14px 16px;margin-bottom:14px;}
+  .iris-kv .t{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:8px;}
+  .iris-kv .row{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:5px 0;font-size:12.5px;}
+  .iris-kv .row .k{color:var(--ink-soft);}
+  .iris-kv .row .v{color:var(--ink);font-weight:500;}
+  .iris-helpful{font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;margin-bottom:18px;}
+  .iris-helpful svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;cursor:pointer;}
+  .iris-foot{flex-shrink:0;padding:14px 22px 18px;border-top:1px solid var(--hair);}
+  .iris-input{border:1px solid var(--hair-strong);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-mid);}
+  .iris-input .send{width:26px;height:26px;border-radius:6px;background:var(--ds-purple);color:#fff;display:flex;align-items:center;justify-content:center;margin-left:auto;cursor:pointer;}
+  .iris-input .send svg{width:12px;height:12px;stroke:#fff;stroke-width:2;fill:none;}
+  .iris-note{font-size:10.5px;color:var(--ink-faint);text-align:center;margin-top:10px;}
+
+  /* Progress dots + preset chip */
+  .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
+  .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
+  .scene-dots .d.on{background:#fff;width:22px;border-radius:4px;}
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;font-family:var(--ui-font);}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="mock">
+
+    <!-- Shared top chrome -->
+    <div class="topnav">
+      <div class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+        docusign
+      </div>
+      <div class="topnav-tabs">
+        <div class="tab">Home</div>
+        <div class="tab" id="tab-agreements">Agreements</div>
+        <div class="tab">Templates</div>
+        <div class="tab" id="tab-insights">Insights</div>
+        <div class="tab">Settings</div>
+      </div>
+      <div class="sp"></div>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div class="av" id="user-av">SL</div>
+    </div>
+
+    <div class="body">
+      <!-- Left rail -->
+      <aside class="rail">
+        <div class="cta">Create</div>
+        <div class="rail-sec">
+          <div class="hdr">
+            <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+            Dashboards
+            <div class="sp"></div>
+            <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="rail-item">Envelope</div>
+          <div class="rail-item" id="rail-agreements">Agreements</div>
+          <div class="rail-item" id="rail-obligations">Obligations</div>
+          <div class="rail-item">Renewals</div>
+        </div>
+        <div class="rail-sec">
+          <div class="hdr">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            Reports
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content / scenes -->
+      <div class="content">
+
+        <!-- =============== S1 — Agreements list =============== -->
+        <div class="scene on s1" id="s1">
+          <div class="ph-hdr">
+            <h1>Agreements</h1>
+            <div class="ai-chip"><span class="spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
+          </div>
+
+          <div class="ai-banner">
+            <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+            <div class="copy">
+              <h4 id="s1-ai-title">Iris extracted key terms from 58 agreements.</h4>
+              <p id="s1-ai-copy">Parties, effective dates, renewal terms, and value are now searchable and filterable below. Review any extraction that needs a human eye.</p>
+            </div>
+            <div class="link">Review extractions →</div>
+          </div>
+
+          <div class="filter-row">
+            <div class="pill primary">All agreements <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Party <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Effective date <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Renewal <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Value <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Advanced</div>
+          </div>
+
+          <table class="agt">
+            <thead>
+              <tr>
+                <th style="width:32%;">Name</th>
+                <th class="ai">Party ✦</th>
+                <th class="ai">Value ✦</th>
+                <th class="ai">Effective ✦</th>
+                <th class="ai">Renewal ✦</th>
+                <th style="width:100px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="s1-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- =============== S2 — Insights / Obligations dashboard =============== -->
+        <div class="scene s2" id="s2">
+          <div class="ph-hdr">
+            <h1>Obligations</h1>
+            <div class="ai-chip"><span class="spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
+          </div>
+          <div class="filter-row">
+            <div class="pill">Time Period <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Type <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Status <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Due Date <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Party <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="pill">Owner <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="t">Obligation by due dates<span class="dots">···</span></div>
+              <div class="sub">Next 6 months</div>
+              <div class="barchart" id="bar1">
+                <div class="bar" data-val="18" data-lab="May" style="height:85%;"></div>
+                <div class="bar" data-val="16" data-lab="Jun" style="height:76%;"></div>
+                <div class="bar" data-val="6"  data-lab="Jul" style="height:28%;"></div>
+                <div class="bar" data-val="5"  data-lab="Aug" style="height:23%;"></div>
+                <div class="bar" data-val="4"  data-lab="Sep" style="height:19%;"></div>
+                <div class="bar" data-val="3"  data-lab="Oct" style="height:14%;"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="t">Obligations by type<span class="dots">···</span></div>
+              <div class="sub">Next 6 months</div>
+              <div class="donut-wrap">
+                <div class="donut">
+                  <svg viewBox="0 0 100 100">
+                    <circle class="seg" cx="50" cy="50" r="38" stroke="#14B8C4" stroke-dasharray="119.4 238.8" stroke-dashoffset="0"/>
+                    <circle class="seg" cx="50" cy="50" r="38" stroke="#4B00E9" stroke-dasharray="59.7 238.8" stroke-dashoffset="-119.4"/>
+                    <circle class="seg" cx="50" cy="50" r="38" stroke="#EC4899" stroke-dasharray="59.7 238.8" stroke-dashoffset="-179.1"/>
+                  </svg>
+                </div>
+                <div class="legend">
+                  <div class="row"><span class="sw" style="background:#14B8C4;"></span><span>Renewal</span><span class="num">12</span></div>
+                  <div class="row"><span class="sw" style="background:#4B00E9;"></span><span>Termination</span><span class="num">10</span></div>
+                  <div class="row"><span class="sw" style="background:#EC4899;"></span><span>Payment</span><span class="num">2</span></div>
+                  <div class="row total"><span></span><span>Total</span><span class="num">24</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="t">Obligations by owner<span class="dots">···</span></div>
+              <div class="sub">Next 6 months</div>
+              <div class="hbar"><span class="nm" id="owner-1">Marcus Chen</span><span class="track"><span class="fill" style="width:75%;"></span></span><span class="v">12</span></div>
+              <div class="hbar"><span class="nm" id="owner-2">James Blackwood</span><span class="track"><span class="fill violet" style="width:62%;"></span></span><span class="v">10</span></div>
+            </div>
+
+            <div class="card">
+              <div class="t">Obligations by party<span class="dots">···</span></div>
+              <div class="sub">Next 6 months</div>
+              <div class="hbar"><span class="nm" id="party-1">Acme Inc.</span><span class="track"><span class="fill" style="width:88%;"></span></span><span class="v">62</span></div>
+              <div class="hbar"><span class="nm" id="party-2">American Express</span><span class="track"><span class="fill violet" style="width:64%;"></span></span><span class="v">45</span></div>
+              <div class="hbar"><span class="nm" id="party-3">Axxentour</span><span class="track"><span class="fill" style="width:52%;"></span></span><span class="v">36</span></div>
+              <div class="hbar"><span class="nm" id="party-4">Nevadia</span><span class="track"><span class="fill violet" style="width:38%;"></span></span><span class="v">26</span></div>
+              <div class="hbar"><span class="nm" id="party-5">Merry Yacht</span><span class="track"><span class="fill" style="width:32%;"></span></span><span class="v">22</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============== S3 — Document detail + AI rail =============== -->
+        <div class="scene" id="s3">
+          <div class="s3">
+            <div class="cr">
+              <svg class="back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+              <span class="b">Agreements</span>
+              <svg class="ch" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              <span class="cur" id="s3-title">Master Services Agreement — Acme Inc.</span>
+              <div style="flex:1;"></div>
+              <div class="ai-chip"><span class="spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
+            </div>
+            <div class="inner">
+              <div class="doc">
+                <div class="doc-paper">
+                  <h4>MASTER SERVICES AGREEMENT</h4>
+                  <p style="text-align:center;font-size:11.5px;color:var(--ink-soft);">Effective as of <span class="hl">May 1, 2025</span></p>
+                  <div class="section-num">1. DEFINITIONS</div>
+                  <p>This Master Services Agreement (this <b>"Agreement"</b>) is effective as of <span class="hl">May 1, 2025</span> ("<b>Effective Date</b>") and entered into between <span class="hl" id="doc-party-a">Acme Inc.</span>, a Delaware corporation ("Customer"), and <span class="hl" id="doc-party-b">MarketPulse Dynamics Inc.</span> ("Company"). This Agreement governs Customer's use and purchase of the Cloud Offerings and Professional Services (together, "Services") provided by Company to Customer.</p>
+                  <p><b>"Annual Subscription Fee"</b> means the <span class="hl">annual fee applicable to Customer's subscription to a Service</span>, and excludes any one-time fees (e.g., implementation fees, Professional Service fees, and any Taxes defined below).</p>
+                  <p><b>"Term"</b> means the duration this Agreement is in effect as described in Section 5 below, with an initial term of <span class="hl">twelve (12) months</span> and automatic renewal thereafter unless terminated per Section 6.</p>
+                  <div class="section-num">2. SERVICES</div>
+                  <p>Company will provide the Services described in each Statement of Work. All deliverables are subject to Customer's acceptance in accordance with the acceptance criteria set forth therein.</p>
+                </div>
+              </div>
+
+              <aside class="ai-rail">
+                <div class="ai-rail-hdr">
+                  <div class="chip"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
+                  <h3>Extracted fields</h3>
+                  <p>Reviewed by Iris · 14 of 14 fields high-confidence</p>
+                </div>
+                <div class="rail-tabs-ai">
+                  <div class="tb on">Overview</div>
+                  <div class="tb">Obligations</div>
+                  <div class="tb">Clauses</div>
+                </div>
+                <div class="ai-field-list">
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Counterparty</div><div class="v" id="rail-party">MarketPulse Dynamics Inc.</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Agreement type</div><div class="v">Master Services Agreement</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Effective date</div><div class="v">May 1, 2025</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Initial term</div><div class="v">12 months</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Renewal</div><div class="v">Auto-renew annually</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Annual value</div><div class="v" id="rail-value">$65,000</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Governing law</div><div class="v">State of California</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Termination notice</div><div class="v">30 days written</div></div>
+                  <div class="ai-field"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>Liability cap</div><div class="v">12 months of fees paid</div></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Iris overlay (S4) — lives outside .body so it can cover everything -->
+    <div class="iris-scrim" id="iris-scrim"></div>
+    <div class="iris-panel" id="iris-panel">
+      <div class="iris-hdr">
+        <div class="iris-mark"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+        <div>
+          <h3>Ask Iris</h3>
+          <p>Grounded in this agreement + your playbook</p>
+        </div>
+        <div class="x">×</div>
+      </div>
+      <div class="iris-body">
+        <div class="iris-q" id="iris-q">Are there termination terms in this agreement?</div>
+        <div class="iris-a" id="iris-a">Yes, the agreement specifies termination terms, including early termination fees and obligations to pay off the remaining balance on unfulfilled commitments if the Customer terminates before the end of a contract year.<span class="cite">1</span><span class="cite">2</span></div>
+        <div class="iris-kv">
+          <div class="t">Key terms</div>
+          <div class="row"><span class="k">Notice period</span><span class="v">30 days written notice</span></div>
+          <div class="row"><span class="k">Cure period</span><span class="v">15 business days</span></div>
+          <div class="row"><span class="k">Early termination fee</span><span class="v">Remaining annual fee · pro-rated</span></div>
+          <div class="row"><span class="k">Termination for cause</span><span class="v">Material breach, insolvency, security breach</span></div>
+        </div>
+        <div class="iris-helpful">
+          Was this helpful?
+          <svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 14V2"/><path d="M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88z"/></svg>
+        </div>
+      </div>
+      <div class="iris-foot">
+        <div class="iris-input">
+          Ask a question about this document
+          <div class="send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+        </div>
+        <div class="iris-note">Responses are generated with AI and are not legal advice.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="scene-dots">
+  <div class="d on" data-s="s1"></div><div class="d" data-s="s2"></div><div class="d" data-s="s3"></div><div class="d" data-s="s4"></div>
+</div>
+
+<div class="preset-chip"><span class="lab">Preset</span><select id="preset-select"></select></div>
+
+<script>
+const PRESETS = {
+  wealth: {label:"Wealth", agreements:[
+    ["Investment Advisory Agreement — Amy M. Peters", "Hillside Advisors", "$1,842 / yr", "May 1 2026", "Auto-renew", "active"],
+    ["Form ADV Part 2A — Q2 2026", "Hillside Advisors", "—", "Apr 15 2026", "Annual refresh", "active"],
+    ["Custodian Services Agreement", "Acme Trust Co.", "Tiered", "Jan 1 2024", "Auto-renew", "renew"],
+    ["Research Subscription — Factset", "FactSet LLC", "$48,000 / yr", "Jun 30 2024", "30-day opt-out", "renew"],
+    ["Employee Confidentiality", "Emma Rourke", "—", "Mar 3 2025", "N/A", "active"]
+  ], aiTitle:"Iris extracted key terms from 58 agreements.", aiCopy:"Parties, effective dates, fee schedules, and renewal windows are searchable and filterable below. Review any extraction that needs a human eye.", party:"Hillside Advisors", counterparty:"Acme Trust Co.", value:"$48,000 / yr", q:"When does the FactSet research subscription auto-renew and what's the opt-out window?"},
+
+  banking: {label:"Banking", agreements:[
+    ["Commercial Loan Agreement — Atlas Mfg.", "Atlas Manufacturing", "$2,500,000", "May 7 2026", "Mature 2029", "active"],
+    ["Security Agreement — UCC-1", "Atlas Manufacturing", "—", "May 7 2026", "—", "active"],
+    ["Master Deposit Agreement", "MidCoast Holdings", "—", "Jan 1 2023", "Rolling", "renew"],
+    ["Correspondent Banking — Meridian ↔ BNY", "BNY Mellon", "Fee schedule", "Jul 1 2024", "Auto-renew", "active"],
+    ["Guaranty — Holbrook personal", "Diana Holbrook", "—", "May 7 2026", "Until repaid", "active"]
+  ], aiTitle:"Iris extracted facility terms across 142 commercial agreements.", aiCopy:"Covenants, maturity, collateral, and guarantor exposure are searchable below. Flagged extractions are waiting on credit-ops review.", party:"Meridian Bank", counterparty:"Atlas Manufacturing", value:"$2,500,000", q:"What are the financial covenants and the cure period on the Atlas facility?"},
+
+  insurance: {label:"Insurance", agreements:[
+    ["Homeowners Policy — Ramirez Family", "Ramirez Family", "$1,842 / yr", "May 2 2026", "Annual", "active"],
+    ["Reinsurance Treaty — Q2 2026", "Swiss Re", "$14.2M cession", "Apr 1 2026", "Annual", "renew"],
+    ["Agent Appointment — Marisol Vega", "Marisol Vega", "Commission sched.", "Jan 1 2022", "Rolling", "active"],
+    ["MGA Agreement — Coastal Partners", "Coastal MGA", "Profit share 15%", "Oct 1 2024", "Auto-renew", "active"],
+    ["HazardHub Data License", "HazardHub Inc.", "$38,000 / yr", "Aug 15 2024", "30-day opt-out", "renew"]
+  ], aiTitle:"Iris extracted policy terms across 1,240 active binders.", aiCopy:"Premium, deductible, covered perils, and endorsements are indexed below.", party:"Sentinel Insurance", counterparty:"Ramirez Family", value:"$1,842 / yr", q:"What endorsements attach to the Ramirez HO3 policy and what does each add?"},
+
+  provider: {label:"Provider", agreements:[
+    ["Payer Contract — Aetna PPO", "Aetna", "Fee-for-service", "Jan 1 2024", "Auto-renew", "active"],
+    ["Payer Contract — BCBS HMO", "BCBS of California", "Capitation", "Jul 1 2024", "3-yr term", "renew"],
+    ["EHR License — Epic Systems", "Epic Systems", "Site license", "Mar 15 2023", "Auto-renew", "active"],
+    ["Referring Physician MOU — Kim", "Dr. Jordan Kim", "—", "Apr 21 2026", "N/A", "active"],
+    ["Clinical Research Trial — HX-2104", "Helix Therapeutics", "Per-subject fees", "Jun 15 2026", "Study duration", "active"]
+  ], aiTitle:"Iris extracted terms across 86 payer and referral contracts.", aiCopy:"Rate schedules, prior-auth windows, and credentialing cycles are flagged by Iris.", party:"Riverside Health", counterparty:"Aetna", value:"Fee-for-service", q:"What's the prior-auth turnaround SLA under the Aetna PPO contract?"},
+
+  lifesciences: {label:"Life Sciences", agreements:[
+    ["Clinical Trial Agreement — ARC site", "Austin Research Clinic", "Per-subject", "Jun 15 2026", "Study duration", "active"],
+    ["Master CDA — WCG IRB", "WCG IRB", "—", "Jan 1 2022", "Rolling", "active"],
+    ["Supply Agreement — CMO", "Patheon", "$12.8M / yr", "Mar 1 2024", "3-yr term", "renew"],
+    ["Licensing — HX-2104 backbone", "Harvard MGH", "Royalty 4.5%", "Aug 9 2023", "Term of patent", "active"],
+    ["Safety Data Exchange Agreement", "Bayer AG", "—", "Nov 1 2024", "Rolling", "active"]
+  ], aiTitle:"Iris extracted key terms across 212 clinical and supply agreements.", aiCopy:"1572s, CTA budgets, IRB status, and royalty stacks are indexed below.", party:"Helix Therapeutics", counterparty:"Austin Research Clinic", value:"Per-subject", q:"What's the budget ceiling and payment schedule under the ARC Clinical Trial Agreement?"},
+
+  payor: {label:"Payor", agreements:[
+    ["Provider Agreement — Riverside Health", "Riverside Health", "Fee schedule", "Jan 1 2024", "Auto-renew", "active"],
+    ["PBM Agreement — CVS Caremark", "CVS Caremark", "Rebate schedule", "Jul 1 2024", "Annual", "renew"],
+    ["Reinsurance Contract — Stop Loss", "Swiss Re", "$4.2M attachment", "Apr 1 2026", "Annual", "renew"],
+    ["Broker Appointment — Triangle Benefits", "Triangle Benefits", "3.5% commission", "Oct 1 2023", "Rolling", "active"],
+    ["Wellness Vendor — Hinge Health", "Hinge Health", "PMPM fee", "Feb 1 2025", "2-yr term", "active"]
+  ], aiTitle:"Iris extracted terms across 314 provider and vendor contracts.", aiCopy:"Reimbursement rates, prior-auth carveouts, and rebate tiers are indexed.", party:"Unity Health Plan", counterparty:"Riverside Health", value:"Fee schedule", q:"What are the rebate tiers in the CVS Caremark PBM agreement this quarter?"},
+
+  fedgov: {label:"Federal Gov", agreements:[
+    ["Interagency Agreement — SSA", "Social Security Admin", "—", "Oct 1 2025", "Fiscal year", "active"],
+    ["IT Services Task Order — GSA 8a", "Booz Allen Hamilton", "$8.4M / yr", "Apr 1 2026", "Option years 2 of 5", "renew"],
+    ["Grant Award — State DOL partnership", "State of California", "$14.2M", "Jul 1 2025", "Performance period", "active"],
+    ["Data Use Agreement — Labor stats", "BLS", "—", "Jan 1 2024", "Rolling", "active"],
+    ["Telecom MSA — Verizon", "Verizon Federal", "Per-seat", "Sep 30 2024", "Auto-renew", "renew"]
+  ], aiTitle:"Iris extracted terms across 1,200+ federal contracts and IAAs.", aiCopy:"Option years, performance periods, and cost ceilings are indexed. Flagged items routed to the contracting officer.", party:"Department of Labor", counterparty:"Booz Allen Hamilton", value:"$8.4M / yr", q:"When do the remaining option years exercise on the GSA 8a task order, and what's the total ceiling?"},
+
+  slgov: {label:"State & Local", agreements:[
+    ["Construction Contract — Phase 2 Water Main", "Foster Construction", "$4.8M", "May 15 2025", "Completion", "active"],
+    ["Collective Bargaining — AFSCME Local 89", "AFSCME", "Wage schedule", "Jan 1 2025", "3-yr term", "active"],
+    ["ILA — Library System", "Regional Library Consortium", "$240k / yr", "Jul 1 2024", "Auto-renew", "renew"],
+    ["Vendor MSA — ESRI GIS", "ESRI", "$116k / yr", "Feb 1 2024", "Annual", "renew"],
+    ["Grant MOU — HUD CDBG", "HUD", "$1.2M", "Oct 1 2025", "Performance period", "active"]
+  ], aiTitle:"Iris extracted terms across 480 municipal contracts.", aiCopy:"Construction milestones, CBA reopener dates, and grant performance periods are indexed below.", party:"City of Springfield", counterparty:"Foster Construction", value:"$4.8M", q:"When are milestone payments due on the Phase 2 water main contract?"},
+
+  education: {label:"Education", agreements:[
+    ["Research Grant — NIH R01", "NIH", "$2.4M", "Sep 1 2025", "5-yr project", "active"],
+    ["Housing Contract — Res Hall E", "Shah, Priya (Student)", "$14,800 / yr", "Aug 24 2026", "Academic year", "active"],
+    ["Athletic Apparel — Under Armour", "Under Armour", "$680k / yr", "Jul 1 2024", "5-yr term", "renew"],
+    ["Dining Services — Aramark", "Aramark", "Revenue share", "Aug 1 2023", "Auto-renew", "renew"],
+    ["MOU — Study Abroad (Madrid)", "Univ. Complutense", "—", "Sep 1 2024", "3-yr term", "active"]
+  ], aiTitle:"Iris extracted terms across 640 university agreements.", aiCopy:"Grant period, housing terms, and athletic sponsorship milestones are indexed. Iris flagged 3 renewals within 60 days.", party:"Maple Ridge University", counterparty:"NIH", value:"$2.4M", q:"Summarize the NIH R01 reporting cadence and upcoming year-2 deliverables."},
+
+  nonprofit: {label:"Nonprofit", agreements:[
+    ["Grantee Agreement — Safe Streets Initiative", "Safe Streets Initiative", "$120,000", "May 15 2026", "2-yr GOS", "active"],
+    ["Foundation Partnership — Open Society", "Open Society Foundations", "Matching grant", "Jan 1 2024", "3-yr term", "active"],
+    ["Fiscal Sponsorship — Good Works Collective", "Good Works Collective", "—", "Jul 1 2023", "Rolling", "active"],
+    ["Venue Lease — Harbor HQ", "Harbor Properties LLC", "$96k / yr", "Sep 1 2024", "5-yr term", "renew"],
+    ["Donor Advised Fund — Charities Aid", "Charities Aid Foundation", "Pass-through", "Feb 1 2025", "Rolling", "active"]
+  ], aiTitle:"Iris extracted terms across 180 grant agreements and MOUs.", aiCopy:"Reporting cadence, disbursement schedules, and matching commitments are indexed below.", party:"Harbor Foundation", counterparty:"Safe Streets Initiative", value:"$120,000", q:"What are the reporting milestones on the Safe Streets 2-yr GOS grant?"}
+};
+const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  // S1 AI banner
+  document.getElementById('s1-ai-title').textContent = p.aiTitle;
+  document.getElementById('s1-ai-copy').textContent = p.aiCopy;
+  // S1 table rows
+  const tb = document.getElementById('s1-tbody');
+  tb.innerHTML = p.agreements.map(([name, party, value, effective, renewal, status]) => `
+    <tr>
+      <td><div class="doc-name"><div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>${name}</div></td>
+      <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${party}</span></td>
+      <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${value}</span></td>
+      <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${effective}</span></td>
+      <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${renewal}</span></td>
+      <td><span class="status ${status}">${status === 'renew' ? 'Renewal soon' : status === 'term' ? 'Terminating' : 'Active'}</span></td>
+    </tr>`).join('');
+  // S3 doc fields
+  document.getElementById('s3-title').textContent = `Master Services Agreement — ${p.party}`;
+  document.getElementById('doc-party-a').textContent = p.party;
+  document.getElementById('doc-party-b').textContent = p.counterparty;
+  document.getElementById('rail-party').textContent = p.counterparty;
+  document.getElementById('rail-value').textContent = p.value;
+  // S4 Iris Q
+  document.getElementById('iris-q').textContent = p.q;
+}
+
+/* Scene timeline */
+const SCENES = [
+  {id:"s1", at:0,     dur:7000, irisOpen:false, activeTab:"agreements"},
+  {id:"s2", at:7000,  dur:7000, irisOpen:false, activeTab:"insights"},
+  {id:"s3", at:14000, dur:7000, irisOpen:false, activeTab:"agreements"},
+  {id:"s4", at:21000, dur:7000, irisOpen:true,  activeTab:"agreements", baseScene:"s3"}
+];
+const TOTAL = 28000;
+let t0 = performance.now();
+function render(now){
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) {
+    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
+  }
+  const baseId = active.baseScene || active.id;
+  document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === baseId));
+  document.getElementById('iris-scrim').classList.toggle('on', active.irisOpen);
+  document.getElementById('iris-panel').classList.toggle('on', active.irisOpen);
+  // Top nav / rail active
+  document.getElementById('tab-agreements').classList.toggle('active', active.activeTab === 'agreements');
+  document.getElementById('tab-insights').classList.toggle('active', active.activeTab === 'insights');
+  document.getElementById('rail-agreements').classList.toggle('active', active.id === 's1');
+  document.getElementById('rail-obligations').classList.toggle('active', active.id === 's2');
+  const idx = SCENES.findIndex(s => s.id === active.id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+  requestAnimationFrame(render);
+}
+
+const sel = document.getElementById("preset-select");
+ORDER.forEach(k => {
+  const o = document.createElement("option");
+  o.value = k; o.textContent = PRESETS[k].label;
+  sel.appendChild(o);
+});
+function presetFromURL(){
+  const p = new URLSearchParams(location.search).get("preset") || location.hash.replace(/^#/,"") || "wealth";
+  return PRESETS[p] ? p : "wealth";
+}
+const initial = presetFromURL();
+sel.value = initial;
+applyPreset(initial);
+sel.addEventListener("change", () => {
+  applyPreset(sel.value);
+  history.replaceState(null, "", "?preset=" + sel.value);
+});
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

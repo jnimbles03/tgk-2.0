@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign IAM — Story Shell</title>
+<meta name="description" content="Canonical story shell for all 10 TGK 2.0 verticals. Reads ?vertical=<key> to load the matching tenant brand, story title, and 5-scene narration. Hotspot coordinates are shared — they point at Docusign template UI elements which don't shift per vertical. Add ?splash=1 to any vertical to enable the MasterCard Scene 4 splash on the Workspace scene.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-inkwell:#130032;
+    --citi-blue:#1565D8; --citi-blue-dark:#0F4FB0;
+    --step-blue:#3B82F6;
+    --navy-edge:#132240;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --editorial:"Fraunces",Georgia,serif;
+    --tenant-accent:#3FDA99;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:#fff;overflow:hidden;font-size:14px;line-height:1.5;}
+
+  .shell{height:100vh;display:flex;flex-direction:column;border:4px solid var(--navy-edge);}
+
+  .topbar{flex-shrink:0;height:54px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 28px;gap:22px;}
+  .tenant-mark{display:flex;align-items:center;gap:10px;}
+  .tenant-mark .m{width:24px;height:24px;color:var(--tenant-accent);display:inline-flex;align-items:center;justify-content:center;}
+  .tenant-mark .m svg{width:100%;height:100%;}
+  .tenant-mark .wm{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:22px;color:var(--ink);letter-spacing:0.005em;}
+  .tenant-mark .story{font-size:13px;color:var(--ink-soft);margin-left:14px;}
+  .topbar .sp{flex:1;}
+  .topbar .scene-tabs{display:flex;gap:14px;font-size:13px;color:var(--ink-mid);font-weight:500;}
+  .topbar .scene-tabs .t{cursor:pointer;padding:4px 0;position:relative;transition:color 0.15s;}
+  .topbar .scene-tabs .t:hover{color:var(--ink);}
+  .topbar .scene-tabs .t.on{color:var(--ink);font-weight:600;}
+  .topbar .scene-tabs .t.on::after{content:"";position:absolute;left:0;right:0;bottom:-19px;height:2.5px;background:var(--ink);border-radius:2px;}
+  .topbar .vertical-chip{margin-left:14px;padding:4px 10px;border:1px solid var(--hair);border-radius:12px;font-size:11px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.06em;}
+
+  .body{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+  .sidebar{flex-shrink:0;width:30%;max-width:520px;min-width:360px;background:#fff;display:flex;flex-direction:column;padding:36px 42px 32px;position:relative;}
+  .brand-slot{margin-bottom:28px;display:flex;align-items:center;gap:10px;}
+  .brand-slot .ds{display:flex;align-items:center;gap:7px;font-weight:700;font-size:20px;color:var(--ds-inkwell);letter-spacing:-0.01em;}
+  .brand-slot .ds svg{width:24px;height:24px;}
+
+  .step-label{font-size:13px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:24px;transition:opacity 0.25s ease;}
+  .headline{font-family:var(--ui-font);font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.15;margin-bottom:28px;transition:opacity 0.25s ease;}
+  .lede{font-size:15px;color:var(--ink-mid);line-height:1.65;margin-bottom:28px;max-width:92%;transition:opacity 0.25s ease;}
+  .lede p + p{margin-top:14px;}
+  .lede .em{font-weight:600;color:var(--ink);}
+  .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
+
+  .foot-spacer{flex:1;}
+  .beat-pips{display:flex;gap:6px;margin-bottom:12px;}
+  .beat-pips .pip{width:22px;height:5px;border-radius:3px;background:var(--hair);transition:background 0.2s;}
+  .beat-pips .pip.on{background:var(--ds-purple);}
+  .beat-pips .pip.done{background:var(--ds-purple-dark);}
+
+  .progress{margin-bottom:22px;}
+  .progress .track{height:2px;background:var(--hair);border-radius:1px;overflow:hidden;}
+  .progress .track .fill{height:100%;background:var(--ds-purple);transition:width 0.5s ease;width:20%;}
+  .progress .meta{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+
+  .button-row{display:flex;gap:12px;}
+  .btn{padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all 0.15s ease;min-width:120px;text-align:center;}
+  .btn.ghost{background:#fff;color:var(--ink);border-color:var(--hair-strong);}
+  .btn.ghost:hover{border-color:var(--ink-mid);}
+  .btn.ghost:disabled{color:var(--ink-faint);cursor:not-allowed;}
+  .btn.primary{background:var(--citi-blue);color:#fff;}
+  .btn.primary:hover{background:var(--citi-blue-dark);}
+
+  .hint-row{margin-top:14px;font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:10px;}
+  .hint-row kbd{font-family:ui-monospace,monospace;font-size:10.5px;padding:1px 6px;background:#fff;border:1px solid var(--hair);border-radius:3px;color:var(--ink-mid);font-weight:600;}
+  .hint-row .play-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--ink-mid);cursor:pointer;font-weight:500;}
+  .hint-row .play-toggle svg{width:12px;height:12px;fill:currentColor;}
+  .hint-row .play-toggle.on{color:var(--ds-purple);}
+
+  .stage{flex:1;position:relative;background:#EAE4DA;overflow:hidden;border-left:1px solid var(--hair);}
+  .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:#fff;transition:opacity 0.35s ease;}
+  .stage iframe.fading{opacity:0;}
+
+  .hotspot-layer{position:absolute;inset:0;pointer-events:none;z-index:10;}
+  .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
+  .hotspot.on{opacity:1;}
+  .hotspot .ring{width:54px;height:54px;border-radius:50%;border:3px solid var(--ds-purple);background:rgba(75,0,233,0.12);box-shadow:0 0 0 0 rgba(75,0,233,0.5);animation:hotspotPulse 1.8s ease-in-out infinite;position:relative;}
+  .hotspot .ring::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--ds-purple);opacity:0;animation:hotspotRingPing 1.8s ease-out infinite;}
+  @keyframes hotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0.5);}50%{box-shadow:0 0 0 8px rgba(75,0,233,0);}}
+  @keyframes hotspotRingPing{0%{transform:scale(0.92);opacity:0.6;}70%,100%{transform:scale(1.35);opacity:0;}}
+  .hotspot .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--ds-purple);font-family:var(--ui-font);}
+  .hotspot .tip{position:absolute;background:var(--ds-inkwell);color:#fff;padding:9px 14px;border-radius:6px;font-size:12.5px;font-weight:500;width:max-content;max-width:280px;box-shadow:0 6px 18px rgba(19,0,50,0.3);}
+  .hotspot .tip.right{left:68px;top:50%;transform:translateY(-50%);}
+  .hotspot .tip.left{right:68px;top:50%;transform:translateY(-50%);text-align:right;}
+  .hotspot .tip.top{bottom:68px;left:50%;transform:translateX(-50%);text-align:center;}
+  .hotspot .tip.bottom{top:68px;left:50%;transform:translateX(-50%);text-align:center;}
+  .hotspot .tip::before{content:"";position:absolute;width:0;height:0;border:6px solid transparent;}
+  .hotspot .tip.right::before{right:100%;top:50%;margin-top:-6px;border-right-color:var(--ds-inkwell);}
+  .hotspot .tip.left::before{left:100%;top:50%;margin-top:-6px;border-left-color:var(--ds-inkwell);}
+  .hotspot .tip.top::before{top:100%;left:50%;margin-left:-6px;border-top-color:var(--ds-inkwell);}
+  .hotspot .tip.bottom::before{bottom:100%;left:50%;margin-left:-6px;border-bottom-color:var(--ds-inkwell);}
+  .hotspot .tip .sub{font-size:10.5px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+
+  @media (max-width:980px){
+    .sidebar{width:40%;min-width:320px;padding:24px 28px;}
+    .headline{font-size:26px;}
+    .topbar .scene-tabs{display:none;}
+  }
+
+  /* ===================== Calibration mode ===================== */
+  body.calibrate .hotspot{cursor:grab;}
+  body.calibrate .hotspot.dragging{cursor:grabbing;opacity:0.85;}
+  body.calibrate .hotspot .ring{border-style:dashed;animation:none;box-shadow:0 0 0 3px rgba(75,0,233,0.3);}
+  body.calibrate .hotspot .tip{pointer-events:none;}
+
+  .calib-hud{position:fixed;top:72px;right:22px;width:300px;background:var(--ds-inkwell);color:#fff;border-radius:10px;padding:16px 18px;font-size:12px;box-shadow:0 20px 50px rgba(19,0,50,0.4);z-index:50;display:none;font-family:var(--ui-font);}
+  body.calibrate .calib-hud{display:block;}
+  .calib-hud h4{font-size:13px;font-weight:700;margin-bottom:3px;color:#fff;letter-spacing:0.04em;text-transform:uppercase;}
+  .calib-hud .sub{font-size:10.5px;color:rgba(255,255,255,0.55);margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase;}
+  .calib-hud .readout{background:rgba(255,255,255,0.07);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#CBC2FF;line-height:1.55;}
+  .calib-hud .readout .lbl{color:rgba(255,255,255,0.5);margin-right:6px;}
+  .calib-hud .row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .calib-hud .row .lbl{font-size:10.5px;color:rgba(255,255,255,0.55);letter-spacing:0.06em;text-transform:uppercase;min-width:58px;}
+  .calib-hud .row .val{color:#fff;font-weight:600;}
+  .calib-hud .pip-row{display:flex;gap:4px;margin-bottom:14px;}
+  .calib-hud .pip-row .p{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.15);cursor:pointer;}
+  .calib-hud .pip-row .p.on{background:var(--tenant-accent);}
+  .calib-hud .btnrow{display:flex;gap:6px;margin-top:10px;}
+  .calib-hud .kbtn{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:7px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;text-align:center;}
+  .calib-hud .kbtn:hover{background:rgba(255,255,255,0.14);}
+  .calib-hud .kbtn.primary{background:var(--ds-purple);border-color:var(--ds-purple);font-weight:600;}
+  .calib-hud .kbtn.primary:hover{background:var(--ds-purple-dark);}
+  .calib-hud .toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);background:#16A34A;color:#fff;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:600;opacity:0;transition:opacity 0.25s ease;pointer-events:none;z-index:60;}
+  .calib-hud .toast.on{opacity:1;}
+  .calib-hud .hint{font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;line-height:1.6;}
+  .calib-hud .hint kbd{font-family:ui-monospace,monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.12);border-radius:3px;color:#fff;}
+
+  body.calibrate .shell{border-color:var(--ds-purple);}
+  body.calibrate .topbar::before{content:"CALIBRATE MODE · drag hotspots, use buttons to walk beats, Copy to export";position:absolute;left:0;right:0;top:52px;background:var(--ds-purple);color:#fff;padding:5px 20px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;text-align:center;z-index:20;}
+  body.calibrate .shell{padding-top:28px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="tenant-mark">
+      <span class="m" id="tn-mark"></span>
+      <span class="wm" id="tn-wm"></span>
+      <span class="story" id="story-subtitle"></span>
+    </div>
+    <div class="sp"></div>
+    <div class="scene-tabs" id="scene-tabs">
+      <span class="t on" data-i="0">sender</span>
+      <span class="t" data-i="1">identity</span>
+      <span class="t" data-i="2">signing</span>
+      <span class="t" data-i="3">data</span>
+      <span class="t" data-i="4">workspace</span>
+    </div>
+    <div class="vertical-chip" id="vertical-chip">Wealth</div>
+  </div>
+
+  <div class="body">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-slot">
+        <div class="ds">
+          <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+          docusign
+        </div>
+      </div>
+      <div class="step-label" id="step-label">SCENE 1 OF 5</div>
+      <h1 class="headline" id="headline"></h1>
+      <div class="lede" id="lede"></div>
+      <div class="foot-spacer"></div>
+      <div class="beat-pips" id="beat-pips"></div>
+      <div class="progress">
+        <div class="track"><div class="fill" id="progress-fill"></div></div>
+        <div class="meta"><span id="beat-counter">Beat 1 of 5</span><span id="timer">00:00 / 00:00</span></div>
+      </div>
+      <div class="button-row">
+        <button class="btn ghost" id="prev-btn">Previous</button>
+        <button class="btn primary" id="next-btn">Next</button>
+      </div>
+      <div class="hint-row">
+        Click the pulsing dot or use <kbd>←</kbd> <kbd>→</kbd>
+        <span class="play-toggle" id="play-toggle" title="Autoplay (space)">
+          <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          Autoplay
+        </span>
+      </div>
+    </aside>
+
+    <section class="stage">
+      <iframe id="scene" src="" title="Scene"></iframe>
+      <div class="hotspot-layer" id="hotspot-layer"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Calibration HUD -->
+<div class="calib-hud" id="calib-hud">
+  <h4>Calibrate hotspots</h4>
+  <div class="sub" id="calib-scene-name">Scene 1 — Sender</div>
+  <div class="pip-row" id="calib-pips"></div>
+  <div class="readout" id="calib-readout">x: 68% · y: 86%</div>
+  <div class="row"><span class="lbl">Tip</span><span class="val" id="calib-tip">—</span></div>
+  <div class="btnrow">
+    <button class="kbtn" id="calib-prev-beat">◀ Beat</button>
+    <button class="kbtn" id="calib-next-beat">Beat ▶</button>
+  </div>
+  <div class="btnrow">
+    <button class="kbtn" id="calib-prev-scene">◀ Scene</button>
+    <button class="kbtn" id="calib-next-scene">Scene ▶</button>
+  </div>
+  <div class="btnrow">
+    <button class="kbtn primary" id="calib-copy">Copy coords to clipboard</button>
+  </div>
+  <div class="hint">
+    Drag a ring to move it. <kbd>[</kbd> <kbd>]</kbd> step beats · <kbd>{</kbd> <kbd>}</kbd> step scenes · <kbd>c</kbd> toggle mode
+  </div>
+  <div class="toast" id="calib-toast">Copied!</div>
+</div>
+
+<script>
+/* =========================================================
+   Hotspot coordinates are shared across all 10 verticals
+   because they target Docusign template UI, which does not
+   shift by preset. Only the per-vertical narration varies.
+   ========================================================= */
+const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+
+const HOTSPOTS = {
+  agreement_desk: [
+    {x:"68%", y:"86%", tip:"Submit the intake form",                       sub:"Triggers the Maestro workflow",    side:"top"},
+    {x:"38%", y:"38%", tip:"A new ticket arrives in the Desk queue",       sub:"Top row flashes purple",           side:"right"},
+    {x:"38%", y:"33%", tip:"Open the ticket to see the activity feed",     sub:"Click any row",                    side:"right"},
+    {x:"40%", y:"22%", tip:"Jump to the Documents tab",                    sub:"Where the draft agreement lives",  side:"bottom"},
+    {x:"57%", y:"30%", tip:"Send for signature — handoff to Scene 2",      sub:"Hands off to Signing Ceremony",    side:"bottom"}
+  ],
+  clear_idv: [
+    {x:"54%", y:"62%", tip:"I Agree — consent to identity verification",  sub:"\"Let's verify your identity\"",   side:"left"},
+    {x:"40%", y:"45%", tip:"Pick 'Verify with CLEAR'",                     sub:"The fast path",                    side:"right"},
+    {x:"40%", y:"68%", tip:"Enter phone number, tap Get Started",          sub:"Triggers the mobile handoff",      side:"right"},
+    {x:"77%", y:"50%", tip:"Mobile: capture ID and selfie",                sub:"CLEAR runs biometric match",        side:"left"},
+    {x:"77%", y:"55%", tip:"Identity verified — back to desktop",           sub:"Green check on mobile",            side:"left"}
+  ],
+  signing: [
+    {x:"50%", y:"60%", tip:"REVIEW DOCUMENT from the tenant-branded email",   sub:"Signer enters the ceremony",     side:"top"},
+    {x:"38%", y:"72%", tip:"Yellow START tab points at the first field",      sub:"One click to begin",             side:"right"},
+    {x:"50%", y:"55%", tip:"Adopt your signature",                             sub:"Typed preview + disclosure",     side:"top"},
+    {x:"74%", y:"35%", tip:"Finished — document routes to next signer",       sub:"Multi-recipient progress",        side:"left"},
+    {x:"64%", y:"72%", tip:"Download signed copy or view certificate",         sub:"Scene 3 complete",                side:"top"}
+  ],
+  navigator: [
+    {x:"45%", y:"28%", tip:"AI-Assisted banner: agreements extracted by Iris", sub:"Navigator list view",            side:"bottom"},
+    {x:"45%", y:"55%", tip:"Click any agreement to see extracted fields",     sub:"AI-filled columns with ✦",       side:"right"},
+    {x:"80%", y:"50%", tip:"14 fields extracted from the signed document",     sub:"Counterparty, term, renewal…",   side:"left"},
+    {x:"80%", y:"35%", tip:"Ask Iris about this agreement",                    sub:"Grounded in the document",       side:"left"},
+    {x:"80%", y:"62%", tip:"Iris answers with inline citations",               sub:"Key terms + evidence",            side:"left"}
+  ],
+  workspace: [
+    {x:"55%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email",           side:"top"},
+    {x:"20%", y:"28%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Switch tabs to change view",      side:"right"},
+    {x:"70%", y:"30%", tip:"Iris agent rail — Activity and Ask Iris tabs",    sub:"Docusign's AI, tenant-aware",     side:"left"},
+    {x:"45%", y:"58%", tip:"View a task to drill into the Wealth Agent",      sub:"KYC checks run automatically",    side:"right"},
+    {x:"75%", y:"50%", tip:"Wealth Agent: checks on the uploaded artifact",    sub:"End of the story loop",          side:"left"}
+  ]
+};
+
+/* =========================================================
+   VERTICALS registry. Each entry:
+   - meta: tenant display name, story subtitle, tenant color
+   - scenes: 5 × { tag, headline, lede } — hotspots+src resolved by key
+   ========================================================= */
+const VERTICALS = {
+  wealth: {
+    label:"Wealth", tenant:"Hillside", subtitle:"× Aster Capital — New Client Onboarding",
+    tenantColor:"#3FDA99", preset:"wealth",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Priya opens a new engagement in Hillside's Agreement Desk.",
+       lede:`<p>Priya Das, Head of Compliance at Hillside Advisors, submits the intake for a new discretionary-management engagement with <span class="em">Aster Capital</span>.</p><p>A Maestro workflow fires the moment she hits Submit — the rest of this story runs on its own.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Aster Capital's signatory verifies with CLEAR.",
+       lede:`<p>Before anything moves, Docusign routes Aster's authorized signatory through CLEAR for identity verification.</p><p>Desktop consent → mobile ID scan → biometric match → back to the browser. No separate portal, no phone call to compliance.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Aster reviews and signs the Investment Advisory Agreement.",
+       lede:`<p>Tenant-branded email, yellow Sign tab floating over the IMA, Adopt Signature modal, completion with multi-recipient routing.</p><p>One ceremony, one audit trail — the IMA hands off to Hillside's compliance reviewer automatically.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the IMA and lands it back in Hillside.",
+       lede:`<p>Navigator reads the executed agreement and pulls out 14 key terms — counterparty, effective date, fee schedule, renewal, liability cap, governing law.</p><p>All filed into Hillside's agreement repository. Iris is one click away for any follow-up.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Hillside, Aster, and the custodian continue in one Workspace.",
+       lede:`<p>Onboarding is the beginning, not the end. The client Workspace holds the task list, the agreement set, the Recent activity feed, and the Iris rail — everyone sees the same state.</p><p>No email threads. No version chaos.</p>`}
+    ]
+  },
+  banking: {
+    label:"Banking", tenant:"Meridian", subtitle:"× Atlas Manufacturing — $2.5M Working Capital Facility",
+    tenantColor:"#2D8EFF", preset:"banking",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Raj opens a new facility request at Meridian's Agreement Desk.",
+       lede:`<p>Raj Malhotra, Commercial Relationship Manager at Meridian, submits the KYB intake for <span class="em">Atlas Manufacturing's</span> $2.5M working-capital facility.</p><p>Credit officer Sofia Kim is routed in automatically via Maestro — no separate email thread.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Atlas's guarantor verifies with CLEAR.",
+       lede:`<p>Diana Holbrook, CFO of Atlas, is the personal guarantor on the facility. Docusign routes her through CLEAR before any loan docs move.</p><p>Desktop consent, mobile ID + biometric, PEP and OFAC screens pass silently in the background.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Diana signs the loan package — four documents, one ceremony.",
+       lede:`<p>The loan agreement, security agreement, UCC-1 financing statement, and personal guaranty all live in one envelope.</p><p>Routing continues to the credit officer and closing attorney the moment Diana finishes.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts facility terms into the credit system.",
+       lede:`<p>Navigator reads the executed loan agreement and pulls covenants, maturity, DSCR thresholds, and collateral schedule — 22 fields in all.</p><p>Iris is ready to answer covenant questions from the credit committee the moment they're asked.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Meridian, Atlas, and credit ops continue in one Workspace.",
+       lede:`<p>Post-funding, the facility lives in a Workspace — quarterly compliance certificates, covenant tests, amendment tracking.</p><p>The credit committee sees the same state as the relationship team. No duplicate files, no conflicting versions.</p>`}
+    ]
+  },
+  insurance: {
+    label:"Insurance", tenant:"Sentinel", subtitle:"× Ramirez Family — HO3 Policy Binding",
+    tenantColor:"#F2B3C2", preset:"insurance",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Marisol opens a new HO3 binder at Sentinel's Agreement Desk.",
+       lede:`<p>Marisol Vega submits the binder request for the <span class="em">Ramirez family's</span> new homeowners policy at 412 Briar Lane.</p><p>Underwriting, inspection scheduling, and prior-claims checks all fire in parallel through Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Elena Ramirez verifies with CLEAR.",
+       lede:`<p>Before the binder issues, Elena Ramirez is verified through CLEAR on her phone — two minutes, no compliance call.</p><p>Address cross-reference against USPS and utility records runs in the same pass.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Elena signs the application and binder package.",
+       lede:`<p>Homeowners application, prior-claims disclosure, and the binder — three documents, one flow, tenant-branded as Sentinel throughout.</p><p>Binder goes active as soon as the property inspection clears.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the policy file into Sentinel.",
+       lede:`<p>Navigator reads the binder and pulls 18 fields — coverage limits, deductible, endorsements, mortgagee, premium.</p><p>Iris can answer questions like \"what does each endorsement actually add?\" grounded in the policy itself.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Sentinel, Elena, and the mortgagee continue in one Workspace.",
+       lede:`<p>Renewal windows, claims intake, endorsement requests — all live in the policy Workspace.</p><p>When a renewal is 60 days out, the Workspace reminds everyone automatically.</p>`}
+    ]
+  },
+  provider: {
+    label:"Provider", tenant:"Riverside", subtitle:"× Jordan Kim — New Patient Onboarding",
+    tenantColor:"#6FD6C8", preset:"provider",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Daniela opens a new patient workspace for Jordan Kim.",
+       lede:`<p>Daniela Okafor, Patient Coordinator at Riverside Health, submits the new-patient intake for <span class="em">Jordan Kim</span>.</p><p>Insurance verification, HIPAA, consent, PCP assignment — all flow through Maestro in parallel.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Jordan verifies identity with CLEAR.",
+       lede:`<p>Before anything else, Jordan verifies on their phone. CLEAR matches ID to the insurance card OCR and confirms demographics.</p><p>Aetna eligibility runs simultaneously — active PPO coverage, $30 copay.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Jordan signs consent, HIPAA, and financial responsibility.",
+       lede:`<p>Four documents in one ceremony — patient registration, HIPAA acknowledgment, consent to treat, financial responsibility.</p><p>Care team is notified the moment the last signature clears.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands the patient record in Riverside's EHR.",
+       lede:`<p>Navigator extracts 11 fields — demographics, insurance, allergies, medications, family history, PCP assignment.</p><p>Iris is ready to summarize \"what should the PCP know before Tuesday's visit?\" for the care team.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Jordan, the PCP, and the care team continue in one Workspace.",
+       lede:`<p>Prior auths, referrals, lab uploads, visit notes — all in the patient Workspace.</p><p>The family sees the same state as the care team, with the agent running eligibility checks behind the scenes.</p>`}
+    ]
+  },
+  lifesciences: {
+    label:"Life Sciences", tenant:"Helix", subtitle:"× Austin Research Clinic — Site Activation for HX-2104",
+    tenantColor:"#C7A0FF", preset:"lifesciences",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Ethan opens a site activation request for ARC.",
+       lede:`<p>Ethan Park, Clinical Study Manager at Helix, submits the activation packet for <span class="em">Austin Research Clinic</span> participating in HX-2104.</p><p>CTA, IRB, 1572, and financial disclosure all route in parallel via Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Dr. Halim (PI) verifies with CLEAR.",
+       lede:`<p>The Principal Investigator Dr. Karim Halim is verified through CLEAR. License check runs against the state medical board automatically.</p><p>GCP training currency is verified in the same pass.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Dr. Halim signs the site activation packet.",
+       lede:`<p>CTA, Form FDA 1572, financial disclosure, investigator's brochure acknowledgment, protocol signature page — five documents, one ceremony.</p><p>Sponsor counsel countersignature routes on completion.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the site file into the study binder.",
+       lede:`<p>Navigator pulls 26 fields from the CTA — enrollment target, milestone schedule, payment cadence, protocol version, amendments.</p><p>Iris answers sponsor audit questions grounded in the executed documents.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Helix, ARC, and the IRB continue in one Workspace.",
+       lede:`<p>Amendments, safety letters, deviation reports, invoicing — all in the site Workspace.</p><p>When IB v6 releases, every site sees it simultaneously and the acknowledgment round-robin kicks off.</p>`}
+    ]
+  },
+  payor: {
+    label:"Payor", tenant:"Unity", subtitle:"× Marcus Chen — Silver HMO Enrollment",
+    tenantColor:"#6FDA9B", preset:"payor",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Brenda opens a new member enrollment at Unity.",
+       lede:`<p>Brenda Estevez, Member Services at Unity Health Plan, submits the Silver HMO enrollment packet for <span class="em">Marcus Chen</span>.</p><p>Eligibility, PCP match, and payment setup all fire together through Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Marcus verifies with CLEAR.",
+       lede:`<p>Marcus verifies on his phone, and Social Security Administration match runs silently.</p><p>Exchange eligibility comes back confirmed — no gap in coverage from his prior plan.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Marcus signs the enrollment and HIPAA consent.",
+       lede:`<p>Three documents — enrollment, HIPAA consent, payment authorization — in one signing ceremony.</p><p>Member Services is notified and the welcome kit is queued the moment the payment method clears.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts Marcus's member record.",
+       lede:`<p>Navigator pulls 9 fields — plan, copay tier, PCP selection, formulary, effective date.</p><p>Iris answers \"what's Marcus's cost share for his current medications?\" grounded in the enrollment + formulary data.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Unity, Marcus, and the PCP continue in one Workspace.",
+       lede:`<p>Prior auths, ID card, welcome kit, plan changes — all in the member Workspace.</p><p>Open enrollment reminders route through the same space the moment they're due.</p>`}
+    ]
+  },
+  fedgov: {
+    label:"Federal Gov", tenant:"DOL", subtitle:"× Taylor Nguyen — Unemployment Claim UI-2026-48211",
+    tenantColor:"#E8B800", preset:"fedgov",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Claims Services receives Taylor's UI filing.",
+       lede:`<p>A new unemployment claim arrives at the Department of Labor's desk for <span class="em">Taylor Nguyen</span>.</p><p>Identity verification, base-period wage pull, separation classification, and fraud screen all fire in parallel through Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Taylor verifies with CLEAR.",
+       lede:`<p>Taylor verifies on their phone. Biometric match, SSA cross-reference, and fraud-pattern screen all run silently.</p><p>Zero overlap with other active claims — cleared in under a minute.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Taylor signs the availability cert and direct deposit auth.",
+       lede:`<p>Availability certification, direct deposit authorization, and benefits acknowledgment — three documents, one ceremony.</p><p>Adjudicator is routed the moment Taylor finishes.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the claim file for adjudication.",
+       lede:`<p>Navigator pulls 12 fields — base-period wages, separation reason, prior claim history, availability status.</p><p>Iris answers \"what's Taylor's weekly benefit amount and how many weeks are available?\" from the file.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"DOL, Taylor, and the adjudicator continue in one Workspace.",
+       lede:`<p>Weekly certs, overpayment recovery, appeals — all in the claim Workspace.</p><p>If the claim flags for hearing, the hearing officer sees the same state as the initial adjudicator.</p>`}
+    ]
+  },
+  slgov: {
+    label:"State & Local", tenant:"Springfield", subtitle:"× 1420 Oak Street — Residential Building Permit",
+    tenantColor:"#E8A438", preset:"slgov",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Dean opens a new permit application at Springfield Community Development.",
+       lede:`<p>Dean Okonkwo, Permit Technician, submits the residential building permit application for <span class="em">1420 Oak Street</span>.</p><p>Zoning review, contractor license verify, and fee calc all fire together through Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"The applicant verifies with CLEAR.",
+       lede:`<p>Marissa Rivera, the property owner, verifies her identity through CLEAR from home.</p><p>Title/ownership check against the County Recorder runs in the same pass.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Marissa signs the permit application and fee authorization.",
+       lede:`<p>Application, site plan acknowledgment, fee authorization, contractor-license attestation — four documents, one ceremony.</p><p>Plan check routes automatically to engineering the moment fees clear.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the permit record for plan check.",
+       lede:`<p>Navigator pulls 16 fields from the permit — zoning district, setbacks, valuation, contractor license, inspection sequence.</p><p>Iris answers \"are the plans compliant with current zoning?\" grounded in the application + site plan.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Springfield, Marissa, and the contractor continue in one Workspace.",
+       lede:`<p>Inspections, CO issuance, revisions — all in the permit Workspace.</p><p>Every visit the inspector logs is visible to the applicant in real time.</p>`}
+    ]
+  },
+  education: {
+    label:"Education", tenant:"Maple Ridge", subtitle:"× Priya Shah — Fall 2026 Student Onboarding",
+    tenantColor:"#F2C65A", preset:"education",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Jamal opens a new student onboarding for Priya Shah.",
+       lede:`<p>Jamal Rivers, Admissions Counselor at Maple Ridge University, submits the onboarding packet for <span class="em">Priya Shah</span>.</p><p>Enrollment, financial aid, housing, health records, tuition — all route in parallel through Maestro.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"Priya verifies with CLEAR.",
+       lede:`<p>Priya verifies from her phone. CLEAR match populates her student ID, meal plan, and housing profile.</p><p>SEVIS check runs in the same pass for international students; Priya clears domestic.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Priya signs enrollment, aid, housing, and tuition.",
+       lede:`<p>Four documents in one ceremony — enrollment form, financial aid acceptance, housing contract, tuition agreement.</p><p>Residence life, bursar, and registrar all notified on completion.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands Priya's record in the SIS.",
+       lede:`<p>Navigator pulls 13 fields — program, cohort, PCP assigned to Health Services, housing assignment, meal plan.</p><p>Iris answers \"when are Priya's aid disbursements and what's she still missing?\" from the record.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Maple Ridge, Priya, and her advisor continue in one Workspace.",
+       lede:`<p>Course registration, FERPA releases, study abroad, degree audit — all in the student Workspace.</p><p>Four years later, graduation checklist runs from the same space.</p>`}
+    ]
+  },
+  nonprofit: {
+    label:"Nonprofit", tenant:"Harbor", subtitle:"× Safe Streets Initiative — $120k Grantee Onboarding",
+    tenantColor:"#FFB86B", preset:"nonprofit",
+    scenes:[
+      {tag:"SCENE 1 OF 5 · SENDER", head:"Asha opens a grantee onboarding for Safe Streets.",
+       lede:`<p>Asha Morgan, Program Officer at Harbor Foundation, submits the onboarding packet for <span class="em">Safe Streets Initiative's</span> $120k general operating grant.</p><p>501(c)(3) verify, budget review, MOU routing all fire through Maestro in parallel.</p>`},
+      {tag:"SCENE 2 OF 5 · IDENTITY", head:"The Executive Director verifies with CLEAR.",
+       lede:`<p>Rosa Patel, Safe Streets ED, verifies her identity and her role as authorized signatory through CLEAR.</p><p>Board member attestation runs in the same pass — no fiscal sponsor or pass-through required.</p>`},
+      {tag:"SCENE 3 OF 5 · SIGNING", head:"Rosa signs the grantee agreement and MOU.",
+       lede:`<p>Application, W-9, grant agreement, MOU — four documents, one ceremony.</p><p>Finance is queued to release the first tranche the moment signatures clear.</p>`},
+      {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands the grant record in Harbor's system.",
+       lede:`<p>Navigator extracts 12 fields — grant size, reporting cadence, disbursement schedule, program officer, restrictions.</p><p>Iris answers \"when's the first report due and what are the KPIs?\" from the signed MOU.</p>`},
+      {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Harbor, Safe Streets, and program staff continue in one Workspace.",
+       lede:`<p>Quarterly reports, impact data, amendment requests — all in the grant Workspace.</p><p>When the cycle renews, last cycle's evidence flows forward automatically.</p>`}
+    ]
+  }
+};
+
+const DURATIONS = [55000, 34000, 36000, 36000, 45000];
+const SCENE_KEYS = ["agreement_desk","clear_idv","signing","navigator","workspace"];
+const TEMPLATE_FILES = [
+  "/story-templates/docusign-agreement-desk.html",
+  "/story-templates/docusign-clear-idv.html",
+  "/story-templates/docusign-signing-ceremony.html",
+  "/story-templates/docusign-navigator.html",
+  "/story-templates/docusign-workspace.html"
+];
+
+/* =========================================================
+   Resolve vertical from URL, build SCENES, render
+   ========================================================= */
+const params = new URLSearchParams(location.search);
+const verticalKey = params.get("vertical") || location.hash.replace(/^#/,"") || "wealth";
+const splashOn = params.get("splash") === "1";
+let calibrateMode = params.get("calibrate") === "1";
+const v = VERTICALS[verticalKey] || VERTICALS.wealth;
+if (calibrateMode) document.body.classList.add('calibrate');
+
+/* Mutable shadow of HOTSPOTS used when in calibrate mode so drag edits can be exported */
+const LIVE = JSON.parse(JSON.stringify(HOTSPOTS));
+
+// Apply tenant + subtitle
+const $ = (id) => document.getElementById(id);
+$('tn-mark').style.color = v.tenantColor;
+$('tn-mark').innerHTML = MARK_SVG;
+$('tn-wm').textContent = v.tenant;
+$('story-subtitle').textContent = v.subtitle;
+$('vertical-chip').textContent = v.label;
+document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
+
+// Build SCENES by merging narration + hotspots + src.
+// In calibrate mode, hotspots reference the mutable LIVE shadow so drags persist.
+const SCENES = v.scenes.map((s, i) => ({
+  tag: s.tag,
+  headline: s.head,
+  lede: s.lede,
+  sceneKey: SCENE_KEYS[i],
+  hotspots: (calibrateMode ? LIVE : HOTSPOTS)[SCENE_KEYS[i]],
+  duration: DURATIONS[i],
+  src: TEMPLATE_FILES[i] + "?preset=" + v.preset + (i === 4 && splashOn ? "&splash=1" : "")
+}));
+
+/* =========================================================
+   Runtime state + controls
+   ========================================================= */
+const frame = $('scene');
+const sidebar = $('sidebar');
+const layer = $('hotspot-layer');
+let idx = 0;
+let hotIdx = 0;
+let playing = false;
+let sceneStart = 0;
+let raf = null;
+
+function renderSidebar(scene, i){
+  sidebar.classList.add('fade');
+  setTimeout(() => {
+    $('step-label').textContent = scene.tag;
+    $('headline').textContent = scene.headline;
+    $('lede').innerHTML = scene.lede;
+    sidebar.classList.remove('fade');
+  }, 180);
+  document.querySelectorAll('#scene-tabs .t').forEach((t, k) => t.classList.toggle('on', k === i));
+  const pipsEl = $('beat-pips');
+  pipsEl.innerHTML = scene.hotspots.map((_, k) => `<div class="pip ${k === hotIdx ? 'on' : (k < hotIdx ? 'done' : '')}"></div>`).join('');
+  $('progress-fill').style.width = `${((i + (hotIdx + 1) / scene.hotspots.length) / SCENES.length) * 100}%`;
+  $('beat-counter').textContent = `Beat ${hotIdx + 1} of ${scene.hotspots.length}`;
+  $('prev-btn').disabled = (i === 0 && hotIdx === 0);
+  $('next-btn').textContent = (i === SCENES.length - 1 && hotIdx === scene.hotspots.length - 1) ? 'Restart' : 'Next';
+}
+function renderHotspot(){
+  const scene = SCENES[idx];
+  layer.innerHTML = "";
+  if (!scene.hotspots || !scene.hotspots.length) return;
+  const spot = scene.hotspots[hotIdx];
+  if (!spot) return;
+  const el = document.createElement('div');
+  el.className = 'hotspot on';
+  el.style.left = spot.x;
+  el.style.top = spot.y;
+  el.innerHTML = `
+    <div class="ring"><div class="num">${hotIdx + 1}</div></div>
+    <div class="tip ${spot.side || 'right'}">${spot.tip}<div class="sub">${spot.sub || ''}</div></div>
+  `;
+  if (calibrateMode) {
+    attachDrag(el, spot);
+    renderHud();
+  } else {
+    el.addEventListener('click', advance);
+  }
+  layer.appendChild(el);
+}
+
+/* =========================================================
+   Calibration mode — drag, HUD, export
+   ========================================================= */
+function attachDrag(el, spot){
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0, stageRect = null;
+  const ring = el.querySelector('.ring');
+  ring.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const stage = document.querySelector('.stage');
+    stageRect = stage.getBoundingClientRect();
+    startX = e.clientX; startY = e.clientY;
+    startLeft = (parseFloat(spot.x) / 100) * stageRect.width;
+    startTop = (parseFloat(spot.y) / 100) * stageRect.height;
+    el.classList.add('dragging');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp, {once:true});
+  });
+  function onMove(e){
+    const nx = Math.max(0, Math.min(stageRect.width, startLeft + (e.clientX - startX)));
+    const ny = Math.max(0, Math.min(stageRect.height, startTop + (e.clientY - startY)));
+    const xPct = (nx / stageRect.width) * 100;
+    const yPct = (ny / stageRect.height) * 100;
+    el.style.left = xPct.toFixed(1) + '%';
+    el.style.top = yPct.toFixed(1) + '%';
+    spot.x = xPct.toFixed(1) + '%';
+    spot.y = yPct.toFixed(1) + '%';
+    renderHud();
+  }
+  function onUp(){
+    el.classList.remove('dragging');
+    document.removeEventListener('mousemove', onMove);
+  }
+}
+
+function renderHud(){
+  if (!calibrateMode) return;
+  const scene = SCENES[idx];
+  const spot = scene.hotspots[hotIdx];
+  document.getElementById('calib-scene-name').textContent = `Scene ${idx+1} — ${scene.sceneKey.replace(/_/g,' ')}`;
+  document.getElementById('calib-readout').innerHTML = `<span class="lbl">x:</span>${spot.x} &nbsp; <span class="lbl">y:</span>${spot.y}`;
+  document.getElementById('calib-tip').textContent = spot.tip;
+  const pipsEl = document.getElementById('calib-pips');
+  pipsEl.innerHTML = scene.hotspots.map((_, k) => `<div class="p ${k === hotIdx ? 'on' : ''}" data-k="${k}"></div>`).join('');
+  pipsEl.querySelectorAll('.p').forEach(p => p.addEventListener('click', () => {
+    hotIdx = parseInt(p.dataset.k, 10);
+    renderHotspot();
+    renderSidebar(scene, idx);
+  }));
+}
+
+function exportHotspots(){
+  const obj = {};
+  SCENE_KEYS.forEach(k => { obj[k] = LIVE[k]; });
+  const js = 'const HOTSPOTS = ' + JSON.stringify(obj, null, 2)
+    .replace(/"([a-zA-Z_]+)":/g, '$1:')
+    .replace(/\n/g, '\n') + ';';
+  navigator.clipboard.writeText(js).then(() => {
+    const toast = document.getElementById('calib-toast');
+    toast.classList.add('on');
+    setTimeout(() => toast.classList.remove('on'), 1500);
+  }).catch(() => {
+    // Fallback — dump to console
+    console.log(js);
+    alert('Clipboard blocked — coords logged to console.');
+  });
+}
+function goTo(i, opts = {}){
+  if (i < 0) i = 0;
+  if (i >= SCENES.length) i = SCENES.length - 1;
+  const swappedScene = i !== idx || opts.force;
+  idx = i;
+  hotIdx = 0;
+  const scene = SCENES[i];
+  if (swappedScene) {
+    frame.classList.add('fading');
+    setTimeout(() => {
+      frame.src = scene.src;
+      frame.onload = () => { frame.classList.remove('fading'); };
+      setTimeout(() => frame.classList.remove('fading'), 400);
+    }, 180);
+    layer.innerHTML = "";
+    setTimeout(renderHotspot, 700);
+  } else {
+    renderHotspot();
+  }
+  renderSidebar(scene, i);
+  sceneStart = performance.now();
+}
+function advance(){
+  const scene = SCENES[idx];
+  if (hotIdx < scene.hotspots.length - 1) { hotIdx++; renderHotspot(); renderSidebar(scene, idx); }
+  else if (idx < SCENES.length - 1) { goTo(idx + 1); }
+  else { goTo(0, {force:true}); }
+}
+function rewind(){
+  const scene = SCENES[idx];
+  if (hotIdx > 0) { hotIdx--; renderHotspot(); renderSidebar(scene, idx); }
+  else if (idx > 0) {
+    goTo(idx - 1);
+    hotIdx = SCENES[idx].hotspots.length - 1;
+    renderHotspot(); renderSidebar(SCENES[idx], idx);
+  }
+}
+function fmt(ms){
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(s / 60), r = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+}
+function tickTimer(){
+  if (!playing) return;
+  const scene = SCENES[idx];
+  const elapsed = performance.now() - sceneStart;
+  $('timer').textContent = `${fmt(elapsed)} / ${fmt(scene.duration)}`;
+  if (elapsed >= scene.duration) { advance(); sceneStart = performance.now(); }
+  raf = requestAnimationFrame(tickTimer);
+}
+function togglePlay(){
+  playing = !playing;
+  const toggle = $('play-toggle');
+  toggle.classList.toggle('on', playing);
+  toggle.querySelector('svg').innerHTML = playing
+    ? '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>'
+    : '<polygon points="6 4 20 12 6 20 6 4"/>';
+  toggle.childNodes[toggle.childNodes.length - 1].textContent = playing ? ' Pause' : ' Autoplay';
+  if (playing) { sceneStart = performance.now(); tickTimer(); }
+  else { cancelAnimationFrame(raf); $('timer').textContent = `00:00 / ${fmt(SCENES[idx].duration)}`; }
+}
+
+$('prev-btn').addEventListener('click', rewind);
+$('next-btn').addEventListener('click', advance);
+$('play-toggle').addEventListener('click', togglePlay);
+document.querySelectorAll('#scene-tabs .t').forEach(t => t.addEventListener('click', () => goTo(parseInt(t.dataset.i, 10))));
+
+/* Calibrate HUD wiring */
+document.getElementById('calib-prev-beat').addEventListener('click', rewind);
+document.getElementById('calib-next-beat').addEventListener('click', advance);
+document.getElementById('calib-prev-scene').addEventListener('click', () => goTo(Math.max(0, idx - 1)));
+document.getElementById('calib-next-scene').addEventListener('click', () => goTo(Math.min(SCENES.length - 1, idx + 1)));
+document.getElementById('calib-copy').addEventListener('click', exportHotspots);
+
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') { rewind(); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { advance(); e.preventDefault(); }
+  else if (e.key === ' ') { togglePlay(); e.preventDefault(); }
+  else if (e.key === '[') { rewind(); e.preventDefault(); }
+  else if (e.key === ']') { advance(); e.preventDefault(); }
+  else if (e.key === '{') { goTo(Math.max(0, idx - 1)); e.preventDefault(); }
+  else if (e.key === '}') { goTo(Math.min(SCENES.length - 1, idx + 1)); e.preventDefault(); }
+  else if (e.key === 'c' || e.key === 'C') {
+    // Toggle calibrate mode via URL — simpler than mutating live
+    const url = new URL(location);
+    if (calibrateMode) url.searchParams.delete('calibrate');
+    else url.searchParams.set('calibrate', '1');
+    location.href = url.toString();
+  }
+});
+
+goTo(0, {force:true});
+$('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
+</script>
+</body>
+</html>

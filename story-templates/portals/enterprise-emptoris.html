@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IBM Emptoris Contract Management — TGK 2.0 portal replica</title>
+<meta name="description" content="Immersive HTML replica of IBM Emptoris Contract Management's Contract Workbench + record detail. Exposes named drill-down slots where Docusign story-level templates iframe in. Replicates the legacy IBM Carbon-era enterprise CLM aesthetic — dense tables, IBM blue masthead, gray chrome, status chips. Not a literal screenshot, a structural/visual replica.">
+<style>
+/* ============================================================================
+   IBM Emptoris Contract Management — Vendor portal template
+   Modeled after the legacy Emptoris 10.x interface (IBM blue masthead +
+   secondary nav strip + workbench tabs + dense data tables). Aesthetic is
+   intentionally enterprise-dated — silver gradients, narrow typography,
+   small status pills — that's what makes it instantly recognizable to
+   anyone who's worked in procurement or legal ops.
+   ----------------------------------------------------------------------------
+   Per-vendor swap slots:
+     - --sor-primary / --sor-accent for any other CLM SoR (Icertis, Agiloft,
+       Ariba Contracts, SirionLabs) — keep the chrome rhythm, swap palette
+     - .ibm-mast .wm + suite name in masthead
+     - Left-rail navigation items
+     - Workbench tab labels
+     - Contract record fields
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  /* SoR badge kit — IBM Emptoris (legacy Carbon palette) */
+  --sor-primary:    #054ADA;   /* IBM blue — links, primary buttons, active tab underline */
+  --sor-primary-d:  #002D9C;   /* IBM blue 80 — pressed/hover */
+  --sor-accent:     #EE5396;   /* IBM magenta — workflow accent (rare; legacy Emptoris highlight) */
+  --sor-nav:        #161616;   /* IBM black — top masthead */
+  --sor-nav-2:      #262626;   /* secondary nav strip */
+  --sor-canvas:     #F4F4F4;   /* IBM gray-10 — page canvas */
+  --sor-paper:      #FFFFFF;
+  --sor-rail:       #E0E0E0;   /* gray-20 */
+  --sor-hair:       #C6C6C6;   /* gray-30 */
+  --sor-mid:        #8D8D8D;   /* gray-50 */
+  --sor-soft:       #525252;   /* gray-70 */
+  --sor-ink:        #161616;   /* gray-100 */
+  --sor-ink-2:      #393939;   /* gray-90 */
+  /* Status palette (Carbon tags) */
+  --st-draft-bg:#E0E0E0;     --st-draft-fg:#393939;
+  --st-review-bg:#FCF4D6;    --st-review-fg:#8E6A00;
+  --st-negotiate-bg:#D9FBFB; --st-negotiate-fg:#005D5D;
+  --st-approved-bg:#DEFBE6;  --st-approved-fg:#0E6027;
+  --st-active-bg:#A7F0BA;    --st-active-fg:#044317;
+  --st-expired-bg:#FFD7D9;   --st-expired-fg:#A2191F;
+  --st-flag-bg:#FFE7C2;      --st-flag-fg:#8E4900;
+  --ui:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--ui);color:var(--sor-ink);background:var(--sor-canvas);overflow:hidden;font-size:11.5px;line-height:1.4;}
+body{display:flex;align-items:stretch;justify-content:stretch;}
+.mock{width:100%;height:100%;display:flex;flex-direction:column;position:relative;background:var(--sor-canvas);}
+
+/* ============================================================================
+   IBM MASTHEAD — black bar with IBM 8-bar logo + product name + utility
+   ============================================================================ */
+.ibm-mast{flex-shrink:0;height:42px;background:var(--sor-nav);color:#fff;display:flex;align-items:center;padding:0 14px;gap:18px;border-bottom:1px solid #000;}
+.ibm-mast .ibm-mark{display:flex;align-items:center;gap:8px;}
+.ibm-mast .ibm-mark svg{height:14px;width:auto;}
+.ibm-mast .pipe{width:1px;height:18px;background:#525252;}
+.ibm-mast .product{font-size:13px;font-weight:600;letter-spacing:-0.01em;color:#fff;}
+.ibm-mast .product .sub{color:#C6C6C6;font-weight:400;margin-left:4px;}
+.ibm-mast .top-nav{display:flex;align-items:center;gap:0;margin-left:14px;}
+.ibm-mast .top-nav a{padding:0 12px;height:42px;display:flex;align-items:center;font-size:11.5px;color:#C6C6C6;font-weight:500;border-bottom:2px solid transparent;}
+.ibm-mast .top-nav a.active{color:#fff;border-bottom-color:var(--sor-primary);background:var(--sor-nav-2);}
+.ibm-mast .spacer{flex:1;}
+.ibm-mast .util{display:flex;align-items:center;gap:14px;color:#C6C6C6;font-size:11px;}
+.ibm-mast .util .icn{width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+.ibm-mast .util .icn svg{width:16px;height:16px;fill:#C6C6C6;}
+.ibm-mast .avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#0F62FE,#8A3FFC);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;letter-spacing:0.04em;}
+
+/* ============================================================================
+   SECONDARY STRIP — context breadcrumb + environment badge + search
+   ============================================================================ */
+.ibm-sub{flex-shrink:0;height:34px;background:var(--sor-nav-2);color:#C6C6C6;display:flex;align-items:center;padding:0 14px;gap:14px;font-size:11px;border-bottom:1px solid #000;}
+.ibm-sub .crumbs{display:flex;align-items:center;gap:6px;color:#A8A8A8;}
+.ibm-sub .crumbs b{color:#fff;font-weight:500;}
+.ibm-sub .crumbs .sep{color:#525252;}
+.ibm-sub .spacer{flex:1;}
+.ibm-sub .env{font-family:var(--mono);background:rgba(238,83,150,0.12);color:#FF7EB6;padding:2px 8px;border-radius:1px;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border:1px solid rgba(238,83,150,0.24);}
+.ibm-sub .search{display:flex;align-items:center;gap:6px;background:#393939;padding:4px 10px;width:240px;color:#A8A8A8;font-size:11px;border-radius:0;}
+.ibm-sub .search svg{width:12px;height:12px;fill:#A8A8A8;}
+.ibm-sub .search .cursor{display:inline-block;width:1px;height:11px;background:var(--sor-primary);margin-left:2px;animation:cursor-blink 1.1s steps(2) infinite;}
+
+/* ============================================================================
+   APPLICATION FRAME — left rail + main canvas
+   ============================================================================ */
+.app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+
+/* ---- Left rail (Carbon-style sidenav) ---- */
+.side-rail{flex-shrink:0;width:208px;background:var(--sor-paper);border-right:1px solid var(--sor-rail);display:flex;flex-direction:column;overflow:hidden;}
+.side-rail .rail-h{padding:10px 14px 6px;font-size:10.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--sor-mid);border-bottom:1px solid var(--sor-rail);}
+.side-rail .rail-section{padding:6px 0 4px;}
+.side-rail .rail-section .h{padding:6px 14px 2px;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--sor-soft);}
+.side-rail .ri{display:flex;align-items:center;gap:9px;padding:7px 14px;font-size:11.5px;color:var(--sor-ink-2);border-left:3px solid transparent;cursor:default;}
+.side-rail .ri svg{width:14px;height:14px;fill:var(--sor-soft);flex-shrink:0;}
+.side-rail .ri .badge{margin-left:auto;background:var(--sor-rail);color:var(--sor-ink);font-weight:600;font-size:10px;padding:1px 6px;border-radius:8px;font-family:var(--mono);}
+.side-rail .ri.active{background:#F4F4F4;border-left-color:var(--sor-primary);font-weight:600;color:var(--sor-ink);}
+.side-rail .ri.active svg{fill:var(--sor-primary);}
+.side-rail .ri.active .badge{background:var(--sor-primary);color:#fff;}
+.side-rail .rail-foot{margin-top:auto;padding:8px 14px;border-top:1px solid var(--sor-rail);font-size:10px;color:var(--sor-mid);background:#FAFAFA;}
+.side-rail .rail-foot .ver{font-family:var(--mono);color:var(--sor-soft);}
+
+/* ============================================================================
+   MAIN CANVAS — workbench (My Tasks/Recent/Watched/Approvals)
+   + scene 2: contract record detail
+   ============================================================================ */
+.canvas{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--sor-canvas);position:relative;}
+
+/* Two scenes share the same canvas; cross-fade via opacity in auto mode,
+   class-driven in manual mode. */
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;}
+.canvas:not(.manual) .scene.s1{animation:scene-1 20s ease-in-out infinite;}
+.canvas:not(.manual) .scene.s2{animation:scene-2 20s ease-in-out infinite;}
+.canvas:not(.manual) .scene{pointer-events:none;} /* auto mode = passive */
+.canvas.manual .scene.show{opacity:1;pointer-events:auto;}
+@keyframes scene-1 { 0%,46%{opacity:1;} 52%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes scene-2 { 0%,46%{opacity:0;} 52%,96%{opacity:1;} 100%{opacity:0;} }
+/* In manual mode, freeze every animation inside the canvas (chips, hovers,
+   inspector slide-in, status flips). The loop indicator + masthead live
+   outside .canvas, so they keep their pulse for "still alive" feedback. */
+.canvas.manual *,
+.canvas.manual *::before,
+.canvas.manual *::after{animation-play-state:paused !important;}
+/* Elements whose "off" state is invisible — force-show them in manual mode
+   so the canvas reads correctly when the loop is frozen. */
+.canvas.manual .scene.s1.show .inspector{animation:none !important;opacity:1;transform:none;}
+.canvas.manual .scene .flip-cell .tag.f1{opacity:1 !important;}
+.canvas.manual .scene .flip-cell .tag.f2,
+.canvas.manual .scene .flip-cell .tag.f3{opacity:0 !important;}
+
+/* ---- Page header (title + actions) ---- */
+.pg-head{flex-shrink:0;background:var(--sor-paper);padding:14px 20px 10px;border-bottom:1px solid var(--sor-rail);display:flex;align-items:flex-end;gap:18px;}
+.pg-head h1{font-size:20px;font-weight:400;color:var(--sor-ink);letter-spacing:-0.01em;}
+.pg-head h1 small{display:block;font-size:11px;color:var(--sor-soft);font-weight:400;margin-top:2px;letter-spacing:0;}
+.pg-head .meta{display:flex;align-items:center;gap:14px;color:var(--sor-soft);font-size:11px;}
+.pg-head .spacer{flex:1;}
+.pg-head .actions{display:flex;gap:6px;}
+.btn{padding:7px 14px;font-size:11.5px;font-weight:500;border:1px solid var(--sor-primary);background:transparent;color:var(--sor-primary);border-radius:0;font-family:var(--ui);display:inline-flex;align-items:center;gap:6px;cursor:default;}
+.btn.primary{background:var(--sor-primary);color:#fff;}
+.btn.primary:hover{background:var(--sor-primary-d);}
+.btn.ghost{border-color:var(--sor-hair);color:var(--sor-ink);}
+.btn svg{width:13px;height:13px;}
+
+/* ---- Workbench tab strip ---- */
+.wb-tabs{flex-shrink:0;background:var(--sor-paper);border-bottom:1px solid var(--sor-rail);padding:0 20px;display:flex;align-items:flex-end;gap:0;}
+.wb-tab{padding:10px 16px 12px;font-size:12px;color:var(--sor-soft);font-weight:500;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;}
+.wb-tab .ct{background:var(--sor-rail);color:var(--sor-ink);font-weight:600;font-size:10px;padding:1px 6px;border-radius:8px;font-family:var(--mono);}
+.wb-tab.active{color:var(--sor-ink);border-bottom-color:var(--sor-primary);font-weight:600;}
+.wb-tab.active .ct{background:var(--sor-primary);color:#fff;animation:badge-pulse 3.4s ease-in-out infinite;}
+.wb-tab.flag::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--sor-accent);margin-left:2px;animation:dot-pulse 2.6s ease-in-out infinite;}
+
+/* ---- Filter strip ---- */
+.filt{flex-shrink:0;background:var(--sor-paper);border-bottom:1px solid var(--sor-rail);padding:8px 20px;display:flex;align-items:center;gap:10px;}
+.filt .chip{padding:4px 10px;background:var(--sor-canvas);border:1px solid var(--sor-rail);font-size:11px;color:var(--sor-ink-2);display:inline-flex;align-items:center;gap:5px;border-radius:0;}
+.filt .chip.on{background:#EDF5FF;color:var(--sor-primary-d);border-color:var(--sor-primary);}
+.filt .chip .x{color:var(--sor-mid);font-weight:600;margin-left:2px;}
+.filt .spacer{flex:1;}
+.filt .view-toggle{display:flex;border:1px solid var(--sor-rail);}
+.filt .view-toggle span{padding:4px 8px;font-size:10px;color:var(--sor-soft);}
+.filt .view-toggle span.on{background:var(--sor-ink);color:#fff;}
+
+/* ---- Data table ---- */
+.tbl-wrap{flex:1;overflow:hidden;background:var(--sor-paper);}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.tbl thead th{position:sticky;top:0;background:#F4F4F4;text-align:left;font-weight:600;color:var(--sor-ink-2);padding:10px 14px;font-size:10.5px;letter-spacing:0.02em;text-transform:uppercase;border-bottom:1px solid var(--sor-hair);white-space:nowrap;}
+.tbl thead th .sortarrow{font-size:9px;color:var(--sor-mid);margin-left:4px;}
+.tbl thead th.active{color:var(--sor-primary);}
+.tbl tbody tr{border-bottom:1px solid var(--sor-rail);}
+.tbl tbody tr:hover,.tbl tbody tr.hover{background:#EDF5FF;}
+.tbl tbody td{padding:9px 14px;color:var(--sor-ink);vertical-align:middle;white-space:nowrap;}
+.tbl tbody td.num{font-family:var(--mono);font-size:11px;color:var(--sor-primary);font-weight:500;}
+.tbl tbody td.muted{color:var(--sor-soft);}
+.tbl tbody td.right{text-align:right;font-family:var(--mono);}
+.tbl tbody tr.hl{animation:row-hl 5s ease-in-out infinite;}
+.tbl tbody tr.hl-2{animation:row-hl 5s ease-in-out 0.6s infinite;}
+.tbl tbody tr.hl-3{animation:row-hl 5s ease-in-out 1.2s infinite;}
+@keyframes row-hl { 0%,80%,100%{background:transparent;} 18%,46%{background:#EDF5FF;} }
+
+/* ---- Status chip (Carbon tag) ---- */
+.tag{display:inline-block;padding:2px 8px;font-size:10.5px;font-weight:500;border-radius:8px;letter-spacing:0;}
+.tag.draft{background:var(--st-draft-bg);color:var(--st-draft-fg);}
+.tag.review{background:var(--st-review-bg);color:var(--st-review-fg);}
+.tag.negotiate{background:var(--st-negotiate-bg);color:var(--st-negotiate-fg);}
+.tag.approved{background:var(--st-approved-bg);color:var(--st-approved-fg);}
+.tag.active{background:var(--st-active-bg);color:var(--st-active-fg);}
+.tag.expired{background:var(--st-expired-bg);color:var(--st-expired-fg);}
+.tag.flag{background:var(--st-flag-bg);color:var(--st-flag-fg);}
+
+/* The marquee row whose status flips Draft → In Review → Negotiate */
+.tbl tbody tr.flip-row td.flip-cell{position:relative;height:18px;}
+.flip-cell .tag{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0;}
+.flip-cell .tag.f1{animation:flip-1 8s ease-in-out infinite;}
+.flip-cell .tag.f2{animation:flip-2 8s ease-in-out infinite;}
+.flip-cell .tag.f3{animation:flip-3 8s ease-in-out infinite;}
+@keyframes flip-1 { 0%,30%{opacity:1;} 35%,100%{opacity:0;} }
+@keyframes flip-2 { 0%,32%{opacity:0;} 38%,66%{opacity:1;} 70%,100%{opacity:0;} }
+@keyframes flip-3 { 0%,68%{opacity:0;} 72%,98%{opacity:1;} 100%{opacity:0;} }
+
+/* ---- Right-edge inspector panel (Scene 1) ---- */
+.inspector{position:absolute;top:96px;right:0;bottom:36px;width:288px;background:var(--sor-paper);border-left:1px solid var(--sor-rail);box-shadow:-8px 0 14px -10px rgba(0,0,0,0.08);display:flex;flex-direction:column;animation:insp-in 20s ease-in-out infinite;}
+@keyframes insp-in { 0%,8%{transform:translateX(8px);opacity:0;} 12%,46%{transform:translateX(0);opacity:1;} 50%,100%{transform:translateX(8px);opacity:0;} }
+.insp-h{padding:12px 14px;border-bottom:1px solid var(--sor-rail);}
+.insp-h .lbl{font-size:10px;color:var(--sor-mid);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+.insp-h .ttl{font-size:14px;color:var(--sor-ink);font-weight:500;margin-top:3px;}
+.insp-h .meta{display:flex;gap:12px;font-size:10.5px;color:var(--sor-soft);margin-top:4px;}
+.insp-tabs{display:flex;border-bottom:1px solid var(--sor-rail);background:#FAFAFA;}
+.insp-tabs span{padding:7px 12px;font-size:10.5px;color:var(--sor-soft);font-weight:500;}
+.insp-tabs span.on{color:var(--sor-ink);background:#fff;border-bottom:2px solid var(--sor-primary);font-weight:600;}
+.insp-body{padding:12px 14px;overflow:hidden;font-size:11px;}
+.insp-body .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--sor-rail);}
+.insp-body .kv .k{color:var(--sor-soft);font-weight:500;}
+.insp-body .kv .v{color:var(--sor-ink);text-align:right;font-weight:500;}
+.insp-body .kv .v.num{font-family:var(--mono);}
+
+/* The "AI Review" assist pill that flashes inside the inspector */
+.ai-pill{margin:10px 0 4px;background:linear-gradient(135deg,#EDF5FF,#F6F2FF);border:1px solid #C6E0FF;padding:9px 11px;display:flex;align-items:flex-start;gap:8px;font-size:10.5px;color:var(--sor-ink-2);}
+.ai-pill .star{width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg,#0F62FE,#8A3FFC);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;animation:ai-shine 3s ease-in-out infinite;}
+@keyframes ai-shine { 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.25);} }
+.ai-pill b{color:var(--sor-primary-d);}
+
+/* ============================================================================
+   SCENE 2 — Contract record detail
+   ============================================================================ */
+.rec-head{flex-shrink:0;background:var(--sor-paper);padding:12px 20px 10px;border-bottom:1px solid var(--sor-rail);display:flex;align-items:flex-end;gap:14px;}
+.rec-head .id{font-family:var(--mono);font-size:11.5px;color:var(--sor-soft);}
+.rec-head .ttl{font-size:18px;font-weight:500;color:var(--sor-ink);line-height:1.2;}
+.rec-head .sub{display:flex;gap:14px;color:var(--sor-soft);font-size:11px;margin-top:3px;}
+.rec-head .sub b{color:var(--sor-ink);font-weight:500;}
+.rec-head .spacer{flex:1;}
+.rec-head .stage-pill{display:flex;align-items:center;gap:0;border:1px solid var(--sor-rail);background:#fff;font-size:10.5px;}
+.rec-head .stage-pill span{padding:5px 10px;color:var(--sor-soft);border-right:1px solid var(--sor-rail);}
+.rec-head .stage-pill span:last-child{border-right:none;}
+.rec-head .stage-pill span.done{background:#DEFBE6;color:#0E6027;font-weight:500;}
+.rec-head .stage-pill span.cur{background:var(--sor-primary);color:#fff;font-weight:600;}
+
+.rec-tabs{flex-shrink:0;background:var(--sor-paper);border-bottom:1px solid var(--sor-rail);padding:0 20px;display:flex;gap:0;}
+.rec-tab{padding:10px 14px 12px;font-size:11.5px;color:var(--sor-soft);border-bottom:2px solid transparent;font-weight:500;}
+.rec-tab.active{color:var(--sor-ink);border-bottom-color:var(--sor-primary);font-weight:600;}
+
+.rec-body{flex:1;display:grid;grid-template-columns:1fr 320px;gap:0;min-height:0;overflow:hidden;}
+.rec-main{padding:14px 20px;overflow:hidden;display:flex;flex-direction:column;gap:12px;background:var(--sor-canvas);}
+.rec-card{background:var(--sor-paper);border:1px solid var(--sor-rail);}
+.rec-card .h{padding:9px 12px;background:#F4F4F4;border-bottom:1px solid var(--sor-rail);font-size:10.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--sor-ink-2);display:flex;align-items:center;gap:8px;}
+.rec-card .h .ct{font-family:var(--mono);font-size:10px;color:var(--sor-soft);font-weight:500;text-transform:none;letter-spacing:0;margin-left:auto;}
+.rec-card .b{padding:10px 12px;}
+.field-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 18px;}
+.field-grid .f .l{font-size:10px;color:var(--sor-soft);font-weight:500;text-transform:uppercase;letter-spacing:0.03em;}
+.field-grid .f .v{font-size:11.5px;color:var(--sor-ink);font-weight:500;margin-top:1px;}
+.field-grid .f .v.num{font-family:var(--mono);color:var(--sor-primary-d);}
+.field-grid .f .v small{color:var(--sor-soft);font-weight:400;}
+
+/* Clause list inside record */
+.clause-list{display:flex;flex-direction:column;gap:6px;}
+.clause-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#FAFAFA;border:1px solid var(--sor-rail);font-size:11px;}
+.clause-row .h{font-weight:600;color:var(--sor-ink);min-width:170px;}
+.clause-row .src{color:var(--sor-soft);font-size:10.5px;flex:1;}
+.clause-row .src .hi{background:#FCF4D6;color:#8E6A00;padding:0 3px;}
+.clause-row.flag{background:#FFF1F1;border-color:#FFB3B8;}
+.clause-row.flag .src .hi{background:#FFD7D9;color:#A2191F;}
+.clause-row .tag{margin-left:auto;}
+
+/* Right side: actions + activity */
+.rec-side{padding:14px 16px 14px 0;background:var(--sor-canvas);overflow:hidden;display:flex;flex-direction:column;gap:12px;}
+.rec-side .act-card{background:var(--sor-paper);border:1px solid var(--sor-rail);padding:12px 12px;}
+.rec-side .act-card .h{font-size:10.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--sor-ink-2);margin-bottom:8px;}
+.rec-side .act-list{display:flex;flex-direction:column;gap:6px;}
+.activity{display:flex;flex-direction:column;gap:9px;font-size:10.5px;color:var(--sor-ink-2);}
+.activity .a-row{display:flex;gap:8px;}
+.activity .ts{font-family:var(--mono);color:var(--sor-soft);font-size:10px;min-width:50px;}
+.activity .who{color:var(--sor-primary-d);font-weight:600;}
+
+/* ============================================================================
+   EMBED SLOTS — pre-injection placeholders. Each renders as a CTA in the
+   real product. The TGK story shell injects an iframe that overlays / replaces
+   the relevant region with a Docusign story-level template.
+   ============================================================================ */
+
+/* slot:doc-gen → /story-templates/docusign-doc-gen.html (stub; not yet built) */
+.embed-slot-doc-gen{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--sor-primary);color:#fff;border:1px solid var(--sor-primary);font-size:11.5px;font-weight:500;cursor:default;}
+.embed-slot-doc-gen .tag{background:rgba(255,255,255,0.2);color:#fff;font-size:9.5px;padding:1px 5px;letter-spacing:0.04em;font-family:var(--mono);}
+.embed-slot-doc-gen svg{width:13px;height:13px;fill:#fff;}
+
+/* slot:counterparty-intake → /story-templates/docusign-webform.html — header CTA */
+.embed-slot-counterparty-intake{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;color:var(--sor-primary);border:1px solid var(--sor-primary);font-size:11.5px;font-weight:500;cursor:default;}
+.embed-slot-counterparty-intake svg{width:13px;height:13px;fill:var(--sor-primary);}
+
+/* slot:workspaces-review → (Workspaces stub; build when template lands) — inline banner */
+.embed-slot-workspaces-review{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EDF5FF;border:1px solid #C6E0FF;font-size:11px;color:var(--sor-ink-2);}
+.embed-slot-workspaces-review .ds-mark{width:18px;height:18px;background:var(--sor-primary-d);color:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);}
+.embed-slot-workspaces-review b{color:var(--sor-primary-d);font-weight:600;}
+.embed-slot-workspaces-review .pill{margin-left:auto;background:var(--sor-primary);color:#fff;padding:4px 10px;font-size:10.5px;font-weight:600;}
+
+/* slot:esign-execute → /story-templates/docusign-webform.html (signing variant) — primary action */
+.embed-slot-esign-execute{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#FFC100;color:#161616;border:1px solid #C99700;font-size:11.5px;font-weight:600;cursor:default;}
+.embed-slot-esign-execute svg{width:13px;height:13px;}
+
+/* slot:ai-review → /story-templates/docusign-agents.html (AI Assisted Review variant) — pill */
+.embed-slot-ai-review{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:linear-gradient(135deg,#0F62FE,#8A3FFC);color:#fff;font-size:10.5px;font-weight:600;cursor:default;border-radius:0;}
+.embed-slot-ai-review .star{width:11px;height:11px;display:flex;align-items:center;justify-content:center;font-size:11px;}
+
+/* slot:navigator-search → /story-templates/docusign-navigator.html — tab body replacement */
+.embed-slot-navigator-search{display:inline-flex;align-items:center;gap:6px;}
+
+/* slot:agreement-desk → (Agreement Desk stub; build when template lands) — record-level tab */
+.embed-slot-agreement-desk{display:inline-flex;align-items:center;gap:5px;color:var(--sor-soft);font-size:10.5px;}
+.embed-slot-agreement-desk .new-pill{background:var(--sor-accent);color:#fff;padding:1px 6px;font-size:9px;font-weight:700;letter-spacing:0.04em;border-radius:8px;}
+
+/* ============================================================================
+   FOOTER STATUS BAR — IBM-style thin footer + loop indicator
+   ============================================================================ */
+.foot{flex-shrink:0;height:24px;background:#FFFFFF;border-top:1px solid var(--sor-rail);display:flex;align-items:center;padding:0 14px;gap:12px;font-size:10px;color:var(--sor-soft);}
+.foot .l{display:flex;align-items:center;gap:5px;}
+.foot .l .dot{width:6px;height:6px;border-radius:50%;background:#198038;}
+.foot .spacer{flex:1;}
+.foot .build{font-family:var(--mono);}
+
+.loop-indicator{position:absolute;bottom:32px;right:14px;z-index:30;background:rgba(22,22,22,0.94);color:#fff;border-radius:14px;padding:5px 5px 5px 9px;display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:0.02em;}
+.loop-indicator .dot{width:6px;height:6px;border-radius:50%;background:#42BE65;animation:pulse-dot 1.6s ease-out infinite;}
+.loop-indicator .lbl{min-width:184px;position:relative;display:inline-block;height:13px;font-weight:500;}
+.loop-indicator .lbl span{position:absolute;left:0;top:0;opacity:0;white-space:nowrap;cursor:pointer;}
+.loop-indicator .lbl .x1{animation:lx-1 20s ease-in-out infinite;}
+.loop-indicator .lbl .x2{animation:lx-2 20s ease-in-out infinite;}
+/* In manual mode, show only the active scene's label (controller toggles .x1-on/.x2-on) */
+.mock.manual-mode .loop-indicator .lbl .x1,
+.mock.manual-mode .loop-indicator .lbl .x2{animation:none;}
+.mock.manual-mode .loop-indicator .lbl .x1.on,
+.mock.manual-mode .loop-indicator .lbl .x2.on{opacity:1;}
+/* Auto/Manual mode toggle pill */
+.mode-toggle{display:flex;background:rgba(255,255,255,0.08);border-radius:10px;padding:1px;font-size:9.5px;font-weight:600;letter-spacing:0.04em;}
+.mode-toggle button{appearance:none;border:0;background:transparent;color:#A8A8A8;font:inherit;padding:3px 8px;border-radius:9px;cursor:pointer;letter-spacing:inherit;}
+.mode-toggle button.on{background:#42BE65;color:#161616;}
+.mode-toggle button:focus-visible{outline:1px solid #42BE65;outline-offset:1px;}
+
+/* ============================================================================
+   OVERLAY — drill-down iframe + close affordance. Sized for the embed slot's
+   target template so the chrome around it (Emptoris) stays visible.
+   ============================================================================ */
+.overlay{position:absolute;inset:0;z-index:60;background:rgba(22,22,22,0.55);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.overlay.open{display:flex;animation:ov-fade 180ms ease-out;}
+@keyframes ov-fade { from{opacity:0;} to{opacity:1;} }
+.overlay .frame-wrap{position:relative;background:#fff;border:1px solid var(--sor-rail);box-shadow:0 24px 60px -16px rgba(0,0,0,0.45);width:min(94%,1080px);height:min(88%,720px);display:flex;flex-direction:column;}
+.overlay.mode-side .frame-wrap{margin-left:auto;width:min(48%,560px);height:100%;border-left:1px solid var(--sor-rail);box-shadow:-12px 0 30px -10px rgba(0,0,0,0.35);}
+.overlay.mode-tab .frame-wrap{position:absolute;top:160px;left:228px;right:14px;bottom:38px;width:auto;height:auto;}
+.overlay .frame-bar{flex-shrink:0;height:32px;background:#161616;color:#fff;display:flex;align-items:center;padding:0 10px;gap:10px;font-size:11px;font-weight:500;}
+.overlay .frame-bar .ds-mark{width:18px;height:18px;background:var(--sor-primary);color:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);}
+.overlay .frame-bar .ttl{flex:1;color:#fff;}
+.overlay .frame-bar .ttl small{color:#A8A8A8;font-weight:400;margin-left:6px;}
+.overlay .frame-bar .src{font-family:var(--mono);font-size:10px;color:#8D8D8D;}
+.overlay .frame-bar .x{appearance:none;background:transparent;border:0;color:#fff;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;line-height:1;border-radius:3px;}
+.overlay .frame-bar .x:hover{background:rgba(255,255,255,0.12);}
+.overlay iframe{flex:1;border:0;width:100%;background:#fff;}
+.overlay .stub{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;color:var(--sor-soft);font-size:12px;}
+.overlay .stub .h{font-size:16px;color:var(--sor-ink);font-weight:600;}
+.overlay .stub .pill{font-family:var(--mono);font-size:10.5px;background:var(--sor-canvas);border:1px solid var(--sor-rail);padding:3px 8px;color:var(--sor-ink-2);}
+
+/* Cursor affordances for clickable surfaces in manual mode */
+.canvas.manual .wb-tab,
+.canvas.manual .rec-tab,
+.canvas.manual .tbl tbody tr,
+.canvas.manual [class*="embed-slot-"]{cursor:pointer;}
+
+/* ============================================================================
+   RADIATE — embed-slot halo in manual mode. Each Docusign drill-down
+   trigger pulses with a soft cobalt ring so the user can see, at a glance,
+   which surfaces are wired to a demo moment. Damped (opacity-only) on slots
+   the user has already opened, so the eye is drawn to what's still unseen.
+   ============================================================================ */
+.canvas.manual [class*="embed-slot-"]{position:relative;z-index:1;}
+.canvas.manual [class*="embed-slot-"]::after{
+  content:"";position:absolute;inset:-3px;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 0 0 rgba(5,74,218,0.55);
+  animation:radiate 2.4s ease-out infinite;
+}
+.canvas.manual .embed-slot-workspaces-review::after{inset:-2px;}
+.canvas.manual [class*="embed-slot-"].seen::after{opacity:0.18;animation-duration:4s;}
+@keyframes radiate{
+  0%{box-shadow:0 0 0 0 rgba(5,74,218,0.55), 0 0 0 0 rgba(138,63,252,0.22);}
+  60%{box-shadow:0 0 0 7px rgba(5,74,218,0), 0 0 0 12px rgba(138,63,252,0);}
+  100%{box-shadow:0 0 0 0 rgba(5,74,218,0), 0 0 0 0 rgba(138,63,252,0);}
+}
+
+/* ============================================================================
+   HINT TOAST — one-time onboarding nudge. Fades in over the canvas after a
+   few seconds of auto playback, explains manual mode, offers a one-click
+   "Take control" button. Dismissible; never reappears in the same session.
+   ============================================================================ */
+.hint-toast{position:absolute;top:90px;left:50%;transform:translateX(-50%);z-index:55;
+  background:#161616;color:#fff;border-radius:6px;padding:10px 12px 10px 14px;
+  display:none;align-items:flex-start;gap:12px;
+  box-shadow:0 16px 36px -10px rgba(0,0,0,0.45);
+  border:1px solid #393939;max-width:380px;font-size:11.5px;line-height:1.45;}
+.hint-toast.show{display:flex;animation:toast-in 320ms cubic-bezier(.2,.8,.3,1);}
+.hint-toast .icn{width:22px;height:22px;border-radius:4px;
+  background:linear-gradient(135deg,var(--sor-primary),#8A3FFC);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+  flex-shrink:0;margin-top:1px;font-size:12px;font-family:var(--mono);}
+.hint-toast .body{display:flex;flex-direction:column;gap:6px;}
+.hint-toast .h{font-weight:600;color:#fff;letter-spacing:-0.005em;}
+.hint-toast .p{color:#C6C6C6;}
+.hint-toast .p kbd{font-family:var(--mono);background:#262626;color:#fff;padding:1px 5px;
+  border-radius:3px;border:1px solid #393939;font-size:10.5px;}
+.hint-toast .row{display:flex;gap:6px;margin-top:4px;align-items:center;}
+.hint-toast .take{appearance:none;border:0;background:#42BE65;color:#161616;
+  font-weight:600;font-size:11px;padding:5px 10px;border-radius:3px;cursor:pointer;font-family:var(--ui);}
+.hint-toast .take:hover{background:#5BCA7B;}
+.hint-toast .later{appearance:none;border:0;background:transparent;color:#A8A8A8;
+  font-size:10.5px;padding:5px 8px;cursor:pointer;font-family:var(--ui);}
+.hint-toast .later:hover{color:#fff;}
+.hint-toast .x{appearance:none;background:transparent;border:0;color:#A8A8A8;
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border-radius:3px;line-height:1;font-size:14px;flex-shrink:0;margin-left:auto;}
+.hint-toast .x:hover{background:rgba(255,255,255,0.12);color:#fff;}
+@keyframes toast-in{
+  from{opacity:0;transform:translate(-50%,-8px);}
+  to{opacity:1;transform:translate(-50%,0);}
+}
+
+/* ============================================================================
+   SHARED ANIMATIONS
+   ============================================================================ */
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(66,190,101,0.55);} 70%{box-shadow:0 0 0 5px rgba(66,190,101,0);} 100%{box-shadow:0 0 0 0 rgba(66,190,101,0);} }
+@keyframes lx-1 { 0%,46%{opacity:1;} 50%,96%{opacity:0;} 100%{opacity:1;} }
+@keyframes lx-2 { 0%,46%{opacity:0;} 50%,96%{opacity:1;} 100%{opacity:0;} }
+@keyframes badge-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(5,74,218,0.5);} 50%{box-shadow:0 0 0 4px rgba(5,74,218,0);} }
+@keyframes dot-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.3);opacity:0.6;} }
+@keyframes cursor-blink { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+</style>
+</head>
+<body>
+<div class="mock">
+
+  <!-- ============================================================================
+       IBM MASTHEAD — black bar with 8-bar IBM logo, product name, util icons
+       swap: .product .wm + .sub for any IBM Strategic Supply Mgmt product
+       ============================================================================ -->
+  <div class="ibm-mast">
+    <div class="ibm-mark">
+      <!-- IBM 8-bar logo, recreated as inline SVG (no copyright copy) -->
+      <svg viewBox="0 0 56 22" xmlns="http://www.w3.org/2000/svg" aria-label="IBM">
+        <g fill="#fff">
+          <!-- I -->
+          <rect x="0"  y="0"  width="14" height="2"/>
+          <rect x="0"  y="4"  width="14" height="2"/>
+          <rect x="2"  y="8"  width="10" height="2"/>
+          <rect x="2"  y="12" width="10" height="2"/>
+          <rect x="0"  y="16" width="14" height="2"/>
+          <rect x="0"  y="20" width="14" height="2"/>
+          <!-- B -->
+          <rect x="18" y="0"  width="14" height="2"/>
+          <rect x="18" y="4"  width="14" height="2"/>
+          <rect x="20" y="8"  width="3"  height="2"/><rect x="26" y="8"  width="6"  height="2"/>
+          <rect x="20" y="12" width="3"  height="2"/><rect x="26" y="12" width="6"  height="2"/>
+          <rect x="18" y="16" width="14" height="2"/>
+          <rect x="18" y="20" width="14" height="2"/>
+          <!-- M -->
+          <rect x="36" y="0"  width="14" height="2"/>
+          <rect x="36" y="4"  width="14" height="2"/>
+          <rect x="38" y="8"  width="3"  height="2"/><rect x="42" y="8"  width="3"  height="2"/><rect x="46" y="8"  width="3"  height="2"/>
+          <rect x="38" y="12" width="3"  height="2"/><rect x="42" y="12" width="3"  height="2"/><rect x="46" y="12" width="3"  height="2"/>
+          <rect x="38" y="16" width="3"  height="2"/><rect x="46" y="16" width="3"  height="2"/>
+          <rect x="38" y="20" width="3"  height="2"/><rect x="46" y="20" width="3"  height="2"/>
+        </g>
+      </svg>
+    </div>
+    <div class="pipe"></div>
+    <!-- swap: product name -->
+    <div class="product">Emptoris<span class="sub">Contract Management</span></div>
+    <!-- top-nav: anchored to suite modules (Sourcing / Spend / Supplier Lifecycle / Contract Mgmt) -->
+    <div class="top-nav">
+      <a>Sourcing</a>
+      <a>Spend Analysis</a>
+      <a>Supplier Lifecycle</a>
+      <a class="active">Contract Management</a>
+      <a>Programs</a>
+    </div>
+    <div class="spacer"></div>
+    <div class="util">
+      <span class="icn" title="Help"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.7 12.5h-1.4v-1.4h1.4v1.4zm1-4.4-.6.5c-.4.4-.6.7-.6 1.5h-1.4v-.4c0-.6.2-1.1.6-1.5l.8-.8c.3-.3.5-.6.5-1.1 0-.7-.6-1.3-1.3-1.3s-1.3.6-1.3 1.3H4.7c0-1.6 1.3-2.9 2.9-2.9s2.9 1.3 2.9 2.9c0 .7-.3 1.3-.8 1.8z"/></svg></span>
+      <span class="icn" title="Notifications"><svg viewBox="0 0 16 16"><path d="M8 16c1.1 0 2-.9 2-2H6c0 1.1.9 2 2 2zm6-4V8c0-3.1-2.4-5.6-5.5-5.9V1h-1v1.1C4.4 2.4 2 4.9 2 8v4l-2 2h16l-2-2z"/></svg></span>
+      <div class="avatar">JM</div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       SECONDARY STRIP — context breadcrumb + environment + global search
+       ============================================================================ -->
+  <div class="ibm-sub">
+    <div class="crumbs">
+      <span>Contract Management</span><span class="sep">/</span>
+      <span>Workbench</span><span class="sep">/</span>
+      <b>My Tasks</b>
+    </div>
+    <div class="spacer"></div>
+    <div class="env">PROD · NA-EAST · v10.1.3</div>
+    <div class="search">
+      <svg viewBox="0 0 16 16"><path d="M11.4 10h-.7l-.3-.2c.9-1 1.5-2.3 1.5-3.8a5.5 5.5 0 1 0-5.5 5.5c1.5 0 2.8-.6 3.8-1.5l.3.3v.7l4.3 4.3 1.3-1.3-4.7-4z"/></svg>
+      <span>Search contracts, clauses, suppliers</span><span class="cursor"></span>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       APP BODY — left rail + main canvas
+       ============================================================================ -->
+  <div class="app-body">
+
+    <!-- Left rail (Carbon-style sidenav). swap: items per implementation IA -->
+    <nav class="side-rail">
+      <div class="rail-h">Contract Management</div>
+      <div class="rail-section">
+        <div class="ri active">
+          <svg viewBox="0 0 16 16"><path d="M2 2v12h12V2H2zm10 10H4V4h8v8zM6 6h4v1H6V6zm0 2h4v1H6V8zm0 2h3v1H6v-1z"/></svg>
+          <span>Workbench</span>
+          <span class="badge">17</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M3 1v14h10V1H3zm9 13H4V2h8v12zM5 4h6v1H5V4zm0 2h6v1H5V6zm0 2h4v1H5V8z"/></svg>
+          <span>Contract Library</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M14 5h-3V2L8 0 5 2v3H2l3 3v6h6V8l3-3z"/></svg>
+          <span>Negotiation Library</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M2 2h12v3H2V2zm0 5h12v2H2V7zm0 4h12v3H2v-3z"/></svg>
+          <span>Templates</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h10v2H1v-2z"/></svg>
+          <span>Clause Library</span>
+        </div>
+      </div>
+      <div class="rail-section">
+        <div class="h">Reports</div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M2 14h12v1H2v-1zM3 12h2V8H3v4zm3 0h2V4H6v8zm3 0h2V6H9v6zm3 0h2V2h-2v10z"/></svg>
+          <span>My Tasks Report</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 0 7 7h-7V1z"/></svg>
+          <span>Expiry Forecast</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M2 13l4-4 3 3 5-6V2H2v11z"/></svg>
+          <span>Spend by Contract</span>
+        </div>
+      </div>
+      <div class="rail-section">
+        <div class="h">Administration</div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.5"/></svg>
+          <span>Configuration</span>
+        </div>
+        <div class="ri">
+          <svg viewBox="0 0 16 16"><path d="M8 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM2 14c0-3.3 2.7-6 6-6s6 2.7 6 6H2z"/></svg>
+          <span>User Roles</span>
+        </div>
+      </div>
+      <div class="rail-foot">
+        <div>v10.1.3 · <span class="ver">build 2025.04.18</span></div>
+        <div>© IBM Corporation</div>
+      </div>
+    </nav>
+
+    <!-- ==========================================================================
+         MAIN CANVAS — two scenes cross-fade on a 20s loop:
+         Scene 1: Workbench / My Tasks (work queue + record inspector)
+         Scene 2: Contract record detail (Acme Logistics MSA, ready to send)
+         ========================================================================== -->
+    <section class="canvas">
+
+      <!-- ============= SCENE 1 — WORKBENCH ============= -->
+      <div class="scene s1">
+
+        <div class="pg-head">
+          <h1>Contract Workbench
+            <small>Tasks, recent activity, and watched contracts assigned to Jordan Meyer</small>
+          </h1>
+          <div class="meta"><span>Today · Apr 23, 2026</span></div>
+          <div class="spacer"></div>
+          <div class="actions">
+            <!-- slot: counterparty-intake → /story-templates/docusign-webform.html
+                 trigger renders here as a secondary CTA at top of workbench -->
+            <button class="embed-slot-counterparty-intake" type="button"
+                    data-slot="counterparty-intake"
+                    data-target="/story-templates/docusign-webform.html"
+                    data-mode="modal">
+              <svg viewBox="0 0 16 16"><path d="M2 3v10h12V3H2zm11 9H3V4h10v8zM4 6h8v1H4V6zm0 2h8v1H4V8zm0 2h5v1H4v-1z"/></svg>
+              Send intake form
+            </button>
+            <!-- slot: doc-gen → /story-templates/docusign-doc-gen.html (stub)
+                 trigger renders here as the primary new-contract action -->
+            <button class="embed-slot-doc-gen" type="button"
+                    data-slot="doc-gen"
+                    data-target=""
+                    data-mode="modal">
+              <svg viewBox="0 0 16 16"><path d="M8 0L0 4v8l8 4 8-4V4L8 0zm6 11.3L8 14.5 2 11.3V5.7l6 3 6-3v5.6z"/></svg>
+              Generate contract
+              <span class="tag">Doc Gen</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="wb-tabs">
+          <div class="wb-tab active">My Tasks <span class="ct">17</span></div>
+          <div class="wb-tab">Recent Contracts <span class="ct">25</span></div>
+          <div class="wb-tab">Watched Contracts <span class="ct">8</span></div>
+          <div class="wb-tab">My Approvals <span class="ct">4</span></div>
+          <div class="wb-tab flag">Renewals · 60 days <span class="ct">11</span></div>
+        </div>
+
+        <div class="filt">
+          <span class="chip on">Type: All <span class="x">×</span></span>
+          <span class="chip">Owner: Me</span>
+          <span class="chip">Status: Open</span>
+          <span class="chip on">Due: Next 30 days <span class="x">×</span></span>
+          <div class="spacer"></div>
+          <div class="view-toggle"><span class="on">Grid</span><span>Card</span></div>
+          <span style="font-size:10.5px;color:var(--sor-soft);">17 of 17 tasks</span>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:14%;">Contract # <span class="sortarrow">▾</span></th>
+                <th style="width:24%;">Title</th>
+                <th style="width:14%;">Counterparty</th>
+                <th style="width:11%;">Type</th>
+                <th style="width:11%;">Stage</th>
+                <th class="active" style="width:8%;">Status <span class="sortarrow">▾</span></th>
+                <th style="width:9%;">Effective</th>
+                <th style="width:9%;text-align:right;">Value (USD)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="hl">
+                <td class="num">CT-2026-04812</td>
+                <td>Acme Logistics — Master Services Agreement</td>
+                <td>Acme Logistics, Inc.</td>
+                <td>MSA</td>
+                <td class="muted">Author</td>
+                <td><span class="tag draft">Draft</span></td>
+                <td>Apr 28, 2026</td>
+                <td class="right">$2,840,000</td>
+              </tr>
+              <tr class="flip-row">
+                <td class="num">CT-2026-04793</td>
+                <td>Northwind Cloud — Hosting SOW #4</td>
+                <td>Northwind Cloud Ltd.</td>
+                <td>SOW</td>
+                <td class="muted">Negotiate</td>
+                <td class="flip-cell">
+                  <span class="tag draft f1">Draft</span>
+                  <span class="tag review f2">In Review</span>
+                  <span class="tag negotiate f3">Negotiating</span>
+                </td>
+                <td>May 01, 2026</td>
+                <td class="right">$648,500</td>
+              </tr>
+              <tr class="hl-2">
+                <td class="num">CT-2026-04701</td>
+                <td>BlueSky Pharma — Clinical Site Agreement</td>
+                <td>BlueSky Pharma SA</td>
+                <td>Site</td>
+                <td class="muted">Approve</td>
+                <td><span class="tag review">In Review</span></td>
+                <td>May 06, 2026</td>
+                <td class="right">$185,000</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2026-04688</td>
+                <td>Helios Components — Supply Agreement (Tier 2)</td>
+                <td>Helios Components GmbH</td>
+                <td>Supply</td>
+                <td class="muted">Negotiate</td>
+                <td><span class="tag negotiate">Negotiating</span></td>
+                <td>May 12, 2026</td>
+                <td class="right">$1,225,000</td>
+              </tr>
+              <tr class="hl-3">
+                <td class="num">CT-2026-04644</td>
+                <td>Cascade Print — Marketing MSA Renewal</td>
+                <td>Cascade Print Group</td>
+                <td>MSA</td>
+                <td class="muted">Approve</td>
+                <td><span class="tag approved">Approved</span></td>
+                <td>May 15, 2026</td>
+                <td class="right">$412,000</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2026-04612</td>
+                <td>Pioneer Energy — DPA Amendment 02</td>
+                <td>Pioneer Energy Co.</td>
+                <td>Amendment</td>
+                <td class="muted">Negotiate</td>
+                <td><span class="tag negotiate">Negotiating</span></td>
+                <td>May 19, 2026</td>
+                <td class="right">$78,200</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2026-04598</td>
+                <td>Atlas Audit Services — SOW #11 (Q3)</td>
+                <td>Atlas Audit Services LLP</td>
+                <td>SOW</td>
+                <td class="muted">Author</td>
+                <td><span class="tag draft">Draft</span></td>
+                <td>Jun 01, 2026</td>
+                <td class="right">$245,800</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2026-04547</td>
+                <td>RiverRun Software — Annual License Renewal</td>
+                <td>RiverRun Software, Inc.</td>
+                <td>License</td>
+                <td class="muted">Sign</td>
+                <td><span class="tag approved">Approved</span></td>
+                <td>Jun 04, 2026</td>
+                <td class="right">$1,876,400</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2026-04501</td>
+                <td>Stellar Freight — Carrier Contract</td>
+                <td>Stellar Freight Holdings</td>
+                <td>Supply</td>
+                <td class="muted">Active</td>
+                <td><span class="tag active">Active</span></td>
+                <td>Apr 01, 2026</td>
+                <td class="right">$3,514,000</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2025-12114</td>
+                <td>Vanguard Mfg — DPA (Article 28 Annex)</td>
+                <td>Vanguard Mfg AG</td>
+                <td>DPA</td>
+                <td class="muted">Renew</td>
+                <td><span class="tag flag">Expiring 14d</span></td>
+                <td>May 07, 2026</td>
+                <td class="right">$92,500</td>
+              </tr>
+              <tr>
+                <td class="num">CT-2025-11873</td>
+                <td>OpenChannel Media — Influencer SOW (Q4)</td>
+                <td>OpenChannel Media</td>
+                <td>SOW</td>
+                <td class="muted">Closed</td>
+                <td><span class="tag expired">Expired</span></td>
+                <td>—</td>
+                <td class="right">$66,800</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Right-edge inspector — slides in showing the highlighted row's record summary -->
+        <aside class="inspector">
+          <div class="insp-h">
+            <div class="lbl">Selected · Contract</div>
+            <div class="ttl">Acme Logistics — Master Services Agreement</div>
+            <div class="meta"><span class="num" style="font-family:var(--mono);color:var(--sor-primary-d);">CT-2026-04812</span><span>MSA · Draft</span></div>
+          </div>
+          <div class="insp-tabs">
+            <span class="on">Summary</span><span>Clauses</span><span>Approvals</span><span>Activity</span>
+          </div>
+          <div class="insp-body">
+            <div class="kv"><span class="k">Counterparty</span><span class="v">Acme Logistics, Inc.</span></div>
+            <div class="kv"><span class="k">Owner</span><span class="v">Jordan Meyer</span></div>
+            <div class="kv"><span class="k">Effective date</span><span class="v num">2026-04-28</span></div>
+            <div class="kv"><span class="k">Expiry date</span><span class="v num">2029-04-27</span></div>
+            <div class="kv"><span class="k">Initial term</span><span class="v">36 months</span></div>
+            <div class="kv"><span class="k">Auto-renew</span><span class="v">Yes — 12mo</span></div>
+            <div class="kv"><span class="k">Total value</span><span class="v num">$2,840,000</span></div>
+            <div class="kv"><span class="k">Template</span><span class="v">MSA · Logistics v4.2</span></div>
+
+            <!-- AI assist callout — wires to the Iris/Agents drill-down -->
+            <div class="ai-pill">
+              <div class="star">✦</div>
+              <div>
+                <b>AI Review</b> found <b>2 deviations</b> from playbook — Limitation of Liability cap raised from 1× to 3× annual fees; SLA credits increased.
+                <div style="margin-top:6px;display:flex;gap:6px;align-items:center;">
+                  <!-- slot: ai-review → /story-templates/docusign-agents.html -->
+                  <span class="embed-slot-ai-review"
+                        data-slot="ai-review"
+                        data-target="/story-templates/docusign-agents.html"
+                        data-mode="side"><span class="star">✦</span>Open AI Review</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ============= SCENE 2 — CONTRACT RECORD DETAIL ============= -->
+      <div class="scene s2">
+
+        <div class="rec-head">
+          <div>
+            <div class="id">CT-2026-04812 · MSA · Logistics v4.2</div>
+            <div class="ttl">Acme Logistics — Master Services Agreement</div>
+            <div class="sub">
+              <span>Counterparty <b>Acme Logistics, Inc.</b></span>
+              <span>Owner <b>Jordan Meyer</b></span>
+              <span>Effective <b>Apr 28, 2026</b></span>
+              <span>Value <b>$2,840,000</b></span>
+            </div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stage-pill">
+            <span class="done">Author</span>
+            <span class="done">Internal Review</span>
+            <span class="cur">Negotiate</span>
+            <span>Approve</span>
+            <span>Sign</span>
+            <span>Active</span>
+          </div>
+        </div>
+
+        <div class="rec-tabs">
+          <div class="rec-tab active">Overview</div>
+          <div class="rec-tab">Document &amp; Clauses</div>
+          <div class="rec-tab">Negotiation</div>
+          <div class="rec-tab">Approvals</div>
+          <!-- slot: navigator-search → /story-templates/docusign-navigator.html
+               (rendered as a tab; on activation, the tab body becomes a Navigator iframe) -->
+          <div class="rec-tab"><span class="embed-slot-navigator-search"
+                                     data-slot="navigator-search"
+                                     data-target="/story-templates/docusign-navigator.html"
+                                     data-mode="tab">AI Repository Search</span></div>
+          <!-- slot: agreement-desk → (Agreement Desk template stub) — record-level tab -->
+          <div class="rec-tab"><span class="embed-slot-agreement-desk"
+                                     data-slot="agreement-desk"
+                                     data-target=""
+                                     data-mode="tab">Agreement Desk <span class="new-pill">NEW</span></span></div>
+        </div>
+
+        <div class="rec-body">
+
+          <!-- LEFT: record main pane -->
+          <div class="rec-main">
+
+            <!-- Key terms card -->
+            <div class="rec-card">
+              <div class="h">Key terms <span class="ct">Last sync 2 min ago · auto-extracted</span></div>
+              <div class="b">
+                <div class="field-grid">
+                  <div class="f"><div class="l">Contract type</div><div class="v">Master Services Agreement</div></div>
+                  <div class="f"><div class="l">Total value</div><div class="v num">$2,840,000 <small>USD</small></div></div>
+                  <div class="f"><div class="l">Initial term</div><div class="v">36 months</div></div>
+                  <div class="f"><div class="l">Effective date</div><div class="v num">2026-04-28</div></div>
+                  <div class="f"><div class="l">Expiry date</div><div class="v num">2029-04-27</div></div>
+                  <div class="f"><div class="l">Auto-renew</div><div class="v">Yes — 12 month rolling</div></div>
+                  <div class="f"><div class="l">Governing law</div><div class="v">New York</div></div>
+                  <div class="f"><div class="l">Liability cap</div><div class="v">3× annual fees <small>(amended)</small></div></div>
+                  <div class="f"><div class="l">Payment terms</div><div class="v">Net 45</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Clause inspector card with AI-flagged deviations -->
+            <div class="rec-card">
+              <div class="h">Clauses · 32 mapped <span class="ct">2 deviations from MSA · Logistics playbook</span></div>
+              <div class="b">
+                <div class="clause-list">
+                  <div class="clause-row flag">
+                    <div class="h">Limitation of Liability</div>
+                    <div class="src">Cap raised to <span class="hi">3× annual fees</span> — playbook standard 1×.</div>
+                    <span class="tag flag">Deviation</span>
+                  </div>
+                  <div class="clause-row flag">
+                    <div class="h">SLA Credits</div>
+                    <div class="src">Counterparty inserted credit schedule of <span class="hi">5%/10%/25%</span>.</div>
+                    <span class="tag flag">Deviation</span>
+                  </div>
+                  <div class="clause-row">
+                    <div class="h">Indemnification</div>
+                    <div class="src">Mutual, capped at insurance limits.</div>
+                    <span class="tag approved">On playbook</span>
+                  </div>
+                  <div class="clause-row">
+                    <div class="h">Assignment</div>
+                    <div class="src">Permitted on 30 days' notice; consent not unreasonably withheld.</div>
+                    <span class="tag approved">On playbook</span>
+                  </div>
+                  <div class="clause-row">
+                    <div class="h">Data Protection</div>
+                    <div class="src">DPA executed separately (CT-2026-04812-DPA).</div>
+                    <span class="tag approved">On playbook</span>
+                  </div>
+                </div>
+
+                <!-- slot: workspaces-review → (Workspaces template stub)
+                     inline banner inviting counterparty + internal stakeholders into a shared room -->
+                <div style="margin-top:12px;">
+                  <div class="embed-slot-workspaces-review"
+                       data-slot="workspaces-review"
+                       data-target=""
+                       data-mode="modal">
+                    <span class="ds-mark">D</span>
+                    <span><b>Open negotiation room</b> with Acme legal + RM + credit officer + counsel — track redlines + comments without leaving Emptoris.</span>
+                    <span class="pill">Open Workspace</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: action rail + activity -->
+          <div class="rec-side">
+
+            <div class="act-card">
+              <div class="h">Next actions</div>
+              <div class="act-list">
+                <!-- slot: ai-review → /story-templates/docusign-agents.html
+                     primary AI Review entry point inside the record -->
+                <button class="embed-slot-ai-review"
+                        type="button"
+                        data-slot="ai-review"
+                        data-target="/story-templates/docusign-agents.html"
+                        data-mode="side"
+                        style="padding:7px 12px;font-size:11px;">
+                  <span class="star">✦</span> Run AI Review on redlines
+                </button>
+                <!-- slot: counterparty-intake → /story-templates/docusign-webform.html
+                     send a structured Web Form to Acme to collect missing schedules -->
+                <button class="embed-slot-counterparty-intake" type="button"
+                        data-slot="counterparty-intake"
+                        data-target="/story-templates/docusign-webform.html"
+                        data-mode="side"
+                        style="justify-content:center;">
+                  <svg viewBox="0 0 16 16"><path d="M2 3v10h12V3H2zm11 9H3V4h10v8zM4 6h8v1H4V6zm0 2h8v1H4V8zm0 2h5v1H4v-1z"/></svg>
+                  Send Schedule A intake
+                </button>
+                <!-- slot: esign-execute → /story-templates/docusign-webform.html (signing variant)
+                     primary "send for signature" — fires the eSign embedded ceremony -->
+                <button class="embed-slot-esign-execute" type="button"
+                        data-slot="esign-execute"
+                        data-target="/story-templates/docusign-webform.html"
+                        data-mode="modal"
+                        style="justify-content:center;">
+                  <svg viewBox="0 0 16 16"><path d="M14 2 5 11l-3-3-2 2 5 5L16 4z" fill="#161616"/></svg>
+                  Send for signature
+                </button>
+              </div>
+            </div>
+
+            <div class="act-card">
+              <div class="h">Activity</div>
+              <div class="activity">
+                <div class="a-row"><div class="ts">14:21</div><div><span class="who">Jordan M.</span> reviewed redlines from Acme legal · 2 deviations flagged</div></div>
+                <div class="a-row"><div class="ts">13:08</div><div><span class="who">AI Review</span> auto-extracted Limitation of Liability change</div></div>
+                <div class="a-row"><div class="ts">11:42</div><div><span class="who">Acme · M. Greene</span> uploaded redlined v3 (.docx)</div></div>
+                <div class="a-row"><div class="ts">Apr 22</div><div><span class="who">Jordan M.</span> sent v2 to counterparty</div></div>
+                <div class="a-row"><div class="ts">Apr 21</div><div><span class="who">Doc Gen</span> assembled MSA · Logistics v4.2 from rate card #112</div></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ============================================================================
+       FOOTER + LOOP INDICATOR
+       ============================================================================ -->
+  <div class="foot">
+    <div class="l"><span class="dot"></span> Connected · Workbench sync OK</div>
+    <div class="l">Tasks: 17 open · 4 awaiting approval · 11 expiring 60d</div>
+    <div class="spacer"></div>
+    <div class="build">org: Northbridge Procurement · region: NA-EAST · session 8h21m</div>
+  </div>
+
+  <div class="loop-indicator">
+    <span class="dot"></span>
+    <span class="lbl">
+      <span class="x1 on" data-scene="s1">Workbench &middot; My Tasks (17)</span>
+      <span class="x2"    data-scene="s2">Contract record &middot; CT-2026-04812</span>
+    </span>
+    <div class="mode-toggle" role="tablist" aria-label="Playback mode">
+      <button class="mode-auto on" type="button" data-mode="auto"   aria-pressed="true">AUTO</button>
+      <button class="mode-man"     type="button" data-mode="manual" aria-pressed="false">MANUAL</button>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       HINT TOAST — single-shot onboarding nudge for manual mode
+       ============================================================================ -->
+  <div class="hint-toast" id="hintToast" role="status" aria-live="polite">
+    <div class="icn">D</div>
+    <div class="body">
+      <div class="h">Take control of the demo</div>
+      <div class="p">This portal auto-plays. Switch to <kbd>MANUAL</kbd> (bottom-right) to click around — every glowing tile opens a Docusign drill-down. Press <kbd>ESC</kbd> any time to resume.</div>
+      <div class="row">
+        <button class="take" type="button" id="hintTake">Take control</button>
+        <button class="later" type="button" id="hintLater">Keep watching</button>
+      </div>
+    </div>
+    <button class="x" type="button" id="hintClose" aria-label="Dismiss hint">×</button>
+  </div>
+
+  <!-- ============================================================================
+       OVERLAY — drill-down host. Controller injects an iframe (or a stub card
+       for templates that don't exist yet). Click the X or press ESC to close.
+       ============================================================================ -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="frame-wrap">
+      <div class="frame-bar">
+        <span class="ds-mark">D</span>
+        <span class="ttl" id="ovTitle">Docusign drill-down</span>
+        <span class="src" id="ovSrc"></span>
+        <button class="x" type="button" id="ovClose" aria-label="Close drill-down">×</button>
+      </div>
+      <div id="ovBody" style="flex:1;display:flex;flex-direction:column;min-height:0;"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       INTERACTIVITY CONTROLLER — ~30 lines. Default = auto loop (CSS-driven).
+       Any click into the canvas flips to manual mode, pauses animations, and
+       routes scene/tab/row/embed-slot interactions. ESC closes overlays.
+       AUTO/MANUAL toggle in the loop indicator switches modes explicitly.
+       ============================================================================ -->
+  <script>
+  (function(){
+    const mock     = document.querySelector('.mock');
+    const canvas   = document.querySelector('.canvas');
+    const scenes   = { s1: document.querySelector('.scene.s1'),
+                       s2: document.querySelector('.scene.s2') };
+    const labels   = document.querySelectorAll('.loop-indicator .lbl span[data-scene]');
+    const modeBtns = document.querySelectorAll('.mode-toggle button');
+    const overlay  = document.getElementById('overlay');
+    const ovTitle  = document.getElementById('ovTitle');
+    const ovSrc    = document.getElementById('ovSrc');
+    const ovBody   = document.getElementById('ovBody');
+    const ovClose  = document.getElementById('ovClose');
+    const toast    = document.getElementById('hintToast');
+    const toastTake  = document.getElementById('hintTake');
+    const toastLater = document.getElementById('hintLater');
+    const toastClose = document.getElementById('hintClose');
+    let   hintShown   = false;
+    let   hintDismissed = false;
+
+    // Friendly names for the slot → template map
+    const SLOT_LABEL = {
+      'doc-gen':              'Doc Gen — assemble contract from template',
+      'counterparty-intake':  'Web Forms — counterparty data intake',
+      'workspaces-review':    'Workspaces — multi-party negotiation room',
+      'esign-execute':        'eSignature — embedded signing ceremony',
+      'ai-review':            'Agents — AI Assisted Review (Iris)',
+      'navigator-search':     'Navigator — repository search + AI extraction',
+      'agreement-desk':       'Agreement Desk — post-signing record of truth',
+    };
+
+    function visibleScene(){
+      // While auto-loop is running, read computed opacity to find the visible scene
+      const o1 = parseFloat(getComputedStyle(scenes.s1).opacity);
+      const o2 = parseFloat(getComputedStyle(scenes.s2).opacity);
+      return (o2 > o1) ? 's2' : 's1';
+    }
+    function setMode(mode, hint){
+      const manual = (mode === 'manual');
+      const wasManual = canvas.classList.contains('manual');
+      canvas.classList.toggle('manual', manual);
+      mock.classList.toggle('manual-mode', manual);
+      modeBtns.forEach(b => {
+        const on = (b.dataset.mode === mode);
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      // entering manual mode: pin whichever scene was visible (or the hint).
+      if (manual && !wasManual){
+        showScene(hint || visibleScene(), /*alreadyManual*/ true);
+        // Once they're driving, the toast has done its job.
+        hideHint();
+      }
+      // leaving manual mode: clear .show so CSS animations take back over
+      if (!manual){
+        scenes.s1.classList.remove('show');
+        scenes.s2.classList.remove('show');
+        labels.forEach(l => l.classList.remove('on'));
+        document.querySelector('.loop-indicator .x1').classList.add('on'); // baseline
+      }
+    }
+    function showHint(){
+      if (hintShown || hintDismissed) return;
+      if (canvas.classList.contains('manual')) return; // already driving — skip
+      toast.classList.add('show');
+      hintShown = true;
+    }
+    function hideHint(){
+      toast.classList.remove('show');
+      hintDismissed = true;
+    }
+
+    function showScene(key, alreadyManual){
+      if (!scenes[key]) return;
+      if (!alreadyManual) setMode('manual', key);
+      Object.entries(scenes).forEach(([k,el]) => el.classList.toggle('show', k===key));
+      labels.forEach(l => l.classList.toggle('on', l.dataset.scene === key));
+    }
+
+    function openOverlay(target, mode, label){
+      overlay.classList.remove('mode-side','mode-tab');
+      if (mode === 'side') overlay.classList.add('mode-side');
+      if (mode === 'tab')  overlay.classList.add('mode-tab');
+      ovTitle.innerHTML = 'Docusign drill-down<small>' + (label || '') + '</small>';
+      ovSrc.textContent = target || '';
+      ovBody.innerHTML  = ''; // reset
+
+      if (target && target.endsWith('.html')){
+        const f = document.createElement('iframe');
+        f.src = target;
+        f.title = label || 'Docusign drill-down';
+        ovBody.appendChild(f);
+      } else {
+        // No template wired yet — render a stub card so the slot still demos
+        ovBody.innerHTML =
+          '<div class="stub">' +
+            '<div class="h">' + (label || 'Drill-down stub') + '</div>' +
+            '<div>This slot is wired but the target template hasn\'t shipped yet.</div>' +
+            '<div class="pill">' + (target || 'no target') + '</div>' +
+          '</div>';
+      }
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+    }
+
+    function closeOverlay(){
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      ovBody.innerHTML = '';
+    }
+
+    // ==== Bindings ====
+    modeBtns.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    labels.forEach(l => l.addEventListener('click', () => showScene(l.dataset.scene)));
+
+    // Workbench tabs — for now they all stay on Scene 1; the active class moves.
+    document.querySelectorAll('.scene.s1 .wb-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        setMode('manual');
+        document.querySelectorAll('.scene.s1 .wb-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+      });
+    });
+    // Record tabs — similar in-scene swap on the record detail
+    document.querySelectorAll('.scene.s2 .rec-tab').forEach(t => {
+      t.addEventListener('click', (e) => {
+        // If the tab is wrapping an embed-slot (Navigator, Agreement Desk),
+        // let that slot's click handler fire the overlay instead of just swapping tabs.
+        const slot = t.querySelector('[class*="embed-slot-"]');
+        if (slot) return;
+        setMode('manual');
+        document.querySelectorAll('.scene.s2 .rec-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+      });
+    });
+    // Click any contract row in the workbench → jump to the record detail
+    document.querySelectorAll('.scene.s1 .tbl tbody tr').forEach(r => {
+      r.addEventListener('click', () => showScene('s2'));
+    });
+    // Embed slots — pin the parent scene first, then open the overlay so
+    // closing it lands the user back on the right scene (not the default).
+    // Mark every slot of this kind as "seen" once interacted with — radiation
+    // damps to a faint halo, drawing the eye to slots not yet explored.
+    document.querySelectorAll('[data-target]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const parentScene = el.closest('.scene');
+        const sceneKey = parentScene && parentScene.classList.contains('s2') ? 's2' : 's1';
+        showScene(sceneKey);
+        openOverlay(el.dataset.target, el.dataset.mode || 'modal',
+                    SLOT_LABEL[el.dataset.slot] || el.dataset.slot || '');
+        // Damp the halo for every element representing this slot (the same
+        // slot can appear in both scenes — e.g. ai-review on the inspector
+        // and the record action rail).
+        if (el.dataset.slot){
+          document.querySelectorAll('[data-slot="' + el.dataset.slot + '"]')
+                  .forEach(n => n.classList.add('seen'));
+        }
+      });
+    });
+
+    // ==== Hint toast wiring ====
+    toastTake .addEventListener('click', () => setMode('manual'));
+    toastLater.addEventListener('click', hideHint);
+    toastClose.addEventListener('click', hideHint);
+    // Show the toast after ~5s of auto playback (long enough that the user
+    // sees the loop transition once and can read the hint without it crowding
+    // the first impression).
+    setTimeout(showHint, 5200);
+    // Close overlay
+    ovClose.addEventListener('click', closeOverlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOverlay(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape'){
+        if (overlay.classList.contains('open')) closeOverlay();
+        else setMode('auto');
+      }
+    });
+
+    // Double-click the IBM mark → resume auto loop (escape hatch)
+    document.querySelector('.ibm-mark').addEventListener('dblclick', () => setMode('auto'));
+  })();
+  </script>
+
+</div>
+</body>
+</html>

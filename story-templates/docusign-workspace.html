@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Workspace — canonical animated template</title>
+<meta name="description" content="Canonical Docusign Workspace template used across all TGK 2.0 verticals: Wealth, Banking, Insurance, Provider, Life Sciences, Payor, Federal Government, State & Local Government, Education, Not for Profit. Scene 1 is the tenant-branded access email. Scene 2 opens into the working workspace — tasks + sections + Recent activity + an Iris AI agent rail. The Overview tab flips to a distilled summary. Task drill-down opens a document review with a vertical-appropriate agent running checks. Content is driven by the PRESETS registry at the bottom of this file; swap presets via ?preset=<key> or #<key> in the URL, or click the preset chip. Bolt on the MasterCard Scene 4 intro with ?splash=1.">
+<!--
+  ============================================================
+  Docusign Workspace — canonical animated template
+  ============================================================
+  This file is the source of truth for the Workspaces experience
+  across every TGK 2.0 vertical. Do NOT hard-code tenant content
+  inside the DOM above the PRESETS block — all vertical-specific
+  strings, colors, and imagery are swapped at render time from
+  a preset in the PRESETS registry at the bottom.
+
+  To see a vertical:
+    file.html                     → default preset (Wealth)
+    file.html?preset=banking      → Banking preset
+    file.html#insurance           → Insurance preset
+    file.html?preset=fedgov&splash=1  → FedGov + MasterCard intro
+
+  To add a new vertical:
+    1. Append a new entry to the PRESETS constant
+    2. Optionally override --tn-primary / --tn-accent in `css`
+    3. Everything else is auto-wired via element IDs
+
+  To bolt on the MasterCard Scene 4 splash (~10s intro):
+    - Add ?splash=1 to the URL, or
+    - Set `splash:true` on any preset, or
+    - Open this file inside a wrapper scene that already imports
+      /stories/_shared/mastercard-splash.{css,js}.
+
+  The .mock root carries the `workspaces-demo` class so the
+  shared mastercard-splash module's opt-in guard passes.
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    /* Docusign brand */
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-inkwell:#130032; --ds-ecru:#F8F3F0; --ds-poppy:#FF5252;
+
+    /* Surface */
+    --bg:#FFFFFF; --bg-muted:#FAFAFB; --bg-shell:#F3F0EC;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF; --warn:#F59E0B;
+
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+
+    /* Tenant tokens — overridden at runtime by the active preset */
+    --tn-primary:#130032;
+    --tn-accent:#4B00E9;
+    --tn-ink:#FFFFFF;
+    --tn-soft:rgba(255,255,255,0.72);
+    --tn-wordmark-font:"Fraunces",Georgia,serif;
+    --tn-wordmark-style:italic;
+    --tn-wordmark-weight:500;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:12px;line-height:1.45;}
+  .mock{width:100%;height:100%;max-width:1440px;margin:0 auto;background:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden;}
+
+  /* ============ Scene 1 — tenant-branded email ============ */
+  .email-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg-shell);z-index:20;animation:emailOut 0.6s ease 4s forwards;}
+  @keyframes emailOut{to{opacity:0;visibility:hidden;}}
+  .email-card{width:560px;max-width:100%;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,0.18),0 2px 8px rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;transform:translateY(8px);animation:emailIn 0.6s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes emailIn{to{transform:translateY(0);}}
+  .email-header{background:var(--tn-primary);padding:26px 36px;display:flex;align-items:center;gap:10px;}
+  .email-header .mark{width:26px;height:26px;}
+  .email-header .wordmark{font-family:var(--tn-wordmark-font);font-style:var(--tn-wordmark-style);font-weight:var(--tn-wordmark-weight);font-size:26px;color:#fff;letter-spacing:0.01em;}
+  .email-body{padding:34px 40px 38px;color:#1A1A1D;font-size:14px;line-height:1.58;}
+  .email-body p{margin-bottom:14px;}
+  .email-body .cta-wrap{text-align:center;margin:26px 0;}
+  .email-cta{display:inline-block;background:var(--tn-primary);color:#fff;padding:12px 26px;border-radius:4px;font-size:14px;font-weight:500;animation:ctaPulse 1.4s ease-in-out 1.2s 2;}
+  @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}50%{box-shadow:0 0 0 8px var(--tn-accent);}}
+  .email-sig{margin-top:24px;}
+  .email-sig .name{font-weight:600;color:#1A1A1D;}
+  .email-sig .role{color:var(--ink-soft);}
+
+  /* ============ Scene 2 — workspace shell ============ */
+  .workspace{flex:1;display:flex;flex-direction:column;opacity:0;animation:wsIn 0.6s ease 4.4s forwards;}
+  @keyframes wsIn{to{opacity:1;}}
+
+  .ds-topbar{height:48px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+  .ds-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;letter-spacing:-0.02em;color:var(--ds-inkwell);}
+  .ds-logo-mark{width:22px;height:22px;display:inline-block;}
+  .ds-logo-mark img{width:100%;height:100%;display:block;}
+  .ds-topbar .sep{width:1px;height:22px;background:var(--hair);}
+  .ds-product{font-size:13px;font-weight:600;color:var(--ds-inkwell);}
+  .ds-topbar .sp{flex:1;}
+  .ds-topbar .search{min-width:220px;background:var(--bg-muted);border:1px solid var(--hair);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+  .ds-topbar .search svg{width:13px;height:13px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .ds-topbar .iris-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--ds-purple);background:#fff;color:var(--ds-purple);border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;}
+  .ds-topbar .iris-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .ds-topbar .ic{width:18px;height:18px;color:var(--ink-mid);}
+  .ds-topbar .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A78BFA,#4B00E9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+  .tn-bar{height:42px;background:var(--tn-primary);color:var(--tn-ink);display:flex;align-items:center;padding:0 22px;gap:16px;flex-shrink:0;}
+  .tn-brand{display:flex;align-items:center;gap:9px;font-family:var(--tn-wordmark-font);font-style:var(--tn-wordmark-style);font-weight:var(--tn-wordmark-weight);font-size:18px;}
+  .tn-brand .m{width:18px;height:18px;}
+  .tn-sub{font-size:11px;color:var(--tn-soft);font-family:var(--ui-font);font-style:normal;margin-left:14px;}
+
+  .ws-body{flex:1;background:#fff;display:flex;flex-direction:column;overflow:hidden;}
+  .ws-head{padding:18px 32px 0;border-bottom:1px solid var(--hair);}
+  .ws-head .topline{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+  .ws-back{width:22px;height:22px;color:var(--ink-mid);cursor:pointer;}
+  .ws-back svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.8;fill:none;}
+  .ws-title{font-size:18px;font-weight:600;letter-spacing:-0.01em;color:var(--ink);}
+  .ws-status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:var(--ok-soft);color:#166534;border-radius:10px;font-size:11px;font-weight:500;}
+  .ws-status .dot{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:statusPulse 3s ease-in-out infinite;}
+  @keyframes statusPulse{0%,70%,100%{opacity:1;}80%{opacity:0.4;}}
+  .ws-head .sp{flex:1;}
+  .ws-avs{display:flex;align-items:center;}
+  .ws-av{width:26px;height:26px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;margin-left:-6px;}
+  .ws-av:nth-child(1){background:#FB923C;margin-left:0;}
+  .ws-av:nth-child(2){background:#60A5FA;}
+  .ws-av:nth-child(3){background:#F472B6;}
+  .ws-av.more{background:#E4E4E7;color:var(--ink-mid);}
+  .ws-add{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--hair-strong);border-radius:5px;background:#fff;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;}
+  .ws-add svg{width:10px;height:10px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+
+  .ws-tabs{display:flex;gap:6px;padding-top:18px;}
+  .ws-tab{font-size:13px;font-weight:500;color:var(--ink-soft);padding:6px 12px 14px;position:relative;cursor:pointer;}
+  .ws-tab.active{color:var(--ds-purple);font-weight:600;}
+  .ws-tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;background:var(--ds-purple);border-radius:1px;}
+
+  .ws-content{flex:1;display:grid;grid-template-columns:1fr 320px;gap:22px;padding:22px 32px 32px;overflow:auto;background:#fff;position:relative;}
+  .view{display:none;flex-direction:column;gap:14px;}
+  .view.on{display:flex;}
+
+  /* ============ Tasks view ============ */
+  .sec{background:#fff;border:1px solid var(--hair);border-radius:6px;overflow:hidden;}
+  .sec-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+  .sec-title{font-size:14px;font-weight:600;color:var(--ink);}
+  .sec-head .chev{width:14px;height:14px;stroke:var(--ink-soft);stroke-width:2;fill:none;transition:transform 0.2s;}
+  .sec.collapsed .sec-head .chev{transform:rotate(-90deg);}
+  .sec-body{padding:0 18px 8px;}
+  .sec.collapsed .sec-body{display:none;}
+
+  .task{display:flex;align-items:center;gap:14px;padding:14px 4px;border-top:1px solid var(--hair);}
+  .task:first-child{border-top:none;}
+  .task-ic{width:30px;height:30px;border-radius:5px;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink-mid);}
+  .task-ic svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;}
+  .task-mid{flex:1;min-width:0;}
+  .task-name{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .task-meta{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .task-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;background:var(--ds-purple-soft);color:var(--ds-purple);letter-spacing:0.01em;}
+  .task-progress{width:160px;flex-shrink:0;}
+  .task-progress .bar{height:3px;background:var(--bg-muted);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+  .task-progress .bar .fill{height:100%;width:22%;background:var(--ds-purple);border-radius:2px;}
+  .task-progress .lab{font-size:10.5px;color:var(--ink-soft);}
+  .task-view{padding:6px 16px;border:1px solid var(--hair-strong);border-radius:4px;font-size:12px;font-weight:500;color:var(--ink);background:#fff;flex-shrink:0;cursor:pointer;transition:all 0.15s;}
+  .task-view:hover{background:var(--ds-purple-soft);border-color:var(--ds-purple);color:var(--ds-purple);}
+
+  /* ============ Summary view (Overview tab) ============ */
+  .sum-hero{background:linear-gradient(135deg,#F5F1FF,#FFFFFF);border:1px solid var(--hair);border-radius:8px;padding:26px 28px 24px;}
+  .sum-hero h2{font-size:20px;font-weight:600;color:var(--ink);margin-bottom:6px;letter-spacing:-0.01em;}
+  .sum-hero p{font-size:13px;color:var(--ink-mid);margin-bottom:18px;line-height:1.55;}
+  .sum-progress-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;font-size:12px;}
+  .sum-progress-lab{color:var(--ink-mid);font-weight:500;}
+  .sum-progress-pct{color:var(--ds-purple);font-weight:700;font-size:14px;}
+  .sum-progress .bar{height:7px;background:#fff;border:1px solid var(--hair);border-radius:4px;overflow:hidden;}
+  .sum-progress .bar .fill{height:100%;background:linear-gradient(90deg,var(--ds-purple),#7C3AED);border-radius:3px;transition:width 1s ease;}
+
+  .sum-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .sum-tile{background:#fff;border:1px solid var(--hair);border-radius:6px;padding:14px 16px;}
+  .sum-tile .t-lab{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;}
+  .sum-tile .t-val{font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1;}
+  .sum-tile .t-sub{font-size:11px;color:var(--ink-mid);margin-top:4px;}
+  .sum-tile.accent .t-val{color:var(--ds-purple);}
+  .sum-tile.warn .t-val{color:var(--warn);}
+
+  .sum-section-title{font-size:12px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.07em;margin:4px 2px -4px;}
+  .sum-list{background:#fff;border:1px solid var(--hair);border-radius:6px;overflow:hidden;}
+  .sum-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--hair);font-size:12.5px;}
+  .sum-row:first-child{border-top:none;}
+  .sum-row .ic{width:24px;height:24px;border-radius:5px;background:var(--ds-purple-soft);color:var(--ds-purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sum-row .ic svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+  .sum-row .mid{flex:1;min-width:0;}
+  .sum-row .nm{font-weight:500;color:var(--ink);}
+  .sum-row .mt{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .sum-row .rt{font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+  .sum-row .rt.ok{color:var(--ok);font-weight:600;}
+
+  /* ============ Right rail (Activity + Iris) ============ */
+  .rail{background:#fff;border:1px solid var(--hair);border-radius:6px;align-self:flex-start;position:sticky;top:0;display:flex;flex-direction:column;overflow:hidden;max-height:calc(100vh - 200px);}
+  .rail-tabs{display:flex;border-bottom:1px solid var(--hair);}
+  .rail-tab{flex:1;padding:12px 14px;text-align:center;font-size:12px;font-weight:500;color:var(--ink-soft);cursor:pointer;position:relative;}
+  .rail-tab.active{color:var(--ds-purple);font-weight:600;}
+  .rail-tab.active::after{content:"";position:absolute;left:10%;right:10%;bottom:-1px;height:2px;background:var(--ds-purple);}
+  .rail-tab .dot-iris{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ds-purple);margin-right:4px;vertical-align:middle;animation:irisPulse 1.8s ease-in-out infinite;}
+  @keyframes irisPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+  .rail-body{padding:16px 18px;overflow-y:auto;flex:1;}
+  .rail-pane{display:none;}
+  .rail-pane.on{display:block;}
+
+  .act{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--hair);}
+  .act:first-child{border-top:none;padding-top:0;}
+  .act-ic{width:22px;height:22px;border-radius:50%;background:var(--ds-purple-soft);display:flex;align-items:center;justify-content:center;color:var(--ds-purple);flex-shrink:0;margin-top:2px;}
+  .act-ic svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;}
+  .act-mid{flex:1;}
+  .act-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px;}
+  .act-kind{font-size:12.5px;font-weight:600;color:var(--ink);}
+  .act-time{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;}
+  .act-detail{font-size:11.5px;color:var(--ink-mid);line-height:1.5;}
+  .act-link{color:var(--ds-purple);font-size:11.5px;font-weight:500;margin-top:4px;display:inline-block;cursor:pointer;}
+  .act.arriving{animation:actIn 0.5s cubic-bezier(.2,.8,.2,1);}
+  @keyframes actIn{0%{opacity:0;transform:translateY(-6px);}100%{opacity:1;transform:translateY(0);}}
+
+  .iris-hero{background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border:1px solid var(--ds-purple-soft);border-radius:6px;padding:14px 14px 16px;margin-bottom:14px;}
+  .iris-hero .mk{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;}
+  .iris-hero .mk svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;}
+  .iris-hero .mk::after{content:"";position:absolute;inset:-3px;border-radius:9px;border:2px solid var(--ds-purple);opacity:0;animation:irisPing 2.6s ease-in-out infinite;}
+  @keyframes irisPing{0%{opacity:0.5;transform:scale(0.92);}70%,100%{opacity:0;transform:scale(1.28);}}
+  .iris-hero h4{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+  .iris-hero p{font-size:11.5px;color:var(--ink-mid);line-height:1.5;}
+
+  .iris-agreements-title{font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  .iris-ag{display:flex;gap:10px;padding:10px 0;border-top:1px dashed var(--hair);font-size:12px;}
+  .iris-ag:first-of-type{border-top:none;padding-top:0;}
+  .iris-ag .pg{width:26px;height:32px;border-radius:3px;background:linear-gradient(135deg,#E8DEFF,#D1C0FF);color:var(--ds-purple);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;position:relative;}
+  .iris-ag .mid .nm{font-weight:500;color:var(--ink);line-height:1.3;}
+  .iris-ag .mid .mt{font-size:10.5px;color:var(--ink-soft);margin-top:2px;}
+
+  .iris-ask{margin-top:14px;background:var(--ds-purple);color:#fff;font-weight:600;padding:10px 14px;border:none;border-radius:5px;cursor:pointer;width:100%;font-size:12px;display:flex;align-items:center;justify-content:space-between;}
+  .iris-ask svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;}
+  .iris-prompt{margin-top:12px;font-size:11px;color:var(--ink-soft);text-align:center;font-style:italic;}
+
+  /* ============ Drill-down: document + agent ============ */
+  .drill{position:absolute;inset:0;background:#fff;z-index:15;display:none;flex-direction:column;}
+  .drill.on{display:flex;animation:drillIn 0.35s cubic-bezier(.2,.8,.2,1);}
+  @keyframes drillIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+  .drill-head{padding:12px 32px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-soft);}
+  .drill-back{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--ink-mid);cursor:pointer;}
+  .drill-back:hover{background:var(--bg-muted);}
+  .drill-back svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .drill-crumb-link{color:var(--ds-purple);cursor:pointer;}
+  .drill-crumb-cur{color:var(--ink);font-weight:500;}
+  .drill-chev{width:10px;height:10px;stroke:var(--ink-faint);stroke-width:2;fill:none;}
+  .drill-grid{flex:1;display:grid;grid-template-columns:1fr 380px;gap:22px;padding:22px 32px 32px;overflow:auto;background:#fff;}
+
+  .doc-viewer{background:var(--bg-muted);border:1px solid var(--hair);border-radius:6px;padding:26px 28px 30px;min-height:520px;}
+  .doc-title{font-size:13px;font-weight:500;color:var(--ink-soft);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+  .doc-title .fn{font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-mid);}
+  .doc-placeholder{max-width:560px;margin:0 auto;background:#fff;border:1px solid var(--hair-strong);border-radius:8px;padding:60px 30px;text-align:center;color:var(--ink-soft);font-size:12px;min-height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .doc-placeholder svg{width:48px;height:48px;stroke:var(--ink-faint);stroke-width:1.5;fill:none;margin-bottom:14px;}
+
+  .agent-panel{background:#fff;border:1px solid var(--hair);border-radius:6px;align-self:flex-start;position:sticky;top:0;overflow:hidden;}
+  .agent-head{padding:14px 18px;background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:10px;}
+  .agent-mark{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;position:relative;}
+  .agent-mark svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;}
+  .agent-mark::after{content:"";position:absolute;inset:-3px;border-radius:9px;border:2px solid var(--ds-purple);opacity:0;animation:irisPing 2.4s ease-in-out infinite;}
+  .agent-title{font-size:13px;font-weight:600;color:var(--ink);}
+  .agent-sub{font-size:11px;color:var(--ink-soft);}
+  .agent-body{padding:14px 18px 18px;}
+  .agent-status{font-size:11.5px;color:var(--ink-mid);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .agent-status .spinner{width:12px;height:12px;border:2px solid var(--ds-purple-soft);border-top-color:var(--ds-purple);border-radius:50%;animation:spin 0.9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .agent-status.done .spinner{display:none;}
+  .agent-status.done::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--ok);flex-shrink:0;}
+
+  .check{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:12px;border-top:1px dashed var(--hair);}
+  .check:first-of-type{border-top:none;}
+  .check .box{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--hair-strong);flex-shrink:0;margin-top:2px;position:relative;background:#fff;}
+  .check.pass .box{border-color:var(--ok);background:var(--ok);}
+  .check.pass .box::after{content:"";position:absolute;left:3px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);}
+  .check.running .box{border-color:var(--ds-purple);animation:checkPulse 1.4s ease-in-out infinite;}
+  @keyframes checkPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0);}50%{box-shadow:0 0 0 3px rgba(75,0,233,0.18);}}
+  .check .lab{color:var(--ink);flex:1;line-height:1.45;}
+  .check .lab em{font-style:normal;color:var(--ink-soft);font-size:11px;display:block;margin-top:1px;}
+  .agent-summary{margin-top:14px;padding:12px 14px;background:var(--bg-muted);border:1px solid var(--hair);border-radius:5px;font-size:11.5px;color:var(--ink-mid);line-height:1.5;}
+  .agent-summary b{color:var(--ink);font-weight:600;}
+  .agent-cta-row{display:flex;gap:8px;margin-top:14px;}
+  .agent-cta{flex:1;padding:8px 12px;border-radius:5px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:1px solid transparent;}
+  .agent-cta.primary{background:var(--ds-purple);color:#fff;}
+  .agent-cta.ghost{background:#fff;color:var(--ink);border-color:var(--hair-strong);}
+
+  /* ============ Preset switcher chip (bottom-right) ============ */
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--ui-font);}
+  .preset-chip:hover{border-color:var(--ds-purple);}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip .cur{font-weight:600;color:var(--ink);}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;margin-left:-4px;}
+</style>
+</head>
+<body>
+<div class="mock workspaces-demo">
+
+  <!-- SCENE 1 — tenant email -->
+  <div class="email-scene" id="email-scene">
+    <div class="email-card">
+      <div class="email-header">
+        <div class="mark" id="email-mark"><!-- injected from preset --></div>
+        <div class="wordmark" id="email-wordmark"></div>
+      </div>
+      <div class="email-body">
+        <p id="email-greeting">Hello,</p>
+        <p id="email-body-p1"></p>
+        <div class="cta-wrap"><a class="email-cta" id="email-cta">Access your workspace</a></div>
+        <p id="email-body-p2"></p>
+        <p>Thank you,</p>
+        <div class="email-sig">
+          <div class="name" id="email-sender-name"></div>
+          <div class="role" id="email-sender-role"></div>
+          <div class="role" id="email-sender-org"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 2 — workspace -->
+  <div class="workspace">
+    <div class="ds-topbar">
+      <div class="ds-logo">
+        <span class="ds-logo-mark"><img src="/assets/brand/docusign-iam-mark-on-light.png" alt="Docusign"></span>
+        Docusign
+      </div>
+      <div class="sep"></div>
+      <div class="ds-product">Workspaces</div>
+      <div class="sp"></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search workspaces
+      </div>
+      <button class="iris-btn" id="iris-open"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg>Ask Iris</button>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="av" id="user-avatar">DS</div>
+    </div>
+
+    <div class="tn-bar">
+      <div class="tn-brand">
+        <span class="m" id="tn-mark"><!-- injected --></span>
+        <span id="tn-wordmark"></span>
+      </div>
+      <div class="tn-sub" id="tn-sub"></div>
+    </div>
+
+    <div class="ws-body">
+      <div class="ws-head">
+        <div class="topline">
+          <div class="ws-back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="ws-title" id="ws-title"></div>
+          <div class="ws-status"><span class="dot"></span>Active</div>
+          <div class="sp"></div>
+          <div class="ws-avs" id="ws-avs"></div>
+          <button class="ws-add">Add <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
+        <div class="ws-tabs">
+          <div class="ws-tab" data-tab="tasks">Tasks</div>
+          <div class="ws-tab active" data-tab="overview">Overview</div>
+          <div class="ws-tab" data-tab="documents">Documents</div>
+          <div class="ws-tab" data-tab="details">Details</div>
+          <div class="ws-tab" data-tab="settings">Settings</div>
+        </div>
+      </div>
+
+      <div class="ws-content">
+        <div class="main-col">
+          <!-- Summary (Overview) -->
+          <div class="view on" id="view-overview">
+            <div class="sum-hero">
+              <h2 id="sum-hero-title"></h2>
+              <p id="sum-hero-lede"></p>
+              <div class="sum-progress">
+                <div class="sum-progress-head"><span class="sum-progress-lab">Overall progress</span><span class="sum-progress-pct" id="sum-pct">0%</span></div>
+                <div class="bar"><div class="fill" id="sum-fill"></div></div>
+              </div>
+            </div>
+            <div class="sum-tiles" id="sum-tiles"></div>
+            <div class="sum-section-title">Recent signatures &amp; uploads</div>
+            <div class="sum-list" id="sum-list"></div>
+          </div>
+
+          <!-- Tasks -->
+          <div class="view" id="view-tasks">
+            <div class="sec">
+              <div class="sec-head"><div class="sec-title" id="sec1-title">Section 1</div>
+                <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="sec-body" id="sec1-body"></div>
+            </div>
+            <div class="sec">
+              <div class="sec-head"><div class="sec-title" id="sec2-title">Section 2</div>
+                <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="sec-body" id="sec2-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="rail">
+          <div class="rail-tabs">
+            <div class="rail-tab active" data-rail="activity">Activity</div>
+            <div class="rail-tab" data-rail="iris"><span class="dot-iris"></span>Ask Iris</div>
+          </div>
+          <div class="rail-body">
+            <div class="rail-pane on" id="rail-activity"></div>
+            <div class="rail-pane" id="rail-iris">
+              <div class="iris-hero">
+                <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+                <h4 id="iris-hero-title"></h4>
+                <p id="iris-hero-desc"></p>
+              </div>
+              <div class="iris-agreements-title">Agreements in this workspace</div>
+              <div id="iris-agreements"></div>
+              <button class="iris-ask">Ask Iris about this workspace <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+              <div class="iris-prompt" id="iris-prompt"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Drill-down -->
+    <div class="drill" id="drill">
+      <div class="drill-head">
+        <div class="drill-back" id="drill-back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+        <span class="drill-crumb-link" id="drill-crumb-back">Tasks</span>
+        <svg class="drill-chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="drill-crumb-cur" id="drill-crumb-cur">&nbsp;</span>
+      </div>
+      <div class="drill-grid">
+        <div class="doc-viewer">
+          <div class="doc-title"><span id="drill-doc-title"></span><span class="fn" id="drill-doc-file"></span></div>
+          <div class="doc-placeholder">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+            <div>Document preview</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-top:4px;">Signer sees the live artifact here</div>
+          </div>
+        </div>
+        <aside class="agent-panel">
+          <div class="agent-head">
+            <div class="agent-mark"><svg viewBox="0 0 24 24"><path d="M12 2L3 7V12C3 17 7 21 12 22C17 21 21 17 21 12V7L12 2Z"/><polyline points="8 12 11 15 16 10"/></svg></div>
+            <div><div class="agent-title" id="agent-title">Agent</div><div class="agent-sub" id="agent-sub"></div></div>
+          </div>
+          <div class="agent-body">
+            <div class="agent-status" id="agent-status"><span class="spinner"></span><span id="agent-status-text">Running checks&hellip;</span></div>
+            <div id="agent-checks"></div>
+            <div class="agent-summary" id="agent-summary" style="display:none;"></div>
+            <div class="agent-cta-row" id="agent-ctas" style="display:none;">
+              <div class="agent-cta ghost">Flag for review</div>
+              <div class="agent-cta primary">Approve &amp; advance</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Preset switcher -->
+<div class="preset-chip" title="Switch vertical preset">
+  <span class="lab">Preset</span>
+  <select id="preset-select"></select>
+</div>
+
+<script>
+/* ============================================================
+   PRESETS — one entry per vertical
+   Every string, color, and list is defined here. No tenant-specific
+   content lives in the DOM above. To add a new preset, copy any
+   entry below and swap its fields.
+   ============================================================ */
+const PRESETS = {
+  wealth: {
+    label:"Wealth",
+    tenant:{name:"Hillside Advisors", wordmark:"Hillside", primary:"#0F2A1F", accent:"#3FDA99", mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', markColor:"#3FDA99"},
+    email:{greeting:"Hello Amy,", p1:"It was a pleasure speaking with you today to learn more about your financial goals. As we discussed, I created a personal workspace for you to access and complete the necessary steps to begin working together.", p2:"Don't hesitate to reach out with any questions as we move forward. I'm here to support you every step of the way.", sender:"Casey Anderson", role:"Investment Advisor"},
+    workspace:{title:"New Wealth Management Client — Amy Peters", avatars:["FA","CU","IN"], moreCount:4, userInitials:"CA", tenantSub:"Private wealth onboarding"},
+    summary:{heroTitle:"Welcome back, Casey — here's where Amy's workspace stands.", heroLede:"Amy opened her access email this morning. She has 6 onboarding tasks waiting; ID verification is in progress. You'll get a notification when she submits each step.", pct:33, tiles:[{lab:"Open tasks",val:"6",sub:"Waiting on Amy"},{lab:"Risk score",val:"25/100",sub:"Low · preliminary",accent:true},{lab:"Docs signed",val:"0/3",sub:"IAA, Disclosures, Custodian"},{lab:"Next deadline",val:"Apr 30",sub:"6 days · onboarding SLA",warn:true}], list:[{nm:"ID verification uploaded",mt:"Amy submitted her California driver's license",rt:"10:14 am"},{nm:"Client intake form opened",mt:"Amy started reviewing the form",rt:"10:09 am"},{nm:"Access email delivered",mt:"Sent to amy.peters@example.com",rt:"Delivered",ok:true}]},
+    sections:[
+      {title:"Data collection and client verification",tasks:[
+        {name:"Client intake form"},
+        {name:"ID verification",meta:"Risk score 25/100"},
+        {name:"Disclosures"}]},
+      {title:"Onboarding and account opening",tasks:[
+        {name:"Sign Investment Advisory Agreement"},
+        {name:"Upload last 2 years of tax returns"},
+        {name:"Custodian account forms",chip:"Imported from Quik!"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Casey sent 6 tasks to Amy Peters."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Client, Associate, and Compliance Manager.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Client Onboarding</b> template."}],
+    iris:{heroTitle:"Iris can answer across Amy's agreements.",heroDesc:"Ask about suitability findings, risk score movement, disclosure coverage, or any clause in the documents she's uploaded.",prompt:"Try: \"Summarize Amy's risk profile and flag anything unusual.\"",agreements:["Client Intake Form · In progress · 4 pages","California Driver's License · Uploaded · 1 page","Investment Advisory Agreement · Ready to send · 8 pages","Client Disclosure & Privacy Notice · Ready to send · 4 pages","Custodian Account Forms · Imported from Quik! · 6 pages"]},
+    agent:{title:"Wealth Agent",sub:"KYC & Risk",checks:[["Document authenticity","PDF417 barcode parsed · template matched"],["Identity match","Name, DOB, address match intake form"],["Liveness / face match","Selfie compared with ID photo"],["AML / OFAC screen","No matches across 14 sanctions lists"],["PEP & adverse media","No politically exposed person matches"],["Address verification","USPS + utility bill cross-reference"],["Risk score","25/100 · Low"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Identity verified for Amy M Peters. Low-risk profile. Ready to advance the Client intake form and disclosures."}
+  },
+
+  banking: {
+    label:"Banking",
+    tenant:{name:"Meridian Commercial Bank",wordmark:"Meridian",primary:"#0A2540",accent:"#2D8EFF",markColor:"#2D8EFF",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h16M6 20V10l6-5 6 5v10M9 20v-6h6v6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hello Diana,",p1:"Thanks for the conversation yesterday. I've opened a workspace so your team can submit the documentation needed to finalize the $2.5M working-capital facility for Atlas Manufacturing.",p2:"Reach out any time if anything's unclear — I'll be watching the workspace and will respond the same day.",sender:"Raj Malhotra",role:"Commercial Relationship Manager"},
+    workspace:{title:"New Commercial Facility — Atlas Manufacturing",avatars:["DI","RM","CR"],moreCount:3,userInitials:"RM",tenantSub:"Commercial banking onboarding"},
+    summary:{heroTitle:"Welcome back, Raj — here's where Atlas stands.",heroLede:"Diana is working the KYB package with her CFO. Articles of incorporation uploaded; beneficial owner disclosure and UCC-1 still pending.",pct:40,tiles:[{lab:"Open tasks",val:"6",sub:"Waiting on Atlas"},{lab:"Facility",val:"$2.5M",sub:"Working capital",accent:true},{lab:"Docs signed",val:"1/4",sub:"Term sheet accepted"},{lab:"Next deadline",val:"May 7",sub:"9 days · funding target",warn:true}],list:[{nm:"Articles of incorporation uploaded",mt:"Signed 2019 · Delaware",rt:"11:42 am"},{nm:"Term sheet e-signed",mt:"Diana Holbrook, CFO",rt:"Yesterday"},{nm:"Workspace created",mt:"Created from Commercial Onboarding template",rt:"Apr 18",ok:true}]},
+    sections:[
+      {title:"KYB and beneficial ownership",tasks:[
+        {name:"Articles of incorporation"},
+        {name:"Beneficial owner disclosure",meta:"All 25%+ owners"},
+        {name:"EIN verification letter"}]},
+      {title:"Facility documentation",tasks:[
+        {name:"Sign loan agreement"},
+        {name:"UCC-1 financing statement"},
+        {name:"Guaranty & suretyship",chip:"Notary required"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Raj sent 6 tasks to Atlas Manufacturing."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Borrower, Guarantor, and Credit Officer.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Commercial Onboarding</b> template."}],
+    iris:{heroTitle:"Iris can answer across Atlas's loan package.",heroDesc:"Ask about covenant structure, UCC filing status, guarantor exposure, or any clause in the facility documents.",prompt:"Try: \"Summarize financial covenants and maturity waterfall for Atlas.\"",agreements:["Term Sheet — Working Capital · Signed · 4 pages","Articles of Incorporation · Uploaded · 12 pages","Loan Agreement · Ready to send · 42 pages","Security Agreement · Ready to send · 18 pages","Personal Guaranty · Ready to send · 6 pages"]},
+    agent:{title:"Commercial KYB Agent",sub:"Credit & Compliance",checks:[["Entity verification","Delaware Secretary of State · Good standing"],["Beneficial ownership","25%+ owners identified and screened"],["OFAC / sanctions","All signatories cleared"],["PEP screen","No PEP matches"],["Adverse media","No adverse news in 24 months"],["UCC search","No prior liens on pledged collateral"],["Credit bureau pull","Dun & Bradstreet · 4A1 rating"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Entity verified, ownership clean. Ready to advance the facility documents."}
+  },
+
+  insurance: {
+    label:"Insurance",
+    tenant:{name:"Sentinel Insurance",wordmark:"Sentinel",primary:"#7B1E3F",accent:"#F2B3C2",markColor:"#F2B3C2",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hello Ramirez family,",p1:"We've opened a workspace for your new homeowners policy at 412 Briar Lane. Please complete the application, confirm the inspection window, and sign the binder so we can bind coverage before your closing date.",p2:"Questions about coverage limits or endorsements? I'm a quick reply away.",sender:"Marisol Vega",role:"Agent"},
+    workspace:{title:"New Homeowners Policy — Ramirez Family",avatars:["RA","MV","UW"],moreCount:2,userInitials:"MV",tenantSub:"P&C policy onboarding"},
+    summary:{heroTitle:"Welcome back, Marisol — here's where the Ramirez policy stands.",heroLede:"The family completed the application and prior-claims disclosure. Property inspection is scheduled for Thursday; binder ready to send after inspection clears.",pct:50,tiles:[{lab:"Open tasks",val:"4",sub:"Waiting on insureds"},{lab:"Premium",val:"$1,842",sub:"Annual · standard form",accent:true},{lab:"Docs signed",val:"2/4",sub:"App, disclosures"},{lab:"Bind by",val:"May 2",sub:"5 days · closing",warn:true}],list:[{nm:"Prior claims disclosure signed",mt:"No claims in the last 5 years",rt:"1:12 pm"},{nm:"Property photos uploaded",mt:"6 images · exterior & interior",rt:"11:48 am"},{nm:"Inspection scheduled",mt:"Thursday 9:00 am · HazardHub",rt:"Apr 22",ok:true}]},
+    sections:[
+      {title:"Application and underwriting",tasks:[
+        {name:"Homeowners application"},
+        {name:"Prior claims disclosure"},
+        {name:"Property inspection window",meta:"HazardHub-scheduled"}]},
+      {title:"Binding the policy",tasks:[
+        {name:"Sign insurance binder"},
+        {name:"Mortgagee information",chip:"Escrow"},
+        {name:"Payment authorization"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Marisol sent 6 tasks to the Ramirez family."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Named insured, Agent, and Underwriter.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>HO3 Policy Intake</b> template."}],
+    iris:{heroTitle:"Iris can answer across the Ramirez policy file.",heroDesc:"Ask about coverage limits, deductibles, endorsements attached, inspection findings, or any clause in the binder.",prompt:"Try: \"What endorsements are attached and what does each add?\"",agreements:["Homeowners Application · Signed · 6 pages","Prior Claims Disclosure · Signed · 2 pages","Property Inspection Report · Uploaded · 14 pages","Insurance Binder · Ready to send · 8 pages","Mortgagee Clause Endorsement · Ready to send · 2 pages"]},
+    agent:{title:"Underwriting Agent",sub:"P&C Risk",checks:[["Prior claims check","No losses in 5 years · LexisNexis"],["Catastrophe exposure","Moderate wildfire · Low flood"],["Roof age / condition","Asphalt · 8 years · OK"],["Protection class","PC 4 · Full-time paid FD"],["Replacement cost calc","$348k · RCT methodology"],["Wildfire defensible space","Intact · HazardHub validated"],["Binder readiness","All preconditions met"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Standard HO3 risk profile. Ready to issue binder."}
+  },
+
+  provider: {
+    label:"Provider (Health)",
+    tenant:{name:"Riverside Health",wordmark:"Riverside",primary:"#0E4A56",accent:"#6FD6C8",markColor:"#6FD6C8",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Jordan,",p1:"Welcome to Riverside Health. We've opened a workspace with everything you need before your first visit — intake, insurance verification, consent forms, and PCP selection. You can finish it all from your phone.",p2:"Reach out if anything's unclear. We're glad you're joining us.",sender:"Daniela Okafor",role:"Patient Coordinator"},
+    workspace:{title:"New Patient Onboarding — Jordan Kim",avatars:["JK","DO","NU"],moreCount:1,userInitials:"DO",tenantSub:"New patient intake"},
+    summary:{heroTitle:"Welcome back, Daniela — here's where Jordan's onboarding stands.",heroLede:"Insurance verified against Aetna; HIPAA forms signed. Waiting on medical history and PCP selection before Tuesday's appointment.",pct:60,tiles:[{lab:"Open tasks",val:"2",sub:"Waiting on Jordan"},{lab:"Coverage",val:"Verified",sub:"Aetna PPO · $30 copay",accent:true},{lab:"Forms signed",val:"3/5",sub:"HIPAA, consent, privacy"},{lab:"First visit",val:"May 6",sub:"Tue 10:15 am"}],list:[{nm:"HIPAA acknowledgment signed",mt:"Jordan Kim · e-signed",rt:"2:44 pm"},{nm:"Insurance card uploaded",mt:"Both sides · verified eligibility",rt:"2:28 pm"},{nm:"Workspace created",mt:"Created from New Patient template",rt:"Apr 21",ok:true}]},
+    sections:[
+      {title:"Registration and verification",tasks:[
+        {name:"Patient registration form"},
+        {name:"Insurance card upload",meta:"Aetna PPO verified"},
+        {name:"Photo ID verification"}]},
+      {title:"Consents and care setup",tasks:[
+        {name:"HIPAA acknowledgment"},
+        {name:"Consent to treat",chip:"Required"},
+        {name:"PCP selection"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Daniela sent 6 tasks to Jordan Kim."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Patient, Coordinator, and Nurse.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>New Patient</b> template."}],
+    iris:{heroTitle:"Iris can answer across Jordan's intake file.",heroDesc:"Ask about allergies, medications, coverage details, HIPAA scope, or any form Jordan has submitted.",prompt:"Try: \"Summarize Jordan's allergies and current medications.\"",agreements:["Registration Form · Signed · 4 pages","Insurance Card · Uploaded · 1 page","HIPAA Acknowledgment · Signed · 2 pages","Consent to Treat · Ready to send · 3 pages","Medical History Form · In progress · 6 pages"]},
+    agent:{title:"Intake Agent",sub:"Eligibility & Consent",checks:[["Coverage eligibility","Aetna PPO · Active · $30 copay"],["Deductible status","$420 of $1,500 met"],["In-network PCP match","3 providers within 4 miles"],["Prior auth requirements","None for PCP visit"],["Identity match","Name, DOB, address match"],["Consent completeness","HIPAA + Treatment signed"],["Medical history intake","2 chronic conditions noted"]],summary:"<b>7 checks passed · 1 advisory note.</b> Aetna coverage active; PCP selection pending but not blocking the first visit."}
+  },
+
+  lifesciences: {
+    label:"Life Sciences",
+    tenant:{name:"Helix Therapeutics",wordmark:"Helix",primary:"#3A1A5C",accent:"#C7A0FF",markColor:"#C7A0FF",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 4c6 0 10 4 10 8s4 8 10 8M4 20c6 0 10-4 10-8S18 4 20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Dr. Halim,",p1:"We're excited to have Austin Research Clinic participate in HX-2104. I've opened a site activation workspace — CTA, IRB, 1572, and financial disclosures. Let me know if any of your sub-investigators need to be added to the routing.",p2:"Reach out with questions. We aim to get you activated by end of Q2.",sender:"Ethan Park",role:"Clinical Study Manager"},
+    workspace:{title:"Site Activation — Austin Research Clinic (HX-2104)",avatars:["KH","EP","IRB"],moreCount:5,userInitials:"EP",tenantSub:"Clinical site startup"},
+    summary:{heroTitle:"Welcome back, Ethan — here's where ARC activation stands.",heroLede:"CTA is in legal review at both institutions; IRB packet submitted. Financial disclosure and 1572 are the critical path items now.",pct:45,tiles:[{lab:"Open tasks",val:"6",sub:"Across 3 parties"},{lab:"Enrollment target",val:"24 pts",sub:"Austin site · HX-2104",accent:true},{lab:"Docs signed",val:"2/6",sub:"CDA, regulatory packet"},{lab:"Activation by",val:"Jun 15",sub:"52 days · Q2 close",warn:true}],list:[{nm:"IRB packet submitted",mt:"WCG IRB · 8 study documents",rt:"3:02 pm"},{nm:"CTA redline returned",mt:"Sponsor counsel · 3 comments",rt:"Yesterday"},{nm:"Workspace created",mt:"Created from Site Activation template",rt:"Apr 14",ok:true}]},
+    sections:[
+      {title:"Regulatory and ethics",tasks:[
+        {name:"Form FDA 1572"},
+        {name:"Financial disclosure (FDA 3454)"},
+        {name:"IRB approval letter",meta:"WCG IRB"}]},
+      {title:"Contract and startup",tasks:[
+        {name:"Clinical trial agreement (CTA)"},
+        {name:"Investigator's brochure acknowledgment"},
+        {name:"Protocol signature page",chip:"Version 3.1"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Ethan sent 6 tasks to Austin Research Clinic."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned PI, Sub-I, Coordinator, and IRB.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Site Activation</b> template."}],
+    iris:{heroTitle:"Iris can answer across the ARC activation file.",heroDesc:"Ask about 1572 status, financial disclosure conflicts, CTA redlines, IRB turnaround, or anything in the protocol.",prompt:"Try: \"What's still blocking activation, and who owns each item?\"",agreements:["Confidentiality Disclosure Agreement · Signed · 4 pages","Form FDA 1572 · In progress · 3 pages","Financial Disclosure · In progress · 2 pages","Clinical Trial Agreement · In legal review · 32 pages","Protocol HX-2104 v3.1 · Uploaded · 112 pages","Investigator's Brochure · Uploaded · 88 pages"]},
+    agent:{title:"Activation Agent",sub:"Regulatory & Clinical Ops",checks:[["1572 completeness","PI + 2 Sub-Is listed · CVs on file"],["Financial disclosure","No reportable interests flagged"],["IRB submission","WCG · received 3 days ago"],["CTA exception log","3 redlines · all within standard"],["IB acknowledgment","Version 5 acknowledged by PI"],["Protocol signature","Latest amendment signed"],["GCP training currency","All personnel current"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Site paperwork is clean. IRB turnaround and CTA legal closure are the remaining gates."}
+  },
+
+  payor: {
+    label:"Payor",
+    tenant:{name:"Unity Health Plan",wordmark:"Unity",primary:"#0B5E3A",accent:"#6FDA9B",markColor:"#6FDA9B",mark:'<svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="5" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="12" r="5" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Marcus,",p1:"Welcome to Unity Health Plan. We've opened a workspace to finalize your enrollment — eligibility, PCP choice, HIPAA consent, and payment method. Most members finish in under 10 minutes.",p2:"If you hit a snag with pharmacy or provider selection, just reply — we'll help you through it.",sender:"Brenda Estevez",role:"Member Services"},
+    workspace:{title:"New Member Enrollment — Marcus Chen",avatars:["MC","BE","EL"],moreCount:2,userInitials:"BE",tenantSub:"Member enrollment"},
+    summary:{heroTitle:"Welcome back, Brenda — here's where Marcus's enrollment stands.",heroLede:"Eligibility confirmed through the exchange. Payment on file; waiting on PCP selection and welcome-kit confirmation.",pct:70,tiles:[{lab:"Open tasks",val:"2",sub:"Waiting on Marcus"},{lab:"Plan",val:"Silver HMO",sub:"Bronze · $312/mo",accent:true},{lab:"Forms signed",val:"4/6",sub:"Enrollment, HIPAA"},{lab:"Effective",val:"May 1",sub:"7 days",warn:false}],list:[{nm:"Payment method added",mt:"Auto-draft from Chase •••4291",rt:"4:10 pm"},{nm:"Exchange eligibility verified",mt:"CMS · no gap in coverage",rt:"3:51 pm"},{nm:"Workspace created",mt:"Created from Member Enrollment template",rt:"Apr 22",ok:true}]},
+    sections:[
+      {title:"Eligibility and enrollment",tasks:[
+        {name:"Enrollment application"},
+        {name:"Exchange eligibility check",meta:"CMS verified"},
+        {name:"HIPAA consent"}]},
+      {title:"Plan setup",tasks:[
+        {name:"PCP selection"},
+        {name:"Payment method",chip:"ACH"},
+        {name:"Welcome kit acknowledgment"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Brenda sent 6 tasks to Marcus Chen."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Member, Member Services, and Eligibility.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Member Enrollment</b> template."}],
+    iris:{heroTitle:"Iris can answer across Marcus's enrollment file.",heroDesc:"Ask about plan benefits, PCP network options, formulary tier placements, or any form he's submitted.",prompt:"Try: \"What's Marcus's cost share for PCP visits and his top-5 meds?\"",agreements:["Enrollment Application · Signed · 5 pages","HIPAA Consent · Signed · 2 pages","Summary of Benefits · Uploaded · 12 pages","Payment Authorization · Signed · 1 page","Welcome Kit · Ready to send · 8 pages"]},
+    agent:{title:"Enrollment Agent",sub:"Eligibility & Benefits",checks:[["Exchange eligibility","CMS confirmed · no gap"],["Plan premium calculation","Subsidy of $120/mo applied"],["PCP in-network match","5 options within 3 miles"],["Formulary check","All 5 current meds covered"],["HIPAA consent","Signed by member"],["Payment method validation","ACH micro-deposit cleared"],["Welcome kit packet","Digital + mailed confirmed"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Coverage effective May 1. PCP selection and welcome kit are final soft gates."}
+  },
+
+  fedgov: {
+    label:"Federal Gov",
+    tenant:{name:"Department of Labor",wordmark:"DOL",primary:"#0B3B70",accent:"#E8B800",markColor:"#E8B800",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hello Taylor,",p1:"We've received your unemployment claim. To keep your benefits on schedule, please complete the tasks in this workspace — identity verification, employment history, separation info, and direct deposit.",p2:"If you need help completing any item, reply to this email or call the number in your confirmation letter.",sender:"Claims Services",role:"Unemployment Insurance"},
+    workspace:{title:"Unemployment Claim — Taylor Nguyen",avatars:["TN","CS","AD"],moreCount:2,userInitials:"CS",tenantSub:"Unemployment Insurance · Claim #UI-2026-48211"},
+    summary:{heroTitle:"Welcome back — here's where Taylor's claim stands.",heroLede:"Identity verified via CLEAR. Separation info received; employment history is the open item before benefits calculation can run.",pct:55,tiles:[{lab:"Open tasks",val:"2",sub:"Waiting on claimant"},{lab:"Weekly benefit",val:"TBD",sub:"Pending calc",accent:true},{lab:"Forms completed",val:"4/6",sub:"ID, separation, auth"},{lab:"First payment",val:"May 9",sub:"SLA-driven",warn:true}],list:[{nm:"Identity verification completed",mt:"CLEAR · driver's license + selfie",rt:"2:18 pm"},{nm:"Separation info submitted",mt:"Employer: Parallax Corp",rt:"1:44 pm"},{nm:"Claim opened",mt:"UI-2026-48211",rt:"Apr 22",ok:true}]},
+    sections:[
+      {title:"Identity and eligibility",tasks:[
+        {name:"Identity verification",meta:"CLEAR · verified"},
+        {name:"Employment history"},
+        {name:"Separation information"}]},
+      {title:"Benefit setup",tasks:[
+        {name:"Availability certification"},
+        {name:"Direct deposit authorization",chip:"ACH"},
+        {name:"Benefits acknowledgment"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Claims Services sent 6 tasks to Taylor Nguyen."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Claimant, Adjudicator, and Employer.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>UI Claim</b> template."}],
+    iris:{heroTitle:"Iris can answer across Taylor's claim file.",heroDesc:"Ask about eligibility computation, base-period wages, employer separation statements, or availability certifications.",prompt:"Try: \"What's Taylor's weekly benefit amount and how many weeks are available?\"",agreements:["Identity Verification · Completed · 1 page","Separation Form · Signed · 3 pages","Employment History · In progress · 2 pages","Availability Certification · Ready to sign · 1 page","Direct Deposit Auth · Ready to sign · 1 page"]},
+    agent:{title:"Claims Agent",sub:"Eligibility & Fraud",checks:[["Identity verification","CLEAR · biometric pass"],["SSN / DOB cross-check","SSA match · good standing"],["Base-period wage pull","Quarterly wages on file"],["Employer separation code","Layoff · no misconduct"],["Fraud pattern screen","No overlapping claims"],["Availability attestation","Able and available for work"],["Weekly benefit calculation","Pending history completion"]],summary:"<b>6 checks passed · 1 advisory.</b> Employment history incomplete — benefit amount will calculate once Taylor submits the last employer."}
+  },
+
+  slgov: {
+    label:"State & Local Gov",
+    tenant:{name:"City of Springfield",wordmark:"Springfield",primary:"#1B3556",accent:"#E8A438",markColor:"#E8A438",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hello Marissa,",p1:"Thanks for starting your residential building permit application for 1420 Oak Street. I've opened a workspace so you and your contractor can submit the site plan, pay fees, and schedule inspections.",p2:"Reply here if you have questions about zoning or setbacks before you submit.",sender:"Dean Okonkwo",role:"Permit Technician"},
+    workspace:{title:"Building Permit — 1420 Oak Street Rebuild",avatars:["MR","DO","ZR"],moreCount:3,userInitials:"DO",tenantSub:"Community Development · Permit #BLD-2026-0412"},
+    summary:{heroTitle:"Welcome back, Dean — here's where the permit stands.",heroLede:"Site plan and contractor license uploaded. Zoning review returned two minor comments; payment pending before plan check routes to engineering.",pct:50,tiles:[{lab:"Open tasks",val:"3",sub:"Across 2 parties"},{lab:"Valuation",val:"$286k",sub:"Residential rebuild",accent:true},{lab:"Forms signed",val:"3/5",sub:"App, authorization"},{lab:"Plan check by",val:"May 12",sub:"20 business days",warn:false}],list:[{nm:"Zoning comments returned",mt:"2 items · minor setback clarification",rt:"4:22 pm"},{nm:"Contractor license verified",mt:"B-01 · State CSLB active",rt:"2:50 pm"},{nm:"Workspace created",mt:"Created from Residential Permit template",rt:"Apr 20",ok:true}]},
+    sections:[
+      {title:"Application and review",tasks:[
+        {name:"Permit application"},
+        {name:"Site plan and elevations"},
+        {name:"Zoning review",meta:"2 comments returned"}]},
+      {title:"Fees and scheduling",tasks:[
+        {name:"Contractor license verification"},
+        {name:"Permit fees",chip:"$4,280"},
+        {name:"Inspection scheduling"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Dean sent 6 tasks to the applicant."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned Applicant, Contractor, and Zoning Reviewer.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Residential Permit</b> template."}],
+    iris:{heroTitle:"Iris can answer across the 1420 Oak permit file.",heroDesc:"Ask about zoning setbacks, fee calculation, inspection sequence, or any attached plan sheet.",prompt:"Try: \"What are the zoning setbacks and do the plans comply?\"",agreements:["Permit Application · Signed · 4 pages","Site Plan · Uploaded · 6 sheets","Zoning Review Memo · Uploaded · 2 pages","Fee Schedule · Ready to sign · 1 page","Contractor License · Verified · 1 page"]},
+    agent:{title:"Permit Agent",sub:"Zoning & Plan Check",checks:[["Zoning district","R-1 · residential by right"],["Setback compliance","Side yard 6' — requires reply"],["Lot coverage","38% · within 40% limit"],["Contractor licensing","CSLB B-01 · active, bonded"],["Fire code review","Pending building plan check"],["Stormwater threshold","Under 500 sf impervious add"],["Historic / overlay check","No overlay district"]],summary:"<b>6 checks passed · 1 advisory.</b> Setback clarification is the only blocking comment before plan check routes to engineering."}
+  },
+
+  education: {
+    label:"Education",
+    tenant:{name:"Maple Ridge University",wordmark:"Maple Ridge",primary:"#14422E",accent:"#F2C65A",markColor:"#F2C65A",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M2 9l10-5 10 5-10 5L2 9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 11v5c0 1 3 3 6 3s6-2 6-3v-5" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Priya,",p1:"Congratulations and welcome to Maple Ridge! We've opened a workspace with your enrollment steps — forms, transcripts, health records, housing, and the tuition agreement. Most students finish in a weekend.",p2:"Reach out any time. We're excited to have you on campus this fall.",sender:"Jamal Rivers",role:"Admissions Counselor"},
+    workspace:{title:"New Student Onboarding — Priya Shah",avatars:["PS","JR","FA"],moreCount:2,userInitials:"JR",tenantSub:"Fall 2026 · Undergraduate"},
+    summary:{heroTitle:"Welcome back, Jamal — here's where Priya's onboarding stands.",heroLede:"Enrollment form signed; financial aid package accepted. Awaiting final transcripts from her current institution and her housing contract signature.",pct:65,tiles:[{lab:"Open tasks",val:"2",sub:"Waiting on Priya"},{lab:"Aid package",val:"$38.2k",sub:"Merit + need-based",accent:true},{lab:"Forms signed",val:"4/6",sub:"Enrollment, FA, health"},{lab:"Move-in",val:"Aug 24",sub:"121 days"}],list:[{nm:"Financial aid accepted",mt:"$38.2k package · 4-year commitment",rt:"11:32 am"},{nm:"Health records submitted",mt:"Immunizations current",rt:"10:18 am"},{nm:"Workspace created",mt:"Created from New Student template",rt:"Apr 15",ok:true}]},
+    sections:[
+      {title:"Enrollment and aid",tasks:[
+        {name:"Enrollment form"},
+        {name:"Financial aid acceptance",meta:"$38.2k package"},
+        {name:"Official transcripts"}]},
+      {title:"Campus setup",tasks:[
+        {name:"Health records and immunizations"},
+        {name:"Housing contract",chip:"Residence hall"},
+        {name:"Tuition and fees agreement"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Jamal sent 6 tasks to Priya Shah."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Student, Advisor, and Financial Aid.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>New Student</b> template."}],
+    iris:{heroTitle:"Iris can answer across Priya's onboarding file.",heroDesc:"Ask about aid breakdown, transcript status, housing options, or any form in her file.",prompt:"Try: \"Summarize Priya's aid package and any outstanding requirements.\"",agreements:["Enrollment Form · Signed · 3 pages","Financial Aid Award Letter · Signed · 4 pages","Health Records · Submitted · 8 pages","Housing Contract · Ready to sign · 6 pages","Tuition Agreement · Ready to sign · 4 pages"]},
+    agent:{title:"Student Onboarding Agent",sub:"Admissions & Aid",checks:[["Application complete","All required items received"],["Financial aid eligibility","Satisfactory · SAP maintained"],["Transcript receipt","Official on file · 3.72 GPA"],["Immunization record","MMR, Tdap, MenACWY current"],["Housing match","Residence hall · roommate match pending"],["Tuition plan","Monthly plan selected"],["FERPA authorization","Signed by student"]],summary:"<b>7 checks passed · 1 advisory.</b> Roommate match pending but not blocking enrollment. Housing contract signature is the last required item."}
+  },
+
+  nonprofit: {
+    label:"Nonprofit",
+    tenant:{name:"Harbor Foundation",wordmark:"Harbor",primary:"#6B2A00",accent:"#FFB86B",markColor:"#FFB86B",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M6 12a6 6 0 0 1 12 0M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Safe Streets team,",p1:"Congratulations — Safe Streets Initiative has been selected for a Harbor Foundation grant. I've opened a workspace to finalize your grantee agreement, 501(c)(3) verification, budget, MOU, and reporting commitments.",p2:"Reach out with questions. We're excited to support your work this cycle.",sender:"Asha Morgan",role:"Program Officer"},
+    workspace:{title:"Grantee Onboarding — Safe Streets Initiative",avatars:["SS","AM","PR"],moreCount:2,userInitials:"AM",tenantSub:"FY26 General Operating Grant"},
+    summary:{heroTitle:"Welcome back, Asha — here's where Safe Streets stands.",heroLede:"501(c)(3) verified through IRS Publication 78. Grantee agreement signed; waiting on the approved budget and the signed MOU before first disbursement.",pct:55,tiles:[{lab:"Open tasks",val:"3",sub:"With grantee"},{lab:"Grant size",val:"$120k",sub:"2-year general ops",accent:true},{lab:"Docs signed",val:"2/5",sub:"Agreement, W-9"},{lab:"First tranche",val:"May 15",sub:"3 weeks",warn:true}],list:[{nm:"Grantee agreement signed",mt:"2-year GOS terms",rt:"3:44 pm"},{nm:"501(c)(3) verified",mt:"IRS Pub 78 · in good standing",rt:"11:20 am"},{nm:"Workspace created",mt:"Created from Grantee Onboarding template",rt:"Apr 19",ok:true}]},
+    sections:[
+      {title:"Eligibility and verification",tasks:[
+        {name:"Grantee application"},
+        {name:"501(c)(3) determination letter"},
+        {name:"W-9"}]},
+      {title:"Agreement and reporting",tasks:[
+        {name:"Grant agreement",meta:"2-year GOS"},
+        {name:"Approved budget",chip:"LOE 3"},
+        {name:"MOU and reporting schedule"}]}],
+    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Asha sent 6 tasks to Safe Streets."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Grantee, Program Officer, and Finance.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Grantee Onboarding</b> template."}],
+    iris:{heroTitle:"Iris can answer across the Safe Streets grant file.",heroDesc:"Ask about budget categories, reporting milestones, MOU scope, or any uploaded grantee document.",prompt:"Try: \"Summarize the reporting cadence and first-year budget allocations.\"",agreements:["Grantee Application · Signed · 4 pages","IRS Determination Letter · Uploaded · 2 pages","W-9 · Signed · 1 page","Grant Agreement · Signed · 8 pages","Budget Narrative · Ready to send · 6 pages","MOU · Ready to send · 5 pages"]},
+    agent:{title:"Grants Agent",sub:"Compliance & Finance",checks:[["501(c)(3) status","Good standing · IRS Pub 78"],["OFAC / sanctions","Cleared"],["Prior grants performance","2 cycles · all reports on time"],["Budget reasonableness","Allocations within policy"],["Reporting schedule","Quarterly narrative + annual fin"],["Conflict of interest","None disclosed"],["Disbursement schedule","3 tranches over 24 months"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Safe Streets is a clean grantee. First disbursement can release as soon as the MOU is countersigned."}
+  },
+
+  /* ============================================================
+     Sub-vertical presets — added 2026-04-24
+     Pattern: <vertical>-<subvertical>-<process>
+     These are the "big transaction" counterparts to the
+     vertical-level onboarding presets above. See PRESETS.schema.md
+     for the full field reference.
+     ============================================================ */
+
+  "banking-commercial-loan-mod": {
+    label:"Banking · Loan Mod",
+    tenant:{name:"Keystone Commercial Bank",wordmark:"Keystone",primary:"#002B5C",accent:"#00A3E1",markColor:"#00A3E1",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M3 10L12 3l9 7v11H3V10z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 21v-7h4v7" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Sofia,",p1:"As we discussed, I've opened a workspace so Harbor Medical can move through Amendment No. 2 to your $1.5M C&I facility — covenant changes, the reaffirmation of guaranty from Richard, and the amended note. Marcus at Milbank is wired in for counsel review.",p2:"Target close is April 30. Priya has pre-approved the covenant headroom; the critical path now is Richard's reaffirmation. Ping me the moment anything looks off.",sender:"Jordan Chen",role:"Commercial Relationship Manager"},
+    workspace:{title:"Loan Modification — Harbor Medical Group (Amendment No. 2)",avatars:["SN","RN","MW"],moreCount:2,userInitials:"JC",tenantSub:"Commercial · $1.5M C&I facility · Amendment No. 2"},
+    summary:{heroTitle:"Welcome back, Jordan — here's where Harbor's loan mod stands.",heroLede:"Sofia signed the compliance cert and collateral re-attestation. Marcus is redlining §4.2 and §7.1 right now. Richard's reaffirmation is the one blocker against the Apr 30 close.",pct:62,tiles:[{lab:"Open items",val:"2",sub:"Counsel + guarantor"},{lab:"Facility",val:"$1.5M",sub:"C&I · Amendment No. 2",accent:true},{lab:"Docs signed",val:"2/6",sub:"Cert, attestation"},{lab:"Close by",val:"Apr 30",sub:"6 days · target",warn:true}],list:[{nm:"Compliance Certificate signed",mt:"Sofia Navarro, CFO · e-signed",rt:"8 min"},{nm:"Marcus redlining §4.2 / §7.1",mt:"Covenant headroom + cure-period extension",rt:"1h"},{nm:"Amended covenants approved",mt:"Priya Patel · credit-policy exception logged",rt:"2d",ok:true}]},
+    sections:[
+      {title:"Agreement and covenants",tasks:[
+        {name:"Loan Modification Agreement",meta:"Draft 3 · counsel review"},
+        {name:"Amended Note",meta:"$1.5M · awaiting both signatures"},
+        {name:"Compliance Certificate"}]},
+      {title:"Guaranty and collateral",tasks:[
+        {name:"Reaffirmation of Guaranty",meta:"Richard Navarro · 6d open"},
+        {name:"Collateral Re-attestation"},
+        {name:"Board Resolution",chip:"Corp secretary"}]}],
+    activity:[{kind:"Covenant review",time:"1h",detail:"Marcus Webb (Milbank) is redlining §4.2 and §7.1 — covenant headroom and cure-period extension."},{kind:"Compliance cert signed",time:"8 min",detail:"<b>Sofia Navarro, MD</b> completed the Q1 compliance certificate.",link:"View artifact"},{kind:"Workspace created",time:"6d",detail:"Jordan Chen opened the workspace using the <b>C&I Loan Modification</b> template."}],
+    iris:{heroTitle:"Iris can answer across the Harbor Medical file.",heroDesc:"Ask about covenant headroom, Keystone's last 8 loan mods' clause drift, guarantor history, or any artifact in the workspace.",prompt:"Try: \"How does §7.1's cure period compare to Keystone's last 8 loan mods?\"",agreements:["Loan Modification Agreement · Draft 3 · 22 pages","Amended Note · Ready to sign · 4 pages","Reaffirmation of Guaranty · Awaiting · 3 pages","Compliance Certificate · Signed · 4 pages","Collateral Re-attestation · Signed · 2 pages","Board Resolution · Uploaded · 2 pages"]},
+    agent:{title:"Commercial Credit Agent",sub:"Covenant & Compliance",checks:[["Covenant headroom analysis","FCCR 1.15× floor · 0.08× headroom at trailing four-quarter actual"],["Historical FCCR performance","Two of last eight tests cleared by less than 0.12×"],["Clause drift · §7.1 cure","45-day extension vs Keystone's 30-day standard across 7 of 8 comparable mods"],["Guarantor reaffirmation","Richard Navarro · envelope 6 days open"],["Credit policy exception","Approved by Priya Patel · logged for audit"],["Close-date risk","5 of last 12 comparable mods slipped ≥2 business days with open guarantor"],["Document completeness","5 of 6 artifacts in place"]],summary:"<b>5 checks passed · 2 advisory notes.</b> Covenant analysis holds but headroom is tight. Guarantor reaffirmation is the critical path; recommend SMS nudge to close Apr 30 on schedule."}
+  },
+
+  "lifesciences-mlr-review": {
+    label:"Life Sciences · MLR",
+    tenant:{name:"Helix Therapeutics",wordmark:"Helix",primary:"#3A1A5C",accent:"#C7A0FF",markColor:"#C7A0FF",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 4c6 0 10 4 10 8s4 8 10 8M4 20c6 0 10-4 10-8S18 4 20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello MLR committee,",p1:"The HX-2104 physician brochure is ready for its MLR review cycle — revision 4, incorporating comments from the March round. Medical, legal, and regulatory tracks run in parallel; Iris has already pre-checked the copy against the HX-2104 label and flagged three items for your attention.",p2:"Target approval date is May 20 ahead of the congress launch. Reach out with cross-track questions; I'll reconcile between reviewers.",sender:"Priya Natarajan",role:"Commercial Operations"},
+    workspace:{title:"MLR Review — HX-2104 Physician Brochure (v4)",avatars:["MD","LG","RA"],moreCount:3,userInitials:"PN",tenantSub:"PromoMats · HX-2104 Launch · Rev 4"},
+    summary:{heroTitle:"Welcome back — here's where MLR on HX-2104 stands.",heroLede:"Rev 4 is open with all three tracks active. Medical signed off on claims; Legal is reviewing fair balance; Regulatory flagged three copy points for off-label risk. Iris surfaced two additional label deviations for committee consideration.",pct:58,tiles:[{lab:"Tracks active",val:"3",sub:"Medical · Legal · Reg"},{lab:"Iris findings",val:"5",sub:"3 advisory · 2 blocker",accent:true},{lab:"Reviewers signed",val:"1/3",sub:"Medical complete"},{lab:"Target approve",val:"May 20",sub:"26 days · congress",warn:true}],list:[{nm:"Medical signoff",mt:"Dr. Halim · claims verified against trial data",rt:"2h",ok:true},{nm:"Iris label deviation flagged",mt:"Section 2.3 · indication phrasing",rt:"4h"},{nm:"Legal review opened",mt:"Copy routed · fair balance in focus",rt:"Yesterday"}]},
+    sections:[
+      {title:"Review tracks",tasks:[
+        {name:"Medical review",meta:"Claims verification · complete"},
+        {name:"Legal review",meta:"Fair balance · in progress"},
+        {name:"Regulatory review",meta:"Off-label risk · in progress"}]},
+      {title:"Finalization",tasks:[
+        {name:"Committee reconciliation meeting"},
+        {name:"Final PromoMats approval",chip:"Rev 4 signoff"},
+        {name:"Launch pack assembly"}]}],
+    activity:[{kind:"Medical signoff",time:"2h",detail:"<b>Dr. Halim</b> signed off on medical claims. All claims reconciled against HX-2104 pivotal trial data."},{kind:"Iris flagged deviation",time:"4h",detail:"Indication phrasing in §2.3 deviates from approved label (\"first-line\" not supported).",link:"View Iris finding"},{kind:"Workspace created",time:"3d",detail:"Priya Natarajan opened the workspace using the <b>MLR Review Cycle</b> template."}],
+    iris:{heroTitle:"Iris can answer across the HX-2104 MLR file.",heroDesc:"Ask about label deviations, fair balance, reviewer comments, comparable approvals in Helix's archive, or any clause in the brochure draft.",prompt:"Try: \"Show me every claim in this rev that's tighter than what the label supports.\"",agreements:["HX-2104 Physician Brochure · Rev 4 · 18 pages","HX-2104 Approved Label · Reference · 42 pages","MLR Reviewer Comments · Rev 3 · 6 pages","Medical Signoff · Signed · 1 page","Iris Findings Log · 5 items · Live","Fair Balance Audit · In progress · 4 pages"]},
+    agent:{title:"MLR Review Agent",sub:"Medical · Legal · Regulatory",checks:[["Label alignment · claims","2 of 14 claims exceed what the HX-2104 label supports"],["Fair balance ratio","Efficacy 4: Safety 1 — exceeds FDA guidance of 1:1 for DTC"],["Off-label risk flags","§2.3 indication phrasing · §4.1 combination mention"],["Comparable approvals","4 Helix brochures in last 24 months · 3 required revisions"],["Reviewer comment coverage","Rev 3 comments resolved · 12 of 14"],["Copy completeness","Launch pack gating items confirmed"],["Regulatory dossier readiness","PromoMats submission fields pre-populated"]],summary:"<b>4 checks passed · 3 advisory notes.</b> Two label deviations and a fair-balance concern. Committee reconciliation will need medical + legal + reg in the room before Rev 4 can approve."}
+  },
+
+  "wealth-estate-transition": {
+    label:"Wealth · Estate",
+    tenant:{name:"Hillside Advisors",wordmark:"Hillside",primary:"#0F2A1F",accent:"#3FDA99",markColor:"#3FDA99",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Dear Peterson family,",p1:"I'm so sorry for your loss. As we discussed, I've opened a shared workspace so we can move through the estate transition together — trust distribution, beneficiary accounts, the tax filings, and the documents that need signatures from each of you. No rush; work through it at your own pace.",p2:"Walter at Morrison & Blake is our estate counsel on this; Nadia handles the tax filings. Reach out to me directly for anything unclear. I'm here.",sender:"Casey Anderson",role:"Senior Investment Advisor"},
+    workspace:{title:"Estate Transition — Peterson Family Trust",avatars:["SP","B1","B2"],moreCount:5,userInitials:"CA",tenantSub:"Estate · Peterson Family Trust · Distribution"},
+    summary:{heroTitle:"Welcome back, Casey — here's where the Peterson estate stands.",heroLede:"Surviving spouse and 2 of 3 beneficiaries have joined the workspace. Trust certification is with counsel; the revocable-trust distribution plan is drafted. Step-up cost-basis packet is in progress with the tax advisor.",pct:48,tiles:[{lab:"Open items",val:"9",sub:"Across 6 parties"},{lab:"Estate size",val:"$14.8M",sub:"Trust + retirement",accent:true},{lab:"Docs signed",val:"3/11",sub:"Death cert + 2 forms"},{lab:"First dist.",val:"Jun 10",sub:"Quarterly · scheduled",warn:false}],list:[{nm:"Death certificate submitted",mt:"Filed with Hillside · IRS 5498 path",rt:"Yesterday"},{nm:"Beneficiary accounts opened",mt:"2 of 3 beneficiaries joined workspace",rt:"2d"},{nm:"Trust certification routed",mt:"Walter Lin · Morrison & Blake",rt:"3d",ok:true}]},
+    sections:[
+      {title:"Estate documentation",tasks:[
+        {name:"Death certificate"},
+        {name:"Trust certification",meta:"Counsel · Morrison & Blake"},
+        {name:"Letters testamentary"}]},
+      {title:"Distribution and tax",tasks:[
+        {name:"Revocable trust distribution plan"},
+        {name:"Beneficiary new-account forms",chip:"3 beneficiaries"},
+        {name:"Step-up cost-basis packet",meta:"Tax advisor · Nadia Okoye"}]}],
+    activity:[{kind:"Beneficiary joined",time:"2d",detail:"<b>Claire Peterson-Ng</b> (daughter) accepted the workspace invite and reviewed the distribution plan draft."},{kind:"Trust certification routed",time:"3d",detail:"Walter Lin (Morrison & Blake) received the trust certification packet. Response expected within 10 business days.",link:"View routing"},{kind:"Workspace created",time:"1w",detail:"Casey Anderson opened the workspace from the <b>Estate Transition</b> template at the family's request after the funeral."}],
+    iris:{heroTitle:"Iris can answer across the Peterson estate file.",heroDesc:"Ask about distribution plan details, tax elections, beneficiary allocations, trustee powers, or anything in the trust documents.",prompt:"Try: \"What step-up elections are we recommending for the taxable account, and who needs to sign?\"",agreements:["Death Certificate · Submitted · 2 pages","Revocable Trust Document · On file · 34 pages","Trust Certification · In review · 4 pages","Revocable Trust Distribution Plan · Draft · 12 pages","Beneficiary Account Forms · 3 of 3 sent · 6 pages each","Step-up Cost-basis Packet · In progress · 18 pages"]},
+    agent:{title:"Estate Agent",sub:"Trust & Tax",checks:[["Trust authority validated","Revocable trust · trustee successor named"],["Beneficiary identification","3 beneficiaries · identity verified for 2"],["Distribution plan compliance","Percentages match trust schedule A"],["Step-up cost basis","Taxable account eligible · ~$860k step-up identified"],["IRA beneficiary designations","All current · no lapses"],["State estate tax screening","No state-level estate tax applies"],["Trustee successor routing","Counsel reviewing letters testamentary"]],summary:"<b>6 checks passed · 1 advisory.</b> One beneficiary (Noah Peterson) has not yet completed identity verification — critical path for the June distribution."}
+  },
+
+  "wealth-hnw-onboarding": {
+    label:"Wealth · $5M Household",
+    tenant:{name:"Northbridge Partners",wordmark:"Northbridge",primary:"#1C2541",accent:"#C9A961",markColor:"#C9A961",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 21V6l8-3 8 3v15M4 21h16M9 21v-8h6v8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Dear Mr. and Mrs. Whitfield,",p1:"Thank you for choosing Northbridge to steward your family's wealth. I've opened a private workspace where you can complete the onboarding at your pace — risk profile, custodial agreements with Schwab, the investment policy statement, and the spousal consent on the trust. Everything is in one place and fully visible to both of you.",p2:"Margaret from our compliance team is watching the workspace alongside me; Ed Haskin at Schwab handles the custodial handoff. Any question at all — I'm your point.",sender:"Morgan Reyes",role:"Senior Private Wealth Advisor"},
+    workspace:{title:"New Household Onboarding — Whitfield Family ($5M)",avatars:["RW","KW","MR"],moreCount:3,userInitials:"MR",tenantSub:"Private Wealth · Whitfield Household · $5M AUM"},
+    summary:{heroTitle:"Welcome back, Morgan — here's where the Whitfield onboarding stands.",heroLede:"Risk profile and investment policy statement are signed by both Robert and Katherine. Custodial handoff with Schwab is in flight; spousal consent on the revocable trust is the one remaining signature before funding.",pct:72,tiles:[{lab:"Open items",val:"2",sub:"Spousal consent + funding"},{lab:"AUM",val:"$5M",sub:"Initial · taxable + IRA",accent:true},{lab:"Docs signed",val:"7/9",sub:"Both spouses, compliance"},{lab:"First trade",val:"Apr 29",sub:"5 days · target",warn:false}],list:[{nm:"Investment policy statement signed",mt:"Robert Whitfield · Katherine Whitfield",rt:"1h"},{nm:"Schwab custodial packet delivered",mt:"Ed Haskin · acknowledged receipt",rt:"Yesterday"},{nm:"Risk profile completed",mt:"Moderate growth · both spouses concur",rt:"2d",ok:true}]},
+    sections:[
+      {title:"Household discovery and compliance",tasks:[
+        {name:"Risk tolerance questionnaire"},
+        {name:"Investment Advisory Agreement",meta:"Both spouses signed"},
+        {name:"Compliance disclosures",chip:"Form ADV Part 2"}]},
+      {title:"Funding and trust setup",tasks:[
+        {name:"Custodial agreements — Schwab"},
+        {name:"Spousal consent — revocable trust",meta:"Awaiting Katherine"},
+        {name:"Initial funding wire",chip:"$5M transfer"}]}],
+    activity:[{kind:"IPS signed",time:"1h",detail:"<b>Robert and Katherine Whitfield</b> both signed the Investment Policy Statement. Moderate growth · 70/30 equity bond."},{kind:"Schwab handoff",time:"Yesterday",detail:"Ed Haskin acknowledged the custodial packet. Wire instructions confirmed; account opened in dry-run mode.",link:"View custodial record"},{kind:"Workspace created",time:"4d",detail:"Morgan Reyes opened the workspace from the <b>Private Wealth Onboarding</b> template after the family's first meeting."}],
+    iris:{heroTitle:"Iris can answer across the Whitfield household file.",heroDesc:"Ask about suitability findings, concentration risk, beneficiary designations, or any artifact the Whitfields have signed.",prompt:"Try: \"Summarize concentration risk and our recommended diversification schedule.\"",agreements:["Risk Tolerance Questionnaire · Signed · 6 pages","Investment Policy Statement · Signed · 12 pages","Form ADV Part 2 · Signed · 28 pages","Custodial Agreement · Schwab · 14 pages","Revocable Trust Certification · Signed · 4 pages","Spousal Consent · Awaiting · 2 pages","Wire Authorization · Ready to sign · 1 page"]},
+    agent:{title:"Household Onboarding Agent",sub:"KYC & Suitability",checks:[["Identity verification · principals","CLEAR · both spouses verified"],["Suitability alignment","Portfolio target matches moderate growth profile"],["AML / OFAC screening","Both spouses cleared across 14 lists"],["Concentration risk","Current position has 38% single-stock (inherited) · flagged"],["Custodial readiness","Schwab dry-run account live · awaiting wire"],["Beneficiary designations","All accounts current · no lapses"],["Fee disclosure","Form ADV acknowledged · 0.85% fee confirmed"]],summary:"<b>6 checks passed · 1 advisory.</b> Concentration risk in the inherited position needs a documented diversification schedule before funding proceeds."}
+  },
+
+  "lifesciences-site-activation": {
+    label:"Life Sciences · Site",
+    tenant:{name:"Helix Therapeutics",wordmark:"Helix",primary:"#3A1A5C",accent:"#C7A0FF",markColor:"#C7A0FF",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 4c6 0 10 4 10 8s4 8 10 8M4 20c6 0 10-4 10-8S18 4 20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Dr. Halim,",p1:"Thank you for agreeing to serve as PI on HX-2104 at Austin Research Clinic. I've opened the site activation workspace — CTA, IRB packet, Form 1572, financial disclosures, and the first-patient readiness checklist. Your coordinator Maria and our CRA Amy are both looped in.",p2:"We're aiming for activation by Jun 15 so you can randomize the first patient before the Q3 interim. Reach out anytime — I'll keep the workspace moving.",sender:"Ethan Park",role:"Clinical Study Manager"},
+    workspace:{title:"Site Activation — Austin Research Clinic (HX-2104)",avatars:["KH","MC","AY"],moreCount:6,userInitials:"EP",tenantSub:"HX-2104 · Phase 2b · Site Activation"},
+    summary:{heroTitle:"Welcome back, Ethan — here's where ARC activation stands.",heroLede:"CTA and IRB are both live — WCG returned minor comments, counsel is reviewing. 1572 and financial disclosures are in progress from the PI side. Iris has pre-checked conflict of interest and flagged one disclosure for follow-up.",pct:55,tiles:[{lab:"Open items",val:"5",sub:"Across 4 parties"},{lab:"Enrollment target",val:"24 pts",sub:"Austin site · HX-2104",accent:true},{lab:"Docs signed",val:"3/8",sub:"CDA, IB ack, protocol"},{lab:"Activation by",val:"Jun 15",sub:"52 days · Q3 interim",warn:true}],list:[{nm:"IRB comments returned",mt:"WCG · 3 minor items · counsel reviewing",rt:"3h"},{nm:"Financial disclosure submitted",mt:"Dr. Halim · one advisory board flagged",rt:"Yesterday"},{nm:"Protocol signed",mt:"HX-2104 v3.1 · by PI and Coordinator",rt:"2d",ok:true}]},
+    sections:[
+      {title:"Regulatory and ethics",tasks:[
+        {name:"Form FDA 1572"},
+        {name:"Financial disclosure (FDA 3454)",meta:"One advisory board flagged"},
+        {name:"IRB approval letter",chip:"WCG"}]},
+      {title:"Contracts and startup",tasks:[
+        {name:"Clinical trial agreement (CTA)",meta:"In legal review both sides"},
+        {name:"Site budget and payment schedule"},
+        {name:"First-patient readiness checklist"}]}],
+    activity:[{kind:"IRB comments",time:"3h",detail:"<b>WCG IRB</b> returned 3 minor comments on the protocol amendment. Counsel at Helix is drafting responses.",link:"View comments"},{kind:"Financial disclosure",time:"Yesterday",detail:"Dr. Halim's FDA 3454 submitted. Iris flagged an advisory-board role at a competitor sponsor for conflict-of-interest review."},{kind:"Workspace created",time:"2w",detail:"Ethan Park opened the workspace using the <b>Site Activation</b> template after the PI acceptance call."}],
+    iris:{heroTitle:"Iris can answer across the ARC activation file.",heroDesc:"Ask about 1572 status, financial disclosure conflicts, CTA redlines, IRB turnaround, or any clause in the HX-2104 protocol.",prompt:"Try: \"What's still blocking activation, and what's the longest remaining cycle time?\"",agreements:["Confidentiality Disclosure Agreement · Signed · 4 pages","Form FDA 1572 · In progress · 3 pages","Financial Disclosure · Submitted · 2 pages","Clinical Trial Agreement · Legal review · 38 pages","Protocol HX-2104 v3.1 · Signed · 112 pages","Investigator's Brochure · Acknowledged · 88 pages","Site Budget · Draft · 6 pages","IRB Packet · Submitted · 24 pages"]},
+    agent:{title:"Site Activation Agent",sub:"Regulatory & Clinical Ops",checks:[["1572 completeness","PI + 2 Sub-Is listed · CVs + licenses verified"],["Financial disclosure scrutiny","One advisory-board role · mitigation plan needed"],["IRB submission status","WCG · 3 minor comments · counsel responding"],["CTA exception log","4 redlines · 3 within standard, 1 escalated"],["Protocol amendment","v3.1 signed by PI · acknowledged by coordinator"],["GCP training currency","All site personnel current through 2026"],["Site readiness · first-patient","Lab + pharmacy + monitor visit confirmed"]],summary:"<b>5 checks passed · 2 advisory notes.</b> Financial-disclosure mitigation and the escalated CTA redline are the critical-path items before Jun 15 activation."}
+  },
+
+  "fedgov-grant-application": {
+    label:"Fed Gov · Grant",
+    tenant:{name:"National Institutes of Health",wordmark:"NIH",primary:"#20558A",accent:"#9ED1E6",markColor:"#9ED1E6",mark:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Dear Dr. Okonkwo,",p1:"Congratulations on advancing to the application phase for R01-HX-MECH. I've opened a workspace where your team, the IRB, and your institution's grants office can co-assemble the full package — specific aims, human-subjects section, budget, budget justification, and the facilities and resources page. Your program officer at NIH is copied on this workspace for any questions along the way.",p2:"Submission deadline is Oct 5 via ASSIST. Reach out anytime — we're here to help you make it a clean submission.",sender:"Dr. Linda Chen",role:"NIH Program Officer · NIGMS"},
+    workspace:{title:"R01 Grant Application — Austin Research (HX-MECH mechanism study)",avatars:["PI","CI","IRB"],moreCount:4,userInitials:"LC",tenantSub:"NIH R01 · NIGMS · Due Oct 5"},
+    summary:{heroTitle:"Welcome back — here's where the Austin R01 stands.",heroLede:"Specific aims and research strategy are in second-draft review. Budget is reconciled with the institution; IRB submission routed. Human-subjects protection section is the critical-path item before the Oct 5 deadline.",pct:58,tiles:[{lab:"Open sections",val:"3",sub:"Human subjects + 2"},{lab:"Funding request",val:"$2.4M",sub:"5-year direct",accent:true},{lab:"Docs ready",val:"7/12",sub:"Aims, strategy, facilities"},{lab:"Deadline",val:"Oct 5",sub:"11 days · hard cutoff",warn:true}],list:[{nm:"Budget reconciled",mt:"University grants office · F&A + direct",rt:"2h"},{nm:"Specific aims v2",mt:"3 of 3 Co-Is commented",rt:"Yesterday"},{nm:"IRB protocol submitted",mt:"University IRB · expedited review",rt:"4d",ok:true}]},
+    sections:[
+      {title:"Research plan",tasks:[
+        {name:"Specific aims page"},
+        {name:"Research strategy",meta:"12-page limit"},
+        {name:"Human subjects protection",chip:"Critical path"}]},
+      {title:"Administrative package",tasks:[
+        {name:"Detailed budget and justification"},
+        {name:"Biosketches · PI + Co-Is",meta:"5 investigators"},
+        {name:"Facilities and resources"}]}],
+    activity:[{kind:"Budget signoff",time:"2h",detail:"<b>University Grants Office</b> reconciled direct costs with F&A rate. Final budget locked for submission package."},{kind:"Specific aims review",time:"Yesterday",detail:"All 3 Co-Investigators have commented on the v2 aims. Consensus reached on aim 3 rewording.",link:"View annotations"},{kind:"Workspace created",time:"3w",detail:"Dr. Chen (NIH NIGMS Program Officer) opened the workspace at the PI's request after the pre-submission call."}],
+    iris:{heroTitle:"Iris can answer across the R01-HX-MECH application file.",heroDesc:"Ask about aim alignment with NIH priorities, comparable funded grants, budget benchmarks, or any section of the application.",prompt:"Try: \"How does this aims page compare to recently-funded R01s in NIGMS mechanism-of-action programs?\"",agreements:["Specific Aims · v2 · 1 page","Research Strategy · Draft · 12 pages","Human Subjects Protection · In progress · 6 pages","Budget and Justification · Locked · 8 pages","Biosketches · 5 investigators · 30 pages","Facilities and Resources · Draft · 4 pages","IRB Protocol · Submitted · 18 pages"]},
+    agent:{title:"Grants Agent",sub:"NIH · Review Readiness",checks:[["Aim-program alignment","Strong · matches NIGMS mechanism-of-action portfolio"],["Budget benchmark","Within 8% of funded R01s in same FY in this study section"],["Biosketch completeness","5 of 5 investigators · NIH format · CVs within 2 years"],["Human subjects completeness","3 of 6 required elements · mitigation plan missing"],["IRB routing","University IRB · expedited · 21-day turnaround expected"],["Facilities adequacy","Clinical + lab + computational confirmed"],["Prior NIH reporting","PI current on all closeout reports"]],summary:"<b>6 checks passed · 1 advisory.</b> Human-subjects mitigation plan is the open item. With that complete, the package is submission-ready 3 days ahead of deadline."}
+  },
+
+  "insurance-commercial-binding": {
+    label:"Insurance · Commercial",
+    tenant:{name:"Sentinel Commercial",wordmark:"Sentinel",primary:"#4A1228",accent:"#E89EB0",markColor:"#E89EB0",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Dana,",p1:"I've opened a workspace to bind Cascade Retail Holdings' new commercial property policy across all 12 locations. The schedule of locations, loss history, prior carrier data, and the inspection reports are all in one place. Your broker Alex, our loss-control team, and the inspection firm are all looped in.",p2:"We're targeting bind by Apr 30 ahead of the lease-renewal closings. Ping me anytime — I'll keep the workspace moving.",sender:"Marisol Vega",role:"Commercial Underwriter"},
+    workspace:{title:"New Commercial Property Policy — Cascade Retail Holdings (12 locations)",avatars:["DA","AL","LC"],moreCount:4,userInitials:"MV",tenantSub:"Commercial · Property · Multi-location"},
+    summary:{heroTitle:"Welcome back, Marisol — here's where Cascade's binding stands.",heroLede:"10 of 12 locations have cleared inspection; 2 have remediation items open. Loss history reconciled with prior carrier. Broker-signed application and schedule of locations are complete. Bind decision depends on the 2 open inspections.",pct:68,tiles:[{lab:"Open items",val:"3",sub:"2 inspections + bind"},{lab:"Annual premium",val:"$186k",sub:"Multi-location · standard",accent:true},{lab:"Docs signed",val:"5/8",sub:"App, schedule, disclosures"},{lab:"Bind by",val:"Apr 30",sub:"6 days · lease closings",warn:true}],list:[{nm:"10 of 12 inspections cleared",mt:"HazardHub · 2 remediation items pending",rt:"2h"},{nm:"Loss history reconciled",mt:"7 years · prior carrier Travelers",rt:"Yesterday"},{nm:"Schedule of locations signed",mt:"Broker Alex Park · 12 addresses verified",rt:"3d",ok:true}]},
+    sections:[
+      {title:"Application and underwriting",tasks:[
+        {name:"Commercial property application"},
+        {name:"Schedule of locations",meta:"12 addresses · TIVs verified"},
+        {name:"Prior carrier loss runs",chip:"7 years"}]},
+      {title:"Inspection and binding",tasks:[
+        {name:"Inspection reports",meta:"10 of 12 cleared"},
+        {name:"Remediation plan · 2 locations"},
+        {name:"Insurance binder · sign and pay"}]}],
+    activity:[{kind:"Inspection cycle",time:"2h",detail:"<b>HazardHub</b> cleared 10 of 12 locations. Remaining 2 need minor remediation (one sprinkler certification, one roof age recheck)."},{kind:"Loss history",time:"Yesterday",detail:"Prior carrier loss runs reconciled · 3 claims in 7 years · total incurred $42k.",link:"View reconciliation"},{kind:"Workspace created",time:"2w",detail:"Marisol Vega opened the workspace using the <b>Commercial Property Bind</b> template after the broker submitted the application."}],
+    iris:{heroTitle:"Iris can answer across the Cascade policy file.",heroDesc:"Ask about location-level risk, catastrophe exposure, deductible options, schedule of locations, or any inspection report.",prompt:"Try: \"Which locations are driving the premium and which have the highest CAT exposure?\"",agreements:["Commercial Property Application · Signed · 18 pages","Schedule of Locations · Signed · 12 pages","Prior Carrier Loss Runs · Reconciled · 22 pages","Inspection Reports (×10 cleared, ×2 pending) · 140 pages","Binder · Ready to send · 10 pages","Payment Authorization · Ready to sign · 2 pages"]},
+    agent:{title:"Underwriting Agent",sub:"Commercial · Multi-location",checks:[["Loss history analysis","3 claims · total incurred $42k · loss ratio 0.14"],["Catastrophe exposure","3 locations coastal · 1 high-wildfire · priced in"],["Inspection completeness","10 of 12 cleared · 2 remediation items"],["Schedule verification","12 TIVs match broker-submitted values"],["Deductible optimization","$10k per location · $25k agg drives 8% saving"],["Protection class review","All locations PC 4 or better · full-time FD"],["Binding precondition check","Binding subject to remediation sign-off"]],summary:"<b>6 checks passed · 1 advisory.</b> 2 remediation items are the critical path to bind. Loss history is excellent; standard commercial form is appropriate."}
+  },
+
+  "payor-provider-credentialing": {
+    label:"Payor · Credentialing",
+    tenant:{name:"Unity Health Plan",wordmark:"Unity",primary:"#0B5E3A",accent:"#6FDA9B",markColor:"#6FDA9B",mark:'<svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="5" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="12" r="5" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Dr. Patel,",p1:"Welcome to the Unity Health Plan credentialing process. I've opened a workspace for your network-participation application — CAQH attestation, state license verification, board certification, malpractice history, NPDB query, and your privileged procedures list. Our CVO (credentialing verification org) is wired in; the committee meets monthly.",p2:"Target credentialing completion is 75 days from the CVO opening the file. Reach out if anything is unclear or out-of-date in your CAQH profile.",sender:"Brenda Estevez",role:"Network Credentialing Specialist"},
+    workspace:{title:"Provider Credentialing — Dr. Rashida Patel (Cardiology · Cascadia Medical Group)",avatars:["RP","CV","MS"],moreCount:4,userInitials:"BE",tenantSub:"Cardiology · Cascadia Medical Group · CAQH 18472091"},
+    summary:{heroTitle:"Welcome back, Brenda — here's where Dr. Patel's credentialing stands.",heroLede:"CAQH attestation complete and current. License verification and board certification both verified by CVO. NPDB query returned clean. Malpractice history pending final carrier confirmation — last item before committee.",pct:75,tiles:[{lab:"Open items",val:"2",sub:"Malpractice + committee"},{lab:"Specialty",val:"Cardiology",sub:"Interventional · 2 procedures",accent:true},{lab:"Verifications done",val:"6/8",sub:"License, boards, NPDB"},{lab:"Committee",val:"May 14",sub:"Monthly · critical path",warn:true}],list:[{nm:"NPDB query returned",mt:"No actions or reports",rt:"4h",ok:true},{nm:"Board certification verified",mt:"ABIM Cardiology · current through 2028",rt:"Yesterday"},{nm:"CAQH attested",mt:"Dr. Patel · profile current",rt:"5d",ok:true}]},
+    sections:[
+      {title:"Application and verification",tasks:[
+        {name:"CAQH attestation",meta:"Provider · complete"},
+        {name:"State license verification",chip:"CVO · complete"},
+        {name:"Board certification",meta:"ABIM · verified"}]},
+      {title:"History and committee",tasks:[
+        {name:"NPDB query"},
+        {name:"Malpractice carrier confirmation",meta:"MedMal · pending"},
+        {name:"Credentialing committee approval",chip:"May 14"}]}],
+    activity:[{kind:"NPDB clean",time:"4h",detail:"<b>National Practitioner Data Bank</b> query returned no adverse actions. All 8 previous credentialing attestations consistent."},{kind:"Privileging list received",time:"Yesterday",detail:"Dr. Patel submitted requested privileges: Diagnostic Cath, PCI, structural heart.",link:"View privileges"},{kind:"Workspace created",time:"45d",detail:"Brenda Estevez opened the workspace using the <b>Provider Credentialing</b> template after CAQH profile-sharing consent from Cascadia."}],
+    iris:{heroTitle:"Iris can answer across Dr. Patel's credentialing file.",heroDesc:"Ask about verification status, privileging scope, comparable specialists in-network, CME compliance, or any credentialing artifact.",prompt:"Try: \"Is there anything in Dr. Patel's file that needs re-verification before the committee?\"",agreements:["CAQH Provider Profile · Attested · 42 pages","Medical License · Verified · 2 pages","Board Certification · ABIM · Verified · 1 page","NPDB Query · Clean · 3 pages","Malpractice History · Pending carrier confirmation · 6 pages","Privileging Request · Submitted · 4 pages","DEA Registration · Current · 1 page","Education & Training Verification · Complete · 8 pages"]},
+    agent:{title:"Credentialing Agent",sub:"Primary Source Verification",checks:[["CAQH attestation currency","Profile current · 365-day attestation freshness maintained"],["State license verification","Primary source · CA Medical Board · active"],["Board certification","ABIM Cardiology · Interventional subspecialty · through 2028"],["NPDB query completeness","All reporting categories · no adverse actions"],["DEA registration","Current · through 2027 · schedule II-V"],["Education / training","Residency + Fellowship verified via primary source"],["Malpractice history","5-year claims history pending final carrier letter"]],summary:"<b>6 checks passed · 1 advisory.</b> Malpractice carrier confirmation is the last verification. Committee-ready once it lands — likely within 3 business days per CVO."}
+  },
+
+  "insurance-disability-claim": {
+    label:"Insurance L&A · LTD",
+    tenant:{name:"Everglade Life",wordmark:"Everglade",primary:"#0D3B2E",accent:"#8BCCB5",markColor:"#8BCCB5",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 2c-4 4-6 8-6 12a6 6 0 0 0 12 0c0-4-2-8-6-12z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
+    email:{greeting:"Hello Marcus,",p1:"Thank you for submitting your long-term disability claim. I've opened a workspace where your treating physician's office, your employer's HR team, and our claims examiner can contribute to your file together — attending physician statement, employer separation data, medical records release, vocational assessment, and the benefits calculation.",p2:"I'll be your point of contact throughout. Please complete the forms in the workspace at your pace — there's no rush, and I'll reach out if anything is unclear.",sender:"Deborah Akindele",role:"Senior Claims Examiner · LTD"},
+    workspace:{title:"LTD Claim — Marcus Reeves (Claim #LTD-2026-04812)",avatars:["MR","DR","HR"],moreCount:4,userInitials:"DA",tenantSub:"Long-Term Disability · LTD-2026-04812"},
+    summary:{heroTitle:"Welcome back, Deborah — here's where Marcus's LTD claim stands.",heroLede:"Elimination period fulfilled; employer separation data confirmed. Attending Physician Statement received from Dr. Hernandez; independent medical review is the next gate. Vocational assessment is scheduled.",pct:52,tiles:[{lab:"Open items",val:"3",sub:"IMR + vocational + calc"},{lab:"Monthly benefit",val:"$6,240",sub:"60% · pre-disability",accent:true},{lab:"Forms received",val:"6/9",sub:"APS, employer, HIPAA"},{lab:"Decision by",val:"Jun 5",sub:"40 days · SLA · own-occ",warn:true}],list:[{nm:"Attending Physician Statement received",mt:"Dr. Hernandez · symptom onset Feb 14",rt:"2h"},{nm:"Employer separation confirmed",mt:"Cascadia Tech · last day Apr 14",rt:"Yesterday"},{nm:"Elimination period satisfied",mt:"90 days · counted from first disabled day",rt:"4d",ok:true}]},
+    sections:[
+      {title:"Medical and occupational",tasks:[
+        {name:"Attending Physician Statement (APS)",meta:"Dr. Hernandez · cardiology"},
+        {name:"Medical records release (HIPAA)",chip:"Signed"},
+        {name:"Independent medical review"}]},
+      {title:"Employer and benefits",tasks:[
+        {name:"Employer statement · separation data"},
+        {name:"Vocational assessment",meta:"Scheduled Apr 28"},
+        {name:"Benefits calculation"}]}],
+    activity:[{kind:"APS received",time:"2h",detail:"<b>Dr. Luis Hernandez</b> (Cardiology) submitted the Attending Physician Statement. Diagnosis: cardiomyopathy with functional Class II limitation."},{kind:"Employer confirmed",time:"Yesterday",detail:"Cascadia Tech HR confirmed separation date Apr 14; pre-disability earnings $10,400/mo base plus variable.",link:"View employer data"},{kind:"Workspace created",time:"12d",detail:"Deborah Akindele opened the workspace using the <b>LTD Adjudication</b> template at initial claim intake."}],
+    iris:{heroTitle:"Iris can answer across Marcus's claim file.",heroDesc:"Ask about own-occupation definition, policy exclusions, offset sources, prior disability patterns, or any submitted medical record.",prompt:"Try: \"Does Marcus's role fit the own-occupation definition through the end of the elimination period?\"",agreements:["Claim Form · Signed · 4 pages","HIPAA Authorization · Signed · 2 pages","Attending Physician Statement · Received · 8 pages","Medical Records · Received · 142 pages","Employer Statement · Received · 6 pages","Pre-disability Earnings · Verified · 2 pages","Tax and Offset Authorization · Ready to sign · 2 pages"]},
+    agent:{title:"Claims Agent",sub:"LTD · Medical & Vocational",checks:[["Elimination period fulfillment","90 days satisfied from Feb 14 symptom onset"],["Own-occupation match","Pre-disability role is sedentary-to-light · medical restrictions fit"],["Medical consistency","APS, records, and hospital notes all aligned"],["Offset sources review","SSDI pending · employer STD exhausted · no other offsets"],["Pre-disability earnings","Documented via W-2 + variable comp statements"],["Vocational assessment readiness","Scheduled Apr 28 · 5-year occupation history on file"],["Benefits calculation preview","$6,240/mo · 60% of pre-disability · 24-month own-occ"]],summary:"<b>6 checks passed · 1 advisory.</b> Medical evidence is consistent; own-occ definition is satisfied. IMR + vocational assessment are the gates to decision by Jun 5."}
+  },
+
+  "education-research-irb": {
+    label:"Education · Research IRB",
+    tenant:{name:"Maple Ridge University",wordmark:"Maple Ridge",primary:"#14422E",accent:"#F2C65A",markColor:"#F2C65A",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M2 9l10-5 10 5-10 5L2 9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 11v5c0 1 3 3 6 3s6-2 6-3v-5" stroke="currentColor" stroke-width="2"/></svg>'},
+    email:{greeting:"Hello Dr. Lindgren,",p1:"I've opened a workspace for the MRU-BIOMARK-2026 IRB submission. The research protocol, informed-consent template, data management plan, and the investigator attestations are all co-edited there. Your Co-Investigators, our IRB coordinator, the Office of Research Compliance, and the sponsor CRA are all wired in.",p2:"Target IRB submission is May 15 ahead of the sponsor's Q3 enrollment window. Reach out if anything is unclear.",sender:"Beatrice Okonkwo",role:"Director, Office of Research Compliance"},
+    workspace:{title:"IRB Submission — Multi-site Biomarker Study (MRU-BIOMARK-2026)",avatars:["PI","CI","IR"],moreCount:5,userInitials:"BO",tenantSub:"Research · IRB · Multi-site · Phase 2a"},
+    summary:{heroTitle:"Welcome back, Beatrice — here's where the BIOMARK IRB submission stands.",heroLede:"Research protocol v3 is in final review across the 3 investigator institutions. ICF is reconciled; data management plan approved by Compliance. Sponsor agreement and 3 of 3 site-PI attestations are the critical-path items before May 15 submission.",pct:63,tiles:[{lab:"Open items",val:"4",sub:"ICF site-specific + attestations"},{lab:"Enrollment target",val:"180 pts",sub:"3 sites · 24 months",accent:true},{lab:"Docs signed",val:"7/11",sub:"Protocol, DMP, sponsor"},{lab:"IRB submit",val:"May 15",sub:"15 days · sponsor window",warn:true}],list:[{nm:"Data management plan approved",mt:"Office of Research Compliance",rt:"1h"},{nm:"Protocol v3 returned from sites",mt:"3 of 3 · minor comments reconciled",rt:"Yesterday"},{nm:"Sponsor agreement signed",mt:"Helix Therapeutics · counter-signed",rt:"6d",ok:true}]},
+    sections:[
+      {title:"Study documentation",tasks:[
+        {name:"Research protocol v3"},
+        {name:"Informed consent form · site-specific",meta:"3 sites · all pending"},
+        {name:"Data management plan",chip:"IRB-approved"}]},
+      {title:"Agreements and attestations",tasks:[
+        {name:"Sponsor research agreement"},
+        {name:"Investigator attestations · 3 PIs"},
+        {name:"Training documentation · CITI"}]}],
+    activity:[{kind:"DMP approved",time:"1h",detail:"<b>Office of Research Compliance</b> approved the Data Management Plan. PHI, biospecimens, and genomic data handling all documented."},{kind:"Protocol returned",time:"Yesterday",detail:"All 3 site PIs returned protocol v3 with minor comments (reconciled). Ready to finalize.",link:"View comment log"},{kind:"Workspace created",time:"6w",detail:"Beatrice Okonkwo opened the workspace using the <b>Multi-site IRB Submission</b> template after the sponsor award."}],
+    iris:{heroTitle:"Iris can answer across the BIOMARK submission file.",heroDesc:"Ask about protocol alignment across sites, ICF reading level, DMP compliance, or any uploaded IRB document.",prompt:"Try: \"Show me protocol discrepancies across the 3 site PIs and what's been reconciled.\"",agreements:["Research Protocol v3 · In final review · 84 pages","Informed Consent Form · Site-specific pending · 12 pages","Data Management Plan · Approved · 18 pages","Sponsor Research Agreement · Signed · 42 pages","Investigator CVs · 3 PIs · 22 pages","CITI Training Certificates · All current · 8 pages","IRB Protocol Summary · Draft · 6 pages"]},
+    agent:{title:"Research Compliance Agent",sub:"IRB · Multi-site",checks:[["Protocol version alignment","v3 accepted at all 3 sites · minor language only"],["ICF reading level","Grade 8 · meets accessibility guidance"],["DMP compliance","PHI + genomic handling approved"],["Sponsor agreement","Signed · indemnification and IP clauses clean"],["Investigator qualifications","3 PIs · CVs + CITI all current"],["Conflict of interest","Declared and mitigated for 1 investigator"],["IRB submission package","11 of 13 required elements present"]],summary:"<b>6 checks passed · 1 advisory.</b> ICF site-specific versions + final investigator attestations are the remaining items before the May 15 IRB submission."}
+  },
+
+  "slgov-foster-care-placement": {
+    label:"State & Local · Foster Care",
+    tenant:{name:"Alameda County DCFS",wordmark:"Alameda",primary:"#1B3556",accent:"#E8A438",markColor:"#E8A438",mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+    email:{greeting:"Hello Williams family,",p1:"We've opened a secure workspace for the placement of Jordan with your family. All the documents — placement agreement, medical consent, case plan, and educational continuity forms — are inside. Jordan's biological mother, the court liaison, and Jordan's CASA are all part of this room so everyone sees the same plan in real time.",p2:"Call me directly if anything is unclear or feels rushed. We want Jordan home with you this week.",sender:"Maya Thornton",role:"DCFS Placement Social Worker"},
+    workspace:{title:"Foster Care Placement — Williams Family (Case A-2026-0841)",avatars:["WF","BM","CA"],moreCount:3,userInitials:"MT",tenantSub:"DCFS · Emergency Placement · Case A-2026-0841"},
+    summary:{heroTitle:"Welcome back, Maya — here's where Jordan's placement stands.",heroLede:"Williams family is certified active. Court order approved; biological mother has signed the reunification plan acknowledgment. School enrollment transfer is in progress. Target placement date is this Friday.",pct:68,tiles:[{lab:"Open items",val:"3",sub:"School + medical + supplies"},{lab:"Party count",val:"6",sub:"Across 3 households",accent:true},{lab:"Docs signed",val:"5/8",sub:"Placement, court, consent"},{lab:"Placement",val:"Apr 26",sub:"3 days · target",warn:true}],list:[{nm:"Court order approved",mt:"Judge Reyes · emergency placement authorized",rt:"1h"},{nm:"Medical consent signed",mt:"Bio mother · provisional authority",rt:"Yesterday"},{nm:"Foster family certified",mt:"Williams · RFA current through 2027",rt:"2d",ok:true}]},
+    sections:[
+      {title:"Placement authority",tasks:[
+        {name:"Court placement order"},
+        {name:"Placement agreement",meta:"Williams family + DCFS"},
+        {name:"Reunification plan acknowledgment",chip:"Bio mother"}]},
+      {title:"Child continuity",tasks:[
+        {name:"Medical consent and records transfer"},
+        {name:"School enrollment transfer",meta:"Critical for Monday return"},
+        {name:"Personal belongings inventory"}]}],
+    activity:[{kind:"Court order",time:"1h",detail:"<b>Judge Reyes</b> approved the emergency placement order. Williams family is authorized as the placement resource for Jordan."},{kind:"CASA assigned",time:"Yesterday",detail:"Claire Nguyen assigned as Court-Appointed Special Advocate. Reviewed case file and joined workspace.",link:"View assignment"},{kind:"Workspace created",time:"3d",detail:"Maya Thornton opened the workspace using the <b>Emergency Placement</b> template after the initial call from the school."}],
+    iris:{heroTitle:"Iris can answer across Jordan's case file.",heroDesc:"Ask about case timeline, visit schedule, reunification benchmarks, or any document in the Williams placement record.",prompt:"Try: \"What's the reunification timeline and when is the next court review?\"",agreements:["Court Placement Order · Signed · 2 pages","Placement Agreement · Signed · 4 pages","Reunification Plan Acknowledgment · Signed · 3 pages","Medical Consent · Signed · 2 pages","Educational Continuity Form · In progress · 3 pages","Williams RFA Certification · On file · 24 pages","CASA Assignment · Acknowledged · 1 page","Visit Schedule · Ready to send · 2 pages"]},
+    agent:{title:"Child Welfare Agent",sub:"Placement & Safety",checks:[["Foster family certification","Williams · RFA current · background checks clean"],["Court order validity","Judge Reyes · emergency placement · 60-day review"],["Placement capacity","Williams home · 2 bed + 2 bath · within capacity"],["School continuity","Transfer initiated · Mon 8:00 start planned"],["Medical records handoff","PCP assigned · Rx continuity verified"],["Bio parent rights","Reunification plan signed · visit schedule set"],["CASA engagement","Claire Nguyen assigned · reviewed case file"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Placement is safe, legal, and logistically ready. Priority this week: confirm Mon school start and complete belongings inventory."}
+  }
+};
+
+/* Preset ordering used by the chip selector */
+const PRESET_ORDER = [
+  "wealth","wealth-hnw-onboarding","wealth-estate-transition",
+  "banking","banking-commercial-loan-mod",
+  "insurance","insurance-commercial-binding","insurance-disability-claim",
+  "provider",
+  "lifesciences","lifesciences-site-activation","lifesciences-mlr-review",
+  "payor","payor-provider-credentialing",
+  "fedgov","fedgov-grant-application",
+  "slgov","slgov-foster-care-placement",
+  "education","education-research-irb",
+  "nonprofit"
+];
+
+/* Utility: render tasks for a section. Icons pick from a small bank. */
+const TASK_ICONS = {
+  default:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  id:'<svg viewBox="0 0 24 24"><path d="M3 8L12 3L21 8V16L12 21L3 16Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  sign:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+  upload:'<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+};
+function iconFor(name){
+  const n = name.toLowerCase();
+  if (/id|verif|identity/.test(n)) return TASK_ICONS.id;
+  if (/sign|agreement|contract|mou/.test(n)) return TASK_ICONS.sign;
+  if (/upload|submit|transcript|record/.test(n)) return TASK_ICONS.upload;
+  return TASK_ICONS.default;
+}
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  document.documentElement.style.setProperty('--tn-primary', p.tenant.primary);
+  document.documentElement.style.setProperty('--tn-accent', p.tenant.accent);
+
+  // Email
+  const mark = p.tenant.mark.replace('currentColor', p.tenant.markColor);
+  document.getElementById('email-mark').innerHTML = mark;
+  document.getElementById('email-wordmark').textContent = p.tenant.wordmark;
+  document.getElementById('email-greeting').textContent = p.email.greeting;
+  document.getElementById('email-body-p1').textContent = p.email.p1;
+  document.getElementById('email-body-p2').textContent = p.email.p2;
+  document.getElementById('email-sender-name').textContent = p.email.sender;
+  document.getElementById('email-sender-role').textContent = p.email.role;
+  document.getElementById('email-sender-org').textContent = p.tenant.name;
+
+  // Tenant bar
+  document.getElementById('tn-mark').innerHTML = mark;
+  document.getElementById('tn-wordmark').textContent = p.tenant.wordmark;
+  document.getElementById('tn-sub').textContent = p.workspace.tenantSub;
+
+  // Header
+  document.getElementById('ws-title').textContent = p.workspace.title;
+  document.getElementById('user-avatar').textContent = p.workspace.userInitials;
+  const avs = document.getElementById('ws-avs');
+  avs.innerHTML = p.workspace.avatars.map(a => `<div class="ws-av">${a}</div>`).join('') +
+                  (p.workspace.moreCount ? `<div class="ws-av more">+${p.workspace.moreCount}</div>` : '');
+
+  // Summary
+  document.getElementById('sum-hero-title').textContent = p.summary.heroTitle;
+  document.getElementById('sum-hero-lede').textContent = p.summary.heroLede;
+  document.getElementById('sum-pct').textContent = p.summary.pct + '% complete';
+  setTimeout(() => {
+    document.getElementById('sum-fill').style.width = p.summary.pct + '%';
+  }, 40);
+  document.getElementById('sum-tiles').innerHTML = p.summary.tiles.map(t =>
+    `<div class="sum-tile ${t.accent?'accent':''} ${t.warn?'warn':''}">
+       <div class="t-lab">${t.lab}</div>
+       <div class="t-val">${t.val}</div>
+       <div class="t-sub">${t.sub||''}</div>
+     </div>`).join('');
+  document.getElementById('sum-list').innerHTML = p.summary.list.map(r =>
+    `<div class="sum-row">
+       <div class="ic"><svg viewBox="0 0 24 24"><polyline points="5 12 10 17 20 7"/></svg></div>
+       <div class="mid"><div class="nm">${r.nm}</div><div class="mt">${r.mt}</div></div>
+       <div class="rt ${r.ok?'ok':''}">${r.rt}</div>
+     </div>`).join('');
+
+  // Sections + tasks
+  ['sec1','sec2'].forEach((id, i) => {
+    const sec = p.sections[i];
+    document.getElementById(id+'-title').textContent = sec.title;
+    document.getElementById(id+'-body').innerHTML = sec.tasks.map(t =>
+      `<div class="task">
+         <div class="task-ic">${iconFor(t.name)}</div>
+         <div class="task-mid">
+           <div class="task-name">${t.name}${t.chip?` <span class="task-chip">${t.chip}</span>`:''}</div>
+           ${t.meta?`<div class="task-meta">${t.meta}</div>`:''}
+         </div>
+         <div class="task-progress"><div class="bar"><div class="fill"></div></div><div class="lab">Waiting</div></div>
+         <button class="task-view">View</button>
+       </div>`).join('');
+  });
+
+  // Activity
+  const actHTML = p.activity.map(a =>
+    `<div class="act">
+       <div class="act-ic"><svg viewBox="0 0 24 24"><polygon points="3 12 22 3 13 22 11 13 3 12"/></svg></div>
+       <div class="act-mid">
+         <div class="act-head"><div class="act-kind">${a.kind}</div><div class="act-time">${a.time}</div></div>
+         <div class="act-detail">${a.detail}</div>
+         ${a.link?`<div class="act-link">${a.link}</div>`:''}
+       </div>
+     </div>`).join('');
+  document.getElementById('rail-activity').innerHTML = actHTML;
+
+  // Iris
+  document.getElementById('iris-hero-title').textContent = p.iris.heroTitle;
+  document.getElementById('iris-hero-desc').textContent = p.iris.heroDesc;
+  document.getElementById('iris-prompt').textContent = p.iris.prompt;
+  document.getElementById('iris-agreements').innerHTML = p.iris.agreements.map(a => {
+    const [nm, ...rest] = a.split(' · ');
+    return `<div class="iris-ag"><div class="pg">PDF</div><div class="mid"><div class="nm">${nm}</div><div class="mt">${rest.join(' · ')}</div></div></div>`;
+  }).join('');
+
+  // Agent
+  document.getElementById('agent-title').textContent = p.agent.title;
+  document.getElementById('agent-sub').textContent = p.tenant.wordmark + ' · ' + p.agent.sub;
+  document.getElementById('agent-checks').innerHTML = p.agent.checks.map(([lab, em], i) =>
+    `<div class="check ${i===0?'running':''}" data-i="${i}"><div class="box"></div><div class="lab">${lab}<em>${em}</em></div></div>`).join('');
+  document.getElementById('agent-summary').innerHTML = p.agent.summary;
+
+  // Wire task-view buttons (they re-render each preset)
+  document.querySelectorAll('.task-view').forEach(btn => btn.addEventListener('click', () => {
+    const row = btn.closest('.task');
+    const name = row.querySelector('.task-name').childNodes[0].textContent.trim();
+    openDrill(name);
+  }));
+}
+
+/* Drill-down controller */
+const drill = document.getElementById('drill');
+function openDrill(name){
+  document.getElementById('drill-crumb-cur').textContent = name;
+  document.getElementById('drill-doc-title').textContent = name;
+  document.getElementById('drill-doc-file').textContent = name.toLowerCase().replace(/[^a-z0-9]+/g,'_')+'.pdf';
+  drill.classList.add('on');
+  runChecks();
+}
+function closeDrill(){ drill.classList.remove('on'); }
+document.getElementById('drill-back').addEventListener('click', closeDrill);
+document.getElementById('drill-crumb-back').addEventListener('click', closeDrill);
+
+let running = false;
+function runChecks(){
+  if (running) return; running = true;
+  const checks = drill.querySelectorAll('.check');
+  checks.forEach(c => c.classList.remove('pass','running'));
+  const status = document.getElementById('agent-status');
+  const statusText = document.getElementById('agent-status-text');
+  const summary = document.getElementById('agent-summary');
+  const ctas = document.getElementById('agent-ctas');
+  status.classList.remove('done');
+  statusText.textContent = 'Running checks…';
+  summary.style.display = 'none'; ctas.style.display = 'none';
+  if (checks[0]) checks[0].classList.add('running');
+  let i = 0;
+  const step = setInterval(() => {
+    if (i >= checks.length) {
+      clearInterval(step);
+      status.classList.add('done');
+      statusText.textContent = 'Review complete · ' + checks.length + ' checks passed';
+      summary.style.display = 'block'; ctas.style.display = 'flex';
+      running = false; return;
+    }
+    checks[i].classList.remove('running');
+    checks[i].classList.add('pass');
+    i++;
+    if (i < checks.length) checks[i].classList.add('running');
+  }, 420);
+}
+
+/* Tabs */
+document.querySelectorAll('.ws-tab').forEach(t => t.addEventListener('click', () => {
+  const key = t.dataset.tab;
+  if (key !== 'overview' && key !== 'tasks') return;
+  document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === key));
+  document.getElementById('view-overview').classList.toggle('on', key === 'overview');
+  document.getElementById('view-tasks').classList.toggle('on', key === 'tasks');
+}));
+document.querySelectorAll('.rail-tab').forEach(rt => rt.addEventListener('click', () => {
+  document.querySelectorAll('.rail-tab').forEach(x => x.classList.remove('active'));
+  rt.classList.add('active');
+  document.querySelectorAll('.rail-pane').forEach(p => p.classList.remove('on'));
+  document.getElementById('rail-' + rt.dataset.rail).classList.add('on');
+}));
+document.getElementById('iris-open').addEventListener('click', () => {
+  document.querySelectorAll('.rail-tab').forEach(x => x.classList.toggle('active', x.dataset.rail === 'iris'));
+  document.querySelectorAll('.rail-pane').forEach(p => p.classList.remove('on'));
+  document.getElementById('rail-iris').classList.add('on');
+});
+
+/* Preset selector + URL */
+function getPresetFromURL(){
+  const params = new URLSearchParams(location.search);
+  const hash = location.hash.replace(/^#/,'');
+  const key = params.get('preset') || hash || 'wealth';
+  return PRESETS[key] ? key : 'wealth';
+}
+const sel = document.getElementById('preset-select');
+PRESET_ORDER.forEach(k => {
+  const opt = document.createElement('option');
+  opt.value = k; opt.textContent = PRESETS[k].label;
+  sel.appendChild(opt);
+});
+const initialPreset = getPresetFromURL();
+sel.value = initialPreset;
+applyPreset(initialPreset);
+sel.addEventListener('change', () => {
+  applyPreset(sel.value);
+  history.replaceState(null, '', '?preset=' + sel.value);
+});
+
+/* Optional: bolt on the MasterCard Scene 4 splash.
+   The .mock carries the `workspaces-demo` opt-in marker so the
+   shared splash module fires without needing data-force. */
+(function loadSplash(){
+  const params = new URLSearchParams(location.search);
+  if (params.get('splash') !== '1') return;
+  const l = document.createElement('link');
+  l.rel = 'stylesheet'; l.href = '/stories/_shared/mastercard-splash.css';
+  document.head.appendChild(l);
+  const s = document.createElement('script');
+  s.src = '/stories/_shared/mastercard-splash.js';
+  const p = PRESETS[getPresetFromURL()];
+  s.dataset.descriptor = 'for ' + p.workspace.title.toLowerCase();
+  document.body.appendChild(s);
+})();
+</script>
+</body>
+</html>

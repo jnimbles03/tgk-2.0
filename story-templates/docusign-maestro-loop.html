@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Maestro — animated LOOP / Workspace template</title>
+<meta name="description" content="Reusable animated mock of a Docusign Maestro orchestration. Parallel lanes stream tokens as the workflow executes; a recovery or outcome metric rolls in on the right. Drop into any vertical — swap the lane titles, token lines, recovery metric, and SLA comparison.">
+<style>
+/* ============================================================================
+   Docusign Maestro — SHARED LOOP / WORKSPACE TEMPLATE
+   Derived from the Maestro scene pattern used in every future-state component
+   (84 of ~95 components use this archetype). Reference implementations:
+     /components/future-state/component-loop-investigation-insurance-pc-claims.html
+     /components/future-state/component-maestro-evidence-orchestration-insurance-life-annuities-new-business.html
+   ----------------------------------------------------------------------------
+   Visual grammar:
+     - Docusign topbar + tenant bar (matches every other future-state component)
+     - Scene head: title + chip
+     - Orchestration body: 3 parallel lanes + 1 outcome/recovery callout
+     - Each lane has a status chip and streams 3–4 "tokens" that animate in
+     - Side: evidence card + SLA-before/after block
+     - Bottom: handoff strip (optional)
+   ----------------------------------------------------------------------------
+   How to adapt:
+     1. Copy this file.
+     2. Swap .ds-product and .ds-crumb text (Maestro product label stays).
+     3. Swap tenant name + accent color on .t-dot.
+     4. Edit .scene-title, .scene-sub, and the chip.
+     5. Rename lanes (ms-lane .lh) and tokens (ms-lane .tok).
+     6. Swap the outcome metric in .ms-cv.
+     7. Update the SLA-before/after copy in .ms-sla.
+   Nothing in the animation scaffolding should need touching.
+   ============================================================================ */
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+:root{
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF;--ds-poppy:#FF5252;--ds-ecru:#F8F3F0;--ds-white:#FFFFFF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
+  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ok:#0A7A3A;--warn:#A9640A;--alert:#A93434;
+  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
+  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--ds-ecru);overflow:hidden;}
+body{display:flex;align-items:stretch;justify-content:stretch;}
+.mock{width:100%;height:100%;max-width:1440px;max-height:100vh;margin:0 auto;background:var(--ds-ecru);overflow:hidden;position:relative;font-size:12px;line-height:1.45;display:flex;flex-direction:column;}
+
+/* ============================================================================
+   DOCUSIGN TOPBAR + TENANT BAR
+   These are shared with every other future-state component — identical
+   markup & CSS so a vertical can copy/paste without thinking.
+   ============================================================================ */
+.ds-topbar{height:40px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:14px;flex-shrink:0;}
+.ds-logo{display:flex;align-items:center;gap:8px;font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);}
+.ds-logo .lg-mark{display:inline-block;width:22px;height:22px;background-image:url("/assets/brand/docusign-iam-mark-on-light.png");background-size:contain;background-repeat:no-repeat;background-position:center;}
+
+.ds-product{font-family:var(--brand-font);font-size:12px;font-weight:600;color:var(--ds-cobalt);letter-spacing:0.01em;margin-left:2px;}
+.ds-crumb{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-crumb svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:1.8;fill:none;flex-shrink:0;}
+.ds-topbar .spacer{flex:1;}
+.ds-actions{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-mid);}
+.u-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4C00FF,#26065D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+
+.tenant-bar{height:42px;background:var(--ds-white);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.tenant-bar .t-brand{display:flex;align-items:center;gap:10px;font-family:var(--brand-font);font-weight:600;font-size:13px;color:var(--ds-inkwell);}
+.tenant-bar .t-brand .t-dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2D6A4F,#1B4332);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);}
+.tenant-bar .t-sub{font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.tenant-bar .spacer{flex:1;}
+.t-powered{font-size:9px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.t-powered strong{color:var(--ds-inkwell);font-weight:600;text-transform:none;letter-spacing:0;font-size:10px;}
+
+/* ============================================================================
+   SCENE HEAD — title + pending/done chip
+   ============================================================================ */
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px 6px;}
+.scene-title{font-family:var(--brand-font);font-size:14px;font-weight:600;color:var(--ds-inkwell);line-height:1.2;}
+.scene-sub{font-size:10.5px;color:var(--ink-mid);margin-top:2px;}
+.scene-chip{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.scene-chip.pending{background:rgba(76,0,255,0.10);color:var(--ds-cobalt);}
+.scene-chip.pending .dot{width:5px;height:5px;border-radius:50%;background:var(--ds-cobalt);animation:pulse-dot 1.6s ease-out infinite;}
+.scene-chip.done{background:rgba(10,122,58,0.12);color:var(--ok);}
+.scene-chip.done .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+@keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(76,0,255,0.55);} 70%{box-shadow:0 0 0 5px rgba(76,0,255,0);} 100%{box-shadow:0 0 0 0 rgba(76,0,255,0);} }
+
+/* ============================================================================
+   MAESTRO BODY — 3 lanes + outcome callout + right-side cards
+   ============================================================================ */
+.ms-body{flex:1;display:grid;grid-template-columns:1fr 268px;padding:4px 20px 0;gap:14px;overflow:hidden;min-height:0;}
+.ms-flow{background:var(--ds-white);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.ms-flow .hd{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+.ms-flow .hd .live{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse-dot-green 1.6s ease-out infinite;}
+.ms-flow .hd .thr{margin-left:auto;font-size:9.5px;color:var(--ink-soft);font-weight:500;letter-spacing:0;text-transform:none;}
+.ms-flow .hd .thr b{color:var(--ds-inkwell);font-weight:700;}
+@keyframes pulse-dot-green { 0%{box-shadow:0 0 0 0 rgba(10,122,58,0.55);} 70%{box-shadow:0 0 0 5px rgba(10,122,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,122,58,0);} }
+
+.ms-lanes{display:grid;grid-template-columns:repeat(3,1fr) 148px;gap:12px;flex:1;min-height:0;}
+.ms-lane{background:var(--ds-ecru);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;}
+.ms-lane .lh{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;font-weight:700;color:var(--ds-inkwell);font-family:var(--brand-font);line-height:1.2;}
+.ms-lane .ls{font-size:8.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:rgba(76,0,255,0.10);color:var(--ds-cobalt);flex-shrink:0;}
+.ms-lane .ls.done{background:rgba(10,122,58,0.14);color:var(--ok);}
+.ms-lane .lsub{font-size:9px;color:var(--ink-soft);letter-spacing:0.04em;text-transform:uppercase;font-weight:600;margin-top:-4px;}
+
+.ms-lane .tok{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:6px 9px;font-size:10px;color:var(--ink-mid);opacity:0;}
+.ms-lane .tok .tkn{font-weight:600;color:var(--ds-inkwell);}
+.ms-lane .tok .tkm{margin-left:auto;font-size:9px;color:var(--ink-soft);white-space:nowrap;}
+.ms-lane .tok .chk{width:10px;height:10px;border-radius:50%;background:var(--ok);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:7px;font-weight:700;}
+.ms-lane .tok .chk::before{content:"✓";}
+
+/* Tokens stream in per-lane. Each lane stages its own 4 tokens so you can
+   see them arrive as the workflow executes. 20s loop; every lane's first
+   token lands at ~0.8s, last at ~4s so audiences can follow.
+   Lane 1: left lane. Lane 2: middle. Lane 3: right. */
+.ms-lane.l-1 .tok.t-1{animation:tok-in 20s linear infinite;animation-delay:-19.2s;}
+.ms-lane.l-1 .tok.t-2{animation:tok-in 20s linear infinite;animation-delay:-18.6s;}
+.ms-lane.l-1 .tok.t-3{animation:tok-in 20s linear infinite;animation-delay:-18.0s;}
+.ms-lane.l-1 .tok.t-4{animation:tok-in 20s linear infinite;animation-delay:-17.4s;}
+.ms-lane.l-2 .tok.t-1{animation:tok-in 20s linear infinite;animation-delay:-18.8s;}
+.ms-lane.l-2 .tok.t-2{animation:tok-in 20s linear infinite;animation-delay:-18.2s;}
+.ms-lane.l-2 .tok.t-3{animation:tok-in 20s linear infinite;animation-delay:-17.6s;}
+.ms-lane.l-2 .tok.t-4{animation:tok-in 20s linear infinite;animation-delay:-17.0s;}
+.ms-lane.l-3 .tok.t-1{animation:tok-in 20s linear infinite;animation-delay:-18.4s;}
+.ms-lane.l-3 .tok.t-2{animation:tok-in 20s linear infinite;animation-delay:-17.8s;}
+.ms-lane.l-3 .tok.t-3{animation:tok-in 20s linear infinite;animation-delay:-17.2s;}
+.ms-lane.l-3 .tok.t-4{animation:tok-in 20s linear infinite;animation-delay:-16.6s;}
+@keyframes tok-in { 0%{opacity:0;transform:translateY(3px);} 2%,80%{opacity:1;transform:translateY(0);} 82%,100%{opacity:1;} }
+
+/* Lane status chip flips from "Running" (cobalt) to "Complete" (green)
+   as the lane's tokens finish landing. */
+.ms-lane .ls{animation:ls-flip 20s linear infinite;}
+.ms-lane.l-1 .ls{animation-delay:-16.8s;}
+.ms-lane.l-2 .ls{animation-delay:-16.4s;}
+.ms-lane.l-3 .ls{animation-delay:-16.0s;}
+@keyframes ls-flip {
+  0%      { background:rgba(76,0,255,0.10); color:var(--ds-cobalt); }
+  14%,80% { background:rgba(10,122,58,0.14); color:var(--ok); }
+  82%,100%{ background:rgba(10,122,58,0.14); color:var(--ok); }
+}
+
+/* Outcome callout: dark inkwell block with a big headline metric */
+.ms-cv{background:var(--ds-inkwell);color:#fff;border:0;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;border-radius:8px;position:relative;overflow:hidden;}
+.ms-cv::before{content:"";position:absolute;top:-30%;left:-10%;width:140%;height:140%;background:radial-gradient(40% 30% at 50% 30%,rgba(76,0,255,0.45),transparent 70%);pointer-events:none;}
+.ms-cv .hd{color:rgba(203,194,255,0.9);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;position:relative;}
+.ms-cv .big{font-family:var(--brand-font);font-size:30px;font-weight:700;line-height:1;color:#fff;position:relative;animation:cv-pop 20s ease-out infinite;}
+.ms-cv .big .u{font-size:13px;color:var(--ds-mist);margin-left:3px;font-weight:500;}
+.ms-cv .lbl{font-size:10px;color:var(--ds-mist);position:relative;}
+@keyframes cv-pop { 0%{opacity:0;transform:scale(0.92);} 6%,80%{opacity:1;transform:scale(1);} 82%,100%{opacity:1;} }
+
+/* Right-side cards */
+.ms-side{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;}
+.ms-card{background:var(--ds-white);border:1px solid var(--line);border-radius:8px;padding:11px 13px;display:flex;flex-direction:column;gap:4px;}
+.ms-card .h{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+.ms-card .kv{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-mid);padding:2.5px 0;}
+.ms-card .kv .v{color:var(--ds-inkwell);font-weight:600;}
+.ms-card .kv .v.ok{color:var(--ok);}
+.ms-card .kv.bt{border-top:1px dashed var(--line);padding-top:5px;margin-top:3px;}
+
+.ms-sla{background:var(--ds-inkwell);color:#fff;border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;}
+.ms-sla .lbl{font-size:9px;color:var(--ds-mist);letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+.ms-sla .big{font-family:var(--brand-font);font-size:26px;font-weight:700;line-height:1;color:#fff;}
+.ms-sla .big .u{font-size:13px;color:var(--ds-mist);margin-left:3px;}
+.ms-sla .cmp{font-size:10px;color:var(--ds-mist);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.14);display:flex;flex-direction:column;gap:2px;}
+.ms-sla .cmp .strike{text-decoration:line-through;color:rgba(203,194,255,0.55);}
+.ms-sla .cmp .bg{color:#4DD77E;font-weight:600;}
+
+.ms-agent{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px solid rgba(76,0,255,0.18);border-radius:8px;padding:11px 13px;display:flex;flex-direction:column;gap:5px;}
+.ms-agent .ah{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;}
+.ms-agent .ah::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ds-cobalt);}
+.ms-agent .line{font-size:10.5px;color:var(--ds-inkwell);line-height:1.45;}
+.ms-agent .line b{font-weight:700;}
+
+/* Handoff strip (optional) */
+.handoff{background:linear-gradient(135deg,rgba(76,0,255,0.08),rgba(76,0,255,0.02));border:1px dashed var(--ds-cobalt);border-radius:8px;padding:9px 12px;font-size:10.5px;color:var(--ds-cobalt);display:flex;align-items:center;gap:6px;margin:10px 20px 14px;flex-shrink:0;}
+.handoff svg{width:12px;height:12px;stroke:var(--ds-cobalt);stroke-width:1.8;fill:none;}
+.handoff b{color:var(--ds-inkwell);font-weight:700;}
+
+/* Loop indicator (matches Web Forms + CLEAR templates) */
+.loop-indicator{position:absolute;bottom:12px;right:16px;z-index:10;background:rgba(19,0,50,0.88);color:#fff;border-radius:18px;padding:5px 11px 5px 9px;display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:0.04em;}
+.loop-indicator .badge{width:6px;height:6px;border-radius:50%;background:#4DD77E;box-shadow:0 0 0 3px rgba(77,215,126,0.22);}
+.loop-indicator .lbl{font-weight:500;}
+</style>
+</head>
+
+<body>
+<div class="mock">
+
+  <!-- ======================================================================
+       DOCUSIGN TOPBAR — Maestro product label; swap crumb per vertical
+       ====================================================================== -->
+  <div class="ds-topbar">
+    <div class="ds-logo"><span class="lg-mark"></span><span>Docusign</span></div>
+    <span class="ds-product">Maestro</span>
+    <span class="ds-crumb">
+      Workflows
+      <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      Keystone
+      <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      Evidence orchestration
+    </span>
+    <div class="spacer"></div>
+    <div class="ds-actions"><span>Running · 02:14 elapsed</span><span class="u-avatar">MW</span></div>
+  </div>
+
+  <!-- ======================================================================
+       TENANT BAR — swap name, sub-label, and .t-dot background per vertical
+       ====================================================================== -->
+  <div class="tenant-bar">
+    <div class="t-brand">
+      <span class="t-dot"></span>
+      <span data-swap="t-name">Keystone Personal Lines</span>
+      <span class="t-sub" data-swap="t-sub">Evidence · vendor · subrogation — all orchestrated in parallel</span>
+    </div>
+    <div class="spacer"></div>
+    <span class="t-powered">Powered by <strong>Docusign IAM</strong></span>
+  </div>
+
+  <!-- ======================================================================
+       SCENE HEAD — pitch copy + running/done chip
+       ====================================================================== -->
+  <div class="scene-head">
+    <div>
+      <div class="scene-title" data-swap="scene-title">Maestro orchestrates the whole investigation in parallel</div>
+      <div class="scene-sub" data-swap="scene-sub">Subrogation, valuation, and audit trail all run simultaneously against the claim envelope. No phone tag, no copy-paste, no re-keying.</div>
+    </div>
+    <div class="scene-chip pending"><span class="dot"></span>Running · 3 lanes · 18 artifacts</div>
+  </div>
+
+  <!-- ======================================================================
+       MAESTRO BODY — 3 lanes + outcome callout, with a side column
+       ====================================================================== -->
+  <div class="ms-body">
+
+    <!-- Orchestration: lanes + outcome -->
+    <div class="ms-flow">
+      <div class="hd">
+        <span class="live"></span>
+        Orchestration · parallel execution
+        <span class="thr">Triggered by <b>claim-envelope-9412</b> · 09:02 AM</span>
+      </div>
+
+      <div class="ms-lanes">
+
+        <!-- Lane 1 — Subrogation -->
+        <div class="ms-lane l-1">
+          <div class="lh"><span data-swap="lane1-title">Subrogation package</span><span class="ls">Running</span></div>
+          <div class="lsub" data-swap="lane1-sub">Vendor + manufacturer chain</div>
+          <div class="tok t-1"><span class="chk"></span><span class="tkn">Manufacturer identified</span><span class="tkm">Brand Q · Model 44</span></div>
+          <div class="tok t-2"><span class="chk"></span><span class="tkn">Serial match</span><span class="tkm">Confirmed</span></div>
+          <div class="tok t-3"><span class="chk"></span><span class="tkn">Class-action cross-ref</span><span class="tkm">Active</span></div>
+          <div class="tok t-4"><span class="chk"></span><span class="tkn">Demand letter drafted</span><span class="tkm">Doc Gen</span></div>
+        </div>
+
+        <!-- Lane 2 — Valuation -->
+        <div class="ms-lane l-2">
+          <div class="lh"><span data-swap="lane2-title">Valuation</span><span class="ls">Running</span></div>
+          <div class="lsub" data-swap="lane2-sub">Line-item damage model</div>
+          <div class="tok t-1"><span class="chk"></span><span class="tkn">Kitchen</span><span class="tkm">$9,200</span></div>
+          <div class="tok t-2"><span class="chk"></span><span class="tkn">Basement</span><span class="tkm">$6,400</span></div>
+          <div class="tok t-3"><span class="chk"></span><span class="tkn">Contents · 11 items</span><span class="tkm">$1,600</span></div>
+          <div class="tok t-4"><span class="chk"></span><span class="tkn">Total reserve</span><span class="tkm">$17,200</span></div>
+        </div>
+
+        <!-- Lane 3 — Audit trail -->
+        <div class="ms-lane l-3">
+          <div class="lh"><span data-swap="lane3-title">Audit trail</span><span class="ls">Running</span></div>
+          <div class="lsub" data-swap="lane3-sub">Immutable · tamper-evident</div>
+          <div class="tok t-1"><span class="chk"></span><span class="tkn">Events captured</span><span class="tkm">43</span></div>
+          <div class="tok t-2"><span class="chk"></span><span class="tkn">Photos indexed</span><span class="tkm">14</span></div>
+          <div class="tok t-3"><span class="chk"></span><span class="tkn">Statements linked</span><span class="tkm">3</span></div>
+          <div class="tok t-4"><span class="chk"></span><span class="tkn">Chain of custody</span><span class="tkm">Unbroken</span></div>
+        </div>
+
+        <!-- Outcome callout -->
+        <div class="ms-cv">
+          <div class="hd" data-swap="outcome-label">Recovery</div>
+          <div class="big" data-swap="outcome-metric">~70%</div>
+          <div class="lbl" data-swap="outcome-desc">Subro eligible · $12.1K expected recovery</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right side column -->
+    <div class="ms-side">
+
+      <div class="ms-card">
+        <div class="h">Evidence bundle</div>
+        <div class="kv"><span>Artifacts</span><span class="v">18</span></div>
+        <div class="kv"><span>Audit events</span><span class="v">43</span></div>
+        <div class="kv"><span>Chain of custody</span><span class="v ok">Unbroken</span></div>
+        <div class="kv bt"><span>Extraction confidence</span><span class="v">0.94</span></div>
+      </div>
+
+      <div class="ms-sla">
+        <div class="lbl">End-to-end investigation</div>
+        <div class="big">&lt; 48<span class="u">hr</span></div>
+        <div class="cmp">
+          <span class="strike">Before: 2–3 weeks of phone tag</span>
+          <span class="bg">After: under 48 hours · 0 re-keying</span>
+        </div>
+      </div>
+
+      <div class="ms-agent">
+        <div class="ah">Docusign IAM Agent</div>
+        <div class="line"><b>Nothing waited for a human.</b> Subro, valuation, and audit ran in parallel on the same envelope.</div>
+        <div class="line"><b>Adjuster's role</b> shifts to judgment calls — not chasing artifacts.</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ======================================================================
+       HANDOFF STRIP (optional) — remove if this is a terminal scene
+       ====================================================================== -->
+  <div class="handoff">
+    <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    Handing off to <b>Docusign Navigator</b> — claim envelope lands in the record of truth for SIU review &amp; subro follow-through.
+  </div>
+
+  <!-- Loop indicator — Maestro templates are usually single-scene, so a
+       simple "live" badge reads as "real-time orchestration" -->
+  <div class="loop-indicator">
+    <span class="badge"></span>
+    <span class="lbl">Live · Maestro orchestration</span>
+  </div>
+
+</div>
+<script src="swap.js"></script>
+</body>
+</html>

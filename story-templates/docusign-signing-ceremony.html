@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Signing Ceremony — canonical animated template</title>
+<meta name="description" content="Canonical animated Docusign Signing Ceremony flow modeled on the real email-to-completion signer journey. Five scenes: (1) email inbox notification with 'Review document' CTA, (2) signing ceremony landing with yellow START tab hovering over the document, (3) a field focused mid-fill during the guided flow, (4) Adopt Signature modal over dimmed document, (5) completion state with multi-recipient routing progress + download certificate. Tenant tokens parameterized per preset. Reusable across all TGK 2.0 verticals — Wealth, Banking, Insurance, Provider, Life Sciences, Payor, Federal Gov, State & Local Gov, Education, Not for Profit. Select via ?preset=<key> or #<key>.">
+<!--
+  ============================================================
+  Docusign Signing Ceremony — canonical animated template
+  ============================================================
+  Five-scene, ~28s loop:
+
+    0.0s   S1  Email inbox             — "{Tenant} sent you a document to
+                                           review and sign" + yellow REVIEW
+                                           DOCUMENT CTA inside a Gmail-style
+                                           inbox chrome
+    5.0s   S2  Envelope landing        — Docusign signing chrome loads with
+                                           "OTHER ACTIONS" dropdown, yellow
+                                           "Continue" button top-right, doc
+                                           panel, pulsing yellow START tab
+                                           next to the first required field
+   10.5s   S3  Field focused mid-fill  — guided flow auto-scrolls to a
+                                           text/date input; focused purple
+                                           outline + blinking caret
+   15.0s   S4  Adopt Signature modal   — over dimmed document, Caveat-script
+                                           live preview, "Adopt and Sign"
+                                           purple CTA
+   20.0s   S5  Finished + routing      — green check, "You've finished
+                                           signing", multi-recipient progress
+                                           (1 of 3 done, routed to next
+                                           recipient), Download + View
+                                           Certificate CTAs
+   28.0s   Loop to S1
+
+  Tenant-specific bits live in PRESETS. Everything else is Docusign-branded
+  signing chrome which does not change per vertical.
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA; --ds-purple-soft:#EEE8FF;
+    --ds-inkwell:#130032; --ds-poppy:#FF5252;
+    --ds-signing-blue:#2B5794; /* Docusign signing chrome header blue */
+    --ds-email-blue:#214CA0;   /* Old Docusign email banner blue */
+    --bg:#FFFFFF; --bg-muted:#F7F6F4; --bg-shell:#F3F0EC;
+    --ink:#1A1A1D; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF;
+    --sign-amber:#F6C93A; --sign-amber-deep:#E0A800; --sign-amber-bg:#FBD85A;
+    --red-mark:#E03E52;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --sig-font:"Caveat",cursive;
+    --tn-primary:#0F2A1F; --tn-mark:#3FDA99;
+    --tn-wordmark-font:"Fraunces",Georgia,serif;
+    --tn-wordmark-style:italic;
+    --tn-wordmark-weight:500;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+
+  .browser{width:min(1280px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,0.16),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+  .br-bar{height:36px;background:#EBEBEB;border-bottom:1px solid #D7D7D7;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
+  .br-dots{display:flex;gap:6px;}
+  .br-dots span{width:10px;height:10px;border-radius:50%;}
+  .br-dots .d1{background:#FF605C;}.br-dots .d2{background:#FFBD44;}.br-dots .d3{background:#00CA4E;}
+  .br-url{flex:1;max-width:420px;margin:0 auto;background:#fff;border-radius:4px;padding:4px 12px;font-size:11.5px;color:var(--ink-mid);border:1px solid #D4D4D4;display:flex;align-items:center;gap:6px;}
+  .br-url::before{content:"";width:10px;height:10px;border-radius:50%;background:#9AA0A6;}
+
+  .page{flex:1;overflow:hidden;position:relative;background:#fff;}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity 0.5s ease;overflow:hidden;}
+  .scene.on{opacity:1;}
+
+  /* ================= S1 — Gmail-style email ================= */
+  .gmail{height:100%;display:flex;flex-direction:column;background:#fff;}
+  .gmail-top{padding:18px 24px 14px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:14px;}
+  .gmail-title{font-size:22px;font-weight:400;color:var(--ink);}
+  .gmail-title b{font-weight:500;}
+  .gmail-chip{background:#E8EAED;color:var(--ink-mid);font-size:11px;font-weight:500;padding:2px 10px 2px 8px;border-radius:3px;display:inline-flex;align-items:center;gap:4px;}
+  .gmail-chip::after{content:"×";color:var(--ink-soft);font-size:14px;line-height:1;margin-left:2px;}
+  .gmail-top .sp{flex:1;}
+  .gmail-top svg{width:18px;height:18px;stroke:#5F6368;stroke-width:2;fill:none;}
+
+  .gmail-meta{padding:18px 24px 12px;display:flex;align-items:flex-start;gap:14px;border-bottom:1px solid var(--hair);}
+  .gmail-avatar{width:36px;height:36px;border-radius:50%;background:var(--ds-email-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0;}
+  .gmail-from{flex:1;font-size:13px;line-height:1.4;}
+  .gmail-from .sender{font-weight:700;color:var(--ink);font-size:14px;}
+  .gmail-from .addr{color:var(--ink-soft);margin-left:4px;font-weight:400;}
+  .gmail-from .to{color:var(--ink-soft);font-size:12px;margin-top:2px;display:flex;align-items:center;gap:4px;}
+  .gmail-time{color:var(--ink-soft);font-size:12px;white-space:nowrap;}
+
+  .gmail-body{flex:1;overflow:auto;padding:26px 24px;background:#fff;}
+  .email-card{max-width:640px;margin:0 auto;background:#fff;border:1px solid var(--hair);border-radius:4px;overflow:hidden;}
+  .email-brand{background:var(--tn-primary);padding:22px 28px;display:flex;align-items:center;gap:10px;}
+  .email-brand .m{width:24px;height:24px;color:var(--tn-mark);display:inline-flex;align-items:center;justify-content:center;}
+  .email-brand .m svg{width:100%;height:100%;}
+  .email-brand .wm{font-family:var(--tn-wordmark-font);font-style:var(--tn-wordmark-style);font-weight:var(--tn-wordmark-weight);font-size:22px;color:#fff;letter-spacing:0.01em;}
+  .email-banner{background:var(--tn-primary);padding:38px 24px 42px;text-align:center;color:#fff;border-radius:0;border-top:1px solid rgba(255,255,255,0.1);}
+  .email-banner .doc-ic{width:86px;height:86px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.85);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+  .email-banner .doc-ic svg{width:42px;height:42px;stroke:#fff;stroke-width:1.6;fill:none;}
+  .email-banner .headline{font-size:17px;font-weight:400;margin-bottom:26px;line-height:1.45;color:rgba(255,255,255,0.95);}
+  .email-banner .headline b{font-weight:600;color:#fff;}
+  .review-btn{display:inline-block;background:var(--tn-mark);color:var(--tn-primary);padding:14px 44px;font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;border-radius:3px;position:relative;animation:reviewPulse 1.8s ease-in-out infinite;}
+  @keyframes reviewPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}50%{box-shadow:0 0 0 10px rgba(255,255,255,0.18);}}
+  .email-footer{padding:24px 28px 20px;color:var(--ink);}
+  .email-footer p{margin-bottom:12px;font-size:13px;line-height:1.55;}
+  .email-footer p b{font-weight:700;}
+  .email-footer .ds-powered{margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);font-size:10.5px;color:var(--ink-faint);display:flex;align-items:center;gap:5px;}
+  .email-footer .ds-powered svg{width:11px;height:11px;}
+
+  /* ================= Signing chrome (S2-S5) ================= */
+  .sign-shell{height:100%;display:flex;flex-direction:column;background:#EDEEF0;}
+  .sign-top{background:#fff;height:56px;display:flex;align-items:center;padding:0 20px;gap:12px;border-bottom:1px solid var(--hair);flex-shrink:0;}
+  .sign-top .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:var(--ds-inkwell);}
+  .sign-top .logo svg{width:18px;height:18px;}
+  .sign-top .env-title{font-size:13px;color:var(--ink-mid);padding:0 14px;border-left:1px solid var(--hair);}
+  .sign-top .env-title b{color:var(--ink);font-weight:600;}
+  .sign-top .sp{flex:1;}
+  .sign-top .other{font-size:12px;font-weight:600;letter-spacing:0.04em;color:var(--ink-mid);padding:6px 12px;display:flex;align-items:center;gap:4px;cursor:pointer;}
+  .sign-top .continue-btn{background:var(--sign-amber-bg);color:#1A1A1D;padding:9px 22px;font-weight:700;font-size:13px;border:none;border-radius:3px;cursor:pointer;letter-spacing:0.03em;}
+
+  .sign-guide{background:#FCE85C;height:36px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:#4D3B00;flex-shrink:0;padding:0 20px;gap:10px;border-bottom:1px solid #E6D24F;}
+  .sign-guide svg{width:14px;height:14px;stroke:#4D3B00;stroke-width:2;fill:none;}
+
+  .sign-body{flex:1;overflow:auto;padding:28px 24px;display:flex;justify-content:center;background:#EDEEF0;}
+  .doc-paper{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.08);width:min(700px,90%);padding:54px 64px 64px;font-family:Georgia,serif;font-size:12.5px;line-height:1.7;color:var(--ink);position:relative;}
+  .doc-paper h4{text-align:center;font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:0.02em;}
+  .doc-paper .doc-sub{text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:24px;}
+  .doc-paper p{margin-bottom:12px;}
+  .doc-paper .kv{display:inline-block;padding:1px 6px;background:#FEF3C7;border:1px dashed #F59E0B;border-radius:3px;margin:0 2px;font-family:var(--ui-font);font-size:11.5px;color:#78350F;}
+
+  /* Inline form field (S3 focused state) */
+  .inline-field{display:inline-block;min-width:180px;border:1px solid var(--hair-strong);border-radius:3px;padding:4px 8px;font-family:var(--ui-font);font-size:12px;color:var(--ink);background:#fff;margin:0 3px;vertical-align:baseline;transition:all 0.25s ease;}
+  .inline-field.focused{border-color:var(--ds-purple);box-shadow:0 0 0 3px var(--ds-purple-soft);}
+  .inline-field.focused .caret{display:inline-block;width:1.2px;height:12px;background:var(--ds-purple);margin-left:1px;vertical-align:middle;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  .sig-row{margin-top:36px;display:flex;align-items:flex-end;gap:30px;position:relative;}
+  .sig-box{flex:1;border-bottom:1.5px solid var(--ink);padding-bottom:6px;min-height:38px;position:relative;display:flex;align-items:flex-end;}
+  .sig-box.field-empty{background:#FEF3C7;border:1px dashed #F59E0B;border-radius:3px;padding:10px 12px;min-height:38px;}
+  .sig-box .typed-sig{font-family:var(--sig-font);font-size:34px;color:#0B2541;line-height:1;opacity:0;transition:opacity 0.4s ease;}
+  .sig-box.signed{background:transparent;border-style:solid;border-top:none;border-left:none;border-right:none;border-bottom-color:var(--ink);}
+  .sig-box.signed .typed-sig{opacity:1;}
+  .date-box{width:140px;border-bottom:1.5px solid var(--ink);padding-bottom:6px;font-size:10px;color:var(--ink-soft);}
+
+  /* Yellow START tab */
+  .start-tab{position:absolute;left:-80px;top:50%;transform:translateY(-50%);background:var(--sign-amber-bg);color:#5B3E00;font-weight:800;padding:8px 14px 8px 12px;border-radius:3px;font-size:12px;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,0,0,0.18);animation:tabBounce 1.5s ease-in-out infinite;z-index:3;}
+  .start-tab::after{content:"";position:absolute;right:-8px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-left-color:var(--sign-amber-bg);}
+  .start-tab svg{width:12px;height:12px;stroke:#5B3E00;stroke-width:2.5;fill:none;}
+  @keyframes tabBounce{0%,100%{transform:translateY(-50%) translateX(0);}50%{transform:translateY(-50%) translateX(4px);}}
+
+  .sig-label{font-size:10px;color:var(--ink-soft);margin-top:4px;}
+
+  /* ================= S4 — Adopt Signature modal ================= */
+  .modal-scrim{position:absolute;inset:0;background:rgba(19,0,50,0.45);opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:4;}
+  .modal-scrim.on{opacity:1;}
+  .modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.96);background:#fff;border-radius:8px;box-shadow:0 24px 60px rgba(19,0,50,0.22);width:min(560px,92%);opacity:0;transition:all 0.35s cubic-bezier(.2,.8,.2,1);z-index:5;}
+  .modal.on{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;}
+  .modal-head h3{font-size:16px;font-weight:700;color:var(--ink);}
+  .modal-head .x{color:var(--ink-soft);font-size:20px;line-height:1;cursor:pointer;}
+  .modal-body{padding:20px 22px;}
+  .sig-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .sig-fields .lab{font-size:12px;color:var(--ink);margin-bottom:5px;font-weight:500;}
+  .sig-fields .in{border:1px solid var(--hair-strong);border-radius:4px;padding:8px 12px;font-size:13px;color:var(--ink);background:#fff;}
+  .sig-tabs{display:flex;gap:18px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--ink-soft);border-bottom:1px solid var(--hair);}
+  .sig-tabs .t{padding-bottom:8px;cursor:pointer;position:relative;}
+  .sig-tabs .t.on{color:var(--ds-purple);}
+  .sig-tabs .t.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ds-purple);}
+  .sig-preview{border:1px solid var(--hair);border-radius:5px;padding:20px;background:var(--bg-muted);}
+  .sig-preview .plbl{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  .sig-preview .prow{display:flex;align-items:flex-end;gap:24px;padding:12px 0;border-bottom:1.5px solid var(--ink);}
+  .sig-preview .prow .sig-big{font-family:var(--sig-font);font-size:34px;color:#0B2541;line-height:1;}
+  .sig-preview .prow .init-big{font-family:var(--sig-font);font-size:28px;color:#0B2541;line-height:1;padding-left:18px;border-left:1px dashed var(--hair-strong);}
+  .disclosure{font-size:10px;color:var(--ink-soft);margin-top:14px;line-height:1.55;}
+  .disclosure a{color:var(--ds-purple);text-decoration:underline;}
+  .modal-foot{padding:14px 22px;border-top:1px solid var(--hair);display:flex;justify-content:flex-end;gap:8px;}
+  .modal-foot .btn{padding:10px 20px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;}
+  .modal-foot .btn.ghost{background:#fff;border-color:var(--hair-strong);color:var(--ink);}
+  .modal-foot .btn.primary{background:var(--ds-purple);color:#fff;}
+
+  /* ================= S5 — Finished ================= */
+  .finish-wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;background:#fff;}
+  .finish-check{width:84px;height:84px;border-radius:50%;background:#19B36F;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(25,179,111,0.3);margin-bottom:22px;animation:checkPop 0.55s cubic-bezier(.2,.9,.4,1.3) forwards;}
+  @keyframes checkPop{from{transform:scale(0);}to{transform:scale(1);}}
+  .finish-check svg{width:44px;height:44px;stroke:#fff;stroke-width:4;fill:none;}
+  .finish-wrap h2{font-size:26px;font-weight:600;color:var(--ink);margin-bottom:10px;letter-spacing:-0.01em;}
+  .finish-wrap .sub{font-size:14px;color:var(--ink-mid);text-align:center;max-width:480px;margin-bottom:26px;}
+
+  /* Routing progress */
+  .routing{background:var(--bg-muted);border:1px solid var(--hair);border-radius:8px;padding:20px 24px;max-width:560px;width:100%;margin-bottom:20px;}
+  .routing-title{font-size:12px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;}
+  .routing-row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:10px 0;}
+  .route-step{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .route-step .av{width:28px;height:28px;border-radius:50%;background:var(--hair);color:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;position:relative;}
+  .route-step.done .av{background:#19B36F;color:#fff;}
+  .route-step.done .av::after{content:"";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='5 12 10 17 20 7'/%3E%3C/svg%3E") center/14px no-repeat;}
+  .route-step.active .av{background:var(--ds-purple);color:#fff;animation:stepPulse 1.8s ease-in-out infinite;}
+  @keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0);}50%{box-shadow:0 0 0 5px rgba(75,0,233,0.25);}}
+  .route-step .info{display:flex;flex-direction:column;}
+  .route-step .nm{font-weight:600;color:var(--ink);font-size:13px;}
+  .route-step .role{color:var(--ink-soft);font-size:11.5px;}
+  .route-step .st{font-size:11.5px;color:var(--ink-soft);}
+  .route-step.done .st{color:var(--ok);font-weight:600;}
+  .route-step.active .st{color:var(--ds-purple);font-weight:600;}
+
+  .route-sep{width:2px;height:18px;background:var(--hair);margin-left:13px;}
+
+  .finish-ctas{display:flex;gap:10px;}
+  .finish-cta{padding:11px 22px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;}
+  .finish-cta svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .finish-cta.ghost{background:#fff;border-color:var(--hair-strong);color:var(--ink);}
+  .finish-cta.primary{background:var(--ds-purple);color:#fff;}
+
+  /* Progress dots + preset chip */
+  .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
+  .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
+  .scene-dots .d.on{background:#fff;width:22px;border-radius:4px;}
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;font-family:var(--ui-font);}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="browser">
+    <div class="br-bar">
+      <div class="br-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+      <div class="br-url" id="br-url">mail.google.com/mail/u/0/#inbox/...</div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="page">
+
+      <!-- ===== S1: Gmail-style email ===== -->
+      <div class="scene on" id="s1">
+        <div class="gmail">
+          <div class="gmail-top">
+            <div class="gmail-title"><b>Contract for signature</b></div>
+            <div class="gmail-chip">Inbox</div>
+            <div class="sp"></div>
+            <svg viewBox="0 0 24 24"><rect x="6" y="9" width="12" height="9"/><path d="M6 9V5h12v4M6 18h12v3H6z"/></svg>
+            <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </div>
+          <div class="gmail-meta">
+            <div class="gmail-avatar" id="email-avatar">CA</div>
+            <div class="gmail-from">
+              <div><span class="sender" id="email-sender">Casey Anderson via Docusign</span><span class="addr">&lt;dse@docusign.net&gt;</span></div>
+              <div class="to">to me ▾</div>
+            </div>
+            <div class="gmail-time">2:07 PM (5 minutes ago)</div>
+          </div>
+
+          <div class="gmail-body">
+            <div class="email-card">
+              <div class="email-brand">
+                <span class="m" id="email-tn-mark"></span>
+                <span class="wm" id="email-tn-wm"></span>
+              </div>
+              <div class="email-banner">
+                <div class="doc-ic">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M11 14l3-3 3 3M14 11v7"/></svg>
+                </div>
+                <div class="headline"><b id="email-sender-headline">Casey Anderson</b> sent you a document to review and sign.</div>
+                <div class="review-btn">REVIEW DOCUMENT</div>
+              </div>
+              <div class="email-footer">
+                <p><b id="email-sender-foot">Casey Anderson</b></p>
+                <p id="email-body-copy">Please review and sign the attached agreement to finalize processing. Reply to me directly if anything needs clarification.</p>
+                <div class="ds-powered">
+                  Sent securely via
+                  <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+                  <span style="font-weight:700;color:var(--ds-inkwell);">docusign</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S2: Signing ceremony landing w/ yellow START tab ===== -->
+      <div class="scene" id="s2">
+        <div class="sign-shell">
+          <div class="sign-top">
+            <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="env-title"><b id="env-title">Investment Advisory Agreement</b> &middot; <span id="env-from">Casey Anderson</span></div>
+            <div class="sp"></div>
+            <div class="other">OTHER ACTIONS <span style="opacity:0.6;">▾</span></div>
+            <button class="continue-btn">CONTINUE</button>
+          </div>
+          <div class="sign-guide">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Please review the documents below. Click the START tab to begin signing.
+          </div>
+          <div class="sign-body">
+            <div class="doc-paper">
+              <h4 id="doc-title-s2">Investment Advisory Agreement</h4>
+              <div class="doc-sub">Between <b id="doc-tenant-s2">[Tenant] Inc.</b> and <b id="doc-client-s2">Amy M. Peters</b> &mdash; Effective <span id="doc-date-s2">May 1, 2026</span></div>
+              <p>This Investment Advisory Agreement ("Agreement") is entered into as of the Effective Date between the Advisor and the Client named above. The Advisor shall provide discretionary investment management services consistent with the Client's stated objectives, risk tolerance, and time horizon.</p>
+              <p>Fees for services shall be calculated quarterly at an annual rate of <span class="kv">1.00%</span> of assets under management, billed in arrears. The Client may terminate this Agreement at any time upon thirty (30) days' written notice.</p>
+              <p>The parties acknowledge receipt of the Advisor's current Form ADV Part 2A, and the Client consents to electronic delivery of regulatory disclosures.</p>
+              <div class="sig-row">
+                <div class="start-tab">
+                  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                  START
+                </div>
+                <div class="sig-box field-empty">Sign</div>
+                <div class="date-box">Date</div>
+              </div>
+              <div style="display:flex;gap:30px;margin-top:4px;font-size:10px;color:var(--ink-soft);">
+                <div style="flex:1;">Signature of Client</div>
+                <div style="width:140px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S3: Field focused mid-fill ===== -->
+      <div class="scene" id="s3">
+        <div class="sign-shell">
+          <div class="sign-top">
+            <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="env-title"><b>Investment Advisory Agreement</b> &middot; <span>1 of 3 required fields</span></div>
+            <div class="sp"></div>
+            <div class="other">OTHER ACTIONS <span style="opacity:0.6;">▾</span></div>
+            <button class="continue-btn">NEXT</button>
+          </div>
+          <div class="sign-guide">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Please complete the highlighted fields.
+          </div>
+          <div class="sign-body">
+            <div class="doc-paper">
+              <h4>Investment Advisory Agreement</h4>
+              <div class="doc-sub">Between <b id="doc-tenant-s3">[Tenant] Inc.</b> and <b>Amy M. Peters</b> — Effective May 1, 2026</div>
+              <p>The Client, <span class="inline-field focused">Amy M. Peters<span class="caret"></span></span>, residing at <span class="inline-field" style="min-width:240px;">2570 24th Street, San Francisco, CA</span>, hereby engages the Advisor for discretionary investment management of the following account(s).</p>
+              <p>Initial deposit: <span class="inline-field" style="min-width:120px;">$750,000.00</span>. Suitability profile selected: <span class="inline-field" style="min-width:130px;">Moderate Growth</span>. The Client affirms that the information provided is accurate to the best of their knowledge.</p>
+              <p>Signed this <span class="inline-field" style="min-width:60px;">1st</span> day of <span class="inline-field" style="min-width:80px;">May</span>, 2026.</p>
+              <div class="sig-row">
+                <div class="sig-box field-empty">Sign</div>
+                <div class="date-box">Date</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S4: Adopt Signature modal ===== -->
+      <div class="scene" id="s4">
+        <div class="sign-shell" style="position:relative;">
+          <div class="sign-top">
+            <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="env-title"><b>Investment Advisory Agreement</b> &middot; <span>Adopt your signature</span></div>
+            <div class="sp"></div>
+            <div class="other">OTHER ACTIONS <span style="opacity:0.6;">▾</span></div>
+            <button class="continue-btn">NEXT</button>
+          </div>
+          <div class="sign-guide">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Confirm your signature to continue.
+          </div>
+          <div class="sign-body">
+            <div class="doc-paper">
+              <h4>Investment Advisory Agreement</h4>
+              <div class="doc-sub">Between <b id="doc-tenant-s4">[Tenant] Inc.</b> and <b>Amy M. Peters</b> — Effective May 1, 2026</div>
+              <p>This Investment Advisory Agreement is entered into as of the Effective Date between the Advisor and the Client named above.</p>
+              <p>Fees for services shall be calculated quarterly at an annual rate of <span class="kv">1.00%</span> of assets under management.</p>
+              <div class="sig-row">
+                <div class="sig-box">
+                  <span class="typed-sig">Amy Peters</span>
+                </div>
+                <div class="date-box">Date</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-scrim on"></div>
+          <div class="modal on">
+            <div class="modal-head">
+              <h3>Adopt Your Signature</h3>
+              <div class="x">×</div>
+            </div>
+            <div class="modal-body">
+              <div style="font-size:12.5px;color:var(--ink-mid);margin-bottom:16px;">Confirm your name, initials, and signature.</div>
+              <div class="sig-fields">
+                <div><div class="lab">Full name *</div><div class="in">Amy Peters</div></div>
+                <div><div class="lab">Initials *</div><div class="in">AP</div></div>
+              </div>
+              <div class="sig-tabs">
+                <div class="t on">Select Style</div>
+                <div class="t">Draw</div>
+                <div class="t">Upload</div>
+              </div>
+              <div class="sig-preview">
+                <div class="plbl">Preview</div>
+                <div class="prow">
+                  <div class="sig-big">Amy Peters</div>
+                  <div class="init-big">AP</div>
+                </div>
+              </div>
+              <div class="disclosure">By selecting Adopt and Sign, I agree that the signature and initials will be the electronic representation of my signature and initials for all purposes when I (or my agent) use them on documents, including legally binding contracts — just the same as a pen-and-paper signature or initial.</div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn ghost">Cancel</button>
+              <button class="btn primary">Adopt and Sign</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S5: Finished + multi-recipient routing ===== -->
+      <div class="scene" id="s5">
+        <div class="finish-wrap">
+          <div class="finish-check"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>
+          <h2>You've finished signing.</h2>
+          <div class="sub">Your signed copy has been sent to the next recipient. You'll receive an email once the envelope is complete.</div>
+
+          <div class="routing">
+            <div class="routing-title">Envelope routing · 1 of 3 complete</div>
+            <div class="route-step done">
+              <div class="av">AP</div>
+              <div class="info"><div class="nm">Amy M. Peters</div><div class="role">Client</div></div>
+              <div class="st">Signed · just now</div>
+            </div>
+            <div class="route-sep"></div>
+            <div class="route-step active">
+              <div class="av">CA</div>
+              <div class="info"><div class="nm">Casey Anderson</div><div class="role">Investment Advisor</div></div>
+              <div class="st">In progress · sent</div>
+            </div>
+            <div class="route-sep"></div>
+            <div class="route-step">
+              <div class="av">LM</div>
+              <div class="info"><div class="nm">Laura Mitchell</div><div class="role">Compliance Reviewer</div></div>
+              <div class="st">Waiting</div>
+            </div>
+          </div>
+
+          <div class="finish-ctas">
+            <button class="finish-cta ghost"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>View Certificate</button>
+            <button class="finish-cta primary"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Copy</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="scene-dots">
+  <div class="d on" data-s="s1"></div><div class="d" data-s="s2"></div><div class="d" data-s="s3"></div>
+  <div class="d" data-s="s4"></div><div class="d" data-s="s5"></div>
+</div>
+
+<div class="preset-chip"><span class="lab">Preset</span><select id="preset-select"></select></div>
+
+<script>
+const PRESETS = {
+  wealth: {label:"Wealth", tenant:"Hillside", primary:"#0F2A1F", mark:"#3FDA99", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Casey Anderson", senderInitials:"CA", senderRole:"Investment Advisor", envTitle:"Investment Advisory Agreement", client:"Amy M. Peters", clientInitials:"AP", docBody:"Please review and sign the attached agreement to finalize the opening of your advisory account."},
+  banking: {label:"Banking", tenant:"Meridian", primary:"#0A2540", mark:"#2D8EFF", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Raj Malhotra", senderInitials:"RM", senderRole:"Commercial Relationship Manager", envTitle:"Commercial Loan Agreement", client:"Diana Holbrook", clientInitials:"DH", docBody:"Please review and sign the attached agreement to finalize the Atlas Manufacturing working-capital facility."},
+  insurance: {label:"Insurance", tenant:"Sentinel", primary:"#7B1E3F", mark:"#F2B3C2", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Marisol Vega", senderInitials:"MV", senderRole:"Agent", envTitle:"Homeowners Policy Binder", client:"Elena Ramirez", clientInitials:"ER", docBody:"Please review and sign the attached policy binder so we can bind coverage before your closing date."},
+  provider: {label:"Provider", tenant:"Riverside", primary:"#0E4A56", mark:"#6FD6C8", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Daniela Okafor", senderInitials:"DO", senderRole:"Patient Coordinator", envTitle:"Consent to Treat & HIPAA", client:"Jordan Kim", clientInitials:"JK", docBody:"Please review and sign the consent forms ahead of your first visit next Tuesday."},
+  lifesciences: {label:"Life Sciences", tenant:"Helix", primary:"#3A1A5C", mark:"#C7A0FF", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Ethan Park", senderInitials:"EP", senderRole:"Clinical Study Manager", envTitle:"Clinical Trial Agreement — HX-2104", client:"Dr. Karim Halim", clientInitials:"KH", docBody:"Please review and countersign the Clinical Trial Agreement for Austin Research Clinic's participation in HX-2104."},
+  payor: {label:"Payor", tenant:"Unity", primary:"#0B5E3A", mark:"#6FDA9B", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Brenda Estevez", senderInitials:"BE", senderRole:"Member Services", envTitle:"Plan Enrollment Agreement", client:"Marcus Chen", clientInitials:"MC", docBody:"Please review and sign your plan enrollment agreement. Coverage effective May 1."},
+  fedgov: {label:"Federal Gov", tenant:"Dept. of Labor", primary:"#0B3B70", mark:"#E8B800", wmFont:'"Inter",sans-serif', wmStyle:"normal", wmWeight:"700", sender:"Claims Services", senderInitials:"CS", senderRole:"Unemployment Insurance", envTitle:"Availability Certification & DDA", client:"Taylor Nguyen", clientInitials:"TN", docBody:"Please review and sign to keep your unemployment benefits on schedule."},
+  slgov: {label:"State & Local", tenant:"Springfield", primary:"#1B3556", mark:"#E8A438", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Dean Okonkwo", senderInitials:"DO", senderRole:"Permit Technician", envTitle:"Building Permit Application — 1420 Oak", client:"Marissa Rivera", clientInitials:"MR", docBody:"Please review and sign the permit application and fee schedule to route your plan check to engineering."},
+  education: {label:"Education", tenant:"Maple Ridge", primary:"#14422E", mark:"#F2C65A", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Jamal Rivers", senderInitials:"JR", senderRole:"Admissions Counselor", envTitle:"Tuition & Housing Agreement", client:"Priya Shah", clientInitials:"PS", docBody:"Please review and sign your tuition and housing agreement to secure your fall enrollment."},
+  nonprofit: {label:"Nonprofit", tenant:"Harbor", primary:"#6B2A00", mark:"#FFB86B", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Asha Morgan", senderInitials:"AM", senderRole:"Program Officer", envTitle:"Grantee Agreement & MOU", client:"Safe Streets Initiative", clientInitials:"SS", docBody:"Please review and countersign the grantee agreement and MOU so we can release the first disbursement."}
+};
+const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
+const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  const r = document.documentElement.style;
+  r.setProperty('--tn-primary', p.primary);
+  r.setProperty('--tn-mark', p.mark);
+  r.setProperty('--tn-wordmark-font', p.wmFont);
+  r.setProperty('--tn-wordmark-style', p.wmStyle);
+  r.setProperty('--tn-wordmark-weight', p.wmWeight);
+  document.getElementById('email-tn-mark').innerHTML = MARK_SVG;
+  document.getElementById('email-tn-wm').textContent = p.tenant;
+  document.getElementById('email-avatar').textContent = p.senderInitials;
+  document.getElementById('email-sender').textContent = p.sender + ' via Docusign';
+  document.getElementById('email-sender-headline').textContent = p.sender;
+  document.getElementById('email-sender-foot').textContent = p.sender;
+  document.getElementById('email-body-copy').textContent = p.docBody;
+  document.getElementById('env-title').textContent = p.envTitle;
+  document.getElementById('env-from').textContent = p.sender;
+  document.getElementById('doc-title-s2').textContent = p.envTitle;
+  document.getElementById('doc-tenant-s2').textContent = p.tenant + ' Inc.';
+  document.getElementById('doc-client-s2').textContent = p.client;
+  document.getElementById('doc-tenant-s3').textContent = p.tenant + ' Inc.';
+  document.getElementById('doc-tenant-s4').textContent = p.tenant + ' Inc.';
+  document.querySelectorAll('#s3 .inline-field.focused').forEach(f => {
+    f.firstChild && (f.firstChild.textContent = p.client);
+  });
+  document.querySelector('#s4 .typed-sig').textContent = p.client.split(' ').slice(0,2).join(' ');
+  document.querySelector('#s4 .sig-fields div:first-child .in').textContent = p.client;
+  document.querySelector('#s4 .sig-fields div:last-child .in').textContent = p.clientInitials;
+  document.querySelector('#s4 .prow .sig-big').textContent = p.client.split(' ').slice(0,2).join(' ');
+  document.querySelector('#s4 .prow .init-big').textContent = p.clientInitials;
+  // Routing block
+  const routes = document.querySelectorAll('#s5 .route-step');
+  routes[0].querySelector('.av').textContent = p.clientInitials;
+  routes[0].querySelector('.nm').textContent = p.client;
+  routes[1].querySelector('.av').textContent = p.senderInitials;
+  routes[1].querySelector('.nm').textContent = p.sender;
+  routes[1].querySelector('.role').textContent = p.senderRole;
+  document.getElementById('br-url').textContent = 'app.docusign.com/documents/' + p.envTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+}
+
+/* Scene timeline */
+const SCENES = [
+  {id:"s1", at:0,     dur:5000},
+  {id:"s2", at:5000,  dur:5500},
+  {id:"s3", at:10500, dur:4500},
+  {id:"s4", at:15000, dur:5000},
+  {id:"s5", at:20000, dur:8000}
+];
+const TOTAL = 28000;
+let t0 = performance.now();
+function render(now){
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) {
+    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
+  }
+  document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === active.id));
+  const idx = SCENES.findIndex(s => s.id === active.id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+  // Swap browser URL per scene
+  const urlMap = {
+    s1: 'mail.google.com/mail/u/0/#inbox/...',
+    s2: 'app.docusign.com/sign/...',
+    s3: 'app.docusign.com/sign/...',
+    s4: 'app.docusign.com/sign/...',
+    s5: 'app.docusign.com/sign/completed'
+  };
+  document.getElementById('br-url').textContent = urlMap[active.id] || urlMap.s1;
+  requestAnimationFrame(render);
+}
+
+const sel = document.getElementById("preset-select");
+ORDER.forEach(k => {
+  const o = document.createElement("option");
+  o.value = k; o.textContent = PRESETS[k].label;
+  sel.appendChild(o);
+});
+function presetFromURL(){
+  const p = new URLSearchParams(location.search).get("preset") || location.hash.replace(/^#/,"") || "wealth";
+  return PRESETS[p] ? p : "wealth";
+}
+const initial = presetFromURL();
+sel.value = initial;
+applyPreset(initial);
+sel.addEventListener("change", () => {
+  applyPreset(sel.value);
+  history.replaceState(null, "", "?preset=" + sel.value);
+});
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

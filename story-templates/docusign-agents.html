@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Agents — canonical animated template</title>
+<meta name="description" content="Canonical animated Docusign Agents / Agent Studio flow modeled on the real v0.dev-style reference. Three scenes: (1) Agents dashboard with Prebuilt + Your Agents grid, (2) focused Agent detail with Triggers / Instructions / Capabilities / Knowledge sections plus the AI Assistant configurator rail, (3) Agent in action — activity log showing recent runs and outputs. Tenant tokens parameterized per preset. Prebuilt agents stay constant (Contract Review, Risk Scoring, Document Comparison, Agreement Summaries) because they're Docusign products; 'Your Agents' row swaps per vertical. Select via ?preset=<key> or #<key>.">
+<!--
+  ============================================================
+  Docusign Agents / Agent Studio — canonical animated template
+  ============================================================
+  Three scenes, ~24s loop:
+    0.0s   S1  Agent Studio dashboard  (prebuilt + your agents grid)
+    8.0s   S2  Agent detail            (Triggers / Instructions /
+                                         Capabilities / Knowledge +
+                                         AI Assistant configurator)
+   16.0s   S3  Agent Activity           (runs, outcomes, auto-filed
+                                         outputs)
+   24.0s   Loop
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-poppy:#FF5252; --ds-inkwell:#130032;
+    --ai-violet:#A78BFA; --ai-violet-deep:#7C3AED;
+    --bg:#FFFFFF; --bg-muted:#F7F6F9; --bg-shell:#F3F0EC;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E7E7EB; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF;
+    --warn:#F59E0B; --warn-soft:#FEF3C7;
+    --danger:#DC2626; --danger-soft:#FEE2E2;
+    --chat-bg:#F5F1FF;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+  .mock{width:min(1380px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,0.16),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+  /* =========== Top chrome — shared =========== */
+  .topnav{flex-shrink:0;height:50px;background:var(--ds-inkwell);display:flex;align-items:center;padding:0 20px;gap:22px;color:#fff;}
+  .topnav .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;letter-spacing:-0.01em;color:#fff;}
+  .topnav .logo svg{width:20px;height:20px;}
+  .topnav-tabs{display:flex;gap:4px;}
+  .tab{font-size:13px;font-weight:500;color:rgba(255,255,255,0.72);padding:16px 14px;position:relative;cursor:pointer;}
+  .tab.active{color:#fff;font-weight:600;}
+  .tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2.5px;background:var(--ds-purple);border-radius:2px;}
+  .topnav .sp{flex:1;}
+  .topnav .search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.75);min-width:240px;}
+  .topnav .search svg{width:12px;height:12px;stroke:rgba(255,255,255,0.7);stroke-width:2;fill:none;}
+  .topnav .iris{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid rgba(167,139,250,0.5);color:#D9CCFF;background:rgba(76,0,255,0.15);border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .topnav .iris svg{width:12px;height:12px;fill:currentColor;}
+  .topnav .av{width:28px;height:28px;border-radius:50%;background:#FFD1A8;color:#7B4225;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  .body{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+  /* =========== Left rail — shared =========== */
+  .rail{flex-shrink:0;width:220px;background:#fff;border-right:1px solid var(--hair);padding:16px 14px;display:flex;flex-direction:column;overflow-y:auto;}
+  .rail .rg{font-size:11.5px;color:var(--ink-soft);text-transform:none;font-weight:500;padding:6px 10px;}
+  .rail-item{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:13px;color:var(--ink);border-radius:5px;cursor:pointer;position:relative;margin:1px 0;}
+  .rail-item .i{width:16px;height:16px;stroke:var(--ink-mid);stroke-width:1.8;fill:none;flex-shrink:0;}
+  .rail-item.active{background:var(--ds-purple-tint);color:var(--ds-purple);font-weight:600;}
+  .rail-item.active .i{stroke:var(--ds-purple);}
+  .rail-item .new-badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--ds-purple-soft);color:var(--ds-purple);}
+  .rail hr{border:none;border-top:1px solid var(--hair);margin:10px 8px;}
+  .rail .foot{margin-top:auto;padding:12px 10px;font-size:12px;color:var(--ink-mid);display:flex;align-items:center;gap:10px;border-top:1px solid var(--hair);}
+  .rail .foot svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  /* =========== Content =========== */
+  .content{flex:1;overflow:hidden;position:relative;background:#fff;}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity 0.5s ease;overflow:auto;}
+  .scene.on{opacity:1;}
+
+  /* =========== S1 — dashboard =========== */
+  .s1{padding:26px 32px 32px;}
+  .s1-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;}
+  .s1-head h1{font-size:26px;font-weight:700;letter-spacing:-0.015em;color:var(--ink);margin-bottom:6px;}
+  .s1-head p{font-size:13px;color:var(--ink-mid);max-width:640px;line-height:1.55;}
+  .s1-head .sp{flex:1;}
+  .s1-head .actions{display:flex;gap:8px;}
+  .btn{padding:9px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;}
+  .btn.ghost{background:#fff;border-color:var(--hair-strong);color:var(--ink);}
+  .btn.primary{background:var(--ds-purple);color:#fff;}
+
+  .filter-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .search{flex:1;border:1px solid var(--hair-strong);border-radius:6px;padding:8px 14px;font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;background:#fff;}
+  .search svg{width:14px;height:14px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .drop{border:1px solid var(--hair-strong);border-radius:6px;padding:8px 14px;font-size:13px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;background:#fff;cursor:pointer;}
+  .drop svg{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .toggle{border:1px solid var(--hair-strong);border-radius:6px;padding:7px;background:#fff;display:flex;gap:2px;}
+  .toggle .o{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:3px;color:var(--ink-soft);}
+  .toggle .o.on{background:var(--ink);color:#fff;}
+  .toggle .o svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  .section-title{font-size:14px;font-weight:600;color:var(--ink);margin:6px 2px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title .see{color:var(--ds-purple);font-size:12px;font-weight:600;cursor:pointer;}
+
+  .agent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .agent-card{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:18px 20px 20px;transition:all 0.15s ease;cursor:pointer;}
+  .agent-card:hover{border-color:var(--hair-strong);box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+  .agent-card .top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .agent-card .top .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .agent-card .top .ic svg{width:20px;height:20px;}
+  .agent-card .top .t{flex:1;min-width:0;}
+  .agent-card .top .nm{font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;margin-bottom:4px;}
+  .agent-card .top .dots{color:var(--ink-faint);font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;}
+  .agent-card .status{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;}
+  .agent-card .status .dot{width:6px;height:6px;border-radius:50%;}
+  .agent-card .status.pub{color:var(--ok);}
+  .agent-card .status.pub .dot{background:var(--ok);}
+  .agent-card .status.draft{color:var(--ink-soft);}
+  .agent-card .status.draft .dot{background:var(--ink-faint);}
+  .agent-card .status.unpub{color:var(--warn);}
+  .agent-card .status.unpub .dot{background:var(--warn);}
+  .agent-card .desc{font-size:12.5px;color:var(--ink-mid);line-height:1.55;margin-top:12px;}
+  .agent-card .foot{font-size:11px;color:var(--ink-soft);margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);display:flex;align-items:center;gap:8px;}
+  .agent-card .foot .av{width:20px;height:20px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+
+  /* Icon colors for prebuilt cards */
+  .ic-envelope{background:#EEE8FF;color:var(--ds-purple);}
+  .ic-risk{background:#FFEDD5;color:#C2410C;}
+  .ic-compare{background:#EEE8FF;color:var(--ds-purple);}
+  .ic-summary{background:#EEE8FF;color:var(--ds-purple);}
+  .ic-gen-1{background:#FEF3C7;color:#B45309;}
+  .ic-gen-2{background:#CFFAFE;color:#0E7490;}
+  .ic-gen-3{background:#FCE7F3;color:#BE185D;}
+  .ic-gen-4{background:#FEF3C7;color:#B45309;}
+  .ic-gen-5{background:#FEE2E2;color:#B91C1C;}
+  .ic-gen-6{background:#FFEDD5;color:#C2410C;}
+
+  /* =========== S2 — Agent detail =========== */
+  .s2{height:100%;display:flex;overflow:hidden;}
+  .s2 .main{flex:1;overflow:auto;padding:22px 32px 40px;background:#fff;}
+  .s2 .cr{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);margin-bottom:18px;}
+  .s2 .cr .lnk{color:var(--ds-purple);cursor:pointer;}
+  .s2 .cr svg.ch{width:10px;height:10px;stroke:var(--ink-faint);stroke-width:2;fill:none;}
+  .s2 .cr .cur{color:var(--ink);font-weight:500;}
+  .s2 .cr .pub-chip{margin-left:8px;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;color:var(--ok);padding:3px 10px;background:var(--ok-soft);border-radius:10px;}
+  .s2 .cr .pub-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);}
+  .s2 .cr .sp{flex:1;}
+  .s2 .cr .actions{display:flex;gap:8px;}
+  .s2 .cr .act{padding:6px 14px;border:1px solid var(--hair-strong);border-radius:5px;font-size:12.5px;font-weight:500;color:var(--ink);background:#fff;cursor:pointer;}
+
+  .mgd-banner{background:var(--warn-soft);border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;font-size:12.5px;color:#78350F;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+  .mgd-banner svg{width:14px;height:14px;stroke:#78350F;stroke-width:2;fill:none;flex-shrink:0;}
+
+  .agent-head-bar{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;}
+  .agent-head-bar .ic{width:52px;height:52px;border-radius:12px;background:#FFEDD5;color:#C2410C;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .agent-head-bar .ic svg{width:26px;height:26px;}
+  .agent-head-bar h2{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-0.01em;}
+  .agent-head-bar p{font-size:13px;color:var(--ink-mid);max-width:560px;line-height:1.55;}
+
+  .det-sec{margin-bottom:28px;}
+  .det-sec h3{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+  .det-sec .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;}
+  .trigger-row{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center;font-size:13px;margin-bottom:8px;}
+  .trigger-row .k{color:var(--ink);font-weight:600;display:flex;align-items:center;gap:8px;}
+  .trigger-row .k svg{width:16px;height:16px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .trigger-row .k .check{width:16px;height:16px;border-radius:50%;background:var(--ds-purple);color:#fff;display:inline-flex;align-items:center;justify-content:center;}
+  .trigger-row .k .check svg{width:10px;height:10px;stroke:#fff;}
+  .trigger-row .v{color:var(--ink-mid);}
+  .trigger-row.sel{border-color:var(--ds-purple);background:var(--ds-purple-tint);}
+
+  .instr-block{background:var(--bg-muted);border:1px solid var(--hair);border-radius:8px;padding:18px 20px;font-size:13px;color:var(--ink);font-family:"SF Mono",ui-monospace,monospace;line-height:1.75;}
+  .instr-block ul{list-style:none;padding:0;}
+  .instr-block li{padding:3px 0;}
+  .instr-block li::before{content:"• ";color:var(--ds-purple);margin-right:4px;}
+
+  .cap-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:12px 0;border-top:1px solid var(--hair);align-items:center;}
+  .cap-row:first-of-type{border-top:none;}
+  .cap-row .lab{font-size:13px;color:var(--ink);font-weight:500;}
+  .cap-row .lab .prov{font-size:11.5px;color:var(--ink-soft);font-weight:400;margin-top:2px;}
+  .cap-row .tog{width:34px;height:20px;border-radius:10px;background:var(--ds-purple);position:relative;flex-shrink:0;}
+  .cap-row .tog::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff;}
+
+  .know-row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:14px 16px;border:1px solid var(--hair);border-radius:8px;margin-bottom:8px;align-items:center;}
+  .know-row .ic{width:32px;height:32px;border-radius:7px;background:var(--ds-purple-soft);color:var(--ds-purple);display:flex;align-items:center;justify-content:center;}
+  .know-row .ic svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;}
+  .know-row .nm{font-size:13px;font-weight:500;color:var(--ink);}
+  .know-row .nm .count{font-size:11.5px;color:var(--ink-soft);font-weight:400;margin-top:2px;}
+  .know-row .chev{width:14px;height:14px;stroke:var(--ink-faint);stroke-width:2;fill:none;}
+
+  /* AI Assistant rail */
+  .ai-rail{width:360px;flex-shrink:0;border-left:1px solid var(--hair);background:linear-gradient(160deg,var(--chat-bg),#fff 40%);padding:22px 22px 24px;display:flex;flex-direction:column;}
+  .ai-rail h4{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+  .ai-rail h4 .mk{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--ds-purple),var(--ai-violet-deep));color:#fff;display:flex;align-items:center;justify-content:center;position:relative;}
+  .ai-rail h4 .mk svg{width:12px;height:12px;stroke:#fff;stroke-width:2;fill:none;}
+  .ai-rail h4 .mk::after{content:"";position:absolute;inset:-3px;border-radius:9px;border:2px solid var(--ds-purple);opacity:0;animation:aiPing 2.4s ease-in-out infinite;}
+  @keyframes aiPing{0%{opacity:0.5;transform:scale(0.92);}70%,100%{opacity:0;transform:scale(1.3);}}
+  .ai-rail .ai-sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:18px;padding-left:30px;}
+  .chat-msg{background:#fff;border:1px solid var(--hair);border-radius:10px 10px 10px 2px;padding:12px 14px;font-size:12.5px;color:var(--ink);line-height:1.55;margin-bottom:12px;max-width:90%;}
+  .chat-msg b{color:var(--ink);font-weight:600;}
+  .chat-quick{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .chat-quick .q{background:#fff;border:1px solid var(--ds-purple-soft);color:var(--ds-purple);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;text-align:left;}
+  .chat-quick .q:first-child{background:var(--ds-purple);color:#fff;border-color:var(--ds-purple);}
+
+  /* =========== S3 — Activity =========== */
+  .s3{padding:24px 32px 32px;}
+  .s3-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;}
+  .s3-head h1{font-size:24px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-0.01em;}
+  .s3-head p{font-size:13px;color:var(--ink-mid);max-width:620px;line-height:1.55;}
+  .s3-head .sp{flex:1;}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:14px 18px;}
+  .kpi .l{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;}
+  .kpi .v{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1;}
+  .kpi.accent .v{color:var(--ds-purple);}
+  .kpi .s{font-size:11.5px;color:var(--ink-mid);margin-top:4px;}
+
+  .activity{background:#fff;border:1px solid var(--hair);border-radius:8px;overflow:hidden;}
+  .activity-head{padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--hair);font-size:13px;}
+  .activity-head .t{font-weight:600;color:var(--ink);}
+  .activity-head .filter{border:1px solid var(--hair-strong);border-radius:5px;padding:5px 10px;font-size:11.5px;color:var(--ink-mid);background:#fff;display:inline-flex;align-items:center;gap:5px;}
+  .activity-head .filter svg{width:9px;height:9px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+  .act-row{display:grid;grid-template-columns:40px 1fr auto auto;gap:16px;padding:14px 20px;border-top:1px solid var(--hair);align-items:center;font-size:12.5px;}
+  .act-row:first-child{border-top:none;}
+  .act-row .ic{width:30px;height:30px;border-radius:8px;background:#FFEDD5;color:#C2410C;display:flex;align-items:center;justify-content:center;}
+  .act-row .ic svg{width:14px;height:14px;}
+  .act-row .info .nm{font-weight:600;color:var(--ink);margin-bottom:2px;}
+  .act-row .info .sub{font-size:11.5px;color:var(--ink-soft);}
+  .act-row .flag{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;}
+  .act-row .flag.risk-low{background:var(--ok-soft);color:var(--ok);}
+  .act-row .flag.risk-med{background:var(--warn-soft);color:#B45309;}
+  .act-row .flag.risk-hi{background:var(--danger-soft);color:var(--danger);}
+  .act-row .time{color:var(--ink-soft);font-size:11.5px;white-space:nowrap;}
+  .act-row.running{animation:rowArrive 0.5s ease;}
+  @keyframes rowArrive{0%{background:var(--ds-purple-tint);}100%{background:#fff;}}
+
+  /* Progress + preset */
+  .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
+  .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
+  .scene-dots .d.on{background:#fff;width:22px;border-radius:4px;}
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="mock">
+
+    <!-- Shared dark topnav -->
+    <div class="topnav">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+        docusign
+      </div>
+      <div class="topnav-tabs">
+        <div class="tab">Home</div>
+        <div class="tab">Agreements</div>
+        <div class="tab active" id="tab-templates">Templates</div>
+        <div class="tab">Insights</div>
+        <div class="tab">Admin</div>
+      </div>
+      <div class="sp"></div>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</div>
+      <button class="iris"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg>Ask Iris</button>
+      <div class="av">CY</div>
+    </div>
+
+    <div class="body">
+      <!-- Left rail -->
+      <aside class="rail">
+        <div class="rg">All Templates</div>
+        <div class="rail-item active" id="r-agents">
+          <svg class="i" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg>
+          Agents <span class="new-badge">New</span>
+        </div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><path d="M13 2l-2 4h3l-2 4"/><path d="M3 10v12h18V10"/><path d="M3 10l3-4h12l3 4"/></svg>Rules</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4M17 10v4M10 17h4M7 10v4"/></svg>Workflows</div>
+        <hr>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Document</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14l4-4 4 4"/></svg>Requests</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Web Forms</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M17 11l2 2 4-4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/></svg>Workspaces</div>
+        <hr>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9 16 14 18 22 12 18 6 22 8 14 2 9 9 9"/></svg>Favorites</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><path d="M3 7v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-3H5a2 2 0 0 0-2 2z"/></svg>Folders</div>
+        <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>Deleted</div>
+        <div class="foot">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Template Gallery
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <div class="content">
+
+        <!-- S1 — dashboard -->
+        <div class="scene on" id="s1">
+          <div class="s1">
+            <div class="s1-head">
+              <div>
+                <h1>AI agents</h1>
+                <p>Agents follow your instructions autonomously to help resolve issues, find agreement data, and take action on your behalf. You can use one of Docusign's prebuilt agents or create a custom one that perfectly fits your needs.</p>
+              </div>
+              <div class="sp"></div>
+              <div class="actions">
+                <button class="btn ghost">Activity</button>
+                <button class="btn primary">Create Agent</button>
+              </div>
+            </div>
+
+            <div class="filter-row">
+              <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <div class="drop">Status <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="drop">Created By <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="toggle">
+                <div class="o"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+                <div class="o on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+              </div>
+            </div>
+
+            <div class="section-title">Prebuilt Agents <span class="see">See more</span></div>
+            <div class="agent-grid">
+              <div class="agent-card">
+                <div class="top">
+                  <div class="ic ic-envelope"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1 0 2 1 2 2v12c0 1-1 2-2 2H4c-1 0-2-1-2-2V6c0-1 1-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></div>
+                  <div class="t"><div class="nm">Contract Review</div><div class="status pub"><span class="dot"></span>Published</div></div>
+                  <div class="dots">⋯</div>
+                </div>
+                <div class="desc">Identifies key terms, obligations, dates, and parties within agreements.</div>
+              </div>
+              <div class="agent-card">
+                <div class="top">
+                  <div class="ic ic-risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 6 4 10 4 15a8 8 0 0 0 16 0c0-5-4-9-8-13z"/><circle cx="12" cy="16" r="2"/></svg></div>
+                  <div class="t"><div class="nm">Risk Scoring</div><div class="status pub"><span class="dot"></span>Published</div></div>
+                  <div class="dots">⋯</div>
+                </div>
+                <div class="desc">Flags non-standard language, missing clauses, and unfavorable terms with contextual risk ratings.</div>
+              </div>
+              <div class="agent-card">
+                <div class="top">
+                  <div class="ic ic-compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg></div>
+                  <div class="t"><div class="nm">Document Comparison</div><div class="status pub"><span class="dot"></span>Published</div></div>
+                  <div class="dots">⋯</div>
+                </div>
+                <div class="desc">Highlights differences between document versions or against templates with tracked changes.</div>
+              </div>
+              <div class="agent-card">
+                <div class="top">
+                  <div class="ic ic-summary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></div>
+                  <div class="t"><div class="nm">Agreement Summaries</div><div class="status pub"><span class="dot"></span>Published</div></div>
+                  <div class="dots">⋯</div>
+                </div>
+                <div class="desc">Generates customized summaries tailored to different roles (executive, legal, operations).</div>
+              </div>
+            </div>
+
+            <div class="section-title">Your Agents</div>
+            <div class="agent-grid" id="your-agents-grid"></div>
+          </div>
+        </div>
+
+        <!-- S2 — agent detail -->
+        <div class="scene" id="s2">
+          <div class="s2">
+            <div class="main">
+              <div class="cr">
+                <span class="lnk">Agents</span>
+                <svg class="ch" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                <span class="cur">Risk Scoring</span>
+                <span class="pub-chip"><span class="dot"></span>Published</span>
+                <div class="sp"></div>
+                <div class="actions">
+                  <button class="act">Test</button>
+                  <button class="act">Back</button>
+                  <button class="act">Copy Instructions</button>
+                </div>
+              </div>
+
+              <div class="mgd-banner">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                This is a Docusign-managed agent. Configuration is read-only.
+              </div>
+
+              <div class="agent-head-bar">
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 6 4 10 4 15a8 8 0 0 0 16 0c0-5-4-9-8-13z"/><circle cx="12" cy="16" r="2"/></svg></div>
+                <div>
+                  <h2>Risk Scoring</h2>
+                  <p>Flags non-standard language, missing clauses, and unfavorable terms with contextual risk ratings.</p>
+                </div>
+              </div>
+
+              <div class="det-sec">
+                <h3>Triggers</h3>
+                <div class="sub">Choose how you want to start your agent's tasks.</div>
+                <div class="trigger-row sel">
+                  <div class="k"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="5 12 10 17 20 7"/></svg></span>From an event</div>
+                  <div class="v">Envelope complete</div>
+                </div>
+                <div class="trigger-row">
+                  <div class="k"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><path d="M10 7h4"/></svg>From a workflow</div>
+                  <div class="v">Workflow name</div>
+                </div>
+                <div class="trigger-row">
+                  <div class="k"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>From a chat</div>
+                  <div class="v">Additional details</div>
+                </div>
+              </div>
+
+              <div class="det-sec">
+                <h3>Instructions</h3>
+                <div class="sub">Give detailed instructions for how the agent should act. Include its goals and rules for how it should handle invalid requests.</div>
+                <div class="instr-block">
+                  <ul>
+                    <li>Analyze agreements against industry-standard clause libraries</li>
+                    <li>Assign risk scores (Low, Medium, High, Critical) to identified issues</li>
+                    <li>Flag missing standard clauses and recommend additions</li>
+                    <li>Identify unfavorable terms that deviate from company playbooks</li>
+                    <li>Generate risk assessment reports with recommended actions</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="det-sec">
+                <h3>Capabilities</h3>
+                <div class="sub">The more capabilities you give your agent, the more it can do.</div>
+                <div class="cap-row">
+                  <div class="lab">Review negotiation playbooks<div class="prov">Docusign CLM</div></div>
+                  <div class="tog"></div>
+                </div>
+                <div class="cap-row">
+                  <div class="lab">Analyze completed agreements<div class="prov">Docusign</div></div>
+                  <div class="tog"></div>
+                </div>
+              </div>
+
+              <div class="det-sec">
+                <h3>Knowledge</h3>
+                <div class="sub">Add data, files, and other sources that your agent should use for context.</div>
+                <div class="know-row">
+                  <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                  <div class="nm">Playbooks<div class="count">8 Playbooks</div></div>
+                  <svg class="chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="know-row">
+                  <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                  <div class="nm">Documents<div class="count">124 Files</div></div>
+                  <svg class="chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <aside class="ai-rail">
+              <h4><span class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></span>AI Assistant</h4>
+              <div class="ai-sub">Helping configure your agent</div>
+              <div class="chat-msg">
+                Let's configure <b>Risk Scoring</b>. Based on your description, we've added some details, instructions, and knowledge sources. Would you like to change anything?
+              </div>
+              <div class="chat-quick">
+                <div class="q">Looks good, let's continue</div>
+                <div class="q">Add capabilities</div>
+                <div class="q">Change instructions</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- S3 — Activity -->
+        <div class="scene" id="s3">
+          <div class="s3">
+            <div class="s3-head">
+              <div>
+                <h1>Risk Scoring · Activity</h1>
+                <p>Recent runs across your agreements. The agent is auto-triggered on envelope complete and also runs on demand from the assignee rail.</p>
+              </div>
+              <div class="sp"></div>
+              <button class="btn ghost">View logs</button>
+            </div>
+
+            <div class="kpi-row">
+              <div class="kpi"><div class="l">Runs · last 7d</div><div class="v" id="kpi-runs">47</div><div class="s">+12 vs prior week</div></div>
+              <div class="kpi accent"><div class="l">Auto-routed</div><div class="v" id="kpi-routed">39</div><div class="s">83% hands-off</div></div>
+              <div class="kpi"><div class="l">Flagged for review</div><div class="v" id="kpi-flagged">8</div><div class="s">Awaiting human</div></div>
+              <div class="kpi"><div class="l">Avg time to decision</div><div class="v" id="kpi-time">42s</div><div class="s">↓ from 3h 12m manual</div></div>
+            </div>
+
+            <div class="activity">
+              <div class="activity-head">
+                <span class="t">Recent runs</span>
+                <div class="sp" style="flex:1;"></div>
+                <div class="filter">Risk <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="filter">Last 7 days <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              </div>
+              <div id="act-rows"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="scene-dots">
+  <div class="d on" data-s="s1"></div><div class="d" data-s="s2"></div><div class="d" data-s="s3"></div>
+</div>
+
+<div class="preset-chip"><span class="lab">Preset</span><select id="preset-select"></select></div>
+
+<script>
+const PRESETS = {
+  wealth: {label:"Wealth", yourAgents:[
+    ["Suitability Checker", "pub", "JD", "Cross-references Form ADV with client objectives to confirm each recommendation fits the declared risk tolerance."],
+    ["Fee Reconciler", "draft", "MK", "Pulls custodian billing from Quik! and reconciles against advisory contracts; flags variance over 2%."],
+    ["Renewal Tracker", "pub", "AL", "Converts upcoming IAA and 13D renewal windows into CRM tasks scheduled 60 days out."],
+    ["Prospectus Translator", "unpub", "DS", "Summarizes prospectus materials into plain-English talking points for client meetings."],
+    ["Reg BI Guardrail", "pub", "TW", "Scans advisor communications for Reg BI disclosure completeness and flags gaps."],
+    ["Alt Fund Gatekeeper", "pub", "NH", "Confirms accredited-investor status and suitability before routing alt-fund subscription docs."],
+  ], activity:[
+    ["IAA — Amy Peters",           "Standard · no issues",                "risk-low", "just now"],
+    ["Fee Schedule — Alvarez Trust","Fee 1.35% · exceeds house cap 1.25%", "risk-med", "14m ago"],
+    ["13D — K. Morrison",          "Late filing risk · 7 days remaining", "risk-med", "38m ago"],
+    ["Alt Fund Sub — Chen",        "Non-accredited cert missing",         "risk-hi",  "1h ago"],
+    ["IAA — Singh Family Office",  "Standard · no issues",                "risk-low", "2h ago"],
+    ["Form U4 amendment",          "Disclosure within 30-day window",     "risk-low", "3h ago"],
+  ], kpis:["47","39","8","42s"]},
+
+  banking: {label:"Banking", yourAgents:[
+    ["KYC Auditor", "pub", "MK", "Pulls KYC details, risk ratings, and flagged transactions from onboarding forms and audit reports."],
+    ["Covenant Tester", "pub", "AL", "Tests quarterly financials against loan covenants and flags breaches to the credit officer."],
+    ["UCC Watcher", "pub", "TW", "Monitors UCC filings against pledged collateral and flags new third-party liens."],
+    ["BSA Alert Triager", "draft", "NH", "Clusters BSA alerts by pattern and drafts the SAR narrative for analyst review."],
+    ["Guarantor Continuation", "pub", "JD", "Checks guarantor health annually and flags required re-executions."],
+    ["Wire Wire Rule", "unpub", "DS", "Pattern-matches wire payloads against FinCEN red-flag taxonomies."],
+  ], activity:[
+    ["Atlas Mfg. — Loan Agreement",   "Financial covenant DSCR 1.28 · pass",      "risk-low", "just now"],
+    ["Holbrook Guaranty",             "Missing notary · cannot enforce",           "risk-hi",  "22m ago"],
+    ["MidCoast Holdings — MSA",       "ML obligation · 60-day notice required",   "risk-med", "1h ago"],
+    ["Wire Instruction — $2.1M",      "Beneficiary match to watchlist (low-conf)","risk-hi",  "2h ago"],
+    ["Revolver Draw — ACME LLC",      "Within facility · no issues",               "risk-low", "4h ago"],
+    ["Corr Bank — BNY renewal",       "Pricing unchanged · auto-route",            "risk-low", "5h ago"],
+  ], kpis:["63","54","9","38s"]},
+
+  insurance: {label:"Insurance", yourAgents:[
+    ["Underwriting Triage", "pub", "MK", "Auto-routes submissions to the right underwriter based on line, state, and appetite."],
+    ["Binder Pre-Flight", "pub", "AL", "Confirms all precondition docs (inspection, prior claims, MVR) before binder release."],
+    ["Reinsurance Allocator", "pub", "TW", "Cedes individual policies to treaties based on limit and cat exposure."],
+    ["First Notice of Loss Clerk", "pub", "NH", "Intakes FNOL, classifies coverage trigger, and opens a claim file with draft reserves."],
+    ["Agent Appointment Renewer", "draft", "JD", "Tracks producer license expiry and preps renewal packets."],
+    ["Hurricane Pre-Position", "unpub", "DS", "On storm watch, pre-positions adjusters and warms up surge capacity."],
+  ], activity:[
+    ["Ramirez HO3 — binder review","All preconditions met · bind",                "risk-low", "just now"],
+    ["FNOL — hail claim #4402",    "Coverage triggered · reserve set at $7,500",  "risk-low", "18m ago"],
+    ["Submission — Lehrer Co.",    "Outside appetite · decline",                   "risk-med", "1h ago"],
+    ["Coastal MGA — cession",      "Policy over cat limit · manual allocate",      "risk-hi",  "2h ago"],
+    ["Inspection — 412 Briar Ln",  "Asphalt roof 8y · OK",                         "risk-low", "3h ago"],
+    ["Producer license — MV",      "Expires in 45 days · draft renewal packet",    "risk-med", "5h ago"],
+  ], kpis:["108","92","14","51s"]},
+
+  provider: {label:"Provider", yourAgents:[
+    ["Prior Auth Triage", "pub", "MK", "Pre-fills prior authorizations from the chart and routes to the right payer portal."],
+    ["Referral Completeness", "pub", "AL", "Checks referrals for required chart notes and flags gaps before scheduling."],
+    ["Coding Assistant", "draft", "TW", "Suggests CPT and ICD-10 codes based on the encounter note."],
+    ["Credentialing Tracker", "pub", "NH", "Watches provider credentials and renews CAQH before expiry."],
+    ["Payer Rate Benchmarker", "pub", "JD", "Benchmarks received payments against contracted rates and flags shortfalls."],
+    ["HIPAA Disclosure Auditor", "unpub", "DS", "Audits release-of-info requests for authorization completeness."],
+  ], activity:[
+    ["Prior auth — J. Kim MRI",      "Aetna approved · no concurrent review",   "risk-low", "just now"],
+    ["Encounter coding — visit 4321","99213 + Z00.00 · flagged for review",     "risk-med", "22m ago"],
+    ["Credentialing — Dr. Kim",      "CAQH due in 60 days · renewal drafted",   "risk-low", "1h ago"],
+    ["Referral — Ortho #6631",       "Missing chart notes · hold",               "risk-med", "2h ago"],
+    ["Payer payment — BCBS",         "Paid at 92% of contracted rate · appeal", "risk-hi",  "3h ago"],
+    ["Release of Info #2218",        "Authorization complete · release",         "risk-low", "4h ago"],
+  ], kpis:["214","176","22","28s"]},
+
+  lifesciences: {label:"Life Sciences", yourAgents:[
+    ["Site Activation Gatekeeper", "pub", "MK", "Confirms IRB, 1572, CTA, and training are complete before activation."],
+    ["Protocol Deviation Clerk", "pub", "AL", "Classifies deviations and drafts the sponsor notice."],
+    ["Safety Letter Router", "pub", "TW", "Routes IB updates to the right sites and tracks acknowledgement."],
+    ["CRO Contract Auditor", "draft", "NH", "Audits CRO invoices against milestone completion."],
+    ["Pharmacovigilance Intake", "pub", "JD", "Intakes AE reports and pre-classifies seriousness per ICH E2A."],
+    ["Regulatory Submission Helper", "unpub", "DS", "Assembles eCTD submissions from the archive."],
+  ], activity:[
+    ["ARC site activation",          "IRB + 1572 complete · activate",          "risk-low", "just now"],
+    ["Protocol deviation #HX-22",    "Minor · window miss by 2d · notify",      "risk-med", "1h ago"],
+    ["IB v5 distribution",           "Acknowledged by 9/10 sites",              "risk-med", "2h ago"],
+    ["CRO Patheon invoice",          "Milestone 3 not complete · hold",         "risk-hi",  "3h ago"],
+    ["AE report #0844",              "Serious · 7-day submission due",          "risk-hi",  "4h ago"],
+    ["Safety letter acknowledgement","Site 7 pending after 48h · escalate",     "risk-med", "5h ago"],
+  ], kpis:["56","41","12","1m 08s"]},
+
+  payor: {label:"Payor", yourAgents:[
+    ["Eligibility Verifier", "pub", "MK", "Real-time eligibility via 270/271 with payer and reconciles against member roster."],
+    ["Prior Auth Clerk", "pub", "AL", "Processes prior-auth requests against medical-necessity criteria."],
+    ["Claims Edit Reviewer", "pub", "TW", "Reviews edits from the claims engine and proposes overrides."],
+    ["Provider Contract Renewer", "draft", "NH", "Drafts the rate schedule for next-year provider renewals."],
+    ["Appeal Drafter", "pub", "JD", "Drafts first-level appeal letters from denial reasons."],
+    ["Network Adequacy Monitor", "unpub", "DS", "Monitors network adequacy against state thresholds."],
+  ], activity:[
+    ["Member eligibility — Chen",    "Active · $30 copay",                       "risk-low", "just now"],
+    ["Prior auth — MRI (shoulder)",  "Approved · medical necessity met",         "risk-low", "14m ago"],
+    ["Claim edit — bundling 99213",  "Override recommended · payer policy X.4",  "risk-med", "32m ago"],
+    ["Denial appeal — MRI (spine)",  "Draft ready · pending medical officer",    "risk-med", "1h ago"],
+    ["Network adequacy — zip 94110", "Below 3-mile threshold · recruit 2 PCPs",  "risk-hi",  "2h ago"],
+    ["Provider rate — Riverside",    "+3.2% proposed · within budget",           "risk-low", "4h ago"],
+  ], kpis:["312","266","28","22s"]},
+
+  fedgov: {label:"Federal Gov", yourAgents:[
+    ["Fraud Pattern Detector", "pub", "MK", "Clusters UI claims by pattern and surfaces likely fraud rings."],
+    ["Eligibility Auditor", "pub", "AL", "Verifies UI eligibility against base-period wages and work history."],
+    ["Identity Verification Clerk", "pub", "TW", "Routes claimants to CLEAR and processes results."],
+    ["Hearing Officer Briefer", "draft", "NH", "Prepares hearing briefs from case files."],
+    ["Direct Deposit Checker", "pub", "JD", "Validates ACH info against micro-deposits before first payment."],
+    ["Overpayment Recovery", "unpub", "DS", "Initiates overpayment recovery per state rules."],
+  ], activity:[
+    ["Claim UI-2026-48211",          "Eligibility confirmed · base-period valid","risk-low", "just now"],
+    ["Fraud cluster #04-12",         "8 claims · same IP, different SSNs",       "risk-hi",  "42m ago"],
+    ["ID verification — Nguyen",     "CLEAR pass · biometric match",             "risk-low", "1h ago"],
+    ["Weekly cert — Parallax ex",    "Availability attestation incomplete",      "risk-med", "2h ago"],
+    ["Overpayment — claim 47221",    "$2,480 overpayment · recovery initiated",  "risk-med", "3h ago"],
+    ["Hearing brief #118",           "Drafted · routed to hearing officer",       "risk-low", "5h ago"],
+  ], kpis:["1,248","1,102","84","19s"]},
+
+  slgov: {label:"State & Local", yourAgents:[
+    ["Permit Intake Triage", "pub", "MK", "Routes permit applications to the right reviewer based on type and zoning."],
+    ["Plan Check Assistant", "pub", "AL", "Reviews plans against building code and flags deviations."],
+    ["Public Records Responder", "pub", "TW", "Drafts PRA response packets redacted per exemption rules."],
+    ["Code Enforcement Intake", "draft", "NH", "Intakes 311 complaints and opens case files."],
+    ["Contractor License Verifier", "pub", "JD", "Verifies contractor licensing in real time during permit intake."],
+    ["Election Worker Scheduler", "unpub", "DS", "Schedules election workers across precincts."],
+  ], activity:[
+    ["Permit BLD-2026-0412",        "Zoning setback comment · applicant reply",  "risk-med", "just now"],
+    ["PRA request — Downtown LLC",  "Response drafted · 5 pages redacted",       "risk-low", "48m ago"],
+    ["Code complaint — 220 Elm",    "Graffiti · routed to Code Enforcement",     "risk-low", "1h ago"],
+    ["Contractor CA-48821",         "License expired 14d ago · reject",          "risk-hi",  "2h ago"],
+    ["Plan check — 1420 Oak",       "2 comments returned · routed back",          "risk-med", "3h ago"],
+    ["Election worker — precinct 7","Fully staffed for 11/5",                     "risk-low", "4h ago"],
+  ], kpis:["184","156","18","34s"]},
+
+  education: {label:"Education", yourAgents:[
+    ["Application Triage", "pub", "MK", "Routes applications to admissions readers and flags completeness gaps."],
+    ["Transcript Verifier", "pub", "AL", "Verifies official transcripts via secure channels."],
+    ["Housing Assignment", "pub", "TW", "Assigns housing based on preferences and roommate questionnaire."],
+    ["Financial Aid Packager", "pub", "NH", "Assembles aid offers from cost of attendance and need calcs."],
+    ["Title IX Intake", "draft", "JD", "Intakes Title IX reports and routes to the coordinator."],
+    ["Alumni Giving Stewardship", "unpub", "DS", "Drafts stewardship acknowledgements per gift tier."],
+  ], activity:[
+    ["Application — Priya Shah",    "Complete · routed to reader",                "risk-low", "just now"],
+    ["Transcript — Garcia",         "Discrepancy · request clarification",        "risk-med", "1h ago"],
+    ["Housing — match pending",     "Roommate questionnaire incomplete",          "risk-med", "2h ago"],
+    ["Aid offer — Shah",            "Packaged · $38.2k offered",                  "risk-low", "3h ago"],
+    ["Title IX report #018",        "Routed to coordinator · priority",           "risk-hi",  "4h ago"],
+    ["Steward letter — Donor 472",  "Drafted for $25k gift · send",               "risk-low", "5h ago"],
+  ], kpis:["92","78","9","47s"]},
+
+  nonprofit: {label:"Nonprofit", yourAgents:[
+    ["Grantee Eligibility Checker", "pub", "MK", "Validates 501(c)(3) status and prior-cycle performance before award."],
+    ["Disbursement Scheduler", "pub", "AL", "Schedules disbursements per grant agreement milestones."],
+    ["Impact Report Parser", "pub", "TW", "Parses impact reports and extracts KPIs for the program database."],
+    ["Donor Intent Clerk", "draft", "NH", "Matches gifts to donor-intent restrictions and flags conflicts."],
+    ["Compliance Calendar", "pub", "JD", "Maintains the 990 and state registration calendar."],
+    ["Board Packet Assembler", "unpub", "DS", "Assembles board-meeting packets from program inputs."],
+  ], activity:[
+    ["Grantee — Safe Streets",        "501(c)(3) confirmed · good standing",     "risk-low", "just now"],
+    ["Disbursement — tranche 1",      "MOU signed · release $40k",                "risk-low", "1h ago"],
+    ["Impact report — GWC",           "3 KPIs missing · request resubmit",        "risk-med", "2h ago"],
+    ["Donor intent — gift #488",      "Unrestricted but tagged program · review", "risk-med", "3h ago"],
+    ["990 filing reminder",           "Due in 45 days · accountant engaged",      "risk-low", "4h ago"],
+    ["Board packet — May meeting",    "Drafted · circulated for edits",           "risk-low", "5h ago"],
+  ], kpis:["38","31","5","1m 12s"]},
+};
+const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
+const ICON_CYCLE = ["ic-gen-1","ic-gen-2","ic-gen-3","ic-gen-4","ic-gen-5","ic-gen-6"];
+const AV_COLORS = {JD:"#F59E0B", MK:"#10B981", AL:"#8B5CF6", DS:"#EF4444", TW:"#14B8A6", NH:"#EC4899"};
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  const grid = document.getElementById('your-agents-grid');
+  grid.innerHTML = p.yourAgents.map(([name, status, av, desc], i) => {
+    const statusMap = {pub:['pub','Published'], draft:['draft','Draft'], unpub:['unpub','Unpublished']};
+    const [sk, sl] = statusMap[status];
+    return `<div class="agent-card">
+      <div class="top">
+        <div class="ic ${ICON_CYCLE[i % ICON_CYCLE.length]}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg>
+        </div>
+        <div class="t"><div class="nm">${name}</div><div class="status ${sk}"><span class="dot"></span>${sl}</div></div>
+        <div class="dots">⋯</div>
+      </div>
+      <div class="desc">${desc}</div>
+      <div class="foot">Created by <span class="av" style="background:${AV_COLORS[av]||'#A1A1AA'};">${av}</span></div>
+    </div>`;
+  }).join('');
+
+  const act = document.getElementById('act-rows');
+  act.innerHTML = p.activity.map(([name, sub, flag, time], i) => {
+    const flagLabel = {"risk-low":"Low risk","risk-med":"Med risk","risk-hi":"High risk"}[flag];
+    return `<div class="act-row${i===0?' running':''}">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 6 4 10 4 15a8 8 0 0 0 16 0c0-5-4-9-8-13z"/><circle cx="12" cy="16" r="2"/></svg></div>
+      <div class="info"><div class="nm">${name}</div><div class="sub">${sub}</div></div>
+      <span class="flag ${flag}">${flagLabel}</span>
+      <div class="time">${time}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('kpi-runs').textContent = p.kpis[0];
+  document.getElementById('kpi-routed').textContent = p.kpis[1];
+  document.getElementById('kpi-flagged').textContent = p.kpis[2];
+  document.getElementById('kpi-time').textContent = p.kpis[3];
+}
+
+/* Scene timeline */
+const SCENES = [{id:"s1", at:0, dur:8000},{id:"s2", at:8000, dur:8000},{id:"s3", at:16000, dur:8000}];
+const TOTAL = 24000;
+let t0 = performance.now();
+function render(now){
+  const el = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) { if (el >= s.at && el < s.at + s.dur) { active = s; break; } }
+  document.querySelectorAll('.scene').forEach(x => x.classList.toggle('on', x.id === active.id));
+  const idx = SCENES.findIndex(s => s.id === active.id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+  requestAnimationFrame(render);
+}
+
+const sel = document.getElementById("preset-select");
+ORDER.forEach(k => {
+  const o = document.createElement("option"); o.value=k; o.textContent=PRESETS[k].label; sel.appendChild(o);
+});
+function presetFromURL(){
+  const p = new URLSearchParams(location.search).get("preset") || location.hash.replace(/^#/,"") || "wealth";
+  return PRESETS[p] ? p : "wealth";
+}
+const initial = presetFromURL(); sel.value = initial; applyPreset(initial);
+sel.addEventListener("change", () => { applyPreset(sel.value); history.replaceState(null, "", "?preset=" + sel.value); });
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

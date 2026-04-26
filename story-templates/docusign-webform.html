@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign Web Forms — canonical animated template</title>
+<meta name="description" content="Canonical animated Docusign Web Forms flow modeled on the real signer-facing frames. Five scenes: (1) intake form mid-fill with one field focused, (2) progressive form section with attachment upload zone, (3) auto-generated document with the yellow/amber Sign tab hovering over the signature line, (4) Adopt Signature modal over the dimmed document, (5) success/submitted state. Tenant tokens (primary color, wordmark, mark SVG) are parameterized per preset. Reusable across all TGK 2.0 verticals — Wealth, Banking, Insurance, Provider, Life Sciences, Payor, Federal Gov, State & Local Gov, Education, Not for Profit. Select via ?preset=<key> or #<key>.">
+<!--
+  ============================================================
+  Docusign Web Forms — canonical animated template
+  ============================================================
+  Signer-facing journey, 5 scenes, ~28s loop:
+
+    0.0s   S1  Intake form mid-fill  — tenant header, progress bar,
+                                        one input focused with caret
+    6.0s   S2  Attachment step        — same form, scrolled/advanced;
+                                        "Drop or add files" upload zone
+   11.0s   S3  Document sign view     — generated PDF with the signer's
+                                        filled details; yellow SIGN tab
+                                        bounces next to the signature line
+   17.0s   S4  Adopt Signature modal  — over dimmed document, signature
+                                        type/draw/upload + typed preview,
+                                        "Adopt and Sign" purple CTA
+   22.0s   S5  Success / submitted    — green check, "Submission received"
+   28.0s   Loop to S1
+
+  Tenant-specific bits live in the PRESETS block at the bottom.
+  ============================================================
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA; --ds-purple-soft:#EEE8FF;
+    --ds-inkwell:#130032; --ds-poppy:#FF5252;
+    --bg:#FFFFFF; --bg-muted:#F7F6F4; --bg-shell:#F3F0EC;
+    --ink:#1A1A1D; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --ok-soft:#D1FADF;
+    --sign-amber:#F6C93A;
+    --sign-amber-deep:#E0A800;
+    --red-mark:#E03E52;
+    --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --sig-font:"Caveat",cursive;
+    --tn-primary:#0F2A1F;
+    --tn-ink:#FFFFFF;
+    --tn-mark:#3FDA99;
+    --tn-wordmark-font:"Fraunces",Georgia,serif;
+    --tn-wordmark-style:italic;
+    --tn-wordmark-weight:500;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+
+  /* Browser frame — fill the available viewport generously rather than
+     locking to a fixed aspect ratio. The inside scenes scroll if needed. */
+  .browser{width:min(1280px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,0.16),0 2px 8px rgba(19,0,50,0.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+  .br-bar{height:36px;background:#EBEBEB;border-bottom:1px solid #D7D7D7;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
+  .br-dots{display:flex;gap:6px;}
+  .br-dots span{width:10px;height:10px;border-radius:50%;}
+  .br-dots .d1{background:#FF605C;}.br-dots .d2{background:#FFBD44;}.br-dots .d3{background:#00CA4E;}
+  .br-url{flex:1;max-width:340px;margin:0 auto;background:#fff;border-radius:4px;padding:4px 12px;font-size:11.5px;color:var(--ink-mid);display:flex;align-items:center;gap:6px;border:1px solid #D4D4D4;}
+  .br-url::before{content:"";width:10px;height:10px;border-radius:50%;background:#9AA0A6;}
+  .br-url .lock{width:10px;height:10px;display:inline-block;background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F6368' stroke-width='2'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E");background-size:contain;}
+
+  /* Tenant top bar (inside the page) */
+  .tn-bar{height:52px;background:var(--tn-primary);color:var(--tn-ink);display:flex;align-items:center;padding:0 28px;gap:10px;flex-shrink:0;}
+  .tn-brand{display:flex;align-items:center;gap:8px;}
+  .tn-brand .m{width:22px;height:22px;color:var(--tn-mark);}
+  .tn-brand .m svg{width:100%;height:100%;}
+  .tn-brand .wm{font-family:var(--tn-wordmark-font);font-style:var(--tn-wordmark-style);font-weight:var(--tn-wordmark-weight);font-size:20px;letter-spacing:0.02em;color:var(--tn-ink);}
+  .tn-bar .sp{flex:1;}
+  .tn-actions{display:flex;gap:8px;}
+  .tn-actions .btn{background:transparent;color:var(--tn-ink);border:1.5px solid rgba(255,255,255,0.4);border-radius:999px;padding:6px 14px;font-size:10.5px;font-weight:600;letter-spacing:0.08em;cursor:pointer;}
+
+  /* Page stage (forms + signing live here) */
+  .page{flex:1;overflow:hidden;position:relative;background:#fff;}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity 0.5s ease;overflow:auto;}
+  .scene.on{opacity:1;}
+
+  /* Shared: central column for form scenes — wider and airier than
+     the 420px signer-mobile-style reference so it reads well at desktop
+     viewport sizes. */
+  .form-wrap{max-width:560px;margin:0 auto;padding:40px 24px 60px;}
+  .progress{margin-bottom:18px;}
+  .progress .lbl{font-size:11px;color:var(--ink-mid);font-weight:600;margin-bottom:6px;text-align:center;}
+  .progress .bar{height:3px;background:var(--hair);border-radius:2px;overflow:hidden;}
+  .progress .bar .fill{height:100%;background:var(--tn-primary);border-radius:2px;transition:width 1.2s ease;}
+
+  .form-title{font-size:22px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:26px;letter-spacing:-0.01em;}
+
+  .field{margin-bottom:18px;}
+  .field .lab{display:flex;align-items:center;gap:3px;font-size:12.5px;color:var(--ink);margin-bottom:6px;font-weight:500;}
+  .field .req{color:var(--red-mark);font-weight:700;}
+  .field .in{border:1px solid var(--hair-strong);border-radius:4px;padding:11px 14px;font-size:13px;color:var(--ink);background:#fff;display:flex;align-items:center;gap:6px;transition:all 0.2s ease;}
+  .field.dropdown .in::after{content:"▾";margin-left:auto;color:var(--ink-faint);font-size:11px;}
+  .field.focused .in{border-color:var(--ds-purple);box-shadow:0 0 0 3px var(--ds-purple-soft);}
+  .field.focused .in .cursor{display:inline-block;width:1.2px;height:13px;background:var(--ds-purple);margin-left:1px;vertical-align:middle;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  .field .in svg{width:13px;height:13px;stroke:var(--ink-faint);stroke-width:1.8;fill:none;flex-shrink:0;}
+
+  /* Upload zone */
+  .upload{border:1px dashed var(--hair-strong);border-radius:6px;background:var(--bg-muted);padding:26px 22px;text-align:center;color:var(--ink-mid);margin-top:6px;}
+  .upload .plus{width:34px;height:34px;border-radius:6px;background:#EEE;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .upload .plus svg{width:16px;height:16px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+  .upload .t{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+  .upload .s{font-size:11px;color:var(--ink-soft);}
+
+  /* Shared top breadcrumb row (for docusign-framed pages S2-S4) */
+  .ds-framed{display:flex;flex-direction:column;height:100%;}
+  .ds-top{height:56px;display:flex;align-items:center;padding:0 24px;gap:16px;border-bottom:1px solid var(--hair);flex-shrink:0;}
+  .ds-top .back{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--ink-mid);}
+  .ds-top .back svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;}
+  .ds-crumbs{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);}
+  .ds-crumbs .c{color:var(--ink-soft);}
+  .ds-crumbs .c.cur{color:var(--ink);font-weight:600;}
+  .ds-crumbs svg{width:10px;height:10px;stroke:var(--ink-faint);stroke-width:2;fill:none;}
+  .submit-btn{background:var(--ds-purple);color:#fff;border:none;border-radius:5px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;}
+  .ds-mid{flex:1;overflow:auto;padding:30px 24px;}
+  .ds-foot{border-top:1px solid var(--hair);padding:10px 24px;display:flex;align-items:center;gap:14px;font-size:10.5px;color:var(--ink-soft);flex-shrink:0;}
+  .ds-foot-mark{display:flex;align-items:center;gap:5px;font-weight:700;font-size:12px;color:var(--ds-inkwell);}
+  .ds-foot-mark svg{width:13px;height:13px;}
+  .ds-foot .sp{flex:1;}
+
+  /* Document (for S3/S4) */
+  .doc-stage{background:var(--bg-shell);padding:40px 28px;min-height:100%;display:flex;justify-content:center;align-items:flex-start;}
+  .doc-page{background:#fff;border:1px solid var(--hair);border-radius:4px;box-shadow:0 4px 14px rgba(19,0,50,0.08);width:min(640px,92%);padding:48px 56px 60px;font-family:Georgia,serif;font-size:12.5px;line-height:1.7;color:var(--ink);position:relative;}
+  .doc-page h4{font-size:14px;font-weight:700;margin-bottom:14px;text-align:center;letter-spacing:0.02em;}
+  .doc-page .doc-sub{font-size:10.5px;color:var(--ink-soft);text-align:center;margin-bottom:20px;}
+  .doc-page p{margin-bottom:10px;}
+  .doc-page .kv{display:inline-block;padding:1px 6px;background:#FEF3C7;border:1px dashed #F59E0B;border-radius:3px;margin:0 2px;font-family:var(--ui-font);font-size:11px;color:#78350F;}
+  .sig-line{margin-top:30px;display:flex;align-items:flex-end;gap:24px;position:relative;}
+  .sig-block{flex:1;border-bottom:1.5px solid var(--ink);padding-bottom:4px;min-height:28px;display:flex;align-items:flex-end;}
+  .sig-block .typed-sig{font-family:var(--sig-font);font-size:30px;color:#0B2541;line-height:1;opacity:0;transition:opacity 0.4s ease;}
+  .sig-block.signed .typed-sig{opacity:1;}
+  .sig-label{font-size:10px;color:var(--ink-soft);margin-top:3px;}
+
+  /* Yellow Sign tab */
+  .sign-tab{position:absolute;left:-60px;top:-6px;background:var(--sign-amber);color:#5B3E00;font-weight:700;padding:6px 14px 6px 10px;border-radius:3px;font-size:11.5px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);transition:transform 0.3s ease, opacity 0.3s ease;animation:tabBounce 1.6s ease-in-out infinite;z-index:3;}
+  .sign-tab::after{content:"";position:absolute;right:-9px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-left-color:var(--sign-amber);}
+  .sign-tab svg{width:12px;height:12px;stroke:#5B3E00;stroke-width:2.5;fill:none;}
+  @keyframes tabBounce{
+    0%,100%{transform:translateX(0);}
+    50%{transform:translateX(4px);}
+  }
+
+  /* Adopt Signature Modal */
+  .modal-scrim{position:absolute;inset:0;background:rgba(19,0,50,0.45);opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:4;}
+  .modal-scrim.on{opacity:1;}
+  .modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.96);background:#fff;border-radius:8px;box-shadow:0 24px 60px rgba(19,0,50,0.22);width:min(520px,92%);opacity:0;transition:all 0.35s cubic-bezier(.2,.8,.2,1);z-index:5;}
+  .modal.on{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .modal-head{padding:16px 22px;border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;}
+  .modal-head h3{font-size:15px;font-weight:700;color:var(--ink);}
+  .modal-head .x{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;font-size:18px;line-height:1;}
+  .modal-body{padding:20px 22px;}
+  .sig-tabs{display:flex;gap:18px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--ink-soft);border-bottom:1px solid var(--hair);}
+  .sig-tabs .t{padding-bottom:8px;cursor:pointer;position:relative;}
+  .sig-tabs .t.on{color:var(--ds-purple);}
+  .sig-tabs .t.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ds-purple);}
+  .sig-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .sig-fields .field .in{padding:7px 10px;font-size:12px;}
+  .sig-preview{border:1px solid var(--hair);border-radius:5px;padding:18px;background:var(--bg-muted);}
+  .sig-preview .plbl{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  .sig-preview .preview-row{display:flex;align-items:flex-end;gap:24px;padding:10px 0;border-bottom:1.5px solid var(--ink);}
+  .sig-preview .preview-row .sig-big{font-family:var(--sig-font);font-size:30px;color:#0B2541;line-height:1;}
+  .sig-preview .preview-row .init-big{font-family:var(--sig-font);font-size:26px;color:#0B2541;line-height:1;padding-left:16px;border-left:1px dashed var(--hair-strong);}
+  .disclosure{font-size:9.5px;color:var(--ink-soft);margin-top:14px;line-height:1.55;max-width:100%;}
+  .disclosure a{color:var(--ds-purple);text-decoration:underline;}
+  .modal-foot{padding:14px 22px;border-top:1px solid var(--hair);display:flex;justify-content:flex-end;gap:8px;}
+  .modal-foot .btn{padding:9px 18px;border-radius:5px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid transparent;}
+  .modal-foot .btn.ghost{background:#fff;border-color:var(--hair-strong);color:var(--ink);}
+  .modal-foot .btn.primary{background:var(--ds-purple);color:#fff;}
+
+  /* S5 success */
+  .success-wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;background:#fff;}
+  .success-check{width:80px;height:80px;border-radius:50%;background:#19B36F;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(25,179,111,0.3);margin-bottom:22px;animation:checkPop 0.55s cubic-bezier(.2,.9,.4,1.3) forwards;}
+  @keyframes checkPop{from{transform:scale(0);}to{transform:scale(1);}}
+  .success-check svg{width:42px;height:42px;stroke:#fff;stroke-width:4;fill:none;}
+  .success-wrap h2{font-size:24px;font-weight:600;color:var(--ink);margin-bottom:8px;letter-spacing:-0.01em;}
+  .success-wrap p{font-size:13px;color:var(--ink-mid);text-align:center;max-width:420px;margin-bottom:18px;}
+  .success-wrap .card{background:var(--bg-muted);border:1px solid var(--hair);border-radius:6px;padding:14px 18px;font-size:12px;color:var(--ink-mid);display:flex;align-items:center;gap:12px;}
+  .success-wrap .card .ic{width:26px;height:26px;border-radius:5px;background:var(--ds-purple-soft);color:var(--ds-purple);display:flex;align-items:center;justify-content:center;}
+  .success-wrap .card .ic svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .success-wrap .card b{color:var(--ink);}
+
+  /* Progress dots + preset chip */
+  .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
+  .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
+  .scene-dots .d.on{background:#fff;width:22px;border-radius:4px;}
+  .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;font-family:var(--ui-font);}
+  .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
+  .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="browser">
+    <!-- Browser chrome -->
+    <div class="br-bar">
+      <div class="br-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+      <div class="br-url"><span class="lock"></span>&nbsp;<span id="url-host">forms.docusign.net/requests</span></div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <!-- Page content — we render the tenant top bar only for S1/S2 (tenant-hosted form).
+         S3/S4/S5 use a pure Docusign chrome with a breadcrumb row (matches webform-attach.jpg). -->
+    <div class="page">
+
+      <!-- ========= S1: intake form mid-fill ========= -->
+      <div class="scene on" id="s1">
+        <div class="tn-bar">
+          <div class="tn-brand"><span class="m" id="tn-mark-1"></span><span class="wm" id="tn-wm-1"></span></div>
+          <div class="sp"></div>
+          <div class="tn-actions"><button class="btn">SETTINGS</button><button class="btn">LOG OUT</button></div>
+        </div>
+        <div class="form-wrap">
+          <div class="progress">
+            <div class="lbl"><span id="s1-pct">29%</span> completed</div>
+            <div class="bar"><div class="fill" id="s1-fill" style="width:29%;"></div></div>
+          </div>
+          <div class="form-title">Please confirm your contact details:</div>
+          <div class="field"><div class="lab">Full Name <span class="req">*</span></div><div class="in">Jasper Brooks</div></div>
+          <div class="field focused"><div class="lab">Email <span class="req">*</span></div><div class="in"><span>jasper.brooks@email.com</span><span class="cursor"></span></div></div>
+          <div class="field"><div class="lab">Date of Birth <span class="req">*</span></div><div class="in">12/18/1980 <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>
+          <div class="field"><div class="lab">Street Address <span class="req">*</span></div><div class="in">261 Union Street</div></div>
+          <div class="field"><div class="lab">City <span class="req">*</span></div><div class="in">Redwood City</div></div>
+          <div class="field dropdown"><div class="lab">State <span class="req">*</span></div><div class="in">California</div></div>
+        </div>
+      </div>
+
+      <!-- ========= S2: attachment step (Docusign-framed) ========= -->
+      <div class="scene" id="s2">
+        <div class="ds-framed">
+          <div class="ds-top">
+            <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+            <div class="ds-crumbs"><span class="c">Requests</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c">Request Type</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c cur">Software purchase</span></div>
+            <button class="submit-btn">Submit</button>
+          </div>
+          <div class="ds-mid">
+            <div class="form-wrap" style="max-width:520px;">
+              <h2 style="font-size:24px;font-weight:700;margin-bottom:22px;letter-spacing:-0.01em;">Software purchase</h2>
+              <div class="field"><div class="lab">Title <span class="req">*</span></div><div class="in">New marketing software</div></div>
+              <div class="field"><div class="lab">Business justification</div><div class="in">Ad tracking and retargeting tool</div></div>
+              <div class="field"><div class="lab">Vendor <span class="req">*</span></div><div class="in">MarketPulse Dynamics</div></div>
+              <div class="field"><div class="lab">Total contract value <span class="req">*</span></div><div class="in">$65,000</div></div>
+              <div class="field"><div class="lab">Effective date <span class="req">*</span></div><div class="in"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 05/01/2026</div></div>
+              <div class="field">
+                <div class="lab">Upload agreements <span class="req">*</span></div>
+                <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">You must submit a master service agreement for approval. We may ask for other supporting documents.</div>
+                <div class="upload">
+                  <div class="plus"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                  <div class="t">Drop or add files</div>
+                  <div class="s">Supported formats: DOC, DOCX, PDF</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-foot">
+            <div class="ds-foot-mark"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="sp"></div>
+            <span>English (US) ▾</span><span>Contact Us</span><span>Terms of Use</span><span>Privacy</span><span>Intellectual Property</span><span>Trust</span>
+            <div class="sp"></div>
+            <span>Copyright © 2026 Docusign, Inc. All rights reserved.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========= S3: document with yellow Sign tab ========= -->
+      <div class="scene" id="s3">
+        <div class="ds-framed">
+          <div class="ds-top">
+            <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+            <div class="ds-crumbs"><span class="c">Requests</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c">Software purchase</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c cur">Review &amp; sign</span></div>
+            <button class="submit-btn">Continue</button>
+          </div>
+          <div class="ds-mid" style="padding:0;">
+            <div class="doc-stage">
+              <div class="doc-page" id="doc-page">
+                <h4>Master Service Agreement</h4>
+                <div class="doc-sub">Between <b id="doc-tenant">Acme Inc.</b> and <b>MarketPulse Dynamics</b> — Effective 05/01/2026</div>
+                <p>This Master Service Agreement ("Agreement") is entered into by and between <span class="kv" id="doc-client-1">Jasper Brooks</span>, on behalf of <span class="kv" id="doc-tenant-1">Acme Inc.</span>, and the Vendor named above. The parties agree to the terms and conditions set forth herein for the provision of services described in each Statement of Work.</p>
+                <p>The total contract value is <span class="kv">$65,000</span>, payable in accordance with the payment schedule in Exhibit A. This Agreement shall commence on the Effective Date and continue for an initial term of twelve (12) months.</p>
+                <p>By signing below, the parties acknowledge they have read, understood, and agree to be bound by the terms of this Agreement.</p>
+                <div class="sig-line">
+                  <div class="sign-tab" id="sign-tab">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    SIGN
+                  </div>
+                  <div class="sig-block" id="sig-block">
+                    <span class="typed-sig" id="typed-sig">Jasper Brooks</span>
+                  </div>
+                  <div style="width:120px;border-bottom:1.5px solid var(--ink);padding-bottom:4px;font-size:10px;color:var(--ink-soft);">Date</div>
+                </div>
+                <div style="display:flex;gap:24px;margin-top:4px;">
+                  <div class="sig-label" style="flex:1;">Signature of Authorized Representative</div>
+                  <div class="sig-label" style="width:120px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-foot">
+            <div class="ds-foot-mark"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="sp"></div>
+            <span>English (US) ▾</span><span>Terms of Use</span><span>Privacy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========= S4: Adopt Signature modal (same doc underneath, dimmed) ========= -->
+      <div class="scene" id="s4">
+        <div class="ds-framed">
+          <div class="ds-top">
+            <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+            <div class="ds-crumbs"><span class="c">Requests</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c">Software purchase</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c cur">Review &amp; sign</span></div>
+            <button class="submit-btn">Continue</button>
+          </div>
+          <div class="ds-mid" style="padding:0;position:relative;">
+            <div class="doc-stage">
+              <div class="doc-page">
+                <h4>Master Service Agreement</h4>
+                <div class="doc-sub">Between <b>Acme Inc.</b> and <b>MarketPulse Dynamics</b> — Effective 05/01/2026</div>
+                <p>This Master Service Agreement ("Agreement") is entered into by and between <span class="kv">Jasper Brooks</span>, on behalf of <span class="kv">Acme Inc.</span>, and the Vendor named above.</p>
+                <p>The total contract value is <span class="kv">$65,000</span>, payable in accordance with the payment schedule in Exhibit A.</p>
+                <div class="sig-line">
+                  <div class="sig-block"></div>
+                  <div style="width:120px;border-bottom:1.5px solid var(--ink);padding-bottom:4px;font-size:10px;color:var(--ink-soft);">Date</div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-scrim on"></div>
+            <div class="modal on">
+              <div class="modal-head">
+                <h3>Adopt Your Signature</h3>
+                <div class="x">×</div>
+              </div>
+              <div class="modal-body">
+                <div style="font-size:12px;color:var(--ink-mid);margin-bottom:14px;">Confirm your name, initials, and signature.</div>
+                <div class="sig-fields">
+                  <div class="field"><div class="lab">Full name <span class="req">*</span></div><div class="in">Jasper Brooks</div></div>
+                  <div class="field"><div class="lab">Initials <span class="req">*</span></div><div class="in">JB</div></div>
+                </div>
+                <div class="sig-tabs">
+                  <div class="t on">Select Style</div>
+                  <div class="t">Draw</div>
+                  <div class="t">Upload</div>
+                </div>
+                <div class="sig-preview">
+                  <div class="plbl">Preview</div>
+                  <div class="preview-row">
+                    <div class="sig-big">Jasper Brooks</div>
+                    <div class="init-big">JB</div>
+                  </div>
+                </div>
+                <div class="disclosure">By selecting Adopt and Sign, I agree that the signature and initials will be the electronic representation of my signature and initials for all purposes when I (or my agent) use them on documents, including legally binding contracts — just the same as a pen-and-paper signature or initial.</div>
+              </div>
+              <div class="modal-foot">
+                <button class="btn ghost">Cancel</button>
+                <button class="btn primary">Adopt and Sign</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========= S5: success ========= -->
+      <div class="scene" id="s5">
+        <div class="ds-framed">
+          <div class="ds-top" style="border-bottom:1px solid var(--hair);">
+            <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+            <div class="ds-crumbs"><span class="c">Requests</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><span class="c cur">Software purchase &mdash; Submitted</span></div>
+          </div>
+          <div class="ds-mid" style="padding:0;">
+            <div class="success-wrap">
+              <div class="success-check"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>
+              <h2>Your submission has been received.</h2>
+              <p>We've routed <b>Software purchase — New marketing software</b> to the approvers. You'll receive an email confirmation with a copy of the signed Master Service Agreement.</p>
+              <div class="card">
+                <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16c1 0 2 1 2 2v12c0 1-1 2-2 2H4c-1 0-2-1-2-2V6c0-1 1-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></div>
+                <div><b>Reference #RQ-48211</b> · Signed 05/01/2026 · Delivered to jasper.brooks@example.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-foot">
+            <div class="ds-foot-mark"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>docusign</div>
+            <div class="sp"></div>
+            <span>English (US) ▾</span><span>Terms of Use</span><span>Privacy</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="scene-dots">
+  <div class="d on" data-s="s1"></div><div class="d" data-s="s2"></div><div class="d" data-s="s3"></div>
+  <div class="d" data-s="s4"></div><div class="d" data-s="s5"></div>
+</div>
+
+<div class="preset-chip"><span class="lab">Preset</span><select id="preset-select"></select></div>
+
+<script>
+const PRESETS = {
+  wealth:      {label:"Wealth",        name:"Hillside",       primary:"#0F2A1F", mark:"#3FDA99", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  banking:     {label:"Banking",       name:"Meridian",       primary:"#0A2540", mark:"#2D8EFF", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  insurance:   {label:"Insurance",     name:"Sentinel",       primary:"#7B1E3F", mark:"#F2B3C2", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  provider:    {label:"Provider",      name:"Riverside",      primary:"#0E4A56", mark:"#6FD6C8", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  lifesciences:{label:"Life Sciences", name:"Helix",          primary:"#3A1A5C", mark:"#C7A0FF", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  payor:       {label:"Payor",         name:"Unity",          primary:"#0B5E3A", mark:"#6FDA9B", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  fedgov:      {label:"Federal Gov",   name:"Dept. of Labor", primary:"#0B3B70", mark:"#E8B800", wmFont:'"Inter",sans-serif',       wmStyle:"normal", wmWeight:"700"},
+  slgov:       {label:"State & Local", name:"Springfield",    primary:"#1B3556", mark:"#E8A438", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  education:   {label:"Education",     name:"Maple Ridge",    primary:"#14422E", mark:"#F2C65A", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"},
+  nonprofit:   {label:"Nonprofit",     name:"Harbor",         primary:"#6B2A00", mark:"#FFB86B", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500"}
+};
+const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
+const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  const r = document.documentElement.style;
+  r.setProperty('--tn-primary', p.primary);
+  r.setProperty('--tn-mark', p.mark);
+  r.setProperty('--tn-wordmark-font', p.wmFont);
+  r.setProperty('--tn-wordmark-style', p.wmStyle);
+  r.setProperty('--tn-wordmark-weight', p.wmWeight);
+  document.getElementById('tn-mark-1').innerHTML = MARK_SVG;
+  document.getElementById('tn-wm-1').textContent = p.name;
+  document.getElementById('doc-tenant').textContent = p.name + " Inc.";
+  document.getElementById('doc-tenant-1').textContent = p.name + " Inc.";
+  document.getElementById('url-host').textContent = 'forms.' + p.name.toLowerCase().replace(/[^a-z0-9]/g,'') + '.docusign.net/requests';
+}
+
+/* Scene timeline */
+const SCENES = [
+  {id:"s1", at:0,     dur:6000},
+  {id:"s2", at:6000,  dur:5000},
+  {id:"s3", at:11000, dur:6000},
+  {id:"s4", at:17000, dur:5000},
+  {id:"s5", at:22000, dur:6000}
+];
+const TOTAL = 28000;
+let t0 = performance.now();
+
+function render(now){
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) {
+    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
+  }
+  document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === active.id));
+  const dotIdx = SCENES.findIndex(s => s.id === active.id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === dotIdx));
+  requestAnimationFrame(render);
+}
+
+/* Preset wiring */
+const sel = document.getElementById("preset-select");
+ORDER.forEach(k => {
+  const o = document.createElement("option");
+  o.value = k; o.textContent = PRESETS[k].label;
+  sel.appendChild(o);
+});
+function presetFromURL(){
+  const p = new URLSearchParams(location.search).get("preset") || location.hash.replace(/^#/,"") || "wealth";
+  return PRESETS[p] ? p : "wealth";
+}
+const initial = presetFromURL();
+sel.value = initial;
+applyPreset(initial);
+sel.addEventListener("change", () => {
+  applyPreset(sel.value);
+  history.replaceState(null, "", "?preset=" + sel.value);
+});
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
