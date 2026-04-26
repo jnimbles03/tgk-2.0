@@ -382,26 +382,26 @@
     color: rgba(19, 0, 50, 0.4);
     cursor: not-allowed; box-shadow: none;
   }
-  /* Continuous gentle drift on the arrow once the CTA is enabled.
-     Pauses while disabled and on hover (the hover lift carries the eye instead). */
-  .launch-btn .cta-arrow {
+  /* Animated chevron canvas — sits to the left of the CTA label.
+     The canvas is drawn by JS (see initChevronCanvas IIFE) and gives a soft
+     forward-trail motion. Disabled state dims; hover nudges right via CSS. */
+  .launch-btn .cta-chevron {
     display: inline-block;
-    margin-left: 4px;
+    vertical-align: middle;
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    margin-left: -2px;
     will-change: transform;
-    animation: cta-arrow-drift 1.6s ease-in-out infinite;
-  }
-  @keyframes cta-arrow-drift {
-    0%, 100% { transform: translateX(0); }
-    50%      { transform: translateX(5px); }
-  }
-  .launch-btn:disabled .cta-arrow,
-  .launch-btn:hover .cta-arrow { animation: none; }
-  .launch-btn:hover:not(:disabled) .cta-arrow {
-    transform: translateX(7px);
     transition: transform 0.22s var(--ease);
   }
-  @media (prefers-reduced-motion: reduce) {
-    .launch-btn .cta-arrow { animation: none; }
+  .launch-btn .cta-label {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .launch-btn:disabled .cta-chevron { opacity: 0.55; }
+  .launch-btn:hover:not(:disabled) .cta-chevron {
+    transform: translateX(3px);
   }
 
   /* ===== FOOTER (reserved; currently unused in HTML) ===== */
@@ -1681,7 +1681,7 @@
           <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign" width="200" height="44">
         </a>
         <div class="lh-badge" id="modeBadge">Demo story</div>
-        <h1 id="landingHeadline">Launch the demo.</h1>
+        <h1 id="landingHeadline">Pick a vertical. Pick a use case.</h1>
         <p id="landingSubheadline">A verticalized story demo of the end-to-end workflow &mdash; CRM, portal, agreement desk, and impact summary &mdash; using the selected brand shell.</p>
       </div>
     </div>
@@ -1733,7 +1733,7 @@
 
     <!-- ACTIONS — the one Poppy CTA -->
     <div class="landing-actions">
-      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch the demo <span class="cta-arrow" aria-hidden="true">&rarr;</span></button>
+      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()"><canvas class="cta-chevron" id="ctaChevron" aria-hidden="true"></canvas><span class="cta-label" id="launchBtnLabel">Launch Demo</span></button>
     </div>
 
     <!-- Admin link — quiet, but with a key glyph + underline so it's findable. -->
@@ -4204,15 +4204,15 @@ function askNavAI() {
   const MODE_COPY = {
     discovery: {
       badge: 'Discovery',
-      headline: 'Walk the flow.',
+      headline: 'Pick a vertical. Pick a use case.',
       subhead: 'Every use case opens as an interactive current-state vs. future-state process map — click any step to see where friction lives today and how Docusign IAM transforms it.',
-      launch: 'Open discovery'
+      launch: 'Open Discovery'
     },
     story: {
       badge: 'Demo story',
-      headline: 'Launch the demo.',
+      headline: 'Pick a vertical. Pick a use case.',
       subhead: 'A verticalized story demo of the end-to-end workflow — CRM, portal, agreement desk, and impact summary — using the selected brand shell.',
-      launch: 'Launch the demo'
+      launch: 'Launch Demo'
     }
   };
 
@@ -4376,11 +4376,14 @@ function askNavAI() {
     const ready = state.vertical && state.subvertical && state.useCase !== null;
     launchBtn.disabled = !ready;
     const copy = MODE_COPY[state.mode];
+    // Write to the label span only — never reassign launchBtn.innerHTML or
+    // we'd wipe the <canvas> chevron the IIFE below is animating.
+    const labelEl = document.getElementById('launchBtnLabel');
     if (ready) {
       const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
-      launchBtn.innerHTML = `${copy.launch} &mdash; &ldquo;${uc.title}&rdquo; &rarr;`;
+      labelEl.innerHTML = `${copy.launch} &mdash; &ldquo;${uc.title}&rdquo;`;
     } else {
-      launchBtn.innerHTML = `${copy.launch} &rarr;`;
+      labelEl.textContent = copy.launch;
     }
   }
 
@@ -4494,6 +4497,58 @@ function askNavAI() {
   // Initial paint
   applyModeCopy();
   updateLaunch();
+
+  // Animated ">" chevron on the launch CTA — drawn into a <canvas> so the
+  // motion isn't tied to CSS keyframes. Renders a primary chevron with a
+  // soft trailing ghost that drifts forward and fades, repeating every 1.6s.
+  // Honors prefers-reduced-motion (draws once, statically).
+  (function initChevronCanvas() {
+    const canvas = document.getElementById('ctaChevron');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const SIZE = 22;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+    canvas.style.width  = SIZE + 'px';
+    canvas.style.height = SIZE + 'px';
+    ctx.scale(dpr, dpr);
+
+    function drawChevron(offsetX, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.25;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const cx = 8 + offsetX;
+      const cy = SIZE / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 3, cy - 5);
+      ctx.lineTo(cx + 3, cy);
+      ctx.lineTo(cx - 3, cy + 5);
+      ctx.stroke();
+    }
+
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      drawChevron(0, 1);
+      return;
+    }
+
+    const PERIOD = 1600;
+    let start = performance.now();
+    function loop(now) {
+      const t = ((now - start) % PERIOD) / PERIOD; // 0..1
+      ctx.clearRect(0, 0, SIZE, SIZE);
+      // Trailing ghost — drifts forward, fades out
+      drawChevron(t * 7, (1 - t) * 0.45);
+      // Primary chevron — gentle in-place sway
+      drawChevron(Math.sin(t * Math.PI * 2) * 1.2, 1);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
 })();
 </script>
 
