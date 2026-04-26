@@ -376,6 +376,27 @@
     color: rgba(19, 0, 50, 0.4);
     cursor: not-allowed; box-shadow: none;
   }
+  /* Continuous gentle drift on the arrow once the CTA is enabled.
+     Pauses while disabled and on hover (the hover lift carries the eye instead). */
+  .launch-btn .cta-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    will-change: transform;
+    animation: cta-arrow-drift 1.6s ease-in-out infinite;
+  }
+  @keyframes cta-arrow-drift {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(5px); }
+  }
+  .launch-btn:disabled .cta-arrow,
+  .launch-btn:hover .cta-arrow { animation: none; }
+  .launch-btn:hover:not(:disabled) .cta-arrow {
+    transform: translateX(7px);
+    transition: transform 0.22s var(--ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .launch-btn .cta-arrow { animation: none; }
+  }
 
   /* ===== FOOTER (reserved; currently unused in HTML) ===== */
   .landing-footer {
@@ -1693,7 +1714,7 @@
 
     <!-- ACTIONS — the one Poppy CTA -->
     <div class="landing-actions">
-      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch the demo &rarr;</button>
+      <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()">Launch the demo <span class="cta-arrow" aria-hidden="true">&rarr;</span></button>
     </div>
 
     <!-- Admin link — intentionally subtle. Soft-gated console at /admin/. -->
