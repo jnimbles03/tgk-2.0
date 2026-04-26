@@ -1412,6 +1412,29 @@ const TEMPLATE_FILES = [
 ];
 
 /* =========================================================
+   Beat → internal-template-scene mapping. The shell has 5 beats per
+   scene (one per hotspot); each template has its own internal scene
+   count. This map is the single source of truth — every beat advance
+   posts the corresponding sceneId to the iframe so click, autoplay,
+   and arrow keys all produce the same iframe state at every beat.
+   Workspace has no internal animation, so its mapping is null and the
+   iframe is left alone.
+   Override this in the admin localStorage key tgkAdmin.beatToInternal
+   if a vertical wants different beat semantics.
+   ========================================================= */
+const BEAT_TO_INTERNAL = {
+  agreement_desk: ["s1", "s2", "s3", "s3", "s3"],   // submit → arrives → open → docs tab → send
+  clear_idv:      ["s1", "s2", "s3", "s6", "s7"],   // consent → choose CLEAR → phone → mobile selfie → verified
+  signing:        ["s1", "s2", "s3", "s4", "s5"],   // 1:1 — email → start → adopt → finished → download
+  navigator:      ["s1", "s2", "s3", "s4", "s4"],   // list → insights → fields → ask Iris → answer
+  workspace:      [null, null, null, null, null],   // static template — no internal scene to drive
+};
+try {
+  const ov = JSON.parse(localStorage.getItem("tgkAdmin.beatToInternal") || "null");
+  if (ov && typeof ov === "object") Object.assign(BEAT_TO_INTERNAL, ov);
+} catch (e) {}
+
+/* =========================================================
    Admin overrides — populated from /admin (same-origin storage).
    localStorage applies synchronously; IndexedDB template overrides
    load async and trigger a re-render when ready.
@@ -1543,8 +1566,25 @@ const layer = $('hotspot-layer');
 let idx = 0;
 let hotIdx = 0;
 let playing = false;
-let sceneStart = 0;
+let sceneStart = 0;     // when the current scene began (for HUD timer display)
+let beatStart = 0;      // when the current beat began (drives autoplay advance)
 let raf = null;
+
+/* Tell the iframe template which internal scene to show for the current
+   beat. Called from every beat-change path so click/autoplay/arrow keys
+   all stay locked to the iframe state. No-op for the Workspace scene
+   (no internal animation to drive). */
+function postBeatToFrame(){
+  try {
+    const sceneKey = SCENE_KEYS[idx];
+    const mapping = BEAT_TO_INTERNAL[sceneKey];
+    if (!mapping) return;
+    const sceneId = mapping[hotIdx];
+    if (!sceneId) return;
+    if (!frame.contentWindow) return;
+    frame.contentWindow.postMessage({type:"tgk:lockToBeat", sceneId}, "*");
+  } catch (e) { /* iframe not ready — will be retried on iframe load */ }
+}
 
 function renderSidebar(scene, i){
   const beat = scene.hotspots && scene.hotspots[hotIdx];
@@ -1586,6 +1626,8 @@ function renderHotspot(){
     el.addEventListener('click', advance);
   }
   layer.appendChild(el);
+  // Lock the iframe to this beat's internal scene.
+  postBeatToFrame();
 }
 
 /* =========================================================
@@ -1665,7 +1707,13 @@ function goTo(i, opts = {}){
     frame.classList.add('fading');
     setTimeout(() => {
       frame.src = scene.src;
-      frame.onload = () => { frame.classList.remove('fading'); };
+      // Once the new template's DOM and message listener are ready, re-post
+      // the beat so the iframe lands locked to beat 0 instead of running its
+      // own auto-loop for a moment.
+      frame.onload = () => {
+        frame.classList.remove('fading');
+        postBeatToFrame();
+      };
       setTimeout(() => frame.classList.remove('fading'), 400);
     }, 180);
     layer.innerHTML = "";
@@ -1675,19 +1723,29 @@ function goTo(i, opts = {}){
   }
   renderSidebar(scene, i);
   sceneStart = performance.now();
+  beatStart = performance.now();
 }
 function advance(){
   const scene = SCENES[idx];
-  if (hotIdx < scene.hotspots.length - 1) { hotIdx++; renderHotspot(); renderSidebar(scene, idx); }
+  if (hotIdx < scene.hotspots.length - 1) {
+    hotIdx++;
+    beatStart = performance.now();
+    renderHotspot(); renderSidebar(scene, idx);
+  }
   else if (idx < SCENES.length - 1) { goTo(idx + 1); }
   else { goTo(0, {force:true}); }
 }
 function rewind(){
   const scene = SCENES[idx];
-  if (hotIdx > 0) { hotIdx--; renderHotspot(); renderSidebar(scene, idx); }
+  if (hotIdx > 0) {
+    hotIdx--;
+    beatStart = performance.now();
+    renderHotspot(); renderSidebar(scene, idx);
+  }
   else if (idx > 0) {
     goTo(idx - 1);
     hotIdx = SCENES[idx].hotspots.length - 1;
+    beatStart = performance.now();
     renderHotspot(); renderSidebar(SCENES[idx], idx);
   }
 }
@@ -1699,9 +1757,15 @@ function fmt(ms){
 function tickTimer(){
   if (!playing) return;
   const scene = SCENES[idx];
-  const elapsed = performance.now() - sceneStart;
-  $('timer').textContent = `${fmt(elapsed)} / ${fmt(scene.duration)}`;
-  if (elapsed >= scene.duration) { advance(); sceneStart = performance.now(); }
+  // Per-beat duration so autoplay distributes scene.duration across all
+  // beats — used to advance one beat per (scene.duration / beats) ms.
+  const beatDur = scene.duration / Math.max(1, scene.hotspots.length);
+  const sceneElapsed = performance.now() - sceneStart;
+  const beatElapsed  = performance.now() - beatStart;
+  $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
+  if (beatElapsed >= beatDur) {
+    advance(); // advance() resets beatStart (and sceneStart on scene swap)
+  }
   raf = requestAnimationFrame(tickTimer);
 }
 function togglePlay(){
@@ -1712,7 +1776,12 @@ function togglePlay(){
     ? '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>'
     : '<polygon points="6 4 20 12 6 20 6 4"/>';
   toggle.childNodes[toggle.childNodes.length - 1].textContent = playing ? ' Pause' : ' Autoplay';
-  if (playing) { sceneStart = performance.now(); tickTimer(); }
+  if (playing) {
+    // Reset both clocks so autoplay starts cleanly on the current beat.
+    sceneStart = performance.now();
+    beatStart = performance.now();
+    tickTimer();
+  }
   else { cancelAnimationFrame(raf); $('timer').textContent = `00:00 / ${fmt(SCENES[idx].duration)}`; }
 }
 

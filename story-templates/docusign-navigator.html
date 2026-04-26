@@ -598,12 +598,12 @@ const SCENES = [
 ];
 const TOTAL = 28000;
 let t0 = performance.now();
-function render(now){
-  const elapsed = (now - t0) % TOTAL;
-  let active = SCENES[0];
-  for (const s of SCENES) {
-    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
-  }
+// Shell-sync — see message handler at end of file.
+let shellDriven = false;
+
+// Extracted from render() so the postMessage handler can apply a scene
+// directly without going through the time-based selector.
+function applyScene(active){
   const baseId = active.baseScene || active.id;
   document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === baseId));
   document.getElementById('iris-scrim').classList.toggle('on', active.irisOpen);
@@ -615,6 +615,16 @@ function render(now){
   document.getElementById('rail-obligations').classList.toggle('active', active.id === 's2');
   const idx = SCENES.findIndex(s => s.id === active.id);
   document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+}
+
+function render(now){
+  if (shellDriven) { requestAnimationFrame(render); return; }
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) {
+    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
+  }
+  applyScene(active);
   requestAnimationFrame(render);
 }
 
@@ -637,6 +647,24 @@ sel.addEventListener("change", () => {
 });
 
 requestAnimationFrame(render);
+
+/* =============================================================
+   Shell sync — listen for postMessage from story-shell.html parent.
+   tgk:lockToBeat → freeze auto-loop, jump to a named internal scene.
+   tgk:resumeAuto → re-enable the time-based loop with a fresh t0.
+   ============================================================= */
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
+  if (msg.type === "tgk:lockToBeat") {
+    shellDriven = true;
+    const sc = SCENES.find(s => s.id === msg.sceneId);
+    if (sc) applyScene(sc);
+  } else if (msg.type === "tgk:resumeAuto") {
+    shellDriven = false;
+    t0 = performance.now();
+  }
+});
 </script>
 </body>
 </html>

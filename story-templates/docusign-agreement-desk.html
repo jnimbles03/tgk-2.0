@@ -671,6 +671,10 @@ let t0 = performance.now();
 let mode = "auto";          // "auto" | "manual"
 let manualScene = "s1";
 let lastManualInput = 0;
+// When the parent story-shell drives this template via postMessage,
+// shellDriven flips on. Internal click handlers (Send / row / Back / dots)
+// no-op while shellDriven is true so they can't desync from the shell beat.
+let shellDriven = false;
 
 function showScene(id){
   document.querySelectorAll('.scene').forEach(x => x.classList.toggle('on', x.id === id));
@@ -683,6 +687,7 @@ function showScene(id){
   }
 }
 function goManual(id){
+  if (shellDriven) return; // shell controls beat — internal clicks no-op
   mode = "manual";
   manualScene = id;
   lastManualInput = performance.now();
@@ -754,6 +759,34 @@ function presetFromURL(){ const p = new URLSearchParams(location.search).get("pr
 const initial = presetFromURL(); sel.value = initial; applyPreset(initial);
 sel.addEventListener("change", () => { applyPreset(sel.value); history.replaceState(null, "", "?preset=" + sel.value); });
 requestAnimationFrame(render);
+
+/* =============================================================
+   Shell sync — listen for postMessage from story-shell.html parent.
+   tgk:lockToBeat → enter shell-driven mode, jump to a named internal
+   scene, freeze the auto-loop until tgk:resumeAuto arrives.
+   ============================================================= */
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
+  if (msg.type === "tgk:lockToBeat") {
+    shellDriven = true;
+    const sc = SCENES.find(s => s.id === msg.sceneId);
+    if (sc) {
+      manualScene = sc.id;
+      mode = "manual";
+      // Push lastManualInput far into the future so render()'s idle-resume
+      // never fires while shell is driving.
+      lastManualInput = Number.MAX_SAFE_INTEGER;
+      showScene(sc.id);
+    }
+  } else if (msg.type === "tgk:resumeAuto") {
+    shellDriven = false;
+    const sc = SCENES.find(s => s.id === manualScene) || SCENES[0];
+    t0 = performance.now() - sc.at;
+    mode = "auto";
+    lastManualInput = 0;
+  }
+});
 </script>
 </body>
 </html>

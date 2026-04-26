@@ -439,13 +439,13 @@ const SCENES = [
 ];
 const TOTAL = 26000;
 let t0 = performance.now();
+// When the parent story-shell drives this template via postMessage,
+// shellDriven flips on and the auto-loop pauses. tgk:resumeAuto restores it.
+let shellDriven = false;
 
-function render(now){
-  const elapsed = (now - t0) % TOTAL;
-  let active = SCENES[0];
-  for (const s of SCENES) {
-    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
-  }
+// Extracted from render() so the postMessage handler can apply a scene
+// directly without going through the time-based selector.
+function applyScene(active){
   const isPhone = active.frame === "phone";
   document.getElementById("desktop").classList.toggle("dimmed", isPhone);
 
@@ -464,7 +464,16 @@ function render(now){
 
   const dotIdx = SCENES.findIndex(s => s.id === active.id);
   document.querySelectorAll(".scene-dots .d").forEach((d, i) => d.classList.toggle("on", i === dotIdx));
+}
 
+function render(now){
+  if (shellDriven) { requestAnimationFrame(render); return; }
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for (const s of SCENES) {
+    if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
+  }
+  applyScene(active);
   requestAnimationFrame(render);
 }
 
@@ -487,6 +496,24 @@ sel.addEventListener("change", () => {
 });
 
 requestAnimationFrame(render);
+
+/* =============================================================
+   Shell sync — listen for postMessage from story-shell.html parent.
+   tgk:lockToBeat → freeze auto-loop, jump to a named internal scene.
+   tgk:resumeAuto → re-enable the time-based loop with a fresh t0.
+   ============================================================= */
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
+  if (msg.type === "tgk:lockToBeat") {
+    shellDriven = true;
+    const sc = SCENES.find(s => s.id === msg.sceneId);
+    if (sc) applyScene(sc);
+  } else if (msg.type === "tgk:resumeAuto") {
+    shellDriven = false;
+    t0 = performance.now();
+  }
+});
 </script>
 </body>
 </html>

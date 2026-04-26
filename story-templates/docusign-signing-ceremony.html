@@ -522,24 +522,34 @@ const SCENES = [
 ];
 const TOTAL = 28000;
 let t0 = performance.now();
+// Shell-sync — see message handler at end of file.
+let shellDriven = false;
+
+const URL_MAP = {
+  s1: 'mail.google.com/mail/u/0/#inbox/...',
+  s2: 'app.docusign.com/sign/...',
+  s3: 'app.docusign.com/sign/...',
+  s4: 'app.docusign.com/sign/...',
+  s5: 'app.docusign.com/sign/completed'
+};
+
+// Extracted from render() so the postMessage handler can apply a scene
+// directly without going through the time-based selector.
+function applyScene(active){
+  document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === active.id));
+  const idx = SCENES.findIndex(s => s.id === active.id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
+  document.getElementById('br-url').textContent = URL_MAP[active.id] || URL_MAP.s1;
+}
+
 function render(now){
+  if (shellDriven) { requestAnimationFrame(render); return; }
   const elapsed = (now - t0) % TOTAL;
   let active = SCENES[0];
   for (const s of SCENES) {
     if (elapsed >= s.at && elapsed < s.at + s.dur) { active = s; break; }
   }
-  document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === active.id));
-  const idx = SCENES.findIndex(s => s.id === active.id);
-  document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
-  // Swap browser URL per scene
-  const urlMap = {
-    s1: 'mail.google.com/mail/u/0/#inbox/...',
-    s2: 'app.docusign.com/sign/...',
-    s3: 'app.docusign.com/sign/...',
-    s4: 'app.docusign.com/sign/...',
-    s5: 'app.docusign.com/sign/completed'
-  };
-  document.getElementById('br-url').textContent = urlMap[active.id] || urlMap.s1;
+  applyScene(active);
   requestAnimationFrame(render);
 }
 
@@ -562,6 +572,24 @@ sel.addEventListener("change", () => {
 });
 
 requestAnimationFrame(render);
+
+/* =============================================================
+   Shell sync — listen for postMessage from story-shell.html parent.
+   tgk:lockToBeat → freeze auto-loop, jump to a named internal scene.
+   tgk:resumeAuto → re-enable the time-based loop with a fresh t0.
+   ============================================================= */
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
+  if (msg.type === "tgk:lockToBeat") {
+    shellDriven = true;
+    const sc = SCENES.find(s => s.id === msg.sceneId);
+    if (sc) applyScene(sc);
+  } else if (msg.type === "tgk:resumeAuto") {
+    shellDriven = false;
+    t0 = performance.now();
+  }
+});
 </script>
 </body>
 </html>
