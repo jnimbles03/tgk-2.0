@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Docusign IAM demo</title>
+<meta name="description" content="Admin console for TGK 2.0. Re-upload core building-block HTML for live in-browser preview, manage 21 verticals, edit per-vertical hotspots and narration, and watch the feedback inbox. Client-side only — uploads do not modify the deployed files. Download patched files to drop into the Mac repo for canonical changes.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-purple-dark:#3B00BA;
+    --ds-purple-soft:#EEE8FF; --ds-purple-tint:#F5F1FF;
+    --ds-inkwell:#130032;
+    --ds-ecru:#F4EDE0;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ok:#16A34A; --warn:#D97706; --err:#DC2626;
+    --bg:#FAFAF7;
+    --ui:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --editorial:"Fraunces",Georgia,serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{font-family:var(--ui);color:var(--ink);background:var(--bg);font-size:14px;line-height:1.55;}
+  a{color:var(--ds-purple);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  button{font-family:inherit;}
+
+  /* ============== Auth gate ============== */
+  .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+  .gate-card{max-width:380px;width:100%;background:#fff;border:1px solid var(--hair);border-radius:10px;padding:32px 30px;box-shadow:0 1px 3px rgba(19,0,50,0.04);}
+  .gate-card .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--ds-inkwell);margin-bottom:6px;}
+  .gate-card .brand svg{width:22px;height:22px;}
+  .gate-card .editorial{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:24px;color:var(--ink);margin-bottom:8px;line-height:1.2;}
+  .gate-card .sub{font-size:13px;color:var(--ink-soft);margin-bottom:22px;line-height:1.55;}
+  .gate-card label{display:block;font-size:11px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+  .gate-card input{width:100%;padding:10px 12px;border:1px solid var(--hair-strong);border-radius:6px;font-size:14px;font-family:var(--mono);background:#fff;color:var(--ink);}
+  .gate-card input:focus{outline:none;border-color:var(--ds-purple);}
+  .gate-card .err{font-size:12px;color:var(--err);margin-top:8px;min-height:16px;}
+  .gate-card .submit{width:100%;margin-top:14px;padding:11px;border-radius:6px;border:none;background:var(--ds-purple);color:#fff;font-weight:600;font-size:14px;cursor:pointer;}
+  .gate-card .submit:hover{background:var(--ds-purple-dark);}
+
+  /* ============== Layout ============== */
+  .app{display:none;min-height:100vh;}
+  .app.on{display:flex;}
+  .nav{flex-shrink:0;width:240px;border-right:1px solid var(--hair);background:#fff;padding:24px 18px 24px 22px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .nav .brand{display:flex;align-items:center;gap:8px;margin-bottom:18px;font-weight:700;font-size:16px;color:var(--ds-inkwell);}
+  .nav .brand svg{width:20px;height:20px;}
+  .nav .role-tag{font-family:var(--editorial);font-style:italic;font-size:12px;color:var(--ink-soft);font-weight:400;margin-left:auto;}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:5px;font-size:13.5px;color:var(--ink-mid);font-weight:500;cursor:pointer;border:none;background:transparent;text-align:left;width:100%;transition:background 0.12s;}
+  .nav-link:hover{background:var(--ds-purple-tint);color:var(--ink);}
+  .nav-link.on{background:var(--ds-purple-soft);color:var(--ds-purple);font-weight:600;}
+  .nav-link .ic{width:14px;height:14px;flex-shrink:0;color:currentColor;}
+  .nav-foot{margin-top:auto;font-size:11px;color:var(--ink-soft);line-height:1.55;padding-top:16px;border-top:1px solid var(--hair);}
+  .nav-foot a{font-weight:500;}
+
+  .main{flex:1;min-width:0;padding:32px 44px 60px;max-width:1200px;}
+  .page-head{margin-bottom:26px;padding-bottom:22px;border-bottom:1px solid var(--hair);}
+  .page-head .eyebrow{font-size:11px;font-weight:600;color:var(--ds-purple);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;}
+  .page-head h1{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:34px;line-height:1.15;color:var(--ink);letter-spacing:-0.01em;margin-bottom:8px;}
+  .page-head p{font-size:14px;color:var(--ink-mid);max-width:640px;line-height:1.6;}
+
+  .section{display:none;}
+  .section.on{display:block;}
+
+  .card{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:22px 24px;margin-bottom:18px;}
+  .card h3{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px;letter-spacing:-0.005em;}
+  .card .desc{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;line-height:1.55;}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:5px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid var(--hair-strong);background:#fff;color:var(--ink);transition:all 0.12s;}
+  .btn:hover{border-color:var(--ink-mid);}
+  .btn.primary{background:var(--ds-purple);color:#fff;border-color:var(--ds-purple);}
+  .btn.primary:hover{background:var(--ds-purple-dark);border-color:var(--ds-purple-dark);}
+  .btn.danger{color:var(--err);}
+  .btn.danger:hover{border-color:var(--err);}
+  .btn.tiny{padding:4px 9px;font-size:11.5px;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+  /* ============== Building blocks ============== */
+  .blocks{display:flex;flex-direction:column;gap:0;}
+  .block-row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--hair);}
+  .block-row:first-child{border-top:none;padding-top:6px;}
+  .block-meta{min-width:0;}
+  .block-name{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);}
+  .block-sub{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+  .block-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:0.04em;text-transform:uppercase;}
+  .block-status.live{background:#F4F4F5;color:var(--ink-soft);}
+  .block-status.over{background:#FEF3C7;color:#92400E;}
+  .block-status .dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+  .block-actions{display:flex;gap:6px;flex-shrink:0;}
+
+  .upload-zone{margin-top:12px;border:1.5px dashed var(--hair-strong);border-radius:6px;padding:24px;text-align:center;font-size:13px;color:var(--ink-soft);background:#FAFAFA;cursor:pointer;transition:all 0.15s;}
+  .upload-zone:hover, .upload-zone.over{border-color:var(--ds-purple);background:var(--ds-purple-tint);color:var(--ds-purple);}
+  .upload-zone strong{color:var(--ink);font-weight:600;}
+  .upload-zone input{display:none;}
+
+  /* ============== Verticals grid ============== */
+  .filter-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+  .filter-row input[type=search]{flex:1;min-width:240px;padding:8px 12px;border:1px solid var(--hair-strong);border-radius:5px;font-size:13px;font-family:var(--ui);}
+  .filter-row label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-mid);cursor:pointer;}
+  .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .vcard{background:#fff;border:1px solid var(--hair);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:8px;transition:border-color 0.12s;}
+  .vcard:hover{border-color:var(--ink-faint);}
+  .vcard .vmark{display:flex;align-items:center;gap:8px;}
+  .vcard .vmark .swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+  .vcard .vmark .vname{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:18px;color:var(--ink);line-height:1.1;}
+  .vcard .vsub{font-size:12px;color:var(--ink-soft);line-height:1.5;}
+  .vcard .vkey{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:0.02em;margin-top:4px;}
+  .vcard .vfoot{margin-top:auto;padding-top:8px;display:flex;gap:6px;}
+
+  /* ============== Hotspots / narration editor ============== */
+  .editor-head{display:flex;gap:14px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .editor-head select{padding:7px 30px 7px 12px;border:1px solid var(--hair-strong);border-radius:5px;font-size:13px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 5l3 3 3-3' stroke='%2371717A' stroke-width='1.4' fill='none' stroke-linecap='round'/></svg>") no-repeat right 10px center;background-size:12px;-webkit-appearance:none;appearance:none;cursor:pointer;}
+  .scene-tabs{display:flex;gap:0;border-bottom:1px solid var(--hair);margin-bottom:18px;}
+  .scene-tab{padding:8px 16px;font-size:12.5px;font-weight:500;color:var(--ink-soft);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .scene-tab:hover{color:var(--ink);}
+  .scene-tab.on{color:var(--ds-purple);border-bottom-color:var(--ds-purple);font-weight:600;}
+  .beat-editor{border:1px solid var(--hair);border-radius:6px;padding:14px 16px;margin-bottom:10px;background:#fff;}
+  .beat-editor .beat-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .beat-editor .beat-num{width:22px;height:22px;border-radius:50%;background:var(--ds-purple-soft);color:var(--ds-purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .beat-editor .beat-label{font-size:11px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.08em;}
+  .field{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:start;margin-bottom:7px;}
+  .field > label{font-size:11px;color:var(--ink-soft);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;padding-top:6px;}
+  .field input, .field textarea{width:100%;padding:6px 10px;border:1px solid var(--hair);border-radius:4px;font-size:12.5px;font-family:var(--ui);color:var(--ink);background:#fff;}
+  .field input:focus, .field textarea:focus{outline:none;border-color:var(--ds-purple);}
+  .field textarea{font-family:var(--mono);font-size:12px;line-height:1.55;min-height:60px;resize:vertical;}
+  .field .row{display:flex;gap:6px;}
+  .field .row input{flex:1;}
+  .field .narrow{max-width:100px;}
+  .editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:18px;border-top:1px solid var(--hair);}
+  .save-status{font-size:12px;color:var(--ok);font-weight:500;align-self:center;margin-left:auto;opacity:0;transition:opacity 0.2s;}
+  .save-status.on{opacity:1;}
+
+  /* ============== Inventory ============== */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+  .stat{background:#fff;border:1px solid var(--hair);border-radius:6px;padding:14px 16px;}
+  .stat .num{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:32px;color:var(--ink);line-height:1;letter-spacing:-0.02em;}
+  .stat .lbl{font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;margin-top:6px;}
+
+  .feedback-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--hair);}
+  .feedback-row{display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:12px 0;border-bottom:1px solid var(--hair);align-items:start;}
+  .feedback-row .ts{font-family:var(--mono);font-size:11px;color:var(--ink-soft);}
+  .feedback-row .body{font-size:13px;color:var(--ink);line-height:1.5;}
+  .feedback-row .body .meta{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+  .feedback-row .actions{text-align:right;}
+  .empty{padding:24px;text-align:center;color:var(--ink-soft);font-size:13px;}
+
+  .reset-zone{background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:16px 18px;margin-top:24px;}
+  .reset-zone h4{font-size:13px;font-weight:600;color:#9A3412;margin-bottom:4px;}
+  .reset-zone p{font-size:12px;color:#7C2D12;margin-bottom:10px;line-height:1.55;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ds-inkwell);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(19,0,50,0.25);opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:100;}
+  .toast.on{opacity:1;}
+  .toast.err{background:var(--err);}
+
+  @media (max-width:840px){
+    .app.on{flex-direction:column;}
+    .nav{position:static;width:100%;height:auto;flex-direction:row;flex-wrap:wrap;gap:6px;padding:12px 14px;}
+    .nav .brand{margin-right:auto;margin-bottom:0;}
+    .nav-link{flex:0 0 auto;font-size:12px;padding:6px 10px;}
+    .nav-foot{display:none;}
+    .main{padding:22px 18px 60px;}
+    .page-head h1{font-size:26px;}
+    .field{grid-template-columns:1fr;gap:4px;}
+    .field > label{padding-top:0;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== Soft auth gate ============== -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+      docusign
+    </div>
+    <div class="editorial">Admin console.</div>
+    <div class="sub">Soft-gated — this is a stop-casual-stumblers token, not real auth. The TGK 2.0 demo site is all public mock content; treat anything sensitive accordingly.</div>
+    <label for="tok">Admin token</label>
+    <input type="password" id="tok" autofocus autocomplete="off" placeholder="">
+    <div class="err" id="gate-err"></div>
+    <button class="submit" id="gate-submit">Enter</button>
+  </div>
+</div>
+
+<!-- ============== Main app ============== -->
+<div class="app" id="app">
+  <nav class="nav">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2" fill="#4B00E9"/><path d="M8 3A8 4 0 0 1 8 11Z" fill="#FF5252"/><path d="M7 7h5l3 2.5V17H7z" fill="#fff"/></svg>
+      Admin <span class="role-tag">console</span>
+    </div>
+    <button class="nav-link on" data-section="blocks">
+      <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>
+      Building blocks
+    </button>
+    <button class="nav-link" data-section="verticals">
+      <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+      Verticals
+    </button>
+    <button class="nav-link" data-section="editor">
+      <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 11l6-6 2 2-6 6H3v-2zM9 5l2-2 2 2-2 2"/></svg>
+      Hotspots &amp; narration
+    </button>
+    <button class="nav-link" data-section="inventory">
+      <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 1.5"/></svg>
+      Inventory &amp; feedback
+    </button>
+    <div class="nav-foot">
+      <p style="margin-bottom:6px;">Client-side only. Uploads stay in this browser; re-deploy via the Mac repo.</p>
+      <a href="/" target="_blank">View site →</a> · <a href="#" id="signout">Sign out</a>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ============== Building blocks ============== -->
+    <section class="section on" data-section="blocks">
+      <div class="page-head">
+        <div class="eyebrow">Section 01 · core</div>
+        <h1>The six pieces every vertical inherits.</h1>
+        <p>Five scene templates and the shared shell. Drop a new HTML file onto a slot and it overrides the live deploy <em>for this browser only</em>. Open any vertical in a new tab to preview the override in context. To make a change canonical, download the file and drop it into the Mac repo — that's the only path that flows to GitHub and Replit.</p>
+      </div>
+
+      <div class="card">
+        <h3>Override slots</h3>
+        <div class="desc">Drag-and-drop or click to upload. Each override is held in IndexedDB and is bypassed if you append <code style="font-family:var(--mono);font-size:11.5px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">?nooverride=1</code> to any vertical URL.</div>
+        <div class="blocks" id="blocks-list"></div>
+        <div class="upload-zone" id="upload-zone">
+          <strong>Drop any building block HTML here</strong><br>
+          <span style="font-size:12px;">Filename must match one of the six slots above</span>
+          <input type="file" id="upload-input" accept=".html,text/html" multiple>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Quick preview</h3>
+        <div class="desc">Open the wealth vertical with current overrides applied.</div>
+        <div class="btn-row">
+          <a class="btn primary" href="/stories/story-wealth/" target="_blank">Open wealth ↗</a>
+          <a class="btn" href="/stories/story-wealth/?splash=1" target="_blank">+ splash</a>
+          <a class="btn" href="/stories/story-wealth/?calibrate=1" target="_blank">+ calibrate</a>
+          <a class="btn" href="/stories/story-wealth/?nooverride=1" target="_blank">Bypass overrides</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== Verticals ============== -->
+    <section class="section" data-section="verticals">
+      <div class="page-head">
+        <div class="eyebrow">Section 02 · catalog</div>
+        <h1>Every story, one click away.</h1>
+        <p>All verticals registered in <code style="font-family:var(--mono);font-size:12px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">story-shell.html</code>. Filter by name, toggle splash and calibrate, and copy a deep link to any scene.</p>
+      </div>
+
+      <div class="filter-row">
+        <input type="search" id="v-search" placeholder="Filter by name, tenant, customer, or key…">
+        <label><input type="checkbox" id="v-splash"> splash=1</label>
+        <label><input type="checkbox" id="v-calibrate"> calibrate=1</label>
+        <select id="v-scene" style="padding:7px 30px 7px 12px;border:1px solid var(--hair-strong);border-radius:5px;font-size:13px;background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer;">
+          <option value="">All scenes</option>
+          <option value="0">Scene 1 — Sender</option>
+          <option value="1">Scene 2 — Identity</option>
+          <option value="2">Scene 3 — Signing</option>
+          <option value="3">Scene 4 — Data</option>
+          <option value="4">Scene 5 — Workspace</option>
+        </select>
+      </div>
+
+      <div class="vgrid" id="vgrid"></div>
+    </section>
+
+    <!-- ============== Hotspots & narration editor ============== -->
+    <section class="section" data-section="editor">
+      <div class="page-head">
+        <div class="eyebrow">Section 03 · narration</div>
+        <h1>Edit hotspots and beat copy without touching the shell.</h1>
+        <p>Pick a vertical and a scene; edit the per-beat headline, lede, and hotspot coordinates. Save writes to localStorage and the shell picks it up on next load. Export gives you a JS block you can paste into <code style="font-family:var(--mono);font-size:12px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">story-shell.html</code> when you're ready to make it canonical.</p>
+      </div>
+
+      <div class="editor-head">
+        <select id="ed-vertical"></select>
+        <button class="btn tiny" id="ed-open" type="button">Open in new tab ↗</button>
+        <span class="save-status" id="ed-saved">Saved</span>
+      </div>
+
+      <div class="scene-tabs" id="ed-scene-tabs">
+        <button class="scene-tab on" data-scene="0">Scene 1 · Sender</button>
+        <button class="scene-tab" data-scene="1">Scene 2 · Identity</button>
+        <button class="scene-tab" data-scene="2">Scene 3 · Signing</button>
+        <button class="scene-tab" data-scene="3">Scene 4 · Data</button>
+        <button class="scene-tab" data-scene="4">Scene 5 · Workspace</button>
+      </div>
+
+      <div id="ed-beats"></div>
+
+      <div class="editor-actions">
+        <button class="btn primary" id="ed-save">Save override</button>
+        <button class="btn" id="ed-export-narr">Copy narration JS</button>
+        <button class="btn" id="ed-export-hot">Copy hotspots JS</button>
+        <button class="btn danger" id="ed-reset">Reset this vertical/scene</button>
+      </div>
+    </section>
+
+    <!-- ============== Inventory + feedback ============== -->
+    <section class="section" data-section="inventory">
+      <div class="page-head">
+        <div class="eyebrow">Section 04 · pulse</div>
+        <h1>What's deployed, what's been said.</h1>
+        <p>Live counts for the canonical site state, plus the feedback inbox pulled from the public read-only endpoint. Updates are best-effort — if a fetch fails, the site is still up; the admin page just can't reach the file or the API.</p>
+      </div>
+
+      <div class="card">
+        <h3>Site state</h3>
+        <div class="desc">Pulled from <code style="font-family:var(--mono);font-size:11.5px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">CANONICAL.md</code> on each refresh.</div>
+        <div class="stat-grid" id="stats"></div>
+        <div class="btn-row">
+          <button class="btn tiny" id="refresh-stats">Refresh</button>
+          <a class="btn tiny" href="/CANONICAL.md" target="_blank">View CANONICAL.md ↗</a>
+          <a class="btn tiny" href="/REGISTRY.md" target="_blank">REGISTRY.md ↗</a>
+          <a class="btn tiny" href="/VERTICAL_PORTALS.md" target="_blank">VERTICAL_PORTALS.md ↗</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Feedback inbox</h3>
+        <div class="desc">Public read-only feed at <code style="font-family:var(--mono);font-size:11.5px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">/api/feedback/public-<span id="slug-readout">a7k9-mpx2-4wnz-r3dh</span></code>. CORS-open, PII stripped.</div>
+        <div class="filter-row" style="margin-bottom:14px;">
+          <input type="search" id="fb-slug" placeholder="Override slug" style="flex:0 0 280px;font-family:var(--mono);font-size:12px;">
+          <button class="btn tiny" id="refresh-fb">Refresh</button>
+        </div>
+        <div class="feedback-list" id="fb-list">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+
+      <div class="reset-zone">
+        <h4>Reset all admin state</h4>
+        <p>Clears every uploaded HTML override (IndexedDB) and every saved narration / hotspot edit (localStorage). Does not touch the deployed files. Use when you want a clean slate before previewing what visitors will see.</p>
+        <button class="btn danger" id="nuke">Clear browser overrides</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Soft gate. Token is a known constant — change ADMIN_TOKEN below
+   to rotate. URL ?key=... auto-unlocks; localStorage keeps state.
+   ========================================================= */
+const ADMIN_TOKEN = "tgk-admin-2026";
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+
+function unlock(){
+  localStorage.setItem("tgkAdminAuth", "1");
+  $('gate').style.display = "none";
+  $('app').classList.add("on");
+  init();
+}
+function tryGate(){
+  if (localStorage.getItem("tgkAdminAuth") === "1") return unlock();
+  if (params.get("key") === ADMIN_TOKEN) return unlock();
+}
+$('gate-submit').addEventListener('click', () => {
+  const v = $('tok').value.trim();
+  if (v === ADMIN_TOKEN) unlock();
+  else $('gate-err').textContent = "That's not the token.";
+});
+$('tok').addEventListener('keydown', (e) => { if (e.key === "Enter") $('gate-submit').click(); });
+$('signout').addEventListener('click', (e) => {
+  e.preventDefault();
+  localStorage.removeItem("tgkAdminAuth");
+  location.reload();
+});
+
+/* =========================================================
+   Section nav
+   ========================================================= */
+document.querySelectorAll('.nav-link').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    const key = b.dataset.section;
+    document.querySelectorAll('.section').forEach(s => s.classList.toggle('on', s.dataset.section === key));
+    history.replaceState(null, '', '#' + key);
+  });
+});
+if (location.hash) {
+  const target = location.hash.replace('#','');
+  const link = document.querySelector(`.nav-link[data-section="${target}"]`);
+  if (link) link.click();
+}
+
+/* =========================================================
+   Toast
+   ========================================================= */
+function toast(msg, isErr){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+/* =========================================================
+   IndexedDB helpers — same store the shell reads from
+   ========================================================= */
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("tgk-admin", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("templates", {keyPath:"name"});
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbList(){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("templates", "readonly");
+    const req = tx.objectStore("templates").getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbPut(name, content){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("templates", "readwrite");
+    tx.objectStore("templates").put({name, content, uploadedAt: Date.now(), bytes: content.length});
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbDelete(name){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("templates", "readwrite");
+    tx.objectStore("templates").delete(name);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbClear(){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("templates", "readwrite");
+    tx.objectStore("templates").clear();
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* =========================================================
+   Building blocks list
+   ========================================================= */
+const BLOCKS = [
+  {file: "docusign-agreement-desk.html",     scene: "Scene 1 · Sender",    path: "/story-templates/docusign-agreement-desk.html"},
+  {file: "docusign-clear-idv.html",          scene: "Scene 2 · Identity",  path: "/story-templates/docusign-clear-idv.html"},
+  {file: "docusign-signing-ceremony.html",   scene: "Scene 3 · Signing",   path: "/story-templates/docusign-signing-ceremony.html"},
+  {file: "docusign-navigator.html",          scene: "Scene 4 · Data",      path: "/story-templates/docusign-navigator.html"},
+  {file: "docusign-workspace.html",          scene: "Scene 5 · Workspace", path: "/story-templates/docusign-workspace.html"},
+  {file: "story-shell.html",                 scene: "Shell · narration + hotspot orchestrator", path: "/stories/_shared/story-shell.html"}
+];
+
+async function renderBlocks(){
+  const list = $('blocks-list');
+  const overrides = await idbList();
+  const overrideMap = {};
+  overrides.forEach(o => overrideMap[o.name] = o);
+  list.innerHTML = "";
+  BLOCKS.forEach(b => {
+    const ov = overrideMap[b.file];
+    const row = document.createElement('div');
+    row.className = 'block-row';
+    row.innerHTML = `
+      <div class="block-meta">
+        <div class="block-name">${b.file}</div>
+        <div class="block-sub">${b.scene}${ov ? ` · ${(ov.bytes/1024).toFixed(1)} KB · uploaded ${timeAgo(ov.uploadedAt)}` : ''}</div>
+      </div>
+      <span class="block-status ${ov ? 'over' : 'live'}"><span class="dot"></span>${ov ? 'Override' : 'Live'}</span>
+      <div class="block-actions">
+        <button class="btn tiny" data-act="upload" data-file="${b.file}">Upload</button>
+        ${ov ? `<button class="btn tiny" data-act="download" data-file="${b.file}">Download</button>` : ''}
+        ${ov ? `<button class="btn tiny danger" data-act="clear" data-file="${b.file}">Clear</button>` : ''}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('button[data-act]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const file = btn.dataset.file;
+      if (btn.dataset.act === 'upload') triggerSlotUpload(file);
+      else if (btn.dataset.act === 'clear') {
+        await idbDelete(file);
+        toast(`Cleared override: ${file}`);
+        renderBlocks();
+      } else if (btn.dataset.act === 'download') {
+        const all = await idbList();
+        const r = all.find(x => x.name === file);
+        if (!r) return;
+        const blob = new Blob([r.content], {type:'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = file; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    });
+  });
+}
+function triggerSlotUpload(file){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.html,text/html';
+  inp.onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const text = await f.text();
+    await idbPut(file, text);
+    toast(`Uploaded ${file} (${(text.length/1024).toFixed(1)} KB)`);
+    renderBlocks();
+  };
+  inp.click();
+}
+function timeAgo(ts){
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+const dropZone = $('upload-zone');
+const fileInput = $('upload-input');
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', async (e) => {
+  for (const f of e.target.files) await ingestFile(f);
+  e.target.value = "";
+});
+['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('over'); }));
+dropZone.addEventListener('drop', async (e) => {
+  for (const f of e.dataTransfer.files) await ingestFile(f);
+});
+async function ingestFile(f){
+  const known = BLOCKS.find(b => b.file === f.name);
+  if (!known) {
+    toast(`Filename must match a slot: ${f.name}`, true);
+    return;
+  }
+  const text = await f.text();
+  await idbPut(f.name, text);
+  toast(`Uploaded ${f.name} (${(text.length/1024).toFixed(1)} KB)`);
+  renderBlocks();
+}
+
+/* =========================================================
+   Verticals — extracted live from story-shell.html VERTICALS map
+   so this list stays in sync with the canonical source.
+   ========================================================= */
+let VERTICALS_DATA = null;
+let HOTSPOTS_DATA = null;
+
+async function loadShellData(){
+  if (VERTICALS_DATA && HOTSPOTS_DATA) return;
+  try {
+    const html = await fetch('/stories/_shared/story-shell.html', {cache:'no-store'}).then(r => r.text());
+    /* Regex extraction. The shell's literals are stable enough that this is OK;
+       if either stops parsing we surface a clear error instead of crashing. */
+    VERTICALS_DATA = extractVerticals(html);
+    HOTSPOTS_DATA = extractHotspots(html);
+  } catch (e) {
+    console.error("Failed to load shell data", e);
+    toast("Couldn't load story-shell.html — using empty defaults.", true);
+    VERTICALS_DATA = {};
+    HOTSPOTS_DATA = {};
+  }
+}
+function extractVerticals(html){
+  /* Find the text from `const VERTICALS = {` through the matching closing brace
+     by counting braces. Then walk it for top-level keys + their meta fields. */
+  const start = html.indexOf("const VERTICALS = {");
+  if (start === -1) return {};
+  let i = html.indexOf("{", start);
+  let depth = 0, end = -1;
+  for (; i < html.length; i++){
+    if (html[i] === "{") depth++;
+    else if (html[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  const body = html.slice(start, end + 1);
+  const out = {};
+  /* Match each top-level entry: key: { ... } or "hyphen-key": { ... }
+     The shell uses bareword keys for the original 10 (wealth, banking, …)
+     and quoted keys for the 11 split-out entries ("insurance-life", "slgov-311", …). */
+  const keyRe = /(?:"([\w-]+)"|(\w+)):\s*\{/g;
+  let m;
+  while ((m = keyRe.exec(body)) !== null){
+    /* Only count keys at depth 1 inside the outer VERTICALS literal — approximate
+       by requiring the preceding non-space char to be "{" or ",". */
+    const before = body.slice(Math.max(0, m.index - 40), m.index);
+    if (!/[,{]\s*$/.test(before)) continue;
+    const key = m[1] || m[2];
+    /* Find matching close for this entry */
+    let d = 1, j = m.index + m[0].length;
+    for (; j < body.length; j++){
+      if (body[j] === "{") d++;
+      else if (body[j] === "}") { d--; if (d === 0) break; }
+    }
+    const block = body.slice(m.index, j + 1);
+    const label    = (block.match(/label:\s*"([^"]*)"/)        || [])[1] || key;
+    const tenant   = (block.match(/tenant:\s*"([^"]*)"/)       || [])[1] || "";
+    const subtitle = (block.match(/subtitle:\s*"([^"]*)"/)     || [])[1] || "";
+    const color    = (block.match(/tenantColor:\s*"([^"]*)"/)  || [])[1] || "#71717A";
+    const preset   = (block.match(/preset:\s*"([^"]*)"/)       || [])[1] || key;
+    out[key] = { key, label, tenant, subtitle, tenantColor: color, preset, block };
+  }
+  return out;
+}
+function extractHotspots(html){
+  const start = html.indexOf("const HOTSPOTS = {");
+  if (start === -1) return {};
+  let i = html.indexOf("{", start);
+  let depth = 0, end = -1;
+  for (; i < html.length; i++){
+    if (html[i] === "{") depth++;
+    else if (html[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  const body = html.slice(start, end + 1);
+  const out = {};
+  ["agreement_desk","clear_idv","signing","navigator","workspace"].forEach(key => {
+    const re = new RegExp(key + ":\\s*\\[([\\s\\S]*?)\\]", "m");
+    const m = body.match(re);
+    if (!m) return;
+    const arr = [];
+    /* Walk objects in the array */
+    const objRe = /\{([^}]*)\}/g;
+    let mm;
+    while ((mm = objRe.exec(m[1])) !== null){
+      const o = mm[1];
+      arr.push({
+        x:    (o.match(/x:\s*"([^"]*)"/)    || [])[1] || "50%",
+        y:    (o.match(/y:\s*"([^"]*)"/)    || [])[1] || "50%",
+        tip:  (o.match(/tip:\s*"([^"]*)"/)  || [])[1] || "",
+        sub:  (o.match(/sub:\s*"([^"]*)"/)  || [])[1] || "",
+        side: (o.match(/side:\s*"([^"]*)"/) || [])[1] || "right",
+      });
+    }
+    out[key] = arr;
+  });
+  return out;
+}
+
+async function renderVerticals(){
+  await loadShellData();
+  const grid = $('vgrid');
+  const search = ($('v-search').value || "").toLowerCase().trim();
+  const splash = $('v-splash').checked;
+  const calibrate = $('v-calibrate').checked;
+  const scene = $('v-scene').value;
+
+  const items = Object.values(VERTICALS_DATA).filter(v => {
+    if (!search) return true;
+    return [v.key, v.label, v.tenant, v.subtitle].join(" ").toLowerCase().includes(search);
+  }).sort((a,b) => a.label.localeCompare(b.label));
+
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty">No verticals match "${search}"</div>`;
+    return;
+  }
+  grid.innerHTML = items.map(v => {
+    const qs = new URLSearchParams();
+    if (splash) qs.set("splash","1");
+    if (calibrate) qs.set("calibrate","1");
+    if (scene) qs.set("scene", scene);
+    const q = qs.toString();
+    const path = `/stories/story-${v.key}/${q ? '?' + q : ''}`;
+    return `
+      <div class="vcard">
+        <div class="vmark"><div class="swatch" style="background:${v.tenantColor};"></div><div class="vname">${v.tenant || v.label}</div></div>
+        <div class="vsub">${v.subtitle || '—'}</div>
+        <div class="vkey">${v.key}</div>
+        <div class="vfoot">
+          <a class="btn tiny primary" href="${path}" target="_blank">Open ↗</a>
+          <button class="btn tiny" data-copy="${path}">Copy URL</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+  grid.querySelectorAll('button[data-copy]').forEach(b => {
+    b.addEventListener('click', () => {
+      const url = location.origin + b.dataset.copy;
+      navigator.clipboard.writeText(url).then(() => toast("URL copied"));
+    });
+  });
+}
+['v-search','v-splash','v-calibrate','v-scene'].forEach(id => {
+  $(id).addEventListener('input', renderVerticals);
+  $(id).addEventListener('change', renderVerticals);
+});
+
+/* =========================================================
+   Hotspots & narration editor
+   ========================================================= */
+let edState = { vertical: null, scene: 0 };
+
+async function renderEditor(){
+  await loadShellData();
+  const sel = $('ed-vertical');
+  if (!sel.children.length) {
+    sel.innerHTML = Object.values(VERTICALS_DATA)
+      .sort((a,b) => a.label.localeCompare(b.label))
+      .map(v => `<option value="${v.key}">${v.tenant || v.label} — ${v.subtitle || v.key}</option>`)
+      .join("");
+    sel.value = "wealth";
+    edState.vertical = "wealth";
+    sel.addEventListener('change', () => { edState.vertical = sel.value; renderBeats(); });
+  }
+  document.querySelectorAll('#ed-scene-tabs .scene-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('#ed-scene-tabs .scene-tab').forEach(x => x.classList.remove('on'));
+      t.classList.add('on');
+      edState.scene = parseInt(t.dataset.scene, 10);
+      renderBeats();
+    });
+  });
+  $('ed-open').onclick = () => window.open(`/stories/story-${edState.vertical}/`, '_blank');
+  $('ed-save').onclick = saveEditor;
+  $('ed-reset').onclick = resetEditor;
+  $('ed-export-narr').onclick = () => exportNarration(edState.vertical);
+  $('ed-export-hot').onclick = () => exportHotspotsJS();
+  renderBeats();
+}
+
+function getBaseline(){
+  /* Return the current state to edit — applying any saved override on top of
+     the parsed baseline. */
+  const vKey = edState.vertical;
+  const sceneIdx = edState.scene;
+  const sceneKey = ["agreement_desk","clear_idv","signing","navigator","workspace"][sceneIdx];
+
+  const verticalRaw = VERTICALS_DATA[vKey];
+  if (!verticalRaw) return null;
+
+  /* Pull current scene's beats from the raw block via regex (best-effort) */
+  const scenesMatch = verticalRaw.block.match(/scenes:\s*\[([\s\S]*)\]\s*\}\s*\}?\s*$/);
+  let beats = [];
+  if (scenesMatch) {
+    /* Split the scenes array into top-level scene objects */
+    const scenes = splitTopLevelObjects(scenesMatch[1]);
+    const sceneStr = scenes[sceneIdx] || "";
+    const beatsBlock = sceneStr.match(/beats:\s*\[([\s\S]*)\]/);
+    if (beatsBlock) {
+      const beatStrs = splitTopLevelObjects(beatsBlock[1]);
+      beats = beatStrs.map(s => ({
+        head: extractField(s, "head") || "",
+        lede: extractField(s, "lede") || "",
+      }));
+    }
+  }
+
+  /* Apply localStorage overrides on top */
+  try {
+    const ov = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+    if (ov[vKey] && ov[vKey].scenes && ov[vKey].scenes[sceneIdx] && ov[vKey].scenes[sceneIdx].beats) {
+      ov[vKey].scenes[sceneIdx].beats.forEach((b, j) => {
+        beats[j] = {head: b.head ?? beats[j]?.head ?? "", lede: b.lede ?? beats[j]?.lede ?? ""};
+      });
+    }
+  } catch(e){}
+
+  /* Hotspots — start from parsed, apply localStorage overrides */
+  let hotspots = (HOTSPOTS_DATA[sceneKey] || []).map(h => ({...h}));
+  try {
+    const oh = JSON.parse(localStorage.getItem("tgkAdmin.hotspots") || "{}");
+    if (oh[sceneKey]) hotspots = oh[sceneKey].map(h => ({...h}));
+  } catch(e){}
+
+  return { sceneKey, beats, hotspots };
+}
+
+function splitTopLevelObjects(str){
+  /* Split a JS array body into balanced { … } chunks at depth 1. */
+  const out = [];
+  let depth = 0, start = -1;
+  for (let i = 0; i < str.length; i++){
+    if (str[i] === "{") { if (depth === 0) start = i; depth++; }
+    else if (str[i] === "}") { depth--; if (depth === 0 && start !== -1) { out.push(str.slice(start, i + 1)); start = -1; } }
+  }
+  return out;
+}
+function extractField(block, name){
+  /* Capture either "..." or `...` value following name: */
+  const reD = new RegExp(name + ":\\s*\"((?:\\\\.|[^\"\\\\])*)\"");
+  const reB = new RegExp(name + ":\\s*`((?:\\\\.|[^`\\\\])*)`");
+  return (block.match(reD) || block.match(reB) || [])[1] || "";
+}
+
+function renderBeats(){
+  const data = getBaseline();
+  const wrap = $('ed-beats');
+  if (!data) { wrap.innerHTML = `<div class="empty">No data for that vertical.</div>`; return; }
+  wrap.innerHTML = data.hotspots.map((h, idx) => {
+    const beat = data.beats[idx] || {head:"", lede:""};
+    const ledeUnescaped = (beat.lede || "").replace(/\\n/g, "\n");
+    return `
+      <div class="beat-editor" data-beat="${idx}">
+        <div class="beat-head"><div class="beat-num">${idx+1}</div><div class="beat-label">Beat ${idx+1}</div></div>
+        <div class="field"><label>Head</label><input type="text" data-k="head" value="${escapeAttr(beat.head)}"></div>
+        <div class="field"><label>Lede</label><textarea data-k="lede">${escapeText(ledeUnescaped)}</textarea></div>
+        <div class="field">
+          <label>Hotspot</label>
+          <div class="row">
+            <input type="text" class="narrow" data-k="x" value="${escapeAttr(h.x)}" placeholder="x %">
+            <input type="text" class="narrow" data-k="y" value="${escapeAttr(h.y)}" placeholder="y %">
+            <select data-k="side" style="width:90px;padding:6px 22px 6px 10px;border:1px solid var(--hair);border-radius:4px;font-size:12px;-webkit-appearance:none;appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 12 12&#39;><path d=&#39;M3 5l3 3 3-3&#39; stroke=&#39;%2371717A&#39; stroke-width=&#39;1.4&#39; fill=&#39;none&#39;/></svg>') no-repeat right 8px center;">
+              ${["right","left","top","bottom"].map(s => `<option value="${s}" ${h.side===s?"selected":""}>${s}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Tip</label><input type="text" data-k="tip" value="${escapeAttr(h.tip)}"></div>
+        <div class="field"><label>Sub</label><input type="text" data-k="sub" value="${escapeAttr(h.sub)}"></div>
+      </div>
+    `;
+  }).join("");
+}
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function escapeText(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function readBeatsFromForm(){
+  const sceneIdx = edState.scene;
+  const sceneKey = ["agreement_desk","clear_idv","signing","navigator","workspace"][sceneIdx];
+  const beats = [];
+  const hotspots = [];
+  document.querySelectorAll('#ed-beats .beat-editor').forEach((el, idx) => {
+    const f = (k) => el.querySelector(`[data-k="${k}"]`).value;
+    beats.push({ head: f("head"), lede: f("lede") });
+    hotspots.push({
+      x: f("x"), y: f("y"), tip: f("tip"), sub: f("sub"), side: f("side"),
+    });
+  });
+  return { sceneKey, sceneIdx, beats, hotspots };
+}
+function saveEditor(){
+  const { sceneKey, sceneIdx, beats, hotspots } = readBeatsFromForm();
+  /* Merge into existing localStorage payloads */
+  const vOv = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+  vOv[edState.vertical] = vOv[edState.vertical] || {};
+  vOv[edState.vertical].scenes = vOv[edState.vertical].scenes || [];
+  vOv[edState.vertical].scenes[sceneIdx] = vOv[edState.vertical].scenes[sceneIdx] || {};
+  vOv[edState.vertical].scenes[sceneIdx].beats = beats;
+  localStorage.setItem("tgkAdmin.verticals", JSON.stringify(vOv));
+
+  const hOv = JSON.parse(localStorage.getItem("tgkAdmin.hotspots") || "{}");
+  hOv[sceneKey] = hotspots;
+  localStorage.setItem("tgkAdmin.hotspots", JSON.stringify(hOv));
+
+  $('ed-saved').classList.add('on');
+  setTimeout(() => $('ed-saved').classList.remove('on'), 1400);
+  toast("Saved override — open the vertical to preview");
+}
+function resetEditor(){
+  if (!confirm(`Reset overrides for ${edState.vertical} scene ${edState.scene+1}? Other scenes/verticals untouched.`)) return;
+  const sceneKey = ["agreement_desk","clear_idv","signing","navigator","workspace"][edState.scene];
+  const vOv = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+  if (vOv[edState.vertical] && vOv[edState.vertical].scenes) {
+    delete vOv[edState.vertical].scenes[edState.scene];
+  }
+  localStorage.setItem("tgkAdmin.verticals", JSON.stringify(vOv));
+
+  const hOv = JSON.parse(localStorage.getItem("tgkAdmin.hotspots") || "{}");
+  delete hOv[sceneKey];
+  localStorage.setItem("tgkAdmin.hotspots", JSON.stringify(hOv));
+
+  toast("Reset — reloading editor");
+  renderBeats();
+}
+function exportNarration(){
+  const { sceneIdx, beats } = readBeatsFromForm();
+  const code = `/* Paste into VERTICALS.${edState.vertical}.scenes[${sceneIdx}].beats */\n` +
+    `beats: [\n` +
+    beats.map(b => `  {head: ${JSON.stringify(b.head)}, lede: \`${b.lede.replace(/`/g,'\\`')}\`}`).join(",\n") +
+    `\n]`;
+  navigator.clipboard.writeText(code).then(() => toast("Narration JS copied"));
+}
+function exportHotspotsJS(){
+  const { sceneKey, hotspots } = readBeatsFromForm();
+  const code = `/* Paste into HOTSPOTS.${sceneKey} */\n` +
+    `${sceneKey}: [\n` +
+    hotspots.map(h =>
+      `  {x:"${h.x}", y:"${h.y}", tip:${JSON.stringify(h.tip)}, sub:${JSON.stringify(h.sub)}, side:"${h.side}"}`
+    ).join(",\n") +
+    `\n]`;
+  navigator.clipboard.writeText(code).then(() => toast("Hotspot JS copied"));
+}
+
+/* =========================================================
+   Inventory & feedback
+   ========================================================= */
+async function renderStats(){
+  const wrap = $('stats');
+  wrap.innerHTML = `<div class="stat"><div class="num">…</div><div class="lbl">Loading</div></div>`;
+  let canon = "";
+  try { canon = await fetch('/CANONICAL.md', {cache:'no-store'}).then(r => r.text()); } catch(e){}
+
+  const verticalCount = Object.keys(VERTICALS_DATA || {}).length;
+  const samplerCount  = (canon.match(/\| `[a-z-]+\.html` \|/g) || []).length;
+  const csCount       = (canon.match(/\bcurrent-state\/ (\d+)/) || [])[1] || "—";
+  const fsCount       = (canon.match(/\bfuture-state\/ (\d+)/) || [])[1] || "—";
+  const overrideCount = (await idbList()).length;
+  const editsCount    = (() => {
+    try {
+      const v = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+      const h = JSON.parse(localStorage.getItem("tgkAdmin.hotspots") || "{}");
+      return Object.keys(v).length + Object.keys(h).length;
+    } catch(e){ return 0; }
+  })();
+
+  wrap.innerHTML = [
+    [verticalCount || "21", "Verticals"],
+    [samplerCount  || "12", "Samplers"],
+    [csCount,                "Current-state"],
+    [fsCount,                "Future-state"],
+    [overrideCount,          "HTML overrides"],
+    [editsCount,             "Narration edits"],
+  ].map(([n,l]) => `<div class="stat"><div class="num">${n}</div><div class="lbl">${l}</div></div>`).join("");
+}
+$('refresh-stats').addEventListener('click', renderStats);
+
+async function renderFeedback(){
+  const list = $('fb-list');
+  list.innerHTML = `<div class="empty">Loading…</div>`;
+  const slug = ($('fb-slug').value || "").trim() || "a7k9-mpx2-4wnz-r3dh";
+  $('slug-readout').textContent = slug;
+  try {
+    const data = await fetch(`/api/feedback/public-${slug}`, {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject(r.status));
+    const items = Array.isArray(data) ? data : (data.items || data.entries || []);
+    if (!items.length) { list.innerHTML = `<div class="empty">No feedback yet.</div>`; return; }
+    list.innerHTML = items.map(it => {
+      const ts = it.timestamp || it.createdAt || it.created_at || it.ts || "";
+      const tsLabel = ts ? new Date(ts).toLocaleString() : "—";
+      const text = it.message || it.text || it.body || it.feedback || JSON.stringify(it);
+      const meta = [it.vertical, it.scene, it.path].filter(Boolean).join(" · ");
+      return `
+        <div class="feedback-row">
+          <div class="ts">${tsLabel}</div>
+          <div class="body">${escapeText(text)}${meta ? `<div class="meta">${escapeText(meta)}</div>` : ''}</div>
+          <div class="actions"><button class="btn tiny" data-copy='${escapeAttr(text)}'>Copy</button></div>
+        </div>
+      `;
+    }).join("");
+    list.querySelectorAll('button[data-copy]').forEach(b => {
+      b.addEventListener('click', () => navigator.clipboard.writeText(b.dataset.copy).then(() => toast("Copied")));
+    });
+  } catch (e) {
+    list.innerHTML = `<div class="empty">Couldn't reach the feedback endpoint (${e}). The site is fine — this is just the inbox view.</div>`;
+  }
+}
+$('refresh-fb').addEventListener('click', renderFeedback);
+$('fb-slug').addEventListener('change', renderFeedback);
+
+/* =========================================================
+   Nuke button
+   ========================================================= */
+$('nuke').addEventListener('click', async () => {
+  if (!confirm("Clear ALL admin overrides in this browser? Uploaded HTML, narration edits, hotspot edits — gone. Auth state and the deployed files are untouched.")) return;
+  await idbClear();
+  localStorage.removeItem("tgkAdmin.verticals");
+  localStorage.removeItem("tgkAdmin.hotspots");
+  toast("Cleared all browser overrides");
+  renderBlocks();
+  renderStats();
+});
+
+/* =========================================================
+   Init
+   ========================================================= */
+async function init(){
+  await renderBlocks();
+  await renderEditor();
+  await renderVerticals();
+  await renderStats();
+  renderFeedback();
+}
+tryGate();
+</script>
+</body>
+</html>

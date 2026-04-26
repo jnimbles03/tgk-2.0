@@ -86,27 +86,75 @@
   .hotspot-layer{position:absolute;inset:0;pointer-events:none;z-index:10;}
   .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
   .hotspot.on{opacity:1;}
-  .hotspot .ring{width:54px;height:54px;border-radius:50%;border:3px solid var(--ds-purple);background:rgba(75,0,233,0.12);box-shadow:0 0 0 0 rgba(75,0,233,0.5);animation:hotspotPulse 1.8s ease-in-out infinite;position:relative;}
-  .hotspot .ring::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--ds-purple);opacity:0;animation:hotspotRingPing 1.8s ease-out infinite;}
-  @keyframes hotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0.5);}50%{box-shadow:0 0 0 8px rgba(75,0,233,0);}}
-  @keyframes hotspotRingPing{0%{transform:scale(0.92);opacity:0.6;}70%,100%{transform:scale(1.35);opacity:0;}}
-  .hotspot .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--ds-purple);font-family:var(--ui-font);}
-  .hotspot .tip{position:absolute;background:var(--ds-inkwell);color:#fff;padding:9px 14px;border-radius:6px;font-size:12.5px;font-weight:500;width:max-content;max-width:280px;box-shadow:0 6px 18px rgba(19,0,50,0.3);}
-  .hotspot .tip.right{left:68px;top:50%;transform:translateY(-50%);}
-  .hotspot .tip.left{right:68px;top:50%;transform:translateY(-50%);text-align:right;}
-  .hotspot .tip.top{bottom:68px;left:50%;transform:translateX(-50%);text-align:center;}
-  .hotspot .tip.bottom{top:68px;left:50%;transform:translateX(-50%);text-align:center;}
-  .hotspot .tip::before{content:"";position:absolute;width:0;height:0;border:6px solid transparent;}
-  .hotspot .tip.right::before{right:100%;top:50%;margin-top:-6px;border-right-color:var(--ds-inkwell);}
-  .hotspot .tip.left::before{left:100%;top:50%;margin-top:-6px;border-left-color:var(--ds-inkwell);}
-  .hotspot .tip.top::before{top:100%;left:50%;margin-left:-6px;border-top-color:var(--ds-inkwell);}
-  .hotspot .tip.bottom::before{bottom:100%;left:50%;margin-left:-6px;border-bottom-color:var(--ds-inkwell);}
+  /* Subtle dot — small ring with a tiny solid center, gentle slow pulse, no expanding ping */
+  .hotspot .ring{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ds-purple);background:rgba(75,0,233,0.18);box-shadow:0 0 0 0 rgba(75,0,233,0.32);animation:hotspotPulse 2.4s ease-in-out infinite;position:relative;}
+  .hotspot .ring::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:var(--ds-purple);transform:translate(-50%,-50%);}
+  @keyframes hotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0.32);}50%{box-shadow:0 0 0 5px rgba(75,0,233,0);}}
+  .hotspot .num{display:none;}
+  .hotspot .tip{position:absolute;background:var(--ds-inkwell);color:#fff;padding:8px 12px;border-radius:5px;font-size:12px;font-weight:500;width:max-content;max-width:240px;box-shadow:0 4px 14px rgba(19,0,50,0.22);line-height:1.4;}
+  .hotspot .tip.right{left:42px;top:50%;transform:translateY(-50%);}
+  .hotspot .tip.left{right:42px;top:50%;transform:translateY(-50%);text-align:right;}
+  .hotspot .tip.top{bottom:42px;left:50%;transform:translateX(-50%);text-align:center;}
+  .hotspot .tip.bottom{top:42px;left:50%;transform:translateX(-50%);text-align:center;}
+  /* Leader line — thin hairline from the dot to the tip, replacing the old triangular arrow.
+     Makes the connection between the pulsing dot and the labelled element unambiguous. */
+  .hotspot .tip::before{content:"";position:absolute;background:var(--ds-purple);opacity:0.5;}
+  .hotspot .tip.right::before{right:100%;top:50%;width:24px;height:1px;transform:translateY(-50%);}
+  .hotspot .tip.left::before{left:100%;top:50%;width:24px;height:1px;transform:translateY(-50%);}
+  .hotspot .tip.top::before{top:100%;left:50%;height:24px;width:1px;transform:translateX(-50%);}
+  .hotspot .tip.bottom::before{bottom:100%;left:50%;height:24px;width:1px;transform:translateX(-50%);}
   .hotspot .tip .sub{font-size:10.5px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
 
+  /* ===================== Tablet / small laptop ===================== */
   @media (max-width:980px){
     .sidebar{width:40%;min-width:320px;padding:24px 28px;}
     .headline{font-size:26px;}
     .topbar .scene-tabs{display:none;}
+  }
+
+  /* ===================== iPhone / phone-sized viewports =====================
+     Stack vertically: compact narration card on top, scaled stage below.
+     The Docusign template iframes were authored for a desktop canvas, so we
+     keep the iframe at a fixed 1280×800 design width and CSS-scale it to fit
+     the phone width. Hotspot percentages stay correct because the
+     hotspot-layer overlays the post-scale stage box. */
+  @media (max-width:720px){
+    html,body{overflow-y:auto;overflow-x:hidden;height:auto;font-size:13px;}
+    .shell{height:auto;min-height:100vh;border-width:0;}
+    .topbar{padding:0 14px;height:48px;gap:10px;}
+    .topbar .vertical-chip,.tenant-mark .story{display:none;}
+    .tenant-mark .wm{font-size:18px;}
+
+    .body{flex-direction:column;height:auto;overflow:visible;}
+    .sidebar{width:100%;max-width:none;min-width:0;padding:18px 18px 14px;border-bottom:1px solid var(--hair);}
+    .brand-slot{margin-bottom:12px;}
+    .brand-slot .ds{font-size:17px;}
+    .step-label{margin-bottom:6px;font-size:11px;letter-spacing:0.18em;}
+    .headline{font-size:21px;margin-bottom:12px;line-height:1.2;}
+    .lede{font-size:13.5px;margin-bottom:14px;max-width:none;line-height:1.55;}
+    .lede p + p{margin-top:8px;}
+    .foot-spacer{display:none;}
+    .beat-pips{margin-bottom:10px;}
+    .progress{margin-bottom:12px;}
+    .button-row{gap:8px;}
+    .btn{padding:9px 14px;min-width:0;flex:1;font-size:13px;}
+    .hint-row{display:none;}
+
+    .stage{flex:none;width:100vw;height:calc(100vw * 0.625);border-left:none;border-top:1px solid var(--hair);overflow:hidden;position:relative;}
+    .stage iframe{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:top left;transform:scale(calc(100vw / 1280));}
+
+    /* Hotspot dot stays small but tappable; tip clamps so it never overflows the screen. */
+    .hotspot .ring{width:16px;height:16px;}
+    .hotspot .tip{font-size:11.5px;padding:7px 10px;max-width:60vw;}
+    .hotspot .tip.right{left:34px;}
+    .hotspot .tip.left{right:34px;}
+    .hotspot .tip.top{bottom:34px;}
+    .hotspot .tip.bottom{top:34px;}
+    .hotspot .tip.right::before,.hotspot .tip.left::before{width:18px;}
+    .hotspot .tip.top::before,.hotspot .tip.bottom::before{height:18px;}
+
+    /* Calibrate HUD becomes a sticky bar at the bottom rather than a floating card */
+    .calib-hud{top:auto;right:auto;bottom:0;left:0;width:100%;border-radius:0;}
   }
 
   /* ===================== Calibration mode ===================== */
@@ -1359,6 +1407,86 @@ const TEMPLATE_FILES = [
 ];
 
 /* =========================================================
+   Admin overrides — populated from /admin (same-origin storage).
+   localStorage applies synchronously; IndexedDB template overrides
+   load async and trigger a re-render when ready.
+   Pass ?nooverride=1 to bypass everything for sanity-check.
+   ========================================================= */
+const TEMPLATE_BLOB_URLS = {};
+const _overrideBypass = new URLSearchParams(location.search).get("nooverride") === "1";
+if (!_overrideBypass) {
+  try {
+    const h = JSON.parse(localStorage.getItem("tgkAdmin.hotspots") || "{}");
+    Object.keys(h).forEach(k => { if (Array.isArray(h[k])) HOTSPOTS[k] = h[k]; });
+  } catch (e) {}
+  try {
+    const ov = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+    /* Deep-merge per scene + per beat so a partial save (one scene only) doesn't
+       wipe sibling scenes. Admin writes sparse arrays — respect them. */
+    Object.keys(ov).forEach(k => {
+      if (!ov[k]) return;
+      const base = VERTICALS[k];
+      if (!base) { VERTICALS[k] = ov[k]; return; }
+      const merged = Object.assign({}, base, ov[k]);
+      if (ov[k].scenes && base.scenes) {
+        merged.scenes = base.scenes.map((s, i) => {
+          const oS = ov[k].scenes[i];
+          if (!oS) return s;
+          const out = Object.assign({}, s, oS);
+          if (oS.beats && s.beats) {
+            out.beats = s.beats.map((b, j) => {
+              const oB = oS.beats[j];
+              return oB ? Object.assign({}, b, oB) : b;
+            });
+            /* preserve any extra-long beats array from override */
+            if (oS.beats.length > s.beats.length) {
+              out.beats = out.beats.concat(oS.beats.slice(s.beats.length));
+            }
+          }
+          return out;
+        });
+      }
+      VERTICALS[k] = merged;
+    });
+  } catch (e) {}
+}
+function srcForScene(i, vertical, splash){
+  const fname = TEMPLATE_FILES[i].split("/").pop();
+  if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
+  return TEMPLATE_FILES[i] + "?preset=" + vertical.preset + (i === 4 && splash ? "&splash=1" : "");
+}
+function loadIDBTemplateOverrides(){
+  return new Promise((resolve) => {
+    if (_overrideBypass || !window.indexedDB) return resolve(0);
+    const req = indexedDB.open("tgk-admin", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("templates", {keyPath:"name"});
+    req.onsuccess = () => {
+      try {
+        const tx = req.result.transaction("templates", "readonly");
+        const all = tx.objectStore("templates").getAll();
+        all.onsuccess = () => {
+          (all.result || []).forEach(r => {
+            const blob = new Blob([r.content], {type:"text/html"});
+            TEMPLATE_BLOB_URLS[r.name] = URL.createObjectURL(blob);
+          });
+          resolve(all.result ? all.result.length : 0);
+        };
+        all.onerror = () => resolve(0);
+      } catch(e) { resolve(0); }
+    };
+    req.onerror = () => resolve(0);
+  });
+}
+function showOverrideBanner(filenames){
+  if (!filenames || !filenames.length) return;
+  /* Pinned bottom-right pill so it doesn't fight with the topbar scene tabs. */
+  const bar = document.createElement("div");
+  bar.style.cssText = "position:fixed;right:14px;bottom:14px;background:#FBBF24;color:#1F1300;font:600 11px/1.4 Inter,sans-serif;letter-spacing:0.04em;text-transform:uppercase;padding:7px 12px;border-radius:999px;z-index:200;box-shadow:0 6px 18px rgba(19,0,50,0.18);max-width:340px;";
+  bar.innerHTML = `<span style="opacity:0.65;">Admin override</span> · ${filenames.length} file${filenames.length > 1 ? 's' : ''} · <a href="?nooverride=1" style="color:#1F1300;text-decoration:underline;">bypass</a> · <a href="/admin/" style="color:#1F1300;text-decoration:underline;">manage</a>`;
+  document.body.appendChild(bar);
+}
+
+/* =========================================================
    Resolve vertical from URL, build SCENES, render
    ========================================================= */
 const params = new URLSearchParams(location.search);
@@ -1396,7 +1524,8 @@ const SCENES = v.scenes.map((s, i) => {
     sceneKey: SCENE_KEYS[i],
     hotspots,
     duration: DURATIONS[i],
-    src: TEMPLATE_FILES[i] + "?preset=" + v.preset + (i === 4 && splashOn ? "&splash=1" : "")
+    /* getter so admin overrides loaded after init still take effect on next goTo */
+    get src(){ return srcForScene(i, v, splashOn); }
   };
 });
 
@@ -1614,6 +1743,15 @@ window.addEventListener('keydown', (e) => {
 
 goTo(0, {force:true});
 $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
+
+/* Pull any admin-uploaded template overrides out of IndexedDB, then re-render
+   the current scene so the iframe swaps to the override Blob URL. */
+loadIDBTemplateOverrides().then((count) => {
+  if (count > 0) {
+    showOverrideBanner(Object.keys(TEMPLATE_BLOB_URLS));
+    goTo(idx, {force:true});
+  }
+});
 </script>
 </body>
 </html>
