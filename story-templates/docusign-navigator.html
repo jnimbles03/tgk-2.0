@@ -278,7 +278,7 @@
             <div class="ai-chip"><span class="spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
           </div>
 
-          <div class="ai-banner">
+          <div class="ai-banner" data-hotspot="ai_banner">
             <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
             <div class="copy">
               <h4 id="s1-ai-title">Iris extracted key terms from 58 agreements.</h4>
@@ -404,7 +404,7 @@
                 </div>
               </div>
 
-              <aside class="ai-rail">
+              <aside class="ai-rail" data-hotspot="fields_panel">
                 <div class="ai-rail-hdr">
                   <div class="chip"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>AI-Assisted</div>
                   <h3>Extracted fields</h3>
@@ -446,8 +446,8 @@
         <div class="x">×</div>
       </div>
       <div class="iris-body">
-        <div class="iris-q" id="iris-q">Are there termination terms in this agreement?</div>
-        <div class="iris-a" id="iris-a">Yes, the agreement specifies termination terms, including early termination fees and obligations to pay off the remaining balance on unfulfilled commitments if the Customer terminates before the end of a contract year.<span class="cite">1</span><span class="cite">2</span></div>
+        <div class="iris-q" id="iris-q" data-hotspot="iris_input">Are there termination terms in this agreement?</div>
+        <div class="iris-a" id="iris-a" data-hotspot="iris_answer">Yes, the agreement specifies termination terms, including early termination fees and obligations to pay off the remaining balance on unfulfilled commitments if the Customer terminates before the end of a contract year.<span class="cite">1</span><span class="cite">2</span></div>
         <div class="iris-kv">
           <div class="t">Key terms</div>
           <div class="row"><span class="k">Notice period</span><span class="v">30 days written notice</span></div>
@@ -570,8 +570,8 @@ function applyPreset(key){
   document.getElementById('s1-ai-copy').textContent = p.aiCopy;
   // S1 table rows
   const tb = document.getElementById('s1-tbody');
-  tb.innerHTML = p.agreements.map(([name, party, value, effective, renewal, status]) => `
-    <tr>
+  tb.innerHTML = p.agreements.map(([name, party, value, effective, renewal, status], i) => `
+    <tr${i === 0 ? ' data-hotspot="agreement_row"' : ''}>
       <td><div class="doc-name"><div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>${name}</div></td>
       <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${party}</span></td>
       <td><span class="ai-val"><span class="spark"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg></span>${value}</span></td>
@@ -649,10 +649,20 @@ sel.addEventListener("change", () => {
 requestAnimationFrame(render);
 
 /* =============================================================
-   Shell sync — listen for postMessage from story-shell.html parent.
-   tgk:lockToBeat → freeze auto-loop, jump to a named internal scene.
-   tgk:resumeAuto → re-enable the time-based loop with a fresh t0.
+   Shell sync — see agreement-desk template for full protocol notes.
    ============================================================= */
+function _tgkSendRect(target){
+  if (!target) return;
+  const el = document.querySelector('[data-hotspot="' + target + '"]');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  parent.postMessage({
+    type: "tgk:rect",
+    target: target,
+    rect: { x: r.left, y: r.top, w: r.width, h: r.height },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+  }, "*");
+}
 window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
@@ -660,6 +670,9 @@ window.addEventListener("message", (ev) => {
     shellDriven = true;
     const sc = SCENES.find(s => s.id === msg.sceneId);
     if (sc) applyScene(sc);
+    if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
+  } else if (msg.type === "tgk:queryRect") {
+    _tgkSendRect(msg.target);
   } else if (msg.type === "tgk:resumeAuto") {
     shellDriven = false;
     t0 = performance.now();

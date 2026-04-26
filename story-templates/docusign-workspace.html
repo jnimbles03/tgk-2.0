@@ -331,7 +331,7 @@
       <div class="email-body">
         <p id="email-greeting">Hello,</p>
         <p id="email-body-p1"></p>
-        <div class="cta-wrap"><a class="email-cta" id="email-cta">Access your workspace</a></div>
+        <div class="cta-wrap"><a class="email-cta" id="email-cta" data-hotspot="access_workspace">Access your workspace</a></div>
         <p id="email-body-p2"></p>
         <p>Thank you,</p>
         <div class="email-sig">
@@ -380,7 +380,7 @@
           <div class="ws-avs" id="ws-avs"></div>
           <button class="ws-add">Add <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
         </div>
-        <div class="ws-tabs">
+        <div class="ws-tabs" data-hotspot="tabs_strip">
           <div class="ws-tab" data-tab="tasks">Tasks</div>
           <div class="ws-tab active" data-tab="overview">Overview</div>
           <div class="ws-tab" data-tab="documents">Documents</div>
@@ -421,7 +421,7 @@
           </div>
         </div>
 
-        <aside class="rail">
+        <aside class="rail" data-hotspot="iris_rail">
           <div class="rail-tabs">
             <div class="rail-tab active" data-rail="activity">Activity</div>
             <div class="rail-tab" data-rail="iris"><span class="dot-iris"></span>Ask Iris</div>
@@ -461,7 +461,7 @@
             <div style="font-size:11px;color:var(--ink-faint);margin-top:4px;">Signer sees the live artifact here</div>
           </div>
         </div>
-        <aside class="agent-panel">
+        <aside class="agent-panel" data-hotspot="agent_panel">
           <div class="agent-head">
             <div class="agent-mark"><svg viewBox="0 0 24 24"><path d="M12 2L3 7V12C3 17 7 21 12 22C17 21 21 17 21 12V7L12 2Z"/><polyline points="8 12 11 15 16 10"/></svg></div>
             <div><div class="agent-title" id="agent-title">Agent</div><div class="agent-sub" id="agent-sub"></div></div>
@@ -1228,8 +1228,8 @@ function applyPreset(key){
   ['sec1','sec2'].forEach((id, i) => {
     const sec = p.sections[i];
     document.getElementById(id+'-title').textContent = sec.title;
-    document.getElementById(id+'-body').innerHTML = sec.tasks.map(t =>
-      `<div class="task">
+    document.getElementById(id+'-body').innerHTML = sec.tasks.map((t, ti) =>
+      `<div class="task"${i === 0 && ti === 0 ? ' data-hotspot="tasks_first"' : ''}>
          <div class="task-ic">${iconFor(t.name)}</div>
          <div class="task-mid">
            <div class="task-name">${t.name}${t.chip?` <span class="task-chip">${t.chip}</span>`:''}</div>
@@ -1388,6 +1388,32 @@ sel.addEventListener('change', () => {
   mock.insertBefore(splash, mock.firstChild);
   setTimeout(() => splash.remove(), 10000);
 })();
+
+/* =============================================================
+   Shell sync — workspace has no internal animation, but it still
+   tags anchor elements so the parent shell can position hotspots
+   relative to real UI rather than to relative stage coordinates.
+   Same protocol as the animated templates.
+   ============================================================= */
+function _tgkSendRect(target){
+  if (!target) return;
+  const el = document.querySelector('[data-hotspot="' + target + '"]');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  parent.postMessage({
+    type: "tgk:rect",
+    target: target,
+    rect: { x: r.left, y: r.top, w: r.width, h: r.height },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+  }, "*");
+}
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
+  if (msg.type === "tgk:lockToBeat" || msg.type === "tgk:queryRect") {
+    if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
+  }
+});
 </script>
 </body>
 </html>

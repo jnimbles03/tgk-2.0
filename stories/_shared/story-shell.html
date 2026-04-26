@@ -284,41 +284,45 @@
    ========================================================= */
 const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
 
+/* Hotspot anchors. `target` references a [data-hotspot="..."] tagged element
+   inside the iframe template — that's the authoritative position. x/y are
+   kept as a fallback for the moment between iframe load and the rect ack,
+   plus calibrate-mode export. */
 const HOTSPOTS = {
   agreement_desk: [
-    {x:"68%", y:"86%", tip:"Submit the intake form",                       sub:"Triggers the Maestro workflow",    side:"top"},
-    {x:"38%", y:"38%", tip:"A new ticket arrives in the Desk queue",       sub:"Top row flashes purple",           side:"right"},
-    {x:"38%", y:"33%", tip:"Open the ticket to see the activity feed",     sub:"Click any row",                    side:"right"},
-    {x:"40%", y:"22%", tip:"Jump to the Documents tab",                    sub:"Where the draft agreement lives",  side:"bottom"},
-    {x:"57%", y:"30%", tip:"Send for signature — handoff to Scene 2",      sub:"Hands off to Signing Ceremony",    side:"bottom"}
+    {target:"send",               x:"68%", y:"86%", tip:"Submit the intake form",                       sub:"Triggers the Maestro workflow",    side:"top"},
+    {target:"new_row",            x:"38%", y:"38%", tip:"A new ticket arrives in the Desk queue",       sub:"Top row flashes purple",           side:"right"},
+    {target:"new_row",            x:"38%", y:"33%", tip:"Open the ticket to see the activity feed",     sub:"Click any row",                    side:"right"},
+    {target:"documents_tab",      x:"40%", y:"22%", tip:"Jump to the Documents tab",                    sub:"Where the draft agreement lives",  side:"bottom"},
+    {target:"send_for_signature", x:"57%", y:"30%", tip:"Send for signature — handoff to Scene 2",      sub:"Hands off to Signing Ceremony",    side:"bottom"}
   ],
   clear_idv: [
-    {x:"54%", y:"62%", tip:"I Agree — consent to identity verification",  sub:"\"Let's verify your identity\"",   side:"left"},
-    {x:"40%", y:"45%", tip:"Pick 'Verify with CLEAR'",                     sub:"The fast path",                    side:"right"},
-    {x:"40%", y:"68%", tip:"Enter phone number, tap Get Started",          sub:"Triggers the mobile handoff",      side:"right"},
-    {x:"77%", y:"50%", tip:"Mobile: capture ID and selfie",                sub:"CLEAR runs biometric match",        side:"left"},
-    {x:"77%", y:"55%", tip:"Identity verified — back to desktop",           sub:"Green check on mobile",            side:"left"}
+    {target:"consent_agree",  x:"54%", y:"62%", tip:"I Agree — consent to identity verification",  sub:"\"Let's verify your identity\"",   side:"left"},
+    {target:"verify_clear",   x:"40%", y:"45%", tip:"Pick 'Verify with CLEAR'",                     sub:"The fast path",                    side:"right"},
+    {target:"phone_continue", x:"40%", y:"68%", tip:"Enter phone number, tap Get Started",          sub:"Triggers the mobile handoff",      side:"right"},
+    {target:"selfie_capture", x:"77%", y:"50%", tip:"Mobile: capture ID and selfie",                sub:"CLEAR runs biometric match",        side:"left"},
+    {target:"verified_check", x:"77%", y:"55%", tip:"Identity verified — back to desktop",           sub:"Green check on mobile",            side:"left"}
   ],
   signing: [
-    {x:"50%", y:"60%", tip:"REVIEW DOCUMENT from the tenant-branded email",   sub:"Signer enters the ceremony",     side:"top"},
-    {x:"38%", y:"72%", tip:"Yellow START tab points at the first field",      sub:"One click to begin",             side:"right"},
-    {x:"50%", y:"55%", tip:"Adopt your signature",                             sub:"Typed preview + disclosure",     side:"top"},
-    {x:"74%", y:"35%", tip:"Finished — document routes to next signer",       sub:"Multi-recipient progress",        side:"left"},
-    {x:"64%", y:"72%", tip:"Download signed copy or view certificate",         sub:"Scene 3 complete",                side:"top"}
+    {target:"review_doc",      x:"50%", y:"60%", tip:"REVIEW DOCUMENT from the tenant-branded email",   sub:"Signer enters the ceremony",     side:"top"},
+    {target:"start_tab",       x:"38%", y:"72%", tip:"Yellow START tab points at the first field",      sub:"One click to begin",             side:"right"},
+    {target:"adopt_sig",       x:"50%", y:"55%", tip:"Adopt your signature",                             sub:"Typed preview + disclosure",     side:"top"},
+    {target:"finished_status", x:"74%", y:"35%", tip:"Finished — document routes to next signer",       sub:"Multi-recipient progress",        side:"left"},
+    {target:"download_signed", x:"64%", y:"72%", tip:"Download signed copy or view certificate",         sub:"Scene 3 complete",                side:"top"}
   ],
   navigator: [
-    {x:"45%", y:"28%", tip:"AI-Assisted banner: agreements extracted by Iris", sub:"Navigator list view",            side:"bottom"},
-    {x:"45%", y:"55%", tip:"Click any agreement to see extracted fields",     sub:"AI-filled columns with ✦",       side:"right"},
-    {x:"80%", y:"50%", tip:"14 fields extracted from the signed document",     sub:"Counterparty, term, renewal…",   side:"left"},
-    {x:"80%", y:"35%", tip:"Ask Iris about this agreement",                    sub:"Grounded in the document",       side:"left"},
-    {x:"80%", y:"62%", tip:"Iris answers with inline citations",               sub:"Key terms + evidence",            side:"left"}
+    {target:"ai_banner",     x:"45%", y:"28%", tip:"AI-Assisted banner: agreements extracted by Iris", sub:"Navigator list view",            side:"bottom"},
+    {target:"agreement_row", x:"45%", y:"55%", tip:"Click any agreement to see extracted fields",     sub:"AI-filled columns with ✦",       side:"right"},
+    {target:"fields_panel",  x:"80%", y:"50%", tip:"14 fields extracted from the signed document",     sub:"Counterparty, term, renewal…",   side:"left"},
+    {target:"iris_input",    x:"80%", y:"35%", tip:"Ask Iris about this agreement",                    sub:"Grounded in the document",       side:"left"},
+    {target:"iris_answer",   x:"80%", y:"62%", tip:"Iris answers with inline citations",               sub:"Key terms + evidence",            side:"left"}
   ],
   workspace: [
-    {x:"55%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email",           side:"top"},
-    {x:"20%", y:"28%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Switch tabs to change view",      side:"right"},
-    {x:"70%", y:"30%", tip:"Iris agent rail — Activity and Ask Iris tabs",    sub:"Docusign's AI, tenant-aware",     side:"left"},
-    {x:"45%", y:"58%", tip:"View a task to drill into the Wealth Agent",      sub:"KYC checks run automatically",    side:"right"},
-    {x:"75%", y:"50%", tip:"Wealth Agent: checks on the uploaded artifact",    sub:"End of the story loop",          side:"left"}
+    {target:"access_workspace", x:"55%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email",           side:"top"},
+    {target:"tabs_strip",       x:"20%", y:"28%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Switch tabs to change view",      side:"right"},
+    {target:"iris_rail",        x:"70%", y:"30%", tip:"Iris agent rail — Activity and Ask Iris tabs",    sub:"Docusign's AI, tenant-aware",     side:"left"},
+    {target:"tasks_first",      x:"45%", y:"58%", tip:"View a task to drill into the Wealth Agent",      sub:"KYC checks run automatically",    side:"right"},
+    {target:"agent_panel",      x:"75%", y:"50%", tip:"Wealth Agent: checks on the uploaded artifact",    sub:"End of the story loop",          side:"left"}
   ]
 };
 
@@ -1423,7 +1427,7 @@ const TEMPLATE_FILES = [
    if a vertical wants different beat semantics.
    ========================================================= */
 const BEAT_TO_INTERNAL = {
-  agreement_desk: ["s1", "s2", "s3", "s3", "s3"],   // submit → arrives → open → docs tab → send
+  agreement_desk: ["s1", "s2", "s2", "s3", "s3"],   // submit → arrives → click row → docs tab → send
   clear_idv:      ["s1", "s2", "s3", "s6", "s7"],   // consent → choose CLEAR → phone → mobile selfie → verified
   signing:        ["s1", "s2", "s3", "s4", "s5"],   // 1:1 — email → start → adopt → finished → download
   navigator:      ["s1", "s2", "s3", "s4", "s4"],   // list → insights → fields → ask Iris → answer
@@ -1570,21 +1574,75 @@ let sceneStart = 0;     // when the current scene began (for HUD timer display)
 let beatStart = 0;      // when the current beat began (drives autoplay advance)
 let raf = null;
 
+/* Tracks the currently-rendered hotspot element + which iframe target it
+   anchors to. Module-level so the postMessage listener for tgk:rect (which
+   fires later, when the iframe responds) knows what to position. */
+let currentHotspotEl = null;
+let currentTarget = null;
+
 /* Tell the iframe template which internal scene to show for the current
-   beat. Called from every beat-change path so click/autoplay/arrow keys
-   all stay locked to the iframe state. No-op for the Workspace scene
-   (no internal animation to drive). */
+   beat AND which named element ([data-hotspot="..."]) to anchor the dot to.
+   Called from every beat-change path so click/autoplay/arrow keys all stay
+   locked to the iframe state. */
 function postBeatToFrame(){
   try {
     const sceneKey = SCENE_KEYS[idx];
     const mapping = BEAT_TO_INTERNAL[sceneKey];
-    if (!mapping) return;
-    const sceneId = mapping[hotIdx];
-    if (!sceneId) return;
+    const sceneId = mapping ? mapping[hotIdx] : null;
     if (!frame.contentWindow) return;
-    frame.contentWindow.postMessage({type:"tgk:lockToBeat", sceneId}, "*");
+    frame.contentWindow.postMessage({
+      type: "tgk:lockToBeat",
+      sceneId: sceneId,
+      target: currentTarget,  // template responds with tgk:rect when ready
+    }, "*");
   } catch (e) { /* iframe not ready — will be retried on iframe load */ }
 }
+
+/* Receive an element rect from the iframe and project it from iframe-content
+   coords into stage coords. Two-step projection: first scale by the iframe's
+   visual-vs-content ratio (mobile applies transform: scale to the iframe at
+   ≤900px), then translate from viewport into the hotspot-layer's local space.
+   Falls back silently if the message is for a stale target (i.e. the user has
+   moved on to the next beat before the rect arrived). */
+function positionHotspotFromRect(msg){
+  if (!currentHotspotEl) return;
+  if (msg.target !== currentTarget) return; // stale; ignore
+  const stage = document.querySelector('.stage');
+  if (!stage) return;
+  const stageRect = stage.getBoundingClientRect();
+  const iframeRect = frame.getBoundingClientRect();
+  const vpW = (msg.viewport && msg.viewport.w) || iframeRect.width;
+  const vpH = (msg.viewport && msg.viewport.h) || iframeRect.height;
+  const scaleX = iframeRect.width  / vpW;
+  const scaleY = iframeRect.height / vpH;
+  const cx = iframeRect.left + (msg.rect.x + msg.rect.w / 2) * scaleX;
+  const cy = iframeRect.top  + (msg.rect.y + msg.rect.h / 2) * scaleY;
+  currentHotspotEl.style.left = (cx - stageRect.left) + "px";
+  currentHotspotEl.style.top  = (cy - stageRect.top)  + "px";
+  currentHotspotEl.classList.add("on");
+}
+
+/* Listen for rect responses from the iframe. */
+window.addEventListener("message", (ev) => {
+  const msg = ev.data;
+  if (!msg || typeof msg !== "object") return;
+  if (msg.type === "tgk:rect") positionHotspotFromRect(msg);
+});
+
+/* On viewport resize, request a fresh rect for the current target so the
+   anchor follows layout shifts. Debounced via rAF. */
+let _resizeRectPending = false;
+window.addEventListener("resize", () => {
+  if (_resizeRectPending) return;
+  _resizeRectPending = true;
+  requestAnimationFrame(() => {
+    _resizeRectPending = false;
+    if (!currentTarget || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.postMessage({type:"tgk:queryRect", target: currentTarget}, "*");
+    } catch (e) {}
+  });
+});
 
 function renderSidebar(scene, i){
   const beat = scene.hotspots && scene.hotspots[hotIdx];
@@ -1608,13 +1666,15 @@ function renderSidebar(scene, i){
 function renderHotspot(){
   const scene = SCENES[idx];
   layer.innerHTML = "";
+  currentHotspotEl = null;
+  currentTarget = null;
   if (!scene.hotspots || !scene.hotspots.length) return;
   const spot = scene.hotspots[hotIdx];
   if (!spot) return;
   const el = document.createElement('div');
-  el.className = 'hotspot on';
-  el.style.left = spot.x;
-  el.style.top = spot.y;
+  // Don't add `.on` yet — wait for either x/y or a rect from the iframe so
+  // the dot doesn't flash at a stale position before settling.
+  el.className = 'hotspot';
   el.innerHTML = `
     <div class="ring"><div class="num">${hotIdx + 1}</div></div>
     <div class="tip ${spot.side || 'right'}">${spot.tip}<div class="sub">${spot.sub || ''}</div></div>
@@ -1626,8 +1686,35 @@ function renderHotspot(){
     el.addEventListener('click', advance);
   }
   layer.appendChild(el);
-  // Lock the iframe to this beat's internal scene.
+  currentHotspotEl = el;
+  currentTarget = spot.target || null;
+
+  if (spot.x && spot.y) {
+    // Fallback path — percent/px coords (used when no target is defined or
+    // as a placeholder while the iframe rect arrives).
+    el.style.left = spot.x;
+    el.style.top  = spot.y;
+    if (!currentTarget) el.classList.add('on');
+  }
+
+  // Tell the iframe which internal scene + target element this beat needs.
   postBeatToFrame();
+
+  // Safety net: if the rect doesn't come back within 600ms (template lacks
+  // the data-hotspot tag, or the message dropped), fall back to x/y or
+  // dead-center so the user always sees a hotspot.
+  if (currentTarget) {
+    const safetyEl = el;
+    const safetyTarget = currentTarget;
+    setTimeout(() => {
+      if (currentHotspotEl !== safetyEl) return;          // moved on
+      if (safetyEl.classList.contains('on')) return;      // already positioned
+      if (currentTarget !== safetyTarget) return;
+      if (spot.x && spot.y) { safetyEl.style.left = spot.x; safetyEl.style.top = spot.y; }
+      else { safetyEl.style.left = '50%'; safetyEl.style.top = '50%'; }
+      safetyEl.classList.add('on');
+    }, 600);
+  }
 }
 
 /* =========================================================

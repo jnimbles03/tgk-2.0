@@ -237,7 +237,7 @@
           </div>
           <div class="cps-attach" id="cps-attach"></div>
           <div class="cps-foot">
-            <button class="cps-send pulse">Send<span class="split">▾</span></button>
+            <button class="cps-send pulse" data-hotspot="send">Send<span class="split">▾</span></button>
             <div class="cps-tools">
               <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -352,7 +352,7 @@
             <div class="s3-tabs">
               <div class="s3-tab active">Overview</div>
               <div class="s3-tab">Details</div>
-              <div class="s3-tab">Documents</div>
+              <div class="s3-tab" data-hotspot="documents_tab">Documents</div>
               <div class="s3-tab">Approvals</div>
               <div class="s3-tab">Envelopes</div>
             </div>
@@ -364,7 +364,7 @@
                 <h3>Activity feed</h3>
                 <div class="sp"></div>
                 <div class="drop">All Activity <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-                <button class="send-msg"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Send Message</button>
+                <button class="send-msg" data-hotspot="send_for_signature"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Send Message</button>
               </div>
               <div class="feed-date">Today</div>
               <div class="feed" id="feed"></div>
@@ -595,7 +595,7 @@ function applyPreset(key){
   rows.innerHTML = p.tickets.map((t, i) => {
     const [title, type, statusKey, statusLabel, submitter, owner, lastMod, isNew] = t;
     const subInit = initials(submitter);
-    return `<tr class="${isNew ? 'new-row' : ''}">
+    return `<tr class="${isNew ? 'new-row' : ''}"${isNew ? ' data-hotspot="new_row"' : ''}>
       <td>${title}</td>
       <td style="color:var(--ink-mid);">${type}</td>
       <td><span class="st-chip ${statusKey}"><span class="dot"></span>${statusLabel}</span></td>
@@ -762,9 +762,24 @@ requestAnimationFrame(render);
 
 /* =============================================================
    Shell sync — listen for postMessage from story-shell.html parent.
-   tgk:lockToBeat → enter shell-driven mode, jump to a named internal
-   scene, freeze the auto-loop until tgk:resumeAuto arrives.
+   - tgk:lockToBeat: enter shell-driven mode, jump to sceneId, freeze
+     the auto-loop, then send the bounding rect of the [data-hotspot]
+     element named in msg.target so the shell can position the dot.
+   - tgk:queryRect: re-send the rect (used on viewport resize).
+   - tgk:resumeAuto: restore the time-based auto loop.
    ============================================================= */
+function _tgkSendRect(target){
+  if (!target) return;
+  const el = document.querySelector('[data-hotspot="' + target + '"]');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  parent.postMessage({
+    type: "tgk:rect",
+    target: target,
+    rect: { x: r.left, y: r.top, w: r.width, h: r.height },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+  }, "*");
+}
 window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
@@ -774,11 +789,13 @@ window.addEventListener("message", (ev) => {
     if (sc) {
       manualScene = sc.id;
       mode = "manual";
-      // Push lastManualInput far into the future so render()'s idle-resume
-      // never fires while shell is driving.
       lastManualInput = Number.MAX_SAFE_INTEGER;
       showScene(sc.id);
     }
+    // Wait one frame for layout to settle after the scene swap, then send rect.
+    if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
+  } else if (msg.type === "tgk:queryRect") {
+    _tgkSendRect(msg.target);
   } else if (msg.type === "tgk:resumeAuto") {
     shellDriven = false;
     const sc = SCENES.find(s => s.id === manualScene) || SCENES[0];

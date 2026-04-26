@@ -264,7 +264,7 @@
                   <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M11 14l3-3 3 3M14 11v7"/></svg>
                 </div>
                 <div class="headline"><b id="email-sender-headline">Casey Anderson</b> sent you a document to review and sign.</div>
-                <div class="review-btn">REVIEW DOCUMENT</div>
+                <div class="review-btn" data-hotspot="review_doc">REVIEW DOCUMENT</div>
               </div>
               <div class="email-footer">
                 <p><b id="email-sender-foot">Casey Anderson</b></p>
@@ -302,7 +302,7 @@
               <p>Fees for services shall be calculated quarterly at an annual rate of <span class="kv">1.00%</span> of assets under management, billed in arrears. The Client may terminate this Agreement at any time upon thirty (30) days' written notice.</p>
               <p>The parties acknowledge receipt of the Advisor's current Form ADV Part 2A, and the Client consents to electronic delivery of regulatory disclosures.</p>
               <div class="sig-row">
-                <div class="start-tab">
+                <div class="start-tab" data-hotspot="start_tab">
                   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
                   START
                 </div>
@@ -404,7 +404,7 @@
             </div>
             <div class="modal-foot">
               <button class="btn ghost">Cancel</button>
-              <button class="btn primary">Adopt and Sign</button>
+              <button class="btn primary" data-hotspot="adopt_sig">Adopt and Sign</button>
             </div>
           </div>
         </div>
@@ -417,7 +417,7 @@
           <h2>You've finished signing.</h2>
           <div class="sub">Your signed copy has been sent to the next recipient. You'll receive an email once the envelope is complete.</div>
 
-          <div class="routing">
+          <div class="routing" data-hotspot="finished_status">
             <div class="routing-title">Envelope routing · 1 of 3 complete</div>
             <div class="route-step done">
               <div class="av">AP</div>
@@ -440,7 +440,7 @@
 
           <div class="finish-ctas">
             <button class="finish-cta ghost"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>View Certificate</button>
-            <button class="finish-cta primary"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Copy</button>
+            <button class="finish-cta primary" data-hotspot="download_signed"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Copy</button>
           </div>
         </div>
       </div>
@@ -574,10 +574,20 @@ sel.addEventListener("change", () => {
 requestAnimationFrame(render);
 
 /* =============================================================
-   Shell sync — listen for postMessage from story-shell.html parent.
-   tgk:lockToBeat → freeze auto-loop, jump to a named internal scene.
-   tgk:resumeAuto → re-enable the time-based loop with a fresh t0.
+   Shell sync — see agreement-desk template for full protocol notes.
    ============================================================= */
+function _tgkSendRect(target){
+  if (!target) return;
+  const el = document.querySelector('[data-hotspot="' + target + '"]');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  parent.postMessage({
+    type: "tgk:rect",
+    target: target,
+    rect: { x: r.left, y: r.top, w: r.width, h: r.height },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+  }, "*");
+}
 window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
@@ -585,6 +595,9 @@ window.addEventListener("message", (ev) => {
     shellDriven = true;
     const sc = SCENES.find(s => s.id === msg.sceneId);
     if (sc) applyScene(sc);
+    if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
+  } else if (msg.type === "tgk:queryRect") {
+    _tgkSendRect(msg.target);
   } else if (msg.type === "tgk:resumeAuto") {
     shellDriven = false;
     t0 = performance.now();
