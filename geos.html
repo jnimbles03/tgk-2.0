@@ -6,10 +6,12 @@
 <title>TGK 2.0 — IAM Demo Experience</title>
 <link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
 <style>
-  /* DSIndigo — Docusign's typeface */
+  /* DSIndigo — Docusign's typeface (used in dark wrapper / picker) */
   @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
   @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
   @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+  /* Inter + Fraunces — story-shell typography for the click-through window */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap');
 
   :root {
     --ds-cobalt: #4C00FF;
@@ -23,6 +25,23 @@
     /* GEO mark — deep amber (Permian crude) */
     --geo-mark: #B8541A;
     --geo-mark-tint: #FBEAD8;
+
+    /* Story-shell tokens (used inside the click-through window) */
+    --shell-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --shell-editorial: 'Fraunces', Georgia, serif;
+    --shell-purple: #4B00E9;
+    --shell-purple-dark: #3B00BA;
+    --shell-blue: #1565D8;
+    --shell-blue-dark: #0F4FB0;
+    --shell-step-blue: #3B82F6;
+    --shell-navy: #132240;
+    --shell-ink: #18181B;
+    --shell-ink-mid: #3F3F46;
+    --shell-ink-soft: #71717A;
+    --shell-ink-faint: #A1A1AA;
+    --shell-hair: #E4E4E7;
+    --shell-hair-strong: #D4D4D8;
+    --shell-beige: #EAE4DA;
 
     --r: 12px;
     --r-sm: 8px;
@@ -887,16 +906,284 @@
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  /* Beat-target highlight (applied via JS) */
+  /* Beat-target highlight — uses shell purple to match story-shell.html */
   [data-beat] {
     transition: outline 0.32s var(--ease), box-shadow 0.32s var(--ease), background 0.32s var(--ease), border-radius 0.2s var(--ease);
     border-radius: 6px;
   }
   [data-beat].beat-active {
-    outline: 2px solid var(--ds-mist);
+    outline: 2px solid var(--shell-purple);
     outline-offset: 4px;
-    box-shadow: 0 0 22px rgba(203, 194, 255, 0.32);
-    background: rgba(203, 194, 255, 0.08);
+    box-shadow: 0 0 22px rgba(75, 0, 233, 0.28);
+    background: rgba(75, 0, 233, 0.05);
+  }
+
+  /* ========== SHELL WINDOW (matches story-shell.html) ========== */
+  .shell-window {
+    background: #FFFFFF;
+    border: 4px solid var(--shell-navy);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 8px 0 24px;
+    font-family: var(--shell-ui);
+    color: var(--shell-ink);
+    display: flex; flex-direction: column;
+    min-height: 560px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  }
+  .shell-topbar {
+    flex-shrink: 0;
+    height: 54px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--shell-hair);
+    display: flex; align-items: center;
+    padding: 0 22px;
+    gap: 18px;
+    position: relative;
+  }
+  .shell-tenant {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .shell-tenant .mark {
+    width: 22px; height: 22px;
+    color: var(--geo-mark);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .shell-tenant .wm {
+    font-family: var(--shell-editorial);
+    font-style: italic; font-weight: 500;
+    font-size: 21px;
+    color: var(--shell-ink);
+    letter-spacing: 0.005em;
+  }
+  .shell-tenant .sub {
+    font-size: 13px;
+    color: var(--shell-ink-soft);
+    margin-left: 12px;
+  }
+  .shell-topbar .sp { flex: 1; }
+  .shell-tabs {
+    display: flex; gap: 14px;
+    font-size: 13px;
+    color: var(--shell-ink-mid);
+    font-weight: 500;
+  }
+  .shell-tabs .tab {
+    cursor: pointer;
+    padding: 4px 0;
+    position: relative;
+    transition: color 0.15s;
+  }
+  .shell-tabs .tab:hover { color: var(--shell-ink); }
+  .shell-tabs .tab.on {
+    color: var(--shell-ink);
+    font-weight: 600;
+  }
+  .shell-tabs .tab.on::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -19px;
+    height: 2.5px;
+    background: var(--shell-ink);
+    border-radius: 2px;
+  }
+  .shell-vchip {
+    margin-left: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--shell-hair);
+    border-radius: 12px;
+    font-size: 11px; font-weight: 600;
+    color: var(--shell-ink-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .shell-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+  .shell-side {
+    flex-shrink: 0;
+    width: 38%;
+    min-width: 320px;
+    max-width: 460px;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    padding: 32px 36px 26px;
+  }
+  .shell-brand {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-weight: 700; font-size: 18px;
+    color: #130032;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    margin-bottom: 22px;
+    transition: opacity 0.15s;
+  }
+  .shell-brand:hover { opacity: 0.7; }
+  .shell-brand svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .shell-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--shell-step-blue);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    transition: opacity 0.25s ease;
+  }
+  .shell-headline {
+    font-family: var(--shell-ui);
+    font-size: 30px; font-weight: 700;
+    color: var(--shell-ink);
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    margin-bottom: 20px;
+    transition: opacity 0.25s ease;
+  }
+  .shell-lede {
+    font-size: 14.5px;
+    color: var(--shell-ink-mid);
+    line-height: 1.65;
+    max-width: 92%;
+    transition: opacity 0.25s ease;
+  }
+  .shell-side.fading .shell-step-label,
+  .shell-side.fading .shell-headline,
+  .shell-side.fading .shell-lede { opacity: 0; }
+
+  .shell-spacer { flex: 1; min-height: 16px; }
+
+  .shell-pips {
+    display: flex; gap: 6px;
+    margin-bottom: 12px;
+  }
+  .shell-pips .pip {
+    width: 22px; height: 5px; border-radius: 3px;
+    background: var(--shell-hair);
+    transition: background 0.2s;
+  }
+  .shell-pips .pip.on   { background: var(--shell-purple); }
+  .shell-pips .pip.done { background: var(--shell-purple-dark); }
+
+  .shell-progress { margin-bottom: 22px; }
+  .shell-progress .track {
+    height: 2px;
+    background: var(--shell-hair);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .shell-progress .fill {
+    height: 100%;
+    background: var(--shell-purple);
+    transition: width 0.5s ease;
+    width: 11%;
+  }
+  .shell-progress .meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--shell-ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shell-buttons {
+    display: flex; gap: 12px;
+  }
+  .shell-btn {
+    padding: 11px 24px;
+    border-radius: 6px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    min-width: 110px;
+    text-align: center;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .shell-btn.ghost {
+    background: #FFFFFF;
+    color: var(--shell-ink);
+    border-color: var(--shell-hair-strong);
+  }
+  .shell-btn.ghost:hover:not(:disabled) {
+    border-color: var(--shell-ink-mid);
+  }
+  .shell-btn.ghost:disabled {
+    color: var(--shell-ink-faint);
+    cursor: not-allowed;
+  }
+  .shell-btn.primary {
+    background: var(--shell-blue);
+    color: #FFFFFF;
+  }
+  .shell-btn.primary:hover { background: var(--shell-blue-dark); }
+
+  .shell-stage {
+    flex: 1;
+    background: var(--shell-beige);
+    border-left: 1px solid var(--shell-hair);
+    position: relative;
+    padding: 28px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .shell-stage > .scene-pane { width: 100%; max-width: 600px; }
+
+  /* When inside the shell stage, the existing .mock and .coupa-frame just ride
+     on the beige background — no extra dark glass behind them. */
+
+  /* End panel adopts shell aesthetics */
+  .story-end {
+    display: none;
+    padding: 36px 32px;
+    background: #FFFFFF;
+    border: 4px solid var(--shell-navy);
+    border-radius: 6px;
+    margin: 8px 0 24px;
+    text-align: center;
+    font-family: var(--shell-ui);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  }
+  .story-end h3 {
+    font-size: 28px; font-weight: 700;
+    color: var(--shell-ink);
+    letter-spacing: -0.018em;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .story-end p {
+    font-size: 15px; line-height: 1.6;
+    color: var(--shell-ink-mid);
+    max-width: 60ch;
+    margin: 0 auto 24px;
+  }
+  .story-end-actions {
+    display: flex; gap: 10px; justify-content: center;
+  }
+  .story-end .shell-btn { font-size: 14px; }
+
+  /* Responsive shell window */
+  @media (max-width: 980px) {
+    .shell-body { flex-direction: column; }
+    .shell-side {
+      width: 100%; max-width: none; min-width: 0;
+      padding: 22px 24px 20px;
+      border-bottom: 1px solid var(--shell-hair);
+    }
+    .shell-spacer { display: none; }
+    .shell-stage { width: 100%; padding: 22px; }
+    .shell-headline { font-size: 24px; }
+    .shell-tabs { display: none; }
+  }
+  @media (max-width: 640px) {
+    .shell-window { border-width: 0; }
+    .shell-topbar { padding: 0 14px; gap: 10px; }
+    .shell-vchip, .shell-tenant .sub { display: none; }
   }
   /* Side panel narration */
   .scene-side-num {
@@ -1406,9 +1693,63 @@
       </div>
     </div>
 
-    <!-- ============== STAGE — one scene visible at a time ============== -->
-    <div class="story-stage" id="storyStage">
-      <div class="story-stage-mock">
+    <!-- ============== SHELL WINDOW — matches story-shell.html aesthetic ============== -->
+    <div class="shell-window" id="storyStage">
+
+      <div class="shell-topbar">
+        <div class="shell-tenant">
+          <span class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/></svg>
+          </span>
+          <span class="wm">Black Mesa Energy</span>
+          <span class="sub">Drilling Services MSA · Procurement</span>
+        </div>
+        <div class="sp"></div>
+        <div class="shell-tabs" id="sceneRail">
+          <span class="tab on" data-jump="1">clm</span>
+          <span class="tab"    data-jump="2">agreement desk</span>
+          <span class="tab"    data-jump="3">navigator</span>
+        </div>
+        <div class="shell-vchip">Oil &amp; Gas</div>
+      </div>
+
+      <div class="shell-body">
+        <aside class="shell-side" id="shellSide">
+          <a class="shell-brand" href="/index-unified.html" title="Back to vertical picker" aria-label="Back to vertical picker">
+            <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+              <path d="M69.15 69.15V93.6c0 1.35-1.05 2.4-2.4 2.4H2.4C1.05 96 0 94.95 0 93.6V29.25c0-1.35 1.05-2.4 2.4-2.4h24.45V66.6c0 1.35 1.05 2.4 2.4 2.4l39.9.15Z" fill="#4C00FF"/>
+              <path d="M96 34.5C96 55.2 84 69 69.15 69.15V43.2c0-.75-.3-1.5-.9-1.95L54.75 27.75c-.45-.45-1.2-.9-1.95-.9H26.85V2.4C26.85 1.05 27.9 0 29.25 0h36.3C82.8 0 96 13.95 96 34.5Z" fill="#FF5252"/>
+              <path d="M68.25 41.1c.45.45.9 1.2.9 1.95V69.15L29.25 69c-1.35 0-2.4-1.05-2.4-2.4V26.85h25.95c.75 0 1.5.3 1.95.9L68.25 41.1Z" fill="black"/>
+            </svg>
+            docusign
+          </a>
+          <div class="shell-step-label" id="sceneSideNum">SCENE 1 OF 3</div>
+          <h1 class="shell-headline" id="beatHeadline">Pre-approved playbook.</h1>
+          <div class="shell-lede" id="beatBody">MSA assembles from clauses owned by Legal &mdash; no off-template language, no surprises in redline.</div>
+          <div class="shell-spacer"></div>
+          <div class="shell-pips" id="beatProgress">
+            <span class="pip on"></span><span class="pip"></span><span class="pip"></span>
+          </div>
+          <div class="shell-progress">
+            <div class="track"><div class="fill" id="progressFill"></div></div>
+            <div class="meta">
+              <span id="beatCounter">Beat 1 of 3</span>
+              <span id="sceneSideProduct">Docusign CLM</span>
+            </div>
+          </div>
+          <div class="shell-buttons">
+            <button class="shell-btn ghost" id="storyPrev" type="button" disabled>Back</button>
+            <button class="shell-btn primary" id="storyNext" type="button">
+              <span class="btn-label">Next</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2 L8 6 L4 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <!-- Hidden role slot — kept for backwards-compat with old JS refs -->
+          <span id="sceneSideRole" hidden></span>
+          <span id="beatNarration" hidden></span>
+        </aside>
+
+        <div class="shell-stage">
 
         <!-- ============== SCENE 1 — CLM ============== -->
         <div class="scene-pane active" data-scene="1">
@@ -1658,39 +1999,12 @@
           </div>
         </div>
 
+        </div>
       </div>
 
-      <!-- Side narration panel -->
-      <aside class="story-stage-side">
-        <div class="scene-side-num" id="sceneSideNum">SCENE 1 &nbsp;·&nbsp; CONTRACT GENERATION</div>
-        <div class="scene-side-product" id="sceneSideProduct">Docusign CLM</div>
-        <div class="scene-side-role" id="sceneSideRole">Procurement Manager &mdash; Black Mesa Energy</div>
-        <div class="beat-narration" id="beatNarration">
-          <h3 id="beatHeadline">Pre-approved playbook.</h3>
-          <p id="beatBody">MSA assembles from clauses owned by Legal &mdash; no off-template language.</p>
-        </div>
-        <div class="beat-progress" id="beatProgress">
-          <span class="active"></span><span></span><span></span>
-        </div>
-      </aside>
     </div>
-
-    <!-- ============== CONTROLS ============== -->
-    <div class="story-controls" id="storyControls">
-      <button class="story-btn" id="storyPrev" type="button" disabled>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8 2 L4 6 L8 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back
-      </button>
-      <div class="scene-rail" id="sceneRail">
-        <span class="scene-rail-item active" data-jump="1"><span class="dot"></span>CLM</span>
-        <span class="scene-rail-item" data-jump="2"><span class="dot"></span>Agreement Desk</span>
-        <span class="scene-rail-item" data-jump="3"><span class="dot"></span>Navigator</span>
-      </div>
-      <button class="story-btn primary" id="storyNext" type="button">
-        <span class="btn-label">Next</span>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2 L8 6 L4 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
+    <!-- /shell-window -->
+    <!-- (controls moved into the sidebar) -->
 
     <!-- ============== END PANEL ============== -->
     <div class="story-end" id="storyEnd">
@@ -1864,38 +2178,56 @@
 
   let sceneIdx = 0, beatIdx = 0;
 
-  // Story DOM refs
-  const $sceneNum  = document.getElementById('sceneSideNum');
-  const $product   = document.getElementById('sceneSideProduct');
-  const $role      = document.getElementById('sceneSideRole');
-  const $beatH     = document.getElementById('beatHeadline');
-  const $beatP     = document.getElementById('beatBody');
-  const $beatNarr  = document.getElementById('beatNarration');
-  const $progress  = document.getElementById('beatProgress');
-  const $stage     = document.getElementById('storyStage');
-  const $controls  = document.getElementById('storyControls');
-  const $end       = document.getElementById('storyEnd');
-  const $btnPrev   = document.getElementById('storyPrev');
-  const $btnNext   = document.getElementById('storyNext');
-  const $btnReplay = document.getElementById('storyReplay');
-  const $btnDone   = document.getElementById('storyDone');
+  // Story DOM refs (shell-window aesthetic)
+  const $stepLabel    = document.getElementById('sceneSideNum');     // "SCENE 1 OF 3"
+  const $product      = document.getElementById('sceneSideProduct'); // shown in progress meta
+  const $beatH        = document.getElementById('beatHeadline');
+  const $beatP        = document.getElementById('beatBody');
+  const $sideFader    = document.getElementById('shellSide');         // for fade transition
+  const $pips         = document.getElementById('beatProgress');
+  const $progressFill = document.getElementById('progressFill');
+  const $beatCounter  = document.getElementById('beatCounter');
+  const $stage        = document.getElementById('storyStage');
+  const $end          = document.getElementById('storyEnd');
+  const $btnPrev      = document.getElementById('storyPrev');
+  const $btnNext      = document.getElementById('storyNext');
+  const $btnReplay    = document.getElementById('storyReplay');
+  const $btnDone      = document.getElementById('storyDone');
+
+  // Total beats across all scenes (for progress %)
+  const TOTAL_BEATS = SCENES.reduce((n, s) => n + s.beats.length, 0);
+
+  function globalBeatNumber() {
+    // 1-indexed position across all scenes
+    let n = beatIdx + 1;
+    for (let i = 0; i < sceneIdx; i++) n += SCENES[i].beats.length;
+    return n;
+  }
 
   function renderStory() {
     const s = SCENES[sceneIdx];
     const b = s.beats[beatIdx];
 
-    // Side panel content
-    $sceneNum.innerHTML  = s.eyebrow;
-    $product.textContent = s.product;
-    $role.textContent    = s.role;
-    $beatH.textContent   = b.h;
-    $beatP.textContent   = b.p;
+    // Sidebar content
+    $stepLabel.textContent = 'SCENE ' + (sceneIdx + 1) + ' OF ' + SCENES.length;
+    $beatH.textContent     = b.h;
+    $beatP.textContent     = b.p;
+    $product.textContent   = s.product;
 
-    // Beat progress dots
-    Array.from($progress.children).forEach((dot, i) => {
-      dot.classList.remove('active', 'done');
-      if (i < beatIdx) dot.classList.add('done');
-      else if (i === beatIdx) dot.classList.add('active');
+    // Beat counter (e.g., "Beat 4 of 9")
+    if ($beatCounter) {
+      $beatCounter.textContent = 'Beat ' + globalBeatNumber() + ' of ' + TOTAL_BEATS;
+    }
+    // Progress bar fill
+    if ($progressFill) {
+      $progressFill.style.width = (globalBeatNumber() / TOTAL_BEATS * 100).toFixed(1) + '%';
+    }
+
+    // Beat pips (3 per scene — reset to current scene state)
+    Array.from($pips.children).forEach((pip, i) => {
+      pip.classList.remove('on', 'done');
+      if (i < beatIdx)       pip.classList.add('done');
+      else if (i === beatIdx) pip.classList.add('on');
     });
 
     // Active scene pane
@@ -1903,20 +2235,18 @@
       pane.classList.toggle('active', i === sceneIdx);
     });
 
-    // Beat highlight inside the active pane
+    // Beat highlight in active pane
     document.querySelectorAll('.scene-pane.active [data-beat]').forEach(el => {
       const beats = (el.dataset.beat || '').split(/\s+/);
       el.classList.toggle('beat-active', beats.includes(String(beatIdx + 1)));
     });
 
-    // Scene rail
-    document.querySelectorAll('.scene-rail-item').forEach((item, i) => {
-      item.classList.remove('active', 'done');
-      if (i < sceneIdx) item.classList.add('done');
-      else if (i === sceneIdx) item.classList.add('active');
+    // Scene tabs in topbar
+    document.querySelectorAll('.shell-tabs .tab').forEach((tab, i) => {
+      tab.classList.toggle('on', i === sceneIdx);
     });
 
-    // Flow ribbon highlight
+    // Flow ribbon (under the shell window)
     document.querySelectorAll('[data-flow]').forEach(el => {
       el.classList.toggle('flow-active', el.dataset.flow === s.flow);
     });
@@ -1929,8 +2259,11 @@
   }
 
   function fadeBeat(fn) {
-    $beatNarr.classList.add('fading');
-    setTimeout(() => { fn(); $beatNarr.classList.remove('fading'); }, 180);
+    if ($sideFader) $sideFader.classList.add('fading');
+    setTimeout(() => {
+      fn();
+      if ($sideFader) $sideFader.classList.remove('fading');
+    }, 180);
   }
 
   function nextBeat() {
@@ -1958,39 +2291,33 @@
   function jumpScene(i) {
     if (i < 0 || i >= SCENES.length) return;
     sceneIdx = i; beatIdx = 0;
-    $end.classList.remove('show');
-    $stage.style.display = '';
-    $controls.style.display = '';
+    if ($end)   $end.classList.remove('show');
+    if ($stage) $stage.style.display = '';
     renderStory();
   }
 
   function showEnd() {
-    $end.classList.add('show');
-    $stage.style.display = 'none';
-    $controls.style.display = 'none';
-    document.querySelectorAll('.scene-rail-item').forEach(item => {
-      item.classList.remove('active');
-      item.classList.add('done');
-    });
+    if ($end)   $end.classList.add('show');
+    if ($stage) $stage.style.display = 'none';
+    document.querySelectorAll('.shell-tabs .tab').forEach(tab => tab.classList.remove('on'));
     document.querySelectorAll('[data-flow]').forEach(el => el.classList.remove('flow-active'));
   }
 
   function resetStory() {
     sceneIdx = 0; beatIdx = 0;
-    if ($end)      $end.classList.remove('show');
-    if ($stage)    $stage.style.display = '';
-    if ($controls) $controls.style.display = '';
+    if ($end)   $end.classList.remove('show');
+    if ($stage) $stage.style.display = '';
     renderStory();
   }
 
   // Wire up controls
   $btnNext.addEventListener('click', nextBeat);
   $btnPrev.addEventListener('click', prevBeat);
-  $btnReplay.addEventListener('click', resetStory);
-  $btnDone.addEventListener('click', resetFlow);
-  document.querySelectorAll('.scene-rail-item').forEach(item => {
-    item.addEventListener('click', () => {
-      jumpScene(parseInt(item.dataset.jump, 10) - 1);
+  if ($btnReplay) $btnReplay.addEventListener('click', resetStory);
+  if ($btnDone)   $btnDone.addEventListener('click', resetFlow);
+  document.querySelectorAll('.shell-tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      jumpScene(parseInt(tab.dataset.jump, 10) - 1);
     });
   });
 
