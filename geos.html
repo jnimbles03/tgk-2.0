@@ -906,16 +906,158 @@
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  /* Beat-target highlight — uses shell purple to match story-shell.html */
+  /* Beat-target highlight — pulsing dot anchored to the active element,
+     plus a soft purple wash. Replaces the previous outline+glow box. */
   [data-beat] {
-    transition: outline 0.32s var(--ease), box-shadow 0.32s var(--ease), background 0.32s var(--ease), border-radius 0.2s var(--ease);
+    transition: background 0.32s var(--ease);
     border-radius: 6px;
+    position: relative;
   }
   [data-beat].beat-active {
-    outline: 2px solid var(--shell-purple);
-    outline-offset: 4px;
-    box-shadow: 0 0 22px rgba(75, 0, 233, 0.28);
     background: rgba(75, 0, 233, 0.05);
+  }
+  /* Pulse-ring hotspot — small dot at top-right of active element */
+  [data-beat].beat-active::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--shell-purple);
+    background: rgba(75, 0, 233, 0.22);
+    top: -7px; right: -7px;
+    box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.4);
+    animation: hotspotPulse 2.4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 5;
+  }
+  [data-beat].beat-active::before {
+    content: '';
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--shell-purple);
+    top: -2px; right: -2px;
+    z-index: 6;
+    pointer-events: none;
+  }
+  @keyframes hotspotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.4); }
+    50%      { box-shadow: 0 0 0 7px rgba(75, 0, 233, 0); }
+  }
+  /* Flow-arrow doesn't need a corner dot — it animates its line instead. */
+  .flow-arrow.beat-active::before,
+  .flow-arrow.beat-active::after { display: none; }
+
+  /* ========== SCENE-ENTRY CASCADE — list items reveal sequentially ========== */
+  .scene-pane.active .recip,
+  .scene-pane.active .obl,
+  .scene-pane.active .coupa-task,
+  .scene-pane.active .nav-stats > div,
+  .scene-pane.active .clm-meta > div {
+    animation: rowReveal 0.45s var(--ease) backwards;
+  }
+  .scene-pane.active .recip:nth-of-type(1),
+  .scene-pane.active .obl:nth-of-type(1),
+  .scene-pane.active .coupa-task:nth-of-type(1),
+  .scene-pane.active .nav-stats > div:nth-of-type(1),
+  .scene-pane.active .clm-meta > div:nth-of-type(1) { animation-delay: 0.18s; }
+  .scene-pane.active .recip:nth-of-type(2),
+  .scene-pane.active .obl:nth-of-type(2),
+  .scene-pane.active .coupa-task:nth-of-type(2),
+  .scene-pane.active .nav-stats > div:nth-of-type(2),
+  .scene-pane.active .clm-meta > div:nth-of-type(2) { animation-delay: 0.28s; }
+  .scene-pane.active .recip:nth-of-type(3),
+  .scene-pane.active .obl:nth-of-type(3),
+  .scene-pane.active .coupa-task:nth-of-type(3),
+  .scene-pane.active .nav-stats > div:nth-of-type(3),
+  .scene-pane.active .clm-meta > div:nth-of-type(3) { animation-delay: 0.38s; }
+  .scene-pane.active .recip:nth-of-type(4),
+  .scene-pane.active .obl:nth-of-type(4),
+  .scene-pane.active .clm-meta > div:nth-of-type(4) { animation-delay: 0.48s; }
+  .scene-pane.active .recip:nth-of-type(5),
+  .scene-pane.active .obl:nth-of-type(5) { animation-delay: 0.58s; }
+  @keyframes rowReveal {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* CLM template lines — left-to-right reveal */
+  .scene-pane.active .clm-line {
+    animation: lineGrow 0.55s var(--ease) backwards;
+    transform-origin: left center;
+  }
+  .scene-pane.active .clm-line:nth-of-type(1) { animation-delay: 0.20s; }
+  .scene-pane.active .clm-line:nth-of-type(2) { animation-delay: 0.28s; }
+  .scene-pane.active .clm-line:nth-of-type(3) { animation-delay: 0.36s; }
+  .scene-pane.active .clm-line:nth-of-type(4) { animation-delay: 0.44s; }
+  .scene-pane.active .clm-line:nth-of-type(5) { animation-delay: 0.52s; }
+  .scene-pane.active .clm-line:nth-of-type(6) { animation-delay: 0.60s; }
+  @keyframes lineGrow {
+    from { transform: scaleX(0); opacity: 0; }
+    to   { transform: scaleX(1); opacity: 1; }
+  }
+
+  /* Coupa frame slides up gently into view when its scene is active */
+  .scene-pane.active .coupa-frame {
+    animation: coupaRise 0.55s var(--ease) backwards;
+    animation-delay: 0.45s;
+  }
+  @keyframes coupaRise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Flow-arrow line — when active, dashes flow across it to suggest data motion */
+  .flow-arrow .line {
+    background-image: linear-gradient(90deg,
+      currentColor 0%, currentColor 45%,
+      transparent 45%, transparent 100%);
+    background-size: 14px 1px;
+    background-repeat: repeat-x;
+    background-color: transparent !important;
+    animation: dashFlow 1.6s linear infinite;
+    animation-play-state: paused;
+    height: 1px;
+    opacity: 0.4;
+  }
+  .flow-arrow.beat-active .line {
+    opacity: 1;
+    animation-play-state: running;
+    color: var(--shell-purple);
+  }
+  @keyframes dashFlow {
+    to { background-position: 28px 0; }
+  }
+  /* Soft pulse on the arrow icon when active */
+  .flow-arrow.beat-active svg {
+    animation: arrowPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes arrowPulse {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-2px); }
+  }
+  /* For Scene 3's downward arrow, invert the pulse direction */
+  .scene-pane[data-scene="3"] .flow-arrow.beat-active svg {
+    animation-name: arrowPulseDown;
+  }
+  @keyframes arrowPulseDown {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(2px); }
+  }
+
+  /* "Counter ticker" target — JS-driven number animation. Stats values get
+     a subtle scale bounce when they finish ticking. */
+  .nav-stats .v {
+    transition: transform 0.25s var(--ease);
+    display: inline-block;
+  }
+  .nav-stats .v.ticked {
+    animation: tickPop 0.4s var(--ease);
+  }
+  @keyframes tickPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
   }
 
   /* ========== SHELL WINDOW (matches story-shell.html) ========== */
@@ -2177,6 +2319,7 @@
   ];
 
   let sceneIdx = 0, beatIdx = 0;
+  let prevSceneIdx = -1;
 
   // Story DOM refs (shell-window aesthetic)
   const $stepLabel    = document.getElementById('sceneSideNum');     // "SCENE 1 OF 3"
@@ -2256,6 +2399,61 @@
     const isLast = (sceneIdx === SCENES.length - 1 && beatIdx === s.beats.length - 1);
     const lbl = $btnNext.querySelector('.btn-label');
     if (lbl) lbl.textContent = isLast ? 'Finish' : 'Next';
+
+    // Fire scene-enter animations only when the scene actually changes
+    if (sceneIdx !== prevSceneIdx) {
+      onSceneEnter(sceneIdx);
+      prevSceneIdx = sceneIdx;
+    }
+  }
+
+  // ---- Scene-enter hooks (run once per scene visit) ----
+  function onSceneEnter(idx) {
+    if (idx === 2) {
+      // Scene 3 — Navigator stats counter-tick from 0 on entry
+      const pane = document.querySelector('.scene-pane[data-scene="3"]');
+      if (!pane) return;
+      const stats = pane.querySelectorAll('.nav-stats .v');
+      if (stats.length === 3) {
+        // Slight delay so the cascade reveal lands first
+        setTimeout(() => tickerNumeric(stats[0], 42, { duration: 900 }), 240);
+        setTimeout(() => tickerNumeric(stats[1], 7,  { duration: 700 }), 320);
+        setTimeout(() => tickerMoney(stats[2], 84, { duration: 1100 }), 380);
+      }
+    }
+  }
+
+  // Numeric counter from current → target with eased ramp
+  function tickerNumeric(el, target, opts = {}) {
+    if (!el) return;
+    const start = 0;
+    const dur = opts.duration || 900;
+    const t0 = performance.now();
+    el.classList.remove('ticked');
+    function step(now) {
+      const t = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(start + (target - start) * eased);
+      if (t < 1) requestAnimationFrame(step);
+      else el.classList.add('ticked');
+    }
+    requestAnimationFrame(step);
+  }
+  // Money formatter ($XXM)
+  function tickerMoney(el, target, opts = {}) {
+    if (!el) return;
+    const dur = opts.duration || 1100;
+    const t0 = performance.now();
+    el.classList.remove('ticked');
+    function step(now) {
+      const t = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const v = Math.round(target * eased);
+      el.textContent = '$' + v + 'M';
+      if (t < 1) requestAnimationFrame(step);
+      else el.classList.add('ticked');
+    }
+    requestAnimationFrame(step);
   }
 
   function fadeBeat(fn) {
@@ -2305,6 +2503,7 @@
 
   function resetStory() {
     sceneIdx = 0; beatIdx = 0;
+    prevSceneIdx = -1;
     if ($end)   $end.classList.remove('show');
     if ($stage) $stage.style.display = '';
     renderStory();
