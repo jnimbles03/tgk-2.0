@@ -748,8 +748,11 @@ async function requireAudit(req, res, next) {
   }
 
   // 3) Browser → redirect to login. API caller (curl etc) → 401.
+  // Opt-in: ?basic=1 forces the basic-auth prompt, so the AUDIT_PASSWORD
+  // fallback is reachable from a browser when the magic-link service is down.
   const accept = req.headers.accept || '';
-  if (accept.includes('text/html')) return res.redirect('/audit/login');
+  const wantsBasic = req.query && (req.query.basic === '1' || req.query.basic === 'true');
+  if (accept.includes('text/html') && !wantsBasic) return res.redirect('/audit/login');
   res.set('WWW-Authenticate', 'Basic realm="TGK Audit"');
   res.status(401).send('Authentication required.');
 }
@@ -803,6 +806,7 @@ app.get('/audit/login', (req, res) => {
     <button type="submit">Email me a sign-in link</button>
   </form>
   <div class="meta">Links are single-use and tied to this browser. Sessions last 30 days.</div>
+  <div class="meta" style="margin-top:8px;">Mail provider down? <a href="/audit.html?basic=1" style="color:#4B00E9;">Sign in with the audit password instead.</a></div>
 </div></body></html>`);
 });
 
