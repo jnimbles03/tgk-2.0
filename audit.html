@@ -141,12 +141,14 @@
   .fields { padding: 4px 0; }
   .row {
     display: grid;
-    grid-template-columns: 110px 90px 130px 1fr;
+    grid-template-columns: 110px 90px 130px 1fr 200px;
     gap: 12px;
     padding: 8px 20px;
     border-top: 1px solid #F4F1EB;
     align-items: start;
   }
+  /* Discovery tab uses 4-col rows (no Product column) */
+  body.tab-discovery .row { grid-template-columns: 110px 90px 130px 1fr; }
   .row:first-child { border-top: 0; }
   .row .scene, .row .step { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--ink-soft); padding-top: 6px; }
   .row .field { font-size: 12px; color: var(--ink-mid); padding-top: 6px; font-weight: 500; }
@@ -168,6 +170,34 @@
   .row.dirty .source::after {
     content: " · edited"; color: var(--amber); font-size: 11px;
   }
+  /* Product column */
+  .row .product {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    color: var(--ink);
+    background: #FDFBF7;
+    border: 1px solid var(--hair);
+    border-radius: 4px;
+    padding: 6px 10px;
+    min-height: 28px;
+    cursor: text;
+    white-space: pre-wrap;
+    word-break: break-all;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .row .product:empty::before {
+    content: attr(data-default);
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 11.5px;
+  }
+  .row .product:hover { border-color: var(--hair-strong); }
+  .row .product:focus { outline: none; border-color: var(--purple); background: var(--surface); box-shadow: 0 0 0 3px rgba(75,0,233,0.08); }
+  .row .product.no-edit {
+    background: transparent; border-color: transparent; cursor: default;
+  }
+  .row .product.no-edit:hover { border-color: transparent; }
+  .row .product.dirty { border-color: var(--amber); background: #FFFBEC; }
   /* Scene-band coloring */
   .row.scene-1 .scene { color: #6E7CC9; }
   .row.scene-2 .scene { color: #9C7FD1; }
@@ -222,6 +252,69 @@
   }
   .modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
 
+  /* Rename modal */
+  .rename-modal { width: 640px; max-width: 92vw; }
+  .rename-tabs {
+    display: flex; gap: 4px; margin: 6px 0 14px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .rename-tabs .rtab {
+    padding: 7px 14px; font-size: 13px; font-weight: 500;
+    color: var(--ink-mid); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .rename-tabs .rtab.on { color: var(--purple); border-bottom-color: var(--purple); }
+  .rename-tabs .rtab:not(.on):hover { color: var(--ink); }
+
+  .rename-detected {
+    background: #FCFAF7; border: 1px solid var(--hair);
+    border-radius: 6px; padding: 10px 12px; margin-bottom: 14px;
+    max-height: 130px; overflow-y: auto;
+  }
+  .rd-head { font-size: 11px; color: var(--ink-soft); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .rd-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rd-chip {
+    font-size: 12px; padding: 3px 9px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--hair-strong);
+    cursor: pointer; transition: all 0.12s;
+  }
+  .rd-chip:hover { background: var(--purple-bg); border-color: var(--purple); color: var(--purple); }
+  .rd-chip .rd-count { color: var(--ink-soft); margin-left: 5px; font-size: 11px; }
+  .rd-empty { font-size: 12px; color: var(--ink-soft); font-style: italic; }
+
+  .rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rf-grid label { display: block; font-size: 12px; font-weight: 500;
+    color: var(--ink-mid); margin: 0 0 4px; }
+  .rf-grid input[type="text"], .rf-grid select {
+    width: 100%; font-family: inherit; font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--hair-strong);
+    border-radius: 4px; background: var(--surface); color: var(--ink);
+  }
+  .rf-grid input[type="text"]:focus, .rf-grid select:focus {
+    outline: none; border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(75,0,233,0.08);
+  }
+  .rf-opts { margin-top: 12px; align-items: end; }
+  .rf-check { display: flex !important; flex-direction: row !important;
+    align-items: center; gap: 6px; padding-bottom: 6px; }
+  .rf-check input[type="checkbox"] { margin: 0; }
+
+  .rename-preview {
+    margin-top: 14px; padding: 10px 12px;
+    background: #FCFAF7; border: 1px solid var(--hair);
+    border-radius: 6px;
+    font-size: 12.5px; line-height: 1.55;
+    min-height: 56px; max-height: 180px; overflow-y: auto;
+  }
+  .rp-mute { color: var(--ink-soft); font-style: italic; }
+  .rp-summary { font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .rp-example { color: var(--ink-mid); margin-top: 4px; }
+  .rp-example code { background: var(--hair); padding: 1px 4px; border-radius: 3px;
+    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+  .rp-zero { color: var(--danger); font-weight: 500; }
+
   /* Drop overlay for file upload */
   body.dragging::after {
     content: "Drop the .xlsx to import edits";
@@ -249,6 +342,7 @@
     <label class="btn" for="upload-input"><span>↑ Upload xlsx</span></label>
     <input type="file" id="upload-input" accept=".xlsx" />
     <button class="btn" id="download-btn">↓ Download xlsx</button>
+    <button class="btn" id="rename-btn">Rename…</button>
     <button class="btn primary" id="submit-btn" disabled>Submit for review</button>
   </div>
 </div>
@@ -272,6 +366,51 @@
     <div class="actions">
       <button class="btn" id="modal-cancel">Cancel</button>
       <button class="btn primary" id="modal-confirm">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename modal -->
+<div class="modal-bg" id="rename-bg">
+  <div class="modal rename-modal">
+    <h2>Rename across storylines</h2>
+    <div class="sub">Phase 1 — captures changes for review. Names get rewritten everywhere they appear in scene / beat prose, plus tenant + subtitle for firms. Submit when done; nothing changes on the live shell until the queue is applied by hand.</div>
+    <div class="rename-tabs">
+      <div class="rtab on" data-rtab="people">People</div>
+      <div class="rtab" data-rtab="firms">Firms</div>
+    </div>
+    <div class="rename-detected">
+      <div class="rd-head">Detected (click to fill Find)</div>
+      <div class="rd-list" id="rename-detected"></div>
+    </div>
+    <div class="rename-form">
+      <div class="rf-grid">
+        <label>Find
+          <input type="text" id="rename-find" placeholder="e.g. Priya Das" autocomplete="off" />
+        </label>
+        <label>Replace with
+          <input type="text" id="rename-replace" placeholder="e.g. Maya Chen" autocomplete="off" />
+        </label>
+      </div>
+      <div class="rf-grid rf-opts">
+        <label>Scope
+          <select id="rename-scope">
+            <option value="all">All storylines</option>
+          </select>
+        </label>
+        <label class="rf-check">
+          <input type="checkbox" id="rename-wholeword" checked />
+          Whole word match
+        </label>
+      </div>
+      <div class="rename-preview" id="rename-preview">
+        <span class="rp-mute">Click <em>Preview matches</em> to see what would change.</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="rename-cancel">Cancel</button>
+      <button class="btn" id="rename-preview-btn">Preview matches</button>
+      <button class="btn primary" id="rename-apply" disabled>Apply</button>
     </div>
   </div>
 </div>
@@ -307,6 +446,28 @@ const STORY_GROUPS = {
 const STORY_ORDER = [...STORY_GROUPS.original, ...STORY_GROUPS.splitOut];
 
 const SCENE_LABELS = ['Sender','Identity','Signing','Navigator','Workspace'];
+
+/* Per-scene mock template + per-beat internal-scene resolution.
+   Mirrors story-shell.html (TEMPLATE_FILES + BEAT_TO_INTERNAL).
+   Used to compute the placeholder "default: …" hint shown in empty
+   Product cells. Phase 1: capture overrides only — shell still resolves
+   positionally at runtime. */
+const SCENE_TEMPLATES = ['agreement-desk','clear-idv','signing','navigator','workspace'];
+const BEAT_INTERNAL = [
+  ['s1','s2','s2','s3','s3'],     // scene 0  Sender (Agreement Desk)
+  ['s1','s2','s3','s6','s7'],     // scene 1  Identity (CLEAR IDV)
+  ['s1','s2','s3','s4','s5'],     // scene 2  Signing
+  ['s1','s2','s3','s4','s4'],     // scene 3  Navigator
+  ['—','—','—','—','—'],            // scene 4  Workspace (no internal scenes)
+];
+function defaultSceneProduct(si) {
+  return SCENE_TEMPLATES[si] || '—';
+}
+function defaultBeatProduct(si, bi) {
+  const tmpl = SCENE_TEMPLATES[si] || '—';
+  const sub  = (BEAT_INTERNAL[si] || [])[bi] || '—';
+  return `${tmpl} · ${sub}`;
+}
 
 /* =========================================================
    Toast
@@ -469,12 +630,22 @@ function renderStorylines() {
     const sceneRows = v.scenes.map((sc, si) => {
       const sceneClass = `scene-${si+1}`;
       const sceneTag = `S${si+1} · ${SCENE_LABELS[si]}`;
+      const sceneProductInfo = {
+        path: [key,'scenes',si,'product'],
+        defaultLabel: 'default: ' + defaultSceneProduct(si),
+        current: sc.product || '',
+      };
       let html = '';
-      html += rowHtml(sceneClass, sceneTag, '—', 'Scene head', sc.head, [key,'scenes',si,'head']);
-      html += rowHtml(sceneClass, sceneTag, '—', 'Scene lede', htmlToMd(sc.lede), [key,'scenes',si,'lede']);
+      html += rowHtml(sceneClass, sceneTag, '—', 'Scene head', sc.head, [key,'scenes',si,'head'], sceneProductInfo);
+      html += rowHtml(sceneClass, sceneTag, '—', 'Scene lede', htmlToMd(sc.lede), [key,'scenes',si,'lede'], null);
       sc.beats.forEach((b, bi) => {
-        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat head', b.head, [key,'scenes',si,'beats',bi,'head']);
-        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat lede', htmlToMd(b.lede), [key,'scenes',si,'beats',bi,'lede']);
+        const beatProductInfo = {
+          path: [key,'scenes',si,'beats',bi,'product'],
+          defaultLabel: 'default: ' + defaultBeatProduct(si, bi),
+          current: b.product || '',
+        };
+        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat head', b.head, [key,'scenes',si,'beats',bi,'head'], beatProductInfo);
+        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat lede', htmlToMd(b.lede), [key,'scenes',si,'beats',bi,'lede'], null);
       });
       return html;
     }).join('');
@@ -498,19 +669,43 @@ function renderStorylines() {
     el.addEventListener('blur', onBlur);
     el.addEventListener('keydown', onKey);
   });
+  // Product cells (storylines tab only — Discovery rows have no-edit cells)
+  cards.querySelectorAll('.product:not(.no-edit)').forEach(el => {
+    el.contentEditable = 'true';
+    el.addEventListener('input', onProductEdit);
+    el.addEventListener('keydown', onProductKey);
+  });
 }
 
-function rowHtml(sceneClass, sceneTag, stepCol, field, value, path) {
+function rowHtml(sceneClass, sceneTag, stepCol, field, value, path, productInfo) {
   const pathKey = pathToKey(path);
   const dirty = state.edits.storylines.has(pathKey) || state.edits.discovery.has(pathKey);
   const cls = `row ${sceneClass}` + (dirty ? ' dirty' : '');
   const safe = (value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Product cell — only present for storyline scene-head and beat-head rows.
+  // For lede rows and discovery rows, productInfo is null and we emit an
+  // inert empty cell so the 5-col grid stays aligned.
+  let productCell;
+  if (productInfo) {
+    const ppath = pathToKey(productInfo.path);
+    const pdirty = state.edits.storylines.has(ppath);
+    const pcur = (productInfo.current || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const pdef = (productInfo.defaultLabel || '')
+      .replace(/"/g,'&quot;');
+    productCell = `<div class="product${pdirty ? ' dirty' : ''}" data-product-path="${ppath}" data-default="${pdef}">${pcur}</div>`;
+  } else {
+    productCell = `<div class="product no-edit"></div>`;
+  }
+
   return `
     <div class="${cls}" data-path="${pathKey}">
       <div class="scene">${sceneTag}</div>
       <div class="step">${stepCol}</div>
       <div class="field">${field}</div>
       <div class="source">${safe}</div>
+      ${productCell}
     </div>`;
 }
 
@@ -632,6 +827,35 @@ function onEdit(e) {
   refreshDirtyPill();
 }
 function onBlur(e) { /* no-op; edits captured on input */ }
+
+function onProductEdit(e) {
+  const pathKey = e.target.dataset.productPath;
+  const path = pathKey.split('|').map(p => /^\d+$/.test(p) ? parseInt(p,10) : p);
+  const newVal = e.target.innerText.trim();
+  // Original product value lives at the same path on storylinesOrig.
+  // Most storylines have no `product` field today → orig is ''.
+  let cur = state.storylinesOrig;
+  for (const p of path) cur = cur && cur[p];
+  const orig = cur == null ? '' : String(cur);
+  if (newVal === orig) {
+    state.edits.storylines.delete(pathKey);
+    e.target.classList.remove('dirty');
+  } else {
+    state.edits.storylines.set(pathKey, { path, value: newVal });
+    e.target.classList.add('dirty');
+  }
+  refreshDirtyPill();
+}
+function onProductKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  if (e.key === 'Escape') {
+    e.target.innerText = '';
+    state.edits.storylines.delete(e.target.dataset.productPath);
+    e.target.classList.remove('dirty');
+    refreshDirtyPill();
+    e.target.blur();
+  }
+}
 function onKey(e) {
   if (e.key === 'Escape') {
     const row = e.target.closest('.row');
@@ -967,9 +1191,244 @@ document.querySelectorAll('.tab').forEach(t => {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
     t.classList.add('on');
     state.tab = t.dataset.tab;
+    document.body.classList.toggle('tab-discovery', state.tab === 'discovery');
     renderFilters(); render();
   });
 });
+
+/* =========================================================
+   Rename modal — bulk find/replace across storylines
+   Phase 1: queues edits in state.edits.storylines so they
+   ride the existing Submit-for-review flow.
+   ========================================================= */
+const renameState = { kind: 'people' };
+
+function escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buildRegex(find, wholeWord) {
+  if (!find) return null;
+  const body = escapeRe(find);
+  const pattern = wholeWord ? `(^|[^A-Za-z0-9])(${body})(?=$|[^A-Za-z0-9])` : `(${body})`;
+  return new RegExp(pattern, 'g');
+}
+
+// Replace using a regex built by buildRegex(). For whole-word patterns we
+// re-emit the captured boundary character so we don't gobble it.
+function applyRegex(text, re, replace, wholeWord) {
+  if (!re || !text) return text;
+  re.lastIndex = 0;
+  return wholeWord
+    ? text.replace(re, (_m, pre) => pre + replace)
+    : text.replace(re, replace);
+}
+function countMatches(text, re) {
+  if (!re || !text) return 0;
+  re.lastIndex = 0;
+  let n = 0; while (re.exec(text)) n++;
+  return n;
+}
+
+// Pull every place a name might live for a single storyline.
+function storylineFields(storyKey, includeFirmFields) {
+  const v = state.storylines[storyKey];
+  const out = [];
+  if (includeFirmFields) {
+    if (v.tenant != null) out.push({ path: [storyKey,'tenant'], value: v.tenant, isLede: false });
+    if (v.subtitle != null) out.push({ path: [storyKey,'subtitle'], value: v.subtitle, isLede: false });
+  }
+  v.scenes.forEach((sc, si) => {
+    if (sc.head != null) out.push({ path: [storyKey,'scenes',si,'head'], value: sc.head, isLede: false });
+    if (sc.lede != null) out.push({ path: [storyKey,'scenes',si,'lede'], value: htmlToMd(sc.lede), isLede: true });
+    sc.beats.forEach((b, bi) => {
+      if (b.head != null) out.push({ path: [storyKey,'scenes',si,'beats',bi,'head'], value: b.head, isLede: false });
+      if (b.lede != null) out.push({ path: [storyKey,'scenes',si,'beats',bi,'lede'], value: htmlToMd(b.lede), isLede: true });
+    });
+  });
+  return out;
+}
+
+// ---- Detection ----
+function detectFirms() {
+  // tenants + subtitles are the structured truth; total occurrence count
+  // is computed across all prose so the user sees real impact.
+  const firms = new Map(); // canonical → 0 (we'll fill counts in second pass)
+  const subRe = /^×\s*([^—–-]+?)\s+[—–-]/;
+  for (const k of state.storyKeysOrder) {
+    const v = state.storylines[k];
+    if (v.tenant) firms.set(v.tenant, 0);
+    if (v.subtitle) {
+      const m = v.subtitle.match(subRe);
+      if (m) firms.set(m[1].trim(), 0);
+    }
+  }
+  // Count real occurrences across head/lede/tenant/subtitle (whole-word).
+  for (const name of firms.keys()) {
+    const re = buildRegex(name, true);
+    let cnt = 0;
+    for (const k of state.storyKeysOrder) {
+      for (const f of storylineFields(k, true)) cnt += countMatches(f.value, re);
+    }
+    firms.set(name, cnt);
+  }
+  return [...firms.entries()].sort((a,b) => b[1] - a[1]);
+}
+
+function detectPeople() {
+  // Capitalized bigrams in prose, minus anything that's clearly a firm.
+  const firmSet = new Set(detectFirms().map(([n]) => n));
+  const counts = new Map();
+  const re = /\b([A-Z][a-z]{1,})\s+([A-Z][a-z]{1,})\b/g;
+  for (const k of state.storyKeysOrder) {
+    for (const f of storylineFields(k, false)) {
+      let m; re.lastIndex = 0;
+      while ((m = re.exec(f.value))) {
+        const name = m[0];
+        if (firmSet.has(name)) continue;
+        counts.set(name, (counts.get(name) || 0) + 1);
+      }
+    }
+  }
+  return [...counts.entries()].sort((a,b) => b[1] - a[1]);
+}
+
+// ---- UI: detected list + preview ----
+function renderDetected() {
+  const list = document.getElementById('rename-detected');
+  const items = renameState.kind === 'people' ? detectPeople() : detectFirms();
+  if (items.length === 0) {
+    list.innerHTML = `<div class="rd-empty">Nothing detected.</div>`;
+    return;
+  }
+  list.innerHTML = items.slice(0, 60).map(([name, cnt]) =>
+    `<div class="rd-chip" data-name="${escapeHtml(name)}">${escapeHtml(name)}<span class="rd-count">${cnt}</span></div>`
+  ).join('');
+  list.querySelectorAll('.rd-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('rename-find').value = el.dataset.name;
+      document.getElementById('rename-find').focus();
+    });
+  });
+}
+
+function renderRenamePreview() {
+  const find = document.getElementById('rename-find').value.trim();
+  const replace = document.getElementById('rename-replace').value;
+  const scope = document.getElementById('rename-scope').value;
+  const wholeWord = document.getElementById('rename-wholeword').checked;
+  const includeFirmFields = renameState.kind === 'firms';
+  const box = document.getElementById('rename-preview');
+  const apply = document.getElementById('rename-apply');
+
+  if (!find) {
+    box.innerHTML = `<span class="rp-mute">Type a name to find, then click Preview.</span>`;
+    apply.disabled = true;
+    return;
+  }
+  const re = buildRegex(find, wholeWord);
+  const targetKeys = scope === 'all' ? state.storyKeysOrder : [scope];
+  let totalMatches = 0;
+  let touchedFields = 0;
+  const examples = [];
+  for (const k of targetKeys) {
+    for (const f of storylineFields(k, includeFirmFields)) {
+      const n = countMatches(f.value, re);
+      if (!n) continue;
+      totalMatches += n;
+      touchedFields++;
+      if (examples.length < 3) {
+        const before = f.value;
+        const after = applyRegex(before, re, replace || '____', wholeWord);
+        examples.push({ key: k, path: f.path.slice(1).join('/'), before, after });
+      }
+    }
+  }
+  if (totalMatches === 0) {
+    box.innerHTML = `<span class="rp-zero">No matches.</span>`;
+    apply.disabled = true;
+    return;
+  }
+  const exHtml = examples.map(e => {
+    const sample = e.before.length > 200 ? e.before.slice(0, 200) + '…' : e.before;
+    const newSample = e.after.length > 200 ? e.after.slice(0, 200) + '…' : e.after;
+    return `<div class="rp-example"><code>${escapeHtml(e.key)} · ${escapeHtml(e.path)}</code><br/>
+      <span style="color:var(--ink-soft)">before:</span> ${escapeHtml(sample)}<br/>
+      <span style="color:var(--purple)">after:</span> ${escapeHtml(newSample)}</div>`;
+  }).join('');
+  box.innerHTML = `<div class="rp-summary">${totalMatches} match${totalMatches===1?'':'es'} across ${touchedFields} field${touchedFields===1?'':'s'} in ${targetKeys.length} storyline${targetKeys.length===1?'':'s'}.</div>${exHtml}`;
+  apply.disabled = !replace; // require non-empty replacement to apply
+}
+
+function applyRename() {
+  const find = document.getElementById('rename-find').value.trim();
+  const replace = document.getElementById('rename-replace').value;
+  const scope = document.getElementById('rename-scope').value;
+  const wholeWord = document.getElementById('rename-wholeword').checked;
+  if (!find || !replace) return;
+  const re = buildRegex(find, wholeWord);
+  const includeFirmFields = renameState.kind === 'firms';
+  const targetKeys = scope === 'all' ? state.storyKeysOrder : [scope];
+
+  let edits = 0;
+  for (const k of targetKeys) {
+    for (const f of storylineFields(k, includeFirmFields)) {
+      const before = f.value;
+      const after  = applyRegex(before, re, replace, wholeWord);
+      if (after === before) continue;
+      // Push into edits map. Mirror how onEdit stores values: ledes go in as
+      // markdown; buildChangeSet re-encodes back to HTML on submit.
+      const pathKey = pathToKey(f.path);
+      state.edits.storylines.set(pathKey, { path: f.path, value: after });
+      // Mutate state.storylines so re-renders show the new text.
+      let cur = state.storylines, last = f.path[f.path.length - 1];
+      for (let i = 0; i < f.path.length - 1; i++) cur = cur[f.path[i]];
+      cur[last] = f.isLede ? mdToHtml(after) : after;
+      edits++;
+    }
+  }
+  document.getElementById('rename-bg').classList.remove('on');
+  refreshDirtyPill();
+  render();
+  toast(`Rename queued · ${edits} field edit${edits===1?'':'s'}`, 'success');
+}
+
+// ---- Wiring ----
+document.getElementById('rename-btn').addEventListener('click', () => {
+  // Populate scope select with current storylines + "All".
+  const scopeSel = document.getElementById('rename-scope');
+  scopeSel.innerHTML = `<option value="all">All storylines</option>` +
+    state.storyKeysOrder.map(k =>
+      `<option value="${escapeHtml(k)}">${escapeHtml(k)} — ${escapeHtml(state.storylines[k].tenant || '')}</option>`
+    ).join('');
+  // Reset form
+  document.getElementById('rename-find').value = '';
+  document.getElementById('rename-replace').value = '';
+  document.getElementById('rename-wholeword').checked = true;
+  scopeSel.value = 'all';
+  document.getElementById('rename-preview').innerHTML =
+    `<span class="rp-mute">Click <em>Preview matches</em> to see what would change.</span>`;
+  document.getElementById('rename-apply').disabled = true;
+  renderDetected();
+  document.getElementById('rename-bg').classList.add('on');
+});
+document.querySelectorAll('.rtab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.rtab').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    renameState.kind = t.dataset.rtab;
+    renderDetected();
+    renderRenamePreview();
+  });
+});
+document.getElementById('rename-cancel').addEventListener('click', () => {
+  document.getElementById('rename-bg').classList.remove('on');
+});
+document.getElementById('rename-preview-btn').addEventListener('click', renderRenamePreview);
+['rename-find','rename-replace','rename-scope','rename-wholeword'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => { document.getElementById('rename-apply').disabled = true; });
+});
+document.getElementById('rename-apply').addEventListener('click', applyRename);
 
 bootstrap();
 </script>
