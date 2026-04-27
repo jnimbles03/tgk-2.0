@@ -757,6 +757,9 @@ async function requireAudit(req, res, next) {
   res.status(401).send('Authentication required.');
 }
 
+// Friendly aliases: /audit and /audit/ → /audit.html
+app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
+
 // Gate the audit page itself before the static handler can serve it.
 app.get('/audit.html', requireAudit, (req, res) => {
   res.sendFile(path.join(__dirname, 'audit.html'));
