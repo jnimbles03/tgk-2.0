@@ -430,7 +430,7 @@ const state = {
   storyKeysOrder: [],  // preserves canonical order
   laneKeysOrder: [],
   filters: {
-    storylines: { group: '', category: '', q: '' },
+    storylines: { group: '', industry: '', category: '', q: '' },
     discovery:  { story: '', lane: '', q: '' },
   },
   edits: {
@@ -444,6 +444,31 @@ const STORY_GROUPS = {
   splitOut: ['insurance-life','insurance-pc','provider-roi','slgov-311','slgov-benefits','slgov-recertification','slgov-vendor-compliance','slgov-employee-onboarding','slgov-licensing','banking-deposits','wealth-discovery'],
 };
 const STORY_ORDER = [...STORY_GROUPS.original, ...STORY_GROUPS.splitOut];
+
+/* Industry pillars — match the B2C/B2B split shown on geos.html.
+   FINS = Financial Services, HLS = Healthcare & Life Sciences,
+   PS   = Public Sector (federal, state & local, education, nonprofit),
+   GEO  = B2B industries (Energy, Telecom, Retail, …) — no storylines yet. */
+const STORY_INDUSTRY = {
+  // FINS
+  wealth: 'FINS', banking: 'FINS', insurance: 'FINS',
+  'banking-deposits': 'FINS', 'wealth-discovery': 'FINS',
+  'insurance-life': 'FINS', 'insurance-pc': 'FINS',
+  // HLS
+  provider: 'HLS', lifesciences: 'HLS', payor: 'HLS',
+  'provider-roi': 'HLS',
+  // PS
+  fedgov: 'PS', slgov: 'PS', education: 'PS', nonprofit: 'PS',
+  'slgov-311': 'PS', 'slgov-benefits': 'PS',
+  'slgov-recertification': 'PS', 'slgov-vendor-compliance': 'PS',
+  'slgov-employee-onboarding': 'PS', 'slgov-licensing': 'PS',
+};
+const INDUSTRY_LABELS = {
+  FINS: 'Financial Services',
+  HLS:  'Healthcare & Life Sciences',
+  PS:   'Public Sector',
+  GEO:  'GEO (B2B industries)',
+};
 
 const SCENE_LABELS = ['Sender','Identity','Signing','Navigator','Workspace'];
 
@@ -518,7 +543,14 @@ function renderFilters() {
   const fb = document.getElementById('filterbar');
   if (state.tab === 'storylines') {
     const cats = ['onboarding','maintenance'];
+    const industries = ['FINS','HLS','PS','GEO'];
     fb.innerHTML = `
+      <label>Industry
+        <select id="f-industry">
+          <option value="">All</option>
+          ${industries.map(i => `<option value="${i}">${i} — ${INDUSTRY_LABELS[i]}</option>`).join('')}
+        </select>
+      </label>
       <label>Group
         <select id="f-group">
           <option value="">All</option>
@@ -538,13 +570,15 @@ function renderFilters() {
       <span class="count" id="match-count"></span>
       <a class="reset" id="f-reset">Reset filters</a>
     `;
+    document.getElementById('f-industry').value = state.filters.storylines.industry;
     document.getElementById('f-group').value = state.filters.storylines.group;
     document.getElementById('f-category').value = state.filters.storylines.category;
     document.getElementById('f-q').value = state.filters.storylines.q;
+    document.getElementById('f-industry').addEventListener('change', e => { state.filters.storylines.industry = e.target.value; render(); });
     document.getElementById('f-group').addEventListener('change', e => { state.filters.storylines.group = e.target.value; render(); });
     document.getElementById('f-category').addEventListener('change', e => { state.filters.storylines.category = e.target.value; render(); });
     document.getElementById('f-q').addEventListener('input', e => { state.filters.storylines.q = e.target.value; render(); });
-    document.getElementById('f-reset').addEventListener('click', e => { e.preventDefault(); state.filters.storylines = {group:'',category:'',q:''}; renderFilters(); render(); });
+    document.getElementById('f-reset').addEventListener('click', e => { e.preventDefault(); state.filters.storylines = {group:'',industry:'',category:'',q:''}; renderFilters(); render(); });
   } else {
     const stories = STORY_ORDER;
     fb.innerHTML = `
@@ -613,6 +647,7 @@ function renderStorylines() {
   const visible = state.storyKeysOrder.filter(key => {
     if (f.group === 'original' && !STORY_GROUPS.original.includes(key)) return false;
     if (f.group === 'splitOut' && !STORY_GROUPS.splitOut.includes(key)) return false;
+    if (f.industry && (STORY_INDUSTRY[key] || '') !== f.industry) return false;
     const v = state.storylines[key];
     if (f.category && v.category !== f.category) return false;
     if (q) {
