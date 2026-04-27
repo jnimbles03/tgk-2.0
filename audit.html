@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Audit & Submit Edits</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --ink: #1F1A14;
+    --ink-mid: #5F5E5A;
+    --ink-soft: #888780;
+    --bg: #FAF7F2;
+    --surface: #FFFFFF;
+    --hair: #E8E4DA;
+    --hair-strong: #D3D1C7;
+    --purple: #4B00E9;
+    --purple-bg: #EEEDFE;
+    --teal: #1D9E75;
+    --teal-bg: #E1F5EE;
+    --amber: #BA7517;
+    --amber-bg: #FFF6B8;
+    --danger: #C2410C;
+    --danger-bg: #FCEBEB;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--hair);
+    padding: 14px 28px;
+    display: flex; align-items: center; gap: 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 2px; background: var(--purple); }
+  .topbar .tabs { display: flex; gap: 4px; margin-left: 18px; }
+  .topbar .tabs .tab {
+    padding: 6px 14px; border-radius: 6px; font-weight: 500; cursor: pointer;
+    color: var(--ink-mid); transition: all 0.15s;
+  }
+  .topbar .tabs .tab.on { background: var(--purple); color: white; }
+  .topbar .tabs .tab:not(.on):hover { background: var(--hair); }
+  .topbar .actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .pending-pill {
+    font-size: 11px; padding: 3px 9px; border-radius: 10px;
+    background: var(--amber-bg); color: var(--amber);
+    font-weight: 500;
+  }
+  .pending-pill.zero { background: var(--hair); color: var(--ink-soft); }
+  .who { font-size: 11.5px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .who .em { color: var(--ink-mid); font-weight: 500; }
+  .who a { color: var(--purple); text-decoration: none; }
+  .who a:hover { text-decoration: underline; }
+
+  /* Buttons */
+  button.btn, label.btn {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 7px 14px; border-radius: 6px; border: 1px solid var(--hair-strong);
+    background: var(--surface); color: var(--ink); cursor: pointer;
+    transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  button.btn:hover, label.btn:hover { background: var(--hair); }
+  button.btn.primary, label.btn.primary {
+    background: var(--purple); color: white; border-color: var(--purple);
+  }
+  button.btn.primary:hover, label.btn.primary:hover { background: #3D00BF; }
+  button.btn.primary:disabled {
+    background: var(--hair-strong); border-color: var(--hair-strong);
+    color: var(--ink-soft); cursor: not-allowed;
+  }
+  input[type="file"] { display: none; }
+
+  /* Filter bar */
+  .filterbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--hair);
+    padding: 12px 28px;
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+  }
+  .filterbar label {
+    font-size: 12px; color: var(--ink-soft); font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filterbar select, .filterbar input[type="search"] {
+    font-family: inherit; font-size: 13px;
+    padding: 5px 8px; border: 1px solid var(--hair-strong);
+    border-radius: 4px; background: var(--surface);
+    min-width: 140px;
+  }
+  .filterbar input[type="search"] { min-width: 220px; }
+  .filterbar .reset {
+    margin-left: auto;
+    color: var(--ink-mid); font-size: 12px; cursor: pointer; text-decoration: none;
+  }
+  .filterbar .reset:hover { color: var(--ink); text-decoration: underline; }
+  .filterbar .count {
+    color: var(--ink-soft); font-size: 12px;
+  }
+
+  /* Workspace */
+  .workspace { padding: 24px 28px 80px; }
+
+  /* Storyline / lane card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--hair);
+    display: flex; align-items: center; gap: 14px;
+    background: #FCFAF7;
+  }
+  .card-head .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .card-head .key { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--ink-mid); }
+  .card-head .title { font-weight: 600; font-size: 15px; }
+  .card-head .meta { color: var(--ink-soft); font-size: 12px; margin-left: auto; }
+  .card-head .pill {
+    font-size: 10.5px; padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+  }
+  .pill.onboarding { background: #DDEFE3; color: #1F5824; }
+  .pill.maintenance { background: #FCE6D9; color: #8C3D14; }
+  .pill.gap { background: var(--amber-bg); color: var(--amber); }
+
+  /* Field rows inside a card */
+  .fields { padding: 4px 0; }
+  .row {
+    display: grid;
+    grid-template-columns: 110px 90px 130px 1fr;
+    gap: 12px;
+    padding: 8px 20px;
+    border-top: 1px solid #F4F1EB;
+    align-items: start;
+  }
+  .row:first-child { border-top: 0; }
+  .row .scene, .row .step { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--ink-soft); padding-top: 6px; }
+  .row .field { font-size: 12px; color: var(--ink-mid); padding-top: 6px; font-weight: 500; }
+  .row .source {
+    font-size: 13px; color: var(--ink); line-height: 1.55;
+    background: #FDFBF7;
+    border: 1px solid var(--hair);
+    border-radius: 4px;
+    padding: 6px 10px;
+    min-height: 28px;
+    transition: border-color 0.12s, background 0.12s;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    cursor: text;
+  }
+  .row .source:hover { border-color: var(--hair-strong); }
+  .row .source:focus { outline: none; border-color: var(--purple); background: var(--surface); box-shadow: 0 0 0 3px rgba(75,0,233,0.08); }
+  .row.dirty .source { border-color: var(--amber); background: #FFFBEC; }
+  .row.dirty .source::after {
+    content: " · edited"; color: var(--amber); font-size: 11px;
+  }
+  /* Scene-band coloring */
+  .row.scene-1 .scene { color: #6E7CC9; }
+  .row.scene-2 .scene { color: #9C7FD1; }
+  .row.scene-3 .scene { color: #D49050; }
+  .row.scene-4 .scene { color: #6FA67D; }
+  .row.scene-5 .scene { color: #D17A95; }
+
+  .empty-card {
+    text-align: center; padding: 40px;
+    color: var(--ink-soft); font-style: italic; font-size: 13px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--ink); color: white;
+    padding: 10px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(31,26,20,0.25);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--teal); }
+
+  /* Submit modal */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; background: rgba(31,26,20,0.4);
+    z-index: 150; align-items: center; justify-content: center;
+  }
+  .modal-bg.on { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 10px;
+    padding: 28px 32px; width: 480px; max-width: 92vw;
+    box-shadow: 0 20px 50px rgba(31,26,20,0.25);
+  }
+  .modal h2 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+  .modal .sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 18px; }
+  .modal label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mid); margin: 12px 0 4px; }
+  .modal input, .modal textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--hair-strong); border-radius: 4px;
+    background: var(--surface); color: var(--ink);
+  }
+  .modal textarea { min-height: 70px; resize: vertical; }
+  .modal .summary {
+    background: var(--purple-bg); padding: 10px 14px; border-radius: 6px;
+    font-size: 12px; color: var(--purple); margin-bottom: 6px;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  .modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+  /* Drop overlay for file upload */
+  body.dragging::after {
+    content: "Drop the .xlsx to import edits";
+    position: fixed; inset: 0;
+    background: rgba(75,0,233,0.06);
+    border: 3px dashed var(--purple);
+    z-index: 250;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 600; color: var(--purple);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>TGK Audit</div>
+  <div class="tabs">
+    <div class="tab on" data-tab="storylines">Storylines</div>
+    <div class="tab" data-tab="discovery">Discovery</div>
+  </div>
+  <div class="actions">
+    <span class="who" id="whoami"></span>
+    <span class="pending-pill zero" id="dirty-pill">0 edits</span>
+    <label class="btn" for="upload-input"><span>↑ Upload xlsx</span></label>
+    <input type="file" id="upload-input" accept=".xlsx" />
+    <button class="btn" id="download-btn">↓ Download xlsx</button>
+    <button class="btn primary" id="submit-btn" disabled>Submit for review</button>
+  </div>
+</div>
+
+<div class="filterbar" id="filterbar"></div>
+
+<div class="workspace">
+  <div id="cards"></div>
+</div>
+
+<!-- Submit modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2>Submit edits for review</h2>
+    <div class="sub">Your changes go into the audit queue for sign-off — nothing changes on the live shell until they're applied.</div>
+    <div class="summary" id="modal-summary"></div>
+    <label>Your name</label>
+    <input type="text" id="modal-author" placeholder="e.g. Patrick Meyer" />
+    <label>Note (optional)</label>
+    <textarea id="modal-note" placeholder="What changed and why?"></textarea>
+    <div class="actions">
+      <button class="btn" id="modal-cancel">Cancel</button>
+      <button class="btn primary" id="modal-confirm">Submit</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   State
+   ========================================================= */
+const state = {
+  tab: 'storylines',
+  storylines: null,    // { key: vertical, ... }
+  storylinesOrig: null,// untouched copy for diff
+  discovery: null,     // { lane: laneData, ... }
+  discoveryOrig: null,
+  storyKeysOrder: [],  // preserves canonical order
+  laneKeysOrder: [],
+  filters: {
+    storylines: { group: '', category: '', q: '' },
+    discovery:  { story: '', lane: '', q: '' },
+  },
+  edits: {
+    storylines: new Map(), // path -> {key, scenePath, value}
+    discovery:  new Map(),
+  },
+};
+
+const STORY_GROUPS = {
+  original: ['wealth','banking','insurance','provider','lifesciences','payor','fedgov','slgov','education','nonprofit'],
+  splitOut: ['insurance-life','insurance-pc','provider-roi','slgov-311','slgov-benefits','slgov-recertification','slgov-vendor-compliance','slgov-employee-onboarding','slgov-licensing','banking-deposits','wealth-discovery'],
+};
+const STORY_ORDER = [...STORY_GROUPS.original, ...STORY_GROUPS.splitOut];
+
+const SCENE_LABELS = ['Sender','Identity','Signing','Navigator','Workspace'];
+
+/* =========================================================
+   Toast
+   ========================================================= */
+function toast(msg, kind) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (kind || '');
+  clearTimeout(toast._h);
+  toast._h = setTimeout(() => { t.className = 'toast ' + (kind || ''); }, 2400);
+}
+
+/* =========================================================
+   Bootstrap
+   ========================================================= */
+async function bootstrap() {
+  try {
+    // Show who's signed in (best-effort — doesn't block if endpoint missing)
+    fetch('/audit/whoami').then(r => r.ok ? r.json() : null).then(w => {
+      const el = document.getElementById('whoami');
+      if (w && w.email) {
+        el.innerHTML = `signed in as <span class="em">${w.email}</span> · ` +
+          `<a href="/audit/signout">sign out</a>`;
+      }
+    }).catch(() => {});
+
+    const [s, d] = await Promise.all([
+      fetch('/api/audit/storylines').then(r => r.json()),
+      fetch('/api/audit/discovery').then(r => r.json()),
+    ]);
+    state.storylines = s;
+    state.storylinesOrig = JSON.parse(JSON.stringify(s));
+    state.discovery = d;
+    state.discoveryOrig = JSON.parse(JSON.stringify(d));
+    state.storyKeysOrder = STORY_ORDER.filter(k => k in s);
+    state.laneKeysOrder = Object.keys(d);
+    renderFilters();
+    render();
+  } catch (e) {
+    toast('Could not load data: ' + e.message, 'error');
+  }
+}
+
+/* =========================================================
+   Filter bar — re-rendered per tab
+   ========================================================= */
+function renderFilters() {
+  const fb = document.getElementById('filterbar');
+  if (state.tab === 'storylines') {
+    const cats = ['onboarding','maintenance'];
+    fb.innerHTML = `
+      <label>Group
+        <select id="f-group">
+          <option value="">All</option>
+          <option value="original">Original 10</option>
+          <option value="splitOut">Split-out 11</option>
+        </select>
+      </label>
+      <label>Category
+        <select id="f-category">
+          <option value="">All</option>
+          ${cats.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+      </label>
+      <label>Search
+        <input type="search" id="f-q" placeholder="any text in scenes / beats" />
+      </label>
+      <span class="count" id="match-count"></span>
+      <a class="reset" id="f-reset">Reset filters</a>
+    `;
+    document.getElementById('f-group').value = state.filters.storylines.group;
+    document.getElementById('f-category').value = state.filters.storylines.category;
+    document.getElementById('f-q').value = state.filters.storylines.q;
+    document.getElementById('f-group').addEventListener('change', e => { state.filters.storylines.group = e.target.value; render(); });
+    document.getElementById('f-category').addEventListener('change', e => { state.filters.storylines.category = e.target.value; render(); });
+    document.getElementById('f-q').addEventListener('input', e => { state.filters.storylines.q = e.target.value; render(); });
+    document.getElementById('f-reset').addEventListener('click', e => { e.preventDefault(); state.filters.storylines = {group:'',category:'',q:''}; renderFilters(); render(); });
+  } else {
+    const stories = STORY_ORDER;
+    fb.innerHTML = `
+      <label>Storyline
+        <select id="f-story">
+          <option value="">All (incl. gaps)</option>
+          ${stories.map(s => `<option value="${s}">${s}</option>`).join('')}
+        </select>
+      </label>
+      <label>Lane scope
+        <select id="f-lane">
+          <option value="">All</option>
+          <option value="covered">Covered only</option>
+          <option value="gaps">Gaps only</option>
+        </select>
+      </label>
+      <label>Search
+        <input type="search" id="f-q" placeholder="any text in steps" />
+      </label>
+      <span class="count" id="match-count"></span>
+      <a class="reset" id="f-reset">Reset filters</a>
+    `;
+    document.getElementById('f-story').value = state.filters.discovery.story;
+    document.getElementById('f-lane').value = state.filters.discovery.lane;
+    document.getElementById('f-q').value = state.filters.discovery.q;
+    document.getElementById('f-story').addEventListener('change', e => { state.filters.discovery.story = e.target.value; render(); });
+    document.getElementById('f-lane').addEventListener('change', e => { state.filters.discovery.lane = e.target.value; render(); });
+    document.getElementById('f-q').addEventListener('input', e => { state.filters.discovery.q = e.target.value; render(); });
+    document.getElementById('f-reset').addEventListener('click', e => { e.preventDefault(); state.filters.discovery = {story:'',lane:'',q:''}; renderFilters(); render(); });
+  }
+}
+
+/* =========================================================
+   Render — main loop
+   ========================================================= */
+function render() {
+  if (state.tab === 'storylines') renderStorylines();
+  else renderDiscovery();
+  refreshDirtyPill();
+}
+
+function htmlToMd(s) {
+  if (!s) return '';
+  let t = String(s);
+  t = t.replace(/<span\s+class="em">(.*?)<\/span>/g, '*$1*');
+  t = t.replace(/<\/p>\s*<p>/g, '\n\n');
+  t = t.replace(/<\/?p>/g, '');
+  t = t.replace(/<br\s*\/?>/g, '\n');
+  t = t.replace(/<[^>]+>/g, '');
+  return t.trim();
+}
+function mdToHtml(s) {
+  if (!s) return '';
+  const paras = String(s).trim().split(/\n\s*\n/);
+  return paras.map(p => {
+    let pp = p.replace(/\s*\n\s*/g, ' ').trim();
+    pp = pp.replace(/\*([^*\n]+)\*/g, '<span class="em">$1</span>');
+    return `<p>${pp}</p>`;
+  }).join('');
+}
+
+function renderStorylines() {
+  const cards = document.getElementById('cards');
+  const f = state.filters.storylines;
+  const q = f.q.toLowerCase();
+  const visible = state.storyKeysOrder.filter(key => {
+    if (f.group === 'original' && !STORY_GROUPS.original.includes(key)) return false;
+    if (f.group === 'splitOut' && !STORY_GROUPS.splitOut.includes(key)) return false;
+    const v = state.storylines[key];
+    if (f.category && v.category !== f.category) return false;
+    if (q) {
+      const blob = JSON.stringify(v).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('match-count').textContent = `${visible.length} of ${state.storyKeysOrder.length} storylines`;
+
+  cards.innerHTML = visible.map(key => {
+    const v = state.storylines[key];
+    const color = v.tenantColor || '#888';
+    const cat = v.category || 'onboarding';
+    const sceneRows = v.scenes.map((sc, si) => {
+      const sceneClass = `scene-${si+1}`;
+      const sceneTag = `S${si+1} · ${SCENE_LABELS[si]}`;
+      let html = '';
+      html += rowHtml(sceneClass, sceneTag, '—', 'Scene head', sc.head, [key,'scenes',si,'head']);
+      html += rowHtml(sceneClass, sceneTag, '—', 'Scene lede', htmlToMd(sc.lede), [key,'scenes',si,'lede']);
+      sc.beats.forEach((b, bi) => {
+        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat head', b.head, [key,'scenes',si,'beats',bi,'head']);
+        html += rowHtml(sceneClass, sceneTag, `Beat ${bi+1}`, 'Beat lede', htmlToMd(b.lede), [key,'scenes',si,'beats',bi,'lede']);
+      });
+      return html;
+    }).join('');
+    return `
+      <div class="card" data-key="${key}">
+        <div class="card-head">
+          <div class="swatch" style="background:${color}"></div>
+          <span class="key">${key}</span>
+          <span class="title">${v.tenant || ''} ${v.subtitle || ''}</span>
+          <span class="pill ${cat}">${cat}</span>
+          <span class="meta">${v.preset || ''}</span>
+        </div>
+        <div class="fields">${sceneRows}</div>
+      </div>`;
+  }).join('') || '<div class="empty-card">No storylines match the filter.</div>';
+
+  // Wire contenteditable cells
+  cards.querySelectorAll('.source').forEach(el => {
+    el.contentEditable = 'true';
+    el.addEventListener('input', onEdit);
+    el.addEventListener('blur', onBlur);
+    el.addEventListener('keydown', onKey);
+  });
+}
+
+function rowHtml(sceneClass, sceneTag, stepCol, field, value, path) {
+  const pathKey = pathToKey(path);
+  const dirty = state.edits.storylines.has(pathKey) || state.edits.discovery.has(pathKey);
+  const cls = `row ${sceneClass}` + (dirty ? ' dirty' : '');
+  const safe = (value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `
+    <div class="${cls}" data-path="${pathKey}">
+      <div class="scene">${sceneTag}</div>
+      <div class="step">${stepCol}</div>
+      <div class="field">${field}</div>
+      <div class="source">${safe}</div>
+    </div>`;
+}
+
+function renderDiscovery() {
+  const cards = document.getElementById('cards');
+  const f = state.filters.discovery;
+  const q = f.q.toLowerCase();
+  const lanesByStory = {};
+  for (const lane in state.discovery) {
+    const ld = state.discovery[lane];
+    (lanesByStory[ld.storyKey] = lanesByStory[ld.storyKey] || []).push(lane);
+  }
+  const stories = STORY_ORDER.filter(s => {
+    if (f.story && f.story !== s) return false;
+    const has = (lanesByStory[s] || []).length > 0;
+    if (f.lane === 'covered' && !has) return false;
+    if (f.lane === 'gaps' && has) return false;
+    if (q) {
+      const lanes = lanesByStory[s] || [];
+      const blob = lanes.map(L => JSON.stringify(state.discovery[L])).join(' ').toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+
+  let lanesShown = 0, gapsShown = 0;
+  cards.innerHTML = stories.map(storyKey => {
+    const lanes = (lanesByStory[storyKey] || []);
+    if (lanes.length === 0) {
+      gapsShown++;
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div class="swatch" style="background:#E8B800"></div>
+            <span class="key">${storyKey}</span>
+            <span class="title">No discovery asset on disk</span>
+            <span class="pill gap">missing</span>
+          </div>
+          <div class="empty-card">This storyline doesn't have a discovery board yet. Build one and drop it at the project root with an embedded steps-data JSON block to fill the gap.</div>
+        </div>`;
+    }
+    return lanes.map(laneKey => {
+      lanesShown++;
+      const ld = state.discovery[laneKey];
+      const stepsHtml = ld.steps.map((step, si) => {
+        const sceneClass = `scene-${(si % 5) + 1}`;
+        const stepTag = `Step ${si+1}`;
+        let h = '';
+        h += rowHtml(sceneClass, stepTag, step.label || '', 'Step heading', step.heading || '', [laneKey,'steps',si,'heading']);
+        if (step.current) {
+          h += rowHtml(sceneClass, stepTag, step.label || '', 'Current heading', step.current.heading || '', [laneKey,'steps',si,'current','heading']);
+          (step.current.items || []).forEach((it, ii) => {
+            h += rowHtml(sceneClass, stepTag, step.label || '', `Current item ${ii+1}`, it, [laneKey,'steps',si,'current','items',ii]);
+          });
+          (step.current.points || []).forEach((pt, pi) => {
+            h += rowHtml(sceneClass, stepTag, step.label || '', `Current point ${pi+1}`, pt, [laneKey,'steps',si,'current','points',pi]);
+          });
+        }
+        if (step.future) {
+          h += rowHtml(sceneClass, stepTag, step.label || '', 'Future heading', step.future.heading || '', [laneKey,'steps',si,'future','heading']);
+          (step.future.items || []).forEach((it, ii) => {
+            h += rowHtml(sceneClass, stepTag, step.label || '', `Future item ${ii+1}`, it, [laneKey,'steps',si,'future','items',ii]);
+          });
+          (step.future.tags || []).forEach((tg, ti) => {
+            h += rowHtml(sceneClass, stepTag, step.label || '', `Future tag ${ti+1}`, tg, [laneKey,'steps',si,'future','tags',ti]);
+          });
+        }
+        return h;
+      }).join('');
+      return `
+        <div class="card" data-key="${laneKey}">
+          <div class="card-head">
+            <div class="swatch" style="background:#1D9E75"></div>
+            <span class="key">${laneKey}</span>
+            <span class="title">${ld.laneLabel} · ${ld.steps.length} steps</span>
+            <span class="meta">${ld.sourceFile}#${ld.blockId}</span>
+          </div>
+          <div class="fields">${stepsHtml}</div>
+        </div>`;
+    }).join('');
+  }).join('') || '<div class="empty-card">No matches.</div>';
+
+  document.getElementById('match-count').textContent = `${lanesShown} lane(s) · ${gapsShown} gap(s) shown`;
+
+  cards.querySelectorAll('.source').forEach(el => {
+    el.contentEditable = 'true';
+    el.addEventListener('input', onEdit);
+    el.addEventListener('blur', onBlur);
+    el.addEventListener('keydown', onKey);
+  });
+}
+
+/* =========================================================
+   Edit handling
+   ========================================================= */
+function pathToKey(path) { return path.join('|'); }
+function getOrig(dataset, path) {
+  const root = dataset === 'storylines' ? state.storylinesOrig : state.discoveryOrig;
+  let cur = root;
+  for (const p of path) cur = cur && cur[p];
+  // Convert HTML to markdown for storyline ledes so dirty-checking matches edits
+  if (typeof cur === 'string' && (path.includes('lede'))) cur = htmlToMd(cur);
+  return cur == null ? '' : String(cur);
+}
+
+function onEdit(e) {
+  const row = e.target.closest('.row');
+  const pathKey = row.dataset.path;
+  const path = pathKey.split('|').map(p => /^\d+$/.test(p) ? parseInt(p,10) : p);
+  const newVal = e.target.innerText;
+  const orig = getOrig(state.tab, path);
+  if (newVal === orig) {
+    state.edits[state.tab].delete(pathKey);
+    row.classList.remove('dirty');
+  } else {
+    state.edits[state.tab].set(pathKey, { path, value: newVal });
+    row.classList.add('dirty');
+  }
+  refreshDirtyPill();
+}
+function onBlur(e) { /* no-op; edits captured on input */ }
+function onKey(e) {
+  if (e.key === 'Escape') {
+    const row = e.target.closest('.row');
+    const path = row.dataset.path.split('|').map(p => /^\d+$/.test(p) ? parseInt(p,10) : p);
+    e.target.innerText = getOrig(state.tab, path);
+    state.edits[state.tab].delete(row.dataset.path);
+    row.classList.remove('dirty');
+    refreshDirtyPill();
+    e.target.blur();
+  }
+}
+
+function refreshDirtyPill() {
+  const total = state.edits.storylines.size + state.edits.discovery.size;
+  const pill = document.getElementById('dirty-pill');
+  pill.textContent = total === 0 ? '0 edits' : `${total} edit${total===1?'':'s'} pending`;
+  pill.classList.toggle('zero', total === 0);
+  document.getElementById('submit-btn').disabled = (total === 0);
+}
+
+/* =========================================================
+   Submit (queue for review)
+   ========================================================= */
+function buildChangeSet(dataset) {
+  // Group edits by top-level key (storyline key or lane key) and apply
+  // them onto a deep-clone of the current data — so the server sees a
+  // partial overlay rather than every field.
+  const edits = state.edits[dataset];
+  if (edits.size === 0) return null;
+  const out = {};
+  for (const { path, value, whole } of edits.values()) {
+    const topKey = path[0];
+    if (!(topKey in out)) {
+      out[topKey] = JSON.parse(JSON.stringify(state[dataset][topKey]));
+    }
+    if (whole) continue; // upload already replaced the whole top-level key in state
+    let cur = out[topKey];
+    for (let i = 1; i < path.length - 1; i++) cur = cur[path[i]];
+    const last = path[path.length - 1];
+    let v = value;
+    // Re-encode storyline ledes back to HTML
+    if (dataset === 'storylines' && (path[path.length - 1] === 'lede')) {
+      v = mdToHtml(value);
+    }
+    cur[last] = v;
+  }
+  return out;
+}
+
+document.getElementById('submit-btn').addEventListener('click', () => {
+  const dataset = state.tab;
+  const changes = buildChangeSet(dataset);
+  if (!changes) return toast('Nothing to submit', 'error');
+  const summary = `${dataset} · ${Object.keys(changes).length} ${dataset === 'storylines' ? 'storyline' : 'lane'}(s) · ${state.edits[dataset].size} field edit(s)`;
+  document.getElementById('modal-summary').textContent = summary;
+  document.getElementById('modal-author').value = '';
+  document.getElementById('modal-note').value = '';
+  document.getElementById('modal-bg').classList.add('on');
+});
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal-bg').classList.remove('on');
+});
+document.getElementById('modal-confirm').addEventListener('click', async () => {
+  const dataset = state.tab;
+  const changes = buildChangeSet(dataset);
+  const author = document.getElementById('modal-author').value.trim();
+  const note = document.getElementById('modal-note').value.trim();
+  try {
+    const r = await fetch('/api/audit/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataset, changes, author, note, source: 'web' }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'submit failed');
+    state.edits[dataset].clear();
+    document.getElementById('modal-bg').classList.remove('on');
+    refreshDirtyPill();
+    render();
+    toast(`Submitted for review · ${j.id.slice(0,8)}`, 'success');
+  } catch (e) {
+    toast('Submit failed: ' + e.message, 'error');
+  }
+});
+
+/* =========================================================
+   Download xlsx — uses SheetJS to generate a workbook from current state
+   ========================================================= */
+document.getElementById('download-btn').addEventListener('click', () => {
+  if (state.tab === 'storylines') downloadStorylinesXlsx();
+  else downloadDiscoveryXlsx();
+});
+
+function aoa(rows) { return XLSX.utils.aoa_to_sheet(rows); }
+function autoWidth(rows) { return rows[0].map((_, c) => ({ wch: Math.min(80, Math.max(10, ...rows.map(r => String(r[c] ?? '').length))) })); }
+
+function downloadStorylinesXlsx() {
+  const wb = XLSX.utils.book_new();
+  // Index sheet
+  const idx = [['Group','Vertical key','Category','Tenant','Customer / character','Use case','Mark color','Preset']];
+  state.storyKeysOrder.forEach(k => {
+    const v = state.storylines[k];
+    const group = STORY_GROUPS.original.includes(k) ? 'Original 10' : 'Split-out 11';
+    const sub = (v.subtitle || '').replace(/^×\s*/, '');
+    const [cust, ...rest] = sub.split('—');
+    idx.push([group, k, v.category || '', v.tenant || '', (cust||'').trim(), rest.join('—').trim(), v.tenantColor || '', v.preset || '']);
+  });
+  const idxSheet = aoa(idx); idxSheet['!cols'] = autoWidth(idx);
+  XLSX.utils.book_append_sheet(wb, idxSheet, 'Index');
+  state.storyKeysOrder.forEach(k => {
+    const v = state.storylines[k];
+    const rows = [
+      ['Vertical key', k], ['Tenant', v.tenant || ''], ['Customer', ((v.subtitle||'').replace(/^×\s*/,'').split('—')[0]||'').trim()],
+      ['Use case', ((v.subtitle||'').replace(/^×\s*/,'').split('—').slice(1).join('—')).trim()],
+      ['Subtitle (raw)', v.subtitle || ''], ['Mark color', v.tenantColor || ''], ['Preset', v.preset || ''], ['Category', v.category || ''],
+      [], ['Scene','Beat #','Hotspot','Field','Source text'],
+    ];
+    const SCENES = [['Sender','agreement_desk'],['Identity','clear_idv'],['Signing','signing'],['Navigator','navigator'],['Workspace','workspace']];
+    v.scenes.forEach((sc, si) => {
+      const [name, hot] = SCENES[si];
+      rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, '—', hot, 'Scene tag', sc.tag || '']);
+      rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, '—', hot, 'Scene head', sc.head || '']);
+      rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, '—', hot, 'Scene lede', htmlToMd(sc.lede || '')]);
+      sc.beats.forEach((b, bi) => {
+        rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, String(bi+1), hot, 'Beat head', b.head || '']);
+        rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, String(bi+1), hot, 'Beat lede', htmlToMd(b.lede || '')]);
+      });
+    });
+    const sh = aoa(rows); sh['!cols'] = [{wch:24},{wch:8},{wch:18},{wch:14},{wch:80}];
+    XLSX.utils.book_append_sheet(wb, sh, k.slice(0,31));
+  });
+  XLSX.writeFile(wb, 'TGK_storylines.xlsx');
+}
+
+function downloadDiscoveryXlsx() {
+  const wb = XLSX.utils.book_new();
+  const idx = [['Storyline','Lane','Disco asset','Source file','JSON block','# steps']];
+  STORY_ORDER.forEach(s => {
+    const lanes = state.laneKeysOrder.filter(L => state.discovery[L].storyKey === s);
+    if (lanes.length === 0) {
+      idx.push([s, '—', 'MISSING — no disco asset', '—', '—', '—']);
+    } else {
+      lanes.forEach(L => {
+        const ld = state.discovery[L];
+        idx.push([s, ld.laneLabel, L, ld.sourceFile, ld.blockId, ld.steps.length]);
+      });
+    }
+  });
+  const idxSheet = aoa(idx); idxSheet['!cols'] = autoWidth(idx);
+  XLSX.utils.book_append_sheet(wb, idxSheet, 'Index');
+  state.laneKeysOrder.forEach(L => {
+    const ld = state.discovery[L];
+    const rows = [
+      ['Lane key', L], ['Storyline', ld.storyKey], ['Lane label', ld.laneLabel],
+      ['Source file', ld.sourceFile], ['JSON block id', ld.blockId], ['# steps', ld.steps.length], ['Notes', 'Edit the Source text column.'],
+      [], ['Step #','Step label','Field','Source text'],
+    ];
+    ld.steps.forEach((step, si) => {
+      const sl = step.label || '';
+      rows.push([si+1, sl, 'Step icon', step.icon || '']);
+      rows.push([si+1, sl, 'Step label', sl]);
+      rows.push([si+1, sl, 'Step heading', step.heading || '']);
+      rows.push([si+1, sl, 'Endpoint?', step.endpoint ? 'true' : '']);
+      const c = step.current || {}, f = step.future || {};
+      rows.push([si+1, sl, 'Current heading', c.heading || '']);
+      (c.items||[]).forEach(it => rows.push([si+1, sl, 'Current item', it]));
+      (c.points||[]).forEach(pt => rows.push([si+1, sl, 'Current point solution', pt]));
+      rows.push([si+1, sl, 'Current media src', (c.media||{}).src || '']);
+      rows.push([si+1, sl, 'Future heading', f.heading || '']);
+      (f.items||[]).forEach(it => rows.push([si+1, sl, 'Future item', it]));
+      (f.tags||[]).forEach(tg => rows.push([si+1, sl, 'Future tag', tg]));
+      rows.push([si+1, sl, 'Future media src', (f.media||{}).src || '']);
+      rows.push([si+1, sl, 'Future media label', (f.media||{}).label || '']);
+    });
+    const sh = aoa(rows); sh['!cols'] = [{wch:8},{wch:22},{wch:24},{wch:80}];
+    XLSX.utils.book_append_sheet(wb, sh, L.slice(0,31));
+  });
+  XLSX.writeFile(wb, 'TGK_discovery.xlsx');
+}
+
+/* =========================================================
+   Upload xlsx — parse via SheetJS and overlay onto current data
+   ========================================================= */
+document.getElementById('upload-input').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (f) handleFile(f); e.target.value = '';
+});
+['dragover','dragenter'].forEach(ev =>
+  document.body.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add('dragging'); })
+);
+['dragleave','drop'].forEach(ev =>
+  document.body.addEventListener(ev, e => { e.preventDefault(); document.body.classList.remove('dragging'); })
+);
+document.body.addEventListener('drop', e => {
+  e.preventDefault(); document.body.classList.remove('dragging');
+  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+});
+
+async function handleFile(file) {
+  if (!/\.xlsx$/i.test(file.name)) return toast('Need a .xlsx file', 'error');
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    // Detect dataset by sheet names
+    const isStory = wb.SheetNames.some(n => n in (state.storylines||{}));
+    const isDisco = wb.SheetNames.some(n => n in (state.discovery||{}));
+    if (isStory) ingestStorylinesWb(wb);
+    else if (isDisco) ingestDiscoveryWb(wb);
+    else return toast('Unrecognised workbook — sheet names don\'t match storylines or discovery keys', 'error');
+  } catch (e) { toast('Parse failed: ' + e.message, 'error'); }
+}
+
+function ingestStorylinesWb(wb) {
+  state.tab = 'storylines';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === 'storylines'));
+  let edits = 0;
+  for (const name of wb.SheetNames) {
+    if (name === 'Index') continue;
+    if (!(name in state.storylines)) continue;
+    const v = state.storylines[name];
+    const sh = wb.Sheets[name];
+    const aoa = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' });
+    // Find the table start (after the metadata block) — first row whose A is 'Scene'
+    const headerIdx = aoa.findIndex(r => r[0] === 'Scene');
+    if (headerIdx < 0) continue;
+    let si = -1, bi = 0;
+    for (let r = headerIdx + 1; r < aoa.length; r++) {
+      const [scene, beat, hot, field, src] = aoa[r];
+      if (!field) continue;
+      const m = String(scene).match(/SCENE\s+(\d+)/i);
+      if (!m) continue;
+      const newSi = parseInt(m[1], 10) - 1;
+      if (newSi !== si) { si = newSi; bi = 0; }
+      const sc = v.scenes[si]; if (!sc) continue;
+      if (field === 'Scene tag') { if (sc.tag !== src) { sc.tag = src; edits++; } }
+      else if (field === 'Scene head') { if (sc.head !== src) { sc.head = src; edits++; } }
+      else if (field === 'Scene lede') { const h = mdToHtml(src); if (sc.lede !== h) { sc.lede = h; edits++; } }
+      else if (field === 'Beat head') { const idx = parseInt(beat,10)-1; if (sc.beats[idx] && sc.beats[idx].head !== src) { sc.beats[idx].head = src; edits++; } }
+      else if (field === 'Beat lede') { const idx = parseInt(beat,10)-1; const h = mdToHtml(src); if (sc.beats[idx] && sc.beats[idx].lede !== h) { sc.beats[idx].lede = h; edits++; } }
+    }
+    // Metadata block (rows 1-8)
+    const meta = {};
+    for (let r = 0; r < Math.min(headerIdx, aoa.length); r++) {
+      meta[String(aoa[r][0])] = String(aoa[r][1] || '');
+    }
+    if (meta['Tenant'] && v.tenant !== meta['Tenant']) { v.tenant = meta['Tenant']; edits++; }
+    if (meta['Subtitle (raw)'] && v.subtitle !== meta['Subtitle (raw)']) { v.subtitle = meta['Subtitle (raw)']; edits++; }
+    if (meta['Mark color']) { const c = meta['Mark color']; if (v.tenantColor !== c) { v.tenantColor = c; edits++; } }
+    if (meta['Preset'] && v.preset !== meta['Preset']) { v.preset = meta['Preset']; edits++; }
+    if (meta['Category'] && v.category !== meta['Category']) { v.category = meta['Category']; edits++; }
+  }
+  // Recompute edit map by diffing against original
+  recomputeEditsFromState('storylines');
+  renderFilters(); render();
+  toast(`Imported · ${edits} field change(s)`, 'success');
+}
+
+function ingestDiscoveryWb(wb) {
+  state.tab = 'discovery';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === 'discovery'));
+  let edits = 0;
+  for (const name of wb.SheetNames) {
+    if (name === 'Index') continue;
+    if (!(name in state.discovery)) continue;
+    const ld = state.discovery[name];
+    const sh = wb.Sheets[name];
+    const aoa = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' });
+    const headerIdx = aoa.findIndex(r => r[0] === 'Step #');
+    if (headerIdx < 0) continue;
+    // Group rows by step #
+    const stepRows = {};
+    for (let r = headerIdx + 1; r < aoa.length; r++) {
+      const [stepNo, , field, src] = aoa[r];
+      if (!stepNo || !field) continue;
+      const idx = parseInt(stepNo,10) - 1;
+      (stepRows[idx] = stepRows[idx] || []).push([String(field), src]);
+    }
+    for (const [idxS, rows] of Object.entries(stepRows)) {
+      const idx = parseInt(idxS, 10);
+      const newStep = { current: {}, future: {} };
+      let curMedia = {}, futMedia = {};
+      for (const [field, value] of rows) {
+        const v = (value === undefined || value === null) ? '' : String(value);
+        if (field === 'Step icon') newStep.icon = v;
+        else if (field === 'Step label') newStep.label = v;
+        else if (field === 'Step heading') newStep.heading = v;
+        else if (field === 'Endpoint?') { if (/^(true|yes|1|y)$/i.test(v.trim())) newStep.endpoint = true; }
+        else if (field === 'Current heading') { if (v) newStep.current.heading = v; }
+        else if (field === 'Future heading') { if (v) newStep.future.heading = v; }
+        else if (field === 'Current item') { if (v) (newStep.current.items = newStep.current.items || []).push(v); }
+        else if (field === 'Current point solution') { if (v) (newStep.current.points = newStep.current.points || []).push(v); }
+        else if (field === 'Future item') { if (v) (newStep.future.items = newStep.future.items || []).push(v); }
+        else if (field === 'Future tag') { if (v) (newStep.future.tags = newStep.future.tags || []).push(v); }
+        else if (field === 'Current media src') { if (v) curMedia.src = v; }
+        else if (field === 'Future media src') { if (v) futMedia.src = v; }
+        else if (field === 'Future media label') { if (v) futMedia.label = v; }
+      }
+      if (curMedia.src) newStep.current.media = { type: 'component', src: curMedia.src };
+      if (futMedia.src) {
+        const o = { type: 'component', src: futMedia.src };
+        if (futMedia.label) o.label = futMedia.label;
+        newStep.future.media = o;
+      }
+      if (Object.keys(newStep.current).length === 0) delete newStep.current;
+      if (Object.keys(newStep.future).length === 0) delete newStep.future;
+      if (JSON.stringify(ld.steps[idx]) !== JSON.stringify(newStep)) { ld.steps[idx] = newStep; edits++; }
+    }
+  }
+  recomputeEditsFromState('discovery');
+  renderFilters(); render();
+  toast(`Imported · ${edits} step change(s)`, 'success');
+}
+
+function recomputeEditsFromState(dataset) {
+  // Walk every editable field and compare current vs original. Lossy diff
+  // for upload — we can't pinpoint per-field paths from a wholesale step
+  // replacement, so we set the entire top-level key as one edit if anything
+  // inside it changed.
+  state.edits[dataset].clear();
+  const cur = state[dataset];
+  const orig = dataset === 'storylines' ? state.storylinesOrig : state.discoveryOrig;
+  for (const k in cur) {
+    if (JSON.stringify(cur[k]) !== JSON.stringify(orig[k])) {
+      state.edits[dataset].set(k, { path: [k], value: '__upload__', whole: true });
+    }
+  }
+}
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    state.tab = t.dataset.tab;
+    renderFilters(); render();
+  });
+});
+
+bootstrap();
+</script>
+</body>
+</html>

@@ -15,6 +15,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+// Audit page auth — magic-link sent to a @docusign.com email.
+// AUDIT_PASSWORD is a legacy / emergency fallback (basic-auth) so you're never
+// locked out if the mail provider is down or you haven't set RESEND_API_KEY yet.
+const AUDIT_USER = process.env.AUDIT_USER || 'audit';
+const AUDIT_PASSWORD = process.env.AUDIT_PASSWORD || '';
+const AUDIT_EMAIL_DOMAIN = (process.env.AUDIT_EMAIL_DOMAIN || 'docusign.com').toLowerCase();
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const RESEND_FROM = process.env.RESEND_FROM || 'onboarding@resend.dev';
+const AUDIT_BASE_URL = process.env.AUDIT_BASE_URL || ''; // e.g. https://your-repl.replit.app
+const AUDIT_TOKEN_TTL_MS = 15 * 60 * 1000;        // magic-link tokens: 15 min
+const AUDIT_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // session cookies: 30 days
+const AUDIT_TOKEN_KEY = 'audit:tokens';   // pending magic-link tokens
+const AUDIT_SESSION_KEY = 'audit:sessions'; // active sessions
 const LEGACY_STORE_PATH = path.join(__dirname, 'feedback-store.json');
 const KV_KEY = 'feedback:list';
 // Slug-gated public read-only feedback endpoint. Knowing the slug acts as a
@@ -644,6 +657,490 @@ function adminHtml() {
 </script>
 </body></html>`;
 }
+
+// =========================================================
+// Audit page — read-only data endpoints + queue-for-review
+// =========================================================
+// The audit page (/audit.html) loads the live storyline & discovery data,
+// lets contributors edit/upload, and POSTs change sets to a pending queue
+// stored in Replit DB under AUDIT_KV_KEY. /admin/audit reviews the queue.
+const AUDIT_KV_KEY = 'audit:pending';
+
+// ---------- Audit auth: magic-link to a @docusign.com email ----------
+// Two-step: POST /audit/request with an email → server sends a magic link →
+// user clicks link → GET /audit/verify?token=… exchanges the token for a
+// signed session cookie that's good for AUDIT_SESSION_TTL_MS.
+//
+// AUDIT_PASSWORD basic-auth still works as an emergency fallback so you're
+// never locked out — admins can use admin/ADMIN_PASSWORD too.
+
+function parseCookies(req) {
+  const out = {};
+  const raw = req.headers.cookie || '';
+  raw.split(/;\s*/).forEach(p => {
+    const i = p.indexOf('=');
+    if (i > 0) out[p.slice(0, i)] = decodeURIComponent(p.slice(i + 1));
+  });
+  return out;
+}
+
+async function readKvList(key) {
+  try {
+    const raw = await db.get(key);
+    if (Array.isArray(raw)) return raw;
+    if (raw && Array.isArray(raw.value)) return raw.value;
+    return [];
+  } catch (e) { return []; }
+}
+async function writeKvList(key, list) { await db.set(key, list); }
+
+async function findValidSession(sid) {
+  if (!sid) return null;
+  const list = await readKvList(AUDIT_SESSION_KEY);
+  const now = Date.now();
+  const s = list.find(x => x.sid === sid && x.expires > now);
+  return s || null;
+}
+
+async function createSession(email) {
+  const sid = crypto.randomBytes(24).toString('hex');
+  const session = {
+    sid,
+    email: email.toLowerCase(),
+    created_at: new Date().toISOString(),
+    expires: Date.now() + AUDIT_SESSION_TTL_MS,
+  };
+  const list = await readKvList(AUDIT_SESSION_KEY);
+  // Drop expired sessions while we're here, cap stored count.
+  const now = Date.now();
+  const trimmed = list.filter(x => x.expires > now).slice(-500);
+  trimmed.push(session);
+  await writeKvList(AUDIT_SESSION_KEY, trimmed);
+  return session;
+}
+
+async function destroySession(sid) {
+  if (!sid) return;
+  const list = await readKvList(AUDIT_SESSION_KEY);
+  await writeKvList(AUDIT_SESSION_KEY, list.filter(x => x.sid !== sid));
+}
+
+async function requireAudit(req, res, next) {
+  // 1) Cookie session
+  const sid = parseCookies(req)['tgk_audit'];
+  const session = await findValidSession(sid);
+  if (session) { req.auditUser = session.email; return next(); }
+
+  // 2) Basic-auth fallback (AUDIT_PASSWORD or ADMIN_PASSWORD)
+  const header = req.headers.authorization || '';
+  const [scheme, encoded] = header.split(' ');
+  if (scheme === 'Basic' && encoded) {
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const idx = decoded.indexOf(':');
+    const user = decoded.slice(0, idx);
+    const pass = decoded.slice(idx + 1);
+    if (AUDIT_PASSWORD && user === AUDIT_USER && pass === AUDIT_PASSWORD) {
+      req.auditUser = `${AUDIT_USER}@local`; return next();
+    }
+    if (ADMIN_PASSWORD && user === ADMIN_USER && pass === ADMIN_PASSWORD) {
+      req.auditUser = `${ADMIN_USER}@local`; return next();
+    }
+  }
+
+  // 3) Browser → redirect to login. API caller (curl etc) → 401.
+  const accept = req.headers.accept || '';
+  if (accept.includes('text/html')) return res.redirect('/audit/login');
+  res.set('WWW-Authenticate', 'Basic realm="TGK Audit"');
+  res.status(401).send('Authentication required.');
+}
+
+// Gate the audit page itself before the static handler can serve it.
+app.get('/audit.html', requireAudit, (req, res) => {
+  res.sendFile(path.join(__dirname, 'audit.html'));
+});
+
+// ---- Login page (no auth required) ----
+app.get('/audit/login', (req, res) => {
+  const sent = req.query.sent ? '1' : '';
+  const err = req.query.err || '';
+  res.type('html').send(`<!doctype html><html><head><meta charset="utf-8">
+<title>Sign in · TGK Audit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0;
+    background: #FAF7F2; color: #1F1A14; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; }
+  .card { background: white; border: 1px solid #E8E4DA; border-radius: 10px;
+    padding: 36px 40px; width: 420px; max-width: 92vw; }
+  h1 { margin: 0 0 6px; font-size: 20px; font-weight: 600; }
+  .sub { color: #6E6760; font-size: 13.5px; margin-bottom: 22px; line-height: 1.5; }
+  label { display: block; font-size: 12px; color: #5F5E5A; font-weight: 500; margin-bottom: 6px; }
+  input[type="email"] { width: 100%; padding: 10px 12px; font: inherit; font-size: 14px;
+    border: 1px solid #D3D1C7; border-radius: 6px; background: #FCFAF7; }
+  input[type="email"]:focus { outline: none; border-color: #4B00E9;
+    box-shadow: 0 0 0 3px rgba(75,0,233,0.08); background: white; }
+  button { margin-top: 14px; width: 100%; padding: 10px; font: inherit; font-size: 14px;
+    font-weight: 500; background: #4B00E9; color: white; border: none;
+    border-radius: 6px; cursor: pointer; }
+  button:hover { background: #3D00BF; }
+  .meta { margin-top: 20px; font-size: 11.5px; color: #888780; line-height: 1.5; }
+  .ok { background: #DDEFE3; color: #1F5824; padding: 12px 14px; border-radius: 6px;
+    font-size: 13px; margin-bottom: 14px; }
+  .err { background: #F4D6D6; color: #6E2424; padding: 10px 14px; border-radius: 6px;
+    font-size: 13px; margin-bottom: 14px; }
+  .dot { display: inline-block; width: 8px; height: 8px; background: #4B00E9;
+    border-radius: 2px; margin-right: 8px; vertical-align: 1px; }
+</style></head>
+<body><div class="card">
+  <h1><span class="dot"></span>TGK Audit</h1>
+  <div class="sub">Sign in with your <strong>@${AUDIT_EMAIL_DOMAIN}</strong> email. We'll send a one-time link that expires in 15 minutes.</div>
+  ${sent ? `<div class="ok">Link sent. Check your email and click the link to continue.</div>` : ''}
+  ${err ? `<div class="err">${err.replace(/[<>]/g,'')}</div>` : ''}
+  <form method="POST" action="/audit/request">
+    <label for="email">Email</label>
+    <input id="email" type="email" name="email" required autofocus
+      placeholder="you@${AUDIT_EMAIL_DOMAIN}" />
+    <button type="submit">Email me a sign-in link</button>
+  </form>
+  <div class="meta">Links are single-use and tied to this browser. Sessions last 30 days.</div>
+</div></body></html>`);
+});
+
+// ---- Request a magic link ----
+app.post('/audit/request', express.urlencoded({ extended: false }), async (req, res) => {
+  const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const onDomain = email.endsWith('@' + AUDIT_EMAIL_DOMAIN);
+  if (!valid || !onDomain) {
+    const msg = encodeURIComponent(
+      `Email must be a valid @${AUDIT_EMAIL_DOMAIN} address.`);
+    return res.redirect('/audit/login?err=' + msg);
+  }
+  if (!RESEND_API_KEY) {
+    const msg = encodeURIComponent(
+      `Email service not configured. Set RESEND_API_KEY (or use the AUDIT_PASSWORD fallback).`);
+    return res.redirect('/audit/login?err=' + msg);
+  }
+
+  // Mint a one-time token and store it
+  const token = crypto.randomBytes(24).toString('hex');
+  const tokens = await readKvList(AUDIT_TOKEN_KEY);
+  // Trim expired
+  const now = Date.now();
+  const trimmed = tokens.filter(t => t.expires > now).slice(-200);
+  trimmed.push({
+    token, email,
+    created_at: new Date().toISOString(),
+    expires: now + AUDIT_TOKEN_TTL_MS,
+  });
+  await writeKvList(AUDIT_TOKEN_KEY, trimmed);
+
+  // Build the magic link
+  const base = AUDIT_BASE_URL || `${req.protocol}://${req.get('host')}`;
+  const link = `${base}/audit/verify?token=${token}`;
+
+  // Send via Resend
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: email,
+        subject: 'Sign in to TGK 2.0 Audit',
+        text:
+          `Click this link to sign in to TGK 2.0 Audit:\n\n${link}\n\n` +
+          `It expires in 15 minutes and only works once.\n\n` +
+          `If you didn't request this, you can ignore the email.`,
+      }),
+    });
+    if (!r.ok) {
+      const body = await r.text();
+      console.error('Resend send failed:', r.status, body);
+      const msg = encodeURIComponent('Could not send email. Try again or contact the admin.');
+      return res.redirect('/audit/login?err=' + msg);
+    }
+  } catch (e) {
+    console.error('Resend send error:', e?.message || e);
+    const msg = encodeURIComponent('Email service error. Try again later.');
+    return res.redirect('/audit/login?err=' + msg);
+  }
+
+  res.redirect('/audit/login?sent=1');
+});
+
+// ---- Verify a magic link → set session cookie → bounce to /audit.html ----
+app.get('/audit/verify', async (req, res) => {
+  const token = String(req.query.token || '');
+  if (!token) return res.redirect('/audit/login?err=' + encodeURIComponent('Missing token.'));
+
+  const tokens = await readKvList(AUDIT_TOKEN_KEY);
+  const now = Date.now();
+  const t = tokens.find(x => x.token === token && x.expires > now);
+  if (!t) {
+    return res.redirect('/audit/login?err=' +
+      encodeURIComponent('Link expired or already used. Request a new one.'));
+  }
+  // Burn the token — single use
+  await writeKvList(AUDIT_TOKEN_KEY, tokens.filter(x => x.token !== token));
+
+  const session = await createSession(t.email);
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const cookie = [
+    `tgk_audit=${session.sid}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${Math.floor(AUDIT_SESSION_TTL_MS / 1000)}`,
+    isHttps ? 'Secure' : null,
+  ].filter(Boolean).join('; ');
+  res.set('Set-Cookie', cookie);
+  res.redirect('/audit.html');
+});
+
+// ---- Sign out ----
+app.get('/audit/signout', async (req, res) => {
+  const sid = parseCookies(req)['tgk_audit'];
+  await destroySession(sid);
+  res.set('Set-Cookie', 'tgk_audit=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax');
+  res.redirect('/audit/login');
+});
+
+// ---- Whoami (the page uses this to show the signed-in email) ----
+app.get('/audit/whoami', async (req, res) => {
+  const sid = parseCookies(req)['tgk_audit'];
+  const session = await findValidSession(sid);
+  if (session) return res.json({ email: session.email, source: 'magic-link' });
+  // Basic-auth fallback path also gets a name
+  const header = req.headers.authorization || '';
+  if (header.startsWith('Basic ')) return res.json({ email: 'admin@local', source: 'basic-auth' });
+  res.status(401).json({ email: null });
+});
+
+// One-time accept a larger body just for this endpoint family — full
+// VERTICALS payloads are ~200KB. Keep the global 64kb cap on /api/feedback.
+const auditJson = express.json({ limit: '2mb' });
+
+// Read VERTICALS out of the shell file by extracting and Function-eval'ing
+// the const VERTICALS = { … }; block. Same approach as scripts/import_storylines.py
+// uses in dry-run, but in JS so we can serve it without spawning Python.
+function loadStorylines() {
+  const shellPath = path.join(__dirname, 'stories/_shared/story-shell.html');
+  const text = fs.readFileSync(shellPath, 'utf8');
+  const m = text.match(/const\s+VERTICALS\s*=\s*\{[\s\S]*?\n\};/);
+  if (!m) throw new Error('VERTICALS block not found in story-shell.html');
+  // eslint-disable-next-line no-new-func
+  const fn = new Function(`${m[0]}; return VERTICALS;`);
+  return fn();
+}
+
+// Map of disco lane key → { sourceFile, blockId, storyKey, laneLabel }.
+// Mirrors LANES in scripts/build_discovery_full.py (must stay in sync).
+const DISCO_LANES = [
+  { lane: 'banking-deposits',        file: 'banking-deposits.html',                 block: 'steps-data',         story: 'banking-deposits',          label: 'Account opening' },
+  { lane: 'insurance-life-nb',       file: 'insurance-life.html',                   block: 'steps-new-business', story: 'insurance-life',            label: 'New business' },
+  { lane: 'insurance-life-claims',   file: 'insurance-life.html',                   block: 'steps-death-claims', story: 'insurance-life',            label: 'Death claims' },
+  { lane: 'insurance-pc-nb',         file: 'insurance-pc.html',                     block: 'steps-policy',       story: 'insurance-pc',              label: 'New business' },
+  { lane: 'insurance-pc-claims',     file: 'insurance-pc.html',                     block: 'steps-claims',       story: 'insurance-pc',              label: 'Claims (FNOL)' },
+  { lane: 'wealth-discovery',        file: 'wealth-onboarding.html',                block: 'steps-data',         story: 'wealth-discovery',          label: 'New account onboarding' },
+  { lane: 'provider-roi',            file: 'hls-roi.html',                          block: 'steps-data',         story: 'provider-roi',              label: 'Records release' },
+  { lane: 'slgov-311',               file: 'public-sector-311.html',                block: 'steps-data',         story: 'slgov-311',                 label: '311 service request' },
+  { lane: 'slgov-benefits',          file: 'public-sector-benefits.html',           block: 'steps-data',         story: 'slgov-benefits',            label: 'Benefits intake' },
+  { lane: 'slgov-employee-onboard',  file: 'public-sector-employee-onboarding.html',block: 'steps-data',         story: 'slgov-employee-onboarding', label: 'Employee onboarding' },
+  { lane: 'slgov-licensing',         file: 'public-sector-licensing.html',          block: 'steps-data',         story: 'slgov-licensing',           label: 'Licensing' },
+  { lane: 'slgov-recertification',   file: 'public-sector-recertification.html',    block: 'steps-data',         story: 'slgov-recertification',     label: 'Annual recertification' },
+  { lane: 'slgov-vendor-compliance', file: 'public-sector-vendor-compliance.html',  block: 'steps-data',         story: 'slgov-vendor-compliance',   label: 'Vendor compliance' },
+];
+
+function loadDiscovery() {
+  const out = {};
+  for (const ent of DISCO_LANES) {
+    const fp = path.join(__dirname, ent.file);
+    if (!fs.existsSync(fp)) continue;
+    const text = fs.readFileSync(fp, 'utf8');
+    const re = new RegExp(`<script id="${ent.block}"[^>]*>([\\s\\S]*?)</script>`);
+    const m = text.match(re);
+    if (!m) continue;
+    out[ent.lane] = {
+      lane: ent.lane,
+      sourceFile: ent.file,
+      blockId: ent.block,
+      storyKey: ent.story,
+      laneLabel: ent.label,
+      steps: JSON.parse(m[1]),
+    };
+  }
+  return out;
+}
+
+app.get('/api/audit/storylines', requireAudit, (req, res) => {
+  try { res.json(loadStorylines()); }
+  catch (e) { console.error('audit storylines error:', e?.message || e);
+              res.status(500).json({ error: 'load error' }); }
+});
+
+app.get('/api/audit/discovery', requireAudit, (req, res) => {
+  try { res.json(loadDiscovery()); }
+  catch (e) { console.error('audit discovery error:', e?.message || e);
+              res.status(500).json({ error: 'load error' }); }
+});
+
+// Pending-queue helpers (parallel to the feedback store pattern above)
+async function readAuditQueue() {
+  try {
+    const raw = await db.get(AUDIT_KV_KEY);
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'object' && Array.isArray(raw.value)) return raw.value;
+    return [];
+  } catch (e) {
+    console.error('audit queue read:', e?.message || e);
+    return [];
+  }
+}
+async function mutateAuditQueue(fn) {
+  const items = await readAuditQueue();
+  fn(items);
+  await db.set(AUDIT_KV_KEY, items);
+  return items;
+}
+
+// --------- Submit a change set for review ---------
+// Body: { dataset: 'storylines'|'discovery', changes: {...},
+//         author: '...', note: '...', source: 'web'|'upload' }
+// changes shape:
+//   storylines  → { [verticalKey]: { partial vertical override } }
+//   discovery   → { [laneKey]: { steps: [...] } }
+app.post('/api/audit/submit', requireAudit, auditJson, async (req, res) => {
+  try {
+    const { dataset, changes, author, note, source } = req.body || {};
+    if (!['storylines', 'discovery'].includes(dataset)) {
+      return res.status(400).json({ error: 'dataset must be storylines or discovery' });
+    }
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) {
+      return res.status(400).json({ error: 'changes must be an object' });
+    }
+    const keyCount = Object.keys(changes).length;
+    if (keyCount === 0) return res.status(400).json({ error: 'no changes provided' });
+
+    const item = {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      dataset,
+      changes,
+      key_count: keyCount,
+      author: (author || '').toString().slice(0, 120) || null,
+      note: (note || '').toString().slice(0, 2000) || null,
+      source: source === 'upload' ? 'upload' : 'web',
+      status: 'pending',
+    };
+    await mutateAuditQueue(items => { items.push(item); });
+    res.json({ ok: true, id: item.id });
+  } catch (e) {
+    console.error('audit submit error:', e?.message || e);
+    res.status(500).json({ error: 'store error' });
+  }
+});
+
+// --------- Admin: list / inspect / mark applied / reject ---------
+app.get('/admin/audit/queue.json', requireAdmin, async (req, res) => {
+  try { res.json(await readAuditQueue()); }
+  catch (e) { res.status(500).json({ error: 'store error' }); }
+});
+
+app.post('/admin/audit/:id/status', requireAdmin, auditJson, async (req, res) => {
+  try {
+    const { status } = req.body || {};
+    const allowed = ['pending', 'applied', 'rejected'];
+    if (!allowed.includes(status)) return res.status(400).json({ error: 'bad status' });
+    let updated = null;
+    await mutateAuditQueue(items => {
+      const it = items.find(x => x.id === req.params.id);
+      if (it) { it.status = status; it.decided_at = new Date().toISOString(); updated = it; }
+    });
+    if (!updated) return res.status(404).json({ error: 'not found' });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('audit status error:', e?.message || e);
+    res.status(500).json({ error: 'store error' });
+  }
+});
+
+// Lightweight admin shell — lists pending submissions, links to detail JSON.
+// Application of changes (running the importer) is still done by you locally
+// via `python3 scripts/import_storylines.py` after pulling the submission's
+// payload — keeps the live shell safe from accidental remote writes.
+app.get('/admin/audit', requireAdmin, async (req, res) => {
+  const items = await readAuditQueue();
+  const fmt = (s) => new Date(s).toLocaleString();
+  const rows = items.slice().reverse().map(it => `
+    <tr>
+      <td><code>${it.id.slice(0, 8)}</code></td>
+      <td>${fmt(it.created_at)}</td>
+      <td><span class="ds">${it.dataset}</span></td>
+      <td>${it.key_count} key(s)</td>
+      <td>${it.author || '<span class=mute>—</span>'}</td>
+      <td><span class="st st-${it.status}">${it.status}</span></td>
+      <td>${it.note ? it.note.slice(0, 80) : ''}</td>
+      <td>
+        <a href="/admin/audit/${it.id}/payload.json">payload</a>
+        ·
+        <a href="#" data-id="${it.id}" data-st="applied" class="mark">mark applied</a>
+        ·
+        <a href="#" data-id="${it.id}" data-st="rejected" class="mark">reject</a>
+      </td>
+    </tr>`).join('');
+
+  res.type('html').send(`<!doctype html><html><head><meta charset="utf-8">
+<title>TGK Audit Queue</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 32px; color:#1F1A14; }
+  h1 { font-weight: 500; font-size: 20px; margin: 0 0 18px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #E8E4DA; vertical-align: top; }
+  th { background: #F5F1EB; font-weight: 500; color: #6E6760; font-size: 12px; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #6E6760; }
+  .ds { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #EFEFEF; }
+  .st { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .st-pending { background: #FFF6B8; color: #6B5400; }
+  .st-applied { background: #D6EFD9; color: #1F5824; }
+  .st-rejected { background: #F4D6D6; color: #6E2424; }
+  .mark { color: #4B00E9; text-decoration: none; }
+  .mark:hover { text-decoration: underline; }
+  .mute { color: #B4B2A9; }
+  .empty { color: #6E6760; padding: 40px; text-align: center; font-style: italic; }
+</style></head>
+<body>
+<h1>Audit queue · pending submissions</h1>
+${items.length === 0 ? '<div class="empty">No submissions yet.</div>' : `
+<table>
+  <tr><th>ID</th><th>Submitted</th><th>Dataset</th><th>Scope</th><th>Author</th><th>Status</th><th>Note</th><th>Actions</th></tr>
+  ${rows}
+</table>`}
+<script>
+document.querySelectorAll('a.mark').forEach(a => {
+  a.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const id = a.dataset.id, status = a.dataset.st;
+    const r = await fetch('/admin/audit/' + id + '/status',
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ status }) });
+    if (r.ok) location.reload();
+    else alert('Failed: ' + (await r.text()));
+  });
+});
+</script></body></html>`);
+});
+
+app.get('/admin/audit/:id/payload.json', requireAdmin, async (req, res) => {
+  const items = await readAuditQueue();
+  const it = items.find(x => x.id === req.params.id);
+  if (!it) return res.status(404).json({ error: 'not found' });
+  res.json(it);
+});
 
 // --------- Static (HTML/JS/assets) ---------
 app.use(express.static(__dirname, {
