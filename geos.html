@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGK 2.0 — IAM Demo Experience</title>
+<link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
+<style>
+  /* DSIndigo — Docusign's typeface */
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+
+  :root {
+    --ds-cobalt: #4C00FF;
+    --ds-inkwell: #130032;
+    --ds-deep-violet: #26065D;
+    --ds-mist: #CBC2FF;
+    --ds-poppy: #FF5252;
+    --ds-ecru: #F8F3F0;
+    --ds-white: #FFFFFF;
+
+    /* GEO mark — deep amber (Permian crude) */
+    --geo-mark: #B8541A;
+    --geo-mark-tint: #FBEAD8;
+
+    --r: 12px;
+    --r-sm: 8px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    background: var(--ds-ecru);
+    color: var(--ds-inkwell);
+    line-height: 1.5;
+  }
+
+  /* ========== HERO ========== */
+  .hero {
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    padding: 40px 64px 120px;
+    position: relative;
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; }
+  .masthead {
+    display: inline-flex; align-items: center; gap: 22px;
+    margin-bottom: 12px; text-decoration: none;
+  }
+  .masthead img { height: 40px; width: auto; display: inline-block; }
+  .masthead .x {
+    font-size: 22px; font-weight: 300;
+    color: rgba(255, 255, 255, 0.42);
+  }
+  .masthead .geo-tag {
+    margin-left: 12px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(203, 194, 255, 0.72);
+    border-left: 1px solid rgba(203, 194, 255, 0.25);
+    padding-left: 14px;
+  }
+  .badge {
+    display: block;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+    color: rgba(203, 194, 255, 0.85);
+    margin: 16px 0 84px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 4.4vw, 56px);
+    font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--ds-white);
+    max-width: 32ch;
+  }
+  .hero-cta-row {
+    font-size: clamp(36px, 4.4vw, 56px);
+    font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--ds-white);
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 22px;
+  }
+  .hero-cta-row svg { flex-shrink: 0; }
+  .hero p {
+    font-size: 17px; line-height: 1.6;
+    color: rgba(248, 243, 240, 0.72);
+    max-width: 64ch;
+  }
+  .hero p strong {
+    color: var(--ds-white); font-weight: 500;
+  }
+
+  /* ========== MODE PILL (echo of picker) ========== */
+  .mode-wrap {
+    max-width: 1180px; margin: -28px auto 0; width: 100%;
+    padding: 0 64px;
+    position: relative; z-index: 2;
+  }
+  .mode {
+    display: inline-flex; gap: 0; padding: 4px;
+    background: var(--ds-white);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(19, 0, 50, 0.10);
+  }
+  .mode-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: none; background: transparent;
+    font-family: inherit;
+    font-size: 14px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
+    border-radius: 7px;
+    letter-spacing: -0.005em;
+  }
+  .mode-pill.active {
+    background: var(--ds-inkwell); color: var(--ds-ecru);
+  }
+
+  /* ========== BODY ========== */
+  .body {
+    max-width: 1180px; margin: 0 auto; width: 100%;
+    padding: 56px 64px 0;
+  }
+
+  .crumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: rgba(19, 0, 50, 0.45);
+    margin-bottom: 48px;
+    letter-spacing: 0.01em;
+  }
+  .crumb b { color: var(--ds-inkwell); font-weight: 500; }
+  .crumb .sep { color: rgba(19, 0, 50, 0.25); padding: 0 4px; }
+
+  /* ========== SECTION ========== */
+  .sect { margin-bottom: 56px; }
+  .sect-label {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; font-weight: 500;
+    color: rgba(19, 0, 50, 0.55);
+    letter-spacing: -0.005em;
+    margin-bottom: 20px;
+    cursor: pointer; user-select: none;
+    transition: color 0.18s var(--ease);
+  }
+  .sect-label:hover { color: var(--ds-inkwell); }
+  .sect-label .step {
+    color: rgba(19, 0, 50, 0.35);
+    font-size: 12px; font-weight: 400; letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+  .sect-label .annot {
+    color: rgba(19, 0, 50, 0.42);
+    font-size: 12px; font-weight: 400;
+    margin-left: auto;
+  }
+  .sect-label .chev {
+    margin-left: auto;
+    color: rgba(19, 0, 50, 0.4);
+    transition: transform 0.22s var(--ease), color 0.18s var(--ease);
+    flex-shrink: 0;
+  }
+  .sect-label:hover .chev { color: var(--ds-inkwell); }
+  .sect.collapsed .sect-label .chev { transform: rotate(-90deg); }
+
+  /* Collapsible body: target the element directly after .sect-label */
+  .sect-label + * {
+    overflow: hidden;
+    max-height: 1600px;
+    opacity: 1;
+    transition: max-height 0.35s var(--ease), opacity 0.25s var(--ease);
+  }
+  .sect.collapsed .sect-label { margin-bottom: 0; }
+  .sect.collapsed .sect-label + * {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  /* ========== OPTION CARDS ========== */
+  .grid { display: grid; gap: 14px; }
+  .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+  .grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.c2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.c9 { grid-template-columns: repeat(3, 1fr); }
+
+  .card {
+    padding: 22px 22px 20px;
+    border: 1px solid rgba(19, 0, 50, 0.08);
+    border-radius: 12px;
+    background: var(--ds-white);
+    position: relative;
+    display: flex; flex-direction: column; gap: 4px;
+    min-width: 0;
+    cursor: pointer;
+    transition: border-color 0.18s var(--ease), transform 0.18s var(--ease);
+  }
+  .card:hover { border-color: rgba(19, 0, 50, 0.3); transform: translateY(-1px); }
+  .card.sel {
+    border-color: var(--ds-inkwell);
+    box-shadow: inset 0 0 0 1px var(--ds-inkwell);
+  }
+  .card.dim {
+    background: transparent;
+    border-style: dashed;
+    border-color: rgba(19, 0, 50, 0.18);
+    opacity: 0.78;
+  }
+
+  /* Mockup demo flow — only [data-pick] cards are clickable */
+  .card:not([data-pick]),
+  .geo-card:not([data-pick]),
+  .uc-row:not([data-pick]) {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.42;
+  }
+  .card:not([data-pick]):hover,
+  .geo-card:not([data-pick]):hover,
+  .uc-row:not([data-pick]):hover {
+    border-color: rgba(19, 0, 50, 0.08);
+    transform: none;
+    box-shadow: none;
+  }
+  /* Locked = not yet revealed in the flow */
+  .sect.locked,
+  .story-band.locked { display: none; }
+  /* Section reveal entry */
+  .sect:not(.locked) { animation: revealUp 0.45s var(--ease) backwards; }
+  .story-band:not(.locked) { animation: revealUp 0.55s var(--ease) backwards; }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* Picked-value chip in section label (shown when user has picked something) */
+  .picked-val {
+    margin-left: 6px;
+    padding: 2px 9px;
+    background: var(--ds-mist);
+    color: var(--ds-deep-violet);
+    border-radius: 4px;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .picked-val:empty { display: none; }
+  /* Restart link */
+  .restart {
+    display: none;
+    margin-left: auto;
+    font-size: 12px;
+    color: rgba(19, 0, 50, 0.55);
+    background: transparent; border: 1px solid rgba(19, 0, 50, 0.15);
+    padding: 5px 12px; border-radius: 16px;
+    cursor: pointer; font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .restart:hover { color: var(--ds-cobalt); border-color: var(--ds-cobalt); }
+  body.flow-started .restart { display: inline-flex; align-items: center; gap: 5px; }
+  .card .ic {
+    width: 24px; height: 24px;
+    margin-bottom: 14px;
+    color: var(--ds-inkwell);
+  }
+  .card.sel .ic { color: var(--ds-deep-violet); }
+  .card .ttl {
+    font-size: 17px; font-weight: 500;
+    color: var(--ds-inkwell);
+    letter-spacing: -0.01em; line-height: 1.25;
+  }
+  .card .sub {
+    font-size: 13.5px; color: rgba(19, 0, 50, 0.55);
+    line-height: 1.45; margin-top: 4px;
+  }
+  .card .meta {
+    margin-top: 14px;
+    font-size: 11.5px; letter-spacing: 0.02em;
+    color: rgba(19, 0, 50, 0.5);
+    font-weight: 500;
+  }
+  .new-pill {
+    position: absolute; top: 18px; right: 18px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-deep-violet);
+    background: var(--ds-mist);
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .ready-pill {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+    color: var(--ds-deep-violet);
+    background: var(--ds-mist);
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .ready-pill.muted {
+    color: rgba(19, 0, 50, 0.55);
+    background: rgba(19, 0, 50, 0.05);
+  }
+
+  /* GEO industry tile — restrained mark color */
+  .geo-card {
+    padding: 18px 20px;
+    border: 1px solid rgba(19, 0, 50, 0.08);
+    border-radius: 10px;
+    background: var(--ds-white);
+    display: flex; flex-direction: column; gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.18s var(--ease);
+  }
+  .geo-card:hover { border-color: rgba(19, 0, 50, 0.3); }
+  .geo-card.sel {
+    border-color: var(--geo-mark);
+    box-shadow: inset 0 0 0 1px var(--geo-mark);
+  }
+  .geo-card .gc-mark {
+    width: 28px; height: 4px; border-radius: 2px;
+    background: rgba(19, 0, 50, 0.16);
+    margin-bottom: 8px;
+  }
+  .geo-card.sel .gc-mark { background: var(--geo-mark); }
+  .geo-card .gc-ttl {
+    font-size: 16px; font-weight: 500; color: var(--ds-inkwell);
+    letter-spacing: -0.01em;
+  }
+  .geo-card .gc-sub {
+    font-size: 12.5px; color: rgba(19, 0, 50, 0.5);
+    line-height: 1.4;
+  }
+
+  /* B2B function card with platform list */
+  .fn-card { padding-bottom: 18px; }
+  .fn-card .platforms {
+    margin-top: 14px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .fn-card .platforms span {
+    font-size: 11px; font-weight: 500;
+    color: rgba(19, 0, 50, 0.6);
+    background: rgba(19, 0, 50, 0.04);
+    padding: 4px 9px; border-radius: 4px;
+    border: 1px solid rgba(19, 0, 50, 0.06);
+  }
+  .fn-card.sel .platforms span {
+    color: var(--ds-deep-violet);
+    background: var(--ds-mist);
+    border-color: transparent;
+  }
+
+  /* Use-case row */
+  .uc-list { display: grid; gap: 10px; }
+  .uc-row {
+    padding: 16px 22px;
+    border: 1px solid rgba(19, 0, 50, 0.08);
+    border-radius: 10px;
+    background: var(--ds-white);
+    display: flex; align-items: center; gap: 18px;
+    cursor: pointer;
+    transition: border-color 0.18s var(--ease);
+  }
+  .uc-row:hover { border-color: rgba(19, 0, 50, 0.3); }
+  .uc-row.sel {
+    border-color: var(--ds-inkwell);
+    box-shadow: inset 0 0 0 1px var(--ds-inkwell);
+  }
+  .uc-row .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(19, 0, 50, 0.25);
+    flex-shrink: 0;
+  }
+  .uc-row.sel .dot { background: var(--ds-inkwell); }
+  .uc-row .uc-meta { flex: 1; min-width: 0; }
+  .uc-row .uc-ttl {
+    font-size: 15.5px; font-weight: 500;
+    color: var(--ds-inkwell);
+    letter-spacing: -0.005em;
+  }
+  .uc-row .uc-sub {
+    font-size: 13px; color: rgba(19, 0, 50, 0.55);
+    margin-top: 3px; line-height: 1.4;
+  }
+  .uc-row .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .uc-row .pill.ready {
+    background: var(--ds-mist); color: var(--ds-deep-violet);
+  }
+  .uc-row .pill.muted {
+    background: rgba(19, 0, 50, 0.04);
+    color: rgba(19, 0, 50, 0.55);
+  }
+
+  /* ========== STORY RIBBON ========== */
+  .story-band {
+    margin: 12px -64px 0;
+    padding: 56px 64px 80px;
+    background: var(--ds-inkwell);
+    color: var(--ds-ecru);
+  }
+  .story-band-inner { max-width: 1180px; margin: 0 auto; }
+  .story-eyebrow {
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(203, 194, 255, 0.7);
+    margin-bottom: 14px;
+  }
+  .story-head {
+    font-size: 32px; font-weight: 500; letter-spacing: -0.015em;
+    color: var(--ds-white); line-height: 1.18;
+    max-width: 30ch;
+    margin-bottom: 32px;
+  }
+  .story-sub {
+    font-size: 15px; line-height: 1.55;
+    color: rgba(248, 243, 240, 0.7);
+    max-width: 70ch;
+    margin-bottom: 36px;
+  }
+  .story-sub b { color: var(--ds-white); font-weight: 500; }
+
+  /* customer ribbon */
+  .cust-ribbon {
+    display: flex; align-items: center; gap: 18px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(203, 194, 255, 0.15);
+    border-radius: 10px;
+    margin-bottom: 36px;
+    font-size: 13px;
+  }
+  .cust-ribbon .c-mark {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--geo-mark);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .cust-ribbon .c-meta { flex: 1; }
+  .cust-ribbon .c-ttl {
+    font-size: 14px; color: var(--ds-white); font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .cust-ribbon .c-sub { color: rgba(203, 194, 255, 0.7); font-size: 12px; }
+  .cust-ribbon .c-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cust-ribbon .c-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    background: rgba(203, 194, 255, 0.12);
+    color: var(--ds-mist);
+    letter-spacing: 0.02em;
+  }
+
+  /* scenes */
+  .scenes {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+  }
+  .scene {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(203, 194, 255, 0.15);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .scene-head {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(203, 194, 255, 0.12);
+    background: rgba(255, 255, 255, 0.025);
+  }
+  .scene-num {
+    display: inline-block;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.16em;
+    color: rgba(203, 194, 255, 0.7);
+    margin-bottom: 8px;
+  }
+  .scene-product {
+    font-size: 18px; font-weight: 500;
+    color: var(--ds-white);
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .scene-role {
+    font-size: 12.5px;
+    color: rgba(203, 194, 255, 0.7);
+  }
+
+  /* Each scene's mock window */
+  .mock {
+    margin: 16px 16px 12px;
+    background: var(--ds-white);
+    color: var(--ds-inkwell);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .mock-bar {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(19, 0, 50, 0.08);
+    display: flex; align-items: center; gap: 8px;
+    background: #FAF9F7;
+  }
+  .mock-bar .dots { display: flex; gap: 4px; }
+  .mock-bar .dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(19, 0, 50, 0.15);
+  }
+  .mock-bar .url {
+    font-size: 11px; color: rgba(19, 0, 50, 0.5);
+    margin-left: 6px;
+    font-family: "DSIndigo", monospace;
+    letter-spacing: 0.02em;
+  }
+  .mock-body { padding: 14px 14px 16px; }
+
+  /* Scene 1 — CLM template */
+  .clm-h {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .clm-h .clm-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: white;
+    background: var(--ds-cobalt);
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .clm-h .clm-ttl {
+    font-size: 13px; font-weight: 500;
+    color: var(--ds-inkwell);
+  }
+  .clm-template {
+    background: rgba(76, 0, 255, 0.04);
+    border: 1px dashed rgba(76, 0, 255, 0.25);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .clm-line {
+    height: 6px; border-radius: 3px;
+    background: rgba(19, 0, 50, 0.12);
+    margin-bottom: 5px;
+  }
+  .clm-line.short { width: 72%; }
+  .clm-line.shorter { width: 48%; }
+  .clm-line.field {
+    background: var(--ds-mist);
+    height: 14px;
+    width: 60%;
+    border: 1px solid var(--ds-cobalt);
+  }
+  .clm-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    font-size: 10.5px;
+    color: rgba(19, 0, 50, 0.6);
+  }
+  .clm-meta div {
+    padding: 6px 8px;
+    background: #F6F4F0;
+    border-radius: 4px;
+  }
+  .clm-meta div b {
+    display: block; color: var(--ds-inkwell);
+    font-weight: 500; font-size: 11.5px; margin-top: 1px;
+  }
+
+  /* Scene 2 — Agreement Desk recipients */
+  .ad-h {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .ad-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: white;
+    background: var(--ds-deep-violet);
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .ad-ttl { font-size: 13px; font-weight: 500; color: var(--ds-inkwell); }
+  .recip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(19, 0, 50, 0.05);
+    font-size: 11.5px;
+  }
+  .recip:last-child { border-bottom: 0; }
+  .recip .av {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ds-mist);
+    color: var(--ds-deep-violet);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .recip .r-name { flex: 1; color: var(--ds-inkwell); font-weight: 500; }
+  .recip .r-role { color: rgba(19, 0, 50, 0.5); font-size: 10.5px; }
+  .recip .r-state {
+    font-size: 10px; padding: 2px 7px; border-radius: 3px;
+    letter-spacing: 0.04em; font-weight: 500;
+  }
+  .recip .r-state.signed { background: #E2F4E8; color: #1B6F3D; }
+  .recip .r-state.review { background: #FFF1DC; color: #8C5512; }
+  .recip .r-state.pending { background: rgba(19, 0, 50, 0.05); color: rgba(19, 0, 50, 0.6); }
+  .ad-route {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: rgba(38, 6, 93, 0.04);
+    border-left: 2px solid var(--ds-deep-violet);
+    border-radius: 4px;
+    font-size: 10.5px;
+    color: rgba(19, 0, 50, 0.7);
+    line-height: 1.45;
+  }
+
+  /* Scene 3 — Navigator obligations */
+  .nav-h {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .nav-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: white;
+    background: #4D9D87;
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .nav-ttl { font-size: 13px; font-weight: 500; color: var(--ds-inkwell); }
+  .nav-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px; margin-bottom: 12px;
+  }
+  .nav-stats div {
+    text-align: center;
+    padding: 8px 4px;
+    background: #F6F4F0;
+    border-radius: 6px;
+  }
+  .nav-stats .v {
+    font-size: 18px; font-weight: 500;
+    color: var(--ds-inkwell);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .nav-stats .l {
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(19, 0, 50, 0.55);
+    margin-top: 4px;
+  }
+  .obl {
+    display: grid;
+    grid-template-columns: 16px 1fr auto;
+    gap: 8px; align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(19, 0, 50, 0.05);
+    font-size: 11.5px;
+  }
+  .obl:last-child { border-bottom: 0; }
+  .obl .o-flag {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-left: 4px;
+  }
+  .obl .o-flag.red { background: var(--ds-poppy); }
+  .obl .o-flag.amber { background: #E89B3A; }
+  .obl .o-flag.green { background: #4D9D87; }
+  .obl .o-text { color: var(--ds-inkwell); }
+  .obl .o-text b { font-weight: 500; }
+  .obl .o-when {
+    font-size: 10.5px;
+    color: rgba(19, 0, 50, 0.55);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .scene-beats {
+    padding: 14px 20px 22px;
+    border-top: 1px solid rgba(203, 194, 255, 0.12);
+    list-style: none;
+    flex: 1;
+  }
+  .scene-beats li {
+    font-size: 12.5px; line-height: 1.55;
+    color: rgba(248, 243, 240, 0.78);
+    padding: 6px 0 6px 18px;
+    position: relative;
+  }
+  .scene-beats li::before {
+    content: ""; position: absolute; left: 0; top: 13px;
+    width: 8px; height: 1px; background: rgba(203, 194, 255, 0.45);
+  }
+  .scene-beats li b { color: var(--ds-white); font-weight: 500; }
+
+  /* arrows between scenes */
+  .scenes-flow {
+    display: flex; align-items: center; gap: 18px;
+    margin-top: 28px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(203, 194, 255, 0.12);
+    border-radius: 10px;
+    font-size: 12px;
+    color: rgba(203, 194, 255, 0.72);
+  }
+  .scenes-flow b { color: var(--ds-white); font-weight: 500; }
+  .scenes-flow .arr { color: rgba(203, 194, 255, 0.4); }
+
+  /* ========== ROADMAP ========== */
+  .roadmap-band {
+    background: var(--ds-ecru);
+    padding: 56px 0 72px;
+  }
+  .roadmap-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 0 64px;
+  }
+  .rm-head {
+    font-size: 24px; font-weight: 500; letter-spacing: -0.01em;
+    color: var(--ds-inkwell);
+    margin-bottom: 8px;
+  }
+  .rm-sub {
+    font-size: 14.5px; line-height: 1.55;
+    color: rgba(19, 0, 50, 0.6);
+    max-width: 70ch;
+    margin-bottom: 28px;
+  }
+  .rm-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  .rm-tile {
+    background: var(--ds-white);
+    border: 1px solid rgba(19, 0, 50, 0.08);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+  }
+  .rm-tile .rm-fn {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(19, 0, 50, 0.5);
+    margin-bottom: 8px;
+  }
+  .rm-tile .rm-ttl {
+    font-size: 15px; font-weight: 500;
+    color: var(--ds-inkwell);
+    letter-spacing: -0.005em;
+    margin-bottom: 4px;
+  }
+  .rm-tile .rm-customer {
+    font-size: 12.5px; color: rgba(19, 0, 50, 0.55);
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+  .rm-tile .rm-stack {
+    display: flex; flex-wrap: wrap; gap: 5px;
+  }
+  .rm-tile .rm-stack span {
+    font-size: 10.5px;
+    color: rgba(19, 0, 50, 0.55);
+    background: rgba(19, 0, 50, 0.04);
+    padding: 3px 7px; border-radius: 3px;
+  }
+  .rm-tile .rm-owner {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(19, 0, 50, 0.06);
+    font-size: 11px;
+    color: rgba(19, 0, 50, 0.55);
+  }
+  .rm-tile .rm-owner b { color: var(--ds-inkwell); font-weight: 500; }
+
+  /* ========== FOOTER ========== */
+  .foot {
+    max-width: 1180px; margin: 0 auto;
+    padding: 36px 64px 56px;
+    border-top: 1px solid rgba(19, 0, 50, 0.08);
+    font-size: 12.5px;
+    color: rgba(19, 0, 50, 0.5);
+    line-height: 1.6;
+  }
+  .foot b { color: var(--ds-inkwell); font-weight: 500; }
+  .foot p { margin-bottom: 8px; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 980px) {
+    .hero { padding: 32px 28px 96px; }
+    .mode-wrap { padding: 0 28px; }
+    .body { padding: 40px 28px 0; }
+    .story-band { margin: 12px -28px 0; padding: 48px 28px 64px; }
+    .roadmap-inner { padding: 0 28px; }
+    .foot { padding: 28px 28px 40px; }
+    .grid.c4, .grid.c3, .grid.c9 { grid-template-columns: 1fr 1fr; }
+    .scenes { grid-template-columns: 1fr; }
+    .rm-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .grid.c4, .grid.c3, .grid.c9, .grid.c2 { grid-template-columns: 1fr; }
+    .rm-grid { grid-template-columns: 1fr; }
+    .hero h1, .hero-cta-row { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="hero-inner">
+    <a class="masthead" href="/index-unified.html" title="Back to picker">
+      <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
+      <span class="x">×</span>
+      <img src="/assets/brand/tgk-white.png" alt="TGK Capital">
+    </a>
+    <div class="badge">TGK 2.0 — IAM Storylines</div>
+    <h1>Pick a vertical. Pick a use case.</h1>
+    <div class="hero-cta-row">
+      <svg class="hc" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="flame" x1="0" y1="0.5" x2="1" y2="0.5">
+            <stop offset="0" stop-color="#FF5252" stop-opacity="0"/>
+            <stop offset="0.55" stop-color="#FF5252" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#FFD27A" stop-opacity="0.95"/>
+          </linearGradient>
+        </defs>
+        <path d="M5 24 H22" stroke="url(#flame)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="9" cy="24" r="1.4" fill="#FFD27A" opacity="0.85"/>
+        <circle cx="14" cy="22" r="1" fill="#FF8A66" opacity="0.7"/>
+        <circle cx="13" cy="26" r="0.9" fill="#FF8A66" opacity="0.55"/>
+        <path d="M20 12 L34 24 L20 36" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Launch Demo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== MODE PILL ============== -->
+<div class="mode-wrap">
+  <div class="mode" role="tablist" aria-label="Mode">
+    <button class="mode-pill" role="tab" aria-selected="false">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M9 9 L12 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Discovery
+    </button>
+    <button class="mode-pill active" role="tab" aria-selected="true">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><polygon points="3,2 12,7 3,12" fill="currentColor"/></svg>
+      Demo Story
+    </button>
+  </div>
+</div>
+
+<!-- ============== BODY ============== -->
+<div class="body">
+
+  <!-- Crumb fills in as choices are made -->
+  <div class="crumb" id="crumb">
+    <span>Demo Story</span>
+    <button class="restart" id="restart" type="button">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+        <path d="M2 5.5 A3.5 3.5 0 1 0 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+        <path d="M2 1 V3 H4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      Restart
+    </button>
+  </div>
+
+  <!-- =========================================
+       SECTION 1 — Top-level segments (4 cards)
+       ========================================= -->
+  <section class="sect" id="step1">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 1</span>
+      <span>Pick a segment</span>
+      <span class="picked-val" id="picked-1"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="grid c4">
+
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="6" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M3 10 H21" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M7 14 H10 M13 14 H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="ttl">Financial Services</div>
+        <div class="sub">Banking, wealth, insurance</div>
+      </div>
+
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 4 V20 M4 12 H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">Healthcare &amp; Life Sciences</div>
+        <div class="sub">Pharma, payer, provider</div>
+      </div>
+
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 20 L4 10 L12 4 L20 10 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9 20 V14 H15 V20" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">Public Sector</div>
+        <div class="sub">Federal, state &amp; local, education, nonprofit</div>
+      </div>
+
+      <div class="card" data-pick data-next="step2" data-crumb="GEOs">
+        <span class="new-pill">New</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M3 12 H21 M12 3 C16 7 16 17 12 21 C8 17 8 7 12 3 Z" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">GEOs &mdash; B2B industries</div>
+        <div class="sub">Telecom, retail, tech, business services, oil &amp; gas, media, utilities, construction, auto</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================
+       SECTION 2 — GEO industries (9 tiles)
+       ========================================= -->
+  <section class="sect locked" id="step2">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 2</span>
+      <span>Pick a GEO industry</span>
+      <span class="picked-val" id="picked-2"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="grid c9">
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Telecom</div>
+        <div class="gc-sub">Carriers, wholesale, MVNOs — wireline interconnect, channel</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Retail</div>
+        <div class="gc-sub">Big-box, grocery, specialty — supplier &amp; logistics contracts</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Technology</div>
+        <div class="gc-sub">Software, hardware, semis — channel, OEM, partner programs</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Business Services</div>
+        <div class="gc-sub">Consulting, BPO, professional services — SOWs &amp; staffing</div>
+      </div>
+
+      <div class="geo-card" data-pick data-next="step3" data-crumb="Oil &amp; Gas">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Oil &amp; Gas</div>
+        <div class="gc-sub">Operators, midstream, oilfield services — drilling, pipeline, HSE</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Media &amp; Entertainment</div>
+        <div class="gc-sub">Studios, streaming, advertising — talent &amp; rights</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Utilities</div>
+        <div class="gc-sub">Power, water, gas — capital projects, regulatory filings</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Construction</div>
+        <div class="gc-sub">GCs, subcontractors, A&amp;E — bid, build, lien-waiver</div>
+      </div>
+
+      <div class="geo-card">
+        <div class="gc-mark"></div>
+        <div class="gc-ttl">Auto &amp; Mobility</div>
+        <div class="gc-sub">OEMs, suppliers, dealers — tier-N supply, fleet</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================
+       SECTION 3 — B2B Functions (4 cards)
+       ========================================= -->
+  <section class="sect locked" id="step3">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 3</span>
+      <span>Pick a B2B function</span>
+      <span class="picked-val" id="picked-3"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="grid c4">
+
+      <div class="card fn-card" data-pick data-next="step4" data-crumb="Procurement">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7 L12 3 L20 7 L20 17 L12 21 L4 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M4 7 L12 11 L20 7 M12 11 V21" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">Procurement</div>
+        <div class="sub">Source-to-pay, supplier &amp; contract</div>
+        <div class="platforms">
+          <span>Coupa</span><span>SAP Ariba</span><span>Oracle Fusion</span>
+        </div>
+      </div>
+
+      <div class="card fn-card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="ttl">HR</div>
+        <div class="sub">Hire-to-retire, ER &amp; comp</div>
+        <div class="platforms">
+          <span>Workday</span><span>SuccessFactors</span><span>UKG</span>
+        </div>
+      </div>
+
+      <div class="card fn-card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4 H19 V20 H5 Z" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M9 9 H15 M9 13 H15 M9 17 H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="ttl">Legal</div>
+        <div class="sub">CLM, matter management, e-billing</div>
+        <div class="platforms">
+          <span>Docusign CLM</span><span>Ironclad</span><span>SimpleLegal</span>
+        </div>
+      </div>
+
+      <div class="card fn-card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 18 L9 13 L13 16 L20 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 8 H20 V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="ttl">Sales</div>
+        <div class="sub">Lead-to-cash, CPQ, partner</div>
+        <div class="platforms">
+          <span>Salesforce</span><span>HubSpot</span><span>MS Dynamics</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================
+       SECTION 4 — Use cases (Oil & Gas × Procurement)
+       ========================================= -->
+  <section class="sect locked" id="step4">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 4</span>
+      <span>Pick a use case &mdash; Oil &amp; Gas × Procurement</span>
+      <span class="picked-val" id="picked-4"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="uc-list">
+
+      <div class="uc-row" data-pick data-next="story" data-crumb="Drilling Services MSA">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Drilling Services Master Service Agreement</div>
+          <div class="uc-sub">Black Mesa Energy × Tritan Drilling — five-rig MSA, Permian Basin · CLM-generated, multi-party signed, obligations in Navigator</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Pipeline Construction Subcontract</div>
+          <div class="uc-sub">EPC primary contractor × multiple specialty subs — schedule of values, lien-waiver, change-order routing</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Field Services Rate Card Renewal</div>
+          <div class="uc-sub">Annual rate adjustment across pumping, wireline, completion services — bulk redline, mass renewal</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">HSE Contractor Pre-Qualification</div>
+          <div class="uc-sub">ISN / Avetta-style pre-qual: insurance certs, training records, safety-record attestations, gated by Navigator</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ============== STORY BAND — Oil & Gas storyline proven out ============== -->
+<section class="story-band locked" id="story">
+  <div class="story-band-inner">
+    <div class="story-eyebrow">Oil &amp; Gas × Procurement</div>
+    <h2 class="story-head">From contract authored in CLM to obligations live in Navigator — one MSA, three Docusign moments.</h2>
+
+    <!-- Customer ribbon -->
+    <div class="cust-ribbon">
+      <div class="c-mark">BM</div>
+      <div class="c-meta">
+        <div class="c-ttl">Black Mesa Energy &nbsp;×&nbsp; Tritan Drilling Services</div>
+        <div class="c-sub">Five-rig Master Service Agreement · Permian Basin (Wolfcamp / Bone Spring) · 36-month term, day-rate + footage, $84M ceiling</div>
+      </div>
+      <div class="c-tags">
+        <span class="c-tag">SoR · Coupa</span>
+        <span class="c-tag">Function · Procurement</span>
+        <span class="c-tag">Industry · Oil &amp; Gas</span>
+      </div>
+    </div>
+
+    <!-- 3 scenes -->
+    <div class="scenes">
+
+      <!-- ============== SCENE 1 — CLM ============== -->
+      <article class="scene">
+        <div class="scene-head">
+          <div class="scene-num">SCENE 1 &nbsp;·&nbsp; CONTRACT GENERATION</div>
+          <div class="scene-product">Docusign CLM</div>
+          <div class="scene-role">Procurement Manager &mdash; Black Mesa Energy</div>
+        </div>
+        <div class="mock">
+          <div class="mock-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span class="url">apps.docusign.com/clm/template/oilgas-msa-v4</span>
+          </div>
+          <div class="mock-body">
+            <div class="clm-h">
+              <span class="clm-tag">CLM</span>
+              <span class="clm-ttl">Drilling Services MSA &mdash; v4 (approved)</span>
+            </div>
+
+            <div class="clm-template">
+              <div class="clm-line"></div>
+              <div class="clm-line short"></div>
+              <div class="clm-line field"></div>
+              <div class="clm-line shorter"></div>
+              <div class="clm-line"></div>
+              <div class="clm-line short"></div>
+            </div>
+
+            <div class="clm-meta">
+              <div>Counterparty<b>Tritan Drilling Services</b></div>
+              <div>Pulled from<b>Coupa supplier · ID 89221</b></div>
+              <div>Day rate (Tier 2)<b>$28,400 / rig-day</b></div>
+              <div>Ceiling<b>$84M / 36 mo</b></div>
+            </div>
+          </div>
+        </div>
+        <ul class="scene-beats">
+          <li><b>Pre-approved playbook.</b> MSA assembles from clauses owned by Legal — no off-template language.</li>
+          <li><b>Coupa supplier sync.</b> Tritan's W-9, COI, and HSE record pull live; tier auto-resolves day rate.</li>
+          <li><b>Conditional clauses.</b> Permian-only clauses (sour-gas, flowback) inject from the basin field.</li>
+        </ul>
+      </article>
+
+      <!-- ============== SCENE 2 — Agreement Desk ============== -->
+      <article class="scene">
+        <div class="scene-head">
+          <div class="scene-num">SCENE 2 &nbsp;·&nbsp; EXECUTION</div>
+          <div class="scene-product">Agreement Desk</div>
+          <div class="scene-role">Legal Ops &mdash; Black Mesa &amp; Tritan</div>
+        </div>
+        <div class="mock">
+          <div class="mock-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span class="url">app.docusign.com/desk/envelopes/E-77912</span>
+          </div>
+          <div class="mock-body">
+            <div class="ad-h">
+              <span class="ad-tag">DESK</span>
+              <span class="ad-ttl">Routing &mdash; MSA E-77912</span>
+            </div>
+
+            <div class="recip">
+              <div class="av">DC</div>
+              <div class="r-name">Diego Castaneda <div class="r-role">Procurement &mdash; Black Mesa</div></div>
+              <span class="r-state signed">Signed</span>
+            </div>
+            <div class="recip">
+              <div class="av">RH</div>
+              <div class="r-name">Rachel Holm <div class="r-role">Legal &mdash; Black Mesa</div></div>
+              <span class="r-state signed">Signed</span>
+            </div>
+            <div class="recip">
+              <div class="av">JC</div>
+              <div class="r-name">Jess Crowley <div class="r-role">Counsel &mdash; Tritan</div></div>
+              <span class="r-state review">Redlining</span>
+            </div>
+            <div class="recip">
+              <div class="av">MV</div>
+              <div class="r-name">Mark Vasquez <div class="r-role">CFO &mdash; Tritan</div></div>
+              <span class="r-state pending">Pending</span>
+            </div>
+            <div class="recip">
+              <div class="av">ER</div>
+              <div class="r-name">Elaine Reyes <div class="r-role">VP D&amp;C &mdash; Black Mesa (countersign)</div></div>
+              <span class="r-state pending">Pending</span>
+            </div>
+
+            <div class="ad-route">
+              Conditional route: Tritan redline triggers re-review by Black Mesa Legal before VP D&amp;C countersign. Audit trail preserved.
+            </div>
+          </div>
+        </div>
+        <ul class="scene-beats">
+          <li><b>Multi-party, multi-org routing.</b> Both companies' approvers sequenced; redlines re-route, not restart.</li>
+          <li><b>Conditional countersign.</b> VP D&amp;C only signs after Legal's redline review clears.</li>
+          <li><b>Hand-off to Navigator.</b> On final signature, the executed MSA lands as a tracked agreement automatically.</li>
+        </ul>
+      </article>
+
+      <!-- ============== SCENE 3 — Navigator ============== -->
+      <article class="scene">
+        <div class="scene-head">
+          <div class="scene-num">SCENE 3 &nbsp;·&nbsp; OBLIGATION MANAGEMENT</div>
+          <div class="scene-product">Navigator</div>
+          <div class="scene-role">Contract Lifecycle &mdash; Black Mesa Procurement</div>
+        </div>
+        <div class="mock">
+          <div class="mock-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span class="url">apps.docusign.com/navigator/agreements/MSA-Tritan-25</span>
+          </div>
+          <div class="mock-body">
+            <div class="nav-h">
+              <span class="nav-tag">NAVIGATOR</span>
+              <span class="nav-ttl">MSA &mdash; Tritan · obligations</span>
+            </div>
+
+            <div class="nav-stats">
+              <div><div class="v">42</div><div class="l">Obligations</div></div>
+              <div><div class="v">7</div><div class="l">Due ≤ 30d</div></div>
+              <div><div class="v">$84M</div><div class="l">Ceiling</div></div>
+            </div>
+
+            <div class="obl">
+              <span class="o-flag red"></span>
+              <span class="o-text"><b>COI renewal &mdash; Tritan general liability.</b> $25M floor; current expires before window.</span>
+              <span class="o-when">12 May</span>
+            </div>
+            <div class="obl">
+              <span class="o-flag amber"></span>
+              <span class="o-text"><b>Day-rate index review.</b> Tier 2 escalator clause &mdash; CPI-based reset.</span>
+              <span class="o-when">31 May</span>
+            </div>
+            <div class="obl">
+              <span class="o-flag amber"></span>
+              <span class="o-text"><b>HSE quarterly attestation.</b> Tritan must file TRIR + lost-time evidence.</span>
+              <span class="o-when">15 Jun</span>
+            </div>
+            <div class="obl">
+              <span class="o-flag green"></span>
+              <span class="o-text"><b>Force-majeure carve-out review.</b> Annual; sour-gas exposure tracked.</span>
+              <span class="o-when">04 Sep</span>
+            </div>
+            <div class="obl">
+              <span class="o-flag green"></span>
+              <span class="o-text"><b>Performance bond &mdash; auto-release.</b> On milestone-3 acceptance.</span>
+              <span class="o-when">22 Oct</span>
+            </div>
+          </div>
+        </div>
+        <ul class="scene-beats">
+          <li><b>Obligations extracted, not retyped.</b> Insurance, indemnity, rate, HSE — surfaced from the executed PDF.</li>
+          <li><b>Reminders into Coupa.</b> Renewal triggers post tasks back to the SoR &mdash; procurement keeps one queue.</li>
+          <li><b>Risk flags.</b> Sour-gas force-majeure language and performance-bond carve-outs tracked through the term.</li>
+        </ul>
+      </article>
+
+    </div>
+
+    <div class="scenes-flow">
+      <span><b>Coupa</b> supplier &amp; PR</span>
+      <span class="arr">&mdash;&rsaquo;</span>
+      <span><b>Docusign CLM</b> assembles MSA</span>
+      <span class="arr">&mdash;&rsaquo;</span>
+      <span><b>Agreement Desk</b> routes &amp; signs</span>
+      <span class="arr">&mdash;&rsaquo;</span>
+      <span><b>Navigator</b> tracks obligations &amp; renewals</span>
+      <span class="arr">&mdash;&rsaquo;</span>
+      <span>Renewals &amp; tasks back into <b>Coupa</b></span>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function () {
+  const crumb     = document.getElementById('crumb');
+  const restart   = document.getElementById('restart');
+  const initial   = crumb.innerHTML;        // baseline crumb (just "Demo Story" + restart)
+  const picks     = [];
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  function renderCrumb() {
+    let html = '<span>Demo Story</span>';
+    picks.forEach(p => {
+      html += '<span class="sep">/</span><b>' + p + '</b>';
+    });
+    html += restart.outerHTML;             // keep restart at the end
+    crumb.innerHTML = html;
+    // Re-bind restart (innerHTML rewrite drops the old listener)
+    document.getElementById('restart').addEventListener('click', resetFlow);
+  }
+
+  function resetFlow() {
+    picks.length = 0;
+    crumb.innerHTML = initial;
+    document.getElementById('restart').addEventListener('click', resetFlow);
+    document.body.classList.remove('flow-started');
+
+    // Reset every step
+    ['step1','step2','step3','step4'].forEach((id, i) => {
+      const sect = document.getElementById(id);
+      if (!sect) return;
+      sect.classList.remove('collapsed', 'done');
+      if (i === 0) sect.classList.remove('locked');
+      else sect.classList.add('locked');
+      const pv = sect.querySelector('.picked-val');
+      if (pv) pv.textContent = '';
+    });
+
+    // Reset selected cards & storyline
+    document.querySelectorAll('[data-pick]').forEach(el => el.classList.remove('sel'));
+    const story = document.getElementById('story');
+    if (story) story.classList.add('locked');
+
+    // Re-bind once-only pick handlers
+    bindPickHandlers();
+
+    // Scroll back to step 1
+    const step1 = document.getElementById('step1');
+    if (step1) step1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function bindPickHandlers() {
+    document.querySelectorAll('[data-pick]').forEach(el => {
+      // Remove any prior listener by cloning
+      const fresh = el.cloneNode(true);
+      el.parentNode.replaceChild(fresh, el);
+    });
+    document.querySelectorAll('[data-pick]').forEach(el => {
+      el.addEventListener('click', onPick, { once: true });
+    });
+  }
+
+  function onPick(e) {
+    const el = e.currentTarget;
+    el.classList.add('sel');
+    document.body.classList.add('flow-started');
+
+    // Crumb
+    picks.push(el.dataset.crumb);
+    renderCrumb();
+
+    // Stamp picked-val on this step's label
+    const sect = el.closest('.sect');
+    if (sect) {
+      const pv = sect.querySelector('.picked-val');
+      // strip HTML entities like &amp; for the chip
+      const txt = el.dataset.crumb.replace(/&amp;/g, '&');
+      if (pv) pv.textContent = txt;
+      sect.classList.add('done', 'collapsed');
+    }
+
+    // Reveal next
+    const next = document.getElementById(el.dataset.next);
+    if (next) {
+      next.classList.remove('locked');
+      // Wait for the previous step's collapse to begin animating, then scroll
+      setTimeout(() => {
+        next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 220);
+    }
+  }
+
+  // Sect-label collapse/expand toggle (independent of pick flow)
+  document.querySelectorAll('[data-toggle]').forEach(label => {
+    label.addEventListener('click', () => {
+      label.parentElement.classList.toggle('collapsed');
+    });
+  });
+
+  // Initial bind
+  bindPickHandlers();
+  restart.addEventListener('click', resetFlow);
+})();
+</script>
+</body>
+</html>
