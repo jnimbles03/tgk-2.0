@@ -97,10 +97,18 @@
     font-size: clamp(36px, 4.4vw, 56px);
     font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
     color: var(--ds-white);
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 0.06em;
     margin: 0 0 22px;
   }
-  .hero-cta-row svg { flex-shrink: 0; }
+  /* Canvas-based rocket chevron — flickering flame plume + ember particles
+     trailing behind the ">" nose. Wider than the chevron alone so the trail
+     has room. (Honors prefers-reduced-motion → static chevron only.) */
+  .hero-cta-row .headline-chevron {
+    display: inline-block;
+    width: 1.6em; height: 1.0em;
+    margin-right: 0.06em;
+    flex-shrink: 0;
+  }
   .hero p {
     font-size: 17px; line-height: 1.6;
     color: rgba(248, 243, 240, 0.72);
@@ -196,9 +204,15 @@
   /* ========== OPTION CARDS ========== */
   .grid { display: grid; gap: 14px; }
   .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+  .grid.c5 { grid-template-columns: repeat(5, 1fr); }
   .grid.c3 { grid-template-columns: repeat(3, 1fr); }
   .grid.c2 { grid-template-columns: repeat(2, 1fr); }
   .grid.c9 { grid-template-columns: repeat(3, 1fr); }
+  /* fn-cards in a 5-col layout — let long titles/subs wrap rather than ellipsis */
+  .grid.c5 .card .ttl,
+  .grid.c5 .card .sub,
+  .card.fn-card .ttl,
+  .card.fn-card .sub { white-space: normal; }
 
   .card {
     padding: 22px 22px 20px;
@@ -223,21 +237,42 @@
     opacity: 0.78;
   }
 
-  /* Mockup demo flow — only [data-pick] cards are clickable */
-  .card:not([data-pick]),
+  /* Mockup demo flow — only [data-pick] cards are clickable.
+     Anchor cards (.unified-link) are also fully clickable since they navigate. */
+  .card:not([data-pick]):not(.unified-link),
   .geo-card:not([data-pick]),
   .uc-row:not([data-pick]) {
     pointer-events: none;
     cursor: default;
     opacity: 0.42;
   }
-  .card:not([data-pick]):hover,
+  .card:not([data-pick]):not(.unified-link):hover,
   .geo-card:not([data-pick]):hover,
   .uc-row:not([data-pick]):hover {
     border-color: rgba(19, 0, 50, 0.08);
     transform: none;
     box-shadow: none;
   }
+  /* Step 2 dual-mode: B2B (industries) is the default, B2C (FINS/HLS/PUBSEC)
+     is shown only when Customer Experience is picked in Step 1. */
+  .step2-b2b.hidden,
+  .step2-b2c.hidden { display: none; }
+  /* Unified-link card — anchor styled like an option card */
+  .unified-link {
+    text-decoration: none;
+    color: inherit;
+  }
+  .unified-link:hover { text-decoration: none; }
+  .unified-link .meta {
+    margin-top: auto;
+    padding-top: 14px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ds-cobalt);
+    letter-spacing: 0;
+    transition: color 0.15s var(--ease);
+  }
+  .unified-link:hover .meta { color: var(--ds-deep-violet); }
   /* Locked = not yet revealed in the flow */
   .sect.locked,
   .story-band.locked { display: none; }
@@ -1603,12 +1638,12 @@
     .story-band { margin: 12px -28px 0; padding: 48px 28px 64px; }
     .roadmap-inner { padding: 0 28px; }
     .foot { padding: 28px 28px 40px; }
-    .grid.c4, .grid.c3, .grid.c9 { grid-template-columns: 1fr 1fr; }
+    .grid.c4, .grid.c5, .grid.c3, .grid.c9 { grid-template-columns: 1fr 1fr; }
     .scenes { grid-template-columns: 1fr; }
     .rm-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 640px) {
-    .grid.c4, .grid.c3, .grid.c9, .grid.c2 { grid-template-columns: 1fr; }
+    .grid.c4, .grid.c5, .grid.c3, .grid.c9, .grid.c2 { grid-template-columns: 1fr; }
     .rm-grid { grid-template-columns: 1fr; }
     .hero h1, .hero-cta-row { font-size: 32px; }
   }
@@ -1627,21 +1662,7 @@
     <div class="badge">TGK 2.0 — IAM Storylines</div>
     <h1>Pick a vertical. Pick a use case.</h1>
     <div class="hero-cta-row">
-      <svg class="hc" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="flame" x1="0" y1="0.5" x2="1" y2="0.5">
-            <stop offset="0" stop-color="#FF5252" stop-opacity="0"/>
-            <stop offset="0.55" stop-color="#FF5252" stop-opacity="0.55"/>
-            <stop offset="1" stop-color="#FFD27A" stop-opacity="0.95"/>
-          </linearGradient>
-        </defs>
-        <path d="M5 24 H22" stroke="url(#flame)" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="9" cy="24" r="1.4" fill="#FFD27A" opacity="0.85"/>
-        <circle cx="14" cy="22" r="1" fill="#FF8A66" opacity="0.7"/>
-        <circle cx="13" cy="26" r="0.9" fill="#FF8A66" opacity="0.55"/>
-        <path d="M20 12 L34 24 L20 36" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>Launch Demo</span>
+      <canvas class="headline-chevron" id="headlineChevron" aria-hidden="true"></canvas><span>Launch Demo</span>
     </div>
   </div>
 </section>
@@ -1681,11 +1702,11 @@
   <section class="sect" id="step1">
     <div class="sect-label" data-toggle>
       <span class="step">STEP 1</span>
-      <span>Pick a B2B function</span>
+      <span>Pick a business function</span>
       <span class="picked-val" id="picked-1"></span>
       <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <div class="grid c4">
+    <div class="grid c5">
 
       <div class="card fn-card" data-pick data-next="step2" data-crumb="Procurement">
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1735,6 +1756,20 @@
         </div>
       </div>
 
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Customer Experience" data-mode="b2c">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6 C4 5 5 4 6 4 H18 C19 4 20 5 20 6 V14 C20 15 19 16 18 16 H10 L6 20 V16 H6 C5 16 4 15 4 14 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+          <circle cx="9"  cy="10" r="0.9" fill="currentColor"/>
+          <circle cx="12" cy="10" r="0.9" fill="currentColor"/>
+          <circle cx="15" cy="10" r="0.9" fill="currentColor"/>
+        </svg>
+        <div class="ttl">Customer Experience</div>
+        <div class="sub">Onboarding, maintenance, complex B2C flows</div>
+        <div class="platforms">
+          <span>Customer Portal</span><span>Salesforce/ServiceNow</span><span>Repository</span><span>Form Libraries</span>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -1744,11 +1779,11 @@
   <section class="sect locked" id="step2">
     <div class="sect-label" data-toggle>
       <span class="step">STEP 2</span>
-      <span>Pick an industry</span>
+      <span id="step2Label">Pick an industry</span>
       <span class="picked-val" id="picked-2"></span>
       <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <div class="grid c9">
+    <div class="grid c9 step2-b2b">
 
       <div class="geo-card">
         <div class="gc-mark"></div>
@@ -1803,6 +1838,44 @@
         <div class="gc-ttl">Auto &amp; Mobility</div>
         <div class="gc-sub">OEMs, suppliers, dealers — tier-N supply, fleet</div>
       </div>
+
+    </div>
+
+    <!-- B2C verticals — shown when "Customer Experience" is picked.
+         These link out to /index-unified.html, the canonical home for
+         FINS / HLS / PUBSEC stories. -->
+    <div class="grid c3 step2-b2c hidden">
+
+      <a class="card unified-link" href="/index-unified.html" data-crumb="Financial Services">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="6" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M3 10 H21" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M7 14 H10 M13 14 H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="ttl">Financial Services</div>
+        <div class="sub">Banking, wealth, insurance</div>
+        <div class="meta">Open in unified picker &rsaquo;</div>
+      </a>
+
+      <a class="card unified-link" href="/index-unified.html" data-crumb="Healthcare &amp; Life Sciences">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 4 V20 M4 12 H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">Healthcare &amp; Life Sciences</div>
+        <div class="sub">Pharma, payer, provider</div>
+        <div class="meta">Open in unified picker &rsaquo;</div>
+      </a>
+
+      <a class="card unified-link" href="/index-unified.html" data-crumb="Public Sector">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 20 L4 10 L12 4 L20 10 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9 20 V14 H15 V20" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="ttl">Public Sector</div>
+        <div class="sub">Federal, state &amp; local, education, nonprofit</div>
+        <div class="meta">Open in unified picker &rsaquo;</div>
+      </a>
 
     </div>
   </section>
@@ -2274,6 +2347,9 @@
     const story = document.getElementById('story');
     if (story) story.classList.add('locked');
 
+    // Restore Step 2 to default B2B view
+    setStep2Mode('b2b');
+
     // Reset the click-through story to scene 1 / beat 1
     resetStory();
 
@@ -2315,6 +2391,13 @@
       sect.classList.add('done', 'collapsed');
     }
 
+    // Step 2 mode switch — Customer Experience swaps in FINS/HLS/PUBSEC verticals
+    if (el.dataset.mode === 'b2c') {
+      setStep2Mode('b2c');
+    } else if (sect && sect.id === 'step1') {
+      setStep2Mode('b2b');
+    }
+
     // Reveal next
     const next = document.getElementById(el.dataset.next);
     if (next) {
@@ -2328,6 +2411,22 @@
       if (next.id === 'story') {
         setTimeout(() => { try { renderStory(); } catch (e) {} }, 600);
       }
+    }
+  }
+
+  // Step 2 visibility — toggle between B2B industries (default) and B2C verticals (CX)
+  function setStep2Mode(mode) {
+    const b2b   = document.querySelector('.step2-b2b');
+    const b2c   = document.querySelector('.step2-b2c');
+    const label = document.getElementById('step2Label');
+    if (mode === 'b2c') {
+      if (b2b) b2b.classList.add('hidden');
+      if (b2c) b2c.classList.remove('hidden');
+      if (label) label.textContent = 'Pick a vertical';
+    } else {
+      if (b2c) b2c.classList.add('hidden');
+      if (b2b) b2b.classList.remove('hidden');
+      if (label) label.textContent = 'Pick an industry';
     }
   }
 
@@ -2622,6 +2721,174 @@
   // Initial bind
   bindPickHandlers();
   restart.addEventListener('click', resetFlow);
+
+  // ============================================================
+  // HEADLINE ROCKET — canvas chevron with flame plume + ember
+  // particles, ported from /index-unified.html so /geos matches.
+  // Honors prefers-reduced-motion (static chevron only).
+  // ============================================================
+  (function initHeadlineChevronCanvas() {
+    const canvas = document.getElementById('headlineChevron');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    function sizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      W = Math.max(8, Math.round(rect.width));
+      H = Math.max(8, Math.round(rect.height));
+      canvas.width  = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    sizeCanvas();
+
+    function rocketAnchor(bobX, bobY) {
+      const ARM = H * 0.21;
+      return {
+        cx: W * 0.78 + bobX,
+        cy: H * 0.55 + bobY,
+        armX: ARM,
+        armY: ARM,
+        tailX: W * 0.78 + bobX - ARM,
+        tailY: H * 0.55 + bobY,
+      };
+    }
+
+    function drawChevron(a, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(1.75, H * 0.075);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(a.cx - a.armX, a.cy - a.armY);
+      ctx.lineTo(a.cx + a.armX, a.cy);
+      ctx.lineTo(a.cx - a.armX, a.cy + a.armY);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawFlame(a, flicker) {
+      const baseLen = H * 0.95;
+      const len = baseLen * (0.78 + flicker * 0.32);
+      const halfLen = len / 2;
+      const cxF = a.tailX - halfLen + H * 0.04;
+      const cyF = a.tailY;
+
+      // Outer flame — poppy, soft, widest
+      const wOuter = H * 0.46;
+      const gOuter = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len, cyF);
+      gOuter.addColorStop(0.00, 'rgba(255, 82, 82, 0.55)');
+      gOuter.addColorStop(0.55, 'rgba(255, 82, 82, 0.28)');
+      gOuter.addColorStop(1.00, 'rgba(255, 82, 82, 0.00)');
+      ctx.fillStyle = gOuter;
+      ctx.beginPath();
+      ctx.ellipse(cxF, cyF, halfLen, wOuter * (0.85 + flicker * 0.25), 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mid flame — warm amber, narrower
+      const wMid = H * 0.30;
+      const gMid = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len * 0.78, cyF);
+      gMid.addColorStop(0.00, 'rgba(255, 184, 92, 0.85)');
+      gMid.addColorStop(0.60, 'rgba(255, 130, 70, 0.40)');
+      gMid.addColorStop(1.00, 'rgba(255, 130, 70, 0.00)');
+      ctx.fillStyle = gMid;
+      ctx.beginPath();
+      ctx.ellipse(cxF + len * 0.11, cyF, halfLen * 0.78, wMid * (0.85 + flicker * 0.25), 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner core — white-hot, short and bright
+      const wCore = H * 0.18;
+      const gCore = ctx.createLinearGradient(a.tailX, cyF, a.tailX - len * 0.55, cyF);
+      gCore.addColorStop(0.00, 'rgba(255, 255, 255, 0.95)');
+      gCore.addColorStop(0.55, 'rgba(255, 240, 200, 0.55)');
+      gCore.addColorStop(1.00, 'rgba(255, 220, 160, 0.00)');
+      ctx.fillStyle = gCore;
+      ctx.beginPath();
+      ctx.ellipse(cxF + len * 0.22, cyF, halfLen * 0.55, wCore * (0.9 + flicker * 0.2), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const particles = [];
+    function spawnParticle(a) {
+      const isCore = Math.random() < 0.35;
+      particles.push({
+        x: a.tailX,
+        y: a.tailY + (Math.random() - 0.5) * H * 0.18,
+        vx: -(H * 0.025 + Math.random() * H * 0.020),
+        vy: (Math.random() - 0.5) * H * 0.004,
+        life: 0,
+        maxLife: 22 + Math.random() * 18,
+        size: (isCore ? 1.4 : 1.0) * (H * 0.04 + Math.random() * H * 0.025),
+        core: isCore,
+      });
+    }
+    function stepParticles(a) {
+      if (Math.random() < 0.85) spawnParticle(a);
+      if (Math.random() < 0.55) spawnParticle(a);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 1;
+        if (p.life >= p.maxLife) particles.splice(i, 1);
+      }
+    }
+    function drawParticles() {
+      for (const p of particles) {
+        const k = 1 - p.life / p.maxLife;
+        const alpha = k * (p.core ? 0.95 : 0.6);
+        const r = Math.max(0.4, p.size * (0.5 + k * 0.5));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.core ? '#ffffff' : '#FF5252';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      const a = rocketAnchor(0, 0);
+      ctx.clearRect(0, 0, W, H);
+      drawChevron(a, 1);
+      window.addEventListener('resize', () => {
+        sizeCanvas();
+        const a2 = rocketAnchor(0, 0);
+        ctx.clearRect(0, 0, W, H);
+        drawChevron(a2, 1);
+      });
+      return;
+    }
+
+    const start = performance.now();
+    function loop(now) {
+      const t = (now - start) / 1000;
+      const bobX = Math.sin(t * 2.3) * (W * 0.012);
+      const bobY = Math.sin(t * 3.1) * (H * 0.025);
+      const a = rocketAnchor(bobX, bobY);
+      const flicker = 0.5 + 0.35 * Math.sin(t * 14) + 0.15 * Math.sin(t * 27 + 1.7);
+
+      ctx.clearRect(0, 0, W, H);
+      stepParticles(a);
+      drawParticles();
+      drawFlame(a, Math.max(0, Math.min(1, flicker)));
+      drawChevron(a, 1);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    let resizePending = false;
+    window.addEventListener('resize', () => {
+      if (resizePending) return;
+      resizePending = true;
+      requestAnimationFrame(() => { sizeCanvas(); resizePending = false; });
+    });
+  })();
 })();
 </script>
 </body>
