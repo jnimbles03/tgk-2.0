@@ -32,7 +32,7 @@
   // --------- Style injection ---------
   const css = `
     .tgk-fb-btn {
-      position: fixed; bottom: 22px; right: 22px; z-index: 99998;
+      position: fixed; top: 22px; right: 22px; z-index: 99998;
       width: 52px; height: 52px; border-radius: 50%; border: none;
       background: #4C00FF; color: #fff;
       box-shadow: 0 8px 24px rgba(76, 0, 255, 0.35), 0 2px 6px rgba(19, 0, 50, 0.25);
@@ -70,7 +70,7 @@
 
     /* Tooltip on the floating button */
     .tgk-fb-tip {
-      position: fixed; bottom: 34px; right: 86px; z-index: 99998;
+      position: fixed; top: 34px; right: 86px; z-index: 99998;
       max-width: 268px;
       background: #130032; color: #fff;
       padding: 10px 12px 11px;
@@ -95,7 +95,7 @@
       border-left-color: #130032;
     }
     @media (max-width: 480px) {
-      .tgk-fb-tip { right: 76px; bottom: 28px; max-width: calc(100vw - 96px); }
+      .tgk-fb-tip { right: 76px; top: 28px; max-width: calc(100vw - 96px); }
     }
 
     /* Category chips */
@@ -138,7 +138,7 @@
     @keyframes tgkFbFade { from { opacity: 0; } to { opacity: 1; } }
 
     .tgk-fb-panel {
-      position: fixed; bottom: 88px; right: 22px; z-index: 99999;
+      position: fixed; top: 88px; right: 22px; z-index: 99999;
       width: 360px; max-width: calc(100vw - 44px);
       background: #fff;
       border-radius: 14px;
@@ -289,9 +289,9 @@
       .tgk-fb-panel {
         width: calc(100vw - 24px);
         right: 12px;
-        bottom: 82px;
+        top: 82px;
       }
-      .tgk-fb-btn { right: 16px; bottom: 16px; width: 48px; height: 48px; }
+      .tgk-fb-btn { right: 16px; top: 16px; width: 48px; height: 48px; }
     }
   `;
 
