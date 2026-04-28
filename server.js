@@ -763,8 +763,8 @@ app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
 // Friendly alias: /architecture and /architecture/ → /architecture.html
 app.get(['/architecture', '/architecture/'], (req, res) => res.redirect('/architecture.html'));
 
-// Friendly alias: /builder and /builder/ → /builder.html
-app.get(['/builder', '/builder/'], (req, res) => res.redirect('/builder.html'));
+// Friendly alias: /builder and /builder/ (and /build) → /builder.html
+app.get(['/builder', '/builder/', '/build', '/build/'], (req, res) => res.redirect('/builder.html'));
 
 /* =========================================================================
    DYNAMIC DEMO BUILDER
