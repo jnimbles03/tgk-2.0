@@ -1,6 +1,6 @@
 # Story Arc Audit & Use Case Extension · 2026-04-27
 
-Two related passes on the FINS/HLS/PS demo set: (1) Scene 1 archetype audit on the canonical 5-scene stories; (2) extension of every vertical with two new sub-flow use cases (auth-fabric + intake-mechanics) behind `?usecase=`.
+Two related passes on the FINS/HLS/PS demo set: (1) Scene 1 archetype audit on the canonical 5-scene stories; (2) extension of every vertical with two new sub-flow use cases (fraud-fabric + intake-mechanics) behind `?usecase=`.
 
 ## Files in this folder
 
@@ -13,23 +13,23 @@ Two related passes on the FINS/HLS/PS demo set: (1) Scene 1 archetype audit on t
 ### Pass 2 — Use case extension (new sub-flows per vertical)
 
 - **`usecase-extension-2026-04-27.html`** — the architecture proposal + per-vertical spec grid + 3 fully-baked exemplars (wealth, provider, slgov-recertification). Read second.
-- **`usecase-payloads-2026-04-27.json`** — structured spec data: 3-scene templates for auth-fabric and intake-mechanics, per-vertical spec rows for all 21 verticals, architecture/wiring requirements.
+- **`usecase-payloads-2026-04-27.json`** — structured spec data: 3-scene templates for fraud-fabric and intake-mechanics, per-vertical spec rows for all 21 verticals, architecture/wiring requirements.
 - **`usecase-narrations-2026-04-27.json`** — **the master narrations bundle.** Full scene narration (tag, head, lede, beats) for all 21 verticals × 2 use cases = 42 use case scripts, 145 scenes, 726 narrated beats. Drop-in for `VERTICALS[<key>].usecases` in story-shell.html. The shell fetches this file when `?usecase=` is set.
 - **`_narrations-baked-exemplars.json`** + **`_narrations-{fins,hls-edu,ps-a,ps-b-nonprofit}.json`** — per-batch authoring source files merged into the master bundle. Paper trail; not used at runtime.
 
 ### Shell wiring (applied to live shell)
 
-The following live files now support `?usecase=auth-fabric` and `?usecase=intake`:
+The following live files now support `?usecase=fraud-fabric` and `?usecase=intake`:
 
 - **`stories/_shared/story-shell.html`** — added 6 new HOTSPOTS keys (portal_clear_idv, portal_webform, portal_submit, webform_intake, maestro_package, envelope_deliver), USECASE_SCENE_KEYS / USECASE_TEMPLATE_FILES / USECASE_TEMPLATE_MODES dispatch tables, srcForUsecaseScene() helper, async fetch of the narrations bundle when `?usecase=` is set, and usecase-aware SCENES build with re-render after fetch resolves. Default canonical 5-scene path is unchanged when `?usecase=` is not set.
-- **`story-templates/docusign-portal-shell.html`** (new) — customer-portal stub for auth-fabric Scenes 1 + 2. Two modes: `?mode=clear-idv-login` (Maestro orchestrates CLEAR at the door) and `?mode=action-webform` (Maestro serves webform inside authenticated session). Per-vertical preset wiring for all 21 tenants/customers.
+- **`story-templates/docusign-portal-shell.html`** (new) — customer-portal stub for fraud-fabric Scenes 1 + 2. Two modes: `?mode=clear-idv-login` (Maestro orchestrates CLEAR at the door) and `?mode=action-webform` (Maestro serves webform inside authenticated session). Per-vertical preset wiring for all 21 tenants/customers.
 - **`story-templates/docusign-webform-intake.html`** (new) — webform-intake stub for intake-mechanics Scene 1. Renders archetype A (sender) or B (self-service) based on per-vertical preset.
 - **`story-templates/docusign-maestro-package.html`** (new) — Maestro fan-out visualizer for intake-mechanics Scene 2. Shows webform selections → packaged docs + recipient routing per vertical.
-- **`story-templates/docusign-agreement-desk-chain-of-custody.html`** (new) — chain-of-custody view for auth-fabric Scene 3. Surfaces auth event + transaction event linked as a continuous identity thread, with per-vertical session/transaction context for all 21 tenants.
+- **`story-templates/docusign-agreement-desk-chain-of-custody.html`** (new) — chain-of-custody view for fraud-fabric Scene 3. Surfaces auth event + transaction event linked as a continuous identity thread, with per-vertical session/transaction context for all 21 tenants.
 
 URLs that work after this commit:
 ```
-/stories/_shared/story-shell.html?vertical=<key>&usecase=auth-fabric
+/stories/_shared/story-shell.html?vertical=<key>&usecase=fraud-fabric
 /stories/_shared/story-shell.html?vertical=<key>&usecase=intake
 ```
 

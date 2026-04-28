@@ -1490,12 +1490,12 @@
     }
   };
 
-  /* When ?usecase=auth-fabric is set, overlay these scenario-specific
+  /* When ?usecase=fraud-fabric is set, overlay these scenario-specific
      fields on top of the intake base. Each preset matches that vertical's
-     authored auth-fabric narration so Scene 2 of auth-fabric reads as a
+     authored fraud-fabric narration so Scene 2 of fraud-fabric reads as a
      real action-authorization moment in the polished multi-state webform
      instead of the legacy stub. */
-  const AUTH_FABRIC_PRESETS = {
+  const FRAUD_FABRIC_PRESETS = {
     wealth: {
       module: 'High-Value Wire Authorization',
       s1Title: 'High-Value Wire Authorization',
@@ -2071,13 +2071,13 @@
   const params = new URLSearchParams(location.search);
   const preset = params.get('preset') || 'wealth';
   const usecase = params.get('usecase') || 'default';
-  /* For ?usecase=maintenance or ?usecase=auth-fabric, overlay scenario-specific
+  /* For ?usecase=maintenance or ?usecase=fraud-fabric, overlay scenario-specific
      fields on top of intake base. Verticals without an overlay entry fall
      through to intake content. */
   const basePreset = PRESETS[preset] || PRESETS.wealth;
   let overlay = null;
   if (usecase === 'maintenance')      overlay = MAINTENANCE_PRESETS[preset] || null;
-  else if (usecase === 'auth-fabric') overlay = AUTH_FABRIC_PRESETS[preset]  || null;
+  else if (usecase === 'fraud-fabric') overlay = FRAUD_FABRIC_PRESETS[preset]  || null;
   const p = overlay ? Object.assign({}, basePreset, overlay) : basePreset;
 
   document.getElementById('brand-name').textContent = p.brand;

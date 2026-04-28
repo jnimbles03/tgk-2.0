@@ -63,6 +63,27 @@ verticals:
   template UI, which doesn't shift per preset. Only narration (sidebar
   copy + per-beat headlines) varies by vertical.
 
+### Five-flow taxonomy (locked 2026-04-28)
+
+Every vertical exposes four story flavors via `?usecase=` plus a
+core-vertical-level Headless IAM page:
+
+| Flow | URL | Scenes | Narration source |
+|---|---|---|---|
+| **Onboarding** | `?vertical=<key>` (no usecase) | 5 | `v.scenes` (canonical) |
+| **Maintenance** | `?vertical=<key>&usecase=maintenance` | 3 | `v.usecases.maintenance.scenes` (inlined) |
+| **Fraud Fabric** | `?vertical=<key>&usecase=fraud-fabric` | 3 | `v.usecases.fraud-fabric.scenes` (inlined) |
+| **Workspaces** | `?vertical=<key>&usecase=workspaces` | 1 | synthesized from `v.scenes[4]` (canonical Scene 5) |
+| **Headless** | `/headless-iam/{fins,hls,ps}.html` | n/a | tenant-branded portal |
+
+Backward compat: `?usecase=auth-fabric` aliases silently to `fraud-fabric`
+(rename happened 2026-04-28; alias to be dropped after ~6 months).
+
+Use-case narration is inlined in story-shell.html as
+`<script id="tgk-usecases" type="application/json">` (eliminates the
+network fetch and the load flash). The async fetch path is retained as a
+fallback only.
+
 This shape supersedes the older recipe.json + per-portal scene HTMLs
 architecture described in VERTICAL_PORTALS.md and the
 `stories/wealth-onboarding-v2/` multi-tenant pattern in REGISTRY.md.
@@ -92,7 +113,7 @@ The original 10 stay unchanged. The 11 new entries:
 | `slgov-vendor-compliance` | Ridgeview Procurement × Apex Logistics annual COI | `#E89B5B` | ✗ | `public-sector-vendor-compliance.html` |
 | `slgov-employee-onboarding` | Cascade County HR × Marcus Lee new caseworker | `#B589DB` | ✗ | `public-sector-employee-onboarding.html` |
 | `slgov-licensing` | Northbrook Licensing Bureau × Avalon Café restaurant license | `#F2A56B` | ✗ | `public-sector-licensing.html` |
-| `banking-deposits` | Cedar Federal Credit Union × Williams household — Account Opening (A-trig). `?usecase=auth-fabric` = high-value wire + chain-of-custody. `?usecase=maintenance` = household beneficiary update (B). | `#6BB6FF` | ✗ | `banking-deposits.html` |
+| `banking-deposits` | Cedar Federal Credit Union × Williams household — Account Opening (A-trig). `?usecase=fraud-fabric` = high-value wire + chain-of-custody. `?usecase=maintenance` = household beneficiary update (B). | `#6BB6FF` | ✗ | `banking-deposits.html` |
 | `wealth-discovery` | Cypress Wealth × Holcomb Family — IRA rollover + family trust | `#5BA1B8` | **✓** | `wealth-onboarding.html` |
 
 Each new vertical has the same shape as the original 10:

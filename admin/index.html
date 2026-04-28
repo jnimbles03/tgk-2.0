@@ -159,7 +159,7 @@
   .scard .schain{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
   .scard .schip{font-size:10px;font-weight:500;color:var(--ink-mid);background:#F4F4F5;padding:2px 7px;border-radius:9px;letter-spacing:0.02em;}
   .scard .schip.uc-default{background:#EEE8FF;color:var(--ds-purple);}
-  .scard .schip.uc-auth-fabric{background:#FEF3C7;color:#92400E;}
+  .scard .schip.uc-fraud-fabric{background:#FEF3C7;color:#92400E;}
   .scard .schip.uc-intake-3, .scard .schip.uc-intake-4{background:#DCFCE7;color:#166534;}
   .scard .schip.uc-maintenance{background:#FEE2E2;color:#991B1B;}
   .scard .schip.custom{background:#FFE4E6;color:#9F1239;}
@@ -380,7 +380,7 @@
         <div class="page-head">
           <div class="eyebrow">Section 03 · author</div>
           <h1>Edit a demo. Or compose a new one.</h1>
-          <p>Every demo is a vertical (tenant + customer) wearing one of four use-case shapes — canonical 5-scene, auth-fabric (3), intake (3 or 4), maintenance (3). Each scene loads a template from <code style="font-family:var(--mono);font-size:12px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">/story-templates/</code>. Pick any combination; the shell renders it.</p>
+          <p>Every demo is a vertical (tenant + customer) wearing one of four use-case shapes — canonical 5-scene, fraud-fabric (3), intake (3 or 4), maintenance (3). Each scene loads a template from <code style="font-family:var(--mono);font-size:12px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">/story-templates/</code>. Pick any combination; the shell renders it.</p>
         </div>
 
         <div class="card">
@@ -390,7 +390,7 @@
             <select id="st-usecase-filter" style="padding:7px 30px 7px 12px;border:1px solid var(--hair-strong);border-radius:5px;font-size:13px;background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer;">
               <option value="">All shapes</option>
               <option value="default">Canonical (5 scenes)</option>
-              <option value="auth-fabric">Auth fabric (3)</option>
+              <option value="fraud-fabric">Fraud fabric (3)</option>
               <option value="intake">Intake (3–4)</option>
               <option value="maintenance">Maintenance (3)</option>
               <option value="custom">Custom only</option>
@@ -423,8 +423,8 @@
             <button class="usecase-tab on" data-uc="default" type="button">
               <span class="uc-name">Canonical</span><span class="uc-meta">5 scenes · Sender → Identity → Signing → Data → Workspace</span>
             </button>
-            <button class="usecase-tab" data-uc="auth-fabric" type="button">
-              <span class="uc-name">Auth fabric</span><span class="uc-meta">3 scenes · Portal CLEAR-at-the-door + chain-of-custody</span>
+            <button class="usecase-tab" data-uc="fraud-fabric" type="button">
+              <span class="uc-name">Fraud fabric</span><span class="uc-meta">3 scenes · Portal CLEAR-at-the-door + chain-of-custody</span>
             </button>
             <button class="usecase-tab" data-uc="intake-3" type="button">
               <span class="uc-name">Intake (3)</span><span class="uc-meta">Webform → Maestro package → Envelope</span>
@@ -1145,7 +1145,7 @@ function exportHotspotsJS(){
 const TEMPLATE_CATALOG = [
   /* Scene 1 / Sender / Intake family */
   {value:"/story-templates/docusign-agreement-desk.html",                   label:"Agreement Desk · Maestro inbox (default)",       slots:[0,2]},
-  {value:"/story-templates/docusign-agreement-desk-chain-of-custody.html",  label:"Agreement Desk · chain-of-custody (auth-fabric)", slots:[0,2]},
+  {value:"/story-templates/docusign-agreement-desk-chain-of-custody.html",  label:"Agreement Desk · chain-of-custody (fraud-fabric)", slots:[0,2]},
   {value:"/story-templates/docusign-webform-intake.html",                   label:"Webform intake · multi-state (canonical)",       slots:[0,1]},
   {value:"/story-templates/docusign-portal-shell.html",                     label:"Portal shell · CLEAR-at-the-door + action",      slots:[0,1]},
   {value:"/story-templates/docusign-ehr-desktop.html",                      label:"EHR desktop · provider workstation",             slots:[0]},
@@ -1170,7 +1170,7 @@ const TEMPLATE_CATALOG = [
    one of these keys' beats + hotspots. */
 const USECASES = {
   default:        {label:"Canonical (5 scenes)",   sceneCount:5, sceneKeys:["agreement_desk","clear_idv","signing","navigator","workspace"],                 sceneTitles:["Sender","Identity","Signing","Data","Workspace"]},
-  "auth-fabric":  {label:"Auth fabric (3 scenes)", sceneCount:3, sceneKeys:["portal_clear_idv","webform_intake","portal_submit"],                              sceneTitles:["Portal entry","Sensitive action","Chain-of-custody"]},
+  "fraud-fabric":  {label:"Fraud fabric (3 scenes)", sceneCount:3, sceneKeys:["portal_clear_idv","webform_intake","portal_submit"],                              sceneTitles:["Portal entry","Sensitive action","Chain-of-custody"]},
   "intake-3":     {label:"Intake (3 scenes)",      sceneCount:3, sceneKeys:["webform_intake","maestro_package","envelope_deliver"],                           sceneTitles:["Webform","Maestro package","Envelope"]},
   "intake-4":     {label:"Intake (4 scenes)",      sceneCount:4, sceneKeys:["webform_intake","maestro_package","envelope_deliver","workspace"],               sceneTitles:["Webform","Maestro package","Envelope","Workspace"]},
   maintenance:    {label:"Maintenance (3 scenes)", sceneCount:3, sceneKeys:["portal_clear_idv","webform_intake","agreement_desk"],                            sceneTitles:["Portal step-up","Sensitive change","Approval queue"]},
@@ -1186,7 +1186,7 @@ const USECASE_DEFAULTS = {
     "/story-templates/docusign-navigator.html",
     "/story-templates/docusign-workspace.html",
   ],
-  "auth-fabric": [
+  "fraud-fabric": [
     "/story-templates/docusign-portal-shell.html",
     "/story-templates/docusign-portal-shell.html",
     "/story-templates/docusign-agreement-desk-chain-of-custody.html",
@@ -1212,7 +1212,7 @@ const USECASE_DEFAULTS = {
 /* Default per-scene "mode" hint — some templates dual-use via ?mode=. */
 const USECASE_DEFAULT_MODES = {
   default:        [null, null, null, null, null],
-  "auth-fabric":  ["clear-idv-login", "action-webform", null],
+  "fraud-fabric":  ["clear-idv-login", "action-webform", null],
   "intake-3":     [null, null, null],
   "intake-4":     [null, null, null, null],
   maintenance:    ["clear-idv-login", null, "approval-queue"],
@@ -1382,7 +1382,7 @@ async function renderStoryList(){
 
     /* Which use-cases have content? Default always; others if narration exists.
        For now, advertise all 5 shapes per vertical — admin can edit any. */
-    const ucs = ["default","auth-fabric","intake-3","intake-4","maintenance"];
+    const ucs = ["default","fraud-fabric","intake-3","intake-4","maintenance"];
     const filterUc = ucFilter === "intake" ? ["intake-3","intake-4"] : (ucFilter ? [ucFilter] : null);
     if (ucFilter === "custom" && !isCustom) return;
 
@@ -1493,7 +1493,7 @@ function duplicateStory(sourceKey){
      tabs in the editor shows pre-filled scenes (not blanks). */
   const defaultDraft = buildDraft(sourceKey, "default");
   const byUsecase = { default: defaultDraft.scenes };
-  ["auth-fabric", "intake-3", "intake-4", "maintenance"].forEach(uc => {
+  ["fraud-fabric", "intake-3", "intake-4", "maintenance"].forEach(uc => {
     const d = buildDraft(sourceKey, uc);
     if (d && d.scenes && d.scenes.length) {
       byUsecase[uc] = d.scenes.map(s => ({...s, beats: s.beats.map(b => ({...b}))}));

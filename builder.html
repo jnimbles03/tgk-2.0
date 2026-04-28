@@ -338,7 +338,7 @@
         <div>
           <select id="f-usecase" required>
             <option value="default">Onboarding · canonical (5 scenes)</option>
-            <option value="auth-fabric">Auth-Fabric · CLEAR-at-the-door (3 scenes)</option>
+            <option value="fraud-fabric">Fraud Fabric · CLEAR-at-the-door (3 scenes)</option>
             <option value="intake">Intake-Mechanics · webform → Maestro (3-4 scenes)</option>
             <option value="maintenance">Maintenance · sensitive change (3 scenes)</option>
           </select>
@@ -378,8 +378,70 @@
       </div>
 
       <div class="form-row">
+        <label for="f-logo">Customer logo</label>
+        <div>
+          <div class="swatch-row" style="gap: 14px;">
+            <span id="logoPreview" aria-hidden="true" style="
+              width: 56px; height: 56px;
+              border: 1px dashed var(--ds-rule-strong);
+              border-radius: 6px;
+              display: flex; align-items: center; justify-content: center;
+              background: var(--ds-bg);
+              flex-shrink: 0;
+              overflow: hidden;
+            ">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--ds-text-soft);">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="9" cy="9" r="1.5"/>
+                <path d="M3 16l5-5 4 4 3-3 6 6"/>
+              </svg>
+            </span>
+            <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="
+              flex: 1;
+              font-family: var(--ds-font);
+              font-size: 0.875rem;
+              color: var(--ds-text);
+            ">
+            <button type="button" id="btnLogoClear" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8125rem;">Clear</button>
+          </div>
+          <div class="help">PNG, JPG, SVG, or WebP. Max 500 KB. Optional.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
         <label for="f-sor">System of record</label>
-        <div><input type="text" id="f-sor" placeholder="e.g. nCino on Salesforce" maxlength="80"></div>
+        <div>
+          <input type="text" id="f-sor" placeholder="e.g. nCino on Salesforce" maxlength="80" list="sor-list" autocomplete="off">
+          <datalist id="sor-list">
+            <option value="Salesforce FSC"></option>
+            <option value="Salesforce CRM"></option>
+            <option value="Salesforce Public Sector Solutions"></option>
+            <option value="Salesforce Health Cloud"></option>
+            <option value="Salesforce Nonprofit Cloud"></option>
+            <option value="nCino on Salesforce"></option>
+            <option value="Guidewire PolicyCenter"></option>
+            <option value="Guidewire ClaimCenter"></option>
+            <option value="Guidewire BillingCenter"></option>
+            <option value="Duck Creek Policy"></option>
+            <option value="Epic"></option>
+            <option value="Epic / Veeva"></option>
+            <option value="Cerner / Oracle Health"></option>
+            <option value="Veeva Vault"></option>
+            <option value="Workday HCM"></option>
+            <option value="Workday Student"></option>
+            <option value="Workday Financials"></option>
+            <option value="ServiceNow"></option>
+            <option value="ServiceNow Public Sector"></option>
+            <option value="Oracle Public Sector"></option>
+            <option value="Microsoft Dynamics 365"></option>
+            <option value="SAP"></option>
+            <option value="HubSpot"></option>
+            <option value="Tyler Technologies"></option>
+            <option value="Accela"></option>
+            <option value="Other / custom"></option>
+          </datalist>
+          <div class="help">Pick from the list or type a custom value.</div>
+        </div>
       </div>
 
       <div class="form-row">
@@ -482,10 +544,68 @@
     $('swatchPreview').style.background = v;
   });
 
+  // ============== Logo upload ==============
+  const LOGO_MAX_BYTES = 500 * 1024;   // 500 KB raw cap
+  let logoDataUrl = null;
+
+  function renderLogoPreview() {
+    const box = $('logoPreview');
+    if (logoDataUrl) {
+      box.innerHTML = `<img src="${logoDataUrl}" alt="" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;">`;
+      box.style.borderStyle = 'solid';
+      box.style.background = 'var(--ds-white)';
+    } else {
+      box.innerHTML = `
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--ds-text-soft);">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="9" cy="9" r="1.5"/>
+          <path d="M3 16l5-5 4 4 3-3 6 6"/>
+        </svg>`;
+      box.style.borderStyle = 'dashed';
+      box.style.background = 'var(--ds-bg)';
+    }
+  }
+
+  $('f-logo').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|svg\+xml|webp)$/i.test(file.type)) {
+      $('errorPanel').textContent = 'Logo must be PNG, JPG, SVG, or WebP.';
+      $('errorPanel').classList.add('active');
+      $('f-logo').value = '';
+      return;
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      $('errorPanel').textContent = `Logo too large (${Math.round(file.size/1024)} KB). Max is 500 KB.`;
+      $('errorPanel').classList.add('active');
+      $('f-logo').value = '';
+      return;
+    }
+    $('errorPanel').classList.remove('active');
+    const reader = new FileReader();
+    reader.onload = () => {
+      logoDataUrl = reader.result;
+      renderLogoPreview();
+    };
+    reader.onerror = () => {
+      $('errorPanel').textContent = 'Could not read that file. Try another.';
+      $('errorPanel').classList.add('active');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('btnLogoClear').addEventListener('click', () => {
+    logoDataUrl = null;
+    $('f-logo').value = '';
+    renderLogoPreview();
+  });
+
   // Reset
   $('btnReset').addEventListener('click', () => {
     form.reset();
     ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => delete $(id).dataset.touched);
+    logoDataUrl = null;
+    renderLogoPreview();
     applyIndustryDefaults();
     $('resultPanel').classList.remove('active');
     $('errorPanel').classList.remove('active');
@@ -521,6 +641,7 @@
       tenant,
       customer: customer.startsWith('×') ? customer : '× ' + customer,
       tenantColor: color,
+      tenantLogo: logoDataUrl || null,    // base64 dataURL or null
       preset: 'custom',
       sor,
       signatureMoment: moment,
@@ -533,7 +654,8 @@
       scenes: [],
       _builderMeta: {
         builtAt: new Date().toISOString(),
-        sourceVertical: industry
+        sourceVertical: industry,
+        hasLogo: !!logoDataUrl
       }
     };
 
@@ -553,7 +675,10 @@
       $('resultHeadline').textContent = `${tenant} × ${customer.replace(/^×\s*/, '')}`;
       $('resultUrl').textContent = fullUrl;
       $('resultUrl').dataset.url = fullUrl;
-      $('resultMeta').textContent = `Token ${token} · expires in ${expiresInDays} days · ${usecase} · scaffolded from ${industry}`;
+      const logoSize = logoDataUrl ? Math.round(logoDataUrl.length * 0.75 / 1024) : 0;
+      $('resultMeta').textContent =
+        `Token ${token} · expires in ${expiresInDays} days · ${usecase} · scaffolded from ${industry}` +
+        (logoDataUrl ? ` · logo embedded (~${logoSize} KB)` : '');
       $('resultPanel').classList.add('active');
       $('submitStatus').textContent = 'Saved.';
       // Scroll the result into view smoothly
