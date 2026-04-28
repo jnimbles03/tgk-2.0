@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus pattern options — Lead → Yield</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9; --ds-inkwell:#130032;
+    --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+    --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --step-blue:#3B82F6;
+    --tenant-accent:#3FDA99;
+    --cream:#FBF8F2;
+    --ui:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --editorial:"Fraunces",Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{font-family:var(--ui);color:var(--ink);background:#F4F4F5;font-size:14px;line-height:1.5;}
+  body{padding:32px 36px 80px;}
+
+  .doc-head{max-width:1180px;margin:0 auto 28px;}
+  .doc-head h1{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:30px;color:var(--ink);letter-spacing:-0.01em;margin-bottom:6px;}
+  .doc-head p{color:var(--ink-mid);font-size:13.5px;max-width:720px;}
+
+  .stack{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:36px;}
+
+  .opt{background:#fff;border:1px solid var(--hair);border-radius:12px;overflow:hidden;}
+  .opt-head{padding:14px 22px;border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;background:#FAFAFA;}
+  .opt-head .ttl{display:flex;align-items:center;gap:14px;}
+  .opt-head .badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--ds-purple);color:#fff;font-weight:700;font-size:12px;}
+  .opt-head .ttl h2{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;}
+  .opt-head .ttl .sub{font-size:12px;color:var(--ink-soft);}
+  .opt-head .replay{padding:7px 14px;border-radius:6px;border:1px solid var(--hair-strong);background:#fff;color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;transition:border-color 0.15s;font-family:var(--ui);}
+  .opt-head .replay:hover{border-color:var(--ink-mid);}
+
+  .preview{height:540px;position:relative;overflow:hidden;background:#fff;}
+  .topbar{height:46px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 22px;gap:18px;flex-shrink:0;}
+  .tenant-mark{display:flex;align-items:center;gap:9px;}
+  .tenant-mark .m{width:18px;height:18px;color:var(--tenant-accent);}
+  .tenant-mark .wm{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:18px;}
+  .tenant-mark .story{font-size:11.5px;color:var(--ink-soft);margin-left:10px;}
+  .topbar .sp{flex:1;}
+  .topbar .scene-tabs{display:flex;gap:12px;font-size:12px;color:var(--ink-mid);font-weight:500;}
+  .topbar .scene-tabs .t.on{color:var(--ink);font-weight:600;border-bottom:2px solid var(--ink);padding-bottom:2px;}
+  .topbar .chip{padding:3px 8px;border:1px solid var(--hair);border-radius:11px;font-size:10px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.06em;}
+
+  /* ==== Mock demo iframe content (same for all three options) ==== */
+  .mock-demo{position:absolute;inset:0;background:#F8FAFC;display:flex;flex-direction:column;}
+  .mock-demo .mock-head{background:#000;color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+  .mock-demo .mock-head .l{display:flex;align-items:center;gap:9px;font-family:var(--editorial);font-style:italic;font-weight:500;font-size:18px;}
+  .mock-demo .mock-head .l .tri{width:14px;height:14px;background:var(--tenant-accent);clip-path:polygon(50% 0,100% 100%,0 100%);}
+  .mock-demo .mock-head .r{font-size:11px;letter-spacing:0.08em;color:rgba(255,255,255,0.7);text-transform:uppercase;}
+  .mock-demo .mock-body{flex:1;padding:32px 60px;overflow:auto;}
+  .mock-demo .demo-banner{background:#EFF6FF;border-radius:6px;padding:10px;text-align:center;color:var(--ink-mid);font-size:12px;margin-bottom:24px;}
+  .mock-demo h3{font-size:18px;font-weight:700;margin-bottom:6px;}
+  .mock-demo .desc{color:var(--ink-mid);font-size:13px;margin-bottom:20px;}
+  .mock-demo .field{margin-bottom:14px;}
+  .mock-demo .field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+  .mock-demo .field label .req{color:#DC2626;}
+  .mock-demo .field input,.mock-demo .field select{width:100%;padding:9px 12px;border:1px solid var(--hair-strong);border-radius:5px;background:#fff;font-size:13px;font-family:var(--ui);}
+  .mock-demo .field .help{color:var(--ink-soft);font-size:11.5px;margin-bottom:5px;}
+  .mock-demo .maestro-pill{margin-top:18px;background:#EEE8FF;border-left:3px solid var(--ds-purple);padding:10px 14px;border-radius:4px;}
+  .mock-demo .maestro-pill .lbl{font-size:10px;font-weight:700;color:var(--ds-purple);letter-spacing:0.1em;margin-bottom:3px;text-transform:uppercase;}
+  .mock-demo .maestro-pill .row{font-size:12px;color:var(--ds-inkwell);}
+
+  /* ==== Shared sidebar stub ==== */
+  .sidebar{padding:24px 28px;background:#fff;display:flex;flex-direction:column;border-right:1px solid var(--hair);position:relative;}
+  .sidebar .step-label{font-size:11px;font-weight:600;color:var(--step-blue);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;transition:opacity 0.5s ease, font-size 0.5s ease;}
+  .sidebar .headline{font-family:var(--ui);font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;line-height:1.18;margin-bottom:16px;transition:font-family 0.6s, font-style 0.6s, font-weight 0.6s, font-size 0.6s cubic-bezier(.2,.7,.2,1), letter-spacing 0.6s, margin-bottom 0.6s;}
+  .sidebar .lede{font-size:13px;color:var(--ink-mid);line-height:1.6;transition:opacity 0.6s ease, font-size 0.5s ease;}
+  .sidebar .pips{display:flex;gap:5px;margin-top:auto;padding-top:18px;}
+  .sidebar .pips .p{width:18px;height:4px;border-radius:2px;background:var(--hair);}
+  .sidebar .pips .p.on{background:var(--ds-purple);}
+
+  /* ==================================================================
+     OPTION A — Sidebar collapse
+     Lead: 45% width, Fraunces italic 38px, full lede.
+     Yield: 18% width (rail), Inter 14px headline, lede dimmed.
+     Demo grows from 55% to 82%.
+     ================================================================== */
+  .opt-a .body{position:absolute;inset:46px 0 0 0;display:flex;}
+  .opt-a .sidebar{width:18%;transition:width 0.9s cubic-bezier(.2,.8,.2,1), padding 0.6s ease;}
+  .opt-a .stage{flex:1;position:relative;}
+  .opt-a.lead .sidebar{width:45%;padding:36px 44px;}
+  .opt-a.lead .headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:38px;letter-spacing:-0.015em;line-height:1.1;margin-bottom:22px;}
+  .opt-a.lead .lede{opacity:1;font-size:14px;}
+  .opt-a.lead .step-label{opacity:1;font-size:11px;}
+  .opt-a:not(.lead) .headline{font-size:14px;font-weight:600;}
+  .opt-a:not(.lead) .lede{opacity:0.45;font-size:12px;}
+  .opt-a:not(.lead) .step-label{opacity:0.55;font-size:10px;}
+
+  /* ==================================================================
+     OPTION B — Editorial title card overlay
+     Permanent thin sidebar (~22%), tight typography.
+     Scene change: cream card slides over the whole viewport with
+     one big Fraunces italic sentence, holds 2.4s, dissolves.
+     ================================================================== */
+  .opt-b .body{position:absolute;inset:46px 0 0 0;display:flex;}
+  .opt-b .sidebar{width:22%;}
+  .opt-b .headline{font-size:17px;}
+  .opt-b .lede{font-size:12.5px;line-height:1.55;}
+  .opt-b .stage{flex:1;position:relative;}
+  .opt-b .title-card{position:absolute;inset:46px 0 0 0;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:60px 80px;z-index:20;transition:opacity 0.7s ease;}
+  .opt-b:not(.lead) .title-card{opacity:0;pointer-events:none;}
+  .opt-b .title-card .tc-inner{max-width:760px;}
+  .opt-b .title-card .eyebrow{font-size:11px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:22px;}
+  .opt-b .title-card .tc-headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:48px;color:var(--ink);letter-spacing:-0.015em;line-height:1.08;}
+  .opt-b .title-card .rule{margin-top:28px;width:48px;height:2px;background:var(--ds-purple);}
+
+  /* ==================================================================
+     OPTION C — Caption strip + title card
+     No persistent sidebar. Demo is full-bleed.
+     Thin caption strip at bottom (~64px) with current beat prose.
+     Scene change: same editorial title card overlay as B.
+     ================================================================== */
+  .opt-c .stage{position:absolute;inset:46px 0 64px 0;}
+  .opt-c .caption-strip{position:absolute;left:0;right:0;bottom:0;height:64px;background:#fff;border-top:1px solid var(--hair);display:flex;align-items:center;padding:0 28px;gap:24px;}
+  .opt-c .caption-strip .step{font-size:10px;font-weight:600;color:var(--step-blue);letter-spacing:0.2em;text-transform:uppercase;flex-shrink:0;}
+  .opt-c .caption-strip .head{font-size:14px;font-weight:600;color:var(--ink);flex:1;}
+  .opt-c .caption-strip .pips{display:flex;gap:5px;flex-shrink:0;}
+  .opt-c .caption-strip .pips .p{width:18px;height:4px;border-radius:2px;background:var(--hair);}
+  .opt-c .caption-strip .pips .p.on{background:var(--ds-purple);}
+  .opt-c .title-card{position:absolute;inset:46px 0 0 0;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:60px 80px;z-index:20;transition:opacity 0.7s ease;}
+  .opt-c:not(.lead) .title-card{opacity:0;pointer-events:none;}
+  .opt-c .title-card .tc-inner{max-width:780px;}
+  .opt-c .title-card .eyebrow{font-size:11px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:22px;}
+  .opt-c .title-card .tc-headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:50px;color:var(--ink);letter-spacing:-0.015em;line-height:1.06;}
+  .opt-c .title-card .rule{margin-top:28px;width:48px;height:2px;background:var(--ds-purple);}
+
+  .play-hint{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="doc-head">
+  <h1>Lead → Yield · three directions</h1>
+  <p>Same Hillside × Aster scene one in each preview. Click <strong>Replay scene change</strong> on any panel to trigger the lead beat. Watch how each option resolves the "story lands hard, then yields to the demo" pattern differently.</p>
+</div>
+
+<div class="stack">
+
+  <!-- ===================== OPTION A ===================== -->
+  <div class="opt opt-a lead" id="opt-a">
+    <div class="opt-head">
+      <div class="ttl">
+        <span class="badge">A</span>
+        <div>
+          <h2>Sidebar collapse</h2>
+          <div class="sub">Sidebar starts wide (45%) with editorial weight, animates down to an 18% rail. Demo grows from 55% to 82%.</div>
+        </div>
+      </div>
+      <button class="replay" data-target="opt-a">Replay scene change</button>
+    </div>
+    <div class="preview">
+      <div class="topbar">
+        <div class="tenant-mark">
+          <svg class="m" viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <span class="wm">Hillside</span>
+          <span class="story">× Aster Capital — New Client Onboarding</span>
+        </div>
+        <div class="sp"></div>
+        <div class="scene-tabs"><span class="t on">sender</span><span class="t">identity</span><span class="t">signing</span><span class="t">data</span><span class="t">workspace</span></div>
+        <span class="chip">Wealth</span>
+      </div>
+      <div class="body">
+        <aside class="sidebar">
+          <div class="step-label">Scene 1 of 5 · Intake · Sender webform</div>
+          <h1 class="headline">Priya kicks off Aster Capital's onboarding from a Hillside intake webform.</h1>
+          <div class="lede">Priya Das, Head of Compliance at Hillside Advisors, fills out the new-engagement webform for Aster Capital — entity type, AUM, mandate, custodian. The moment she submits, Maestro assembles the IMA package dynamically from those selections.</div>
+          <div class="pips"><span class="p on"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span></div>
+        </aside>
+        <section class="stage"><div class="mock-demo">
+          <div class="mock-head"><div class="l"><span class="tri"></span>Hillside</div><div class="r">New Engagement Webform</div></div>
+          <div class="mock-body">
+            <div class="demo-banner">This form is for demonstration purposes only.</div>
+            <h3>Confirm the authorized signatory</h3>
+            <div class="desc">Tell Maestro who signs at Aster. Identity gates routing and the SMS step-up.</div>
+            <div class="field"><label>Primary Signer's Legal Name <span class="req">*</span></label><input value="Aster Capital — authorized signatory"></div>
+            <div class="field"><label>Primary Signer's Email Address <span class="req">*</span></label><input value="signatory@astercapital.com"></div>
+            <div class="field"><label>Mobile Number for SMS Authentication <span class="req">*</span></label><div class="help">The number used below MUST have been previously associated and validated for that signer.</div><input value="(555) 555-0123"></div>
+            <div class="field"><label>Number of Additional Signers Needed <span class="req">*</span></label><select><option>— Select —</option></select></div>
+            <div class="maestro-pill"><div class="lbl">Maestro will route</div><div class="row">Aster authorized signatory · primary</div></div>
+          </div>
+        </div></section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== OPTION B ===================== -->
+  <div class="opt opt-b lead" id="opt-b">
+    <div class="opt-head">
+      <div class="ttl">
+        <span class="badge">B</span>
+        <div>
+          <h2>Editorial title card</h2>
+          <div class="sub">Permanent thin sidebar. Scene changes get a cream-card overlay with one big Fraunces sentence; holds 2.4s, dissolves.</div>
+        </div>
+      </div>
+      <button class="replay" data-target="opt-b">Replay scene change</button>
+    </div>
+    <div class="preview">
+      <div class="topbar">
+        <div class="tenant-mark">
+          <svg class="m" viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <span class="wm">Hillside</span>
+          <span class="story">× Aster Capital — New Client Onboarding</span>
+        </div>
+        <div class="sp"></div>
+        <div class="scene-tabs"><span class="t on">sender</span><span class="t">identity</span><span class="t">signing</span><span class="t">data</span><span class="t">workspace</span></div>
+        <span class="chip">Wealth</span>
+      </div>
+      <div class="body">
+        <aside class="sidebar">
+          <div class="step-label">Scene 1 of 5 · Intake</div>
+          <h1 class="headline">Priya kicks off Aster Capital's onboarding from a Hillside intake webform.</h1>
+          <div class="lede">She fills entity type, AUM, mandate, custodian. The moment she submits, Maestro assembles the IMA package from those selections.</div>
+          <div class="pips"><span class="p on"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span></div>
+        </aside>
+        <section class="stage"><div class="mock-demo">
+          <div class="mock-head"><div class="l"><span class="tri"></span>Hillside</div><div class="r">New Engagement Webform</div></div>
+          <div class="mock-body">
+            <div class="demo-banner">This form is for demonstration purposes only.</div>
+            <h3>Confirm the authorized signatory</h3>
+            <div class="desc">Tell Maestro who signs at Aster. Identity gates routing and the SMS step-up.</div>
+            <div class="field"><label>Primary Signer's Legal Name <span class="req">*</span></label><input value="Aster Capital — authorized signatory"></div>
+            <div class="field"><label>Primary Signer's Email Address <span class="req">*</span></label><input value="signatory@astercapital.com"></div>
+            <div class="field"><label>Mobile Number for SMS Authentication <span class="req">*</span></label><div class="help">The number used below MUST have been previously associated and validated for that signer.</div><input value="(555) 555-0123"></div>
+            <div class="maestro-pill"><div class="lbl">Maestro will route</div><div class="row">Aster authorized signatory · primary</div></div>
+          </div>
+        </div></section>
+      </div>
+      <div class="title-card">
+        <div class="tc-inner">
+          <div class="eyebrow">Scene 1 of 5 · Intake</div>
+          <h1 class="tc-headline">Priya kicks off Aster Capital's onboarding from a Hillside intake webform.</h1>
+          <div class="rule"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== OPTION C ===================== -->
+  <div class="opt opt-c lead" id="opt-c">
+    <div class="opt-head">
+      <div class="ttl">
+        <span class="badge">C</span>
+        <div>
+          <h2>Caption strip + title card</h2>
+          <div class="sub">No sidebar. Demo is full-bleed. Beat prose lives in a thin caption strip at the bottom. Scene changes get the same editorial overlay.</div>
+        </div>
+      </div>
+      <button class="replay" data-target="opt-c">Replay scene change</button>
+    </div>
+    <div class="preview">
+      <div class="topbar">
+        <div class="tenant-mark">
+          <svg class="m" viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <span class="wm">Hillside</span>
+          <span class="story">× Aster Capital — New Client Onboarding</span>
+        </div>
+        <div class="sp"></div>
+        <div class="scene-tabs"><span class="t on">sender</span><span class="t">identity</span><span class="t">signing</span><span class="t">data</span><span class="t">workspace</span></div>
+        <span class="chip">Wealth</span>
+      </div>
+      <section class="stage"><div class="mock-demo">
+        <div class="mock-head"><div class="l"><span class="tri"></span>Hillside</div><div class="r">New Engagement Webform</div></div>
+        <div class="mock-body">
+          <div class="demo-banner">This form is for demonstration purposes only.</div>
+          <h3>Confirm the authorized signatory</h3>
+          <div class="desc">Tell Maestro who signs at Aster. Identity gates routing and the SMS step-up.</div>
+          <div class="field"><label>Primary Signer's Legal Name <span class="req">*</span></label><input value="Aster Capital — authorized signatory"></div>
+          <div class="field"><label>Primary Signer's Email Address <span class="req">*</span></label><input value="signatory@astercapital.com"></div>
+          <div class="field"><label>Mobile Number for SMS Authentication <span class="req">*</span></label><div class="help">The number used below MUST have been previously associated and validated for that signer.</div><input value="(555) 555-0123"></div>
+          <div class="field"><label>Number of Additional Signers Needed <span class="req">*</span></label><select><option>— Select —</option></select></div>
+          <div class="maestro-pill"><div class="lbl">Maestro will route</div><div class="row">Aster authorized signatory · primary</div></div>
+        </div>
+      </div></section>
+      <div class="caption-strip">
+        <span class="step">Scene 1 · Intake</span>
+        <span class="head">Priya kicks off Aster Capital's onboarding from a Hillside intake webform.</span>
+        <span class="pips"><span class="p on"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span></span>
+      </div>
+      <div class="title-card">
+        <div class="tc-inner">
+          <div class="eyebrow">Scene 1 of 5 · Intake</div>
+          <h1 class="tc-headline">Priya kicks off Aster Capital's onboarding from a Hillside intake webform.</h1>
+          <div class="rule"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const HOLD_MS = {a: 2200, b: 2400, c: 2400};
+function playScene(targetId){
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  el.classList.remove('lead');
+  // Force reflow so the transition restarts cleanly on rapid replays.
+  void el.offsetWidth;
+  el.classList.add('lead');
+  const key = targetId.replace('opt-','');
+  setTimeout(() => el.classList.remove('lead'), HOLD_MS[key] || 2400);
+}
+document.querySelectorAll('.replay').forEach(btn => {
+  btn.addEventListener('click', () => playScene(btn.dataset.target));
+});
+// Auto-play each option once on load with a 600ms stagger so the page
+// doesn't sit static while the user reads the headers.
+['opt-a','opt-b','opt-c'].forEach((id, i) => {
+  setTimeout(() => playScene(id), 400 + i * 600);
+});
+</script>
+
+</body>
+</html>

@@ -25,7 +25,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:#fff;overflow:hidden;font-size:14px;line-height:1.5;}
 
-  .shell{height:100vh;display:flex;flex-direction:column;border:4px solid var(--navy-edge);}
+  .shell{height:100vh;display:flex;flex-direction:column;border:4px solid var(--navy-edge);position:relative;}
 
   .topbar{flex-shrink:0;height:54px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 28px;gap:22px;}
   .tenant-mark{display:flex;align-items:center;gap:10px;}
@@ -57,72 +57,45 @@
   .brand-slot .ds::after{content:"";display:inline-block;width:0;overflow:hidden;transition:width 0.18s, margin-left 0.18s;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23130032' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M2 7l6-5 6 5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'/><path d='M6 14V9h4v5'/></svg>") center/contain no-repeat;height:12px;}
   .brand-slot .ds:hover::after{width:12px;margin-left:4px;}
 
-  .step-label{font-size:13px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:24px;transition:opacity 0.25s ease;}
-  .headline{font-family:var(--ui-font);font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.15;margin-bottom:28px;transition:opacity 0.25s ease, font-size 0.5s cubic-bezier(.2,.7,.2,1), font-weight 0.5s ease, letter-spacing 0.5s ease, font-style 0.5s ease, font-family 0.5s ease, margin-bottom 0.5s ease;}
-  .lede{font-size:15px;color:var(--ink-mid);line-height:1.65;margin-bottom:28px;max-width:92%;transition:opacity 0.45s ease, font-size 0.4s ease;}
-  .lede p + p{margin-top:14px;}
-  .lede .em{font-weight:600;color:var(--ink);}
-  /* The fade-on-beat-change rule must win over the lead/yield opacity
-     overrides defined below — same specificity tie, so we use !important
-     here as the explicit transitional state. */
-  .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0 !important;}
+  .step-label{font-size:13px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:18px;transition:opacity 0.25s ease;}
+  .headline{font-family:var(--ui-font);font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-0.015em;line-height:1.22;margin-bottom:20px;transition:opacity 0.25s ease;}
+  .lede{font-size:14px;color:var(--ink-soft);line-height:1.65;margin-bottom:24px;max-width:92%;transition:opacity 0.45s ease;}
+  .lede p + p{margin-top:12px;}
+  .lede .em{font-weight:600;color:var(--ink-mid);}
+  .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
 
-  /* ===================== Lead → Yield focus pattern =====================
-     On scene change the shell enters .lead-mode: the headline swells into
-     Fraunces italic, the lede stays crisp, and a soft cream veil falls
-     over the iframe so the eye lands on the story first. After ~1.6s
-     (or on the first interaction with the stage), the shell flips to
-     .yield-mode: headline collapses back to Inter at 22px, lede drops to
-     ~55% opacity, veil dissolves — the demo takes over. The thesis is
-     impactful, then yields. */
-  .shell.lead-mode .headline{
-    font-family:var(--editorial);
-    font-style:italic;
-    font-weight:500;
-    font-size:54px;
-    letter-spacing:-0.015em;
-    line-height:1.08;
-    margin-bottom:28px;
-  }
-  .shell.lead-mode .lede{opacity:1;font-size:16px;}
-  .shell.lead-mode .step-label{opacity:1;}
-  .shell.lead-mode .stage-veil{opacity:1;}
-  /* Sidebar gets a warm cream wash in lead mode so the editorial side
-     reads as a distinct surface, not just a column on a white page. */
-  .shell.lead-mode .sidebar{background:#FBF8F2;}
-
-  .shell.yield-mode .headline{
-    font-size:19px;
-    font-weight:600;
-    margin-bottom:14px;
-    letter-spacing:-0.01em;
-  }
-  .shell.yield-mode .lede{opacity:0.42;font-size:13.5px;}
-  .shell.yield-mode .step-label{opacity:0.55;}
-  .shell.yield-mode .stage-veil{opacity:0;}
-  .shell.yield-mode .sidebar{background:#fff;}
-
-  /* Soft restore on sidebar hover: while focus is on the demo, hovering
-     the sidebar fades the supporting prose back in so the user can re-read
-     without disturbing the demo's spatial dominance. */
-  .shell.yield-mode .sidebar:hover .lede{opacity:1;}
-  .shell.yield-mode .sidebar:hover .step-label{opacity:1;}
-
-  .stage-veil{
-    position:absolute;inset:0;
-    background:linear-gradient(135deg,rgba(19,0,50,0.22) 0%,rgba(19,0,50,0.10) 70%,rgba(19,0,50,0.05) 100%);
-    pointer-events:none;
+  /* ===================== Editorial title card =====================
+     On scene change a cream-card overlay rises over the body for ~2.4s
+     with one big Fraunces italic sentence — the editorial moment. After
+     the hold, it dissolves and the demo takes over. The persistent
+     sidebar is intentionally tighter and quieter (compact headline,
+     muted lede) so the visual weight lives in the demo, with the
+     sidebar acting as a chapter caption. */
+  .title-card{
+    position:absolute;
+    inset:54px 0 0 0;                 /* below the topbar */
+    background:#FBF8F2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:60px 88px;
+    z-index:40;
     opacity:0;
+    pointer-events:none;
     transition:opacity 0.7s ease;
-    z-index:5;
   }
-  /* Sidebar background transition matches the lead/yield rhythm. */
-  .sidebar{transition:background 0.6s ease;}
+  .title-card.on{opacity:1;pointer-events:auto;}
+  .title-card .tc-inner{max-width:880px;}
+  .title-card .tc-eyebrow{font-size:13px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:26px;}
+  .title-card .tc-headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:54px;color:var(--ink);letter-spacing:-0.015em;line-height:1.06;}
+  .title-card .tc-rule{margin-top:32px;width:56px;height:2px;background:var(--ds-purple);}
+  .title-card .tc-cobrand{margin-top:28px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-soft);}
+  .title-card .tc-cobrand .ds{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ds-inkwell);}
+  .title-card .tc-cobrand .ds svg{width:18px;height:18px;}
 
-  /* Calibrate mode: operator needs the demo at full brightness while
-     dragging hotspots — disable the lead veil and force yield typography. */
-  body.calibrate .stage-veil{display:none;}
-  body.calibrate .shell.lead-mode .headline{font-family:var(--ui-font);font-style:normal;font-weight:700;font-size:34px;}
+  /* Calibrate mode: title card would just be in the way while dragging
+     hotspots, so suppress it. */
+  body.calibrate .title-card{display:none;}
 
   .foot-spacer{flex:1;}
   .beat-pips{display:flex;gap:6px;margin-bottom:12px;}
@@ -223,11 +196,12 @@
     .stage{flex:none;width:100vw;height:calc(100vw * 0.625);border-left:none;border-top:1px solid var(--hair);overflow:hidden;position:relative;}
     .stage iframe{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:top left;transform:scale(calc(100vw / 1280));}
 
-    /* Mobile lead-mode: keep the editorial cue but cap the headline so it
-       doesn't overflow the narration card on a phone. */
-    .shell.lead-mode .headline{font-size:26px;margin-bottom:10px;}
-    .shell.yield-mode .headline{font-size:16px;margin-bottom:10px;}
-    .shell.yield-mode .lede{font-size:12.5px;}
+    /* Mobile title card: shrink the editorial headline so it fits on a
+       phone-sized viewport without swallowing the screen. */
+    .title-card{padding:32px 22px;inset:48px 0 0 0;}
+    .title-card .tc-headline{font-size:28px;}
+    .title-card .tc-eyebrow{font-size:11px;letter-spacing:0.18em;margin-bottom:14px;}
+    .title-card .tc-rule{margin-top:18px;width:40px;}
 
     /* Hotspot dot stays small but tappable; tip clamps so it never overflows the screen. */
     .hotspot .ring{width:16px;height:16px;}
@@ -341,9 +315,17 @@
 
     <section class="stage" id="stage">
       <iframe id="scene" src="" title="Scene"></iframe>
-      <div class="stage-veil" id="stage-veil"></div>
       <div class="hotspot-layer" id="hotspot-layer"></div>
     </section>
+  </div>
+
+  <!-- Editorial title card overlay — shown on scene change, dissolves after ~2.4s -->
+  <div class="title-card" id="title-card" aria-hidden="true">
+    <div class="tc-inner">
+      <div class="tc-eyebrow" id="tc-eyebrow"></div>
+      <h1 class="tc-headline" id="tc-headline"></h1>
+      <div class="tc-rule"></div>
+    </div>
   </div>
 </div>
 
@@ -2342,10 +2324,11 @@ function goTo(i, opts = {}){
     }, 180);
     layer.innerHTML = "";
     setTimeout(renderHotspot, 700);
-    // Lead → Yield: a fresh scene re-asserts the story. Run the lead beat
-    // here (not on every beat change) so within-scene autoplay doesn't keep
-    // flashing the editorial state.
-    enterLeadMode();
+    // Editorial title card: rises over the body for ~2.4s on every scene
+    // swap, holding the eye on one big Fraunces sentence before the demo
+    // takes over. Only fires on scene swap — beats within a scene update
+    // the sidebar quietly underneath.
+    showTitleCard(scene);
   } else {
     renderHotspot();
   }
@@ -2355,44 +2338,44 @@ function goTo(i, opts = {}){
 }
 
 /* =========================================================
-   Lead → Yield focus state machine.
-   - enterLeadMode(): sidebar takes over (Fraunces headline, full prose,
-     translucent cream veil over the iframe). Times out after LEAD_HOLD_MS
-     into yield, OR yields immediately on the first stage interaction.
-   - enterYieldMode(): headline collapses to Inter 22px, lede drops to
-     ~55% opacity, veil dissolves. Demo owns the visual weight.
+   Editorial title card.
+   - showTitleCard(scene): populates the eyebrow + headline from the
+     scene metadata and reveals the cream overlay. Auto-dismisses
+     after CARD_HOLD_MS, or sooner if the user clicks anywhere on the
+     card / hits a navigation key (arrow, space).
    ========================================================= */
-const LEAD_HOLD_MS = 2600;
-let leadTimer = null;
-function enterLeadMode(){
-  const shell = document.querySelector('.shell');
-  if (!shell) return;
-  shell.classList.remove('yield-mode');
-  shell.classList.add('lead-mode');
-  if (leadTimer) clearTimeout(leadTimer);
-  leadTimer = setTimeout(enterYieldMode, LEAD_HOLD_MS);
+const CARD_HOLD_MS = 2400;
+let cardTimer = null;
+function showTitleCard(scene){
+  const card = document.getElementById('title-card');
+  if (!card) return;
+  // Use the scene-level eyebrow + headline (not the per-beat versions) —
+  // the card is the chapter title, not a play-by-play.
+  $('tc-eyebrow').textContent = (scene.tag || '').replace(/\s*·\s*/g, ' · ');
+  $('tc-headline').textContent = scene.headline || '';
+  card.classList.add('on');
+  card.setAttribute('aria-hidden', 'false');
+  if (cardTimer) clearTimeout(cardTimer);
+  cardTimer = setTimeout(hideTitleCard, CARD_HOLD_MS);
 }
-function enterYieldMode(){
-  const shell = document.querySelector('.shell');
-  if (!shell) return;
-  if (leadTimer) { clearTimeout(leadTimer); leadTimer = null; }
-  shell.classList.remove('lead-mode');
-  shell.classList.add('yield-mode');
+function hideTitleCard(){
+  const card = document.getElementById('title-card');
+  if (!card) return;
+  if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
+  card.classList.remove('on');
+  card.setAttribute('aria-hidden', 'true');
 }
-// Any interaction with the stage (mouse enter, click, key) yields immediately
-// — the user's attention is already on the demo, the story has done its job.
-(function wireFocusYield(){
-  const stage = document.getElementById('stage');
-  if (!stage) return;
-  const yieldNow = () => {
-    const shell = document.querySelector('.shell');
-    if (shell && shell.classList.contains('lead-mode')) enterYieldMode();
-  };
-  stage.addEventListener('mouseenter', yieldNow);
-  stage.addEventListener('click', yieldNow);
-  // Keyboard advance/rewind also signals demo focus.
+// Click-to-dismiss + key-to-dismiss — viewers who already read the line
+// shouldn't have to wait through the full hold.
+(function wireCardDismiss(){
+  const card = document.getElementById('title-card');
+  if (!card) return;
+  card.addEventListener('click', hideTitleCard);
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') yieldNow();
+    if (!card.classList.contains('on')) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Escape') {
+      hideTitleCard();
+    }
   });
 })();
 function advance(){
