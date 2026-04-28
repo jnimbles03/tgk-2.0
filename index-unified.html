@@ -150,9 +150,8 @@
     max-width: 36ch; position: relative;
     text-wrap: balance;
   }
-  /* Second headline row — sits flush under the h1, same font/size, with an
-     animated chevron canvas in place of a static ">". Canvas animation is
-     driven by initHeadlineChevronCanvas() below. */
+  /* Second headline row — sits flush under the h1, same font/size, with the
+     Iris Logo Sting GIF as the animated rocket in place of a static ">". */
   .landing-headline-cta {
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
     font-size: clamp(36px, 4.4vw, 56px);
@@ -163,12 +162,18 @@
     max-width: 36ch;
   }
   .landing-headline-cta .headline-chevron {
-    /* Wider than the chevron alone so the booster flame + ember particles
-       have horizontal room to trail behind the ">" without clipping. */
+    /* Iris Logo Sting GIF (square, cropped). Sized larger than cap height so
+       the star reads at a glance, and feathered with a radial mask so the
+       GIF's deep-violet box edges dissolve into the hero background instead
+       of sitting in a visible rectangle. */
     display: inline-block;
-    width: 1.6em; height: 1.0em;
-    margin-right: 0.06em;
+    width: 1.5em; height: 1.5em;
+    margin: -0.25em 0.06em -0.25em -0.05em;
     flex-shrink: 0;
+    object-fit: contain;
+    background: transparent;
+    -webkit-mask-image: radial-gradient(circle at center, #000 48%, transparent 78%);
+            mask-image: radial-gradient(circle at center, #000 48%, transparent 78%);
   }
   .landing-header p {
     font-size: 17px; line-height: 1.6; color: rgba(248, 243, 240, 0.72);
@@ -333,6 +338,18 @@
     border-style: dashed; background: transparent;
   }
   .usecase-card.unavailable:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
+  /* Category bar — colored vertical accent on the left edge.
+     onboarding = red · maintenance = blue · auth = green.
+     Drives quick visual scanning across the picker. */
+  .usecase-card::before {
+    content: ""; position: absolute; left: 0; top: 16px; bottom: 16px;
+    width: 4px; border-radius: 0 3px 3px 0; background: transparent;
+    transition: background 0.18s var(--ease);
+  }
+  .usecase-card[data-category="onboarding"]::before  { background: #DC2626; }  /* red */
+  .usecase-card[data-category="maintenance"]::before { background: #2563EB; }  /* blue */
+  .usecase-card[data-category="auth"]::before        { background: #16A34A; }  /* green */
+  .usecase-card.unavailable[data-category]::before   { opacity: 0.4; }
   .usecase-card .uc-dot {
     width: 6px; height: 6px; border-radius: 50%;
     background: rgba(19, 0, 50, 0.25); flex-shrink: 0;
@@ -1719,13 +1736,11 @@
       <div class="landing-header-inner">
         <a class="landing-logo" href="/index-unified.html" title="Reset to vertical picker" aria-label="Reset to vertical picker">
           <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
-          <span class="ll-x" aria-hidden="true">×</span>
-          <img src="/assets/brand/tgk-white.png" alt="TGK Capital">
         </a>
         <div class="lh-badge" id="modeBadge">TGK 2.0 &mdash; IAM Storylines</div>
         <h1 id="landingHeadline">Pick a vertical. Pick a use case.</h1>
         <div class="landing-headline-cta">
-          <canvas class="headline-chevron" id="headlineChevron" aria-hidden="true"></canvas><span id="landingHeadlineCta">Launch Demo</span>
+          <img class="headline-chevron" id="headlineChevron" src="/assets/iris/iris-logo-sting.gif" alt="" aria-hidden="true"><span id="landingHeadlineCta">Launch Demo</span>
         </div>
         <p id="landingSubheadline">A verticalized story demo of the end-to-end workflow &mdash; utilizing Docusign to incrementally improve steps in the process along the way.</p>
       </div>
@@ -3912,6 +3927,8 @@ function askNavAI() {
             "discoveryUrl": "wealth-onboarding.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth",
             "storyMap": { "vertical": "wealth", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -3919,6 +3936,8 @@ function askNavAI() {
             "subtitle": "Cypress Wealth × Holcomb Family — IRA rollover + family trust + CLM",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery",
             "storyMap": { "vertical": "wealth-discovery", "workflow": "discovery" },
+            "category": "onboarding",
+            "archetype": "advisor-led",
             "storyImplemented": true
           },
           {
@@ -3926,6 +3945,8 @@ function askNavAI() {
             "subtitle": "Hillside × Aster Capital — authorized-signer roster update",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth&usecase=maintenance",
             "storyMap": { "vertical": "wealth", "workflow": "maintenance" },
+            "category": "maintenance",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -3933,6 +3954,8 @@ function askNavAI() {
             "subtitle": "Cypress Wealth × Holcomb Family — IRA beneficiary update",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery&usecase=maintenance",
             "storyMap": { "vertical": "wealth-discovery", "workflow": "maintenance" },
+            "category": "maintenance",
+            "archetype": "advisor-led",
             "storyImplemented": true
           },
           {
@@ -3940,6 +3963,8 @@ function askNavAI() {
             "subtitle": "Hillside × Aster Capital — high-value wire · CLEAR at the door + chain of custody",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth&usecase=auth-fabric",
             "storyMap": { "vertical": "wealth", "workflow": "fraud" },
+            "category": "auth",
+            "archetype": "sender-led",
             "storyImplemented": true
           }
         ]
@@ -3953,6 +3978,8 @@ function askNavAI() {
             "subtitle": "Meridian × Atlas Manufacturing — $2.5M facility origination",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=banking",
             "storyMap": { "vertical": "banking", "workflow": "lending" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -3961,6 +3988,8 @@ function askNavAI() {
             "discoveryUrl": "banking-deposits.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits",
             "storyMap": { "vertical": "banking-deposits", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "triggered",
             "storyImplemented": true
           },
           {
@@ -3968,6 +3997,8 @@ function askNavAI() {
             "subtitle": "Cedar Federal × Williams Household — joint-account beneficiary update",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits&usecase=maintenance",
             "storyMap": { "vertical": "banking-deposits", "workflow": "maintenance" },
+            "category": "maintenance",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -3975,6 +4006,8 @@ function askNavAI() {
             "subtitle": "Cedar Federal × Williams Household — high-value wire · CLEAR at the door + chain of custody",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits&usecase=auth-fabric",
             "storyMap": { "vertical": "banking-deposits", "workflow": "fraud" },
+            "category": "auth",
+            "archetype": "self-service",
             "storyImplemented": true
           }
         ]
@@ -3989,6 +4022,8 @@ function askNavAI() {
             "discoveryUrl": "insurance-pc.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance",
             "storyMap": { "vertical": "insurance", "workflow": "binding" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -3997,6 +4032,8 @@ function askNavAI() {
             "discoveryUrl": "insurance-life.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-life",
             "storyMap": { "vertical": "insurance-life", "workflow": "claims" },
+            "category": "onboarding",
+            "archetype": "inbound",
             "storyImplemented": true
           },
           {
@@ -4005,17 +4042,23 @@ function askNavAI() {
             "discoveryUrl": "insurance-pc.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-pc",
             "storyMap": { "vertical": "insurance-pc", "workflow": "fnol" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
             "title": "Account Maintenance",
             "subtitle": "Address changes, beneficiaries, transfers",
-            "storyMap": { "vertical": "insurance", "workflow": "maintenance" }
+            "storyMap": { "vertical": "insurance", "workflow": "maintenance" },
+            "category": "maintenance",
+            "archetype": "self-service"
           },
           {
             "title": "Fraud / Risk Management",
             "subtitle": "Chain of custody, risk-based auth",
-            "storyMap": { "vertical": "insurance", "workflow": "fraud" }
+            "storyMap": { "vertical": "insurance", "workflow": "fraud" },
+            "category": "auth",
+            "archetype": "self-service"
           }
         ]
       }
@@ -4034,17 +4077,23 @@ function askNavAI() {
             "subtitle": "Helix × Austin Research Clinic — site activation for HX-2104",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=lifesciences",
             "storyMap": { "vertical": "lifesciences", "workflow": "site-activation" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
             "title": "Patient Support Program Enrollment",
             "subtitle": "PSP design through nurse educator support & adherence",
-            "discoveryUrl": "hls-discovery-process-map.html"
+            "discoveryUrl": "hls-discovery-process-map.html",
+            "category": "onboarding",
+            "archetype": "self-service"
           },
           {
             "title": "Clinical Trial Site Activation (component-level demo)",
             "subtitle": "Site selection through activation with Docusign Workspaces",
             "storyUrl": "components/future-state/docusign-hls-clinical-trial-site-activation-demo.html",
+            "category": "onboarding",
+            "archetype": "advisor-led",
             "storyImplemented": true
           }
         ]
@@ -4058,6 +4107,8 @@ function askNavAI() {
             "subtitle": "Riverside × Jordan Kim — new patient intake",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=provider",
             "storyMap": { "vertical": "provider", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4066,12 +4117,16 @@ function askNavAI() {
             "discoveryUrl": "hls-roi.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=provider-roi",
             "storyMap": { "vertical": "provider-roi", "workflow": "roi" },
+            "category": "maintenance",
+            "archetype": "inbound",
             "storyImplemented": true
           },
           {
             "title": "Provider Credentialing (component-level demo)",
             "subtitle": "Credentialing, privileging, and re-credentialing with Docusign Workspaces",
             "storyUrl": "components/future-state/docusign-hls-provider-credentialing-demo.html",
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           }
         ]
@@ -4085,6 +4140,8 @@ function askNavAI() {
             "subtitle": "Unity × Marcus Chen — Silver HMO enrollment",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=payor",
             "storyMap": { "vertical": "payor", "workflow": "enrollment" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           }
         ]
@@ -4104,6 +4161,8 @@ function askNavAI() {
             "subtitle": "DOL × Taylor Nguyen — UI claim adjudication",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=fedgov",
             "storyMap": { "vertical": "fedgov", "workflow": "claim" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4112,6 +4171,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-benefits.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits",
             "storyMap": { "vertical": "slgov-benefits", "workflow": "benefits" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4120,6 +4181,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-employee-onboarding.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding",
             "storyMap": { "vertical": "slgov-employee-onboarding", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -4128,18 +4191,24 @@ function askNavAI() {
             "discoveryUrl": "public-sector-vendor-compliance.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance",
             "storyMap": { "vertical": "slgov-vendor-compliance", "workflow": "vendor" },
+            "category": "maintenance",
+            "archetype": "triggered",
             "storyImplemented": true
           },
           {
             "title": "Application for Benefits (component-level demo)",
             "subtitle": "Citizen-side benefits demo with Docusign Workspaces",
             "storyUrl": "components/future-state/docusign-pubsec-citizen-benefits-demo.html",
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
             "title": "Government Employee Onboarding (component-level demo)",
             "subtitle": "Federal HR onboarding demo with Docusign Workspaces",
             "storyUrl": "components/future-state/docusign-pubsec-federal-onboarding-demo.html",
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           }
         ]
@@ -4153,6 +4222,8 @@ function askNavAI() {
             "subtitle": "Springfield × 1420 Oak Street — residential building permit",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov",
             "storyMap": { "vertical": "slgov", "workflow": "permit" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4161,6 +4232,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-benefits.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits",
             "storyMap": { "vertical": "slgov-benefits", "workflow": "benefits" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4169,6 +4242,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-recertification.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-recertification",
             "storyMap": { "vertical": "slgov-recertification", "workflow": "recert" },
+            "category": "maintenance",
+            "archetype": "triggered",
             "storyImplemented": true
           },
           {
@@ -4177,6 +4252,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-licensing.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-licensing",
             "storyMap": { "vertical": "slgov-licensing", "workflow": "licensing" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4185,6 +4262,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-311.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-311",
             "storyMap": { "vertical": "slgov-311", "workflow": "311" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           },
           {
@@ -4193,6 +4272,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-employee-onboarding.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding",
             "storyMap": { "vertical": "slgov-employee-onboarding", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           },
           {
@@ -4201,6 +4282,8 @@ function askNavAI() {
             "discoveryUrl": "public-sector-vendor-compliance.html",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance",
             "storyMap": { "vertical": "slgov-vendor-compliance", "workflow": "vendor" },
+            "category": "maintenance",
+            "archetype": "triggered",
             "storyImplemented": true
           }
         ]
@@ -4214,6 +4297,8 @@ function askNavAI() {
             "subtitle": "Maple Ridge University × Priya Shah — Fall 2026 onboarding",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=education",
             "storyMap": { "vertical": "education", "workflow": "onboarding" },
+            "category": "onboarding",
+            "archetype": "self-service",
             "storyImplemented": true
           }
         ]
@@ -4227,6 +4312,8 @@ function askNavAI() {
             "subtitle": "Harbor Foundation × Safe Streets Initiative — $120k operating grant",
             "storyUrl": "/stories/_shared/story-shell.html?vertical=nonprofit",
             "storyMap": { "vertical": "nonprofit", "workflow": "grantee" },
+            "category": "onboarding",
+            "archetype": "sender-led",
             "storyImplemented": true
           }
         ]
@@ -4395,6 +4482,10 @@ function askNavAI() {
       // In story mode every card is clickable; the launch step gates on storyImplemented.
       card.className = 'usecase-card' + (supported ? '' : ' unavailable');
       card.dataset.index = i;
+      // Category drives the left-edge colored bar (onboarding/maintenance/auth).
+      if (uc.category) card.dataset.category = uc.category;
+      // Archetype is metadata for future filtering; doesn't affect visuals today.
+      if (uc.archetype) card.dataset.archetype = uc.archetype;
 
       let availLabel, availClass;
       if (state.mode === 'discovery') {
@@ -4576,7 +4667,8 @@ function askNavAI() {
   // Honors prefers-reduced-motion (static chevron, no flame).
   (function initHeadlineChevronCanvas() {
     const canvas = document.getElementById('headlineChevron');
-    if (!canvas) return;
+    // Headline rocket is now an Iris Logo Sting <img>, not a canvas — bail.
+    if (!canvas || canvas.tagName !== 'CANVAS') return;
     const ctx = canvas.getContext('2d');
     let W = 0, H = 0; // logical (CSS) px
     const dpr = Math.max(1, window.devicePixelRatio || 1);
