@@ -2340,17 +2340,31 @@ function goTo(i, opts = {}){
 /* =========================================================
    Editorial title card.
    - showTitleCard(scene): populates the eyebrow + headline from the
-     scene metadata and reveals the cream overlay. Auto-dismisses
-     after CARD_HOLD_MS, or sooner if the user clicks anywhere on the
-     card / hits a navigation key (arrow, space).
+     scene metadata and reveals the cream overlay full-bleed.
+   - hideTitleCard(): the headline doesn't just fade — it RETREATS.
+     A FLIP animation tweens the card headline's transform so it lands
+     on the sidebar headline slot, then the card background fades and
+     the sidebar headline takes over. This is the "story is full, then
+     retreats to the side" choreography.
    ========================================================= */
 const CARD_HOLD_MS = 2400;
+const RETREAT_MS = 850;
 let cardTimer = null;
+let cardAnimating = false;
 function showTitleCard(scene){
   const card = document.getElementById('title-card');
   if (!card) return;
-  // Use the scene-level eyebrow + headline (not the per-beat versions) —
-  // the card is the chapter title, not a play-by-play.
+  // Reset any in-flight retreat styles from a prior dismiss.
+  const cardHl = $('tc-headline');
+  const sidebarHl = $('headline');
+  cardHl.style.transition = '';
+  cardHl.style.transform = '';
+  cardHl.style.opacity = '';
+  card.style.transition = '';
+  card.style.background = '';
+  if (sidebarHl) sidebarHl.style.opacity = '';
+  cardAnimating = false;
+
   $('tc-eyebrow').textContent = (scene.tag || '').replace(/\s*·\s*/g, ' · ');
   $('tc-headline').textContent = scene.headline || '';
   card.classList.add('on');
@@ -2360,13 +2374,62 @@ function showTitleCard(scene){
 }
 function hideTitleCard(){
   const card = document.getElementById('title-card');
-  if (!card) return;
+  const cardHl = $('tc-headline');
+  const sidebarHl = $('headline');
+  if (!card || !cardHl || !sidebarHl) return;
   if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
-  card.classList.remove('on');
-  card.setAttribute('aria-hidden', 'true');
+  if (cardAnimating) return;
+  if (!card.classList.contains('on')) return;
+  cardAnimating = true;
+
+  // FLIP: measure source (card headline) and target (sidebar headline)
+  // rects, then animate the card headline with translate + scale so it
+  // lands on top of the sidebar slot. The sidebar headline is hidden
+  // during the flight and revealed at touchdown — the user reads one
+  // continuous headline as it migrates from full-bleed to side rail.
+  const fromRect = cardHl.getBoundingClientRect();
+  const toRect = sidebarHl.getBoundingClientRect();
+  const dx = toRect.left - fromRect.left;
+  const dy = toRect.top - fromRect.top;
+  // Scale by height so a multi-line target lines up with multi-line source;
+  // text is text — exact width match isn't required because the card has
+  // padding around it.
+  const scale = Math.max(0.001, toRect.height / Math.max(1, fromRect.height));
+
+  sidebarHl.style.opacity = '0';
+  const eyebrow = $('tc-eyebrow');
+  const rule = card.querySelector('.tc-rule');
+
+  cardHl.style.transformOrigin = 'top left';
+  cardHl.style.transition = `transform ${RETREAT_MS}ms cubic-bezier(.2,.8,.2,1)`;
+  cardHl.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+
+  // Editorial chrome (eyebrow + rule) fades early so the headline
+  // appears to break free of the card frame and travel solo to the
+  // sidebar.
+  if (eyebrow){ eyebrow.style.transition = 'opacity 280ms ease'; eyebrow.style.opacity = '0'; }
+  if (rule){ rule.style.transition = 'opacity 280ms ease'; rule.style.opacity = '0'; }
+  // Cream wash fades just behind the headline as it lands.
+  card.style.transition = `background 540ms ease ${RETREAT_MS - 540}ms`;
+  card.style.background = 'rgba(251,248,242,0)';
+
+  setTimeout(() => {
+    card.classList.remove('on');
+    card.setAttribute('aria-hidden', 'true');
+    // Reset for the next scene change.
+    cardHl.style.transition = '';
+    cardHl.style.transform = '';
+    cardHl.style.opacity = '';
+    card.style.transition = '';
+    card.style.background = '';
+    if (eyebrow){ eyebrow.style.transition = ''; eyebrow.style.opacity = ''; }
+    if (rule){ rule.style.transition = ''; rule.style.opacity = ''; }
+    sidebarHl.style.opacity = '';
+    cardAnimating = false;
+  }, RETREAT_MS + 80);
 }
-// Click-to-dismiss + key-to-dismiss — viewers who already read the line
-// shouldn't have to wait through the full hold.
+// Click + key dismiss — viewers who already read the line shouldn't
+// have to wait through the full hold.
 (function wireCardDismiss(){
   const card = document.getElementById('title-card');
   if (!card) return;

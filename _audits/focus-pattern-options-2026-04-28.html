@@ -92,22 +92,28 @@
   .opt-a:not(.lead) .step-label{opacity:0.55;font-size:10px;}
 
   /* ==================================================================
-     OPTION B — Editorial title card overlay
-     Permanent thin sidebar (~22%), tight typography.
-     Scene change: cream card slides over the whole viewport with
-     one big Fraunces italic sentence, holds 2.4s, dissolves.
+     OPTION B — Editorial title card with FLIP retreat
+     Permanent thin sidebar (~22%). On scene change, a cream card rises
+     full-bleed with a Fraunces italic sentence. After the hold, the
+     headline RETREATS — translates + scales down to land in the
+     sidebar slot, while the cream wash, eyebrow, and rule fade behind
+     it. The story is full, then literally retreats to the side.
      ================================================================== */
   .opt-b .body{position:absolute;inset:46px 0 0 0;display:flex;}
-  .opt-b .sidebar{width:22%;}
-  .opt-b .headline{font-size:17px;}
+  .opt-b .sidebar{width:22%;position:relative;}
+  .opt-b .headline{font-size:17px;transition:opacity 0.3s ease;}
   .opt-b .lede{font-size:12.5px;line-height:1.55;}
   .opt-b .stage{flex:1;position:relative;}
-  .opt-b .title-card{position:absolute;inset:46px 0 0 0;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:60px 80px;z-index:20;transition:opacity 0.7s ease;}
-  .opt-b:not(.lead) .title-card{opacity:0;pointer-events:none;}
+  .opt-b .title-card{position:absolute;inset:46px 0 0 0;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:60px 80px;z-index:20;}
   .opt-b .title-card .tc-inner{max-width:760px;}
-  .opt-b .title-card .eyebrow{font-size:11px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:22px;}
-  .opt-b .title-card .tc-headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:48px;color:var(--ink);letter-spacing:-0.015em;line-height:1.08;}
-  .opt-b .title-card .rule{margin-top:28px;width:48px;height:2px;background:var(--ds-purple);}
+  .opt-b .title-card .eyebrow{font-size:11px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:22px;transition:opacity 0.3s ease;}
+  .opt-b .title-card .tc-headline{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:48px;color:var(--ink);letter-spacing:-0.015em;line-height:1.08;transform-origin:top left;}
+  .opt-b .title-card .rule{margin-top:28px;width:48px;height:2px;background:var(--ds-purple);transition:opacity 0.3s ease;}
+  /* In yield state the card itself is hidden; FLIP transition is
+     orchestrated in JS via inline transforms so we can capture exact
+     source/destination rects. */
+  .opt-b:not(.lead):not(.retreating) .title-card{opacity:0;pointer-events:none;}
+  .opt-b:not(.lead) .title-card{transition:opacity 0.5s ease;}
 
   /* ==================================================================
      OPTION C — Caption strip + title card
@@ -296,23 +302,73 @@
 
 <script>
 const HOLD_MS = {a: 2200, b: 2400, c: 2400};
+const RETREAT_MS = 850;
+
 function playScene(targetId){
   const el = document.getElementById(targetId);
   if (!el) return;
+  // Reset any in-flight FLIP styles from a prior replay.
+  resetFlip(el);
   el.classList.remove('lead');
-  // Force reflow so the transition restarts cleanly on rapid replays.
-  void el.offsetWidth;
+  void el.offsetWidth;  // reflow so transitions restart
   el.classList.add('lead');
   const key = targetId.replace('opt-','');
-  setTimeout(() => el.classList.remove('lead'), HOLD_MS[key] || 2400);
+  setTimeout(() => dismissScene(el, key), HOLD_MS[key] || 2400);
 }
+
+function dismissScene(el, key){
+  // Options A and C just clear the lead state.
+  if (key !== 'b') { el.classList.remove('lead'); return; }
+  // Option B: FLIP retreat — animate the title-card headline to land
+  // in the sidebar headline slot.
+  const cardHl = el.querySelector('.title-card .tc-headline');
+  const sidebarHl = el.querySelector('.sidebar .headline');
+  const eyebrow = el.querySelector('.title-card .eyebrow');
+  const rule = el.querySelector('.title-card .rule');
+  const card = el.querySelector('.title-card');
+  if (!cardHl || !sidebarHl || !card) { el.classList.remove('lead'); return; }
+  const fromRect = cardHl.getBoundingClientRect();
+  const toRect = sidebarHl.getBoundingClientRect();
+  const dx = toRect.left - fromRect.left;
+  const dy = toRect.top - fromRect.top;
+  const scale = Math.max(0.001, toRect.height / Math.max(1, fromRect.height));
+
+  sidebarHl.style.opacity = '0';
+  cardHl.style.transition = `transform ${RETREAT_MS}ms cubic-bezier(.2,.8,.2,1)`;
+  cardHl.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+  if (eyebrow){ eyebrow.style.opacity = '0'; }
+  if (rule){ rule.style.opacity = '0'; }
+  card.style.transition = `background 540ms ease ${RETREAT_MS - 540}ms`;
+  card.style.background = 'rgba(251,248,242,0)';
+
+  setTimeout(() => {
+    el.classList.remove('lead');
+    resetFlip(el);
+    sidebarHl.style.opacity = '';
+  }, RETREAT_MS + 80);
+}
+
+function resetFlip(el){
+  const cardHl = el.querySelector('.title-card .tc-headline');
+  const eyebrow = el.querySelector('.title-card .eyebrow');
+  const rule = el.querySelector('.title-card .rule');
+  const card = el.querySelector('.title-card');
+  const sidebarHl = el.querySelector('.sidebar .headline');
+  [cardHl, eyebrow, rule, card, sidebarHl].forEach(n => {
+    if (!n) return;
+    n.style.transition = '';
+    n.style.transform = '';
+    n.style.opacity = '';
+    if (n === card) n.style.background = '';
+  });
+}
+
 document.querySelectorAll('.replay').forEach(btn => {
   btn.addEventListener('click', () => playScene(btn.dataset.target));
 });
-// Auto-play each option once on load with a 600ms stagger so the page
-// doesn't sit static while the user reads the headers.
+// Auto-play each option once on load with a 700ms stagger.
 ['opt-a','opt-b','opt-c'].forEach((id, i) => {
-  setTimeout(() => playScene(id), 400 + i * 600);
+  setTimeout(() => playScene(id), 400 + i * 700);
 });
 </script>
 
