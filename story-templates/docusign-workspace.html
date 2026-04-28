@@ -67,6 +67,11 @@
 
   /* ============ Scene 1 — tenant-branded email ============ */
   .email-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg-shell);z-index:20;animation:emailOut 0.6s ease 4s forwards;}
+  /* When the shell is driving beat-by-beat (Scene 5 of any vertical), JS takes
+     over the email→workspace transition. Disable the autoplay animations so
+     the iframe can lock to whatever state the current beat asks for. */
+  body.beat-driven .email-scene{animation:none;}
+  body.beat-driven .workspace{animation:none;}
   @keyframes emailOut{to{opacity:0;visibility:hidden;}}
   .email-card{width:560px;max-width:100%;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,0.18),0 2px 8px rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;transform:translateY(8px);animation:emailIn 0.6s cubic-bezier(.2,.8,.2,1) forwards;}
   @keyframes emailIn{to{transform:translateY(0);}}
@@ -1552,6 +1557,7 @@ document.getElementById('iris-reset').addEventListener('click', () => {
 });
 
 let running = false;
+let _checksInterval = null;
 function runChecks(){
   if (running) return; running = true;
   const checks = drill.querySelectorAll('.check');
@@ -1565,9 +1571,9 @@ function runChecks(){
   summary.style.display = 'none'; ctas.style.display = 'none';
   if (checks[0]) checks[0].classList.add('running');
   let i = 0;
-  const step = setInterval(() => {
+  _checksInterval = setInterval(() => {
     if (i >= checks.length) {
-      clearInterval(step);
+      clearInterval(_checksInterval); _checksInterval = null;
       status.classList.add('done');
       statusText.textContent = 'Review complete · ' + checks.length + ' checks passed';
       summary.style.display = 'block'; ctas.style.display = 'flex';
@@ -1578,6 +1584,24 @@ function runChecks(){
     i++;
     if (i < checks.length) checks[i].classList.add('running');
   }, 420);
+}
+/* Fast-forward the agent's checks to the done state. Used when the shell jumps
+   us directly to s5 (the 'agent finished, action taken' beat) — we don't want
+   to wait through the 3-second per-check animation. Cancels the running
+   interval if one is in flight, marks every check passed, and reveals the
+   summary + CTAs immediately. The legacy per-check animation still fires when
+   the user enters s4 from s2/s3 normally. */
+function completeChecks(){
+  if (_checksInterval) { clearInterval(_checksInterval); _checksInterval = null; }
+  running = false;
+  if (!drill.classList.contains('on')) return;
+  const checks = drill.querySelectorAll('.check');
+  checks.forEach(c => { c.classList.remove('running'); c.classList.add('pass'); });
+  document.getElementById('agent-status').classList.add('done');
+  document.getElementById('agent-status-text').textContent =
+    'Review complete · ' + checks.length + ' checks passed';
+  document.getElementById('agent-summary').style.display = 'block';
+  document.getElementById('agent-ctas').style.display = 'flex';
 }
 
 /* Tabs */
@@ -1599,6 +1623,113 @@ document.getElementById('iris-open').addEventListener('click', () => {
   document.querySelectorAll('.rail-pane').forEach(p => p.classList.remove('on'));
   document.getElementById('rail-iris').classList.add('on');
 });
+
+/* ============================================================
+   Beat-to-beat state controller — listens for tgk:lockToBeat from
+   the shell and walks the iframe through 5 distinct visual states
+   matching the Scene 5 narration arc:
+     s1  Tenant email arrives in the recipient's inbox
+     s2  Workspace opens — Overview tab, Activity rail
+     s3  Right rail flips to Ask Iris (the agent rail emphasized)
+     s4  Drill into the first task — legacy agent runs checks
+     s5  Agent finished — summary + Approve/Flag CTAs visible
+   The legacy drill-down agent (runChecks + agent panel) is preserved;
+   s4 triggers it normally and s5 fast-forwards it to done.
+   ============================================================ */
+function activateRail(railKey){
+  document.querySelectorAll('.rail-tab').forEach(x =>
+    x.classList.toggle('active', x.dataset.rail === railKey));
+  document.querySelectorAll('.rail-pane').forEach(p =>
+    p.classList.toggle('on', p.id === 'rail-' + railKey));
+}
+function activateTab(tabKey){
+  document.querySelectorAll('.ws-tab').forEach(x =>
+    x.classList.toggle('active', x.dataset.tab === tabKey));
+  const ov = document.getElementById('view-overview');
+  const tk = document.getElementById('view-tasks');
+  if (ov) ov.classList.toggle('on', tabKey === 'overview');
+  if (tk) tk.classList.toggle('on', tabKey === 'tasks');
+}
+function _firstTaskName(){
+  const el = document.querySelector('.task-name');
+  return el ? el.childNodes[0].textContent.trim() : 'First task';
+}
+function showWorkspaceState(sceneId){
+  /* First beat message → switch off the autoplay email-fade animation
+     and let JS take over visibility entirely. */
+  if (!document.body.classList.contains('beat-driven')) {
+    document.body.classList.add('beat-driven');
+  }
+  const email = document.getElementById('email-scene');
+  const ws    = document.querySelector('.workspace');
+  if (!email || !ws) return;
+
+  switch (sceneId) {
+    case 's1':
+      email.style.display = 'flex';
+      email.style.opacity = '1';
+      ws.style.opacity = '0';
+      ws.style.pointerEvents = 'none';
+      closeDrill();
+      break;
+
+    case 's2':
+      email.style.display = 'none';
+      ws.style.opacity = '1';
+      ws.style.pointerEvents = '';
+      closeDrill();
+      activateTab('overview');
+      activateRail('activity');
+      break;
+
+    case 's3':
+      email.style.display = 'none';
+      ws.style.opacity = '1';
+      ws.style.pointerEvents = '';
+      closeDrill();
+      /* Flip the right rail to Ask Iris — visible delta from s2 even
+         though both states show the workspace dashboard. */
+      activateRail('iris');
+      break;
+
+    case 's4':
+      email.style.display = 'none';
+      ws.style.opacity = '1';
+      ws.style.pointerEvents = '';
+      activateRail('iris');
+      if (!drill.classList.contains('on')) {
+        openDrill(_firstTaskName());          // also kicks runChecks()
+      } else {
+        runChecks();                          // re-run if drill already open
+      }
+      break;
+
+    case 's5':
+      email.style.display = 'none';
+      ws.style.opacity = '1';
+      ws.style.pointerEvents = '';
+      activateRail('iris');
+      if (!drill.classList.contains('on')) {
+        openDrill(_firstTaskName());
+      }
+      completeChecks();                       // jump-to-done
+      break;
+  }
+}
+
+window.addEventListener('message', (e) => {
+  const m = e.data;
+  if (!m || m.type !== 'tgk:lockToBeat') return;
+  const sid = m.sceneId;
+  if (sid && /^s[1-5]$/.test(sid)) showWorkspaceState(sid);
+});
+
+/* Direct-link testing: ?scene=sN switches state immediately on load. */
+(function() {
+  const params = new URLSearchParams(location.search);
+  const initial = params.get('scene');
+  if (initial && /^s[1-5]$/.test(initial)) showWorkspaceState(initial);
+})();
 
 /* Preset selector + URL */
 function getPresetFromURL(){
