@@ -270,7 +270,8 @@
   body.wizard-mode .landing-section { display: none; }
   body.wizard-mode.wizard-stage-1 .landing-section.always-visible { display: block; }
   body.wizard-mode.wizard-stage-2 #subverticalSection { display: block; }
-  body.wizard-mode.wizard-stage-3 #useCaseSection { display: block; }
+  body.wizard-mode.wizard-stage-3 #categorySection { display: block; }
+  body.wizard-mode.wizard-stage-4 #useCaseSection { display: block; }
 
   /* Back button — appears at top of the landing body once the user has
      stepped past stage 1. Inkwell-on-cream pill with a leading chevron. */
@@ -293,27 +294,33 @@
   }
   .wizard-back svg { width: 12px; height: 12px; }
   body.wizard-mode.wizard-stage-2 .wizard-back,
-  body.wizard-mode.wizard-stage-3 .wizard-back { display: inline-flex; }
+  body.wizard-mode.wizard-stage-3 .wizard-back,
+  body.wizard-mode.wizard-stage-4 .wizard-back { display: inline-flex; }
 
   /* Once past stage 1 the hero is dead weight — collapse it so the cards
      come up into the viewport. Headline + sub-headline + lede all hide;
      only the logo + tiny badge survive. */
   body.wizard-mode.wizard-stage-2 .landing-header,
-  body.wizard-mode.wizard-stage-3 .landing-header {
+  body.wizard-mode.wizard-stage-3 .landing-header,
+  body.wizard-mode.wizard-stage-4 .landing-header {
     padding: 18px 64px 28px;
   }
   body.wizard-mode.wizard-stage-2 .landing-header .lh-badge,
-  body.wizard-mode.wizard-stage-3 .landing-header .lh-badge {
+  body.wizard-mode.wizard-stage-3 .landing-header .lh-badge,
+  body.wizard-mode.wizard-stage-4 .landing-header .lh-badge {
     margin-bottom: 0;
     font-size: 11.5px;
     opacity: 0.7;
   }
   body.wizard-mode.wizard-stage-2 .landing-header h1,
   body.wizard-mode.wizard-stage-3 .landing-header h1,
+  body.wizard-mode.wizard-stage-4 .landing-header h1,
   body.wizard-mode.wizard-stage-2 .landing-headline-cta,
   body.wizard-mode.wizard-stage-3 .landing-headline-cta,
+  body.wizard-mode.wizard-stage-4 .landing-headline-cta,
   body.wizard-mode.wizard-stage-2 .landing-header p,
-  body.wizard-mode.wizard-stage-3 .landing-header p {
+  body.wizard-mode.wizard-stage-3 .landing-header p,
+  body.wizard-mode.wizard-stage-4 .landing-header p {
     max-height: 0;
     margin: 0;
     opacity: 0;
@@ -321,13 +328,42 @@
   }
   /* Mode toggle slides up tighter against the now-shorter hero. */
   body.wizard-mode.wizard-stage-2 .mode-toggle-wrap,
-  body.wizard-mode.wizard-stage-3 .mode-toggle-wrap {
+  body.wizard-mode.wizard-stage-3 .mode-toggle-wrap,
+  body.wizard-mode.wizard-stage-4 .mode-toggle-wrap {
     margin-top: -22px;
   }
   /* Body section pulls up too so cards land in the upper third of the viewport. */
   body.wizard-mode.wizard-stage-2 .landing-body,
-  body.wizard-mode.wizard-stage-3 .landing-body {
+  body.wizard-mode.wizard-stage-3 .landing-body,
+  body.wizard-mode.wizard-stage-4 .landing-body {
     padding-top: 28px;
+  }
+
+  /* Category cards (Stage 3) — match .option-card visual but add the
+     left-edge category accent + count badge on the right. */
+  .option-card.category-card {
+    position: relative;
+    padding-left: 20px;
+  }
+  .option-card.category-card::before {
+    content: ""; position: absolute;
+    left: 0; top: 12px; bottom: 12px; width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: var(--ds-inkwell);
+  }
+  .option-card.category-card[data-cat="onboarding"]::before  { background: #DC2626; }
+  .option-card.category-card[data-cat="maintenance"]::before { background: #2563EB; }
+  .option-card.category-card[data-cat="auth"]::before        { background: #EAB308; }
+  .option-card.category-card[data-cat="workspaces"]::before  { background: #4C00FF; }
+  .option-card.category-card[data-cat="headless"]::before    { background: #4C00FF; }
+  .option-card.category-card .oc-count {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(19, 0, 50, 0.5);
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
   }
   .landing-section > label {
     display: flex; align-items: baseline; gap: 12px;
@@ -1970,9 +2006,15 @@
         <div class="option-grid cols-3" id="subverticalGrid"></div>
       </div>
 
-      <!-- STAGE 3: USE CASE -->
+      <!-- STAGE 3: CATEGORY (added 2026-04-28 — narrows the use-case list before Stage 4) -->
+      <div class="landing-section" id="categorySection">
+        <label><span class="step-pill">03 &mdash;</span> Category</label>
+        <div class="option-grid cols-3" id="categoryGrid"></div>
+      </div>
+
+      <!-- STAGE 4: USE CASE -->
       <div class="landing-section" id="useCaseSection">
-        <label><span class="step-pill">03 &mdash;</span> Use case</label>
+        <label><span class="step-pill">04 &mdash;</span> Use case</label>
         <div id="useCaseGrid"></div>
       </div>
 
@@ -5247,6 +5289,8 @@ function askNavAI() {
   const verticalGrid    = document.getElementById('verticalGrid');
   const subvertSection  = document.getElementById('subverticalSection');
   const subvertGrid     = document.getElementById('subverticalGrid');
+  const categorySection = document.getElementById('categorySection');
+  const categoryGrid    = document.getElementById('categoryGrid');
   const useCaseSection  = document.getElementById('useCaseSection');
   const useCaseGrid     = document.getElementById('useCaseGrid');
   const launchBtn       = document.getElementById('launchBtn');
@@ -5274,6 +5318,7 @@ function askNavAI() {
     mode: 'story',            // 'discovery' | 'story'
     vertical: null,
     subvertical: null,
+    category: null,           // 'onboarding' | 'maintenance' | 'auth' | 'workspaces' | 'headless' — narrows useCases at Stage 3
     useCase: null             // numeric index into useCases array, or 'headless' for the synthetic option
   };
 
@@ -5351,6 +5396,7 @@ function askNavAI() {
   function selectVertical(key) {
     state.vertical = key;
     state.subvertical = null;
+    state.category = null;
     state.useCase = null;
 
     document.querySelectorAll('#verticalGrid .option-card').forEach(c => {
@@ -5359,6 +5405,8 @@ function askNavAI() {
 
     renderSubverticals(key);
     subvertSection.classList.add('visible');
+    categorySection.classList.remove('visible');
+    categoryGrid.innerHTML = '';
     useCaseSection.classList.remove('visible');
     useCaseGrid.innerHTML = '';
     updateLaunch();
@@ -5387,21 +5435,108 @@ function askNavAI() {
 
   function selectSubvertical(key) {
     state.subvertical = key;
+    state.category = null;
     state.useCase = null;
 
     document.querySelectorAll('#subverticalGrid .option-card').forEach(c => {
       c.classList.toggle('selected', c.dataset.value === key);
     });
 
-    renderUseCases(state.vertical, key);
-    useCaseSection.classList.add('visible');
+    renderCategories(state.vertical, key);
+    categorySection.classList.add('visible');
+    useCaseSection.classList.remove('visible');
+    useCaseGrid.innerHTML = '';
     updateLaunch();
     updateBreadcrumb();
-    // Wizard: stage 3 takes stage 2's slot.
+    // Wizard: stage 3 (Category) takes stage 2's slot.
     setWizardStage(3);
   }
 
-  function renderUseCases(verticalKey, subvertKey) {
+  // -------- Stage 3: Category cards --------
+  // Stage 3 narrows the use-case list before Stage 4. Cards count the use
+  // cases in each non-empty category for the selected subvertical, plus a
+  // synthetic "Headless IAM" card when the vertical has a portal mapping.
+  const CATEGORY_LABELS = {
+    onboarding:  'Onboarding',
+    maintenance: 'Maintenance',
+    auth:        'Fraud Fabric',
+    workspaces:  'Workspaces',
+    headless:    'Headless IAM',
+    other:       'Other use cases'
+  };
+  const CATEGORY_SUBTITLES = {
+    onboarding:  'New customer / new relationship onboarding',
+    maintenance: 'Customer-initiated change in the authenticated portal',
+    auth:        'CLEAR-at-the-door + chain-of-custody binding',
+    workspaces:  'Multi-party persistent collaboration surface',
+    headless:    'Tenant-branded employee desktop with embedded IAM moments',
+    other:       'Adjacent flows that don\'t fit a primary category'
+  };
+  const CATEGORY_ORDER = ['onboarding', 'maintenance', 'auth', 'workspaces', 'other', 'headless'];
+
+  function renderCategories(verticalKey, subvertKey) {
+    const sv = CATALOG[verticalKey].subverticals[subvertKey];
+    categoryGrid.innerHTML = '';
+    if (!sv.useCases || sv.useCases.length === 0) {
+      categoryGrid.innerHTML = `
+        <div class="empty-state">
+          <strong>No use cases authored yet</strong>
+          This subvertical is on the roadmap. Pick another subvertical or check back later.
+        </div>
+      `;
+      return;
+    }
+
+    // Tally use cases per category
+    const counts = { onboarding: 0, maintenance: 0, auth: 0, workspaces: 0, other: 0 };
+    sv.useCases.forEach(uc => {
+      const cat = (uc.category && counts.hasOwnProperty(uc.category)) ? uc.category : 'other';
+      counts[cat]++;
+    });
+
+    // Headless count = 1 if a portal mapping exists for this vertical, else 0
+    const portal = HEADLESS_PORTALS[verticalKey];
+    const headlessCount = portal ? 1 : 0;
+
+    CATEGORY_ORDER.forEach(catKey => {
+      const count = (catKey === 'headless') ? headlessCount : (counts[catKey] || 0);
+      if (count === 0) return;
+
+      const card = document.createElement('div');
+      card.className = 'option-card category-card';
+      card.dataset.value = catKey;
+      card.dataset.cat = catKey;
+      card.innerHTML = `
+        <div class="oc-title">${CATEGORY_LABELS[catKey]}</div>
+        <div class="oc-sub">${CATEGORY_SUBTITLES[catKey]}</div>
+        <span class="oc-count">${count} ${count === 1 ? 'use case' : 'use cases'}</span>
+      `;
+      card.addEventListener('click', () => selectCategory(catKey));
+      categoryGrid.appendChild(card);
+    });
+  }
+
+  function selectCategory(catKey) {
+    state.category = catKey;
+    state.useCase = null;
+
+    document.querySelectorAll('#categoryGrid .option-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.value === catKey);
+    });
+
+    renderUseCases(state.vertical, state.subvertical, catKey);
+    useCaseSection.classList.add('visible');
+    updateLaunch();
+    updateBreadcrumb();
+    // Wizard: stage 4 (Use Case) takes stage 3's slot.
+    setWizardStage(4);
+  }
+
+  // Stage 4: Use case grid. categoryFilter narrows to a single category
+  // (set by Stage 3). When categoryFilter === 'headless', renders only the
+  // synthetic "Step into the employee desktop" card. Group headers and the
+  // old chip-filter strip are gone — Stage 3 already did that filtering.
+  function renderUseCases(verticalKey, subvertKey, categoryFilter) {
     const sv = CATALOG[verticalKey].subverticals[subvertKey];
     useCaseGrid.innerHTML = '';
     if (!sv.useCases || sv.useCases.length === 0) {
@@ -5414,24 +5549,6 @@ function askNavAI() {
       return;
     }
 
-    // Group use cases by category for the calmer editorial layout.
-    const GROUP_LABELS = {
-      onboarding:  'Onboarding',
-      maintenance: 'Maintenance',
-      auth:        'Fraud Fabric',
-      workspaces:  'Workspaces',
-      headless:    'Headless IAM',
-      other:       'Other use cases'
-    };
-    const GROUP_ORDER = ['onboarding', 'maintenance', 'auth', 'workspaces', 'other', 'headless'];
-    const groups = { onboarding: [], maintenance: [], auth: [], workspaces: [], other: [], headless: [] };
-
-    sv.useCases.forEach((uc, i) => {
-      const cat = (uc.category && groups[uc.category]) ? uc.category : 'other';
-      groups[cat].push({ uc, i });
-    });
-
-    // Build the synthetic Headless IAM card data for this vertical.
     const portal = HEADLESS_PORTALS[verticalKey];
 
     // Card builders --------------------------------------------------------
@@ -5444,9 +5561,6 @@ function askNavAI() {
       if (uc.category) card.dataset.category = uc.category;
       if (uc.archetype) card.dataset.archetype = uc.archetype;
 
-      // Availability pill: only paint "Coming soon" (the calmer layout drops
-      // the redundant "Demo Story" / "Discovery" badge — group context tells
-      // the user what mode they're in).
       let pill = '';
       if (state.mode === 'discovery' && !supported) {
         pill = '<span class="uc-availability coming-soon">Demo only</span>';
@@ -5492,72 +5606,28 @@ function askNavAI() {
       return card;
     }
 
-    if (portal) groups.headless.push({ headless: true });
-
-    // Render --------------------------------------------------------------
-    // Chip-filter strip: toggles visibility of category groups inside the
-    // Demo Story / Discovery view. "All" shows everything; each category
-    // chip filters to one group. Built from the categories that actually
-    // have items so empty categories don't render dead chips.
-    const FILTER_CHIPS = [
-      { key: 'all',         label: 'All' },
-      { key: 'onboarding',  label: 'Onboarding' },
-      { key: 'maintenance', label: 'Maintenance' },
-      { key: 'auth',        label: 'Fraud Fabric' },
-      { key: 'workspaces',  label: 'Workspaces' },
-    ];
-    const filterStrip = document.createElement('div');
-    filterStrip.className = 'usecase-filter-strip';
-    FILTER_CHIPS.forEach(({ key, label }, i) => {
-      // Skip a chip whose category has zero items in this subvertical so
-      // the strip stays meaningful per-context.
-      if (key !== 'all' && (groups[key] || []).length === 0) return;
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'uc-filter-chip cat-' + key + (i === 0 ? ' on' : '');
-      chip.dataset.filter = key;
-      chip.innerHTML = `<span class="cat-bar" aria-hidden="true"></span>${label}`;
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('#useCaseGrid .uc-filter-chip').forEach(c => {
-          c.classList.toggle('on', c.dataset.filter === key);
-        });
-        const sel = key;
-        document.querySelectorAll('#useCaseGrid .usecase-group').forEach(g => {
-          g.style.display = (sel === 'all' || g.dataset.cat === sel) ? '' : 'none';
-        });
+    // Build the filtered list of items to render.
+    const items = [];
+    if (categoryFilter === 'headless') {
+      if (portal) items.push({ headless: true });
+    } else {
+      sv.useCases.forEach((uc, i) => {
+        const knownCats = ['onboarding', 'maintenance', 'auth', 'workspaces'];
+        const cat = (uc.category && knownCats.includes(uc.category)) ? uc.category : 'other';
+        if (!categoryFilter || cat === categoryFilter) {
+          items.push({ uc, i });
+        }
       });
-      filterStrip.appendChild(chip);
+    }
+
+    // Render flat grid — no group headers, no chip strip.
+    const grid = document.createElement('div');
+    grid.className = 'usecase-grid';
+    items.forEach(item => {
+      const card = item.headless ? buildHeadlessCard() : buildCatalogCard(item);
+      grid.appendChild(card);
     });
-    useCaseGrid.appendChild(filterStrip);
-
-    const list = document.createElement('div');
-    list.className = 'usecase-list';
-
-    GROUP_ORDER.forEach(catKey => {
-      const items = groups[catKey];
-      if (items.length === 0) return;
-
-      const groupEl = document.createElement('div');
-      groupEl.className = 'usecase-group';
-      groupEl.dataset.cat = catKey;
-
-      const head = document.createElement('div');
-      head.className = 'usecase-group-h';
-      head.innerHTML = `<span class="group-bar" aria-hidden="true"></span>${GROUP_LABELS[catKey]}`;
-      groupEl.appendChild(head);
-
-      const grid = document.createElement('div');
-      grid.className = 'usecase-grid';
-      items.forEach(item => {
-        const card = item.headless ? buildHeadlessCard() : buildCatalogCard(item);
-        grid.appendChild(card);
-      });
-      groupEl.appendChild(grid);
-
-      list.appendChild(groupEl);
-    });
-
-    useCaseGrid.appendChild(list);
+    useCaseGrid.appendChild(grid);
   }
 
   function selectUseCase(index) {
@@ -5581,7 +5651,7 @@ function askNavAI() {
   }
 
   function updateLaunch() {
-    const ready = state.vertical && state.subvertical && state.useCase !== null;
+    const ready = state.vertical && state.subvertical && state.category && state.useCase !== null;
     const isHeadless = state.useCase === 'headless';
     launchBtn.disabled = !ready;
     const copy = MODE_COPY[state.mode];
@@ -5624,6 +5694,7 @@ function askNavAI() {
     const parts = [];
     if (state.vertical) parts.push(CATALOG[state.vertical].title);
     if (state.subvertical) parts.push(CATALOG[state.vertical].subverticals[state.subvertical].title);
+    if (state.category) parts.push(CATEGORY_LABELS[state.category] || state.category);
     if (state.useCase !== null) {
       if (state.useCase === 'headless') {
         const portal = HEADLESS_PORTALS[state.vertical];
@@ -5648,14 +5719,14 @@ function askNavAI() {
     state.mode = mode;
     applyModeCopy();
     // Re-render current use-case list with new availability marks
-    if (state.vertical && state.subvertical) {
+    if (state.vertical && state.subvertical && state.category) {
       // clear useCase selection if the new mode doesn't support it
       // (headless is always supported across modes — skip the catalog check)
       if (state.useCase !== null && state.useCase !== 'headless') {
         const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
         if (!ucSupportedInMode(uc, mode)) state.useCase = null;
       }
-      renderUseCases(state.vertical, state.subvertical);
+      renderUseCases(state.vertical, state.subvertical, state.category);
       // restore selection highlight if still valid
       if (state.useCase !== null) {
         const card = useCaseGrid.querySelector(`.usecase-card[data-index="${state.useCase}"]`);
@@ -5697,18 +5768,32 @@ function askNavAI() {
   // Stage 1 → no-op (button is hidden by CSS at stage 1)
   // Escape key also rewinds one step for keyboard users.
   function wizardGoBack() {
-    if (document.body.classList.contains('wizard-stage-3')) {
-      state.subvertical = null;
+    if (document.body.classList.contains('wizard-stage-4')) {
+      // Stage 4 → Stage 3: drop category + use-case selections, keep subvertical.
+      state.category = null;
       state.useCase = null;
       useCaseGrid.innerHTML = '';
       useCaseSection.classList.remove('visible');
+      document.querySelectorAll('#categoryGrid .option-card').forEach(c => c.classList.remove('selected'));
+      updateLaunch();
+      updateBreadcrumb();
+      setWizardStage(3);
+    } else if (document.body.classList.contains('wizard-stage-3')) {
+      // Stage 3 → Stage 2: drop subvertical + downstream selections.
+      state.subvertical = null;
+      state.category = null;
+      state.useCase = null;
+      categoryGrid.innerHTML = '';
+      categorySection.classList.remove('visible');
       document.querySelectorAll('#subverticalGrid .option-card').forEach(c => c.classList.remove('selected'));
       updateLaunch();
       updateBreadcrumb();
       setWizardStage(2);
     } else if (document.body.classList.contains('wizard-stage-2')) {
+      // Stage 2 → Stage 1: full reset.
       state.vertical = null;
       state.subvertical = null;
+      state.category = null;
       state.useCase = null;
       subvertGrid.innerHTML = '';
       subvertSection.classList.remove('visible');
