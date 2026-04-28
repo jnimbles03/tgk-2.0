@@ -580,55 +580,8 @@
     padding: 24px 64px 72px; display: flex; gap: 16px;
     align-items: center; justify-content: flex-end;
   }
-  /* In-flow launch row hides once a selection is made — the sticky bar
-     takes over so the CTA never requires scrolling. */
-  body.has-selection .landing-actions { display: none; }
-
-  /* ===== STICKY LAUNCH BAR — appears at viewport bottom once a selection
-     exists. Mirrors the .landing-actions CTA visually but is always reachable.
-     Hidden by default; .visible toggles in via JS. */
-  .sticky-launch {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    background: rgba(248, 243, 240, 0.96);
-    backdrop-filter: saturate(140%) blur(14px);
-    -webkit-backdrop-filter: saturate(140%) blur(14px);
-    border-top: 1px solid rgba(19, 0, 50, 0.08);
-    box-shadow: 0 -8px 28px rgba(19, 0, 50, 0.06);
-    z-index: 40;
-    transform: translateY(110%);
-    /* Snappier sticky-bar slide-in — was 0.32s spring; now 0.18s spring. */
-    transition: transform 0.18s var(--ease-spring);
-    display: flex; justify-content: center;
-  }
-  .sticky-launch.visible { transform: translateY(0); }
-  .sticky-launch-inner {
-    max-width: 1120px; width: 100%;
-    padding: 14px 64px;
-    display: flex; align-items: center; gap: 18px;
-  }
-  .sticky-launch .sl-crumb {
-    flex: 1; min-width: 0;
-    display: flex; flex-direction: column; gap: 2px;
-    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-  }
-  .sticky-launch .sl-crumb-label {
-    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    font-weight: 600; color: rgba(19, 0, 50, 0.5);
-  }
-  .sticky-launch .sl-crumb-value {
-    font-size: 14px; font-weight: 500; color: var(--ds-inkwell);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .sticky-launch .sl-crumb-value .sep { color: rgba(19, 0, 50, 0.35); margin: 0 6px; }
-  .sticky-launch .launch-btn { padding: 13px 26px; font-size: 15px; }
-  @media (max-width: 720px) {
-    .sticky-launch-inner { padding: 12px 22px; gap: 12px; }
-    .sticky-launch .sl-crumb-value { font-size: 13px; }
-    .sticky-launch .launch-btn { padding: 11px 18px; font-size: 14px; }
-    /* Reserve room so sticky bar doesn't cover the bottom of the body. */
-    body.has-selection .landing-body { padding-bottom: 96px; }
-  }
-  body.has-selection .landing-body { padding-bottom: 110px; }
+  /* Sticky launch bar removed 2026-04-28 — was a redundant second CTA;
+     the in-flow .landing-actions Launch Demo button is now the single CTA. */
 
   /* ===== HEADLESS IAM use-case — appended as a single-card group at the
      bottom of every subvertical's list. Spans the full row (not in the
@@ -2028,21 +1981,6 @@
     <!-- ACTIONS — the one Poppy CTA -->
     <div class="landing-actions">
       <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()"><canvas class="cta-chevron" id="ctaChevron" aria-hidden="true"></canvas><span class="cta-label" id="launchBtnLabel">Launch Demo</span></button>
-    </div>
-
-    <!-- STICKY LAUNCH BAR — appears at viewport bottom once a selection
-         is made so the user never has to scroll to find the CTA.
-         The in-flow launch row above is hidden via body.has-selection. -->
-    <div class="sticky-launch" id="stickyLaunch" aria-hidden="true">
-      <div class="sticky-launch-inner">
-        <div class="sl-crumb">
-          <span class="sl-crumb-label">Ready to launch</span>
-          <span class="sl-crumb-value" id="stickyCrumb">&mdash;</span>
-        </div>
-        <button class="launch-btn primary" id="stickyLaunchBtn" disabled onclick="launchUseCase()">
-          <span class="cta-label" id="stickyLaunchLabel">Launch Demo</span>
-        </button>
-      </div>
     </div>
 
     <!-- Architecture + Builder + Audit + Admin links — quiet, but with glyphs + underlines so they're findable. -->
