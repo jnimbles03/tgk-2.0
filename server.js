@@ -763,6 +763,115 @@ app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
 // Friendly alias: /architecture and /architecture/ → /architecture.html
 app.get(['/architecture', '/architecture/'], (req, res) => res.redirect('/architecture.html'));
 
+// Friendly alias: /builder and /builder/ → /builder.html
+app.get(['/builder', '/builder/'], (req, res) => res.redirect('/builder.html'));
+
+/* =========================================================================
+   DYNAMIC DEMO BUILDER
+   -------------------------------------------------------------------------
+   Lets a sales rep author a one-off custom demo via /builder.html. Picker
+   POSTs a config; we save it under a short token in Replit DB; the rep gets
+   a clean URL like /stories/custom-a7k9mpx2/ which serves the shell with
+   the config injected inline as JSON.
+   ========================================================================= */
+const BUILDER_KEY_PREFIX = 'builder:';
+const BUILDER_TTL_DAYS = 30;
+
+function newBuilderToken() {
+  // 8 chars, lowercase alphanumeric, no ambiguous (0/o, 1/l) — readable in URLs
+  const alpha = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let s = '';
+  const bytes = crypto.randomBytes(8);
+  for (let i = 0; i < 8; i++) s += alpha[bytes[i] % alpha.length];
+  return s;
+}
+
+// POST /api/builder/save — picker hands us a config, we mint a token + return URL
+app.post('/api/builder/save', async (req, res) => {
+  try {
+    const cfg = req.body || {};
+    if (!cfg.tenant || !cfg.customer || !cfg.scenes || !Array.isArray(cfg.scenes)) {
+      return res.status(400).json({ error: 'config must include tenant, customer, scenes[]' });
+    }
+    const token = newBuilderToken();
+    const record = {
+      ...cfg,
+      _meta: {
+        createdAt: Date.now(),
+        expiresAt: Date.now() + BUILDER_TTL_DAYS * 86400 * 1000,
+        version: 1
+      }
+    };
+    await db.set(BUILDER_KEY_PREFIX + token, record);
+    res.json({
+      token,
+      url: `/stories/custom-${token}/`,
+      expiresInDays: BUILDER_TTL_DAYS
+    });
+  } catch (e) {
+    console.error('[builder] save failed:', e);
+    res.status(500).json({ error: 'save failed' });
+  }
+});
+
+// GET /api/builder/:token — fetch a saved config (used by shell async path / inspection)
+app.get('/api/builder/:token', async (req, res) => {
+  try {
+    const cfg = await db.get(BUILDER_KEY_PREFIX + req.params.token);
+    if (!cfg) return res.status(404).json({ error: 'not found or expired' });
+    res.json(cfg);
+  } catch (e) {
+    console.error('[builder] fetch failed:', e);
+    res.status(500).json({ error: 'fetch failed' });
+  }
+});
+
+// GET /stories/custom-:token/ — clean URL → serve shell with config injected inline
+// The rep's URL bar stays at /stories/custom-XXXXX/; the shell reads its config
+// from a <script id="tgk-custom-vertical" type="application/json"> tag.
+app.get(['/stories/custom-:token', '/stories/custom-:token/'], async (req, res) => {
+  try {
+    const token = req.params.token;
+    const cfg = await db.get(BUILDER_KEY_PREFIX + token);
+    if (!cfg) {
+      return res.status(404).type('html').send(
+        '<!doctype html><meta charset="utf-8"><title>Demo not found</title>' +
+        '<style>body{font-family:system-ui,sans-serif;background:#F8F3F0;color:#130032;padding:64px;max-width:560px;margin:auto}h1{font-weight:500}a{color:#4C00FF}</style>' +
+        '<h1>This custom demo expired or doesn\'t exist.</h1>' +
+        `<p>Token <code>${token}</code> is not in the cache. Custom demos are kept for ${BUILDER_TTL_DAYS} days.</p>` +
+        '<p><a href="/builder.html">Build a new one →</a></p>'
+      );
+    }
+
+    let html = await fs.promises.readFile(
+      path.join(__dirname, 'stories', '_shared', 'story-shell.html'),
+      'utf8'
+    );
+
+    // Sanitize for safe embedding inside <script> — escape closing tags
+    const safeJson = JSON.stringify(cfg).replace(/</g, '\\u003c');
+    const usecase = cfg.usecase || 'default';
+
+    const injection =
+      `<script id="tgk-custom-vertical" type="application/json">${safeJson}</script>\n` +
+      `<script>(function(){` +
+        `var u = new URL(location.href);` +
+        // tell the shell to render under vertical=custom (and the chosen usecase)
+        `u.searchParams.set('vertical','custom');` +
+        (usecase !== 'default' ? `u.searchParams.set('usecase','${usecase}');` : '') +
+        // rewrite URL in-place so query is visible to the shell's URLSearchParams
+        // but the rep's address bar still shows the friendly /stories/custom-XXX/ path
+        `history.replaceState(null,'',location.pathname + u.search + location.hash);` +
+      `})();</script>\n`;
+
+    html = html.replace(/<head>/i, '<head>\n' + injection);
+    res.type('html').send(html);
+  } catch (e) {
+    console.error('[builder] custom-path serve failed:', e);
+    res.status(500).type('text').send('builder serve failed');
+  }
+});
+
 // Gate the audit page itself before the static handler can serve it.
 app.get('/audit.html', requireAudit, (req, res) => {
   res.sendFile(path.join(__dirname, 'audit.html'));

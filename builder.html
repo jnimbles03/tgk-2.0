@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Demo builder</title>
+<style>
+  /* ============================================================
+     Docusign FY27 tokens — same system as architecture page
+     ============================================================ */
+  :root {
+    --ds-deep-violet: #26065D;
+    --ds-inkwell:     #130032;
+    --ds-ecru:        #F8F3F0;
+    --ds-white:       #FFFFFF;
+    --ds-mist:        #CBC2FF;
+    --ds-poppy:       #FF5252;
+    --ds-cobalt:      #4C00FF;
+
+    --ds-bg:           var(--ds-ecru);
+    --ds-surface:      var(--ds-white);
+    --ds-text:         var(--ds-inkwell);
+    --ds-text-muted:   color-mix(in srgb, var(--ds-inkwell) 60%, transparent);
+    --ds-text-soft:    color-mix(in srgb, var(--ds-inkwell) 40%, transparent);
+    --ds-rule:         color-mix(in srgb, var(--ds-inkwell) 12%, transparent);
+    --ds-rule-strong:  color-mix(in srgb, var(--ds-inkwell) 22%, transparent);
+    --ds-mist-soft:    color-mix(in srgb, var(--ds-mist) 35%, var(--ds-white));
+    --ds-glow:         linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
+
+    --ds-font:         "DS Indigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ds-mono:         "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--ds-font);
+    color: var(--ds-text);
+    background: var(--ds-bg);
+    line-height: 1.55;
+  }
+  ::selection { background: var(--ds-mist); color: var(--ds-inkwell); }
+  :focus-visible { outline: 2px solid var(--ds-cobalt); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 48px 96px; }
+
+  .kicker {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ds-cobalt);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: var(--ds-font);
+    font-weight: 700;
+    font-size: clamp(1.875rem, 3vw + 1rem, 2.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 500;
+    background: var(--ds-glow);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .deck {
+    font-family: var(--ds-font);
+    font-size: 1rem;
+    color: var(--ds-text-muted);
+    max-width: 65ch;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+
+  /* ===== Form ===== */
+  .form-card {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--ds-rule);
+  }
+  .form-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+  .form-row > label {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+  }
+  .form-row select,
+  .form-row input[type="text"] {
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule-strong);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    color: var(--ds-text);
+    width: 100%;
+    transition: border-color 0.18s ease;
+  }
+  .form-row select:focus,
+  .form-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--ds-cobalt);
+  }
+  .form-row .swatch-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .form-row .swatch {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    border: 1px solid var(--ds-rule-strong);
+    flex-shrink: 0;
+  }
+  .form-row .help {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: var(--ds-text-soft);
+    margin-top: 4px;
+    grid-column: 2;
+  }
+
+  /* ===== Submit + result ===== */
+  .submit-row {
+    margin-top: 28px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: var(--ds-poppy);
+    color: var(--ds-ecru);
+    border: 1px solid var(--ds-poppy);
+    border-radius: 6px;
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(255, 82, 82, 0.35); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ds-inkwell);
+    border-color: var(--ds-inkwell);
+  }
+  .btn-secondary:hover { background: var(--ds-inkwell); color: var(--ds-ecru); box-shadow: none; }
+
+  .submit-status {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: var(--ds-text-soft);
+  }
+
+  /* Result panel — Deep Violet hero, like the architecture page Tier 5 */
+  .result-panel {
+    margin-top: 32px;
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-radius: 12px;
+    padding: 26px 30px;
+    box-shadow: 0 12px 32px rgba(38, 6, 93, 0.2);
+    position: relative;
+    display: none;
+  }
+  .result-panel.active { display: block; }
+  .result-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1.5px;
+    background: var(--ds-glow);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+  .result-tag {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-mist);
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  .result-h {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 12px;
+    color: var(--ds-ecru);
+  }
+  .result-url-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .result-url {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(203, 194, 255, 0.3);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: var(--ds-mono);
+    font-size: 0.875rem;
+    color: var(--ds-ecru);
+    word-break: break-all;
+  }
+  .result-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .result-action {
+    padding: 8px 16px;
+    background: var(--ds-mist);
+    color: var(--ds-deep-violet);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .result-action:hover { background: var(--ds-ecru); }
+  .result-action.ghost {
+    background: transparent;
+    color: var(--ds-mist);
+    border: 1px solid rgba(203, 194, 255, 0.4);
+  }
+  .result-action.ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--ds-ecru); }
+  .result-meta {
+    margin-top: 12px;
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    color: var(--ds-mist);
+    font-style: italic;
+  }
+
+  /* Error panel */
+  .error-panel {
+    margin-top: 18px;
+    padding: 12px 16px;
+    background: rgba(255, 82, 82, 0.08);
+    border: 1px solid var(--ds-poppy);
+    border-radius: 6px;
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-poppy);
+    display: none;
+  }
+  .error-panel.active { display: block; }
+
+  .foot {
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid var(--ds-rule);
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">TGK 2.0 · Demo builder · 2026-04-28</div>
+  <h1>Spin up a custom <em>demo URL</em>.</h1>
+  <p class="deck">Pick an industry as the narration scaffold, override tenant + customer + brand, get back a clean shareable URL — same five-scene shell, your data. Demos persist for 30 days.</p>
+
+  <div class="form-card">
+    <form id="builderForm">
+
+      <div class="form-row">
+        <label for="f-industry">Industry</label>
+        <div>
+          <select id="f-industry" required>
+            <option value="wealth">Wealth Management — Hillside × Aster Capital</option>
+            <option value="wealth-discovery">Wealth Discovery — Cypress × Holcomb</option>
+            <option value="banking">Commercial Banking — Meridian × Atlas</option>
+            <option value="banking-deposits">Banking Deposits — Cedar × Williams</option>
+            <option value="insurance">Insurance — Sentinel × Ramirez</option>
+            <option value="insurance-life">Life Insurance — Beacon × Whitfield</option>
+            <option value="insurance-pc">P&amp;C Insurance — Northgate × Patel</option>
+            <option value="provider">Healthcare Provider — Riverside × Kim</option>
+            <option value="provider-roi">Provider ROI — Catalina × Tan</option>
+            <option value="lifesciences">Life Sciences — Helix × Austin</option>
+            <option value="payor">Payor — Unity × Chen</option>
+            <option value="fedgov">Federal Gov — DOL × Nguyen</option>
+            <option value="slgov">State &amp; Local — Springfield × 1420 Oak</option>
+            <option value="slgov-311">SLGov 311 — Greenhaven × Cedar</option>
+            <option value="slgov-benefits">SLGov Benefits — Eastside × Rivera</option>
+            <option value="slgov-licensing">SLGov Licensing — Northbrook × Avalon</option>
+            <option value="education">Education — Maple Ridge × Shah</option>
+            <option value="nonprofit">Nonprofit — Harbor × Safe Streets</option>
+          </select>
+          <div class="help">Used as the narration scaffold — your overrides below replace the tenant-specific bits.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-usecase">Use case</label>
+        <div>
+          <select id="f-usecase" required>
+            <option value="default">Onboarding · canonical (5 scenes)</option>
+            <option value="auth-fabric">Auth-Fabric · CLEAR-at-the-door (3 scenes)</option>
+            <option value="intake">Intake-Mechanics · webform → Maestro (3-4 scenes)</option>
+            <option value="maintenance">Maintenance · sensitive change (3 scenes)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-tenant">Tenant</label>
+        <div><input type="text" id="f-tenant" placeholder="e.g. Highland Bank" required maxlength="60"></div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-customer">Customer</label>
+        <div><input type="text" id="f-customer" placeholder="e.g. Atlas Manufacturing — $2.5M working capital" required maxlength="120"></div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-color">Brand color</label>
+        <div>
+          <div class="swatch-row">
+            <span class="swatch" id="swatchPreview" style="background:#4C00FF"></span>
+            <input type="text" id="f-color" placeholder="#RRGGBB" value="#4C00FF" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$">
+            <select id="f-color-preset" style="max-width: 200px;">
+              <option value="">— or pick a preset —</option>
+              <option value="#3FDA99">Mint</option>
+              <option value="#2D8EFF">Cobalt blue</option>
+              <option value="#6FD6C8">Teal</option>
+              <option value="#C7A0FF">Violet</option>
+              <option value="#E8A438">Amber</option>
+              <option value="#F2B3C2">Rose</option>
+              <option value="#5BCDB8">Mint sea</option>
+              <option value="#FF8A4D">Coral</option>
+              <option value="#94A3B8">Slate</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-sor">System of record</label>
+        <div><input type="text" id="f-sor" placeholder="e.g. nCino on Salesforce" maxlength="80"></div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-moment">Signature moment</label>
+        <div>
+          <input type="text" id="f-moment" placeholder='e.g. "$5M household opened in 15 minutes, fully paperless."' maxlength="160">
+          <div class="help">A short headline the prospect remembers. Quotes optional.</div>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="submit-row">
+      <span class="submit-status" id="submitStatus"></span>
+      <button class="btn btn-secondary" type="button" id="btnReset">Reset</button>
+      <button class="btn" type="button" id="btnGenerate">Generate URL →</button>
+    </div>
+
+    <div class="error-panel" id="errorPanel"></div>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-tag">DEMO URL · LIVE NOW</div>
+      <h3 class="result-h" id="resultHeadline"></h3>
+      <div class="result-url-row">
+        <span class="result-url" id="resultUrl"></span>
+        <button class="result-action" id="btnCopy">Copy</button>
+        <button class="result-action ghost" id="btnOpen">Open ↗</button>
+      </div>
+      <div class="result-actions">
+        <span class="result-meta" id="resultMeta"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">/api/builder/save · /stories/custom-:token/ · 2026-04-28</div>
+
+</div>
+
+<script>
+  // ============== Industry → defaults map ==============
+  // Keeps the form pre-fillable when you change industry. Brand colors and
+  // SoRs come from CANONICAL.md / the shell's VERTICALS map.
+  const INDUSTRY_DEFAULTS = {
+    'wealth':              { tenant: 'Hillside',    color: '#3FDA99', sor: 'Salesforce FSC',                      moment: '"$5M household opened in 15 minutes, fully paperless."', customer: 'Aster Capital — IRA rollover, $5M household' },
+    'wealth-discovery':    { tenant: 'Cypress',     color: '#5BA1B8', sor: 'Salesforce FSC',                      moment: '"Family trust + IRA rollover + joint taxable, all in one onboarding."', customer: 'Holcomb Family — multi-account onboarding' },
+    'banking':             { tenant: 'Meridian',    color: '#2D8EFF', sor: 'nCino on Salesforce',                 moment: '"Commercial credit facility closed digitally, no overnight courier."', customer: 'Atlas Manufacturing — $2.5M working capital' },
+    'banking-deposits':    { tenant: 'Cedar',       color: '#6BB6FF', sor: 'nCino on Salesforce',                 moment: '"New joint checking account opened, paperless, in branch."', customer: 'Williams household — joint checking' },
+    'insurance':           { tenant: 'Sentinel',    color: '#F2B3C2', sor: 'Guidewire PolicyCenter',              moment: '"HO3 binding completed in one envelope, signed at the kitchen table."', customer: 'Ramirez Family — HO3 binding' },
+    'insurance-life':      { tenant: 'Beacon',      color: '#B189D9', sor: 'Guidewire PolicyCenter',              moment: '"Death claim paid in 5 days, beneficiary verified once."', customer: 'Whitfield Family — death claim' },
+    'insurance-pc':        { tenant: 'Northgate',   color: '#FF8A4D', sor: 'Guidewire ClaimCenter',               moment: '"Commercial auto FNOL captured at the curb, claim opened in minutes."', customer: 'Patel Logistics — commercial auto FNOL' },
+    'provider':            { tenant: 'Riverside',   color: '#6FD6C8', sor: 'Epic / Veeva',                        moment: '"Patient onboarded, consent and insurance captured before they sit down."', customer: 'Jordan Kim — new-patient onboarding' },
+    'provider-roi':        { tenant: 'Catalina',    color: '#5BCDB8', sor: 'Epic',                                moment: '"Records released to the disability provider, no fax, no phone."', customer: 'Eric Tan — records release' },
+    'lifesciences':        { tenant: 'Helix',       color: '#C7A0FF', sor: 'Veeva Vault',                         moment: '"Site activated, IRB-cleared, ready to enroll."', customer: 'Austin Research Clinic — site activation' },
+    'payor':               { tenant: 'Unity',       color: '#6FDA9B', sor: 'Salesforce Health Cloud',             moment: '"Silver HMO enrollment completed in the member portal."', customer: 'Marcus Chen — Silver HMO enrollment' },
+    'fedgov':              { tenant: 'DOL',         color: '#E8B800', sor: 'Salesforce Public Sector Solutions',  moment: '"UI claim filed and identity verified once, no in-person visit."', customer: 'Taylor Nguyen — UI claim' },
+    'slgov':               { tenant: 'Springfield', color: '#E8A438', sor: 'Salesforce Public Sector Solutions',  moment: '"Permit issued in two days, not six weeks. No counter visit."', customer: '1420 Oak Street — residential building permit' },
+    'slgov-311':           { tenant: 'Greenhaven',  color: '#4CAF7A', sor: 'Salesforce Public Sector Solutions',  moment: '"Pothole reported, repaired, and closed without a phone call."', customer: '1124 Cedar Ave — pothole report' },
+    'slgov-benefits':      { tenant: 'Eastside HHS',color: '#5DA9C9', sor: 'Salesforce Public Sector Solutions',  moment: '"SNAP application approved in two days, not six weeks."', customer: 'Rivera family — SNAP application' },
+    'slgov-licensing':     { tenant: 'Northbrook',  color: '#F2A56B', sor: 'Salesforce Public Sector Solutions',  moment: '"Restaurant license issued in one envelope, eSigned from a phone."', customer: 'Avalon Café — restaurant license' },
+    'education':           { tenant: 'Maple Ridge', color: '#F2C65A', sor: 'Workday Student',                     moment: '"Fall enrollment completed before the first day of class."', customer: 'Priya Shah — Fall 2026 onboarding' },
+    'nonprofit':           { tenant: 'Harbor',      color: '#FFB86B', sor: 'Salesforce Nonprofit Cloud',          moment: '"$120k grant deployed in days, not months, with full audit trail."', customer: 'Safe Streets Initiative — $120k grantee onboarding' }
+  };
+
+  const $ = id => document.getElementById(id);
+  const form = $('builderForm');
+
+  function applyIndustryDefaults() {
+    const v = $('f-industry').value;
+    const d = INDUSTRY_DEFAULTS[v];
+    if (!d) return;
+    if (!$('f-tenant').dataset.touched)  $('f-tenant').value  = d.tenant;
+    if (!$('f-customer').dataset.touched) $('f-customer').value = d.customer;
+    if (!$('f-sor').dataset.touched)     $('f-sor').value     = d.sor;
+    if (!$('f-moment').dataset.touched)  $('f-moment').value  = d.moment;
+    if (!$('f-color').dataset.touched) {
+      $('f-color').value = d.color;
+      $('swatchPreview').style.background = d.color;
+    }
+  }
+
+  // Mark fields as user-touched so industry change doesn't clobber edits
+  ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => {
+    const el = $(id);
+    el.addEventListener('input', () => { el.dataset.touched = '1'; });
+  });
+
+  $('f-industry').addEventListener('change', applyIndustryDefaults);
+
+  // Color swatch preview + preset
+  $('f-color').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(v)) $('swatchPreview').style.background = v;
+  });
+  $('f-color-preset').addEventListener('change', e => {
+    const v = e.target.value;
+    if (!v) return;
+    $('f-color').value = v;
+    $('f-color').dataset.touched = '1';
+    $('swatchPreview').style.background = v;
+  });
+
+  // Reset
+  $('btnReset').addEventListener('click', () => {
+    form.reset();
+    ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => delete $(id).dataset.touched);
+    applyIndustryDefaults();
+    $('resultPanel').classList.remove('active');
+    $('errorPanel').classList.remove('active');
+    $('submitStatus').textContent = '';
+  });
+
+  // Generate
+  $('btnGenerate').addEventListener('click', async () => {
+    const industry = $('f-industry').value;
+    const usecase  = $('f-usecase').value;
+    const tenant   = $('f-tenant').value.trim();
+    const customer = $('f-customer').value.trim();
+    const color    = $('f-color').value.trim();
+    const sor      = $('f-sor').value.trim();
+    const moment   = $('f-moment').value.trim();
+
+    $('errorPanel').classList.remove('active');
+
+    if (!tenant || !customer || !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      $('errorPanel').textContent = 'Tenant, customer, and a valid #RRGGBB brand color are required.';
+      $('errorPanel').classList.add('active');
+      return;
+    }
+
+    $('btnGenerate').disabled = true;
+    $('submitStatus').textContent = 'Saving config…';
+
+    // Build the config the shell expects. We use the industry as the narration
+    // scaffold — server stores it as `sourceVertical` so the shell can pull
+    // the matching scenes/usecases from the live VERTICALS map at render time
+    // (or we'll inline a stripped copy if we go that direction next).
+    const cfg = {
+      tenant,
+      customer: customer.startsWith('×') ? customer : '× ' + customer,
+      tenantColor: color,
+      preset: 'custom',
+      sor,
+      signatureMoment: moment,
+      usecase,
+      sourceVertical: industry,
+      // Minimal scenes payload — for v1 we hand the shell an empty scenes
+      // array and let the shell's narration fall back to the source vertical's
+      // narration via the merge bundle (the source-vertical scaffold).
+      // Expand this with custom-authored scenes in a follow-up.
+      scenes: [],
+      _builderMeta: {
+        builtAt: new Date().toISOString(),
+        sourceVertical: industry
+      }
+    };
+
+    try {
+      const r = await fetch('/api/builder/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg)
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || `HTTP ${r.status}`);
+      }
+      const { token, url, expiresInDays } = await r.json();
+
+      const fullUrl = location.origin + url;
+      $('resultHeadline').textContent = `${tenant} × ${customer.replace(/^×\s*/, '')}`;
+      $('resultUrl').textContent = fullUrl;
+      $('resultUrl').dataset.url = fullUrl;
+      $('resultMeta').textContent = `Token ${token} · expires in ${expiresInDays} days · ${usecase} · scaffolded from ${industry}`;
+      $('resultPanel').classList.add('active');
+      $('submitStatus').textContent = 'Saved.';
+      // Scroll the result into view smoothly
+      setTimeout(() => $('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    } catch (e) {
+      $('errorPanel').textContent = 'Save failed: ' + (e.message || e);
+      $('errorPanel').classList.add('active');
+      $('submitStatus').textContent = '';
+    } finally {
+      $('btnGenerate').disabled = false;
+    }
+  });
+
+  // Copy / Open buttons
+  $('btnCopy').addEventListener('click', async () => {
+    const url = $('resultUrl').dataset.url;
+    try {
+      await navigator.clipboard.writeText(url);
+      const orig = $('btnCopy').textContent;
+      $('btnCopy').textContent = 'Copied ✓';
+      setTimeout(() => { $('btnCopy').textContent = orig; }, 1600);
+    } catch (e) {
+      // Fallback — select-all
+      const r = document.createRange();
+      r.selectNode($('resultUrl'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(r);
+    }
+  });
+  $('btnOpen').addEventListener('click', () => {
+    window.open($('resultUrl').dataset.url, '_blank');
+  });
+
+  // Initial defaults
+  applyIndustryDefaults();
+</script>
+</body>
+</html>

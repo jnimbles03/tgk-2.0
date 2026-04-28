@@ -2089,6 +2089,77 @@ function mergeUsecasesBundle(bundle){
     mergeUsecasesBundle(JSON.parse(el.textContent));
   } catch (e) { console.warn("[tgk] inline usecase bundle parse failed:", e); }
 })();
+/* Dynamic builder support — when the server serves /stories/custom-:token/
+   it injects <script id="tgk-custom-vertical" type="application/json"> with
+   the picker's saved config. The picker doesn't ask reps to author 25
+   sentences of narration; instead it picks a `sourceVertical` to scaffold
+   from, then overrides tenant/customer/color. We clone the source's full
+   shape and text-replace the source tenant/customer with the custom ones. */
+(function loadCustomVertical(){
+  try {
+    const el = document.getElementById('tgk-custom-vertical');
+    if (!el) return;
+    const cfg = JSON.parse(el.textContent);
+    if (!cfg) return;
+
+    // Deep-clone helper that handles strings, arrays, and plain objects.
+    const clone = x => (x == null) ? x : JSON.parse(JSON.stringify(x));
+
+    // Pick the scaffold — the source vertical to clone narration from.
+    const src = (cfg.sourceVertical && VERTICALS[cfg.sourceVertical]) || VERTICALS.wealth;
+    const srcKey = cfg.sourceVertical || 'wealth';
+
+    // Build the custom vertical by deep-cloning the source, then overriding
+    // tenant/brand/customer fields with the picker values.
+    const custom = clone(src);
+    custom.tenant       = cfg.tenant       || src.tenant;
+    custom.subtitle     = cfg.customer     || src.subtitle;
+    custom.tenantColor  = cfg.tenantColor  || src.tenantColor;
+    custom.preset       = 'custom';
+    custom.label        = cfg.tenant       || src.label;
+    if (cfg.signatureMoment) custom.signatureMoment = cfg.signatureMoment;
+
+    // Text-replace the source tenant + customer in narration so the cloned
+    // sentences read with the new tenant + customer instead of the source's.
+    // This is the "templated madlibs" path — narration shape stays, names swap.
+    const replaceInTree = (node, replacements) => {
+      if (typeof node === 'string') {
+        let s = node;
+        for (const [from, to] of replacements) {
+          if (from && to && from !== to) {
+            // Replace exact tenant/customer mentions, case-sensitive.
+            s = s.split(from).join(to);
+          }
+        }
+        return s;
+      }
+      if (Array.isArray(node)) return node.map(n => replaceInTree(n, replacements));
+      if (node && typeof node === 'object') {
+        const out = {};
+        for (const k of Object.keys(node)) out[k] = replaceInTree(node[k], replacements);
+        return out;
+      }
+      return node;
+    };
+    const replacements = [
+      [src.tenant, cfg.tenant].filter(Boolean),
+      [src.subtitle, cfg.customer].filter(Boolean)
+    ].filter(p => p.length === 2);
+    custom.scenes = replaceInTree(custom.scenes || [], replacements);
+    if (custom.usecases) {
+      custom.usecases = replaceInTree(custom.usecases, replacements);
+    }
+
+    VERTICALS.custom = custom;
+    // Also register a preset so the workspace template wears the brand.
+    if (typeof window.PRESETS === 'object' && window.PRESETS) {
+      window.PRESETS.custom = clone(window.PRESETS[srcKey] || {});
+      window.PRESETS.custom.tenant = cfg.tenant;
+      window.PRESETS.custom.tenantColor = cfg.tenantColor;
+    }
+    console.log(`[tgk] custom vertical loaded · scaffolded from ${srcKey} · tenant ${cfg.tenant}`);
+  } catch (e) { console.warn("[tgk] custom vertical parse failed:", e); }
+})();
 const v = VERTICALS[verticalKey] || VERTICALS.wealth;
 /* Resolve which scenes to render. If usecase param is set and the vertical
    has usecase narration for it, use that. Otherwise fall back to canonical. */
