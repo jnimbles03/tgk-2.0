@@ -78,15 +78,20 @@
   .btn.primary{background:var(--citi-blue);color:#fff;}
   .btn.primary:hover{background:var(--citi-blue-dark);}
 
-  .hint-row{margin-top:14px;font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:10px;}
-  .hint-row kbd{font-family:ui-monospace,monospace;font-size:10.5px;padding:1px 6px;background:#fff;border:1px solid var(--hair);border-radius:3px;color:var(--ink-mid);font-weight:600;}
-  .hint-row .play-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--ink-mid);cursor:pointer;font-weight:500;}
+  /* Footer control row — keyboard hint, speed picker, play/pause.
+     Uses flex-wrap so the row gracefully drops to two lines on a narrow rail
+     instead of truncating. Each cluster is flex-shrink:0 so the buttons
+     never get squished. */
+  .hint-row{margin-top:14px;font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:8px;}
+  .hint-row .kb-hint{display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft);flex-shrink:0;}
+  .hint-row kbd{font-family:ui-monospace,monospace;font-size:10.5px;padding:2px 6px;background:#fff;border:1px solid var(--hair);border-radius:4px;color:var(--ink-mid);font-weight:600;line-height:1;min-width:18px;text-align:center;}
+  .hint-row .play-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--ink-mid);cursor:pointer;font-weight:500;flex-shrink:0;padding:3px 9px;border-radius:6px;border:1px solid transparent;}
+  .hint-row .play-toggle:hover{background:#F3F1EC;}
   .hint-row .play-toggle svg{width:12px;height:12px;fill:currentColor;}
-  .hint-row .play-toggle.on{color:var(--ds-purple);}
-  .hint-row .speed-picker{display:inline-flex;align-items:center;gap:0;border:1px solid var(--hair);border-radius:4px;overflow:hidden;background:#fff;}
-  .hint-row .speed-picker .sp{padding:2px 6px;font-size:10.5px;font-weight:500;color:var(--ink-mid);cursor:pointer;border:none;background:transparent;font-family:inherit;font-variant-numeric:tabular-nums;line-height:1.4;}
-  .hint-row .speed-picker .sp + .sp{border-left:1px solid var(--hair);}
-  .hint-row .speed-picker .sp:hover{background:#F3F1EC;}
+  .hint-row .play-toggle.on{color:var(--ds-purple);background:rgba(75,0,233,0.06);border-color:rgba(75,0,233,0.18);}
+  .hint-row .speed-picker{display:inline-flex;align-items:center;gap:0;border:1px solid var(--hair);border-radius:6px;background:#fff;flex-shrink:0;padding:1px;}
+  .hint-row .speed-picker .sp{padding:3px 9px;font-size:11px;font-weight:600;color:var(--ink-mid);cursor:pointer;border:none;background:transparent;font-family:inherit;font-variant-numeric:tabular-nums;line-height:1.3;border-radius:4px;flex-shrink:0;}
+  .hint-row .speed-picker .sp:hover{background:#F3F1EC;color:var(--ink);}
   .hint-row .speed-picker .sp.on{background:var(--ds-purple);color:#fff;}
 
   .stage{flex:1;position:relative;background:#EAE4DA;overflow:hidden;border-left:1px solid var(--hair);}
@@ -248,12 +253,11 @@
         <button class="btn primary" id="next-btn">Next</button>
       </div>
       <div class="hint-row">
-        Click the pulsing dot or use <kbd>←</kbd> <kbd>→</kbd>
+        <span class="kb-hint"><kbd>←</kbd><kbd>→</kbd> beats</span>
         <span class="speed-picker" id="speed-picker" role="group" aria-label="Autoplay speed" title="Autoplay speed">
           <button type="button" class="sp" data-rate="1">1×</button>
-          <button type="button" class="sp" data-rate="1.25">1.25×</button>
           <button type="button" class="sp" data-rate="1.5">1.5×</button>
-          <button type="button" class="sp" data-rate="1.75">1.75×</button>
+          <button type="button" class="sp" data-rate="2">2×</button>
         </span>
         <span class="play-toggle" id="play-toggle" title="Autoplay (space)">
           <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
@@ -1991,9 +1995,11 @@ let playing = false;
 let sceneStart = 0;     // when the current scene began (for HUD timer display)
 let beatStart = 0;      // when the current beat began (drives autoplay advance)
 let raf = null;
-/* Autoplay speed multiplier. Allowed values: 1, 1.25, 1.5, 1.75. Persisted in
-   localStorage so the choice survives vertical switches and page reloads. */
-const ALLOWED_RATES = [1, 1.25, 1.5, 1.75];
+/* Autoplay speed multiplier. Allowed values: 1, 1.5, 2. Persisted in
+   localStorage so the choice survives vertical switches and page reloads.
+   (Reduced from 4 options to 3 — the 1.25 increment was redundant with 1.5;
+   adding 2x gives a meaningful "skip ahead" option for long demos.) */
+const ALLOWED_RATES = [1, 1.5, 2];
 let playbackRate = (() => {
   try {
     const v = parseFloat(localStorage.getItem('tgkShell.playbackRate') || '1');

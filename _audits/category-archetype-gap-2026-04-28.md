@@ -107,9 +107,34 @@ Three things ship together per vertical:
 - New "Account Maintenance" picker card in `index-unified.html` with
   category=maintenance + appropriate archetype
 
-### P2 — Cross-vertical maintenance + auth
+### P2 — Cross-vertical maintenance + auth · partial 2026-04-28
 
-For HLS/PS verticals, follow the same pattern. Every `?usecase=auth-fabric` scenario in the usecase-payloads spec has a `MAESTRO step-up` narrative — just needs author-pass.
+**Auth coverage** ✓ done — picker cards added for all 12 HLS/PS verticals
+pointing at the existing auth-fabric narrations. Lifesciences SAE,
+Provider Schedule II refill, Provider-ROI scope revoke, Payor
+specialty-drug PA, Federal weekly cert, all 7 state-local cards
+(permit mod, 311 follow-up, SNAP household change, vendor COI,
+Diane recert, Marcus Lee I-9, Avalon outdoor seating), Education
+FERPA transcript, Nonprofit drawdown.
+
+**Maintenance coverage — 5 of 11 done.** Authored fresh maintenance
+narration + MAINTENANCE_PRESETS overlay + picker card for:
+- ✓ `provider` — insurance card update after plan change
+- ✓ `payor` — PCP change request after move
+- ✓ `education` — address + emergency contact update
+- ✓ `slgov` — permit modification request mid-construction
+- ✓ `slgov-licensing` — outdoor seating amendment to existing license
+
+Still pending maintenance authoring (6 verticals):
+- `lifesciences` — sub-investigator addition mid-trial
+- `fedgov` — direct-deposit account change mid-claim
+- `slgov-311` — edit-in-progress on existing service request
+- `slgov-benefits` — EBT card replacement after loss
+- `slgov-employee-onboarding` — benefits enrollment change after life event
+- `nonprofit` — budget reallocation request mid-grant-period
+
+(Skipped: `provider-roi` / `slgov-vendor-compliance` / `slgov-recertification`
+— their canonical scenarios are already maintenance-flavored.)
 
 ### P3 — Picker labels
 
