@@ -108,9 +108,10 @@
   /* ===== HERO — single confident Deep Violet moment ===== */
   .landing-header {
     background: var(--ds-deep-violet);
-    padding: 40px 64px 120px;
+    padding: 28px 64px 64px;
     color: var(--ds-ecru); text-align: left;
     position: relative; overflow: hidden;
+    transition: padding 0.28s var(--ease);
   }
   .landing-header::before, .landing-header::after { content: none; }
   .landing-header .scribble-accent { display: none; }
@@ -136,30 +137,35 @@
     display: block; padding: 0;
     font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
     background: transparent; color: rgba(203, 194, 255, 0.85);
-    margin-bottom: 84px; border: 0; backdrop-filter: none;
+    margin-bottom: 40px; border: 0; backdrop-filter: none;
     position: relative;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    transition: margin-bottom 0.28s var(--ease), font-size 0.28s var(--ease), opacity 0.2s var(--ease);
   }
   .landing-header h1 {
     /* Sized so "Pick a vertical. Pick a use case." (33 chars) fits on one row
        at every viewport. Top end of the clamp dialed back from 64px to 56px so
-       the long first line doesn't blow past the 1120px container at wide widths. */
-    font-size: clamp(36px, 4.4vw, 56px);
+       the long first line doesn't blow past the 1120px container at wide widths.
+       Wizard mode shrinks this further at stages 2/3 (see body.wizard-stage-2 below). */
+    font-size: clamp(32px, 3.8vw, 48px);
     font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
     margin: 0; color: var(--ds-white); white-space: normal;
     max-width: 36ch; position: relative;
     text-wrap: balance;
+    transition: font-size 0.28s var(--ease), margin 0.28s var(--ease);
   }
   /* Second headline row — sits flush under the h1, same font/size, with the
      Iris Logo Sting GIF as the animated rocket in place of a static ">". */
   .landing-headline-cta {
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    font-size: clamp(36px, 4.4vw, 56px);
+    font-size: clamp(32px, 3.8vw, 48px);
     font-weight: 500; line-height: 1.12; letter-spacing: -0.02em;
     color: var(--ds-white);
-    margin: 0 0 20px;
+    margin: 0 0 14px;
     display: flex; align-items: center;
     max-width: 36ch;
+    transition: font-size 0.28s var(--ease), margin 0.28s var(--ease), opacity 0.2s var(--ease), max-height 0.3s var(--ease);
+    overflow: hidden;
   }
   .landing-headline-cta .headline-chevron {
     /* Iris Logo Sting GIF (square, cropped). Sized larger than cap height so
@@ -176,10 +182,12 @@
             mask-image: radial-gradient(circle at center, #000 48%, transparent 78%);
   }
   .landing-header p {
-    font-size: 17px; line-height: 1.6; color: rgba(248, 243, 240, 0.72);
+    font-size: 15.5px; line-height: 1.55; color: rgba(248, 243, 240, 0.72);
     max-width: 58ch; margin: 0; font-weight: 400;
     position: relative;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    transition: opacity 0.2s var(--ease), max-height 0.3s var(--ease), margin 0.28s var(--ease);
+    overflow: hidden;
   }
 
   /* ===== MODE TOGGLE — hairline pill, overlaps hero/body seam ===== */
@@ -218,7 +226,8 @@
   /* ===== BODY ===== */
   .landing-body {
     max-width: 1120px; margin: 0 auto; width: 100%;
-    padding: 56px 64px 0;
+    padding: 36px 64px 0;
+    transition: padding 0.28s var(--ease);
   }
 
   /* ===== BREADCRUMB ===== */
@@ -238,7 +247,7 @@
 
   /* ===== SECTIONS (progressive disclosure) ===== */
   .landing-section {
-    margin-bottom: 56px;
+    margin-bottom: 32px;
     opacity: 0; transform: translateY(4px);
     max-height: 0; overflow: hidden;
     /* Snappier reveals — was 0.30/0.35/0.45/0.35; now 0.14/0.16/0.22/0.16. */
@@ -285,10 +294,45 @@
   .wizard-back svg { width: 12px; height: 12px; }
   body.wizard-mode.wizard-stage-2 .wizard-back,
   body.wizard-mode.wizard-stage-3 .wizard-back { display: inline-flex; }
+
+  /* Once past stage 1 the hero is dead weight — collapse it so the cards
+     come up into the viewport. Headline + sub-headline + lede all hide;
+     only the logo + tiny badge survive. */
+  body.wizard-mode.wizard-stage-2 .landing-header,
+  body.wizard-mode.wizard-stage-3 .landing-header {
+    padding: 18px 64px 28px;
+  }
+  body.wizard-mode.wizard-stage-2 .landing-header .lh-badge,
+  body.wizard-mode.wizard-stage-3 .landing-header .lh-badge {
+    margin-bottom: 0;
+    font-size: 11.5px;
+    opacity: 0.7;
+  }
+  body.wizard-mode.wizard-stage-2 .landing-header h1,
+  body.wizard-mode.wizard-stage-3 .landing-header h1,
+  body.wizard-mode.wizard-stage-2 .landing-headline-cta,
+  body.wizard-mode.wizard-stage-3 .landing-headline-cta,
+  body.wizard-mode.wizard-stage-2 .landing-header p,
+  body.wizard-mode.wizard-stage-3 .landing-header p {
+    max-height: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Mode toggle slides up tighter against the now-shorter hero. */
+  body.wizard-mode.wizard-stage-2 .mode-toggle-wrap,
+  body.wizard-mode.wizard-stage-3 .mode-toggle-wrap {
+    margin-top: -22px;
+  }
+  /* Body section pulls up too so cards land in the upper third of the viewport. */
+  body.wizard-mode.wizard-stage-2 .landing-body,
+  body.wizard-mode.wizard-stage-3 .landing-body {
+    padding-top: 28px;
+  }
   .landing-section > label {
     display: flex; align-items: baseline; gap: 12px;
     font-size: 14px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
-    letter-spacing: -0.005em; margin-bottom: 20px;
+    letter-spacing: -0.005em; margin-bottom: 14px;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
     text-transform: none;
   }
