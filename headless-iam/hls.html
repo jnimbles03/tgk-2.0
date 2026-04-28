@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Riverside Health Network · EHR Clinician Desktop</title>
+<meta name="description" content="Riverside Health Network's EHR (Epic-pattern) clinician desktop, with all 13 Docusign IAM moments embedded as in-context drilldowns.">
+
+<!--
+  Headless IAM · Phase 1 — HLS
+  ============================================================
+  Epic Hyperspace-pattern clinician desktop — the surface a hospitalist
+  lives in all day. SoR badge: Epic. Patient: Meyer, Patrick (admitted
+  inpatient, 4N-217-2). Tenant deployment: Riverside Health Network.
+
+  IAM demo hooks (live where templates exist):
+   · In Basket "Sign authorization" (ROI request) → Signing Ceremony
+   · In Basket "Compile records" → Navigator (search executed agreements)
+   · In Basket discharge co-sign → Signing Ceremony
+   · In Basket urgent lab → Workspaces (multi-party care collab)
+   · ROI Requests sub-sub nav → Web Forms (request intake)
+   · Navigators activity → Maestro (orchestration)
+   · Allergies bar / patient identity step-up → CLEAR
+   · Mark as Reviewed (med list cosign) → Signing
+   · "Run IAM Demo" toolbar item / FAB → Full 13-demo tray
+
+  Plan: /_audits/headless-iam-plan-2026-04-28.md
+-->
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    /* Epic Hyperspace-inspired palette */
+    --ehr-teal:#0B4D5F;
+    --ehr-teal-dark:#063744;
+    --ehr-teal-light:#1B6E85;
+    --ehr-navy:#0C2D4A;
+    --ehr-blue:#1976D2;
+    --ehr-blue-soft:#E3F2FD;
+    --ehr-gray-100:#F7F8FA;
+    --ehr-gray-200:#E9EBEE;
+    --ehr-gray-300:#CED3D9;
+    --ehr-gray-400:#9AA2AC;
+    --ehr-ink:#1E2430;
+    --ehr-ink-mid:#3F4855;
+    --ehr-ink-soft:#6A7380;
+    --ehr-warn:#B45309;
+    --ehr-warn-soft:#FEF3C7;
+    --ehr-stick:#FFF59D;
+    --ehr-stick-border:#F4D03F;
+    --ehr-alert:#B91C1C;
+    --ehr-alert-soft:#FEE2E2;
+    --ehr-ok:#15803D;
+    --ehr-ok-soft:#DCFCE7;
+    --ehr-link:#1A56DB;
+    --ehr-purple:#6B2D8E;
+    --ds-purple:#4B00E9;
+    --ui:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+    --mono:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:var(--ui);color:var(--ehr-ink);background:var(--ehr-gray-100);font-size:11px;line-height:1.35;-webkit-font-smoothing:antialiased;}
+  body{display:flex;align-items:stretch;justify-content:stretch;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;}
+  .mock{width:100%;min-height:100vh;display:flex;flex-direction:column;position:relative;background:var(--ehr-gray-100);}
+
+  /* ============ TITLE BAR ============ */
+  .ehr-titlebar{flex-shrink:0;height:24px;background:var(--ehr-teal-dark);display:flex;align-items:center;padding:0 12px;gap:12px;color:#E6F4F7;font-size:10.5px;font-weight:500;}
+  .ehr-titlebar .vendor{display:flex;align-items:center;gap:6px;font-weight:700;color:#fff;}
+  .ehr-titlebar .vendor svg{width:14px;height:14px;fill:#fff;}
+  .ehr-titlebar .vendor .wm{letter-spacing:-0.01em;font-size:11.5px;}
+  .ehr-titlebar .breadcrumb{opacity:0.85;}
+  .ehr-titlebar .spacer{flex:1;}
+  .ehr-titlebar .deploy{font-family:var(--mono);color:#9DCCD8;font-size:10px;letter-spacing:0.04em;}
+  .ehr-titlebar .env{font-family:var(--mono);color:#FFD54F;font-size:10px;letter-spacing:0.04em;}
+  .ehr-titlebar .winctrl{display:flex;gap:4px;}
+  .ehr-titlebar .winctrl span{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.28);}
+
+  /* ============ ACTIVITY TOOLBAR ============ */
+  .ehr-activities{flex-shrink:0;height:60px;background:linear-gradient(180deg,var(--ehr-teal) 0%,var(--ehr-teal-dark) 100%);display:flex;align-items:center;gap:0;padding:0 6px;border-bottom:1px solid var(--ehr-teal-dark);overflow-x:auto;white-space:nowrap;}
+  .ehr-act{padding:6px 11px;display:flex;flex-direction:column;align-items:center;gap:3px;color:#D6EEF3;font-size:10.5px;font-weight:500;position:relative;min-width:62px;border-right:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:background 0.12s;}
+  .ehr-act:hover{background:rgba(255,255,255,0.08);}
+  .ehr-act .icon{width:24px;height:24px;border-radius:3px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;}
+  .ehr-act.active{background:#fff;color:var(--ehr-teal-dark);font-weight:700;}
+  .ehr-act.active .icon{background:var(--ehr-teal);color:#fff;}
+  .ehr-act.active::before{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ehr-teal-dark);}
+  .ehr-act.flag{color:#FFD54F;}
+  .ehr-act.iam{margin-left:auto;background:rgba(75,0,233,0.18);color:#E0D2FF;font-weight:700;}
+  .ehr-act.iam:hover{background:rgba(75,0,233,0.32);color:#fff;}
+  .ehr-act.iam .icon{background:var(--ds-purple);color:#fff;}
+  .ehr-act small{display:inline-block;color:#FFD54F;font-weight:700;margin-left:3px;}
+
+  /* ============ BODY ============ */
+  .ehr-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+  .ehr-patient-rail{flex-shrink:0;width:200px;background:var(--ehr-navy);color:#E8EEF5;display:flex;flex-direction:column;padding:12px 12px 10px;gap:6px;border-right:2px solid var(--ehr-teal);overflow-y:auto;}
+  .ehr-patient-rail .pp{display:flex;gap:9px;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.14);}
+  .ehr-patient-rail .ppic{width:42px;height:42px;background:linear-gradient(135deg,#8BC9E5,#4D89AF);border-radius:3px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex-shrink:0;position:relative;}
+  .ehr-patient-rail .ppic::after{content:"";position:absolute;top:20%;left:28%;width:44%;height:36%;background:#E8C9A4;border-radius:50%;}
+  .ehr-patient-rail .ppic::before{content:"";position:absolute;bottom:0;left:18%;width:64%;height:32%;background:#3A2A1A;border-radius:40% 40% 0 0;}
+  .ehr-patient-rail .pn{font-size:12.5px;font-weight:700;line-height:1.15;color:#fff;}
+  .ehr-patient-rail .pn small{display:block;font-size:10px;font-weight:400;color:#B7C6D5;margin-top:1px;}
+  .ehr-patient-rail .kv{display:flex;flex-direction:column;gap:1px;font-size:10px;color:#B7C6D5;}
+  .ehr-patient-rail .kv .k{color:#8DA0B6;text-transform:uppercase;letter-spacing:0.04em;font-size:9px;font-weight:600;}
+  .ehr-patient-rail .kv .v{color:#fff;font-weight:500;line-height:1.3;}
+  .ehr-patient-rail .sec{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8DA0B6;padding:8px 0 3px;}
+  .ehr-patient-rail .alert{background:#7F1D1D;color:#fff;border-radius:2px;padding:4px 7px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .ehr-patient-rail .alert::before{content:"!";background:#fff;color:#7F1D1D;border-radius:50%;width:13px;height:13px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;}
+  .ehr-patient-rail .alert:hover{background:#991B1B;}
+  .ehr-patient-rail .chip{background:rgba(255,255,255,0.12);color:#E8EEF5;border-radius:2px;padding:4px 7px;font-size:10px;display:flex;justify-content:space-between;align-items:center;}
+  .ehr-patient-rail .chip.active{background:#1E40AF;color:#fff;}
+  .ehr-patient-rail .chip b{font-weight:700;color:#fff;}
+  .ehr-patient-rail .covid{background:rgba(255,255,255,0.08);padding:4px 7px;font-size:10px;color:#B7C6D5;border-left:2px solid #FFD54F;}
+  .ehr-patient-rail .covid b{color:#FFD54F;}
+  .ehr-patient-rail .id-cta{margin-top:4px;background:rgba(75,0,233,0.32);color:#fff;padding:6px 8px;border-radius:3px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.18);}
+  .ehr-patient-rail .id-cta:hover{background:rgba(75,0,233,0.5);border-color:rgba(255,255,255,0.32);}
+  .ehr-patient-rail .id-cta::before{content:"";width:8px;height:8px;border-radius:50%;background:#3ED98E;flex-shrink:0;}
+
+  /* ============ MAIN PANE ============ */
+  .ehr-main{flex:1;display:flex;flex-direction:column;background:#fff;min-width:0;overflow:hidden;position:relative;}
+  .ehr-subtabs{flex-shrink:0;background:var(--ehr-gray-200);border-bottom:1px solid var(--ehr-gray-300);display:flex;align-items:center;padding:0 10px;height:30px;gap:2px;}
+  .ehr-subtab{padding:6px 13px;background:var(--ehr-gray-100);border:1px solid var(--ehr-gray-300);border-bottom:none;font-size:11px;color:var(--ehr-ink-mid);font-weight:500;border-radius:3px 3px 0 0;cursor:pointer;}
+  .ehr-subtab:hover{background:#fff;}
+  .ehr-subtab.active{background:#fff;color:var(--ehr-teal-dark);font-weight:700;position:relative;z-index:2;}
+  .ehr-subtab.active::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:1px;background:#fff;}
+  .ehr-subsub{flex-shrink:0;background:#fff;border-bottom:1px solid var(--ehr-gray-300);display:flex;align-items:center;padding:5px 10px;gap:14px;font-size:11px;color:var(--ehr-ink-soft);}
+  .ehr-subsub .item{padding:3px 7px;color:var(--ehr-blue);font-weight:500;cursor:pointer;border-radius:2px;}
+  .ehr-subsub .item:hover{background:var(--ehr-blue-soft);}
+  .ehr-subsub .item.active{color:var(--ehr-ink);font-weight:700;border-bottom:2px solid var(--ehr-blue);padding-bottom:3px;border-radius:0;}
+  .ehr-subsub .item.iam{color:var(--ds-purple);font-weight:700;}
+
+  .ehr-sticky{position:absolute;top:90px;right:14px;background:var(--ehr-stick);border:1px solid var(--ehr-stick-border);padding:7px 10px;border-radius:2px;font-size:10.5px;color:#1F1F00;line-height:1.4;max-width:300px;box-shadow:0 2px 6px rgba(0,0,0,0.12);z-index:4;}
+  .ehr-sticky .h{font-size:9.5px;font-weight:700;color:#8A6D00;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;}
+
+  .ehr-content{flex:1;overflow-y:auto;padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;min-height:0;position:relative;}
+  .ehr-section-hd{display:flex;align-items:center;gap:8px;padding:7px 0 4px;font-size:11.5px;font-weight:700;color:var(--ehr-teal-dark);letter-spacing:-0.005em;text-transform:uppercase;}
+  .ehr-section-hd::after{content:"";flex:1;height:1px;background:var(--ehr-gray-300);}
+  .ehr-section-hd .cnt{font-weight:500;color:var(--ehr-ink-soft);font-size:10px;letter-spacing:0;text-transform:none;}
+
+  .med{display:grid;grid-template-columns:18px 1.8fr 2.6fr 110px 60px 80px 22px;gap:10px;padding:6px 4px;border-bottom:1px solid var(--ehr-gray-200);align-items:center;font-size:11px;color:var(--ehr-ink-mid);}
+  .med:hover,.med.hover{background:var(--ehr-blue-soft);}
+  .med .pill-ic{width:15px;height:15px;background:var(--ehr-purple);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;}
+  .med .pill-ic.antibiotic{background:#6A9955;}
+  .med .pill-ic.antidiabetic{background:#E76F51;}
+  .med .pill-ic.cardiac{background:#B91C1C;}
+  .med .pill-ic.anticoag{background:#D97706;}
+  .med .pill-ic.ppi{background:#0891B2;}
+  .med .name{color:var(--ehr-ink);font-weight:600;font-size:11.5px;line-height:1.3;}
+  .med .name small{display:block;font-weight:400;color:var(--ehr-ink-soft);font-size:10px;margin-top:1px;}
+  .med .details{color:var(--ehr-ink-mid);font-size:10.5px;line-height:1.4;}
+  .med .details .note{display:block;color:var(--ehr-warn);font-size:10px;margin-top:2px;}
+  .med .details .note b{color:var(--ehr-ink);font-weight:700;}
+  .med .lastdose{color:var(--ehr-ink-mid);font-size:10px;line-height:1.4;}
+  .med .lastdose.obtain{color:var(--ehr-alert);font-weight:700;background:var(--ehr-alert-soft);padding:2px 6px;border-radius:2px;text-align:center;}
+  .med .time{color:var(--ehr-ink-mid);font-size:10px;}
+  .med .taking{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ehr-ink-mid);}
+  .med .taking .cb{width:12px;height:12px;border:1px solid var(--ehr-gray-400);border-radius:1px;background:#fff;display:inline-block;flex-shrink:0;}
+  .med .taking.yes .cb{background:var(--ehr-ok);border-color:var(--ehr-ok);position:relative;}
+  .med .taking.yes .cb::after{content:"";position:absolute;top:1.5px;left:3.5px;width:2.5px;height:5.5px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(45deg);}
+  .med .menu{color:var(--ehr-gray-400);font-size:14px;line-height:0;}
+  .med .exp-badge{display:inline-block;padding:1px 6px;border-radius:2px;background:var(--ehr-warn-soft);color:var(--ehr-warn);font-size:9.5px;font-weight:700;margin-top:1px;}
+
+  /* Footer "Mark as Reviewed" — cosign hook to Signing demo */
+  .ehr-footer{flex-shrink:0;padding:8px 14px;background:var(--ehr-gray-100);border-top:1px solid var(--ehr-gray-300);display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ehr-ink-soft);}
+  .ehr-footer .btn{padding:6px 13px;background:var(--ehr-blue);color:#fff;border:none;border-radius:2px;font-size:11.5px;font-weight:600;letter-spacing:0.01em;display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+  .ehr-footer .btn:hover{background:#1565C0;}
+  .ehr-footer .btn::before{content:"\2713";font-weight:900;}
+  .ehr-footer .btn.ghost{background:#fff;color:var(--ehr-ink-mid);border:1px solid var(--ehr-gray-400);}
+  .ehr-footer .btn.ghost::before{content:"";display:none;}
+  .ehr-footer .btn.ghost:hover{background:var(--ehr-gray-100);}
+  .ehr-footer .reviewed{color:var(--ehr-ok);font-weight:600;}
+  .ehr-footer .spacer{flex:1;}
+  .ehr-footer .nav{display:flex;gap:5px;}
+  .ehr-footer .nav .btn{background:#fff;color:var(--ehr-ink);border:1px solid var(--ehr-gray-400);font-weight:500;padding:6px 14px;}
+  .ehr-footer .nav .btn::before{content:"";display:none;}
+  .ehr-footer .nav .btn.primary{background:var(--ehr-blue);color:#fff;border-color:var(--ehr-blue);}
+
+  /* In Basket panel — persistent, click-through to demos */
+  .ehr-inbasket{position:absolute;top:8px;right:8px;bottom:60px;width:430px;background:#fff;border:1px solid var(--ehr-gray-300);border-radius:3px;box-shadow:0 8px 24px rgba(19,46,74,0.18);display:flex;flex-direction:column;z-index:5;}
+  .ehr-inbasket .ih{padding:9px 13px;background:var(--ehr-teal);color:#fff;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;}
+  .ehr-inbasket .ih .cnt{margin-left:auto;background:rgba(255,255,255,0.22);padding:1px 8px;border-radius:10px;font-size:10.5px;}
+  .ehr-inbasket .ih .close{color:#fff;font-size:14px;line-height:0;margin-left:6px;cursor:pointer;}
+  .ehr-inbasket .ib-item{padding:8px 11px;border-bottom:1px solid var(--ehr-gray-200);display:flex;gap:8px;align-items:flex-start;font-size:10.5px;color:var(--ehr-ink-mid);line-height:1.4;cursor:pointer;}
+  .ehr-inbasket .ib-item:hover{background:var(--ehr-blue-soft);}
+  .ehr-inbasket .ib-item .tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:2px;flex-shrink:0;margin-top:2px;}
+  .ehr-inbasket .ib-item .tag.roi{background:var(--ehr-blue-soft);color:var(--ehr-blue);}
+  .ehr-inbasket .ib-item .tag.urgent{background:var(--ehr-alert-soft);color:var(--ehr-alert);}
+  .ehr-inbasket .ib-item .tag.sign{background:var(--ehr-ok-soft);color:var(--ehr-ok);}
+  .ehr-inbasket .ib-item .body{flex:1;min-width:0;}
+  .ehr-inbasket .ib-item .body .subj{color:var(--ehr-ink);font-weight:700;font-size:11px;}
+  .ehr-inbasket .ib-item .body .meta{color:var(--ehr-ink-soft);font-size:10px;margin-top:2px;}
+  .ehr-inbasket .ib-item.selected{background:var(--ehr-blue-soft);}
+  .ehr-inbasket .ib-detail{margin-top:auto;padding:11px 13px;background:var(--ehr-gray-100);border-top:1px solid var(--ehr-gray-300);display:flex;flex-direction:column;gap:8px;font-size:10.5px;color:var(--ehr-ink-mid);line-height:1.5;}
+  .ehr-inbasket .ib-detail b{color:var(--ehr-ink);}
+  .ehr-inbasket .ib-detail .cta-row{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;}
+  .ehr-inbasket .ib-detail .cta{padding:6px 13px;background:var(--ds-purple);color:#fff;border-radius:3px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:0;}
+  .ehr-inbasket .ib-detail .cta:hover{background:#3a00b8;}
+  .ehr-inbasket .ib-detail .cta.docusign::before{content:"\10022";color:#fff;font-size:11px;}
+  .ehr-inbasket .ib-detail .cta.ghost{background:#fff;color:var(--ehr-ink-mid);border:1px solid var(--ehr-gray-400);font-weight:500;}
+  .ehr-inbasket .ib-detail .cta.ghost:hover{background:var(--ehr-gray-100);}
+
+  /* ============ FAB — IAM Demos launcher ============ */
+  .fab{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--ds-purple);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(75,0,233,0.45);cursor:pointer;z-index:40;transition:transform 0.18s ease,box-shadow 0.18s ease;border:0;}
+  .fab:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 16px 40px rgba(75,0,233,0.55);}
+  .fab svg{width:22px;height:22px;}
+  .fab-label{position:absolute;right:68px;top:50%;transform:translateY(-50%);background:#130032;color:#fff;font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;}
+  .fab:hover .fab-label{opacity:1;}
+  .fab-badge{position:absolute;top:-4px;right:-4px;background:#fff;color:var(--ds-purple);font-size:10px;font-weight:800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--ds-purple);}
+
+  /* ============ IAM TRAY ============ */
+  .scrim{position:fixed;inset:0;background:rgba(11,77,95,0.55);backdrop-filter:blur(2px);z-index:50;display:none;}
+  .scrim.open{display:block;}
+  .iam-tray{position:fixed;top:0;right:0;width:480px;max-width:96vw;height:100vh;background:#fff;box-shadow:-20px 0 60px rgba(0,0,0,0.18);z-index:51;transform:translateX(105%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;}
+  .iam-tray.open{transform:translateX(0);}
+  .iam-tray-h{padding:18px 22px;border-bottom:1px solid var(--ehr-gray-300);display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FAFAFB 0%,#F5F1FF 100%);}
+  .iam-tray-h .ds-mark{width:32px;height:32px;border-radius:6px;background:var(--ds-purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .iam-tray-h .meta{flex:1;}
+  .iam-tray-h .meta-eyebrow{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:var(--ds-purple);margin-bottom:2px;}
+  .iam-tray-h h2{font-size:18px;font-weight:700;margin:0;letter-spacing:-0.01em;color:#130032;}
+  .iam-tray-h .close{padding:6px 8px;border-radius:6px;color:var(--ehr-ink-soft);}
+  .iam-tray-h .close:hover{background:#fff;color:var(--ehr-ink);}
+
+  .iam-list{flex:1;overflow-y:auto;padding:14px 22px 22px;}
+  .iam-section{margin-top:14px;}
+  .iam-section:first-child{margin-top:0;}
+  .iam-section-h{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:var(--ehr-ink-soft);margin-bottom:8px;padding:0 4px;}
+  .iam-card{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:11px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:background 0.12s,border-color 0.12s;}
+  .iam-card:hover{background:var(--ehr-gray-100);border-color:var(--ehr-gray-300);}
+  .iam-card.stub{cursor:default;opacity:0.55;}
+  .iam-card.stub:hover{background:transparent;border-color:transparent;}
+  .iam-icon{width:36px;height:36px;border-radius:8px;background:#F5F1FF;color:var(--ds-purple);display:flex;align-items:center;justify-content:center;}
+  .iam-num{font-size:10px;letter-spacing:0.1em;font-weight:700;color:var(--ds-purple);}
+  .iam-title{font-size:13.5px;font-weight:600;color:var(--ehr-ink);line-height:1.3;}
+  .iam-sub{font-size:11.5px;color:var(--ehr-ink-soft);line-height:1.4;margin-top:1px;}
+  .iam-status{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:4px;}
+  .iam-status.live{background:#DCEEDF;color:#1F6B3D;}
+  .iam-status.stub{background:#F2EAD6;color:#7A5A1E;}
+
+  /* ============ DRILLDOWN MODAL ============ */
+  .dd{position:fixed;inset:0;background:rgba(11,77,95,0.65);backdrop-filter:blur(3px);z-index:60;display:none;align-items:stretch;justify-content:center;padding:24px;}
+  .dd.open{display:flex;}
+  .dd-frame{width:100%;max-width:1320px;background:#fff;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,0.4);}
+  .dd-bar{padding:12px 18px;border-bottom:1px solid var(--ehr-gray-300);display:flex;align-items:center;gap:14px;}
+  .dd-bar .crumb{font-size:12px;color:var(--ehr-ink-soft);}
+  .dd-bar .crumb b{color:var(--ehr-teal-dark);font-weight:700;}
+  .dd-bar .title{font-size:15px;font-weight:700;flex:1;}
+  .dd-bar button{width:30px;height:30px;border:1px solid var(--ehr-gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ehr-ink-soft);}
+  .dd-bar button:hover{border-color:var(--ehr-teal-dark);color:var(--ehr-teal-dark);}
+  .dd-body{flex:1;background:var(--ehr-gray-100);position:relative;min-height:600px;}
+  .dd-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .dd-stub{height:100%;min-height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:40px;color:var(--ehr-ink-soft);}
+  .dd-stub h3{font-size:22px;font-weight:600;color:var(--ehr-ink);margin:0;}
+  .dd-stub p{max-width:480px;line-height:1.55;margin:0;}
+  .dd-stub .moments{font-size:12px;font-family:var(--mono);background:var(--ehr-gray-100);padding:8px 12px;border-radius:6px;margin-top:4px;}
+
+  /* Live demo strip */
+  .live-strip{position:absolute;bottom:14px;left:14px;z-index:10;background:rgba(11,77,95,0.94);color:#fff;border-radius:14px;padding:5px 11px 5px 9px;display:flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:0.02em;}
+  .live-strip .dot{width:6px;height:6px;border-radius:50%;background:#4DD77E;animation:pulse-dot 1.6s ease-out infinite;}
+  @keyframes pulse-dot{0%{box-shadow:0 0 0 0 rgba(77,215,126,0.55);}70%{box-shadow:0 0 0 5px rgba(77,215,126,0);}100%{box-shadow:0 0 0 0 rgba(77,215,126,0);}}
+
+  @media (max-width:980px){
+    .ehr-inbasket{display:none;}
+    .ehr-sticky{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="mock">
+
+  <!-- ============ TITLE BAR ============ -->
+  <div class="ehr-titlebar">
+    <span class="vendor">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4h16v16H4z M7 7h10v2H7z M7 11h10v2H7z M7 15h7v2H7z"/></svg>
+      <span class="wm">Epic</span>
+    </span>
+    <span class="breadcrumb">Hyperspace &middot; Practice &middot; IP INTERNAL MEDICINE/HOSPITALISTS SER</span>
+    <span class="spacer"></span>
+    <span class="deploy">Deployed at: Riverside Health Network</span>
+    <span class="env">PRACTICE &middot; CHEN, MARCUS &middot; EpicCare</span>
+    <span class="winctrl"><span></span><span></span><span></span></span>
+  </div>
+
+  <!-- ============ ACTIVITY TOOLBAR ============ -->
+  <div class="ehr-activities">
+    <div class="ehr-act"><div class="icon">&#128100;</div>Patient Station</div>
+    <div class="ehr-act"><div class="icon">&#128214;</div>Encounter</div>
+    <div class="ehr-act"><div class="icon">&#128222;</div>Telephone Call</div>
+    <div class="ehr-act"><div class="icon">&#128202;</div>Chart</div>
+    <div class="ehr-act"><div class="icon">&#128203;</div>Care Plans</div>
+    <div class="ehr-act active" onclick="openDemo('maestro', event)" title="Open Maestro orchestration demo"><div class="icon">&#128218;</div>Navigators</div>
+    <div class="ehr-act" onclick="openDemo('iris', event)" title="Open AI-Assisted Review demo"><div class="icon">&#9998;</div>Notes</div>
+    <div class="ehr-act"><div class="icon">&#128196;</div>Orders</div>
+    <div class="ehr-act"><div class="icon">&#8645;</div>I/O</div>
+    <div class="ehr-act"><div class="icon">&#128269;</div>Results</div>
+    <div class="ehr-act flag" title="In Basket — 3 unread"><div class="icon">&#9993;</div>In Basket<small>&middot; 3</small></div>
+    <div class="ehr-act"><div class="icon">&#9881;</div>BCA</div>
+    <div class="ehr-act"><div class="icon">&#128266;</div>Remind Me</div>
+    <div class="ehr-act"><div class="icon">&#128272;</div>Secure</div>
+    <div class="ehr-act iam" onclick="openTray()" title="Open all 13 IAM demos">
+      <div class="icon">
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7 L6 10 L11 5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      IAM Demos
+    </div>
+  </div>
+
+  <!-- ============ BODY ============ -->
+  <div class="ehr-body">
+
+    <!-- Patient rail -->
+    <aside class="ehr-patient-rail">
+      <div class="pp">
+        <div class="ppic" aria-hidden="true"></div>
+        <div class="pn">Meyer, Patrick<small>Male, 44, 03/14/1982</small></div>
+      </div>
+      <div class="kv"><span class="k">MRN</span><span class="v">9301254</span></div>
+      <div class="kv"><span class="k">Room</span><span class="v">4N-217-2 &middot; Bed 2</span></div>
+      <div class="kv"><span class="k">Attending</span><span class="v">Johl, Herchan S.</span></div>
+      <div class="kv"><span class="k">Payor</span><span class="v">BLUE CROSS/SHIELD PPO</span></div>
+      <div class="kv"><span class="k">Code</span><span class="v">FULL</span></div>
+      <div class="sec">Allergies (2)</div>
+      <div class="alert" onclick="openDemo('clear', event)" title="Identity step-up at high-trust moments">PENICILLIN &middot; HIVES</div>
+      <div class="chip">SULFA &middot; RASH</div>
+      <div class="sec">Status</div>
+      <div class="chip active"><span>Admitted</span><b>9/18/2026</b></div>
+      <div class="chip"><span>Class</span><b>Inpatient</b></div>
+      <div class="chip"><span>LOS</span><b>4 days</b></div>
+      <div class="sec">Vitals</div>
+      <div class="chip"><span>Ht</span><b>175.3 cm</b></div>
+      <div class="chip"><span>Wt</span><b>70.7 kg</b></div>
+      <div class="sec">Active Meds</div>
+      <div class="chip active"><span>Scheduled</span><b>4</b></div>
+      <div class="chip"><span>Continuous</span><b>2</b></div>
+      <div class="sec">Flags</div>
+      <div class="covid"><b>COVID+</b> &middot; 09/16/2026</div>
+      <div class="id-cta" onclick="openDemo('clear', event)" title="Verify clinician identity for sensitive action">CLEAR identity verified</div>
+    </aside>
+
+    <!-- Main pane -->
+    <div class="ehr-main">
+
+      <div class="ehr-subtabs">
+        <div class="ehr-subtab active">Admission</div>
+        <div class="ehr-subtab">Transfer</div>
+        <div class="ehr-subtab">Discharge</div>
+        <div class="ehr-subtab">Inpatient Hospice</div>
+        <div class="ehr-subtab">Quick Procedure</div>
+        <div class="ehr-subtab" onclick="openDemo('signing', event)">Documentation</div>
+      </div>
+
+      <div class="ehr-subsub">
+        <span class="item">History</span>
+        <span class="item">Review Current Orders</span>
+        <span class="item active">Review Home Meds</span>
+        <span class="item">Reorder Home Meds</span>
+        <span class="item" onclick="openDemo('maestro', event)">Order Sets</span>
+        <span class="item iam" onclick="openDemo('webforms', event)">ROI Requests</span>
+      </div>
+
+      <div class="ehr-sticky">
+        <div class="h">My Sticky Note</div>
+        78 main heart failure, diabetes still shortness of breath x 2 weeks, recently admitted for covid, has been on this eliquis. Due to afib. Lasix 40 mg ED + DC and azithromycin.
+      </div>
+
+      <!-- Med list -->
+      <div class="ehr-content">
+        <div class="ehr-section-hd">Absorbable Sulfonamide Antibacterial Agents <span class="cnt">1 ordered</span></div>
+        <div class="med">
+          <span class="pill-ic antibiotic">Rx</span>
+          <div class="name">Trimethoprim 160 mg / Sulfamethoxazole 800 mg<small>BACTRIM DS &middot; Tablet</small></div>
+          <div class="details">Take 1 tablet by mouth 2 times daily &middot; Disp-24 tablet &middot; R-0 &middot; Pharmacy &middot; Last Dose: Not Recorded<span class="note">Note entered 9/18/2026 14:17: <b>Pt took 1 dose PTA</b> (started for periumbilical pain)</span></div>
+          <div class="lastdose">(Expired on 8/18/2026<span class="exp-badge">Flagged for Removal</span>)</div>
+          <div class="time">&mdash;</div>
+          <div class="taking"><span class="cb"></span>Edit/Remove Note</div>
+          <div class="menu">&#8942;</div>
+        </div>
+
+        <div class="ehr-section-hd">ACE Inhibitor / Thiazide-Type Diuretic <span class="cnt">1 ordered</span></div>
+        <div class="med">
+          <span class="pill-ic cardiac">Rx</span>
+          <div class="name">Benazepril-Hydrochlorothiazide<small>LOTENSIN HCT &middot; 20-25 mg &middot; Tablet</small></div>
+          <div class="details">Take 1 tablet by mouth every morning &middot; 1 tablet &middot; Disp-30 tablet &middot; R-11 &middot; Long-term &middot; Pharmacy<span class="note">Patient taking differently: <b>1 tablet ORAL EVERY OTHER DAY</b> (OUTPATIENT) &middot; Reported on 9/24/2026</span></div>
+          <div class="lastdose">(Expired on 8/18/2026)</div>
+          <div class="time">&mdash;</div>
+          <div class="taking yes"><span class="cb"></span>Yes</div>
+          <div class="menu">&#8942;</div>
+        </div>
+
+        <div class="ehr-section-hd">Anticoagulants &middot; Coumarin Type <span class="cnt">1 ordered</span></div>
+        <div class="med">
+          <span class="pill-ic anticoag">Rx</span>
+          <div class="name">Warfarin (COUMADIN) 10 mg<small>Tablet</small></div>
+          <div class="details">Take 1 tablet by mouth every day &middot; 10 mg &middot; Disp-30 tablet &middot; R-11 &middot; Long-term &middot; Pharmacy &middot; Last Dose: Not Recorded<span class="note">Note entered 9/18/2026 14:27: <b>Followed by Sutter clinic</b></span></div>
+          <div class="lastdose">(Expired on 9/9/2026)</div>
+          <div class="time">&mdash;</div>
+          <div class="taking yes"><span class="cb"></span>Yes</div>
+          <div class="menu">&#8942;</div>
+        </div>
+
+        <div class="ehr-section-hd">Antidiarrheals</div>
+        <div class="med">
+          <span class="pill-ic">Rx</span>
+          <div class="name">Bismuth Subsalicylate (PEPTO-BISMOL) 262 mg<small>Chewable tablet</small></div>
+          <div class="details">Chew and swallow 262 mg by mouth once daily if needed for heartburn &middot; Informant: Self &middot; Last Dose: Not Recorded</div>
+          <div class="lastdose obtain">Unable to Obtain</div>
+          <div class="time">&mdash;</div>
+          <div class="taking"><span class="cb"></span>&nbsp;</div>
+          <div class="menu">&#8942;</div>
+        </div>
+
+        <div class="ehr-section-hd">Beta-Adrenergic Agents, Inhaled, Short Acting</div>
+        <div class="med hover">
+          <span class="pill-ic">Rx</span>
+          <div class="name">Albuterol (PROVENTIL, VENTOLIN) 2.5 mg / 3 ml (0.083%)<small>Nebulization</small></div>
+          <div class="details">Use 2.5 mg in nebulizer every 4 hours if needed &middot; Last Dose: Not Recorded</div>
+          <div class="lastdose obtain">Unable to Obtain</div>
+          <div class="time">&mdash;</div>
+          <div class="taking"><span class="cb"></span>&nbsp;</div>
+          <div class="menu">&#8942;</div>
+        </div>
+
+        <div class="ehr-section-hd">Loop Diuretics <span class="cnt">1 ordered</span></div>
+        <div class="med">
+          <span class="pill-ic cardiac">Rx</span>
+          <div class="name">Furosemide (LASIX) 40 mg<small>Tablet</small></div>
+          <div class="details">Take 1 tablet by mouth every morning &middot; 40 mg &middot; Disp-30 tablet &middot; R-11 &middot; Long-term &middot; Pharmacy &middot; Started 9/18/2026 for afib + CHF</div>
+          <div class="lastdose">(Active &middot; 3 days)</div>
+          <div class="time">07:00</div>
+          <div class="taking yes"><span class="cb"></span>Yes</div>
+          <div class="menu">&#8942;</div>
+        </div>
+      </div>
+
+      <!-- Footer cosign — Mark as Reviewed routes through Signing -->
+      <div class="ehr-footer">
+        <button class="btn" onclick="openDemo('signing', event)" title="Cosign med review">Mark as Reviewed</button>
+        <span class="reviewed">Last Reviewed by Bajorek, Sarah, PharmD on 9/18/2026 at 2:27 PM</span>
+        <span class="spacer"></span>
+        <span class="nav">
+          <button class="btn">Restore</button>
+          <button class="btn">Close</button>
+          <button class="btn primary">&#9664; Previous</button>
+          <button class="btn primary">Next &#9654;</button>
+        </span>
+      </div>
+
+      <!-- In Basket panel (persistent, click items to open IAM demos) -->
+      <div class="ehr-inbasket">
+        <div class="ih">
+          <span>&#9993; In Basket</span>
+          <span class="cnt">3 new</span>
+          <span class="close" title="Hide In Basket" aria-hidden="true">&times;</span>
+        </div>
+        <div class="ib-item selected" onclick="openDemo('webforms', event)" title="Open Web Forms demo (ROI request intake)">
+          <span class="tag roi">ROI</span>
+          <div class="body">
+            <div class="subj">Records request &middot; Acme Disability</div>
+            <div class="meta">Meyer, Patrick &middot; MRN 9301254 &middot; arrived 09:14 today</div>
+          </div>
+        </div>
+        <div class="ib-item" onclick="openDemo('signing', event)" title="Open Signing demo (resident discharge co-sign)">
+          <span class="tag sign">Sign</span>
+          <div class="body">
+            <div class="subj">Discharge summary pending co-sign</div>
+            <div class="meta">Rivera, L. (resident) &middot; 3 notes</div>
+          </div>
+        </div>
+        <div class="ib-item" onclick="openDemo('workspace', event)" title="Open Workspaces demo (multi-party care collab)">
+          <span class="tag urgent">Urgent</span>
+          <div class="body">
+            <div class="subj">Abnormal lab &middot; K+ 5.9</div>
+            <div class="meta">Meyer, Patrick &middot; draw 06:12 today</div>
+          </div>
+        </div>
+        <div class="ib-detail">
+          <b>Acme Disability is requesting 2 years of cardiology records</b> for claim C-2026-447182. Scope: ECHO, EKG, H&amp;P, discharge summaries. Patient authorization attached.
+          <div class="cta-row">
+            <button class="cta docusign" onclick="openDemo('signing', event)">Sign authorization</button>
+            <button class="cta ghost" onclick="openDemo('navigator', event)">Compile records</button>
+            <button class="cta ghost">Decline</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="live-strip">
+    <span class="dot"></span>
+    <span>Riverside Internal &middot; click any IAM moment to drill in</span>
+  </div>
+
+</div>
+
+<!-- ============ FAB ============ -->
+<button class="fab" onclick="openTray()" aria-label="Open IAM demos tray">
+  <span class="fab-label">All 13 IAM demos</span>
+  <span class="fab-badge">13</span>
+  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="6" width="16" height="12" rx="1.5"/>
+    <path d="M3 10h16M9 14h4"/>
+  </svg>
+</button>
+
+<!-- ============ IAM TRAY ============ -->
+<div class="scrim" id="scrim" onclick="closeTray()"></div>
+<aside class="iam-tray" id="iamTray" aria-hidden="true">
+  <div class="iam-tray-h">
+    <div class="ds-mark" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 14 14"><path d="M3 7 L6 10 L11 5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="meta">
+      <div class="meta-eyebrow">Docusign · Embedded in Riverside (Epic)</div>
+      <h2>All 13 IAM demos</h2>
+    </div>
+    <button class="close" onclick="closeTray()" aria-label="Close demos tray">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="iam-list" id="iamList"></div>
+</aside>
+
+<!-- ============ DRILLDOWN MODAL ============ -->
+<div class="dd" id="drilldown" role="dialog" aria-modal="true">
+  <div class="dd-frame">
+    <div class="dd-bar">
+      <div class="crumb"><b>Riverside / Epic</b> &nbsp;/&nbsp; IAM Demos &nbsp;/&nbsp; <span id="ddCrumb">—</span></div>
+      <div class="title" id="ddTitle">—</div>
+      <button onclick="closeDemo()" aria-label="Close demo">
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="dd-body" id="ddBody"></div>
+  </div>
+</div>
+
+<script>
+const TENANT = { slug:'riverside', label:'Riverside' };
+const IAM_DEMOS = [
+  { id:'webforms',  num:'01', title:'Web Forms',                    sub:'Patient intake, ROI request, screening forms.', section:'Intake & orchestration', template:'/story-templates/docusign-webform-intake.html?preset=riverside' },
+  { id:'maestro',   num:'02', title:'Maestro Workflow Templates',    sub:'Multi-party orchestration: site activation, ROI, claims.', section:'Intake & orchestration', template:'/story-templates/docusign-maestro-package.html?preset=riverside' },
+  { id:'clear',     num:'03', title:'CLEAR · IAL2',                  sub:'Clinician + patient identity step-up at consent moments.', section:'Identity', template:'/story-templates/docusign-clear-idv.html?preset=riverside' },
+  { id:'idme',      num:'04', title:'ID.me · Member Authentication', sub:'Member portal step-up auth.', section:'Identity' },
+  { id:'idverse',   num:'05', title:'IDVerse',                       sub:'Document + selfie verification.', section:'Identity' },
+  { id:'signing',   num:'06', title:'Signing Ceremony',              sub:'Branded signing for IRB protocols, discharge co-sign, ROIs.', section:'Agreement execution', template:'/story-templates/docusign-signing-ceremony.html?preset=riverside' },
+  { id:'navigator', num:'07', title:'Navigator',                     sub:'Search across executed clinical agreements.', section:'Data & discovery', template:'/story-templates/docusign-navigator.html?preset=riverside' },
+  { id:'iris',      num:'08', title:'AI-Assisted Review (Iris)',      sub:'Iris reads protocol amendments and surfaces obligations.', section:'Data & discovery' },
+  { id:'workspace', num:'09', title:'Workspaces',                    sub:'Multi-party persistent collaboration around care.', section:'Collaboration', template:'/story-templates/docusign-workspace.html?preset=riverside' },
+  { id:'monitor',   num:'10', title:'Docusign Monitor',              sub:'Anomaly detection on PHI access and signings.', section:'Risk & monitoring' },
+  { id:'dataverify',num:'11', title:'Data Verification External',     sub:'Verifies submitted data against payer and registry sources.', section:'Risk & monitoring' },
+  { id:'iamsales',  num:'12', title:'IAM for Sales · Agentforce',     sub:'Originate from CRM (B2B + payer relationships).', section:'Vertical extensions', template:'/story-templates/docusign-agents.html?preset=riverside' },
+  { id:'clm',       num:'13', title:'CLM · Procurement',             sub:'Lifecycle management for vendor and procurement docs.', section:'Vertical extensions' }
+];
+
+function iconForDemo(id){
+  switch(id){
+    case 'webforms':   return '<rect x="2.5" y="3" width="11" height="10" rx="1.2"/><path d="M5.5 6.5h5M5.5 9.5h3"/>';
+    case 'maestro':    return '<circle cx="4" cy="4" r="1.5"/><circle cx="12" cy="4" r="1.5"/><circle cx="8" cy="12" r="1.5"/><path d="M5.5 4h5M4 5.5l3 5M12 5.5l-3 5"/>';
+    case 'clear':      return '<path d="M8 2 L13 4 V8 C13 11, 10.6 13, 8 14 C5.4 13, 3 11, 3 8 V4 Z"/><path d="M6 8.5 L7.4 10 L10.2 7.2"/>';
+    case 'idme':       return '<circle cx="8" cy="6" r="2.4"/><path d="M3 13c.7-2.4 2.7-3.6 5-3.6S12.3 10.6 13 13"/>';
+    case 'idverse':    return '<rect x="2.5" y="3.5" width="11" height="9" rx="1.4"/><path d="M5.5 7h5M5.5 9.5h3"/>';
+    case 'signing':    return '<path d="M4 12 C7 10, 9 7, 12 4 C13 3, 13.6 3, 14 3.4 C14.4 3.8, 14.4 4.4, 13.4 5.4 C10.4 8.4, 7.4 10.4, 4 12 Z"/>';
+    case 'navigator':  return '<circle cx="7" cy="7" r="4.5"/><path d="m11 11 3 3"/>';
+    case 'iris':       return '<path d="M8 3 L9.6 6.4 L13.2 6.8 L10.6 9.2 L11.2 12.8 L8 11 L4.8 12.8 L5.4 9.2 L2.8 6.8 L6.4 6.4 Z"/>';
+    case 'workspace':  return '<circle cx="6" cy="7" r="2"/><circle cx="11" cy="7" r="2"/><path d="M3 13c.4-2 1.6-3 3-3 M14 13c-.4-2-1.6-3-3-3"/>';
+    case 'monitor':    return '<path d="M2.5 11 L6 11 L8 5 L10.5 13 L12 9 L13.5 9"/>';
+    case 'dataverify': return '<path d="M3 3.5h10v6c0 2-2 3.5-5 4.5C5 13 3 11.5 3 9.5z"/><path d="M6 8L7.5 9.5L10 7"/>';
+    case 'iamsales':   return '<rect x="2.5" y="5" width="11" height="8" rx="1"/><path d="M5.5 5V3.5h5V5"/><path d="M2.5 9h11"/>';
+    case 'clm':        return '<path d="M4 2.5h6L13 5.5v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><path d="M5.5 8h5M5.5 10.5h3"/>';
+    default:           return '<circle cx="8" cy="8" r="5"/>';
+  }
+}
+
+function renderTray(){
+  const list = document.getElementById('iamList');
+  const sections = [], map = new Map();
+  IAM_DEMOS.forEach(d => { if (!map.has(d.section)) { map.set(d.section,[]); sections.push(d.section); } map.get(d.section).push(d); });
+  list.innerHTML = sections.map(sec => `
+    <div class="iam-section">
+      <div class="iam-section-h">${sec}</div>
+      ${map.get(sec).map(d => {
+        const live = !!d.template;
+        return `
+          <div class="iam-card ${live ? '' : 'stub'}" ${live ? `onclick="openDemo('${d.id}', event)"` : ''}>
+            <div class="iam-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${iconForDemo(d.id)}</svg></div>
+            <div><div class="iam-num">${d.num}</div><div class="iam-title">${d.title}</div><div class="iam-sub">${d.sub}</div></div>
+            <div class="iam-status ${live ? 'live' : 'stub'}">${live ? 'Live' : 'Stub'}</div>
+          </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function openTray(){ document.getElementById('iamTray').classList.add('open'); document.getElementById('iamTray').setAttribute('aria-hidden','false'); document.getElementById('scrim').classList.add('open'); }
+function closeTray(){ document.getElementById('iamTray').classList.remove('open'); document.getElementById('iamTray').setAttribute('aria-hidden','true'); document.getElementById('scrim').classList.remove('open'); }
+
+function openDemo(id, evt){
+  if (evt) evt.stopPropagation();
+  const demo = IAM_DEMOS.find(d => d.id === id); if (!demo) return;
+  document.getElementById('ddCrumb').textContent = demo.section;
+  document.getElementById('ddTitle').textContent = demo.title;
+  const body = document.getElementById('ddBody');
+  body.innerHTML = demo.template
+    ? `<iframe src="${demo.template}" title="${demo.title}"></iframe>`
+    : `<div class="dd-stub"><h3>${demo.title}</h3><p>${demo.sub}</p><p>This demo is a Phase 2 build — live template will iframe in here once authored.</p><span class="moments">Demo id: ${demo.id}</span></div>`;
+  document.getElementById('drilldown').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  closeTray();
+}
+function closeDemo(){ document.getElementById('drilldown').classList.remove('open'); document.getElementById('ddBody').innerHTML = ''; document.body.style.overflow = ''; }
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('drilldown').classList.contains('open')) return closeDemo();
+  if (document.getElementById('iamTray').classList.contains('open')) return closeTray();
+});
+
+renderTray();
+const hash = location.hash.replace('#','').toLowerCase();
+if (hash){ const d = IAM_DEMOS.find(d => d.id === hash); if (d) openDemo(hash); }
+</script>
+</body>
+</html>

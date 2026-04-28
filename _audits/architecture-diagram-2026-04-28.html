@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — One shell, every industry · 2026-04-28</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ink: #1F1A14;
+    --ink-mid: #5F5E5A;
+    --ink-soft: #8A8780;
+    --cream: #FAF7F2;
+    --cream-warm: #F5F0E6;
+    --hair: #E8E4DA;
+    --hair-strong: #D3D1C7;
+    --sage: #6B8A6F;
+    --sage-bg: #E8EFE7;
+    --sage-deep: #4F6E54;
+    --rule: #D9D5C9;
+
+    /* Vertical accents */
+    --v-color: #3FDA99;
+    --v-color-bg: #E5F9EE;
+    --v-color-ink: #1F6A48;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 56px 80px; }
+
+  .kicker { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage-deep); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 44px; line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 14px; color: var(--ink); }
+  h1 em { font-style: italic; color: var(--sage-deep); }
+  .deck { font-family: 'Fraunces', Georgia, serif; font-size: 19px; color: var(--ink-mid); max-width: 760px; margin: 0 0 44px; line-height: 1.45; }
+
+  /* ===== Picker ===== */
+  .picker {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 28px;
+    padding: 18px 22px;
+    background: var(--cream-warm);
+    border: 1px solid var(--hair);
+  }
+  .picker-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .picker-chip {
+    background: var(--cream);
+    border: 1px solid var(--hair-strong);
+    padding: 9px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border-radius: 0;
+  }
+  .picker-chip:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .picker-chip.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--cream);
+  }
+  .picker-chip .chip-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ===== Demo Stage ===== */
+  .stage {
+    background: var(--cream);
+    border: 1px solid var(--hair);
+    border-top: 4px solid var(--v-color);
+    padding: 32px 36px 28px;
+    margin-bottom: 28px;
+    transition: border-top-color 0.4s ease;
+  }
+  .stage-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--hair);
+    margin-bottom: 22px;
+  }
+  .stage-tenant {
+    display: flex;
+    flex-direction: column;
+  }
+  .stage-tenant .tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .stage-tenant .name {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--v-color-ink);
+    line-height: 1.1;
+    margin-top: 4px;
+    transition: color 0.3s ease;
+  }
+  .stage-tenant .customer {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-mid);
+    margin-top: 6px;
+  }
+  .stage-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+  .stage-url .moment {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-mid);
+    margin-bottom: 6px;
+    max-width: 360px;
+    text-align: right;
+  }
+
+  .scenes {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .scene {
+    background: var(--cream-warm);
+    border: 1px solid var(--hair);
+    padding: 16px 14px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .scene .scene-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    color: var(--v-color-ink);
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  .scene .scene-name {
+    font-family: 'Fraunces', serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+  .scene .scene-narration {
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    color: var(--ink-mid);
+    line-height: 1.45;
+  }
+  .scene::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 24px;
+    height: 2px;
+    background: var(--v-color);
+    transition: background 0.3s ease;
+  }
+
+  /* ===== The architecture reveal ===== */
+  .reveal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+  .reveal-col {
+    background: var(--cream);
+    border: 1px solid var(--hair);
+    padding: 24px 26px;
+    position: relative;
+  }
+  .reveal-col.shared {
+    background: var(--sage-bg);
+    border-color: var(--sage);
+  }
+  .reveal-col.swapped {
+    border-left: 4px solid var(--v-color);
+    transition: border-left-color 0.3s ease;
+  }
+  .reveal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .reveal-head h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0;
+  }
+  .reveal-head .badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3px 9px;
+  }
+  .reveal-col.shared .badge { background: var(--sage-deep); color: var(--cream); }
+  .reveal-col.swapped .badge {
+    background: var(--v-color);
+    color: var(--v-color-ink);
+    transition: all 0.3s ease;
+  }
+  .reveal-deck {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-mid);
+    line-height: 1.45;
+    margin: 0 0 16px;
+  }
+
+  .file-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .file-list li {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--cream);
+    border: 1px solid var(--hair);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    align-items: center;
+  }
+  .reveal-col.shared .file-list li { border-color: var(--hair-strong); }
+  .file-list li .check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--sage-deep);
+    color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .file-list li .lock { color: var(--sage-deep); font-size: 10px; font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .swap-data {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 4px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .swap-data dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .swap-data dd {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+    margin: 0;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .swap-data dd .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    background: var(--v-color);
+    vertical-align: middle;
+  }
+
+  /* ===== Bottom callouts ===== */
+  .footer-callouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px;
+    padding: 26px 30px;
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .footer-callouts .cb {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .footer-callouts .cb .num {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .footer-callouts .cb .num em { font-style: italic; color: #B8D9BD; font-size: 28px; }
+  .footer-callouts .cb .lab {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(250, 247, 242, 0.5);
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .footer-callouts .cb p {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13.5px;
+    color: rgba(250, 247, 242, 0.85);
+    margin: 6px 0 0;
+    line-height: 1.45;
+  }
+
+  .foot-ref {
+    margin-top: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+
+  /* Subtle pulse animation when data swaps */
+  .pulse {
+    animation: pulse 0.5s ease;
+  }
+  @keyframes pulse {
+    0% { opacity: 0.4; transform: translateY(2px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">TGK 2.0 · For executives · 2026-04-28</div>
+  <h1>One shell. <em>Every</em> industry.</h1>
+  <p class="deck">Click an industry. Watch the demo rebuild itself. The shell and templates never change — only the data layer swaps. That's how a single Level 1 demo tool covers four industries today, twenty-one tomorrow.</p>
+
+  <!-- ===================== PICKER ===================== -->
+
+  <div class="picker">
+    <span class="picker-label">Industry</span>
+    <button class="picker-chip active" data-vertical="wealth">
+      <span class="chip-dot" style="background: #3FDA99;"></span>Wealth Management
+    </button>
+    <button class="picker-chip" data-vertical="provider">
+      <span class="chip-dot" style="background: #6FD6C8;"></span>Healthcare Provider
+    </button>
+    <button class="picker-chip" data-vertical="banking">
+      <span class="chip-dot" style="background: #2D8EFF;"></span>Commercial Banking
+    </button>
+    <button class="picker-chip" data-vertical="slgov">
+      <span class="chip-dot" style="background: #E8A438;"></span>State &amp; Local Gov
+    </button>
+  </div>
+
+  <!-- ===================== DEMO STAGE ===================== -->
+
+  <div class="stage" id="stage">
+    <div class="stage-header">
+      <div class="stage-tenant">
+        <span class="tag">Tenant · Customer</span>
+        <span class="name" id="tenantName">Hillside</span>
+        <span class="customer" id="tenantCustomer">× Aster Capital — IRA rollover, $5M household</span>
+      </div>
+      <div class="stage-url">
+        <span class="moment" id="signatureMoment">"$5M household opened in 15 minutes, fully paperless."</span>
+        <span id="stageUrl">/stories/story-wealth/</span>
+      </div>
+    </div>
+
+    <div class="scenes" id="scenesGrid">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ===================== THE REVEAL ===================== -->
+
+  <div class="reveal">
+
+    <!-- LEFT: shared (locked) -->
+    <div class="reveal-col shared">
+      <div class="reveal-head">
+        <h3>Reused as-is</h3>
+        <span class="badge">No edits</span>
+      </div>
+      <p class="reveal-deck">These six files render every industry above. Switch the picker — none of them change.</p>
+      <ul class="file-list">
+        <li><span class="check">✓</span><span>story-shell.html</span><span class="lock">Locked</span></li>
+        <li><span class="check">✓</span><span>docusign-agreement-desk.html</span><span class="lock">Locked</span></li>
+        <li><span class="check">✓</span><span>docusign-clear-idv.html</span><span class="lock">Locked</span></li>
+        <li><span class="check">✓</span><span>docusign-signing-ceremony.html</span><span class="lock">Locked</span></li>
+        <li><span class="check">✓</span><span>docusign-navigator.html</span><span class="lock">Locked</span></li>
+        <li><span class="check">✓</span><span>docusign-workspace.html</span><span class="lock">Locked</span></li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: swapped (live) -->
+    <div class="reveal-col swapped" id="swapCol">
+      <div class="reveal-head">
+        <h3>Swapped per industry</h3>
+        <span class="badge" id="swapBadge">Wealth</span>
+      </div>
+      <p class="reveal-deck">Two data entries. No code. Authored once per vertical, applied by the shell.</p>
+      <dl class="swap-data" id="swapData">
+        <!-- Filled by JS -->
+      </dl>
+    </div>
+
+  </div>
+
+  <!-- ===================== FOOTER CALLOUTS ===================== -->
+
+  <div class="footer-callouts">
+    <div class="cb">
+      <span class="num">6</span>
+      <span class="lab">Files reused, every industry</span>
+      <p>1 shell · 5 scene templates. The structural cost of adding industry #22 is zero.</p>
+    </div>
+    <div class="cb">
+      <span class="num">2</span>
+      <span class="lab">Files added, per new industry</span>
+      <p>One vertical config, one workspace preset. Both are data — narration, tenant, brand color.</p>
+    </div>
+    <div class="cb">
+      <span class="num"><em>~</em>30 min</span>
+      <span class="lab">From "we need this" to live demo</span>
+      <p>The picker grows by one tile. The shell renders the new industry the same way it rendered the first.</p>
+    </div>
+  </div>
+
+  <div class="foot-ref">stories/_shared/story-shell.html · ?vertical=&lt;k&gt; · interactive view · 2026-04-28</div>
+
+</div>
+
+<script>
+  const VERTICALS = {
+    wealth: {
+      tenant: "Hillside",
+      customer: "× Aster Capital — IRA rollover, $5M household",
+      moment: "“$5M household opened in 15 minutes, fully paperless.”",
+      url: "/stories/story-wealth/",
+      color: "#3FDA99",
+      colorBg: "#E5F9EE",
+      colorInk: "#1F6A48",
+      sor: "Salesforce FSC",
+      audience: "Advisor + principal + joint signer",
+      scenes: [
+        { name: "Agreement Desk", text: "Advisor opens new household. Maestro fans out the IMA, custodial agreement, IRA rollover paperwork." },
+        { name: "CLEAR IDV", text: "Principal and joint signer verify identity. Biometric proof for high-value financial onboarding." },
+        { name: "Signing Ceremony", text: "Single envelope: IMA + Schwab custodial + IRA rollover. eSigned in one continuous flow." },
+        { name: "Navigator", text: "Signed packet writes back to FSC household record. Iris extracts fee schedule, beneficiary, custodian." },
+        { name: "Workspace", text: "Hillside-branded household workspace. Walter, Esther, co-trustee invited. Tasks, statements, beneficiary." }
+      ]
+    },
+    provider: {
+      tenant: "Riverside",
+      customer: "× Jordan Kim — new-patient onboarding",
+      moment: "“Patient onboarded, consent and insurance captured before they sit down.”",
+      url: "/stories/story-provider/",
+      color: "#6FD6C8",
+      colorBg: "#DDF1ED",
+      colorInk: "#1A6A60",
+      sor: "Epic / Veeva",
+      audience: "Front desk + patient + PCP",
+      scenes: [
+        { name: "Agreement Desk", text: "Front desk starts intake. Maestro fans out HIPAA, consent-to-treat, financial responsibility, insurance card capture." },
+        { name: "CLEAR IDV", text: "Patient verifies identity once. Same biometric proof, applied to medical-record access." },
+        { name: "Signing Ceremony", text: "Single envelope: HIPAA + consent + financial-responsibility + insurance auth. eSigned at the kiosk." },
+        { name: "Navigator", text: "Signed packet writes back to Epic chart. Iris extracts allergies, meds, emergency contact, insurance fields." },
+        { name: "Workspace", text: "Riverside-branded patient workspace. Patient, PCP, care coordinator. Visit summary, follow-ups, referrals." }
+      ]
+    },
+    banking: {
+      tenant: "Meridian",
+      customer: "× Atlas Manufacturing — $2.5M working capital facility",
+      moment: "“Commercial credit facility closed digitally, no overnight courier.”",
+      url: "/stories/story-banking/",
+      color: "#2D8EFF",
+      colorBg: "#E0EDFF",
+      colorInk: "#1B5EBF",
+      sor: "nCino on Salesforce",
+      audience: "Banker + borrower + guarantor + counsel",
+      scenes: [
+        { name: "Agreement Desk", text: "Banker opens loan in nCino. Maestro fans out note, guaranty, security agreement, certificate of borrowing." },
+        { name: "CLEAR IDV", text: "Authorized signers and guarantors verified. Biometric proof for commercial loan execution." },
+        { name: "Signing Ceremony", text: "Single envelope: full loan packet. Borrower, guarantor, and bank counsel sign in sequence." },
+        { name: "Navigator", text: "Signed packet writes back to nCino loan record. Iris extracts covenants, payment schedule, collateral." },
+        { name: "Workspace", text: "Meridian-branded relationship workspace. Borrower, guarantor, RM, credit officer. Covenant calendar, draws." }
+      ]
+    },
+    slgov: {
+      tenant: "Springfield",
+      customer: "× 1420 Oak Street — residential building permit",
+      moment: "“Permit issued in two days, not six weeks. No counter visit.”",
+      url: "/stories/story-slgov/",
+      color: "#E8A438",
+      colorBg: "#FBEED4",
+      colorInk: "#9A6818",
+      sor: "Salesforce Public Sector Solutions",
+      audience: "Permit clerk + homeowner + inspector",
+      scenes: [
+        { name: "Agreement Desk", text: "Homeowner submits permit online. Maestro fans out application, neighbor-notice acknowledgment, contractor affidavit." },
+        { name: "CLEAR IDV", text: "Homeowner identity verified once. Same proof carried into the inspection workflow downstream." },
+        { name: "Signing Ceremony", text: "Single envelope: application + acknowledgments + contractor affidavit. eSigned from a phone." },
+        { name: "Navigator", text: "Signed packet writes back to the city permit record. Iris extracts parcel, scope, and contractor license." },
+        { name: "Workspace", text: "City-branded permit workspace. Homeowner, contractor, inspector. Status, conditions, inspection scheduling." }
+      ]
+    }
+  };
+
+  const stage = document.getElementById("stage");
+  const tenantName = document.getElementById("tenantName");
+  const tenantCustomer = document.getElementById("tenantCustomer");
+  const signatureMoment = document.getElementById("signatureMoment");
+  const stageUrl = document.getElementById("stageUrl");
+  const scenesGrid = document.getElementById("scenesGrid");
+  const swapBadge = document.getElementById("swapBadge");
+  const swapData = document.getElementById("swapData");
+  const swapCol = document.getElementById("swapCol");
+  const chips = document.querySelectorAll(".picker-chip");
+
+  function render(key) {
+    const v = VERTICALS[key];
+    if (!v) return;
+
+    // Update color tokens on root for cascading effect
+    document.documentElement.style.setProperty("--v-color", v.color);
+    document.documentElement.style.setProperty("--v-color-bg", v.colorBg);
+    document.documentElement.style.setProperty("--v-color-ink", v.colorInk);
+
+    // Tenant header
+    tenantName.textContent = v.tenant;
+    tenantCustomer.textContent = v.customer;
+    signatureMoment.textContent = v.moment;
+    stageUrl.textContent = v.url;
+
+    // Scenes
+    scenesGrid.innerHTML = v.scenes.map((s, i) => `
+      <div class="scene">
+        <div class="scene-num">SCENE ${i + 1}</div>
+        <div class="scene-name">${s.name}</div>
+        <div class="scene-narration">${s.text}</div>
+      </div>
+    `).join("");
+
+    // Swap data
+    const tenantLabel = key.charAt(0).toUpperCase() + key.slice(1);
+    swapBadge.textContent = tenantLabel;
+    swapData.innerHTML = `
+      <dt>tenant</dt><dd>${v.tenant}</dd>
+      <dt>customer</dt><dd>${v.customer.replace(/^×\s*/, "")}</dd>
+      <dt>brand color</dt><dd><span class="swatch"></span>${v.color}</dd>
+      <dt>system-of-record</dt><dd>${v.sor}</dd>
+      <dt>audience</dt><dd>${v.audience}</dd>
+      <dt>signature moment</dt><dd style="font-style: italic; font-weight: 400;">${v.moment.replace(/[“”]/g, "")}</dd>
+    `;
+
+    // Pulse animation on the swap column and stage to signal change
+    [stage, swapCol].forEach(el => {
+      el.classList.remove("pulse");
+      void el.offsetWidth; // restart animation
+      el.classList.add("pulse");
+    });
+
+    // Update active chip
+    chips.forEach(c => c.classList.toggle("active", c.dataset.vertical === key));
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener("click", () => render(chip.dataset.vertical));
+  });
+
+  // Initial render
+  render("wealth");
+</script>
+</body>
+</html>

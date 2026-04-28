@@ -77,6 +77,50 @@
   .brand-slot .ds::after{content:"";display:inline-block;width:0;overflow:hidden;transition:width 0.18s, margin-left 0.18s;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23130032' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M2 7l6-5 6 5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'/><path d='M6 14V9h4v5'/></svg>") center/contain no-repeat;height:12px;}
   .brand-slot .ds:hover::after{width:12px;margin-left:4px;}
 
+  /* ===================== Persona chip =====================
+     Always-present caption identifying who's about to act in the next
+     beat — the constant anchor as the headline and column shift state.
+     Side determines color: advisor (tenant accent), client (Docusign
+     purple), system (neutral). Shows name + role; if name absent,
+     falls back to side label. */
+  .persona{
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:16px;
+    transition:gap 0.6s ease, margin-bottom 0.6s ease, opacity 0.4s ease;
+  }
+  .persona .avatar{
+    flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--tenant-accent);
+    color:#fff;font-size:10.5px;font-weight:700;letter-spacing:0.04em;
+    transition:background 0.5s ease, width 0.6s ease, height 0.6s ease, font-size 0.6s ease;
+    text-transform:uppercase;
+    box-shadow:0 0 0 2px rgba(255,255,255,0.6);
+  }
+  .persona[data-side="client"] .avatar{background:var(--ds-purple);}
+  .persona[data-side="system"] .avatar{background:var(--ink-soft);}
+  .persona[data-side="handoff"] .avatar{background:linear-gradient(135deg,var(--tenant-accent) 0%,var(--tenant-accent) 50%,var(--ds-purple) 50%,var(--ds-purple) 100%);}
+  .persona .meta{display:flex;flex-direction:column;line-height:1.2;min-width:0;}
+  .persona .name{font-size:12.5px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .persona .role{font-size:10.5px;color:var(--ink-soft);font-weight:500;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .persona .side-badge{font-size:9px;font-weight:700;color:var(--ink-soft);letter-spacing:0.14em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--hair);border-radius:9px;margin-left:4px;flex-shrink:0;display:none;}
+  /* Show the role-class badge when there's no individual name to lead with. */
+  .persona[data-anonymous="true"] .name{display:none;}
+  .persona[data-anonymous="true"] .side-badge{display:inline-block;}
+  .sidebar.fade .persona{opacity:0;}
+
+  /* In lead state the persona chip swells slightly so it reads alongside
+     the editorial headline rather than getting visually buried. */
+  .shell.lead-mode .persona{margin-bottom:22px;gap:12px;}
+  .shell.lead-mode .persona .avatar{width:34px;height:34px;font-size:12px;}
+  .shell.lead-mode .persona .name{font-size:14px;}
+  .shell.lead-mode .persona .role{font-size:11.5px;}
+
+  body.calibrate .shell.lead-mode .persona{margin-bottom:16px;gap:10px;}
+  body.calibrate .shell.lead-mode .persona .avatar{width:28px;height:28px;font-size:10.5px;}
+  body.calibrate .shell.lead-mode .persona .name{font-size:12.5px;}
+  body.calibrate .shell.lead-mode .persona .role{font-size:10.5px;}
+
   .step-label{
     font-size:11.5px;font-weight:600;color:var(--step-blue);
     letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;
@@ -335,6 +379,14 @@
         <span class="cobrand-x" id="cobrand-x" hidden>×</span>
         <img class="cobrand-tgk" id="cobrand-tgk" src="/assets/brand/tgk-white.png" alt="TGK Capital" hidden>
       </div>
+      <div class="persona" id="persona" data-side="advisor">
+        <span class="avatar" id="persona-avatar">·</span>
+        <span class="meta">
+          <span class="name" id="persona-name"></span>
+          <span class="role" id="persona-role"></span>
+        </span>
+        <span class="side-badge" id="persona-side-badge">Advisor</span>
+      </div>
       <div class="step-label" id="step-label">SCENE 1 OF 5</div>
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
@@ -522,6 +574,7 @@ const VERTICALS = {
     tenantColor:"#3FDA99", preset:"wealth", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · INTAKE · SENDER WEBFORM", head:"Priya kicks off Aster Capital's onboarding from a Hillside intake webform.",
+       persona:{side:"advisor", name:"Priya Das", role:"Head of Compliance · Hillside"},
        lede:"<p>Priya Das, Head of Compliance at Hillside Advisors, fills out the new-engagement webform for <span class=\"em\">Aster Capital</span> — entity type, AUM, mandate, custodian.</p><p>The moment she submits, Maestro assembles the IMA package dynamically from those selections. The rest of this story runs on its own.</p>",
        beats:[
          {head:"Priya selects \"New Engagement\" from Hillside's intake menu.", lede:`<p>The dynamic webform opens.</p>`},
@@ -531,39 +584,52 @@ const VERTICALS = {
          {head:"Priya reviews the configured package summary.", lede:`<p>3 documents, 2 recipients, sequenced routing.</p>`}
        ]},
       {tag:"SCENE 2 OF 5 · IDENTITY", head:"Aster Capital's signatory verifies with CLEAR.",
+       persona:{side:"client", name:"Aster signatory", role:"Authorized Signatory · Aster Capital"},
        lede:`<p>Before anything moves, Docusign routes Aster's authorized signatory through CLEAR for identity verification.</p><p>Desktop consent → mobile ID scan → biometric match → back to the browser. No separate portal, no phone call to compliance.</p>`,
        beats:[
          {head:"Aster's signatory is asked to verify before signing.", lede:`<p>Before any documents move, Docusign presents the identity step. The signatory sees Hillside's branding throughout — no third-party redirect surprise.</p>`},
          {head:"CLEAR selected as the verification path.", lede:`<p>One tap. CLEAR checks PEP lists and confirms the signatory's identity against government-issued ID — no separate portal required.</p>`},
          {head:"Mobile handoff begins.", lede:`<p>The signatory enters their phone number. A CLEAR session opens on their device — no app download, no separate portal.</p>`},
-         {head:"ID scan and biometric match in progress.", lede:`<p>CLEAR captures the ID photo and selfie on mobile and runs the biometric comparison. The result posts back to Docusign in seconds.</p>`},
+         {head:"ID scan and biometric match in progress.", lede:`<p>CLEAR captures the ID photo and selfie on mobile and runs the biometric comparison. The result posts back to Docusign in seconds.</p>`,
+          persona:{side:"system", name:"CLEAR", role:"Biometric Match"}},
          {head:"Identity verified — IMA ceremony unlocked.", lede:`<p>Green check on mobile, confirmation on desktop. The Investment Management Agreement is cleared and the signing ceremony opens immediately.</p>`}
        ]},
       {tag:"SCENE 3 OF 5 · SIGNING", head:"Aster reviews and signs the Investment Advisory Agreement.",
+       persona:{side:"client", name:"Aster signatory", role:"Authorized Signatory · Aster Capital"},
        lede:`<p>Tenant-branded email, yellow Sign tab floating over the IMA, Adopt Signature modal, completion with multi-recipient routing.</p><p>One ceremony, one audit trail — the IMA hands off to Hillside's compliance reviewer automatically.</p>`,
        beats:[
          {head:"Aster reviews the IMA in the signing ceremony.", lede:`<p>Hillside-branded email, one review link. The Investment Management Agreement opens directly — no login required.</p>`},
          {head:"First signature field highlighted.", lede:`<p>A yellow START tab floats over the first required field. The signer follows the guided flow — no searching for where to sign.</p>`},
          {head:"Aster adopts their signature.", lede:`<p>The Adopt Signature modal shows a typed preview. The signatory selects a style and applies it — legally binding with the full audit trail.</p>`},
-         {head:"IMA routes to Hillside's compliance reviewer.", lede:`<p>Multi-recipient routing kicks in automatically. Priya's compliance officer receives the envelope the moment Aster finishes — no manual forwarding.</p>`},
+         {head:"IMA routes to Hillside's compliance reviewer.", lede:`<p>Multi-recipient routing kicks in automatically. Priya's compliance officer receives the envelope the moment Aster finishes — no manual forwarding.</p>`,
+          persona:{side:"handoff", name:"Aster → Hillside", role:"Multi-Recipient Routing"}},
          {head:"Execution confirmed — certified copy issued.", lede:`<p>The executed IMA is in both parties' inboxes. The signing certificate captures every event: IP, timestamp, biometric pass, signature applied.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the IMA and lands it back in Hillside.",
+       persona:{side:"advisor", name:"Priya Das", role:"Head of Compliance · Hillside"},
        lede:`<p>Navigator reads the executed agreement and pulls out 14 key terms — counterparty, effective date, fee schedule, renewal, liability cap, governing law.</p><p>All filed into Hillside's agreement repository. Iris is one click away for any follow-up.</p>`,
        beats:[
-         {head:"Navigator surfaces the executed IMA.", lede:`<p>The AI-Assisted banner confirms Iris has processed the agreement. The IMA appears in Hillside's repository automatically.</p>`},
-         {head:"14 fields extracted from the IMA.", lede:`<p>Counterparty, effective date, fee schedule, renewal trigger, liability cap — all visible in column view, marked with the Iris ✦ indicator.</p>`},
+         {head:"Navigator surfaces the executed IMA.", lede:`<p>The AI-Assisted banner confirms Iris has processed the agreement. The IMA appears in Hillside's repository automatically.</p>`,
+          persona:{side:"system", name:"Iris", role:"AI · Navigator Extraction"}},
+         {head:"14 fields extracted from the IMA.", lede:`<p>Counterparty, effective date, fee schedule, renewal trigger, liability cap — all visible in column view, marked with the Iris ✦ indicator.</p>`,
+          persona:{side:"system", name:"Iris", role:"AI · Navigator Extraction"}},
          {head:"Key terms ready for downstream systems.", lede:`<p>Every extracted field is ready to push into Hillside's CRM and compliance records. No manual data entry, no re-keying risk.</p>`},
          {head:"Priya asks Iris about the fee structure.", lede:`<p>She types the question directly in Navigator. Iris searches only the executed IMA — grounded in the document, no hallucination.</p>`},
-         {head:"Iris answers with inline citations.", lede:`<p>The fee clause is quoted verbatim with a page reference. Priya has the answer in seconds — and the evidence to share with the client.</p>`}
+         {head:"Iris answers with inline citations.", lede:`<p>The fee clause is quoted verbatim with a page reference. Priya has the answer in seconds — and the evidence to share with the client.</p>`,
+          persona:{side:"system", name:"Iris", role:"AI · Grounded Answer"}}
        ]},
       {tag:"SCENE 5 OF 5 · WORKSPACE", head:"Hillside, Aster, and the custodian continue in one Workspace.",
+       persona:{side:"advisor", name:"Priya Das", role:"Head of Compliance · Hillside"},
        lede:`<p>Onboarding is the beginning, not the end. The client Workspace holds the task list, the agreement set, the Recent activity feed, and the Iris rail — everyone sees the same state.</p><p>No email threads. No version chaos.</p>`,
        beats:[
-         {head:"Aster receives access to the shared Workspace.", lede:`<p>A Hillside-branded email invites Aster's signatory into the Workspace. One click — no new account, no separate portal to learn.</p>`},
-         {head:"Both parties see the same real-time state.", lede:`<p>Overview shows the onboarding summary. Tasks shows what's open for each party. No version confusion, no email threads.</p>`},
-         {head:"Iris is live in the agent rail.", lede:`<p>The Activity tab shows every Maestro step completed. Ask Iris answers questions grounded in the executed IMA and onboarding file.</p>`},
-         {head:"KYC verification task open.", lede:`<p>The task drills into the Wealth Agent — automated checks running in the background. KYC, accreditation, and custody confirmation in one place.</p>`},
+         {head:"Aster receives access to the shared Workspace.", lede:`<p>A Hillside-branded email invites Aster's signatory into the Workspace. One click — no new account, no separate portal to learn.</p>`,
+          persona:{side:"client", name:"Aster signatory", role:"Authorized Signatory · Aster Capital"}},
+         {head:"Both parties see the same real-time state.", lede:`<p>Overview shows the onboarding summary. Tasks shows what's open for each party. No version confusion, no email threads.</p>`,
+          persona:{side:"handoff", name:"Hillside × Aster", role:"Shared Workspace"}},
+         {head:"Iris is live in the agent rail.", lede:`<p>The Activity tab shows every Maestro step completed. Ask Iris answers questions grounded in the executed IMA and onboarding file.</p>`,
+          persona:{side:"system", name:"Iris", role:"AI · Agent Rail"}},
+         {head:"KYC verification task open.", lede:`<p>The task drills into the Wealth Agent — automated checks running in the background. KYC, accreditation, and custody confirmation in one place.</p>`,
+          persona:{side:"system", name:"Wealth Agent", role:"Automated KYC + Accreditation"}},
          {head:"Onboarding complete — relationship in motion.", lede:`<p>Every document executed, every check passed, every party in the same Workspace. Hillside's compliance team has the full audit trail.</p>`}
        ]}
     ]
@@ -2088,11 +2154,13 @@ const SCENES = scenesSource.map((s, i) => {
     ...h,
     beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
     beatLede: s.beats && s.beats[j] ? s.beats[j].lede : null,
+    beatPersona: s.beats && s.beats[j] ? s.beats[j].persona : null,
   }));
   return {
     tag: s.tag,
     headline: s.head,
     lede: s.lede,
+    persona: s.persona || null,
     sceneKey,
     hotspots,
     duration: DURATIONS[i] || DURATIONS[0],
@@ -2207,11 +2275,15 @@ function renderSidebar(scene, i){
   const beat = scene.hotspots && scene.hotspots[hotIdx];
   const head = (beat && beat.beatHead) || scene.headline;
   const lede = (beat && beat.beatLede) || scene.lede;
+  // Per-beat persona (carried as beat.beatPersona via the build) overrides
+  // the scene-level persona; fall back to canonical 5-act side defaults.
+  const persona = (beat && beat.beatPersona) || scene.persona || personaFallback(i);
   sidebar.classList.add('fade');
   setTimeout(() => {
     $('step-label').textContent = scene.tag;
     $('headline').textContent = head;
     $('lede').innerHTML = lede;
+    renderPersona(persona);
     sidebar.classList.remove('fade');
   }, 180);
   document.querySelectorAll('#scene-tabs .t').forEach((t, k) => t.classList.toggle('on', k === i));
@@ -2221,6 +2293,40 @@ function renderSidebar(scene, i){
   $('beat-counter').textContent = `Beat ${hotIdx + 1} of ${scene.hotspots.length}`;
   $('prev-btn').disabled = (i === 0 && hotIdx === 0);
   $('next-btn').textContent = (i === SCENES.length - 1 && hotIdx === scene.hotspots.length - 1) ? 'Restart' : 'Next';
+}
+
+/* =========================================================
+   Persona chip — who's about to act in this beat.
+   - persona = { side, name?, role? } where side ∈
+     advisor | client | system | handoff
+   - If no name, the chip falls back to a role-class badge so the
+     viewer still sees "Advisor" / "Client" / "System".
+   ========================================================= */
+const SIDE_LABEL = { advisor:"Advisor", client:"Client", system:"System", handoff:"Handoff" };
+function personaFallback(sceneIndex){
+  // Canonical 5-act mapping: Scene 1 sender = advisor; Scene 2 identity
+  // and Scene 3 signing = client; Scene 4 data = advisor; Scene 5
+  // workspace = advisor (with the client present). Use-case overrides
+  // and per-vertical scene.persona will override this when provided.
+  const map = ["advisor","client","client","advisor","advisor"];
+  return { side: map[sceneIndex] || "system" };
+}
+function renderPersona(persona){
+  if (!persona) persona = { side:"system" };
+  const side = persona.side || "system";
+  const name = (persona.name || "").trim();
+  const role = (persona.role || "").trim();
+  const el = $('persona');
+  el.setAttribute('data-side', side);
+  el.setAttribute('data-anonymous', name ? 'false' : 'true');
+  // Avatar: initials if name; first letter of side-label otherwise.
+  const initials = name
+    ? name.split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase()
+    : (SIDE_LABEL[side] || '·').slice(0,1);
+  $('persona-avatar').textContent = initials;
+  $('persona-name').textContent = name;
+  $('persona-role').textContent = role;
+  $('persona-side-badge').textContent = SIDE_LABEL[side] || 'Actor';
 }
 function renderHotspot(){
   const scene = SCENES[idx];
@@ -2574,11 +2680,13 @@ loadIDBTemplateOverrides().then((count) => {
           ...h,
           beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
           beatLede: s.beats && s.beats[j] ? s.beats[j].lede : null,
+          beatPersona: s.beats && s.beats[j] ? s.beats[j].persona : null,
         }));
         SCENES.push({
           tag: s.tag,
           headline: s.head,
           lede: s.lede,
+          persona: s.persona || null,
           sceneKey,
           hotspots,
           duration: DURATIONS[i] || DURATIONS[0],

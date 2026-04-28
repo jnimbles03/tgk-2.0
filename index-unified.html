@@ -239,9 +239,10 @@
   /* ===== SECTIONS (progressive disclosure) ===== */
   .landing-section {
     margin-bottom: 56px;
-    opacity: 0; transform: translateY(6px);
+    opacity: 0; transform: translateY(4px);
     max-height: 0; overflow: hidden;
-    transition: opacity 0.3s var(--ease), transform 0.35s var(--ease), max-height 0.45s var(--ease), margin-bottom 0.35s var(--ease);
+    /* Snappier reveals — was 0.30/0.35/0.45/0.35; now 0.14/0.16/0.22/0.16. */
+    transition: opacity 0.14s var(--ease), transform 0.16s var(--ease), max-height 0.22s var(--ease), margin-bottom 0.16s var(--ease);
   }
   .landing-section.visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
   .landing-section.always-visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
@@ -313,42 +314,73 @@
   }
 
   /* ===== USE CASE CARDS (stage 3) ===== */
-  .usecase-list { display: grid; gap: 10px; grid-template-columns: 1fr; }
-  @media (min-width: 640px) { .usecase-list.dense { grid-template-columns: 1fr; } }
-  @media (min-width: 1024px) { .usecase-list.dense { grid-template-columns: 1fr; } }
+  /* ===== USE-CASE GROUPS — calm, editorial layout =====
+     Use cases are grouped by category with a quiet subhead per group;
+     within a group, cards lay out in a 2-col grid on tablet+, 3-col on
+     wide desktop. Slimmer cards, no chevron, lighter chrome. */
+  .usecase-list { display: flex; flex-direction: column; gap: 28px; }
+  .usecase-group { display: flex; flex-direction: column; gap: 10px; }
+  .usecase-group-h {
+    display: flex; align-items: center; gap: 10px;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(19, 0, 50, 0.55);
+    padding-bottom: 2px;
+  }
+  .usecase-group-h::after {
+    content: ""; flex: 1; height: 1px;
+    background: rgba(19, 0, 50, 0.08);
+  }
+  .usecase-group-h .group-bar {
+    width: 8px; height: 8px; border-radius: 2px;
+    background: rgba(19, 0, 50, 0.25);
+  }
+  .usecase-group[data-cat="onboarding"]  .group-bar { background: #DC2626; }
+  .usecase-group[data-cat="maintenance"] .group-bar { background: #2563EB; }
+  .usecase-group[data-cat="auth"]        .group-bar { background: #EAB308; }
+  .usecase-group[data-cat="headless"]    .group-bar { background: var(--ds-cobalt); }
+
+  .usecase-grid {
+    display: grid; gap: 10px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px)  { .usecase-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1180px) { .usecase-grid { grid-template-columns: repeat(3, 1fr); } }
+
   .usecase-card {
-    padding: 18px 22px;
-    border: 1px solid rgba(19, 0, 50, 0.08); border-radius: 10px;
+    padding: 13px 16px 13px 18px;
+    border: 1px solid rgba(19, 0, 50, 0.07);
+    border-radius: 8px;
     background: var(--ds-white);
-    display: flex; align-items: center; gap: 18px;
-    cursor: pointer; transition: border-color 0.18s var(--ease);
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.10s var(--ease), background 0.10s var(--ease), box-shadow 0.10s var(--ease);
     position: relative;
+    min-height: 60px;
   }
   .usecase-card:hover {
-    border-color: rgba(19, 0, 50, 0.3);
-    transform: none;
-    box-shadow: none;
+    border-color: rgba(19, 0, 50, 0.22);
+    background: rgba(255, 255, 255, 0.92);
   }
   .usecase-card.selected {
-    border-color: var(--ds-inkwell); background: var(--ds-white);
+    border-color: var(--ds-inkwell);
     box-shadow: inset 0 0 0 1px var(--ds-inkwell);
   }
   .usecase-card.unavailable {
-    opacity: 0.5; cursor: not-allowed;
+    opacity: 0.45; cursor: not-allowed;
     border-style: dashed; background: transparent;
   }
-  .usecase-card.unavailable:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.15); }
-  /* Category bar — colored vertical accent on the left edge.
-     onboarding = red · maintenance = blue · auth = green.
-     Drives quick visual scanning across the picker. */
+  .usecase-card.unavailable:hover { transform: none; box-shadow: none; border-color: rgba(19, 0, 50, 0.12); }
+  /* Slim left-edge category accent — 3px, recessed top/bottom. */
   .usecase-card::before {
-    content: ""; position: absolute; left: 0; top: 16px; bottom: 16px;
-    width: 4px; border-radius: 0 3px 3px 0; background: transparent;
+    content: ""; position: absolute; left: 0; top: 12px; bottom: 12px;
+    width: 3px; border-radius: 0 2px 2px 0; background: transparent;
     transition: background 0.18s var(--ease);
   }
-  .usecase-card[data-category="onboarding"]::before  { background: #DC2626; }  /* red */
-  .usecase-card[data-category="maintenance"]::before { background: #2563EB; }  /* blue */
-  .usecase-card[data-category="auth"]::before        { background: #EAB308; }  /* yellow */
+  .usecase-card[data-category="onboarding"]::before  { background: #DC2626; }
+  .usecase-card[data-category="maintenance"]::before { background: #2563EB; }
+  .usecase-card[data-category="auth"]::before        { background: #EAB308; }
   .usecase-card.unavailable[data-category]::before   { opacity: 0.4; }
   /* Category legend — small chips above the use-case list explaining the
      left-edge bar colors (onboarding/maintenance/auth & risk). */
@@ -369,47 +401,40 @@
   .cat-chip.cat-onboarding  .cat-bar { background: #DC2626; }
   .cat-chip.cat-maintenance .cat-bar { background: #2563EB; }
   .cat-chip.cat-auth        .cat-bar { background: #EAB308; }
-  .usecase-card .uc-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(19, 0, 50, 0.25); flex-shrink: 0;
-    transition: background 0.18s var(--ease);
-  }
-  .usecase-card.selected .uc-dot { background: var(--ds-inkwell); }
+  .usecase-card .uc-dot { display: none; }
   .usecase-card .uc-meta { flex: 1; min-width: 0; }
   .usecase-card .uc-title {
-    font-size: 15.5px; font-weight: 500; color: var(--ds-inkwell);
+    font-size: 14px; font-weight: 500; color: var(--ds-inkwell);
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    line-height: 1.25; letter-spacing: -0.005em;
-    display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
+    line-height: 1.3; letter-spacing: -0.005em;
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .usecase-card .uc-title > span:first-child {
+    overflow: hidden; text-overflow: ellipsis;
   }
   .usecase-card .uc-sub {
-    font-size: 13px; color: rgba(19, 0, 50, 0.55); margin-top: 3px;
+    font-size: 12px; color: rgba(19, 0, 50, 0.5); margin-top: 2px;
     font-family: "DSIndigo", Helvetica, Arial, sans-serif;
-    line-height: 1.45; font-weight: 400;
+    line-height: 1.4; font-weight: 400;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Availability pill is muted in the calmer layout — most cards in a group
+     will have the same availability, so the pill becomes redundant once
+     grouped. We only show it for "Coming soon" states (visual signal of
+     unfinished work) and hide it for the default "Demo Story" state. */
   .usecase-card .uc-availability {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
-    text-transform: none;
-    padding: 4px 10px; border-radius: 20px;
-    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+    display: none;
+  }
+  .usecase-card .uc-availability.coming-soon {
+    display: inline-flex; align-items: center;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 3px;
     background: rgba(19, 0, 50, 0.04);
-    color: rgba(19, 0, 50, 0.55);
+    color: rgba(19, 0, 50, 0.5);
+    flex-shrink: 0;
   }
-  .usecase-card .uc-availability.supported {
-    background: var(--ds-mist);
-    color: var(--ds-deep-violet);
-  }
-  .usecase-card .uc-arrow {
-    color: rgba(19, 0, 50, 0.3); flex-shrink: 0;
-    transition: color 0.18s var(--ease), transform 0.18s var(--ease);
-  }
-  .usecase-card:hover:not(.unavailable) .uc-arrow,
-  .usecase-card.selected .uc-arrow {
-    color: var(--ds-inkwell); transform: translateX(2px);
-  }
+  .usecase-card .uc-arrow { display: none; }
 
   .empty-state {
     padding: 28px 22px;
@@ -431,6 +456,66 @@
     padding: 24px 64px 72px; display: flex; gap: 16px;
     align-items: center; justify-content: flex-end;
   }
+  /* In-flow launch row hides once a selection is made — the sticky bar
+     takes over so the CTA never requires scrolling. */
+  body.has-selection .landing-actions { display: none; }
+
+  /* ===== STICKY LAUNCH BAR — appears at viewport bottom once a selection
+     exists. Mirrors the .landing-actions CTA visually but is always reachable.
+     Hidden by default; .visible toggles in via JS. */
+  .sticky-launch {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: rgba(248, 243, 240, 0.96);
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    border-top: 1px solid rgba(19, 0, 50, 0.08);
+    box-shadow: 0 -8px 28px rgba(19, 0, 50, 0.06);
+    z-index: 40;
+    transform: translateY(110%);
+    /* Snappier sticky-bar slide-in — was 0.32s spring; now 0.18s spring. */
+    transition: transform 0.18s var(--ease-spring);
+    display: flex; justify-content: center;
+  }
+  .sticky-launch.visible { transform: translateY(0); }
+  .sticky-launch-inner {
+    max-width: 1120px; width: 100%;
+    padding: 14px 64px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .sticky-launch .sl-crumb {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px;
+    font-family: "DSIndigo", Helvetica, Arial, sans-serif;
+  }
+  .sticky-launch .sl-crumb-label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 600; color: rgba(19, 0, 50, 0.5);
+  }
+  .sticky-launch .sl-crumb-value {
+    font-size: 14px; font-weight: 500; color: var(--ds-inkwell);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sticky-launch .sl-crumb-value .sep { color: rgba(19, 0, 50, 0.35); margin: 0 6px; }
+  .sticky-launch .launch-btn { padding: 13px 26px; font-size: 15px; }
+  @media (max-width: 720px) {
+    .sticky-launch-inner { padding: 12px 22px; gap: 12px; }
+    .sticky-launch .sl-crumb-value { font-size: 13px; }
+    .sticky-launch .launch-btn { padding: 11px 18px; font-size: 14px; }
+    /* Reserve room so sticky bar doesn't cover the bottom of the body. */
+    body.has-selection .landing-body { padding-bottom: 96px; }
+  }
+  body.has-selection .landing-body { padding-bottom: 110px; }
+
+  /* ===== HEADLESS IAM use-case — appended as a single-card group at the
+     bottom of every subvertical's list. Spans the full row (not in the
+     2/3-col grid) so the singleton doesn't read as a missing-item gap. */
+  .usecase-card[data-category="headless"]::before { background: var(--ds-cobalt); }
+  .usecase-group[data-cat="headless"] .usecase-grid { grid-template-columns: 1fr; }
+  .usecase-group[data-cat="headless"] .usecase-card {
+    background: linear-gradient(180deg, var(--ds-white) 0%, #F7F5FF 100%);
+  }
+  /* Legend chip for headless category */
+  .cat-chip.cat-headless .cat-bar { background: var(--ds-cobalt); }
   .launch-btn {
     flex: 0 0 auto; padding: 16px 30px; border-radius: 8px; font-size: 16px;
     font-weight: 500; border: none; cursor: pointer;
@@ -1805,11 +1890,6 @@
       <!-- STAGE 3: USE CASE -->
       <div class="landing-section" id="useCaseSection">
         <label><span class="step-pill">03 &mdash;</span> Use case</label>
-        <div class="category-legend" aria-label="Use-case category legend">
-          <span class="cat-chip cat-onboarding"><span class="cat-bar"></span>Onboarding</span>
-          <span class="cat-chip cat-maintenance"><span class="cat-bar"></span>Maintenance</span>
-          <span class="cat-chip cat-auth"><span class="cat-bar"></span>Auth &amp; Risk</span>
-        </div>
         <div id="useCaseGrid"></div>
       </div>
 
@@ -1818,6 +1898,21 @@
     <!-- ACTIONS — the one Poppy CTA -->
     <div class="landing-actions">
       <button class="launch-btn primary" id="launchBtn" disabled onclick="launchUseCase()"><canvas class="cta-chevron" id="ctaChevron" aria-hidden="true"></canvas><span class="cta-label" id="launchBtnLabel">Launch Demo</span></button>
+    </div>
+
+    <!-- STICKY LAUNCH BAR — appears at viewport bottom once a selection
+         is made so the user never has to scroll to find the CTA.
+         The in-flow launch row above is hidden via body.has-selection. -->
+    <div class="sticky-launch" id="stickyLaunch" aria-hidden="true">
+      <div class="sticky-launch-inner">
+        <div class="sl-crumb">
+          <span class="sl-crumb-label">Ready to launch</span>
+          <span class="sl-crumb-value" id="stickyCrumb">&mdash;</span>
+        </div>
+        <button class="launch-btn primary" id="stickyLaunchBtn" disabled onclick="launchUseCase()">
+          <span class="cta-label" id="stickyLaunchLabel">Launch Demo</span>
+        </button>
+      </div>
     </div>
 
     <!-- Admin + Audit links — quiet, but with glyphs + underlines so they're findable. -->
@@ -4658,12 +4753,25 @@ function askNavAI() {
   const modeBadge       = document.getElementById('modeBadge');
   const headline        = document.getElementById('landingHeadline');
   const subhead         = document.getElementById('landingSubheadline');
+  const stickyLaunch    = document.getElementById('stickyLaunch');
+  const stickyLaunchBtn = document.getElementById('stickyLaunchBtn');
+  const stickyLaunchLbl = document.getElementById('stickyLaunchLabel');
+  const stickyCrumb     = document.getElementById('stickyCrumb');
+
+  // Headless IAM portals are appended to every subvertical's use-case list
+  // as a synthetic "Step into the employee desktop" option. The vertical
+  // determines which tenant portal opens.
+  const HEADLESS_PORTALS = {
+    'financial-services': { slug: 'fins', tenant: 'TGK Capital — Advisor Portal',          role: 'Patrick Meyer, CFA, CPA, CIMA · Wealth Manager' },
+    'hls':                { slug: 'hls',  tenant: 'Riverside Health Network — Epic',       role: 'Dr. Marcus Chen · Clinical Operations' },
+    'public-sector':      { slug: 'ps',   tenant: 'Cascade County — Caseworker Desktop',   role: 'Marcus Lee · Sr. Caseworker' }
+  };
 
   const state = {
-    mode: 'story',            // 'discovery' | 'story' — default to demo story
+    mode: 'story',            // 'discovery' | 'story'
     vertical: null,
     subvertical: null,
-    useCase: null             // index into current subvertical's useCases
+    useCase: null             // numeric index into useCases array, or 'headless' for the synthetic option
   };
 
   // Initialize from URL params (deep-link support)
@@ -4741,6 +4849,11 @@ function askNavAI() {
     useCaseGrid.innerHTML = '';
     updateLaunch();
     updateBreadcrumb();
+    // Bring the next stage into view. block:'nearest' lands faster than
+    // 'center' (no overshoot scroll back) and feels snappier on click.
+    requestAnimationFrame(() => {
+      subvertSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   }
 
   function renderSubverticals(verticalKey) {
@@ -4773,6 +4886,9 @@ function askNavAI() {
     useCaseSection.classList.add('visible');
     updateLaunch();
     updateBreadcrumb();
+    requestAnimationFrame(() => {
+      useCaseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   }
 
   function renderUseCases(verticalKey, subvertKey) {
@@ -4788,43 +4904,53 @@ function askNavAI() {
       return;
     }
 
-    const list = document.createElement('div');
-    list.className = 'usecase-list' + (sv.useCases.length > 1 ? ' dense' : '');
+    // Group use cases by category for the calmer editorial layout.
+    const GROUP_LABELS = {
+      onboarding:  'Onboarding',
+      maintenance: 'Maintenance',
+      auth:        'Auth & Risk',
+      headless:    'Headless IAM',
+      other:       'Other use cases'
+    };
+    const GROUP_ORDER = ['onboarding', 'maintenance', 'auth', 'other', 'headless'];
+    const groups = { onboarding: [], maintenance: [], auth: [], other: [], headless: [] };
 
     sv.useCases.forEach((uc, i) => {
+      const cat = (uc.category && groups[uc.category]) ? uc.category : 'other';
+      groups[cat].push({ uc, i });
+    });
+
+    // Build the synthetic Headless IAM card data for this vertical.
+    const portal = HEADLESS_PORTALS[verticalKey];
+
+    // Card builders --------------------------------------------------------
+    function buildCatalogCard({ uc, i }) {
       const supported = ucSupportedInMode(uc, state.mode);
       const storyReady = ucStoryReady(uc);
       const card = document.createElement('div');
-      // In story mode every card is clickable; the launch step gates on storyImplemented.
       card.className = 'usecase-card' + (supported ? '' : ' unavailable');
       card.dataset.index = i;
-      // Category drives the left-edge colored bar (onboarding/maintenance/auth).
       if (uc.category) card.dataset.category = uc.category;
-      // Archetype is metadata for future filtering; doesn't affect visuals today.
       if (uc.archetype) card.dataset.archetype = uc.archetype;
 
-      let availLabel, availClass;
-      if (state.mode === 'discovery') {
-        availLabel = supported ? 'Discovery' : 'Demo only';
-        availClass = supported ? 'uc-availability supported' : 'uc-availability';
-      } else {
-        // story mode
-        availLabel = storyReady ? 'Demo Story' : 'Coming soon';
-        availClass = storyReady ? 'uc-availability supported' : 'uc-availability';
+      // Availability pill: only paint "Coming soon" (the calmer layout drops
+      // the redundant "Demo Story" / "Discovery" badge — group context tells
+      // the user what mode they're in).
+      let pill = '';
+      if (state.mode === 'discovery' && !supported) {
+        pill = '<span class="uc-availability coming-soon">Demo only</span>';
+      } else if (state.mode === 'story' && !storyReady) {
+        pill = '<span class="uc-availability coming-soon">Coming soon</span>';
       }
 
       card.innerHTML = `
-        <span class="uc-dot" aria-hidden="true"></span>
         <div class="uc-meta">
           <div class="uc-title">
             <span>${uc.title}</span>
-            <span class="${availClass}">${availLabel}</span>
+            ${pill}
           </div>
           <div class="uc-sub">${uc.subtitle}</div>
         </div>
-        <svg class="uc-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-        </svg>
       `;
       if (supported) {
         card.addEventListener('click', () => selectUseCase(i));
@@ -4833,18 +4959,76 @@ function askNavAI() {
           window.launchUseCase();
         });
       }
-      list.appendChild(card);
+      return card;
+    }
+
+    function buildHeadlessCard() {
+      const card = document.createElement('div');
+      card.className = 'usecase-card';
+      card.dataset.index = 'headless';
+      card.dataset.category = 'headless';
+      card.innerHTML = `
+        <div class="uc-meta">
+          <div class="uc-title"><span>Step into the employee desktop</span></div>
+          <div class="uc-sub">${portal.tenant} &middot; ${portal.role}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => selectUseCase('headless'));
+      card.addEventListener('dblclick', () => {
+        selectUseCase('headless');
+        window.launchUseCase();
+      });
+      return card;
+    }
+
+    if (portal) groups.headless.push({ headless: true });
+
+    // Render --------------------------------------------------------------
+    const list = document.createElement('div');
+    list.className = 'usecase-list';
+
+    GROUP_ORDER.forEach(catKey => {
+      const items = groups[catKey];
+      if (items.length === 0) return;
+
+      const groupEl = document.createElement('div');
+      groupEl.className = 'usecase-group';
+      groupEl.dataset.cat = catKey;
+
+      const head = document.createElement('div');
+      head.className = 'usecase-group-h';
+      head.innerHTML = `<span class="group-bar" aria-hidden="true"></span>${GROUP_LABELS[catKey]}`;
+      groupEl.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'usecase-grid';
+      items.forEach(item => {
+        const card = item.headless ? buildHeadlessCard() : buildCatalogCard(item);
+        grid.appendChild(card);
+      });
+      groupEl.appendChild(grid);
+
+      list.appendChild(groupEl);
     });
 
     useCaseGrid.appendChild(list);
   }
 
   function selectUseCase(index) {
+    if (index === 'headless') {
+      state.useCase = 'headless';
+      document.querySelectorAll('#useCaseGrid .usecase-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.index === 'headless');
+      });
+      updateLaunch();
+      updateBreadcrumb();
+      return;
+    }
     const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[index];
     if (!ucSupportedInMode(uc, state.mode)) return;
     state.useCase = index;
-    document.querySelectorAll('#useCaseGrid .usecase-card').forEach((c, i) => {
-      c.classList.toggle('selected', i === index);
+    document.querySelectorAll('#useCaseGrid .usecase-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.index === String(index));
     });
     updateLaunch();
     updateBreadcrumb();
@@ -4852,16 +5036,41 @@ function askNavAI() {
 
   function updateLaunch() {
     const ready = state.vertical && state.subvertical && state.useCase !== null;
+    const isHeadless = state.useCase === 'headless';
     launchBtn.disabled = !ready;
     const copy = MODE_COPY[state.mode];
-    // Write to the label span only — never reassign launchBtn.innerHTML or
-    // we'd wipe the <canvas> chevron the IIFE below is animating.
+    // Headless overrides the launch label with "Open Desktop" copy.
+    const launchVerb = isHeadless ? 'Open Desktop' : copy.launch;
     const labelEl = document.getElementById('launchBtnLabel');
     if (ready) {
-      const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
-      labelEl.innerHTML = `${copy.launch} &mdash; &ldquo;${uc.title}&rdquo;`;
+      if (isHeadless) {
+        const portal = HEADLESS_PORTALS[state.vertical];
+        labelEl.innerHTML = `${launchVerb} &mdash; ${portal.tenant}`;
+      } else {
+        const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
+        labelEl.innerHTML = `${launchVerb} &mdash; &ldquo;${uc.title}&rdquo;`;
+      }
     } else {
       labelEl.textContent = copy.launch;
+    }
+    // Mirror to the sticky launch bar — visible whenever a use case is picked.
+    if (stickyLaunch) {
+      stickyLaunch.classList.toggle('visible', ready);
+      stickyLaunch.setAttribute('aria-hidden', ready ? 'false' : 'true');
+      stickyLaunchBtn.disabled = !ready;
+      document.body.classList.toggle('has-selection', !!ready);
+      if (ready) {
+        const vTitle  = CATALOG[state.vertical].title;
+        const svTitle = CATALOG[state.vertical].subverticals[state.subvertical].title;
+        if (isHeadless) {
+          const portal = HEADLESS_PORTALS[state.vertical];
+          stickyCrumb.innerHTML = `${vTitle} <span class="sep">&rsaquo;</span> ${svTitle} <span class="sep">&rsaquo;</span> ${portal.tenant}`;
+        } else {
+          const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
+          stickyCrumb.innerHTML = `${vTitle} <span class="sep">&rsaquo;</span> ${svTitle} <span class="sep">&rsaquo;</span> &ldquo;${uc.title}&rdquo;`;
+        }
+        stickyLaunchLbl.innerHTML = `${launchVerb} &rarr;`;
+      }
     }
   }
 
@@ -4870,7 +5079,12 @@ function askNavAI() {
     if (state.vertical) parts.push(CATALOG[state.vertical].title);
     if (state.subvertical) parts.push(CATALOG[state.vertical].subverticals[state.subvertical].title);
     if (state.useCase !== null) {
-      parts.push(CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase].title);
+      if (state.useCase === 'headless') {
+        const portal = HEADLESS_PORTALS[state.vertical];
+        parts.push(portal ? portal.tenant : 'Employee desktop');
+      } else {
+        parts.push(CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase].title);
+      }
     }
     if (parts.length === 0) {
       breadcrumb.innerHTML = '<span class="placeholder">Start by choosing a vertical below</span>';
@@ -4890,7 +5104,8 @@ function askNavAI() {
     // Re-render current use-case list with new availability marks
     if (state.vertical && state.subvertical) {
       // clear useCase selection if the new mode doesn't support it
-      if (state.useCase !== null) {
+      // (headless is always supported across modes — skip the catalog check)
+      if (state.useCase !== null && state.useCase !== 'headless') {
         const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
         if (!ucSupportedInMode(uc, mode)) state.useCase = null;
       }
@@ -4933,6 +5148,15 @@ function askNavAI() {
   // ---------- Launch handler — bridges to existing index.html machinery ----------
   window.launchUseCase = function () {
     if (launchBtn.disabled) return;
+
+    // Headless IAM use case routes to the matching tenant portal,
+    // regardless of which mode (discovery/story) is active.
+    if (state.useCase === 'headless') {
+      const portal = HEADLESS_PORTALS[state.vertical];
+      if (portal) window.location.href = `/headless-iam/${portal.slug}.html`;
+      return;
+    }
+
     const uc = CATALOG[state.vertical].subverticals[state.subvertical].useCases[state.useCase];
 
     if (state.mode === 'discovery') {
