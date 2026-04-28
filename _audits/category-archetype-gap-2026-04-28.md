@@ -79,12 +79,33 @@ got a new "Commercial Fraud / Risk Management" alongside the
 existing Cedar one; wealth subvertical got "Advisor-Led Fraud /
 Risk Management" alongside the existing Hillside one.
 
-### P1 — Maintenance coverage for FINS
+### ~~P1 — Maintenance coverage for FINS~~ ✓ Done 2026-04-28
 
-- `banking` maintenance — Atlas authorized-signer change or beneficiary update on the facility
-- `insurance` maintenance — Ramirez address/policy change with step-up
-- `insurance-life` maintenance — Whitfield post-claim payment redirect or beneficiary
-- `insurance-pc` maintenance — Patel mid-claim evidence upload
+Authored fresh maintenance narration for all four FINS verticals,
+each scenario distinct from that vertical's auth-fabric so the two
+demos don't overlap:
+
+- ✓ `banking` maintenance — Atlas authorized-signer roster (Diana adds
+  son Mark as COO co-signer · CLEAR step-up for both · Sofia in credit
+  ops reviews · commercial core record refreshes)
+- ✓ `insurance` maintenance — Ramirez address change + mortgagee refresh
+  (move triggers auto-rerate · Westshore Mortgage gets new mortgagee
+  endorsement · Coastal Mortgage gets release notice · Marisol confirms
+  in underwriting)
+- ✓ `insurance-life` maintenance — Whitfield contingent beneficiary
+  (Theresa adds granddaughter Maya at 20% contingent · existing
+  children rebalance to 80% · SSA cross-reference validates Maya's
+  identity · Camille confirms in claims)
+- ✓ `insurance-pc` maintenance — Patel fleet vehicle replacement
+  (post-CL-2026-31102 total-loss settlement · new VIN validates against
+  state DMV · auto-rerate · endorsement issues + ID card prints for cab)
+
+Three things ship together per vertical:
+- New `usecases.maintenance` block in `usecase-narrations-2026-04-27.json`
+- New `MAINTENANCE_PRESETS[<key>]` overlay in `docusign-webform-intake.html`
+  with state titles + ledes for s2/s3/s4
+- New "Account Maintenance" picker card in `index-unified.html` with
+  category=maintenance + appropriate archetype
 
 ### P2 — Cross-vertical maintenance + auth
 
