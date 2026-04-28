@@ -149,6 +149,37 @@
   .lede .em{font-weight:600;color:var(--ink-mid);}
   .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
 
+  /* Lead-mode hint — "Click anywhere to begin". Hidden until lead-mode is
+     active AND the dwell delay (LEAD_HINT_DELAY_MS) has elapsed; fades out
+     the moment the user interacts with the stage. Editorial typography in
+     lead-mode, compact in non-lead — but only shown in lead. */
+  .lead-hint{
+    display:none;
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--ink-faint);
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:600;
+    opacity:0;
+    transition:opacity 0.55s ease;
+    pointer-events:none;
+  }
+  .shell.lead-mode .lead-hint{display:block;}
+  .shell.lead-mode-hinted .lead-hint{opacity:0.75;}
+  .shell.lead-mode .lead-hint::before{
+    content:""; display:inline-block;
+    width:6px; height:6px; border-radius:50%;
+    background:var(--ds-purple);
+    margin-right:8px; vertical-align:middle;
+    animation:hintPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes hintPulse{
+    0%,100%{opacity:0.45; transform:scale(1);}
+    50%{opacity:1; transform:scale(1.4);}
+  }
+  body.calibrate .lead-hint{display:none !important;}
+
   /* ===================== Lead state — sidebar collapse =====================
      On every scene change the shell enters .lead-mode for ~2.6s. The
      sidebar widens from a 24% rail to a 48% editorial column, the
@@ -390,6 +421,7 @@
       <div class="step-label" id="step-label">SCENE 1 OF 5</div>
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
+      <div class="lead-hint" id="lead-hint" aria-hidden="true">Click anywhere to begin</div>
       <div class="foot-spacer"></div>
       <div class="beat-pips" id="beat-pips"></div>
       <div class="progress">
@@ -2580,7 +2612,8 @@ function goTo(i, opts = {}){
     layer.innerHTML = "";
     setTimeout(renderHotspot, 700);
     // Lead state: sidebar widens into the editorial column on every scene
-    // change, holds for LEAD_HOLD_MS, then collapses back to its rail.
+    // change and lingers until the user interacts; a "Click to begin" hint
+    // appears after LEAD_HINT_DELAY_MS so a still viewer knows it's their move.
     enterLeadMode();
   } else {
     renderHotspot();
@@ -2593,28 +2626,38 @@ function goTo(i, opts = {}){
 /* =========================================================
    Sidebar collapse — the lead → yield spatial choreography.
    - enterLeadMode(): expand sidebar to ~48% width, swap typography
-     into Fraunces italic, drop the cream wash. Holds for
-     LEAD_HOLD_MS, then auto-collapses.
+     into Fraunces italic, drop the cream wash. LINGERS until the
+     user interacts (no auto-timeout). After LEAD_HINT_DELAY_MS a
+     subtle "Click anywhere to begin" hint fades in below the lede
+     so a still viewer knows it's their move.
    - exitLeadMode(): return to the 24% rail with compact Inter
-     typography. Demo grows into the freed space.
+     typography. Demo grows into the freed space. Triggered by stage
+     mouseenter/click, arrow keys, space, or escape.
 
    The user reads one continuous headline as the column migrates from
-   the editorial column to the chapter rail.
+   the editorial column to the chapter rail — at their pace, not on a
+   timer.
    ========================================================= */
-const LEAD_HOLD_MS = 2600;
-let leadTimer = null;
+const LEAD_HINT_DELAY_MS = 1500;
+let hintTimer = null;
 function enterLeadMode(){
   const shell = document.querySelector('.shell');
   if (!shell) return;
   shell.classList.add('lead-mode');
-  if (leadTimer) clearTimeout(leadTimer);
-  leadTimer = setTimeout(exitLeadMode, LEAD_HOLD_MS);
+  shell.classList.remove('lead-mode-hinted');
+  if (hintTimer) clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => {
+    if (shell.classList.contains('lead-mode')) {
+      shell.classList.add('lead-mode-hinted');
+    }
+  }, LEAD_HINT_DELAY_MS);
 }
 function exitLeadMode(){
   const shell = document.querySelector('.shell');
   if (!shell) return;
-  if (leadTimer) { clearTimeout(leadTimer); leadTimer = null; }
+  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
   shell.classList.remove('lead-mode');
+  shell.classList.remove('lead-mode-hinted');
 }
 // Stage interaction (mouseenter, click) and navigation keys exit the
 // lead beat early — the user's already engaged with the demo.
