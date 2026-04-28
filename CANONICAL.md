@@ -92,7 +92,7 @@ The original 10 stay unchanged. The 11 new entries:
 | `slgov-vendor-compliance` | Ridgeview Procurement × Apex Logistics annual COI | `#E89B5B` | ✗ | `public-sector-vendor-compliance.html` |
 | `slgov-employee-onboarding` | Cascade County HR × Marcus Lee new caseworker | `#B589DB` | ✗ | `public-sector-employee-onboarding.html` |
 | `slgov-licensing` | Northbrook Licensing Bureau × Avalon Café restaurant license | `#F2A56B` | ✗ | `public-sector-licensing.html` |
-| `banking-deposits` | Cedar Federal Credit Union × Williams household — Account Opening (A-trig) · joint checking + HYSA. Maintenance (B) lives at `?usecase=auth-fabric` (add wire payee + $50k transfer) | `#6BB6FF` | ✗ | `banking-deposits.html` |
+| `banking-deposits` | Cedar Federal Credit Union × Williams household — Account Opening (A-trig). `?usecase=auth-fabric` = high-value wire + chain-of-custody. `?usecase=maintenance` = household beneficiary update (B). | `#6BB6FF` | ✗ | `banking-deposits.html` |
 | `wealth-discovery` | Cypress Wealth × Holcomb Family — IRA rollover + family trust | `#5BA1B8` | **✓** | `wealth-onboarding.html` |
 
 Each new vertical has the same shape as the original 10:

@@ -1497,7 +1497,12 @@ const USECASE_SCENE_KEYS = {
   default:        ["agreement_desk","clear_idv","signing","navigator","workspace"],
   "auth-fabric":  ["portal_clear_idv","portal_webform","portal_submit"],
   "intake-3":     ["webform_intake","maestro_package","envelope_deliver"],
-  "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"]
+  "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"],
+  /* maintenance = customer-initiated sensitive change in the authenticated portal.
+     Scene 1+2 reuse portal-shell (CLEAR-at-the-door + policy-driven webform);
+     Scene 3 surfaces the change in an approval-queue view (default Agreement Desk,
+     NOT the chain-of-custody variant — that framing is reserved for auth-fabric). */
+  maintenance:    ["portal_clear_idv","portal_webform","agreement_desk"]
 };
 const USECASE_TEMPLATE_FILES = {
   default: TEMPLATE_FILES,
@@ -1516,6 +1521,11 @@ const USECASE_TEMPLATE_FILES = {
     "/story-templates/docusign-maestro-package.html",
     "/story-templates/docusign-signing-ceremony.html",
     "/story-templates/docusign-workspace.html"
+  ],
+  maintenance: [
+    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-agreement-desk.html"
   ]
 };
 /* Optional ?mode= params per scene per usecase. Lets the same template
@@ -1524,7 +1534,8 @@ const USECASE_TEMPLATE_FILES = {
 const USECASE_TEMPLATE_MODES = {
   "auth-fabric": ["clear-idv-login", "action-webform", null],
   "intake-3":    [null, null, null],
-  "intake-4":    [null, null, null, null]
+  "intake-4":    [null, null, null, null],
+  maintenance:   ["clear-idv-login", "action-webform", "approval-queue"]
 };
 
 /* =========================================================
@@ -1622,7 +1633,7 @@ const SCENE1_TEMPLATE_OVERRIDE = {
   "slgov-recertification":      SCENE1_OVERRIDE,
   "slgov-vendor-compliance":    SCENE1_OVERRIDE,
   "slgov-employee-onboarding":  SCENE1_OVERRIDE,
-  "banking-deposits":           SCENE1_OVERRIDE, /* canonical = Account Opening · A-trig (marketing-funnel→Maestro). Maintenance lives at ?usecase=auth-fabric (B). */
+  "banking-deposits":           SCENE1_OVERRIDE, /* canonical = Account Opening · A-trig (marketing-funnel→Maestro). Maintenance lives at ?usecase=maintenance (B). auth-fabric is the pure CLEAR-at-the-door demo. */
   /* B · Self-service */
   "insurance-pc":               SCENE1_OVERRIDE,
   provider:                     SCENE1_OVERRIDE,
@@ -1708,8 +1719,9 @@ const verticalKey = params.get("vertical") || location.hash.replace(/^#/,"") || 
 let calibrateMode = params.get("calibrate") === "1";
 /* ?usecase= picks a sub-flow story.
    - "default" (or unset)        → canonical 5-scene story (v.scenes)
-   - "auth-fabric"               → 3-scene runtime IDV+webform fabric
+   - "auth-fabric"               → 3-scene CLEAR-at-the-door + chain-of-custody binding
    - "intake"                    → 3- or 4-scene webform-and-Maestro intake
+   - "maintenance"               → 3-scene customer-initiated sensitive change in portal
    The narration data for the non-default usecases lives in
    v.usecases[<key>].scenes — pulled from the inline JSON bundle. */
 const usecase = params.get("usecase") || "default";
