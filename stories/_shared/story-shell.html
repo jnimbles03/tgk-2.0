@@ -58,11 +58,63 @@
   .brand-slot .ds:hover::after{width:12px;margin-left:4px;}
 
   .step-label{font-size:13px;font-weight:600;color:var(--step-blue);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:24px;transition:opacity 0.25s ease;}
-  .headline{font-family:var(--ui-font);font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.15;margin-bottom:28px;transition:opacity 0.25s ease;}
-  .lede{font-size:15px;color:var(--ink-mid);line-height:1.65;margin-bottom:28px;max-width:92%;transition:opacity 0.25s ease;}
+  .headline{font-family:var(--ui-font);font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.15;margin-bottom:28px;transition:opacity 0.25s ease, font-size 0.5s cubic-bezier(.2,.7,.2,1), font-weight 0.5s ease, letter-spacing 0.5s ease, font-style 0.5s ease, font-family 0.5s ease, margin-bottom 0.5s ease;}
+  .lede{font-size:15px;color:var(--ink-mid);line-height:1.65;margin-bottom:28px;max-width:92%;transition:opacity 0.45s ease, font-size 0.4s ease;}
   .lede p + p{margin-top:14px;}
   .lede .em{font-weight:600;color:var(--ink);}
-  .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
+  /* The fade-on-beat-change rule must win over the lead/yield opacity
+     overrides defined below — same specificity tie, so we use !important
+     here as the explicit transitional state. */
+  .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0 !important;}
+
+  /* ===================== Lead → Yield focus pattern =====================
+     On scene change the shell enters .lead-mode: the headline swells into
+     Fraunces italic, the lede stays crisp, and a soft cream veil falls
+     over the iframe so the eye lands on the story first. After ~1.6s
+     (or on the first interaction with the stage), the shell flips to
+     .yield-mode: headline collapses back to Inter at 22px, lede drops to
+     ~55% opacity, veil dissolves — the demo takes over. The thesis is
+     impactful, then yields. */
+  .shell.lead-mode .headline{
+    font-family:var(--editorial);
+    font-style:italic;
+    font-weight:500;
+    font-size:40px;
+    letter-spacing:-0.01em;
+    line-height:1.12;
+    margin-bottom:24px;
+  }
+  .shell.lead-mode .lede{opacity:1;}
+  .shell.lead-mode .stage-veil{opacity:1;}
+
+  .shell.yield-mode .headline{
+    font-size:22px;
+    font-weight:600;
+    margin-bottom:16px;
+  }
+  .shell.yield-mode .lede{opacity:0.55;font-size:14px;}
+  .shell.yield-mode .step-label{opacity:0.7;}
+  .shell.yield-mode .stage-veil{opacity:0;}
+
+  /* Soft restore on sidebar hover: while focus is on the demo, hovering
+     the sidebar fades the supporting prose back in so the user can re-read
+     without disturbing the demo's spatial dominance. */
+  .shell.yield-mode .sidebar:hover .lede{opacity:1;}
+  .shell.yield-mode .sidebar:hover .step-label{opacity:1;}
+
+  .stage-veil{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(234,228,218,0.42) 0%,rgba(234,228,218,0.28) 100%);
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 0.6s ease;
+    z-index:5;
+  }
+
+  /* Calibrate mode: operator needs the demo at full brightness while
+     dragging hotspots — disable the lead veil and force yield typography. */
+  body.calibrate .stage-veil{display:none;}
+  body.calibrate .shell.lead-mode .headline{font-family:var(--ui-font);font-style:normal;font-weight:700;font-size:34px;}
 
   .foot-spacer{flex:1;}
   .beat-pips{display:flex;gap:6px;margin-bottom:12px;}
@@ -162,6 +214,11 @@
 
     .stage{flex:none;width:100vw;height:calc(100vw * 0.625);border-left:none;border-top:1px solid var(--hair);overflow:hidden;position:relative;}
     .stage iframe{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:top left;transform:scale(calc(100vw / 1280));}
+
+    /* Mobile lead-mode: keep the editorial cue but cap the headline so it
+       doesn't overflow the narration card on a phone. */
+    .shell.lead-mode .headline{font-size:24px;margin-bottom:10px;}
+    .shell.yield-mode .headline{font-size:18px;margin-bottom:10px;}
 
     /* Hotspot dot stays small but tappable; tip clamps so it never overflows the screen. */
     .hotspot .ring{width:16px;height:16px;}
@@ -273,8 +330,9 @@
       </div>
     </aside>
 
-    <section class="stage">
+    <section class="stage" id="stage">
       <iframe id="scene" src="" title="Scene"></iframe>
+      <div class="stage-veil" id="stage-veil"></div>
       <div class="hotspot-layer" id="hotspot-layer"></div>
     </section>
   </div>
@@ -2275,6 +2333,10 @@ function goTo(i, opts = {}){
     }, 180);
     layer.innerHTML = "";
     setTimeout(renderHotspot, 700);
+    // Lead → Yield: a fresh scene re-asserts the story. Run the lead beat
+    // here (not on every beat change) so within-scene autoplay doesn't keep
+    // flashing the editorial state.
+    enterLeadMode();
   } else {
     renderHotspot();
   }
@@ -2282,6 +2344,48 @@ function goTo(i, opts = {}){
   sceneStart = performance.now();
   beatStart = performance.now();
 }
+
+/* =========================================================
+   Lead → Yield focus state machine.
+   - enterLeadMode(): sidebar takes over (Fraunces headline, full prose,
+     translucent cream veil over the iframe). Times out after LEAD_HOLD_MS
+     into yield, OR yields immediately on the first stage interaction.
+   - enterYieldMode(): headline collapses to Inter 22px, lede drops to
+     ~55% opacity, veil dissolves. Demo owns the visual weight.
+   ========================================================= */
+const LEAD_HOLD_MS = 1600;
+let leadTimer = null;
+function enterLeadMode(){
+  const shell = document.querySelector('.shell');
+  if (!shell) return;
+  shell.classList.remove('yield-mode');
+  shell.classList.add('lead-mode');
+  if (leadTimer) clearTimeout(leadTimer);
+  leadTimer = setTimeout(enterYieldMode, LEAD_HOLD_MS);
+}
+function enterYieldMode(){
+  const shell = document.querySelector('.shell');
+  if (!shell) return;
+  if (leadTimer) { clearTimeout(leadTimer); leadTimer = null; }
+  shell.classList.remove('lead-mode');
+  shell.classList.add('yield-mode');
+}
+// Any interaction with the stage (mouse enter, click, key) yields immediately
+// — the user's attention is already on the demo, the story has done its job.
+(function wireFocusYield(){
+  const stage = document.getElementById('stage');
+  if (!stage) return;
+  const yieldNow = () => {
+    const shell = document.querySelector('.shell');
+    if (shell && shell.classList.contains('lead-mode')) enterYieldMode();
+  };
+  stage.addEventListener('mouseenter', yieldNow);
+  stage.addEventListener('click', yieldNow);
+  // Keyboard advance/rewind also signals demo focus.
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') yieldNow();
+  });
+})();
 function advance(){
   const scene = SCENES[idx];
   if (hotIdx < scene.hotspots.length - 1) {
