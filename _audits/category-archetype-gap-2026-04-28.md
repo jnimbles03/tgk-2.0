@@ -53,15 +53,31 @@
 
 ## Build punch list (in priority order)
 
-### P0 — Auth coverage for the rest of FINS
+### ~~P0 — Auth coverage for the rest of FINS~~ ✓ Done 2026-04-28
 
-These are the highest-frequency demo asks. We have the template (auth-fabric template + scenarios in usecase-narrations bundle), just need authored narration per (vertical, scenario):
+Discovered the auth-fabric narrations were already authored in
+`usecase-narrations-2026-04-27.json` from the original bulk pass —
+just missing picker cards. P0 became "expose what exists" rather
+than "author new narration." All 5 priority verticals now have a
+`Fraud / Risk Management` card in the picker:
 
-- `wealth-discovery` auth-fabric — Walter authorizes high-value distribution from family trust + chain-of-custody view
-- `banking` auth-fabric — Diana authorizes $850k draw on the working-capital facility + chain-of-custody
-- `insurance` auth-fabric — Elena coverage-change with step-up + chain-of-custody
-- `insurance-life` auth-fabric — Theresa redirects payment with step-up + chain-of-custody
-- `insurance-pc` auth-fabric — Priya supplemental damage upload with step-up + chain-of-custody
+- ✓ `wealth-discovery` → Cypress × Holcomb · high-value IRA rollover
+  (subvertical: wealth, archetype: advisor-led)
+- ✓ `banking` → Meridian × Atlas · $850k working-capital draw
+  (subvertical: banking, archetype: sender-led)
+- ✓ `insurance` → Sentinel × Ramirez · mid-policy deductible change
+  (subvertical: insurance, archetype: self-service)
+- ✓ `insurance-life` → Beacon × Whitfield · post-claim payment redirect
+  (subvertical: insurance, archetype: self-service)
+- ✓ `insurance-pc` → Northgate × Patel · supplemental damage upload
+  (subvertical: insurance, archetype: self-service)
+
+Picker also got two parent restructures: insurance subvertical's
+single placeholder "Fraud / Risk Management" was replaced with three
+tenant-specific cards (HO3 / Life Claims / P&C); banking subvertical
+got a new "Commercial Fraud / Risk Management" alongside the
+existing Cedar one; wealth subvertical got "Advisor-Led Fraud /
+Risk Management" alongside the existing Hillside one.
 
 ### P1 — Maintenance coverage for FINS
 
