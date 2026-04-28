@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Webform intake · Maestro proxy · TGK 2.0</title>
+<style>
+  /*
+    Webform intake stub used by the intake-mechanics demo (Scene 1).
+    Same template renders for both Archetype A (sender / internal) and B
+    (self-service / external) — the preset informs which actor framing
+    appears in the header. The shell's hotspot system anchors via
+    data-hotspot=. Hotspots key: webform_intake.
+  */
+  :root {
+    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-ecru: #F8F3F0;
+    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
+    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
+  .frame { max-width: 720px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
+  .header { padding: 16px 24px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
+  .header .brand { font-weight: 600; font-size: 14px; }
+  .header .archetype-pill { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: rgba(76,0,255,0.08); color: var(--ds-cobalt); }
+  .body { padding: 28px 24px; }
+  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 10px; }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .scope { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.5; max-width: 540px; }
+  .row-section { margin-bottom: 22px; }
+  .row-section h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 8px; }
+  .field-row { margin-bottom: 12px; }
+  .field-row label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-bottom: 4px; }
+  .field-row input, .field-row select { width: 100%; padding: 8px 12px; border: 1px solid var(--hair-strong); border-radius: 4px; font: inherit; font-size: 13px; background: var(--bg); }
+  .branch-flag { font-size: 11px; color: var(--ds-cobalt); margin-top: 4px; font-style: italic; }
+  .package-preview { background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; padding: 14px 18px; margin: 18px 0; }
+  .package-preview h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ds-cobalt); margin-bottom: 8px; }
+  .package-preview ul { list-style: none; }
+  .package-preview li { padding: 4px 0; font-size: 12.5px; color: var(--ink-mid); display: flex; gap: 8px; align-items: center; }
+  .package-preview li::before { content: '✦'; color: var(--ds-cobalt); font-size: 11px; }
+  .btn-submit { width: 100%; padding: 11px; background: var(--ds-cobalt); color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="header">
+    <div class="brand" id="brand">Tenant — Intake webform</div>
+    <span class="archetype-pill" id="archetype">SENDER</span>
+  </div>
+  <div class="body">
+    <div class="ms-tag">Maestro · Intake webform</div>
+    <h2 id="title">Configure intake</h2>
+    <div class="scope" id="scope">Selections drive Maestro packaging downstream. Each field shapes which documents fan out, what gets pre-filled, and how routing is built.</div>
+
+    <div class="row-section">
+      <h3>Configuration</h3>
+      <div class="field-row" data-hotspot="webform_field_1"><label>Selection 1 — drives doc set</label><input type="text" placeholder="primary configuration choice" /><div class="branch-flag">↳ branches downstream fields</div></div>
+      <div class="field-row" data-hotspot="webform_field_2"><label>Selection 2 — drives recipient routing</label><input type="text" placeholder="routing-relevant attribute" /></div>
+      <div class="field-row" data-hotspot="webform_field_3"><label>Selection 3 — drives compliance attachments</label><input type="text" placeholder="compliance-relevant attribute" /></div>
+    </div>
+
+    <div class="package-preview" data-hotspot="package_preview">
+      <h3>Maestro will package</h3>
+      <ul id="pkg-list">
+        <li>Document set inferred from configuration</li>
+        <li>Pre-fill from systems of record</li>
+        <li>Routing built per selection</li>
+        <li>Compliance attachments auto-included</li>
+      </ul>
+    </div>
+
+    <button class="btn-submit" data-hotspot="webform_submit">Submit → Trigger Maestro fan-out</button>
+  </div>
+</div>
+
+<div class="stub-banner">Stub · Maestro proxy · intake</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const preset = params.get('preset') || 'wealth';
+  const PRESETS = {
+    wealth:               { tenant: 'Hillside',          archetype: 'SENDER · INTERNAL',     title: 'New engagement configuration',         pkg: ['IMA template (entity + AUM tier)', 'Pershing custodial agreement', 'Reg BI disclosure', 'Pre-fill from KYB record'] },
+    banking:              { tenant: 'Meridian',          archetype: 'SENDER · INTERNAL',     title: 'Credit facility request configuration', pkg: ['Loan agreement', 'Security agreement', 'UCC-1 financing statement', 'Personal guaranty', 'Pre-fill from KYB'] },
+    insurance:            { tenant: 'Sentinel',          archetype: 'SENDER · INTERNAL',     title: 'HO3 binder configuration',             pkg: ['Application', 'Binder', 'Declarations page', 'Mortgagee notice'] },
+    'insurance-life':     { tenant: 'Beacon Mutual',     archetype: 'SENDER · INTERNAL',     title: 'Death claim file configuration',       pkg: ['Proof of loss', 'Payment election', 'Tax forms', 'Beneficiary acknowledgment'] },
+    'insurance-pc':       { tenant: 'Northgate',         archetype: 'SELF-SERVICE · MOBILE', title: 'FNOL submission',                       pkg: ['FNOL packet', 'Sworn statement', 'Investigation routing', 'Photo evidence'] },
+    'banking-deposits':   { tenant: 'Cedar Federal',     archetype: 'SELF-SERVICE · MOBILE', title: 'Open new account',                      pkg: ['Account opening docs', 'ACH funding auth', 'Signature card', 'Reg D disclosures'] },
+    'wealth-discovery':   { tenant: 'Cypress Wealth',    archetype: 'SENDER · INTERNAL',     title: 'Multi-account discovery configuration', pkg: ['IRA agreement', 'Joint account', 'Family trust', 'Advisory agreement'] },
+    provider:             { tenant: 'Riverside Health',  archetype: 'SELF-SERVICE · PORTAL', title: 'New-patient pre-registration',          pkg: ['HIPAA acknowledgment', 'Financial responsibility', 'New-patient consent', 'Insurance verification'] },
+    lifesciences:         { tenant: 'Helix',             archetype: 'SENDER · INTERNAL',     title: 'Site activation configuration',         pkg: ['CTA', 'Budget', 'FDA-1572', 'IRB approval', 'Financial disclosure'] },
+    payor:                { tenant: 'Unity',             archetype: 'SELF-SERVICE · MARKETPLACE', title: 'Silver HMO enrollment',           pkg: ['Enrollment form', 'ID card request', 'Welcome kit', 'PCP assignment'] },
+    'provider-roi':       { tenant: 'Catalina Medical',  archetype: 'SENDER · INTERNAL',     title: 'HIM intake from inbound ROI',           pkg: ['HIPAA authorization', 'Retrieval order', 'Redaction instructions', 'Fee acknowledgment'] },
+    fedgov:               { tenant: 'State UI',          archetype: 'SELF-SERVICE · CITIZEN PORTAL', title: 'UI claim configuration',         pkg: ['Determination packet', 'DD authorization', 'Work-search agreement'] },
+    slgov:                { tenant: 'Springfield',       archetype: 'SELF-SERVICE · APPLICANT', title: 'Building permit application',         pkg: ['Permit application', 'Plan check', 'Fee authorization', 'Inspection schedule'] },
+    'slgov-311':          { tenant: 'Greenhaven PW',     archetype: 'SELF-SERVICE · CITIZEN', title: '311 service request',                  pkg: ['Dispatch packet', 'Work order generation', 'GPS / photo metadata'] },
+    'slgov-benefits':     { tenant: 'Eastside HHS',      archetype: 'SELF-SERVICE · MOBILE', title: 'SNAP application',                      pkg: ['Application', 'Verification asks', 'Household attestation'] },
+    'slgov-recertification': { tenant: 'Cascade Medicaid', archetype: 'SENDER · INTERNAL',  title: 'Out-of-cycle exception recert',         pkg: ['Tailored recert packet', 'Audit-reason verification', 'Exception authorization'] },
+    'slgov-vendor-compliance': { tenant: 'Ridgeview',    archetype: 'SENDER · INTERNAL',    title: 'New-vendor onboarding',                 pkg: ['Onboarding packet', 'W-9', 'COI request', 'DEI attestations'] },
+    'slgov-employee-onboarding': { tenant: 'Cascade County HR', archetype: 'SENDER · INTERNAL', title: 'New hire onboarding kickoff',     pkg: ['Offer letter', 'I-9', 'W-4', 'Benefits enrollment', 'Equipment request'] },
+    'slgov-licensing':    { tenant: 'Northbrook',        archetype: 'SELF-SERVICE · APPLICANT', title: 'Restaurant license application',  pkg: ['License application', 'Attestation', 'Fee', 'Inspection checklist'] },
+    education:            { tenant: 'Maple Ridge',       archetype: 'SELF-SERVICE · STUDENT', title: 'Financial-aid acceptance',            pkg: ['Award letter', 'Master Promissory Note', 'Entrance counseling cert', 'Parent-PLUS app', 'FERPA disclosure'] },
+    nonprofit:            { tenant: 'Harbor Foundation', archetype: 'SENDER · INTERNAL',    title: 'New grant configuration',               pkg: ['Master grant agreement', 'SOW', 'Budget detail', 'Reporting requirements', 'Indemnification', 'Equity rider'] },
+  };
+  const p = PRESETS[preset] || PRESETS.wealth;
+  document.getElementById('brand').textContent = p.tenant + ' — Intake webform';
+  document.getElementById('archetype').textContent = p.archetype;
+  document.getElementById('title').textContent = p.title;
+  document.getElementById('pkg-list').innerHTML = p.pkg.map(x => `<li>${x}</li>`).join('');
+</script>
+
+</body>
+</html>

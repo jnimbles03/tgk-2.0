@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agreement Desk · Chain of Custody · TGK 2.0</title>
+<style>
+  /*
+    Chain-of-custody view of Agreement Desk used by the auth-fabric demo (Scene 3).
+    Surfaces the auth event (CLEAR at portal login) and the in-portal transaction
+    submission as a single linked record — the "continuous identity thread" framing
+    from the original eMoney/Steve fraud-risk demo.
+
+    Agreement Desk is a PROXY INTERFACE for invisible Maestro orchestration.
+    Maestro has been binding the events all along; this view makes that binding
+    visible.
+
+    Hotspots key (in shell HOTSPOTS): portal_submit
+    Mapped data-hotspot anchors below.
+  */
+  :root {
+    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-mist: #CBC2FF;
+    --ds-poppy: #FF5252; --ds-ecru: #F8F3F0;
+    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
+    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
+    --green: #1A8E5C; --green-bg: #E1F5EE;
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
+  .frame { max-width: 1000px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
+
+  .header { padding: 14px 22px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
+  .header .brand { font-weight: 600; font-size: 14px; }
+  .header .breadcrumb { font-size: 12px; color: var(--ink-soft); margin-left: 4px; }
+  .ms-badge { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: var(--ds-cobalt); color: white; }
+
+  .body { padding: 26px 22px; }
+  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 8px; }
+  h2 { font-size: 21px; font-weight: 600; margin-bottom: 6px; }
+  .lede { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.55; max-width: 660px; }
+
+  /* Session header — who, when, how */
+  .session-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 18px; }
+  .session-header .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--ds-deep-violet), var(--ds-cobalt)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .session-header .who { flex: 1; }
+  .session-header .name { font-weight: 600; font-size: 13.5px; }
+  .session-header .meta { font-size: 11.5px; color: var(--ink-soft); }
+  .session-header .verified { font-size: 11px; padding: 4px 9px; border-radius: 3px; background: var(--green-bg); color: var(--green); font-weight: 600; }
+
+  /* Linked-events visualizer */
+  .chain-row { display: grid; grid-template-columns: 1fr 50px 1fr; gap: 0; margin: 12px 0; align-items: center; }
+  .chain-card { background: white; border: 1px solid var(--hair); border-radius: 6px; padding: 14px 16px; box-shadow: var(--shadow-md); }
+  .chain-card.auth { border-left: 3px solid var(--green); }
+  .chain-card.txn  { border-left: 3px solid var(--ds-cobalt); }
+  .chain-card .pill { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-bottom: 6px; }
+  .chain-card.auth .pill { background: var(--green-bg); color: var(--green); }
+  .chain-card.txn  .pill { background: rgba(76,0,255,0.08); color: var(--ds-cobalt); }
+  .chain-card .ev-title { font-weight: 600; font-size: 13.5px; margin-bottom: 6px; }
+  .chain-card .ev-detail { font-size: 12px; color: var(--ink-mid); line-height: 1.45; }
+  .chain-card .ev-detail .row { padding: 2px 0; }
+  .chain-card .ev-detail .k { color: var(--ink-soft); }
+  .chain-arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chain-arrow .line { width: 2px; height: 28px; background: var(--ds-cobalt); }
+  .chain-arrow .label { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-cobalt); writing-mode: horizontal-tb; text-align: center; max-width: 90px; line-height: 1.2; }
+
+  /* Iris assessment */
+  .iris-row { padding: 14px 18px; background: var(--green-bg); border: 1px solid rgba(26,142,92,0.25); border-radius: 6px; margin: 18px 0; display: flex; align-items: flex-start; gap: 12px; }
+  .iris-row .iris-mark { width: 26px; height: 26px; border-radius: 6px; background: white; color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .iris-row .iris-body { font-size: 12.5px; color: var(--ink-mid); line-height: 1.5; }
+  .iris-row .iris-body strong { color: var(--green); }
+
+  /* Audit footer */
+  .audit-footer { display: flex; gap: 16px; padding: 12px 18px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-top: 18px; align-items: center; }
+  .audit-footer .stamp { font-size: 11px; color: var(--ink-soft); }
+  .audit-footer .stamp strong { color: var(--ink); font-weight: 600; }
+  .audit-footer .icon { color: var(--green); font-size: 14px; font-weight: 700; }
+
+  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="header">
+    <div class="brand" id="brand">Agreement Desk</div>
+    <div class="breadcrumb" id="breadcrumb">› Activity › Session</div>
+    <span class="ms-badge">Maestro proxy view</span>
+  </div>
+  <div class="body">
+    <div class="ms-tag">Chain of custody</div>
+    <h2 id="title">Session activity — auth + transaction linked</h2>
+    <div class="lede">
+      Maestro has been binding the auth event to the transaction event in the orchestration layer the whole time —
+      this Agreement Desk view is the on-screen proxy that makes that invisible work visible. One audit trail. One defensible record.
+    </div>
+
+    <div class="session-header" data-hotspot="new_row">
+      <div class="avatar" id="avatar">M</div>
+      <div class="who">
+        <div class="name" id="customer">Customer</div>
+        <div class="meta" id="customer-meta">Session ID · Date · Channel</div>
+      </div>
+      <div class="verified">✓ Verified · CLEAR</div>
+    </div>
+
+    <div class="chain-row" data-hotspot="documents_tab">
+      <div class="chain-card auth">
+        <div class="pill">Witness event #1</div>
+        <div class="ev-title" id="auth-title">Authenticated portal entry</div>
+        <div class="ev-detail">
+          <div class="row"><span class="k">Method:</span> CLEAR biometric</div>
+          <div class="row"><span class="k">Scope:</span> session-bound proof</div>
+          <div class="row" id="auth-time"><span class="k">Time:</span> —</div>
+          <div class="row" id="auth-id"><span class="k">ID:</span> —</div>
+        </div>
+      </div>
+      <div class="chain-arrow">
+        <div class="line"></div>
+        <div class="label">Continuous<br/>identity thread</div>
+        <div class="line"></div>
+      </div>
+      <div class="chain-card txn">
+        <div class="pill">Witness event #2</div>
+        <div class="ev-title" id="txn-title">In-session transaction</div>
+        <div class="ev-detail">
+          <div class="row" id="txn-action"><span class="k">Action:</span> —</div>
+          <div class="row" id="txn-detail"><span class="k">Detail:</span> —</div>
+          <div class="row" id="txn-time"><span class="k">Time:</span> —</div>
+          <div class="row"><span class="k">Identity:</span> inherited from F1 proof</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="iris-row" data-hotspot="send_for_signature">
+      <div class="iris-mark">✦</div>
+      <div class="iris-body">
+        <strong>Iris:</strong> Pattern matches normal customer behavior. Risk score below threshold. Identity binding is unbroken across both events; the chain of custody is complete and audit-grade.
+      </div>
+    </div>
+
+    <div class="audit-footer" data-hotspot="send">
+      <div class="icon">✓</div>
+      <div class="stamp"><strong>Defensible record stored.</strong> If this transaction is ever disputed, the full chain — auth event → in-session action — is bound to a single envelope ID.</div>
+    </div>
+  </div>
+</div>
+
+<div class="stub-banner">Stub · Chain of custody · auth-fabric S3</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const preset = params.get('preset') || 'wealth';
+
+  /* Per-vertical: auth-event identity, transaction context, customer name. */
+  const PRESETS = {
+    wealth:               { tenant:'Hillside',         customer:'Mira Sundar',     idLabel:'CA DL ***4892',  authTime:'13:42 EST', txnTitle:'$4,000,000 intra-account transfer', txnDetail:'Aster operating → Aster reserve · SWIFT routed', txnTime:'13:47 EST' },
+    banking:              { tenant:'Meridian',         customer:'Diana Holbrook',  idLabel:'NJ DL ***7710',  authTime:'09:18 EST', txnTitle:'$850,000 facility draw',           txnDetail:'$2.5M working capital facility · Atlas Mfg', txnTime:'09:23 EST' },
+    insurance:            { tenant:'Sentinel',         customer:'Elena Ramirez',   idLabel:'AZ DL ***4218',  authTime:'10:02 MST', txnTitle:'Coverage change request',           txnDetail:'Beneficiary update · HO3 · 412 Briar Lane', txnTime:'10:07 MST' },
+    'insurance-life':     { tenant:'Beacon Mutual',    customer:'Theresa Whitfield', idLabel:'OH DL ***1166', authTime:'11:14 EST', txnTitle:'Beneficiary redirect',              txnDetail:'$750k whole life · payment redirect', txnTime:'11:19 EST' },
+    'insurance-pc':       { tenant:'Northgate',        customer:'Priya Patel',     idLabel:'NJ DL ***8801',  authTime:'08:30 EST', txnTitle:'FNOL supplemental upload',          txnDetail:'Claim CL-2026-31102 · damage photos', txnTime:'08:34 EST' },
+    'banking-deposits':   { tenant:'Cedar Federal',    customer:'Marcus Williams', idLabel:'CO DL ***5530',  authTime:'18:42 MST', txnTitle:'$50,000 external transfer setup',  txnDetail:'New external payee · risk-hold queued', txnTime:'18:46 MST' },
+    'wealth-discovery':   { tenant:'Cypress Wealth',   customer:'Walter Holcomb',  idLabel:'TX DL ***3340',  authTime:'14:20 CST', txnTitle:'IRA rollover-in initiation',        txnDetail:'$1.4M from Fidelity 401(k)',          txnTime:'14:25 CST' },
+    provider:             { tenant:'Riverside Health', customer:'Jordan Kim',      idLabel:'WA DL ***6118',  authTime:'09:03 EST', txnTitle:'Schedule II refill request',        txnDetail:'Active Rx · last fill 28 days', txnTime:'09:07 EST' },
+    lifesciences:         { tenant:'Helix',            customer:'Dr. Halim',       idLabel:'TX DL ***2204',  authTime:'15:38 CST', txnTitle:'SAE report',                         txnDetail:'HX-2104 trial · ARC site',                txnTime:'15:42 CST' },
+    payor:                { tenant:'Unity',            customer:'Marcus Chen',     idLabel:'CA DL ***0091',  authTime:'10:55 PST', txnTitle:'Prior authorization request',       txnDetail:'Specialty drug · Silver HMO',         txnTime:'10:59 PST' },
+    'provider-roi':       { tenant:'Catalina Medical', customer:'Eric Tan',        idLabel:'AZ DL ***7412',  authTime:'13:08 MST', txnTitle:'ROI scope revocation',              txnDetail:'Silver Mountain Disability · halt release', txnTime:'13:11 MST' },
+    fedgov:               { tenant:'State UI',         customer:'Taylor Nguyen',   idLabel:'OH DL ***5588',  authTime:'07:30 EST', txnTitle:'Weekly availability + earnings cert', txnDetail:'Week ending 04-25-2026',           txnTime:'07:34 EST' },
+    slgov:                { tenant:'Springfield',      customer:'Marissa Rivera',  idLabel:'IL DL ***8870',  authTime:'12:18 CST', txnTitle:'Permit modification',               txnDetail:'1420 Oak Street · added scope',     txnTime:'12:23 CST' },
+    'slgov-311':          { tenant:'Greenhaven',       customer:'Maria Cortez',    idLabel:'OR DL ***1340',  authTime:'17:02 PST', txnTitle:'Service request follow-up',         txnDetail:'SR-2026-71248 · Cedar Ave',         txnTime:'17:06 PST' },
+    'slgov-benefits':     { tenant:'Eastside HHS',     customer:'Yolanda Rivera',  idLabel:'WA DL ***3387',  authTime:'19:45 PST', txnTitle:'Change of household composition',   txnDetail:'BC-2026-00482 · income drop',       txnTime:'19:49 PST' },
+    'slgov-recertification': { tenant:'Cascade',       customer:'Diane Park',      idLabel:'WA DL ***7795',  authTime:'10:30 PST', txnTitle:'Mid-year address change',           txnDetail:'BC-2025-44192-R · county relocation', txnTime:'10:34 PST' },
+    'slgov-vendor-compliance': { tenant:'Ridgeview',   customer:'Naomi (Apex)',    idLabel:'CA DL ***0144',  authTime:'09:18 PST', txnTitle:'Mid-year COI upload',               txnDetail:'VC-2026-01408 · cert expiring',     txnTime:'09:22 PST' },
+    'slgov-employee-onboarding': { tenant:'Cascade County', customer:'Marcus Lee', idLabel:'WA DL ***9982', authTime:'08:40 PST', txnTitle:'I-9 documents upload',              txnDetail:'HR-2026-04812 · pre-Day-1',          txnTime:'08:44 PST' },
+    'slgov-licensing':    { tenant:'Northbrook',       customer:'Mei Ortega',      idLabel:'OR DL ***4471',  authTime:'14:08 PST', txnTitle:'Annual renewal + amendment',        txnDetail:'LIC-2026-08820 · Avalon Café',       txnTime:'14:12 PST' },
+    education:            { tenant:'Maple Ridge',      customer:'Priya Shah',      idLabel:'WA DL ***7720',  authTime:'21:14 PST', txnTitle:'Transcript release authorization',  txnDetail:'Recipient: Northwestern Graduate', txnTime:'21:18 PST' },
+    nonprofit:            { tenant:'Harbor',           customer:'Rosa Patel',      idLabel:'NY DL ***8893',  authTime:'14:30 EST', txnTitle:'Quarterly grant drawdown',          txnDetail:'$30,000 Q2 disbursement · Safe Streets', txnTime:'14:35 EST' },
+  };
+  const p = PRESETS[preset] || PRESETS.wealth;
+  document.getElementById('brand').textContent = p.tenant + ' Agreement Desk';
+  document.getElementById('breadcrumb').textContent = '› Activity › ' + p.customer + ' session';
+  document.getElementById('avatar').textContent = p.customer.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('customer').textContent = p.customer;
+  document.getElementById('customer-meta').textContent = 'Session · ' + p.authTime + ' → ' + p.txnTime + ' · ' + p.tenant + ' portal';
+  document.getElementById('auth-title').textContent = 'Authenticated portal entry';
+  document.getElementById('auth-time').innerHTML = '<span class="k">Time:</span> ' + p.authTime;
+  document.getElementById('auth-id').innerHTML = '<span class="k">ID:</span> ' + p.idLabel;
+  document.getElementById('txn-title').textContent = p.txnTitle;
+  document.getElementById('txn-action').innerHTML = '<span class="k">Action:</span> ' + p.txnTitle;
+  document.getElementById('txn-detail').innerHTML = '<span class="k">Detail:</span> ' + p.txnDetail;
+  document.getElementById('txn-time').innerHTML = '<span class="k">Time:</span> ' + p.txnTime;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maestro packaging · TGK 2.0</title>
+<style>
+  /*
+    Maestro packaging stub used by intake-mechanics demo (Scene 2).
+    Visualizes the fan-out: webform selections → document set + pre-fill +
+    routing. The shell's hotspot system anchors via data-hotspot=.
+    Hotspots key: maestro_package.
+  */
+  :root {
+    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-mist: #CBC2FF;
+    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
+    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
+  .frame { max-width: 880px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
+  .header { padding: 16px 24px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
+  .header .brand { font-weight: 600; font-size: 14px; }
+  .ms-badge { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: var(--ds-cobalt); color: white; }
+
+  .body { padding: 28px 24px; }
+  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 10px; }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .lede { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.5; max-width: 600px; }
+
+  .fanout-grid { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 20px; align-items: center; }
+  .fan-col { background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; padding: 14px 18px; }
+  .fan-col h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px; }
+  .fan-col ul { list-style: none; }
+  .fan-col li { padding: 6px 0; font-size: 12.5px; color: var(--ink-mid); border-bottom: 1px solid var(--hair); }
+  .fan-col li:last-child { border-bottom: 0; }
+  .fan-col li::before { content: '✓ '; color: var(--ds-cobalt); font-weight: 700; margin-right: 4px; }
+  .arrow { font-size: 20px; color: var(--ds-cobalt); text-align: center; }
+
+  .doc-list { margin: 22px 0; }
+  .doc-list h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px; }
+  .doc-tile { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: white; border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 8px; }
+  .doc-tile .icon { width: 28px; height: 36px; background: linear-gradient(180deg, white 0%, #F0EBE0 100%); border: 1px solid var(--hair-strong); border-radius: 2px; }
+  .doc-tile .name { font-size: 13px; font-weight: 500; flex: 1; }
+  .doc-tile .stage { font-size: 11px; color: var(--ds-cobalt); font-style: italic; }
+
+  .recipient-row { display: flex; gap: 16px; padding: 12px 16px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 8px; align-items: center; }
+  .recipient-row .num { width: 22px; height: 22px; border-radius: 50%; background: var(--ds-cobalt); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .recipient-row .name { font-size: 12.5px; flex: 1; }
+  .recipient-row .role { font-size: 11px; color: var(--ink-soft); }
+
+  .ready-banner { margin-top: 22px; padding: 14px 18px; background: rgba(26,142,92,0.08); border: 1px solid rgba(26,142,92,0.25); border-radius: 6px; font-size: 13px; color: #1A8E5C; font-weight: 500; }
+  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="header">
+    <div class="brand">Maestro packaging · live</div>
+    <span class="ms-badge">Maestro orchestration</span>
+  </div>
+  <div class="body">
+    <div class="ms-tag">Maestro · Fan-out</div>
+    <h2 id="title">Packaging from intake selections</h2>
+    <div class="lede">The webform's selections drive what goes into the envelope. Maestro pulls the right document templates, runs pre-fill from systems of record, builds recipient routing, and queues delivery — all in seconds.</div>
+
+    <div class="fanout-grid">
+      <div class="fan-col" data-hotspot="package_selections">
+        <h3>From the webform</h3>
+        <ul id="selections">
+          <li>Configuration choice 1</li>
+          <li>Configuration choice 2</li>
+          <li>Configuration choice 3</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="fan-col" data-hotspot="package_attachments">
+        <h3>Maestro attaches</h3>
+        <ul id="attaches">
+          <li>Compliance disclosure</li>
+          <li>Custodian-specific add-on</li>
+          <li>Pre-fill from KYB / SOR</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="doc-list" data-hotspot="package_docs">
+      <h3>Documents in the envelope</h3>
+      <div id="docs"></div>
+    </div>
+
+    <div class="doc-list" data-hotspot="package_recipients">
+      <h3>Recipient routing</h3>
+      <div id="recipients"></div>
+    </div>
+
+    <div class="ready-banner" data-hotspot="package_ready">
+      ✓ Envelope packaged. Ready to deliver in tenant-branded ceremony.
+    </div>
+  </div>
+</div>
+
+<div class="stub-banner">Stub · Maestro packaging</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const preset = params.get('preset') || 'wealth';
+  const PRESETS = {
+    wealth: { title: 'Packaging IMA + custodial + Reg BI for Aster', docs: ['Investment Management Agreement', 'Pershing custodial agreement', 'Reg BI disclosure'], recipients: [{n:'Aster signatory', r:'1st — primary signature'}, {n:'Hillside compliance', r:'2nd — counter-sign'}] },
+    banking: { title: 'Packaging the Atlas $2.5M facility', docs: ['Loan agreement', 'Security agreement', 'UCC-1 financing statement', 'Personal guaranty'], recipients: [{n:'Diana Holbrook (CFO + guarantor)', r:'1st'}, {n:'Sofia Kim (credit ops)', r:'2nd'}] },
+    insurance: { title: 'Packaging the Ramirez HO3 binder', docs: ['Application', 'Binder', 'Declarations page', 'Mortgagee notice'], recipients: [{n:'Elena Ramirez', r:'1st'}, {n:'Mortgagee', r:'cc'}] },
+    'insurance-life': { title: 'Packaging Whitfield death claim file', docs: ['Proof of loss', 'Payment election', 'Tax forms', 'Beneficiary acknowledgment'], recipients: [{n:'Theresa Whitfield', r:'1st'}, {n:'Beacon claims review', r:'2nd'}] },
+    'insurance-pc': { title: 'Packaging the Patel FNOL', docs: ['FNOL packet', 'Sworn statement', 'Investigation routing'], recipients: [{n:'Priya Patel', r:'1st'}, {n:'Andre Sokolov (adjuster)', r:'2nd'}] },
+    'banking-deposits': { title: 'Packaging the Williams account opening', docs: ['Account opening docs', 'ACH funding authorization', 'Signature card'], recipients: [{n:'Marcus Williams', r:'1st'}, {n:'Adaeze Williams', r:'2nd'}] },
+    'wealth-discovery': { title: 'Packaging the Holcomb multi-account package', docs: ['IRA agreement', 'Joint account', 'Family trust', 'Advisory agreement'], recipients: [{n:'Walter Holcomb', r:'1st'}, {n:'Esther Holcomb', r:'2nd'}, {n:'Co-trustee', r:'3rd'}] },
+    provider: { title: 'Packaging the Jordan Kim patient packet', docs: ['HIPAA acknowledgment', 'Financial responsibility', 'New-patient consent'], recipients: [{n:'Jordan Kim', r:'1st'}, {n:'Riverside care team', r:'cc'}] },
+    lifesciences: { title: 'Packaging the ARC site activation', docs: ['CTA', 'Budget', 'FDA-1572', 'IRB approval', 'Financial disclosure'], recipients: [{n:'Dr. Halim (PI)', r:'1st'}, {n:'IRB', r:'2nd'}, {n:'Helix study mgr', r:'3rd'}] },
+    payor: { title: 'Packaging Marcus Chen Silver HMO enrollment', docs: ['Enrollment form', 'ID card request', 'Welcome kit', 'PCP assignment'], recipients: [{n:'Marcus Chen', r:'1st'}, {n:'Unity member services', r:'cc'}] },
+    'provider-roi': { title: 'Packaging the Eric Tan ROI consent', docs: ['HIPAA authorization', 'Retrieval order', 'Redaction instructions'], recipients: [{n:'Eric Tan', r:'1st'}, {n:'Silver Mountain (requester)', r:'cc'}] },
+    fedgov: { title: 'Packaging the Taylor UI claim', docs: ['Determination packet', 'DD authorization', 'Work-search agreement'], recipients: [{n:'Taylor Nguyen', r:'1st'}, {n:'DOL adjudicator', r:'2nd'}] },
+    slgov: { title: 'Packaging the 1420 Oak permit application', docs: ['Permit application', 'Plan check', 'Fee authorization'], recipients: [{n:'Marissa Rivera', r:'1st'}, {n:'Plan check', r:'2nd'}] },
+    'slgov-311': { title: 'Packaging the Cedar Ave 311 dispatch', docs: ['Dispatch packet', 'Work order generation'], recipients: [{n:'Greenhaven PW crew', r:'1st'}, {n:'Maria Cortez (citizen)', r:'cc'}] },
+    'slgov-benefits': { title: 'Packaging the Rivera SNAP application', docs: ['Application', 'Verification asks', 'Household attestation'], recipients: [{n:'Yolanda Rivera', r:'1st'}, {n:'Eastside HHS reviewer', r:'2nd'}] },
+    'slgov-recertification': { title: 'Packaging the Diane exception recert', docs: ['Tailored recert packet', 'Audit-reason verification'], recipients: [{n:'Diane Park', r:'1st'}, {n:'Asha Patel (eligibility)', r:'2nd'}] },
+    'slgov-vendor-compliance': { title: 'Packaging the Apex new-vendor onboarding', docs: ['Onboarding packet', 'W-9', 'COI request', 'DEI attestations'], recipients: [{n:'Naomi (Apex compliance)', r:'1st'}, {n:'Ridgeview procurement', r:'2nd'}] },
+    'slgov-employee-onboarding': { title: 'Packaging Marcus Lee onboarding', docs: ['Offer letter', 'I-9', 'W-4', 'Benefits enrollment', 'Equipment request'], recipients: [{n:'Marcus Lee', r:'1st'}, {n:'Cascade County HR', r:'2nd'}] },
+    'slgov-licensing': { title: 'Packaging the Avalon Café license application', docs: ['License application', 'Attestation', 'Fee', 'Inspection checklist'], recipients: [{n:'Mei Ortega', r:'1st'}, {n:'Northbrook licensing', r:'2nd'}] },
+    education: { title: 'Packaging the Priya Shah financial-aid acceptance', docs: ['Award letter', 'Master Promissory Note', 'Entrance counseling cert', 'Parent-PLUS app', 'FERPA disclosure'], recipients: [{n:'Priya Shah', r:'1st'}, {n:'Parent (PLUS)', r:'2nd'}, {n:'Maple Ridge financial aid', r:'3rd'}] },
+    nonprofit: { title: 'Packaging the Safe Streets grant', docs: ['Master grant agreement', 'SOW', 'Budget detail', 'Reporting requirements', 'Indemnification', 'Equity rider'], recipients: [{n:'Rosa Patel (Safe Streets ED)', r:'1st'}, {n:'Harbor Foundation', r:'2nd'}] },
+  };
+  const p = PRESETS[preset] || PRESETS.wealth;
+  document.getElementById('title').textContent = p.title;
+  document.getElementById('docs').innerHTML = p.docs.map(d => `<div class="doc-tile"><div class="icon"></div><div class="name">${d}</div><div class="stage">pre-filled</div></div>`).join('');
+  document.getElementById('recipients').innerHTML = p.recipients.map((r, i) => `<div class="recipient-row"><div class="num">${i+1}</div><div class="name">${r.n}</div><div class="role">${r.r}</div></div>`).join('');
+</script>
+
+</body>
+</html>

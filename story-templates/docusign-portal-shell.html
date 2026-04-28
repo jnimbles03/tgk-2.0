@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Customer portal · Maestro proxy · TGK 2.0</title>
+<style>
+  /*
+    Customer-portal stub used by the auth-fabric demo.
+    Two modes via ?mode=:
+      - clear-idv-login    : Scene 1 — Maestro orchestrates CLEAR at portal login
+      - action-webform     : Scene 2 — Maestro serves a webform inside the authenticated session
+
+    The shell's hotspot system anchors to elements via data-hotspot=. Each mode
+    exposes named anchors that match the relevant HOTSPOTS entry in
+    story-shell.html (portal_clear_idv or portal_webform).
+
+    This file is a polished stub — it shows the right framing for the demo
+    moment, with placeholder per-vertical content. The polished iframe replica
+    can be authored in a follow-up; the demo URLs are functional today.
+  */
+  :root {
+    --ds-cobalt: #4C00FF; --ds-inkwell: #130032; --ds-deep-violet: #26065D;
+    --ds-mist: #CBC2FF; --ds-poppy: #FF5252; --ds-ecru: #F8F3F0; --ds-white: #FFFFFF;
+    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
+    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: linear-gradient(180deg, #F0EBE0 0%, #FAF7F2 100%);
+    color: var(--ink); min-height: 100vh; padding: 24px;
+  }
+  .portal-window {
+    max-width: 960px; margin: 24px auto; background: white;
+    border-radius: 10px; box-shadow: var(--shadow-lg);
+    overflow: hidden; border: 1px solid var(--hair);
+  }
+  .browser-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; background: #F4F4F2;
+    border-bottom: 1px solid var(--hair); font-size: 11px; color: var(--ink-soft);
+  }
+  .browser-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #DDD8CE; }
+  .browser-bar .dot.r { background: #ED6A5E; } .browser-bar .dot.y { background: #F4BF4F; } .browser-bar .dot.g { background: #61C454; }
+  .browser-bar .url {
+    flex: 1; background: white; border: 1px solid var(--hair);
+    border-radius: 4px; padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-mid);
+  }
+  .portal-header {
+    padding: 18px 28px; background: white; border-bottom: 1px solid var(--hair);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .portal-brand { font-size: 16px; font-weight: 600; color: var(--ink); }
+  .portal-customer { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+
+  .portal-body { padding: 36px 32px; min-height: 480px; position: relative; }
+
+  /* === MODE: clear-idv-login === */
+  .login-card {
+    max-width: 380px; margin: 40px auto; padding: 32px;
+    background: white; border: 1px solid var(--hair); border-radius: 8px; box-shadow: var(--shadow-md);
+  }
+  .login-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .login-card .sub { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; }
+  .login-card .field { margin-bottom: 14px; }
+  .login-card label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .login-card input { width: 100%; padding: 9px 12px; border: 1px solid var(--hair-strong); border-radius: 4px; font: inherit; font-size: 13px; }
+  .login-card .btn-login {
+    width: 100%; padding: 10px; background: var(--ds-cobalt); color: white;
+    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 8px;
+  }
+
+  .stepup-modal-bg {
+    position: absolute; inset: 0; background: rgba(19,0,50,0.40); display: none;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .stepup-modal-bg.on { display: flex; }
+  .stepup-modal {
+    background: white; max-width: 420px; width: 100%; padding: 28px;
+    border-radius: 10px; box-shadow: var(--shadow-lg);
+  }
+  .stepup-modal .ms-tag {
+    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08);
+    padding: 3px 9px; border-radius: 3px; margin-bottom: 12px;
+  }
+  .stepup-modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .stepup-modal p { font-size: 13px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 18px; }
+  .stepup-modal .btn-clear {
+    width: 100%; padding: 10px; background: #1A8E5C; color: white;
+    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* === MODE: action-webform === */
+  .session-banner {
+    background: rgba(26,142,92,0.08); border: 1px solid rgba(26,142,92,0.25);
+    border-radius: 4px; padding: 8px 14px; margin-bottom: 22px;
+    font-size: 12px; color: #1A8E5C; display: flex; align-items: center; gap: 8px;
+  }
+  .webform-card {
+    max-width: 580px; margin: 0 auto; padding: 28px;
+    background: white; border: 1px solid var(--hair); border-radius: 8px; box-shadow: var(--shadow-md);
+  }
+  .webform-card .ms-tag {
+    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08);
+    padding: 3px 9px; border-radius: 3px; margin-bottom: 10px;
+  }
+  .webform-card h2 { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+  .webform-card .scope { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; }
+  .field-row { margin-bottom: 14px; }
+  .field-row label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .field-row input, .field-row select {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--hair-strong); border-radius: 4px;
+    font: inherit; font-size: 13px; background: var(--bg);
+  }
+  .field-row.prefilled input { background: rgba(76,0,255,0.04); color: var(--ink); }
+  .field-row .prefill-flag { font-size: 10px; color: var(--ds-cobalt); margin-top: 3px; font-weight: 500; }
+
+  .identity-binding {
+    margin-top: 22px; padding: 12px; background: var(--bg);
+    border: 1px solid var(--hair); border-radius: 4px;
+    font-size: 12px; color: var(--ink-mid); display: flex; align-items: center; gap: 10px;
+  }
+  .identity-binding .check { width: 16px; height: 16px; border-radius: 50%; background: #1A8E5C; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+  .btn-submit {
+    margin-top: 22px; width: 100%; padding: 11px; background: var(--ds-cobalt); color: white;
+    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer;
+  }
+
+  .stub-banner {
+    position: fixed; bottom: 12px; right: 12px;
+    background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 999px; box-shadow: var(--shadow);
+  }
+</style>
+</head>
+<body>
+
+<div class="portal-window">
+  <div class="browser-bar">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url" id="url-bar">https://portal.&lt;tenant&gt;.com/</div>
+  </div>
+  <div class="portal-header">
+    <div class="portal-brand" id="brand">Customer Portal</div>
+    <div class="portal-customer" id="customer">— preset · auth-fabric demo</div>
+  </div>
+  <div class="portal-body" id="body">
+    <!-- Mode-specific content injected here -->
+  </div>
+</div>
+
+<div class="stub-banner">Stub · Maestro proxy · auth-fabric</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const preset = params.get('preset') || 'wealth';
+  const mode = params.get('mode') || 'clear-idv-login';
+
+  // Vertical → tenant + portal label (kept light; canonical lives in shell VERTICALS)
+  const PRESETS = {
+    wealth: { tenant: 'Hillside', portal: 'client portal', customer: 'Mira Sundar — Aster Capital' },
+    banking: { tenant: 'Meridian', portal: 'commercial portal', customer: 'Diana Holbrook — Atlas' },
+    insurance: { tenant: 'Sentinel', portal: 'customer portal', customer: 'Elena Ramirez' },
+    'insurance-life': { tenant: 'Beacon', portal: 'claim portal', customer: 'Theresa Whitfield' },
+    'insurance-pc': { tenant: 'Northgate', portal: 'carrier portal', customer: 'Priya Patel — Patel Logistics' },
+    'banking-deposits': { tenant: 'Cedar Federal', portal: 'mobile app', customer: 'Marcus Williams' },
+    'wealth-discovery': { tenant: 'Cypress Wealth', portal: 'client portal', customer: 'Walter Holcomb' },
+    provider: { tenant: 'Riverside Health', portal: 'patient portal', customer: 'Jordan Kim' },
+    lifesciences: { tenant: 'Helix', portal: 'study portal', customer: 'Dr. Halim — ARC' },
+    payor: { tenant: 'Unity', portal: 'member portal', customer: 'Marcus Chen' },
+    'provider-roi': { tenant: 'Catalina', portal: 'patient portal', customer: 'Eric Tan' },
+    fedgov: { tenant: 'State UI', portal: 'claimant portal', customer: 'Taylor Nguyen' },
+    slgov: { tenant: 'Springfield', portal: 'permit portal', customer: 'Marissa Rivera' },
+    'slgov-311': { tenant: 'Greenhaven', portal: '311 portal', customer: 'Maria Cortez' },
+    'slgov-benefits': { tenant: 'Eastside HHS', portal: 'benefits portal', customer: 'Yolanda Rivera' },
+    'slgov-recertification': { tenant: 'Cascade', portal: 'member portal', customer: 'Diane Park' },
+    'slgov-vendor-compliance': { tenant: 'Ridgeview', portal: 'vendor portal', customer: 'Naomi — Apex' },
+    'slgov-employee-onboarding': { tenant: 'Cascade County', portal: 'employee portal', customer: 'Marcus Lee' },
+    'slgov-licensing': { tenant: 'Northbrook', portal: 'licensee portal', customer: 'Mei Ortega — Avalon Café' },
+    education: { tenant: 'Maple Ridge', portal: 'student portal', customer: 'Priya Shah' },
+    nonprofit: { tenant: 'Harbor', portal: 'grantee portal', customer: 'Rosa Patel — Safe Streets' },
+  };
+
+  const p = PRESETS[preset] || PRESETS.wealth;
+  document.getElementById('brand').textContent = p.tenant + ' ' + p.portal;
+  document.getElementById('customer').textContent = '— ' + p.customer;
+  document.getElementById('url-bar').textContent = 'https://' + p.tenant.toLowerCase().replace(/\s/g,'') + '.example.com/' + (mode === 'clear-idv-login' ? 'login' : 'transactions');
+
+  const body = document.getElementById('body');
+
+  if (mode === 'clear-idv-login') {
+    body.innerHTML = `
+      <div class="login-card">
+        <h1>Sign in</h1>
+        <div class="sub">Welcome back to ${p.tenant}.</div>
+        <div class="field"><label>Username</label><input type="text" value="${p.customer.split(' —')[0].toLowerCase().replace(/\\s/g,'.')}" data-hotspot="login_username"></div>
+        <div class="field"><label>Password</label><input type="password" value="••••••••••" data-hotspot="login_password"></div>
+        <button class="btn-login" data-hotspot="login_submit" onclick="document.getElementById('stepup').classList.add('on')">Sign in</button>
+      </div>
+      <div class="stepup-modal-bg" id="stepup">
+        <div class="stepup-modal">
+          <div class="ms-tag">Maestro · Step-up identity</div>
+          <h2>Verify your identity to continue</h2>
+          <p>Before accessing your ${p.portal} session, ${p.tenant} requires a one-time identity verification. CLEAR will guide you through ID + selfie capture on your phone — no app download.</p>
+          <button class="btn-clear" data-hotspot="stepup_clear">Verify with CLEAR →</button>
+        </div>
+      </div>
+    `;
+    setTimeout(() => document.getElementById('stepup').classList.add('on'), 600);
+  } else if (mode === 'action-webform') {
+    body.innerHTML = `
+      <div class="session-banner" data-hotspot="session_banner">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1A8E5C"></span>
+        <span>Authenticated · Verified by CLEAR · Session active</span>
+      </div>
+      <div class="webform-card" data-hotspot="webform_card">
+        <div class="ms-tag">Maestro · Served webform</div>
+        <h2 id="form-title">Action authorization</h2>
+        <div class="scope" id="form-scope">A Maestro-served form, pre-filled from your authenticated session. Submit inherits your identity proof — no second verification needed.</div>
+        <div class="field-row prefilled"><label>Account / Identifier</label><input type="text" value="auto-filled from session" readonly data-hotspot="form_field_1"><div class="prefill-flag">✦ Pre-filled from authenticated identity</div></div>
+        <div class="field-row prefilled"><label>Action context</label><input type="text" value="auto-filled from in-portal selection" readonly data-hotspot="form_field_2"><div class="prefill-flag">✦ Pre-filled from request context</div></div>
+        <div class="field-row"><label>Confirm / Memo</label><input type="text" placeholder="Add any required note" data-hotspot="form_memo"></div>
+        <div class="identity-binding" data-hotspot="identity_binding">
+          <div class="check">✓</div>
+          <span><strong>Identity bound · </strong>${p.customer.split(' —')[0]} · CLEAR-verified · this session</span>
+        </div>
+        <button class="btn-submit" data-hotspot="form_submit">Submit (no second IDV) →</button>
+      </div>
+    `;
+  }
+</script>
+
+</body>
+</html>

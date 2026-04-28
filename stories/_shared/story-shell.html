@@ -83,6 +83,11 @@
   .hint-row .play-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--ink-mid);cursor:pointer;font-weight:500;}
   .hint-row .play-toggle svg{width:12px;height:12px;fill:currentColor;}
   .hint-row .play-toggle.on{color:var(--ds-purple);}
+  .hint-row .speed-picker{display:inline-flex;align-items:center;gap:0;border:1px solid var(--hair);border-radius:4px;overflow:hidden;background:#fff;}
+  .hint-row .speed-picker .sp{padding:2px 6px;font-size:10.5px;font-weight:500;color:var(--ink-mid);cursor:pointer;border:none;background:transparent;font-family:inherit;font-variant-numeric:tabular-nums;line-height:1.4;}
+  .hint-row .speed-picker .sp + .sp{border-left:1px solid var(--hair);}
+  .hint-row .speed-picker .sp:hover{background:#F3F1EC;}
+  .hint-row .speed-picker .sp.on{background:var(--ds-purple);color:#fff;}
 
   .stage{flex:1;position:relative;background:#EAE4DA;overflow:hidden;border-left:1px solid var(--hair);}
   .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:#fff;transition:opacity 0.35s ease;}
@@ -238,6 +243,12 @@
       </div>
       <div class="hint-row">
         Click the pulsing dot or use <kbd>←</kbd> <kbd>→</kbd>
+        <span class="speed-picker" id="speed-picker" role="group" aria-label="Autoplay speed" title="Autoplay speed">
+          <button type="button" class="sp" data-rate="1">1×</button>
+          <button type="button" class="sp" data-rate="1.25">1.25×</button>
+          <button type="button" class="sp" data-rate="1.5">1.5×</button>
+          <button type="button" class="sp" data-rate="1.75">1.75×</button>
+        </span>
         <span class="play-toggle" id="play-toggle" title="Autoplay (space)">
           <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
           Autoplay
@@ -323,6 +334,57 @@ const HOTSPOTS = {
     {target:"iris_rail",        x:"70%", y:"30%", tip:"Iris agent rail — Activity and Ask Iris tabs",    sub:"Docusign's AI, tenant-aware",     side:"left"},
     {target:"tasks_first",      x:"45%", y:"58%", tip:"View a task to drill into the Wealth Agent",      sub:"KYC checks run automatically",    side:"right"},
     {target:"agent_panel",      x:"75%", y:"50%", tip:"Wealth Agent: checks on the uploaded artifact",    sub:"End of the story loop",          side:"left"}
+  ],
+
+  /* === Hotspots for ?usecase=auth-fabric (3 scenes) ===
+     Maestro orchestrates CLEAR at portal LOGIN (Scene 1), then serves a
+     webform inside the authenticated session (Scene 2), then Agreement Desk
+     visualizes Maestro binding the auth event + transaction event (Scene 3). */
+  portal_clear_idv: [
+    {target:"login_username",  x:"50%", y:"38%", tip:"Customer hits the portal login",          sub:"Username and password",            side:"right"},
+    {target:"login_password",  x:"50%", y:"48%", tip:"Standard credentials accepted",            sub:"Password layer holds",             side:"right"},
+    {target:"login_submit",    x:"50%", y:"58%", tip:"Maestro intercepts and invokes CLEAR",     sub:"Step-up modal appears",            side:"top"},
+    {target:"stepup_clear",    x:"50%", y:"50%", tip:"CLEAR session opens on phone",             sub:"ID + selfie + biometric match",    side:"left"},
+    {target:"login_submit",    x:"50%", y:"38%", tip:"Authenticated session opens",              sub:"Witness event #1 logged",          side:"right"}
+  ],
+  portal_webform: [
+    {target:"session_banner",  x:"50%", y:"22%", tip:"Authenticated · Verified by CLEAR · Session active", sub:"Biometric proof bound to session", side:"bottom"},
+    {target:"webform_card",    x:"50%", y:"42%", tip:"Maestro renders webform inside the portal", sub:"Pre-filled from F1 identity",     side:"right"},
+    {target:"form_field_1",    x:"50%", y:"50%", tip:"Pre-filled from authenticated identity",   sub:"No re-keying",                      side:"right"},
+    {target:"identity_binding",x:"50%", y:"70%", tip:"Identity binding visible: Verified by CLEAR", sub:"Continuous identity thread",      side:"right"},
+    {target:"form_submit",     x:"50%", y:"82%", tip:"Submit fires — bound to F1 proof",         sub:"Witness event #2 logged",          side:"top"}
+  ],
+  portal_submit: [
+    {target:"new_row",         x:"40%", y:"38%", tip:"Agreement Desk surfaces the linked record", sub:"Auth event + transaction event",  side:"right"},
+    {target:"documents_tab",   x:"40%", y:"50%", tip:"Explicit chain link: CLEAR → submission",    sub:"One continuous identity thread",  side:"right"},
+    {target:"new_row",         x:"50%", y:"60%", tip:"Iris confirms pattern match",              sub:"Risk score below threshold",       side:"top"},
+    {target:"send_for_signature", x:"60%", y:"40%", tip:"Action queued for execution",            sub:"Transaction confirmed",            side:"left"},
+    {target:"send",            x:"50%", y:"82%", tip:"Defensible record stored",                 sub:"Audit-grade chain of custody",     side:"top"}
+  ],
+
+  /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
+     Webform → Maestro packages → Envelope delivered (+ optional Workspaces tail).
+     The explicit alternative to Agreement Desk inbound. */
+  webform_intake: [
+    {target:"webform_field_1",  x:"50%", y:"38%", tip:"Configuration choice 1 — drives doc set",  sub:"Branches downstream fields",       side:"right"},
+    {target:"webform_field_2",  x:"50%", y:"48%", tip:"Configuration choice 2 — drives routing",  sub:"Recipient list builds dynamically", side:"right"},
+    {target:"webform_field_3",  x:"50%", y:"58%", tip:"Configuration choice 3 — compliance",      sub:"Disclosures auto-attach",          side:"right"},
+    {target:"package_preview",  x:"50%", y:"72%", tip:"Maestro will package these documents",     sub:"Preview from selections",          side:"right"},
+    {target:"webform_submit",   x:"50%", y:"86%", tip:"Submit fires Maestro fan-out",             sub:"Envelope assembly begins",         side:"top"}
+  ],
+  maestro_package: [
+    {target:"package_selections", x:"22%", y:"42%", tip:"From the webform: configuration",         sub:"Selections summary",               side:"right"},
+    {target:"package_attachments", x:"78%", y:"42%", tip:"Maestro attaches: compliance + custodian", sub:"Auto-included",                   side:"left"},
+    {target:"package_docs",      x:"50%", y:"60%", tip:"Documents in the envelope",                sub:"Pre-filled from systems of record", side:"top"},
+    {target:"package_recipients", x:"50%", y:"75%", tip:"Recipient routing built",                  sub:"Sequenced per selection",          side:"top"},
+    {target:"package_ready",     x:"50%", y:"88%", tip:"Envelope packaged — ready to deliver",     sub:"Tenant-branded ceremony next",     side:"top"}
+  ],
+  envelope_deliver: [
+    {target:"review_doc",      x:"50%", y:"60%", tip:"Recipient receives tenant-branded email",   sub:"One link to the ceremony",        side:"top"},
+    {target:"start_tab",       x:"38%", y:"72%", tip:"START tab guides the signer",                sub:"All package docs in order",       side:"right"},
+    {target:"adopt_sig",       x:"50%", y:"55%", tip:"Signature applied across all documents",     sub:"One ceremony",                    side:"top"},
+    {target:"finished_status", x:"74%", y:"35%", tip:"Multi-recipient routing completes",          sub:"Per Maestro routing",             side:"left"},
+    {target:"download_signed", x:"64%", y:"72%", tip:"Execution confirmed — certified copy",       sub:"Audit trail complete",            side:"top"}
   ]
 };
 
@@ -334,7 +396,7 @@ const HOTSPOTS = {
 const VERTICALS = {
   wealth: {
     label:"Wealth", tenant:"Hillside", subtitle:"× Aster Capital — New Client Onboarding",
-    tenantColor:"#3FDA99", preset:"wealth",
+    tenantColor:"#3FDA99", preset:"wealth", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Priya opens a new engagement in Hillside's Agreement Desk.",
        lede:`<p>Priya Das, Head of Compliance at Hillside Advisors, submits the intake for a new discretionary-management engagement with <span class="em">Aster Capital</span>.</p><p>A Maestro workflow fires the moment she hits Submit — the rest of this story runs on its own.</p>`,
@@ -385,7 +447,7 @@ const VERTICALS = {
   },
   banking: {
     label:"Banking", tenant:"Meridian", subtitle:"× Atlas Manufacturing — $2.5M Working Capital Facility",
-    tenantColor:"#2D8EFF", preset:"banking",
+    tenantColor:"#2D8EFF", preset:"banking", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Raj opens a new facility request at Meridian's Agreement Desk.",
        lede:`<p>Raj Malhotra, Commercial Relationship Manager at Meridian, submits the KYB intake for <span class="em">Atlas Manufacturing's</span> $2.5M working-capital facility.</p><p>Credit officer Sofia Kim is routed in automatically via Maestro — no separate email thread.</p>`,
@@ -436,7 +498,7 @@ const VERTICALS = {
   },
   insurance: {
     label:"Insurance", tenant:"Sentinel", subtitle:"× Ramirez Family — HO3 Policy Binding",
-    tenantColor:"#F2B3C2", preset:"insurance",
+    tenantColor:"#F2B3C2", preset:"insurance", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Marisol opens a new HO3 binder at Sentinel's Agreement Desk.",
        lede:`<p>Marisol Vega submits the binder request for the <span class="em">Ramirez family's</span> new homeowners policy at 412 Briar Lane.</p><p>Underwriting, inspection scheduling, and prior-claims checks all fire in parallel through Maestro.</p>`,
@@ -466,7 +528,7 @@ const VERTICALS = {
          {head:"Binder executed — policy activation queued.", lede:`<p>All three documents signed and certified. Sentinel's underwriter has the complete file. The Ramirez family has an active binder.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the policy file into Sentinel.",
-       lede:`<p>Navigator reads the binder and pulls 18 fields — coverage limits, deductible, endorsements, mortgagee, premium.</p><p>Iris can answer questions like \"what does each endorsement actually add?\" grounded in the policy itself.</p>`,
+       lede:`<p>Navigator reads the binder and pulls 18 fields — coverage limits, deductible, endorsements, mortgagee, premium.</p><p>Iris can answer questions like "what does each endorsement actually add?" grounded in the policy itself.</p>`,
        beats:[
          {head:"Navigator surfaces the executed binder.", lede:`<p>The AI-Assisted banner confirms extraction. The binder and application appear in Sentinel's repository alongside the property file.</p>`},
          {head:"18 fields extracted from the binder.", lede:`<p>Coverage limits, deductible, endorsements, mortgagee name and address, premium amount — all visible in column view.</p>`},
@@ -487,7 +549,7 @@ const VERTICALS = {
   },
   provider: {
     label:"Provider", tenant:"Riverside", subtitle:"× Jordan Kim — New Patient Onboarding",
-    tenantColor:"#6FD6C8", preset:"provider",
+    tenantColor:"#6FD6C8", preset:"provider", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Daniela opens a new patient workspace for Jordan Kim.",
        lede:`<p>Daniela Okafor, Patient Coordinator at Riverside Health, submits the new-patient intake for <span class="em">Jordan Kim</span>.</p><p>Insurance verification, HIPAA, consent, PCP assignment — all flow through Maestro in parallel.</p>`,
@@ -517,7 +579,7 @@ const VERTICALS = {
          {head:"Patient onboarding complete.", lede:`<p>All four documents signed and certified. Jordan's care team has everything they need before Tuesday's appointment.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands the patient record in Riverside's EHR.",
-       lede:`<p>Navigator extracts 11 fields — demographics, insurance, allergies, medications, family history, PCP assignment.</p><p>Iris is ready to summarize \"what should the PCP know before Tuesday's visit?\" for the care team.</p>`,
+       lede:`<p>Navigator extracts 11 fields — demographics, insurance, allergies, medications, family history, PCP assignment.</p><p>Iris is ready to summarize "what should the PCP know before Tuesday's visit?" for the care team.</p>`,
        beats:[
          {head:"Navigator surfaces Jordan's patient record.", lede:`<p>The AI-Assisted banner confirms extraction. The registration and consent documents appear in Riverside's agreement repository.</p>`},
          {head:"11 fields extracted from registration.", lede:`<p>Demographics, insurance carrier, copay, allergies, medications, family history, PCP assignment — all visible in the column view.</p>`},
@@ -538,7 +600,7 @@ const VERTICALS = {
   },
   lifesciences: {
     label:"Life Sciences", tenant:"Helix", subtitle:"× Austin Research Clinic — Site Activation for HX-2104",
-    tenantColor:"#C7A0FF", preset:"lifesciences",
+    tenantColor:"#C7A0FF", preset:"lifesciences", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Ethan opens a site activation request for ARC.",
        lede:`<p>Ethan Park, Clinical Study Manager at Helix, submits the activation packet for <span class="em">Austin Research Clinic</span> participating in HX-2104.</p><p>CTA, IRB, 1572, and financial disclosure all route in parallel via Maestro.</p>`,
@@ -589,7 +651,7 @@ const VERTICALS = {
   },
   payor: {
     label:"Payor", tenant:"Unity", subtitle:"× Marcus Chen — Silver HMO Enrollment",
-    tenantColor:"#6FDA9B", preset:"payor",
+    tenantColor:"#6FDA9B", preset:"payor", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Brenda opens a new member enrollment at Unity.",
        lede:`<p>Brenda Estevez, Member Services at Unity Health Plan, submits the Silver HMO enrollment packet for <span class="em">Marcus Chen</span>.</p><p>Eligibility, PCP match, and payment setup all fire together through Maestro.</p>`,
@@ -619,7 +681,7 @@ const VERTICALS = {
          {head:"Enrollment executed — coverage active.", lede:`<p>All three documents signed and certified. Marcus's coverage is active. Member ID card and welcome kit are on their way.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts Marcus's member record.",
-       lede:`<p>Navigator pulls 9 fields — plan, copay tier, PCP selection, formulary, effective date.</p><p>Iris answers \"what's Marcus's cost share for his current medications?\" grounded in the enrollment + formulary data.</p>`,
+       lede:`<p>Navigator pulls 9 fields — plan, copay tier, PCP selection, formulary, effective date.</p><p>Iris answers "what's Marcus's cost share for his current medications?" grounded in the enrollment + formulary data.</p>`,
        beats:[
          {head:"Navigator surfaces the executed enrollment.", lede:`<p>The AI-Assisted banner confirms extraction. Marcus's enrollment and HIPAA documents appear in Unity's member repository.</p>`},
          {head:"9 fields extracted from enrollment.", lede:`<p>Plan type, PCP selection, copay tier, formulary assignment, effective date — all visible in column view, ready for the member system.</p>`},
@@ -640,7 +702,7 @@ const VERTICALS = {
   },
   fedgov: {
     label:"Federal Gov", tenant:"DOL", subtitle:"× Taylor Nguyen — Unemployment Claim UI-2026-48211",
-    tenantColor:"#E8B800", preset:"fedgov",
+    tenantColor:"#E8B800", preset:"fedgov", category:"maintenance",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Claims Services receives Taylor's UI filing.",
        lede:`<p>A new unemployment claim arrives at the Department of Labor's desk for <span class="em">Taylor Nguyen</span>.</p><p>Identity verification, base-period wage pull, separation classification, and fraud screen all fire in parallel through Maestro.</p>`,
@@ -670,7 +732,7 @@ const VERTICALS = {
          {head:"Claim documents executed — determination queued.", lede:`<p>All three documents signed and certified. Taylor's weekly benefit amount and first payment date are confirmed in the acknowledgment.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the claim file for adjudication.",
-       lede:`<p>Navigator pulls 12 fields — base-period wages, separation reason, prior claim history, availability status.</p><p>Iris answers \"what's Taylor's weekly benefit amount and how many weeks are available?\" from the file.</p>`,
+       lede:`<p>Navigator pulls 12 fields — base-period wages, separation reason, prior claim history, availability status.</p><p>Iris answers "what's Taylor's weekly benefit amount and how many weeks are available?" from the file.</p>`,
        beats:[
          {head:"Navigator surfaces the executed claim file.", lede:`<p>The AI-Assisted banner confirms extraction. Taylor's claim documents appear in the DOL repository alongside the adjudication file.</p>`},
          {head:"12 fields extracted from the claim.", lede:`<p>Base-period wages, separation reason, prior claim history, availability attestation, weekly benefit amount — all visible in column view.</p>`},
@@ -691,7 +753,7 @@ const VERTICALS = {
   },
   slgov: {
     label:"State & Local", tenant:"Springfield", subtitle:"× 1420 Oak Street — Residential Building Permit",
-    tenantColor:"#E8A438", preset:"slgov",
+    tenantColor:"#E8A438", preset:"slgov", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Dean opens a new permit application at Springfield Community Development.",
        lede:`<p>Dean Okonkwo, Permit Technician, submits the residential building permit application for <span class="em">1420 Oak Street</span>.</p><p>Zoning review, contractor license verify, and fee calc all fire together through Maestro.</p>`,
@@ -721,7 +783,7 @@ const VERTICALS = {
          {head:"Permit application executed — plan check queued.", lede:`<p>All four documents signed and certified. Marissa receives a permit number and estimated review timeline immediately.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator extracts the permit record for plan check.",
-       lede:`<p>Navigator pulls 16 fields from the permit — zoning district, setbacks, valuation, contractor license, inspection sequence.</p><p>Iris answers \"are the plans compliant with current zoning?\" grounded in the application + site plan.</p>`,
+       lede:`<p>Navigator pulls 16 fields from the permit — zoning district, setbacks, valuation, contractor license, inspection sequence.</p><p>Iris answers "are the plans compliant with current zoning?" grounded in the application + site plan.</p>`,
        beats:[
          {head:"Navigator surfaces the executed permit application.", lede:`<p>The AI-Assisted banner confirms extraction. The permit documents appear in Springfield's repository alongside the property file.</p>`},
          {head:"16 fields extracted from the permit.", lede:`<p>Zoning district, setbacks, valuation, contractor license, inspection sequence, and fee amount — all visible in column view.</p>`},
@@ -742,7 +804,7 @@ const VERTICALS = {
   },
   education: {
     label:"Education", tenant:"Maple Ridge", subtitle:"× Priya Shah — Fall 2026 Student Onboarding",
-    tenantColor:"#F2C65A", preset:"education",
+    tenantColor:"#F2C65A", preset:"education", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Jamal opens a new student onboarding for Priya Shah.",
        lede:`<p>Jamal Rivers, Admissions Counselor at Maple Ridge University, submits the onboarding packet for <span class="em">Priya Shah</span>.</p><p>Enrollment, financial aid, housing, health records, tuition — all route in parallel through Maestro.</p>`,
@@ -772,7 +834,7 @@ const VERTICALS = {
          {head:"Enrollment executed — Priya is officially a student.", lede:`<p>All four documents signed and certified. Priya receives her student ID, housing assignment, and first-semester course registration window.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands Priya's record in the SIS.",
-       lede:`<p>Navigator pulls 13 fields — program, cohort, PCP assigned to Health Services, housing assignment, meal plan.</p><p>Iris answers \"when are Priya's aid disbursements and what's she still missing?\" from the record.</p>`,
+       lede:`<p>Navigator pulls 13 fields — program, cohort, PCP assigned to Health Services, housing assignment, meal plan.</p><p>Iris answers "when are Priya's aid disbursements and what's she still missing?" from the record.</p>`,
        beats:[
          {head:"Navigator surfaces Priya's onboarding record.", lede:`<p>The AI-Assisted banner confirms extraction. Enrollment, aid, and housing documents appear in Maple Ridge's student agreement repository.</p>`},
          {head:"13 fields extracted from onboarding documents.", lede:`<p>Program, cohort, housing assignment, meal plan, aid amount, PCP at Health Services, and tuition amount — all visible in column view.</p>`},
@@ -793,7 +855,7 @@ const VERTICALS = {
   },
   nonprofit: {
     label:"Nonprofit", tenant:"Harbor", subtitle:"× Safe Streets Initiative — $120k Grantee Onboarding",
-    tenantColor:"#FFB86B", preset:"nonprofit",
+    tenantColor:"#FFB86B", preset:"nonprofit", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Asha opens a grantee onboarding for Safe Streets.",
        lede:`<p>Asha Morgan, Program Officer at Harbor Foundation, submits the onboarding packet for <span class="em">Safe Streets Initiative's</span> $120k general operating grant.</p><p>501(c)(3) verify, budget review, MOU routing all fire through Maestro in parallel.</p>`,
@@ -823,7 +885,7 @@ const VERTICALS = {
          {head:"Grant executed — first tranche released.", lede:`<p>All four documents signed and certified. Safe Streets receives the first disbursement and the Workspace access link in the same email.</p>`}
        ]},
       {tag:"SCENE 4 OF 5 · DATA", head:"Navigator lands the grant record in Harbor's system.",
-       lede:`<p>Navigator extracts 12 fields — grant size, reporting cadence, disbursement schedule, program officer, restrictions.</p><p>Iris answers \"when's the first report due and what are the KPIs?\" from the signed MOU.</p>`,
+       lede:`<p>Navigator extracts 12 fields — grant size, reporting cadence, disbursement schedule, program officer, restrictions.</p><p>Iris answers "when's the first report due and what are the KPIs?" from the signed MOU.</p>`,
        beats:[
          {head:"Navigator surfaces the executed grant agreement.", lede:`<p>The AI-Assisted banner confirms extraction. The grant agreement and MOU appear in Harbor's repository alongside the grantee file.</p>`},
          {head:"12 fields extracted from the grant documents.", lede:`<p>Grant size, reporting cadence, disbursement schedule, program officer, use restrictions, and KPIs — all visible in column view.</p>`},
@@ -844,7 +906,7 @@ const VERTICALS = {
   },
   "insurance-life": {
     label:"Insurance · Life", tenant:"Beacon Mutual", subtitle:"× Whitfield Family — Death Claim WC-2026-08214",
-    tenantColor:"#B189D9", preset:"insurance-life",
+    tenantColor:"#B189D9", preset:"insurance-life", category:"maintenance", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Camille opens a death claim for the Whitfield family.",
        lede:`<p>Camille Boutros, Claims Examiner at Beacon Mutual Life, opens the death-claim file for <span class="em">Marcus Whitfield's</span> $750k whole-life policy.</p><p>The funeral home filed the death certificate notice last night. SSDI/DMF cross-check, MIB query, and beneficiary lookup all fire through Maestro before the family hears from anyone.</p>`,
@@ -895,7 +957,7 @@ const VERTICALS = {
   },
   "insurance-pc": {
     label:"Insurance · P&C", tenant:"Northgate Mutual", subtitle:"× Patel Logistics — Commercial Auto FNOL CL-2026-31102",
-    tenantColor:"#FF8A4D", preset:"insurance-pc",
+    tenantColor:"#FF8A4D", preset:"insurance-pc", category:"maintenance", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Andre opens an FNOL for Patel Logistics' fleet incident.",
        lede:`<p>Andre Sokolov, Field Adjuster at Northgate Mutual, opens the first notice of loss for <span class="em">Patel Logistics</span> — a Class-7 box truck struck a utility pole on I-78 yesterday at 04:12.</p><p>Telematics, prior-claim history, and coverage verification all fire through Maestro before Andre dials the fleet manager.</p>`,
@@ -946,7 +1008,7 @@ const VERTICALS = {
   },
   "provider-roi": {
     label:"Provider · ROI", tenant:"Catalina Medical", subtitle:"× Eric Tan — Records Request from Silver Mountain Disability",
-    tenantColor:"#5BCDB8", preset:"provider-roi",
+    tenantColor:"#5BCDB8", preset:"provider-roi", category:"maintenance",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Renata opens a records request for Eric Tan.",
        lede:`<p>Renata Voss, HIM Specialist at Catalina Medical Center, opens the release-of-information request for <span class="em">Eric Tan</span> — Silver Mountain Disability is supporting his short-term claim and needs the last 18 months of records.</p><p>Authorization scope, EHR retrieval routing, and PHI redaction prep all fire through Maestro before Renata calls Eric.</p>`,
@@ -997,7 +1059,7 @@ const VERTICALS = {
   },
   "slgov-311": {
     label:"State & Local · 311", tenant:"Greenhaven", subtitle:"× 1124 Cedar Ave — Pothole Report SR-2026-71248",
-    tenantColor:"#4CAF7A", preset:"slgov-311",
+    tenantColor:"#4CAF7A", preset:"slgov-311", category:"maintenance",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Marisol opens a 311 report from a citizen QR scan.",
        lede:`<p>Marisol Tran, Operations Coordinator at Greenhaven Public Works, opens the new service request — <span class="em">Maria Cortez</span> just scanned a 311 QR code at 1124 Cedar Ave reporting a pothole the size of a microwave.</p><p>Maestro auto-routed the geolocated photo, classified the issue, and surfaced the assigned crew before Marisol's coffee finished brewing.</p>`,
@@ -1048,7 +1110,7 @@ const VERTICALS = {
   },
   "slgov-benefits": {
     label:"State & Local · Benefits", tenant:"Eastside HHS", subtitle:"× Rivera Family — SNAP Application BC-2026-00482",
-    tenantColor:"#5DA9C9", preset:"slgov-benefits",
+    tenantColor:"#5DA9C9", preset:"slgov-benefits", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Devon opens a SNAP eligibility application for the Rivera family.",
        lede:`<p>Devon Walker, Eligibility Specialist at Eastside Health & Human Services, opens the new SNAP application for the <span class="em">Rivera family</span> — Yolanda Rivera applied on her phone last night, household of four, recent income loss.</p><p>The mobile-first Web Form pre-filled from the family's prior touchpoint with the agency; Maestro auto-triaged as a fast-track lane based on income drop.</p>`,
@@ -1099,7 +1161,7 @@ const VERTICALS = {
   },
   "slgov-recertification": {
     label:"State & Local · Recertification", tenant:"Cascade Medicaid", subtitle:"× Diane Park — Annual Recertification BC-2025-44192-R",
-    tenantColor:"#94A3B8", preset:"slgov-recertification",
+    tenantColor:"#94A3B8", preset:"slgov-recertification", category:"maintenance",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Asha opens Diane Park's annual Medicaid recertification.",
        lede:`<p>Asha Patel, Continuing Eligibility Specialist at Cascade Medicaid, opens the annual recertification for <span class="em">Diane Park</span> — single, age 67, on Medicaid for 11 months following retirement.</p><p>Maestro pulled this year's income from connected data sources before Diane received the recert notice; the form arrives pre-filled, requiring confirmation, not data entry.</p>`,
@@ -1150,7 +1212,7 @@ const VERTICALS = {
   },
   "slgov-vendor-compliance": {
     label:"State & Local · Vendor Compliance", tenant:"Ridgeview Procurement", subtitle:"× Apex Logistics — Annual COI Recertification VC-2026-01408",
-    tenantColor:"#E89B5B", preset:"slgov-vendor-compliance",
+    tenantColor:"#E89B5B", preset:"slgov-vendor-compliance", category:"maintenance",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Olivia opens an annual compliance recert for Apex Logistics.",
        lede:`<p>Olivia Mendez, Compliance Analyst at Ridgeview Procurement Office, opens the annual vendor compliance recertification for <span class="em">Apex Logistics</span> — Class-A trucking vendor, $4.2M annual contract value, two compliance certs expiring in 30 days.</p><p>Maestro auto-detected the expirations, drafted the renewal request, and pre-filled the vendor record from ServiceNow Source-to-Pay before Olivia opened her queue.</p>`,
@@ -1201,7 +1263,7 @@ const VERTICALS = {
   },
   "slgov-employee-onboarding": {
     label:"State & Local · New Hire", tenant:"Cascade County HR", subtitle:"× Marcus Lee — Caseworker I Onboarding HR-2026-04812",
-    tenantColor:"#B589DB", preset:"slgov-employee-onboarding",
+    tenantColor:"#B589DB", preset:"slgov-employee-onboarding", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Karina opens onboarding for new hire Marcus Lee.",
        lede:`<p>Karina Yusuf, HR Business Partner at Cascade County, opens the onboarding workflow for <span class="em">Marcus Lee</span> — newly hired Caseworker I, background check cleared yesterday, start date in 9 days.</p><p>Document Generation drafted the offer letter, the I-9 + W-4 packet, and the benefits enrollment from Workday HCM data; Maestro queued IT and Facilities for parallel provisioning.</p>`,
@@ -1252,7 +1314,7 @@ const VERTICALS = {
   },
   "slgov-licensing": {
     label:"State & Local · Licensing", tenant:"Northbrook Licensing", subtitle:"× Avalon Café — Restaurant License Application LIC-2026-08820",
-    tenantColor:"#F2A56B", preset:"slgov-licensing",
+    tenantColor:"#F2A56B", preset:"slgov-licensing", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Trevor opens a restaurant license application for Avalon Café.",
        lede:`<p>Trevor Bowman, Licensing Specialist at Northbrook Licensing Bureau, opens the new restaurant license application for <span class="em">Avalon Café</span> — Mei Ortega is opening her first café at 88 Riverbend Ave, capacity 38 seats.</p><p>Adaptive Web Form routed her to the right permit type; Maestro fired health-department clearance, fire-marshal review, and food-handler verification before Trevor opened his queue.</p>`,
@@ -1303,7 +1365,7 @@ const VERTICALS = {
   },
   "banking-deposits": {
     label:"Banking · Deposits", tenant:"Cedar Federal", subtitle:"× Marcus Williams — Joint Checking + High-Yield Savings",
-    tenantColor:"#6BB6FF", preset:"banking-deposits",
+    tenantColor:"#6BB6FF", preset:"banking-deposits", category:"onboarding",
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Marcus opens a joint deposit application from Cedar's mobile banking.",
        lede:`<p><span class="em">Marcus Williams</span> taps "Open New Account" on Cedar Federal Credit Union's mobile banking app and starts a joint checking + high-yield savings application with his wife Adaeze.</p><p>The adaptive Web Form pre-filled from his existing membership; Maestro fired KYC, OFAC, and core-system pre-check before he hit Continue.</p>`,
@@ -1354,7 +1416,7 @@ const VERTICALS = {
   },
   "wealth-discovery": {
     label:"Wealth · Discovery", tenant:"Cypress Wealth", subtitle:"× Holcomb Family — IRA Rollover + Family Trust Setup",
-    tenantColor:"#5BA1B8", preset:"wealth-discovery",
+    tenantColor:"#5BA1B8", preset:"wealth-discovery", category:"onboarding", splashOk:true,
     scenes:[
       {tag:"SCENE 1 OF 5 · SENDER", head:"Reggie completes discovery for the Holcomb family.",
        lede:`<p>Reggie Adesanya, Senior Financial Advisor at Cypress Wealth Partners, finishes the discovery session with <span class="em">the Holcomb family</span> — Esther just retired, Walter is rolling over a $1.4M 401(k), and they want a family trust for their grandchildren.</p><p>The discovery webform replaced the paper risk questionnaire; Maestro routed the package to setup the moment Reggie hit Submit.</p>`,
@@ -1414,6 +1476,50 @@ const TEMPLATE_FILES = [
   "/story-templates/docusign-navigator.html",
   "/story-templates/docusign-workspace.html"
 ];
+
+/* =========================================================
+   ?usecase= sub-flow scene keys + iframe targets.
+   The shell resolves which set to use from the URL param. Default
+   is the canonical 5-scene story above. auth-fabric is the runtime
+   IDV+webform fabric (3 scenes); intake is the webform-and-Maestro
+   intake mechanic (3 scenes transactional, or 4 with Workspaces tail
+   for relationship verticals). Per-vertical narration lives in
+   v.usecases[<key>].scenes — populated from the inline narrations
+   bundle in <script id="tgk-usecases">.
+   ========================================================= */
+const USECASE_SCENE_KEYS = {
+  default:        ["agreement_desk","clear_idv","signing","navigator","workspace"],
+  "auth-fabric":  ["portal_clear_idv","portal_webform","portal_submit"],
+  "intake-3":     ["webform_intake","maestro_package","envelope_deliver"],
+  "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"]
+};
+const USECASE_TEMPLATE_FILES = {
+  default: TEMPLATE_FILES,
+  "auth-fabric": [
+    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-agreement-desk-chain-of-custody.html"
+  ],
+  "intake-3": [
+    "/story-templates/docusign-webform-intake.html",
+    "/story-templates/docusign-maestro-package.html",
+    "/story-templates/docusign-signing-ceremony.html"
+  ],
+  "intake-4": [
+    "/story-templates/docusign-webform-intake.html",
+    "/story-templates/docusign-maestro-package.html",
+    "/story-templates/docusign-signing-ceremony.html",
+    "/story-templates/docusign-workspace.html"
+  ]
+};
+/* Optional ?mode= params per scene per usecase. Lets the same template
+   render different modes (e.g. portal-shell for clear-idv-login vs
+   action-webform; agreement-desk for chain-of-custody vs default intake). */
+const USECASE_TEMPLATE_MODES = {
+  "auth-fabric": ["clear-idv-login", "action-webform", null],
+  "intake-3":    [null, null, null],
+  "intake-4":    [null, null, null, null]
+};
 
 /* =========================================================
    Beat → internal-template-scene mapping. The shell has 5 beats per
@@ -1487,6 +1593,25 @@ function srcForScene(i, vertical, splash){
   if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
   return TEMPLATE_FILES[i] + "?preset=" + vertical.preset + (i === 4 && splash ? "&splash=1" : "");
 }
+
+/* Like srcForScene, but for ?usecase= sub-flows. Picks the iframe path from
+   USECASE_TEMPLATE_FILES[<usecaseKey>] and adds an optional ?mode= param when
+   USECASE_TEMPLATE_MODES has one for that scene index. The same template can
+   thus play different roles per scene (portal-shell login vs webform mode;
+   agreement-desk inbox vs chain-of-custody). */
+function srcForUsecaseScene(i, vertical, usecaseKey, splash){
+  const files = USECASE_TEMPLATE_FILES[usecaseKey] || TEMPLATE_FILES;
+  const modes = USECASE_TEMPLATE_MODES[usecaseKey];
+  const path  = files[i];
+  const fname = path.split("/").pop();
+  if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
+  const qp = new URLSearchParams();
+  qp.set("preset", vertical.preset);
+  if (modes && modes[i]) qp.set("mode", modes[i]);
+  /* For intake-4, scene 4 is workspace — preserve splash semantics. */
+  if (usecaseKey === "intake-4" && i === 3 && splash) qp.set("splash", "1");
+  return path + "?" + qp.toString();
+}
 function loadIDBTemplateOverrides(){
   return new Promise((resolve) => {
     if (_overrideBypass || !window.indexedDB) return resolve(0);
@@ -1523,9 +1648,61 @@ function showOverrideBanner(filenames){
    ========================================================= */
 const params = new URLSearchParams(location.search);
 const verticalKey = params.get("vertical") || location.hash.replace(/^#/,"") || "wealth";
-const splashOn = params.get("splash") === "1";
 let calibrateMode = params.get("calibrate") === "1";
+/* ?usecase= picks a sub-flow story.
+   - "default" (or unset)        → canonical 5-scene story (v.scenes)
+   - "auth-fabric"               → 3-scene runtime IDV+webform fabric
+   - "intake"                    → 3- or 4-scene webform-and-Maestro intake
+   The narration data for the non-default usecases lives in
+   v.usecases[<key>].scenes — pulled from the inline JSON bundle. */
+const usecase = params.get("usecase") || "default";
+/* Pull narration data into VERTICALS[<key>].usecases. Two paths, tried in order:
+   1. Inline <script id="tgk-usecases"> tag if present (synchronous, no flicker)
+   2. async fetch /_audits/usecase-narrations-2026-04-27.json (network)
+   Async path triggers a re-render via goTo(idx, {force:true}) once it resolves.
+   Tolerant of missing data: if neither path produces usecases for a vertical,
+   the shell falls back to the canonical 5-scene story with a console warning. */
+function mergeUsecasesBundle(bundle){
+  if (!bundle || typeof bundle !== "object") return 0;
+  let hits = 0;
+  Object.entries(bundle.verticals || {}).forEach(([key, data]) => {
+    if (key in VERTICALS && data && data.usecases) {
+      VERTICALS[key].usecases = data.usecases;
+      hits++;
+    }
+  });
+  return hits;
+}
+(function loadInlineUsecases(){
+  try {
+    const el = document.getElementById('tgk-usecases');
+    if (!el) return;
+    mergeUsecasesBundle(JSON.parse(el.textContent));
+  } catch (e) { console.warn("[tgk] inline usecase bundle parse failed:", e); }
+})();
 const v = VERTICALS[verticalKey] || VERTICALS.wealth;
+/* Resolve which scenes to render. If usecase param is set and the vertical
+   has usecase narration for it, use that. Otherwise fall back to canonical. */
+const usecaseObj = (usecase !== "default") ? (v.usecases?.[usecase]) : null;
+const scenesSource = usecaseObj?.scenes || v.scenes;
+/* For ?usecase=intake we pick a 3- or 4-scene scene-key set based on whether
+   the vertical's intake has a Workspaces tail (i.e. 4 scenes). */
+const usecaseKey = (usecase === "intake")
+  ? (scenesSource.length >= 4 ? "intake-4" : "intake-3")
+  : usecase;
+const ACTIVE_SCENE_KEYS = USECASE_SCENE_KEYS[usecaseKey] || USECASE_SCENE_KEYS.default;
+/* If user requested a usecase but this vertical doesn't have it, log + fall
+   back so the shell never silently renders the wrong scenes. */
+if (usecase !== "default" && !usecaseObj) {
+  console.warn(`[tgk] vertical "${verticalKey}" has no "${usecase}" usecase — falling back to canonical 5-scene`);
+}
+/* Splash defaults to the vertical's splashOk flag (set on the verticals where
+   Scene 5 lands as a genuine Workspaces moment — multi-party, async, persistent).
+   ?splash=1 forces on; ?splash=0 forces off. */
+const splashParam = params.get("splash");
+const splashOn = splashParam === "1" ? true
+                : splashParam === "0" ? false
+                : !!v.splashOk;
 if (calibrateMode) document.body.classList.add('calibrate');
 
 /* Mutable shadow of HOTSPOTS used when in calibrate mode so drag edits can be exported */
@@ -1542,8 +1719,12 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 
 // Build SCENES by merging narration + hotspots + src.
 // Per-beat headlines/lede from s.beats[j] override the scene-level text when present.
-const SCENES = v.scenes.map((s, i) => {
-  const baseSpots = (calibrateMode ? LIVE : HOTSPOTS)[SCENE_KEYS[i]];
+// When ?usecase= is set, pulls scene keys from ACTIVE_SCENE_KEYS and templates from
+// USECASE_TEMPLATE_FILES (via srcForUsecaseScene). Default canonical path unchanged.
+const SCENES = scenesSource.map((s, i) => {
+  const sceneKey = ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
+  const hotspotPool = (calibrateMode ? LIVE : HOTSPOTS)[sceneKey] || [];
+  const baseSpots = hotspotPool;
   const hotspots = baseSpots.map((h, j) => ({
     ...h,
     beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
@@ -1553,11 +1734,15 @@ const SCENES = v.scenes.map((s, i) => {
     tag: s.tag,
     headline: s.head,
     lede: s.lede,
-    sceneKey: SCENE_KEYS[i],
+    sceneKey,
     hotspots,
-    duration: DURATIONS[i],
+    duration: DURATIONS[i] || DURATIONS[0],
     /* getter so admin overrides loaded after init still take effect on next goTo */
-    get src(){ return srcForScene(i, v, splashOn); }
+    get src(){
+      return (usecase === "default")
+        ? srcForScene(i, v, splashOn)
+        : srcForUsecaseScene(i, v, usecaseKey, splashOn);
+    }
   };
 });
 
@@ -1573,6 +1758,15 @@ let playing = false;
 let sceneStart = 0;     // when the current scene began (for HUD timer display)
 let beatStart = 0;      // when the current beat began (drives autoplay advance)
 let raf = null;
+/* Autoplay speed multiplier. Allowed values: 1, 1.25, 1.5, 1.75. Persisted in
+   localStorage so the choice survives vertical switches and page reloads. */
+const ALLOWED_RATES = [1, 1.25, 1.5, 1.75];
+let playbackRate = (() => {
+  try {
+    const v = parseFloat(localStorage.getItem('tgkShell.playbackRate') || '1');
+    return ALLOWED_RATES.includes(v) ? v : 1;
+  } catch (e) { return 1; }
+})();
 
 /* Tracks the currently-rendered hotspot element + which iframe target it
    anchors to. Module-level so the postMessage listener for tgk:rect (which
@@ -1847,8 +2041,11 @@ function tickTimer(){
   // Per-beat duration so autoplay distributes scene.duration across all
   // beats — used to advance one beat per (scene.duration / beats) ms.
   const beatDur = scene.duration / Math.max(1, scene.hotspots.length);
-  const sceneElapsed = performance.now() - sceneStart;
-  const beatElapsed  = performance.now() - beatStart;
+  // Scale wall-clock elapsed by playbackRate. At 1.5×, the timer counts 1.5×
+  // faster and the advance threshold trips proportionally sooner. Displayed
+  // total stays the canonical scene.duration so users see standard timestamps.
+  const sceneElapsed = (performance.now() - sceneStart) * playbackRate;
+  const beatElapsed  = (performance.now() - beatStart)  * playbackRate;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
     advance(); // advance() resets beatStart (and sceneStart on scene swap)
@@ -1876,6 +2073,25 @@ $('prev-btn').addEventListener('click', rewind);
 $('next-btn').addEventListener('click', advance);
 $('play-toggle').addEventListener('click', togglePlay);
 document.querySelectorAll('#scene-tabs .t').forEach(t => t.addEventListener('click', () => goTo(parseInt(t.dataset.i, 10))));
+
+/* Speed picker — updates playbackRate and resets clocks so the new rate
+   takes effect from the current beat without a phantom jump. */
+function renderSpeedPicker(){
+  document.querySelectorAll('#speed-picker .sp').forEach(b => {
+    b.classList.toggle('on', parseFloat(b.dataset.rate) === playbackRate);
+  });
+}
+document.querySelectorAll('#speed-picker .sp').forEach(b => {
+  b.addEventListener('click', () => {
+    const r = parseFloat(b.dataset.rate);
+    if (!ALLOWED_RATES.includes(r) || r === playbackRate) return;
+    playbackRate = r;
+    try { localStorage.setItem('tgkShell.playbackRate', String(r)); } catch (e) {}
+    renderSpeedPicker();
+    if (playing) { sceneStart = performance.now(); beatStart = performance.now(); }
+  });
+});
+renderSpeedPicker();
 
 /* Calibrate HUD wiring */
 document.getElementById('calib-prev-beat').addEventListener('click', rewind);
@@ -1913,6 +2129,56 @@ loadIDBTemplateOverrides().then((count) => {
     goTo(idx, {force:true});
   }
 });
+
+/* Async fetch fallback for ?usecase= sub-flows. Only fires when the user has
+   asked for a non-default usecase AND the inline bundle didn't already supply
+   data for this vertical. Triggers a forced re-render once the bundle loads,
+   so the usecase scenes appear once the network completes (typically ~50ms on
+   Replit, longer on Pages). Silent no-op if the file isn't available. */
+(function asyncLoadUsecasesIfNeeded(){
+  if (usecase === "default") return;
+  /* If we already have usecase data for this vertical, nothing to do. */
+  if (VERTICALS[verticalKey]?.usecases?.[usecase]) return;
+  fetch("/_audits/usecase-narrations-2026-04-27.json")
+    .then(r => r.ok ? r.json() : null)
+    .then(bundle => {
+      if (!bundle) return;
+      const hits = mergeUsecasesBundle(bundle);
+      if (!hits) return;
+      /* Re-resolve scenesSource against the now-populated usecases and
+         rebuild SCENES in place. We can't re-assign the const, so we splice
+         into the existing array. */
+      const fresh = VERTICALS[verticalKey]?.usecases?.[usecase]?.scenes;
+      if (!fresh) return;
+      const newSceneKey = (usecase === "intake")
+        ? (fresh.length >= 4 ? "intake-4" : "intake-3")
+        : usecase;
+      const newKeys = USECASE_SCENE_KEYS[newSceneKey] || USECASE_SCENE_KEYS.default;
+      SCENES.length = 0;
+      fresh.forEach((s, i) => {
+        const sceneKey = newKeys[i] || "agreement_desk";
+        const baseSpots = (calibrateMode ? LIVE : HOTSPOTS)[sceneKey] || [];
+        const hotspots = baseSpots.map((h, j) => ({
+          ...h,
+          beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
+          beatLede: s.beats && s.beats[j] ? s.beats[j].lede : null,
+        }));
+        SCENES.push({
+          tag: s.tag,
+          headline: s.head,
+          lede: s.lede,
+          sceneKey,
+          hotspots,
+          duration: DURATIONS[i] || DURATIONS[0],
+          get src(){ return srcForUsecaseScene(i, v, newSceneKey, splashOn); }
+        });
+      });
+      /* Reset to scene 0 of the new usecase and force re-render. */
+      idx = 0; hotIdx = 0;
+      goTo(0, {force:true});
+    })
+    .catch(e => console.warn("[tgk] usecase async load failed:", e));
+})();
 </script>
 </body>
 </html>
