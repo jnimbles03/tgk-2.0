@@ -48,6 +48,11 @@
   .brand-slot .ds{display:flex;align-items:center;gap:7px;font-weight:700;font-size:20px;color:var(--ds-inkwell);letter-spacing:-0.01em;text-decoration:none;transition:opacity 0.15s;cursor:pointer;}
   .brand-slot .ds:hover{opacity:0.7;}
   .brand-slot .ds svg{width:24px;height:24px;}
+  /* TGK Capital co-brand — shown only on wealth + banking demos
+     (wealth, wealth-discovery, banking, banking-deposits). Picker pages
+     stay Docusign-only per the brand placement decision. */
+  .brand-slot .cobrand-x{font-size:17px;font-weight:300;color:var(--ink-soft);user-select:none;line-height:1;margin-top:2px;}
+  .brand-slot .cobrand-tgk{height:22px;width:auto;filter:brightness(0);opacity:0.85;display:block;}
   /* Tiny home-icon affordance after the wordmark, only visible on hover */
   .brand-slot .ds::after{content:"";display:inline-block;width:0;overflow:hidden;transition:width 0.18s, margin-left 0.18s;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23130032' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M2 7l6-5 6 5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'/><path d='M6 14V9h4v5'/></svg>") center/contain no-repeat;height:12px;}
   .brand-slot .ds:hover::after{width:12px;margin-left:4px;}
@@ -238,6 +243,8 @@
           <svg viewBox="0 0 96 96" fill="none"><path d="M69.15 69.1501V93.6001C69.15 94.9501 68.1 96.0001 66.75 96.0001H2.4C1.05 96.0001 0 94.9501 0 93.6001V29.2501C0 27.9001 1.05 26.8501 2.4 26.8501H26.85V66.6001C26.85 67.9501 27.9 69.0001 29.25 69.0001L69.15 69.1501Z" fill="#4C00FF"/><path d="M96.0016 34.5C96.0016 55.2 84.0016 69 69.1516 69.15V43.2C69.1516 42.45 68.8516 41.7 68.2516 41.25L54.7516 27.75C54.3016 27.3 53.5516 26.85 52.8016 26.85H26.8516V2.4C26.8516 1.05 27.9016 0 29.2516 0H65.5516C82.8016 0 96.0016 13.95 96.0016 34.5Z" fill="#FF5252"/><path d="M68.2516 41.1001C68.7016 41.5501 69.1516 42.3001 69.1516 43.0501V69.1501L29.2516 69.0001C27.9016 69.0001 26.8516 67.9501 26.8516 66.6001V26.8501H52.8016C53.5516 26.8501 54.3016 27.1501 54.7516 27.7501L68.2516 41.1001Z" fill="black"/></svg>
           docusign
         </a>
+        <span class="cobrand-x" id="cobrand-x" hidden>×</span>
+        <img class="cobrand-tgk" id="cobrand-tgk" src="/assets/brand/tgk-white.png" alt="TGK Capital" hidden>
       </div>
       <div class="step-label" id="step-label">SCENE 1 OF 5</div>
       <h1 class="headline" id="headline"></h1>
@@ -1516,7 +1523,7 @@ const TEMPLATE_FILES = [
    ========================================================= */
 const USECASE_SCENE_KEYS = {
   default:        ["agreement_desk","clear_idv","signing","navigator","workspace"],
-  "auth-fabric":  ["portal_clear_idv","portal_webform","portal_submit"],
+  "auth-fabric":  ["portal_clear_idv","webform_intake","portal_submit"],
   "intake-3":     ["webform_intake","maestro_package","envelope_deliver"],
   "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"],
   /* maintenance = customer-initiated sensitive change in the authenticated portal.
@@ -1532,7 +1539,7 @@ const USECASE_TEMPLATE_FILES = {
   default: TEMPLATE_FILES,
   "auth-fabric": [
     "/story-templates/docusign-portal-shell.html",
-    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-webform-intake.html",
     "/story-templates/docusign-agreement-desk-chain-of-custody.html"
   ],
   "intake-3": [
@@ -1556,7 +1563,7 @@ const USECASE_TEMPLATE_FILES = {
    render different modes (e.g. portal-shell for clear-idv-login vs
    action-webform; agreement-desk for chain-of-custody vs default intake). */
 const USECASE_TEMPLATE_MODES = {
-  "auth-fabric": ["clear-idv-login", "action-webform", null],
+  "auth-fabric": ["clear-idv-login", null, null],
   "intake-3":    [null, null, null],
   "intake-4":    [null, null, null, null],
   maintenance:   ["clear-idv-login", null, "approval-queue"]
@@ -1963,6 +1970,15 @@ $('tn-wm').textContent = v.tenant;
 $('story-subtitle').textContent = v.subtitle;
 $('vertical-chip').textContent = v.label;
 document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
+
+/* TGK Capital co-brand — pinned to wealth + banking demos only.
+   wealth-onboarding.html and banking-deposits.html (the discovery-mode
+   landing pages) have the same lockup. Picker pages stay Docusign-only. */
+const TGK_COBRAND_VERTICALS = new Set(['wealth', 'wealth-discovery', 'banking', 'banking-deposits']);
+if (TGK_COBRAND_VERTICALS.has(verticalKey)) {
+  $('cobrand-x').hidden = false;
+  $('cobrand-tgk').hidden = false;
+}
 
 // Build SCENES by merging narration + hotspots + src.
 // Per-beat headlines/lede from s.beats[j] override the scene-level text when present.
