@@ -246,6 +246,45 @@
   }
   .landing-section.visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
   .landing-section.always-visible { opacity: 1; transform: translateY(0); max-height: 1200px; }
+
+  /* ============================================================
+     WIZARD MODE — one stage visible at a time
+     Each click swaps the current stage's grid out and the next
+     stage's grid in *at the same vertical slot* so the user's
+     mouse never needs to move. The Back button rewinds one step.
+     Default: body has .wizard-stage-1 class on init (vertical grid).
+     selectVertical() flips to .wizard-stage-2; selectSubvertical()
+     flips to .wizard-stage-3. The breadcrumb is hidden — single
+     Back affordance carries navigation.
+     ============================================================ */
+  body.wizard-mode .breadcrumb { display: none; }
+  body.wizard-mode .landing-section { display: none; }
+  body.wizard-mode.wizard-stage-1 .landing-section.always-visible { display: block; }
+  body.wizard-mode.wizard-stage-2 #subverticalSection { display: block; }
+  body.wizard-mode.wizard-stage-3 #useCaseSection { display: block; }
+
+  /* Back button — appears at top of the landing body once the user has
+     stepped past stage 1. Inkwell-on-cream pill with a leading chevron. */
+  .wizard-back {
+    display: none;
+    align-items: center; gap: 8px;
+    padding: 7px 14px 7px 11px;
+    border: 1px solid rgba(19, 0, 50, 0.14);
+    border-radius: 999px;
+    background: #fff;
+    color: rgba(19, 0, 50, 0.72);
+    font: 500 13px/1 "DSIndigo", Helvetica, Arial, sans-serif;
+    cursor: pointer;
+    margin-bottom: 22px;
+    transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease);
+  }
+  .wizard-back:hover {
+    border-color: rgba(19, 0, 50, 0.36);
+    color: var(--ds-inkwell);
+  }
+  .wizard-back svg { width: 12px; height: 12px; }
+  body.wizard-mode.wizard-stage-2 .wizard-back,
+  body.wizard-mode.wizard-stage-3 .wizard-back { display: inline-flex; }
   .landing-section > label {
     display: flex; align-items: baseline; gap: 12px;
     font-size: 14px; font-weight: 500; color: rgba(19, 0, 50, 0.55);
@@ -1911,10 +1950,16 @@
 
     <div class="landing-body">
 
-      <!-- BREADCRUMB -->
+      <!-- BREADCRUMB (hidden in wizard mode) -->
       <div class="breadcrumb" id="breadcrumb">
         <span class="placeholder">Start by choosing a vertical below</span>
       </div>
+
+      <!-- WIZARD BACK BUTTON (visible once past stage 1) -->
+      <button type="button" class="wizard-back" id="wizardBack" aria-label="Go back one step">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Back
+      </button>
 
       <!-- STAGE 1: VERTICAL -->
       <div class="landing-section always-visible">
@@ -5250,6 +5295,17 @@ function askNavAI() {
     useCase: null             // numeric index into useCases array, or 'headless' for the synthetic option
   };
 
+  // ---------- Wizard mode — single-stage view, mouse-stays-put navigation ----------
+  // Each stage renders in the same vertical slot; the body class drives which
+  // stage is visible. setWizardStage(n) is called from selectVertical (→2),
+  // selectSubvertical (→3), and the Back button handler (→prev). On init we
+  // park at stage 1 so only the vertical grid is visible.
+  function setWizardStage(n) {
+    document.body.classList.add('wizard-mode');
+    document.body.classList.remove('wizard-stage-1', 'wizard-stage-2', 'wizard-stage-3');
+    document.body.classList.add('wizard-stage-' + n);
+  }
+
   // Initialize from URL params (deep-link support)
   const params = new URLSearchParams(window.location.search);
   const urlMode = params.get('mode');
@@ -5325,11 +5381,8 @@ function askNavAI() {
     useCaseGrid.innerHTML = '';
     updateLaunch();
     updateBreadcrumb();
-    // Bring the next stage into view. block:'nearest' lands faster than
-    // 'center' (no overshoot scroll back) and feels snappier on click.
-    requestAnimationFrame(() => {
-      subvertSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
+    // Wizard: stage 2 takes stage 1's slot — no scroll needed.
+    setWizardStage(2);
   }
 
   function renderSubverticals(verticalKey) {
@@ -5362,9 +5415,8 @@ function askNavAI() {
     useCaseSection.classList.add('visible');
     updateLaunch();
     updateBreadcrumb();
-    requestAnimationFrame(() => {
-      useCaseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
+    // Wizard: stage 3 takes stage 2's slot.
+    setWizardStage(3);
   }
 
   function renderUseCases(verticalKey, subvertKey) {
@@ -5656,6 +5708,42 @@ function askNavAI() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && csModal.classList.contains('active')) hideComingSoon();
   });
+
+  // ---------- Wizard Back button — rewinds one stage ----------
+  // Stage 3 → stage 2 (clears state.subvertical + state.useCase)
+  // Stage 2 → stage 1 (clears state.vertical)
+  // Stage 1 → no-op (button is hidden by CSS at stage 1)
+  // Escape key also rewinds one step for keyboard users.
+  function wizardGoBack() {
+    if (document.body.classList.contains('wizard-stage-3')) {
+      state.subvertical = null;
+      state.useCase = null;
+      useCaseGrid.innerHTML = '';
+      useCaseSection.classList.remove('visible');
+      document.querySelectorAll('#subverticalGrid .option-card').forEach(c => c.classList.remove('selected'));
+      updateLaunch();
+      updateBreadcrumb();
+      setWizardStage(2);
+    } else if (document.body.classList.contains('wizard-stage-2')) {
+      state.vertical = null;
+      state.subvertical = null;
+      state.useCase = null;
+      subvertGrid.innerHTML = '';
+      subvertSection.classList.remove('visible');
+      document.querySelectorAll('#verticalGrid .option-card').forEach(c => c.classList.remove('selected'));
+      updateLaunch();
+      updateBreadcrumb();
+      setWizardStage(1);
+    }
+  }
+  const wizardBackBtn = document.getElementById('wizardBack');
+  if (wizardBackBtn) wizardBackBtn.addEventListener('click', wizardGoBack);
+  document.addEventListener('keydown', (e) => {
+    // Don't hijack Escape when the Coming-Soon modal is open (handled above).
+    if (e.key === 'Escape' && !csModal.classList.contains('active')) wizardGoBack();
+  });
+  // Park on stage 1 at init so only the vertical grid is visible.
+  setWizardStage(1);
 
   // ---------- Launch handler — bridges to existing index.html machinery ----------
   window.launchUseCase = function () {
