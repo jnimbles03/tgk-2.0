@@ -1587,7 +1587,9 @@ if (!_overrideBypass) {
   try {
     const ov = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
     /* Deep-merge per scene + per beat so a partial save (one scene only) doesn't
-       wipe sibling scenes. Admin writes sparse arrays — respect them. */
+       wipe sibling scenes. Admin writes sparse arrays — respect them.
+       Also deep-merge usecases so editing one ?usecase= variant doesn't wipe
+       sibling variants supplied by the inline bundle (loaded later). */
     Object.keys(ov).forEach(k => {
       if (!ov[k]) return;
       const base = VERTICALS[k];
@@ -1611,7 +1613,43 @@ if (!_overrideBypass) {
           return out;
         });
       }
+      /* Per-usecase narration overrides — preserve sibling usecases. */
+      if (ov[k].usecases) {
+        merged.usecases = Object.assign({}, base.usecases || {}, ov[k].usecases);
+      }
       VERTICALS[k] = merged;
+    });
+  } catch (e) {}
+  /* Brand-new keys authored in /admin#stories that have no inline bundle entry.
+     The verticals merge above already handled them; this pass just makes sure
+     a custom story can be opened via ?vertical=<newkey> even if its narration
+     was saved without a `scenes` array (we synth a 5-empty-scene fallback so
+     the shell never crashes on an undefined v.scenes). */
+  try {
+    const cs = JSON.parse(localStorage.getItem("tgkAdmin.customStories") || "{}");
+    Object.keys(cs).forEach(k => {
+      const v = VERTICALS[k];
+      if (!v) {
+        const meta = cs[k].meta || {};
+        VERTICALS[k] = {
+          label: meta.label || k,
+          tenant: meta.tenant || k,
+          subtitle: meta.subtitle || "",
+          tenantColor: meta.color || "#71717A",
+          preset: meta.preset || k,
+          category: meta.category || "onboarding",
+          splashOk: !!meta.splashOk,
+          scenes: (cs[k].scenes && cs[k].scenes.default) || [
+            {tag:"SCENE 1 OF 5", head:"", lede:"", beats:[]},
+            {tag:"SCENE 2 OF 5", head:"", lede:"", beats:[]},
+            {tag:"SCENE 3 OF 5", head:"", lede:"", beats:[]},
+            {tag:"SCENE 4 OF 5", head:"", lede:"", beats:[]},
+            {tag:"SCENE 5 OF 5", head:"", lede:"", beats:[]},
+          ],
+          usecases: cs[k].scenes && Object.keys(cs[k].scenes).filter(uc => uc !== "default")
+            .reduce((acc, uc) => { acc[uc] = {scenes: cs[k].scenes[uc]}; return acc; }, {}),
+        };
+      }
     });
   } catch (e) {}
 }
@@ -1659,7 +1697,89 @@ const SCENE1_TEMPLATE_OVERRIDE = {
      - provider-roi (external records request from Silver Mountain) */
 };
 
+/* =========================================================
+   Archetype-driven Scene 1 routing.
+   The admin /admin#stories editor exposes an Archetype field per
+   vertical (A · sender-webform, A-trig · Maestro-triggered, B · self-
+   service, C · inbound, D · Workspaces deal room). When the admin sets
+   an archetype, that overrides the hardcoded SCENE1_TEMPLATE_OVERRIDE
+   above — useful for new (custom) verticals and for re-routing an
+   existing one without editing this file.
+
+   Mapping (mirrors the curated map): A / A-trig / B / D → webform-intake
+   stub; C → keep Agreement Desk (no override entry).
+   Reads VERTICALS post-merge so it picks up admin-set archetype values
+   on both keyed-by-preset original verticals and brand-new custom keys
+   where preset !== key. */
+(function applyArchetypeRouting(){
+  if (_overrideBypass) return;
+  const ARCHETYPE_TO_SCENE1 = {
+    "A":     SCENE1_OVERRIDE,
+    "A-trig":SCENE1_OVERRIDE,
+    "B":     SCENE1_OVERRIDE,
+    "D":     SCENE1_OVERRIDE,
+    "C":     null, /* sentinel: explicitly clear any prior override */
+  };
+  Object.keys(VERTICALS).forEach(k => {
+    const v = VERTICALS[k];
+    if (!v || !v.archetype) return;
+    const target = ARCHETYPE_TO_SCENE1[v.archetype];
+    /* Key the map by preset (where srcForScene + SCENES.map look it up).
+       For custom keys where the admin set a distinct preset, this lets
+       Scene 1 routing track the preset, matching how the rest of the
+       shell resolves brand. */
+    const presetKey = v.preset || k;
+    if (target === null) {
+      delete SCENE1_TEMPLATE_OVERRIDE[presetKey];
+    } else if (target) {
+      SCENE1_TEMPLATE_OVERRIDE[presetKey] = target;
+    }
+  });
+})();
+
+
+/* =========================================================
+   Per-vertical / per-usecase scene-template overrides.
+   Authored in /admin#stories and persisted to localStorage at
+   tgkAdmin.sceneTemplates[<verticalKey>][<usecaseKey>][<sceneIdx>] =
+     { template: "/story-templates/...html", mode: "..."|null }
+   Honored synchronously below by srcForScene + srcForUsecaseScene
+   so admin Preview reflects template swaps without a redeploy.
+   Bypassed when ?nooverride=1.
+   ========================================================= */
+const SCENE_TEMPLATE_OVERRIDES = (() => {
+  if (_overrideBypass) return {};
+  try { return JSON.parse(localStorage.getItem("tgkAdmin.sceneTemplates") || "{}") || {}; }
+  catch (e) { return {}; }
+})();
+function lookupSceneOverride(usecaseKey, i){
+  /* verticalKey is the URL-resolved key (declared further down — read at call
+     time, after that const is set). Fall back to vertical.preset if the URL
+     key didn't match. */
+  const k = (typeof verticalKey === "string" && verticalKey) ? verticalKey : null;
+  if (!k) return null;
+  const perKey = SCENE_TEMPLATE_OVERRIDES[k];
+  if (!perKey) return null;
+  const perUC = perKey[usecaseKey];
+  if (!perUC || !perUC[i]) return null;
+  const ov = perUC[i];
+  if (!ov.template) return null;
+  return ov;
+}
+
 function srcForScene(i, vertical, splash){
+  /* 1. Admin scene-template override (default usecase) wins over baseline. */
+  const sceneOv = lookupSceneOverride("default", i);
+  if (sceneOv) {
+    const fname = sceneOv.template.split("/").pop();
+    if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
+    const qp = new URLSearchParams();
+    qp.set("preset", vertical.preset);
+    if (sceneOv.mode) qp.set("mode", sceneOv.mode);
+    if (i === 4 && splash) qp.set("splash", "1");
+    return sceneOv.template + "?" + qp.toString();
+  }
+  /* 2. Archetype Scene-1 override (existing). */
   const override = SCENE1_TEMPLATE_OVERRIDE[vertical.preset];
   if (i === 0 && override) {
     return override.template + "?preset=" + vertical.preset;
@@ -1675,9 +1795,11 @@ function srcForScene(i, vertical, splash){
    thus play different roles per scene (portal-shell login vs webform mode;
    agreement-desk inbox vs chain-of-custody). */
 function srcForUsecaseScene(i, vertical, usecaseKey, splash){
+  /* Admin override for this (vertical, usecase, sceneIdx) wins. */
+  const sceneOv = lookupSceneOverride(usecaseKey, i);
   const files = USECASE_TEMPLATE_FILES[usecaseKey] || TEMPLATE_FILES;
   const modes = USECASE_TEMPLATE_MODES[usecaseKey];
-  const path  = files[i];
+  const path  = sceneOv ? sceneOv.template : files[i];
   const fname = path.split("/").pop();
   if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
   const qp = new URLSearchParams();
@@ -1689,7 +1811,9 @@ function srcForUsecaseScene(i, vertical, usecaseKey, splash){
   if (usecaseKey && usecaseKey !== "default" && !usecaseKey.startsWith("intake")) {
     qp.set("usecase", usecaseKey);
   }
-  if (modes && modes[i]) qp.set("mode", modes[i]);
+  /* mode: admin override > baseline modes table. */
+  const mode = sceneOv && "mode" in sceneOv ? sceneOv.mode : (modes && modes[i]);
+  if (mode) qp.set("mode", mode);
   /* For intake-4, scene 4 is workspace — preserve splash semantics. */
   if (usecaseKey === "intake-4" && i === 3 && splash) qp.set("splash", "1");
   return path + "?" + qp.toString();
@@ -1747,10 +1871,29 @@ const usecase = params.get("usecase") || "default";
    the shell falls back to the canonical 5-scene story with a console warning. */
 function mergeUsecasesBundle(bundle){
   if (!bundle || typeof bundle !== "object") return 0;
+  /* Read which (vertical, usecase) pairs the admin has touched so we don't
+     clobber them with the bundle's canonical narration on the way through. */
+  let adminTouched = {};
+  if (!_overrideBypass) {
+    try {
+      const ov = JSON.parse(localStorage.getItem("tgkAdmin.verticals") || "{}");
+      Object.keys(ov).forEach(k => {
+        if (ov[k] && ov[k].usecases) {
+          adminTouched[k] = Object.keys(ov[k].usecases);
+        }
+      });
+    } catch (e) {}
+  }
   let hits = 0;
   Object.entries(bundle.verticals || {}).forEach(([key, data]) => {
     if (key in VERTICALS && data && data.usecases) {
-      VERTICALS[key].usecases = data.usecases;
+      const existing = VERTICALS[key].usecases || {};
+      const ucKeysAdmin = adminTouched[key] || [];
+      const merged = Object.assign({}, data.usecases, existing);
+      /* Admin-edited usecases override the bundle entirely. Untouched ones
+         use the bundle copy. */
+      ucKeysAdmin.forEach(uc => { if (existing[uc]) merged[uc] = existing[uc]; });
+      VERTICALS[key].usecases = merged;
       hits++;
     }
   });
