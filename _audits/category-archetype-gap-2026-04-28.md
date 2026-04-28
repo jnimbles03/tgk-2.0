@@ -117,24 +117,31 @@ specialty-drug PA, Federal weekly cert, all 7 state-local cards
 Diane recert, Marcus Lee I-9, Avalon outdoor seating), Education
 FERPA transcript, Nonprofit drawdown.
 
-**Maintenance coverage — 5 of 11 done.** Authored fresh maintenance
-narration + MAINTENANCE_PRESETS overlay + picker card for:
+**Maintenance coverage — 11 of 11 done ✓.** All authored:
 - ✓ `provider` — insurance card update after plan change
 - ✓ `payor` — PCP change request after move
 - ✓ `education` — address + emergency contact update
 - ✓ `slgov` — permit modification request mid-construction
 - ✓ `slgov-licensing` — outdoor seating amendment to existing license
-
-Still pending maintenance authoring (6 verticals):
-- `lifesciences` — sub-investigator addition mid-trial
-- `fedgov` — direct-deposit account change mid-claim
-- `slgov-311` — edit-in-progress on existing service request
-- `slgov-benefits` — EBT card replacement after loss
-- `slgov-employee-onboarding` — benefits enrollment change after life event
-- `nonprofit` — budget reallocation request mid-grant-period
+- ✓ `lifesciences` — sub-investigator addition mid-trial (PI + Sub-I dual CLEAR + FDA 1572 + IRB roster)
+- ✓ `fedgov` — direct-deposit account change mid-claim (micro-deposit pre-validation + Treasury confirmation)
+- ✓ `slgov-311` — edit-in-progress on existing service request (light-touch auth + Iris severity reclassification + crew tablet ack)
+- ✓ `slgov-benefits` — EBT card replacement after loss (virtual EBT in 5min + USPS-validated physical card)
+- ✓ `slgov-employee-onboarding` — birth-of-child life-event benefits change (hospital affidavit + 31-day window + carrier sync)
+- ✓ `nonprofit` — mid-grant budget reallocation ($8k personnel → programs · under 10% accelerated review)
 
 (Skipped: `provider-roi` / `slgov-vendor-compliance` / `slgov-recertification`
 — their canonical scenarios are already maintenance-flavored.)
+
+## Final state
+
+Every (subvertical · tenant · category) cell that has a sensible scenario
+now has an authored Demo Story. The picker shows three colored bars per
+vertical's tenant lineup so an SE can scan-and-pick by category at a
+glance. The bars: 🔴 onboarding · 🔵 maintenance · 🟡 auth & risk.
+
+Total demos shipped: **30+ Demo Story flows** spanning the canonical
+5-scene plus three sub-flow categories per vertical.
 
 ### P3 — Picker labels
 

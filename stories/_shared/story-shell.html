@@ -338,24 +338,37 @@ const HOTSPOTS = {
     {target:"iris_input",    x:"80%", y:"35%", tip:"Ask Iris about this agreement",                    sub:"Grounded in the document",       side:"left"},
     {target:"iris_answer",   x:"80%", y:"62%", tip:"Iris answers with inline citations",               sub:"Key terms + evidence",            side:"left"}
   ],
+  /* Recalibrated 2026-04-28 for the 5-state workspace rebuild. Beat 4 used
+     to target tasks_first (visible in s2) but at beat 4 the state advances
+     to s4 (drill-down open) where tasks_first is no longer visible — the
+     agent panel is the right anchor. */
   workspace: [
-    {target:"access_workspace", x:"55%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email",           side:"top"},
-    {target:"tabs_strip",       x:"20%", y:"28%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Switch tabs to change view",      side:"right"},
-    {target:"iris_rail",        x:"70%", y:"30%", tip:"Iris agent rail — Activity and Ask Iris tabs",    sub:"Docusign's AI, tenant-aware",     side:"left"},
-    {target:"tasks_first",      x:"45%", y:"58%", tip:"View a task to drill into the Wealth Agent",      sub:"KYC checks run automatically",    side:"right"},
-    {target:"agent_panel",      x:"75%", y:"50%", tip:"Wealth Agent: checks on the uploaded artifact",    sub:"End of the story loop",          side:"left"}
+    {target:"access_workspace", x:"50%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email · s1",      side:"top"},
+    {target:"tabs_strip",       x:"22%", y:"22%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Workspace home · s2",             side:"right"},
+    {target:"iris_rail",        x:"82%", y:"22%", tip:"Iris agent rail flips to Ask Iris",                sub:"Per-document Q&A · s3",           side:"left"},
+    {target:"agent_panel",      x:"78%", y:"42%", tip:"Drill into a task · the agent runs checks",       sub:"Live KYC pass · s4",              side:"left"},
+    {target:"agent_panel",      x:"78%", y:"75%", tip:"Agent done — Approve & advance",                  sub:"Action taken · s5",               side:"left"}
   ],
 
   /* === Hotspots for ?usecase=auth-fabric (3 scenes) ===
      Maestro orchestrates CLEAR at portal LOGIN (Scene 1), then serves a
      webform inside the authenticated session (Scene 2), then Agreement Desk
      visualizes Maestro binding the auth event + transaction event (Scene 3). */
+  /* Recalibrated 2026-04-28 for the rebuilt mobile-portrait phone frame.
+     Each beat's state maps to a different visual:
+       Beat 1 → s1 (login form, email field)
+       Beat 2 → s1 (login form, password field)
+       Beat 3 → s2 (step-up modal slides up from bottom)
+       Beat 4 → s3 (CLEAR mobile session, ID/selfie capture)
+       Beat 5 → s5 (authenticated dashboard, account tiles)
+     Phone is centered horizontally so x stays at 50%; y values reflect
+     where each state's primary anchor sits inside the phone surface. */
   portal_clear_idv: [
-    {target:"login_username",  x:"50%", y:"38%", tip:"Customer hits the portal login",          sub:"Username and password",            side:"right"},
-    {target:"login_password",  x:"50%", y:"48%", tip:"Standard credentials accepted",            sub:"Password layer holds",             side:"right"},
-    {target:"login_submit",    x:"50%", y:"58%", tip:"Maestro intercepts and invokes CLEAR",     sub:"Step-up modal appears",            side:"top"},
-    {target:"stepup_clear",    x:"50%", y:"50%", tip:"CLEAR session opens on phone",             sub:"ID + selfie + biometric match",    side:"left"},
-    {target:"login_submit",    x:"50%", y:"38%", tip:"Authenticated session opens",              sub:"Witness event #1 logged",          side:"right"}
+    {target:"login_username",        x:"50%", y:"30%", tip:"Customer hits the portal login",       sub:"Email pre-filled",                 side:"right"},
+    {target:"login_password",        x:"50%", y:"38%", tip:"Standard credentials accepted",         sub:"Password layer holds",             side:"right"},
+    {target:"stepup_clear",          x:"50%", y:"68%", tip:"Maestro invokes CLEAR step-up",          sub:"Slide-up modal appears",           side:"top"},
+    {target:"clear_capture",         x:"50%", y:"42%", tip:"CLEAR captures ID + selfie",             sub:"Biometric match in progress",      side:"left"},
+    {target:"authenticated_session", x:"50%", y:"45%", tip:"Authenticated dashboard with tiles",     sub:"Verified by CLEAR · session bound",side:"right"}
   ],
   portal_webform: [
     {target:"session_banner",  x:"50%", y:"22%", tip:"Authenticated · Verified by CLEAR · Session active", sub:"Biometric proof bound to session", side:"bottom"},
@@ -375,12 +388,16 @@ const HOTSPOTS = {
   /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
      Webform → Maestro packages → Envelope delivered (+ optional Workspaces tail).
      The explicit alternative to Agreement Desk inbound. */
+  /* Recalibrated 2026-04-28 — old map referenced webform_field_1/2/3 etc
+     which don't exist in the rebuilt multi-state template. Real anchors
+     are form_question (s1), form_doc_set (s2), form_signer (s3),
+     form_review (s4), form_submit (s5). Beats walk through s1→s5. */
   webform_intake: [
-    {target:"webform_field_1",  x:"50%", y:"38%", tip:"Configuration choice 1 — drives doc set",  sub:"Branches downstream fields",       side:"right"},
-    {target:"webform_field_2",  x:"50%", y:"48%", tip:"Configuration choice 2 — drives routing",  sub:"Recipient list builds dynamically", side:"right"},
-    {target:"webform_field_3",  x:"50%", y:"58%", tip:"Configuration choice 3 — compliance",      sub:"Disclosures auto-attach",          side:"right"},
-    {target:"package_preview",  x:"50%", y:"72%", tip:"Maestro will package these documents",     sub:"Preview from selections",          side:"right"},
-    {target:"webform_submit",   x:"50%", y:"86%", tip:"Submit fires Maestro fan-out",             sub:"Envelope assembly begins",         side:"top"}
+    {target:"form_question",  x:"50%", y:"55%", tip:"Form selector — engagement type",            sub:"Drives package scope downstream",  side:"right"},
+    {target:"form_doc_set",   x:"50%", y:"58%", tip:"Configuration — pick documents",             sub:"Maestro packages from selections", side:"right"},
+    {target:"form_signer",    x:"50%", y:"45%", tip:"Client / Signer information",                sub:"Identity gates routing + SMS",     side:"right"},
+    {target:"form_review",    x:"50%", y:"45%", tip:"Review email subject + sender + summary",    sub:"Last look before envelope leaves", side:"right"},
+    {target:"form_submit",    x:"50%", y:"50%", tip:"Submit fires Maestro fan-out",               sub:"Envelope assembly begins",         side:"top"}
   ],
   maestro_package: [
     {target:"package_selections", x:"22%", y:"42%", tip:"From the webform: configuration",         sub:"Selections summary",               side:"right"},
