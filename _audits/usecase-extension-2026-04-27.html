@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Use Case Extension · Auth-Fabric + Intake-Mechanics · 2026-04-27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ink: #1F1A14;
+    --ink-mid: #5F5E5A;
+    --ink-soft: #8A8780;
+    --cream: #FAF7F2;
+    --cream-warm: #F5F0E6;
+    --hair: #E8E4DA;
+    --hair-strong: #D3D1C7;
+    --sage: #6B8A6F;
+    --sage-bg: #E8EFE7;
+    --sage-deep: #4F6E54;
+    --plum: #4B00E9;
+    --plum-bg: #EDEBFC;
+    --amber: #BA7517;
+    --amber-bg: #FBF0C9;
+    --rust: #B84A2C;
+    --rust-bg: #F8E5DD;
+    --indigo: #2D3D8A;
+    --indigo-bg: #DDE2F2;
+    --rule: #D9D5C9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 48px 96px; }
+
+  /* === EDITORIAL END === */
+  .kicker { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage-deep); font-weight: 600; margin-bottom: 14px; }
+  h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 46px; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 22px; color: var(--ink); }
+  h1 em { font-style: italic; color: var(--sage-deep); }
+  .deck { font-family: 'Fraunces', Georgia, serif; font-size: 20px; line-height: 1.45; color: var(--ink-mid); max-width: 800px; margin: 0 0 36px; }
+  .meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 56px; padding-bottom: 18px; border-bottom: 1px solid var(--rule); display: flex; gap: 24px; flex-wrap: wrap; }
+  .meta strong { color: var(--ink-mid); font-weight: 500; }
+
+  h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 28px; line-height: 1.2; margin: 56px 0 18px; color: var(--ink); }
+  h2 .num { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.16em; color: var(--sage-deep); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 6px; }
+  h3 { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); margin: 32px 0 10px; }
+  p { margin: 0 0 14px; max-width: 800px; }
+  p.lead { font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: var(--ink); line-height: 1.5; }
+  .em-sage { color: var(--sage-deep); font-weight: 500; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--sage-deep); background: var(--sage-bg); padding: 1px 5px; border-radius: 3px; }
+
+  .zone-break { margin: 72px 0 56px; border: 0; border-top: 1px solid var(--rule); height: 0; }
+  .zone-break-label { text-align: center; margin: -10px 0 0; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 0.22em; color: var(--ink-soft); text-transform: uppercase; }
+  .zone-break-label span { background: var(--cream); padding: 0 14px; }
+
+  /* Use case template cards */
+  .usecase-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 22px 0 18px; }
+  .uc-card { background: var(--cream-warm); padding: 22px 24px; border: 1px solid var(--hair); }
+  .uc-card .badge { display: inline-block; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; font-weight: 600; }
+  .uc-card.uc-auth .badge { background: var(--rust-bg); color: var(--rust); }
+  .uc-card.uc-intake .badge { background: var(--indigo-bg); color: var(--indigo); }
+  .uc-card h4 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin: 10px 0 6px; }
+  .uc-card .url { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink-soft); margin-bottom: 14px; }
+  .uc-card p { font-size: 13.5px; color: var(--ink-mid); margin: 0 0 12px; }
+  .uc-card .scenes { margin: 12px 0 0; }
+  .uc-card .scene-row { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--hair); }
+  .uc-card .scene-row .num-circle {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--cream); border: 1px solid var(--hair-strong);
+    font-family: 'Fraunces', serif; font-size: 13px; line-height: 22px; text-align: center;
+    color: var(--sage-deep);
+  }
+  .uc-card .scene-row .label { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+  .uc-card .scene-row .body { font-size: 12.5px; color: var(--ink-mid); line-height: 1.45; }
+  .uc-card .scene-row .iframe-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    background: var(--sage-bg); color: var(--sage-deep);
+    padding: 1px 6px; border-radius: 2px; margin-top: 4px;
+  }
+
+  /* Diagnostic grid (per-vertical) */
+  table.spec { width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 12.5px; margin: 18px 0; }
+  table.spec thead th { text-align: left; font-weight: 600; color: var(--ink-mid); border-bottom: 1.5px solid var(--ink); padding: 8px 10px 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; vertical-align: bottom; }
+  table.spec tbody td { padding: 11px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.spec tbody tr.section-row td { background: var(--cream-warm); font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage-deep); padding: 12px 10px 8px; border-bottom: 1px solid var(--rule); border-top: 1px solid var(--rule); }
+  table.spec .vk { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sage-deep); white-space: nowrap; }
+  table.spec .tenant { color: var(--ink); font-weight: 500; font-size: 11.5px; }
+  table.spec .auth-cell, table.spec .intake-cell { font-size: 11.5px; line-height: 1.45; color: var(--ink-mid); }
+  table.spec .auth-cell strong, table.spec .intake-cell strong { color: var(--ink); font-weight: 600; }
+  table.spec .auth-cell em, table.spec .intake-cell em { font-style: normal; color: var(--rust); font-weight: 500; }
+  table.spec .auth-cell { background: rgba(184, 74, 44, 0.04); }
+  table.spec .intake-cell { background: rgba(45, 61, 138, 0.04); }
+  table.spec .skip { color: var(--ink-soft); font-style: italic; }
+
+  /* Exemplar block */
+  .exemplar { background: var(--cream-warm); border: 1px solid var(--hair); padding: 24px 28px; margin: 18px 0; }
+  .exemplar h3 { margin-top: 0; font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; text-transform: none; letter-spacing: 0; color: var(--ink); }
+  .exemplar h3 .vk { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--sage-deep); margin-left: 8px; vertical-align: middle; }
+  .exemplar .scene { margin: 18px 0; padding: 14px 16px; background: var(--cream); border-left: 3px solid var(--sage); }
+  .exemplar .scene-tag { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--sage-deep); margin-bottom: 4px; letter-spacing: 0.05em; }
+  .exemplar .scene-head { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; color: var(--ink); margin-bottom: 8px; line-height: 1.3; }
+  .exemplar .scene-lede { font-size: 13.5px; color: var(--ink-mid); line-height: 1.55; margin-bottom: 10px; }
+  .exemplar .beats-mini { font-size: 12px; color: var(--ink-mid); padding-left: 16px; }
+  .exemplar .beats-mini li { margin: 4px 0; }
+  .exemplar .uc-section { margin-top: 24px; padding-top: 18px; border-top: 1px dashed var(--hair-strong); }
+  .exemplar .uc-section .header-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .exemplar .uc-section .header-row .badge { display: inline-block; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; font-weight: 600; }
+  .exemplar .uc-section.auth .header-row .badge { background: var(--rust-bg); color: var(--rust); }
+  .exemplar .uc-section.intake .header-row .badge { background: var(--indigo-bg); color: var(--indigo); }
+
+  /* Architecture block */
+  .arch-block { background: var(--cream); border: 1px solid var(--hair); padding: 22px 24px; margin: 18px 0; }
+  .arch-block h4 { margin: 0 0 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sage-deep); }
+  .arch-block pre { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: var(--cream-warm); padding: 12px 14px; border: 1px solid var(--hair); overflow-x: auto; margin: 8px 0; line-height: 1.5; }
+  .arch-block .muted { color: var(--ink-soft); font-size: 12px; }
+
+  /* Marginalia */
+  .marg { border-left: 2px solid var(--sage); padding: 4px 14px; margin: 18px 0; font-family: 'Iowan Old Style', Georgia, serif; font-size: 13.5px; color: var(--ink-mid); font-style: italic; background: var(--sage-bg); }
+
+  /* Footer */
+  .foot { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 11.5px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== EDITORIAL END ===================== -->
+
+  <div class="kicker">Use Case Extension · 2026-04-27</div>
+  <h1>Three demos per vertical, not <em>one</em>.</h1>
+  <p class="deck">The canonical 5-scene story sells the agreement journey. But Maestro's most differentiated work happens at two adjacent moments — orchestrating CLEAR at the portal door and binding subsequent in-session actions to that biometric proof so auth and signing stop living in separate silos, and replacing the Agreement Desk inbox with a webform-and-package intake mechanic. This proposal extends every vertical with two new use cases, behind <code>?usecase=</code>, on the same shell.</p>
+
+  <div class="meta">
+    <span><strong>Scope</strong>&nbsp;FINS · HLS · PS · EDU · nonprofit · 21 verticals × 2 new use cases</span>
+    <span><strong>Architecture</strong>&nbsp;<code>?usecase=</code> sub-flow on existing shell</span>
+    <span><strong>Status</strong>&nbsp;framework + 3 exemplars staged for review · 36 follow-up narrations queued</span>
+  </div>
+
+  <h2><span class="num">Part I · The thesis</span>The agreement story is the headline. The other two are the proof.</h2>
+
+  <p class="lead">The 5-scene canonical story is the right opening hook for a vertical demo — it tells the whole arc from intake to ongoing relationship. But it spends most of its energy on the <em>journey</em>. Two adjacent stories show Maestro doing the kind of orchestration work that makes the platform actually distinct, and they each fit cleanly into 3 scenes.</p>
+
+  <p><strong>Demo 1 — Auth-Fabric.</strong> Lifted from the original eMoney/Steve fraud-risk demo. A customer logs into the vertical's portal — <em>and Maestro orchestrates a CLEAR identity verification at login itself</em>, not at any subsequent transaction. That establishes a biometric proof of identity at the session level (witness event #1). Once authenticated, the customer initiates a sensitive in-portal action — Maestro serves a dynamic webform pre-filled from the IDV-bound identity, and the submission inherits the F1 biometric proof, no second IDV (witness event #2). Agreement Desk then surfaces the auth event and the transaction event linked as a <em>continuous identity thread</em> — one audit trail, one defensible record. The differentiation isn't "we add IDV to a transaction"; it's "auth and signing stop living in separate silos."</p>
+
+  <p><strong>Demo 2 — Intake Mechanics.</strong> A focused 3-scene story showing the webform-and-Maestro pattern as the explicit alternative to Agreement Desk inbound. Sender or self-service webform → Maestro packages dynamically from the selections → envelope delivered (with optional Workspaces tail for relationship verticals). This is the explicit "how the Scene 1 archetype audit lands in motion" demo — useful in conversations where the prospect is anchored on Agreement Desk and you need to show what the alternative looks like end-to-end.</p>
+
+  <div class="marg">The 5-scene canonical story can stay as the headline because it's the most complete view of the platform. Demos 1 and 2 are not replacements — they're the focused shorts that make the extended story believable.</div>
+
+  <h2><span class="num">Part II · The architecture</span>One shell, three sub-flows, <code>?usecase=</code></h2>
+
+  <p>The existing shell already reads <code>?vertical=</code> and renders one of 21 verticals. Add a parallel <code>?usecase=</code> param. Default = current 5-scene canonical story. <code>?usecase=auth-fabric</code> = the 3-scene runtime IDV+webform fabric. <code>?usecase=intake</code> = the 3-scene webform-and-Maestro intake. The shell stays one file; each <code>VERTICALS</code> entry gains a <code>usecases</code> sub-map.</p>
+
+  <div class="arch-block">
+    <h4>Shape change in <code>VERTICALS</code></h4>
+    <pre>VERTICALS = {
+  wealth: {
+    label: "Wealth", tenant: "Hillside", subtitle: "× Aster Capital — New Client Onboarding",
+    tenantColor: "#3FDA99", preset: "wealth",
+    // Default 5-scene story (existing — unchanged)
+    scenes: [ /* 5 entries */ ],
+    // NEW: alternative use case sub-flows
+    usecases: {
+      "auth-fabric": {
+        subtitle: "× Aster Capital — High-Value Wire Authorization",
+        scenes: [ /* 3 entries: portal-clear-idv · portal-webform · portal-submit */ ]
+      },
+      "intake": {
+        subtitle: "× Aster Capital — IMA Webform Intake",
+        scenes: [ /* 3 or 4 entries: webform · maestro-package · envelope-deliver [+ workspace] */ ]
+      }
+    }
+  },
+  /* ... other verticals ... */
+};</pre>
+    <h4 style="margin-top: 16px;">URL resolution</h4>
+    <pre>const params = new URLSearchParams(location.search);
+const verticalKey = params.get("vertical") || "wealth";
+const usecase     = params.get("usecase")  || "default";
+const v = VERTICALS[verticalKey];
+const scenes = (usecase === "default")
+  ? v.scenes
+  : v.usecases?.[usecase]?.scenes;
+if (!scenes) { /* fallback to default */ }</pre>
+    <h4 style="margin-top: 16px;">New iframe templates needed</h4>
+    <pre># Auth-Fabric demo (3 scenes)
+story-templates/docusign-portal-shell.html?vertical=&lt;k&gt;&amp;mode=clear-idv-login   # F1 — CLEAR at login
+story-templates/docusign-portal-shell.html?vertical=&lt;k&gt;&amp;mode=action-webform    # F2 — webform bound to F1 proof
+story-templates/docusign-agreement-desk.html?vertical=&lt;k&gt;&amp;mode=chain-of-custody # F3 — linked auth + transaction view
+
+# Intake-Mechanics demo (3 or 4 scenes)
+story-templates/docusign-webform-intake.html?vertical=&lt;k&gt;
+story-templates/docusign-maestro-package.html?vertical=&lt;k&gt;
+# Reuse: docusign-clear-idv.html, docusign-signing-ceremony.html, docusign-workspace.html</pre>
+    <p class="muted">The portal shell is one file with two modes (login-with-IDV and authenticated-action-with-webform). For the auth-fabric Scene 3, the existing <code>docusign-agreement-desk.html</code> gets a new <code>mode=chain-of-custody</code> that surfaces the linked auth+transaction record.</p>
+    <p class="muted" style="margin-top: 8px; padding: 10px 12px; background: var(--sage-bg); border-left: 2px solid var(--sage); color: var(--sage-deep);"><strong>Agreement Desk is a proxy interface for Maestro.</strong> The actual orchestration — risk-detect, IDV-invoke, identity-bind, form-serve, audit-link, package-fan-out — happens invisibly in the Maestro layer. Agreement Desk is the on-screen surface that makes that invisible work visible to the demo audience. Same template across demos, different <em>Maestro lens</em>: intake fan-out (canonical), chain-of-custody binding (auth-fabric), package fan-out (intake-mechanics). When you see Agreement Desk in the demo, read it as "this is what Maestro is doing right now, made visible."</p>
+    <h4 style="margin-top: 16px;">New HOTSPOTS keys</h4>
+    <pre>HOTSPOTS = {
+  /* existing: agreement_desk, clear_idv, signing, navigator, workspace */
+  portal_clear_idv:  [ /* 3-5 hotspots: portal entry → step-up trigger → IDV success */ ],
+  portal_webform:    [ /* 3-5 hotspots: webform served → field auto-fill → user input → submit */ ],
+  portal_submit:     [ /* 3-5 hotspots: confirmation → linked audit trail → Iris flag */ ],
+  webform_intake:    [ /* 3-5 hotspots: form fields → product selection → submit */ ],
+  maestro_package:   [ /* 3-5 hotspots: doc assembly → recipient routing → envelope ready */ ],
+  envelope_deliver:  [ /* 3-5 hotspots: tenant-branded email → review/sign → handoff */ ]
+};</pre>
+  </div>
+
+  <h2><span class="num">Part III · The two templates</span>Generic 3-scene shapes</h2>
+
+  <div class="usecase-cards">
+
+    <div class="uc-card uc-auth">
+      <div class="badge">Demo 1 · Auth-Fabric</div>
+      <h4>IAM · CLEAR at login · Webform bound to the biometric thread</h4>
+      <div class="url"><code>?vertical=&lt;k&gt;&amp;usecase=auth-fabric</code></div>
+      <p>Reference: the original eMoney/Steve fraud-risk demo. Customer arrives at the vertical's portal — Maestro orchestrates a CLEAR IDV at <em>login</em> (not at the transaction), creating a biometric proof of identity that lives at the session level. Customer initiates a sensitive action inside the now-authenticated portal; Maestro serves a dynamic webform — no second IDV needed because the form inherits the F1 biometric proof. On submit, Agreement Desk shows the auth event and the transaction event linked as a <em>continuous identity thread</em> — one audit trail, one defensible record. Closes the chain-of-custody gap.</p>
+      <div class="scenes">
+        <div class="scene-row">
+          <div class="num-circle">1</div>
+          <div>
+            <div class="label">AUTHENTICATED PORTAL ENTRY · CLEAR at the door</div>
+            <div class="body">Customer logs into the vertical's portal. Instead of just a password, Maestro orchestrates a CLEAR identity verification — biometric proof of identity established at the session level, before any transaction begins. <strong>Witness event #1.</strong></div>
+            <span class="iframe-tag">portal-shell · mode=clear-idv-login</span>
+          </div>
+        </div>
+        <div class="scene-row">
+          <div class="num-circle">2</div>
+          <div>
+            <div class="label">IN-SESSION ACTION · Maestro serves webform bound to the proof</div>
+            <div class="body">Inside the authenticated portal, the customer initiates a sensitive action. Maestro renders a dynamic webform — pre-filled from the IDV-bound identity. <em>No second IDV</em>: the form inherits the session's biometric proof. <strong>Witness event #2.</strong></div>
+            <span class="iframe-tag">portal-shell · mode=action-webform</span>
+          </div>
+        </div>
+        <div class="scene-row">
+          <div class="num-circle">3</div>
+          <div>
+            <div class="label">CHAIN OF CUSTODY · Agreement Desk visualizes Maestro's binding</div>
+            <div class="body">Maestro has been binding the auth event to the transaction event in the orchestration layer the whole time. Agreement Desk is the on-screen proxy that makes that invisible work visible — auth + transaction shown in a single view, linked by a continuous identity thread. One audit trail. One defensible record. Iris flags any anomaly.</div>
+            <span class="iframe-tag">agreement-desk · mode=chain-of-custody (Maestro proxy)</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top: 14px; font-size: 12px; color: var(--ink-soft); padding-top: 10px; border-top: 1px solid var(--hair);">Optional Scene 4: <strong>IAM for Fraud — Scaling Risks Require Scaling Solutions.</strong> Concept frame showing the spectrum of CLEAR/SMS/OTP/biometric methods Maestro can invoke based on transaction risk and magnitude. From the original demo's F4 panel.</p>
+    </div>
+
+    <div class="uc-card uc-intake">
+      <div class="badge">Demo 2 · Intake-Mechanics</div>
+      <h4>Webform · Maestro · Envelope (· Workspaces)</h4>
+      <div class="url"><code>?vertical=&lt;k&gt;&amp;usecase=intake</code></div>
+      <p>The explicit alternative to Agreement Desk inbound. Sender (internal employee) or self-service (customer) fills a Maestro-fronted webform — selections drive what the package looks like. Maestro fans out documents, recipients, routing. Envelope delivered. For relationship verticals, optional Scene 4 Workspaces tail.</p>
+      <div class="scenes">
+        <div class="scene-row">
+          <div class="num-circle">1</div>
+          <div>
+            <div class="label">WEBFORM · Sender or Self-Service</div>
+            <div class="body">Webform is dynamic — product selection, configuration, and pre-fill from systems of record. Per archetype: A (sender) or B (self-service). Selections shape what fields appear.</div>
+            <span class="iframe-tag">webform-intake</span>
+          </div>
+        </div>
+        <div class="scene-row">
+          <div class="num-circle">2</div>
+          <div>
+            <div class="label">MAESTRO PACKAGES · Dynamic envelope</div>
+            <div class="body">Maestro fans out the package — documents assembled, fields pre-filled from systems of record, recipients chosen, routing built. The webform's selections determine what's in the envelope.</div>
+            <span class="iframe-tag">maestro-package</span>
+          </div>
+        </div>
+        <div class="scene-row">
+          <div class="num-circle">3</div>
+          <div>
+            <div class="label">ENVELOPE DELIVERED · with optional Workspaces tail</div>
+            <div class="body">Tenant-branded email; recipient reviews/signs in the same flow as the canonical demo. For relationship verticals, optional Scene 4 hands off to Workspaces; for transactional verticals, the demo closes here.</div>
+            <span class="iframe-tag">clear-idv · signing · workspace (optional)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== ZONE BREAK ===================== -->
+
+  <hr class="zone-break" />
+  <div class="zone-break-label"><span>Per-vertical specifications</span></div>
+
+  <!-- ===================== ANALYTICAL END ===================== -->
+
+  <h2><span class="num">Part IV · The spec grid</span>What each vertical's two new demos show</h2>
+
+  <p>One row per vertical, two columns: what the auth-fabric demo specifically demonstrates (which sensitive transaction triggers Maestro→CLEAR; what webform Maestro serves), and what the intake-mechanics demo shows (sender-or-self-service webform; what Maestro packages; whether Workspaces tail). One-liners — these are the briefs to bulk-author from once you approve.</p>
+
+  <table class="spec">
+    <thead>
+      <tr>
+        <th style="width: 14%;">Vertical</th>
+        <th style="width: 43%;">Demo 1 · Auth-Fabric — sensitive action + Maestro-served webform</th>
+        <th style="width: 43%;">Demo 2 · Intake — webform + Maestro packaging (· Workspaces)</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr class="section-row"><td colspan="3">FINS · Financial Services</td></tr>
+
+      <tr>
+        <td><span class="vk">wealth</span><br><span class="tenant">Hillside × Aster</span></td>
+        <td class="auth-cell"><strong>Aster CFO authorizes a $4M intra-account cash transfer</strong> on Hillside's client portal. Maestro fires CLEAR step-up; serves a transfer-authorization webform pre-filled with from/to/amount/SWIFT. Submit, transfer queued, Iris flags any out-of-pattern movement.</td>
+        <td class="intake-cell"><strong>A · Sender · Priya fills the new-engagement webform.</strong> Selections (entity type, AUM tier, mandate, custodian) drive Maestro to fan out IMA + Reg BI disclosure + custodial agreement. <em>Workspaces tail</em>: relationship Workspace opens for Aster.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">banking</span><br><span class="tenant">Meridian × Atlas</span></td>
+        <td class="auth-cell"><strong>Diana (CFO + guarantor) requests an $850k draw on the working-capital facility</strong> on Meridian's commercial portal. Maestro CLEAR step-up; serves a draw-request webform pre-filled with available balance and rate. Submit, Sofia in credit ops releases.</td>
+        <td class="intake-cell"><strong>A · Sender · Raj fills the credit-request webform.</strong> Facility size + structure + collateral selections drive Maestro to fan out 4-doc loan package. <em>Workspaces tail</em>: deal room (matches the D-archetype canonical).</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance</span><br><span class="tenant">Sentinel × Ramirez</span></td>
+        <td class="auth-cell"><strong>Elena adds a contingent beneficiary or changes deductible mid-policy</strong> on Sentinel's customer portal. Maestro CLEAR step-up (coverage-change risk gate); serves a policy-change webform. Submit, change queued for underwriting review.</td>
+        <td class="intake-cell"><strong>A · Sender · Marisol fills the binder-request webform.</strong> Coverage limits + deductible + mortgagee drive Maestro to fan out application + binder + dec page. <em>Workspaces tail</em>: ongoing policy.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance-life</span><br><span class="tenant">Beacon × Whitfield</span></td>
+        <td class="auth-cell"><strong>Theresa redirects payment or adds a contingent beneficiary post-claim</strong> on Beacon's claim portal. Maestro CLEAR step-up; serves a payment-redirect webform. Submit, hold + manual review queue.</td>
+        <td class="intake-cell"><strong>A · Sender · Camille fills the claims-config webform.</strong> Policy + cause-of-death + beneficiary mix drive Maestro to fan out claim packet. <em>Workspaces tail</em>: bereavement Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance-pc</span><br><span class="tenant">Northgate × Patel</span></td>
+        <td class="auth-cell"><strong>Priya uploads supplemental damage evidence post-FNOL</strong> on Northgate's carrier portal. Maestro CLEAR step-up; serves a status-update webform. Submit, claim diary updates.</td>
+        <td class="intake-cell"><strong>B · Self-service · Priya files FNOL via mobile webform.</strong> Vehicle + driver + cause selections drive Maestro to fan out FNOL packet + investigation routing. <em>Workspaces tail</em>: ClaimCenter Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">banking-deposits</span><br><span class="tenant">Cedar Federal × Williams</span></td>
+        <td class="auth-cell"><strong>Marcus sets up a $50k external transfer to a new account</strong> on Cedar Federal's mobile app. Maestro CLEAR step-up (e-money fraud gate); serves a transfer-config webform. Submit, transfer queued with risk-hold review.</td>
+        <td class="intake-cell"><strong>B · Self-service · Marcus fills "open new account" mobile webform.</strong> Account types + funding selections drive Maestro to fan out account-opening docs + ACH funding. <em>Workspaces tail</em>: household Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">wealth-discovery</span><br><span class="tenant">Cypress × Holcomb</span></td>
+        <td class="auth-cell"><strong>Walter initiates a one-time IRA rollover-in</strong> on Cypress's client portal. Maestro CLEAR step-up; serves a rollover-config webform. Submit, advisor reviews, rollover instruction generates.</td>
+        <td class="intake-cell"><strong>A · Sender · Reggie fills the discovery-config webform.</strong> Multi-account intent (IRA + joint + trust + advisory) drives Maestro to fan out the multi-account package. <em>Workspaces tail</em>: relationship Workspace (D-archetype).</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="3">HLS · Healthcare &amp; Life Sciences</td></tr>
+
+      <tr>
+        <td><span class="vk">provider</span><br><span class="tenant">Riverside × Jordan</span></td>
+        <td class="auth-cell"><strong>Jordan requests a refill on a Schedule II prescription</strong> on Riverside's patient portal. Maestro CLEAR step-up (DEA-grade IDV); serves a refill-request webform. Submit, Rx queued for prescriber e-sig.</td>
+        <td class="intake-cell"><strong>B · Self-service · Jordan completes new-patient pre-reg webform.</strong> Demographics + insurance + reason-for-visit drive Maestro to fan out patient packet + insurance verify. <em>Workspaces tail</em>: ongoing care Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">lifesciences</span><br><span class="tenant">Helix × ARC</span></td>
+        <td class="auth-cell"><strong>PI Dr. Halim reports a Serious Adverse Event mid-trial</strong> on Helix's study portal. Maestro CLEAR step-up; serves an SAE-report webform. Submit, IRB notification + sponsor pharmacovigilance fire automatically.</td>
+        <td class="intake-cell"><strong>A · Sender · Ethan fills site-config webform.</strong> Protocol + indication + IRB + budget tier drive Maestro to fan out CTA + budget + 1572 + IRB. <em>Workspaces tail</em>: study Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">payor</span><br><span class="tenant">Unity × Marcus</span></td>
+        <td class="auth-cell"><strong>Marcus submits a prior-authorization for a specialty drug</strong> on Unity's member portal. Maestro CLEAR step-up; serves a PA-request webform pre-filled from member ID. Submit, queued for clinical review.</td>
+        <td class="intake-cell"><strong>B · Self-service · Marcus enrolls in Silver HMO via marketplace webform.</strong> Plan + PCP + dependents drive Maestro to fan out enrollment + ID card + welcome kit. <em>Workspaces tail</em>: member Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">provider-roi</span><br><span class="tenant">Catalina × Eric</span></td>
+        <td class="auth-cell"><strong>Eric revokes or modifies the records release scope</strong> on Catalina's patient portal. Maestro CLEAR step-up (HIPAA gate); serves a revocation webform. Submit, release halted, audit logged.</td>
+        <td class="intake-cell"><strong>A · Sender · Renata fills the HIM intake webform from the inbound request.</strong> Date range + purpose + recipient drive Maestro to fan out the consent + retrieval order. <em>Workspaces tail</em>: optional release Workspace.</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="3">PS · Public Sector</td></tr>
+
+      <tr>
+        <td><span class="vk">fedgov</span><br><span class="tenant">DOL × Taylor</span></td>
+        <td class="auth-cell"><strong>Taylor submits the weekly availability + earnings cert</strong> on the state UI portal. Maestro CLEAR step-up (UI-fraud gate); serves the weekly-cert webform. Submit, payment queued or held.</td>
+        <td class="intake-cell"><strong>B · Self-service · Taylor self-files the initial UI claim via state portal.</strong> Last-employer + separation-reason + availability drive Maestro to fan out determination packet + DD auth. <em>Workspaces tail</em>: claim Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov</span><br><span class="tenant">Springfield × 1420 Oak</span></td>
+        <td class="auth-cell"><strong>Marissa requests a permit modification (added scope, fee change)</strong> on Springfield's permit portal. Maestro CLEAR step-up; serves a modification webform. Submit, plan check re-engaged.</td>
+        <td class="intake-cell"><strong>B · Self-service · Marissa applies via permit portal.</strong> Scope + plans + contractor drive Maestro to fan out application + plan-check + fee. <em>Workspaces tail</em>: permit Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-311</span><br><span class="tenant">Greenhaven × Cedar Ave</span></td>
+        <td class="auth-cell"><strong>Maria signs in to track a portfolio of open requests + add a follow-up</strong> on Greenhaven's portal. Maestro CLEAR step-up (light-touch — registered citizen); serves a request-update webform. Submit, status thread updates.</td>
+        <td class="intake-cell"><strong>B · Self-service · Maria scans the QR + fills the report webform.</strong> Issue type + photo + GPS drive Maestro to fan out dispatch packet. <em>No Workspaces tail</em> — transactional.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-benefits</span><br><span class="tenant">Eastside HHS × Rivera</span></td>
+        <td class="auth-cell"><strong>Yolanda reports a change in household composition or income</strong> on Eastside's benefits portal. Maestro CLEAR step-up (eligibility-fraud gate); serves a change-of-circumstance webform. Submit, eligibility re-determined.</td>
+        <td class="intake-cell"><strong>B · Self-service · Yolanda self-files SNAP application via mobile.</strong> Household + income + expenses drive Maestro to fan out application + verification asks. <em>Workspaces tail</em>: benefits Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-recertification</span><br><span class="tenant">Cascade × Diane</span></td>
+        <td class="auth-cell"><strong>Diane reports a mid-year address change</strong> on Cascade's member portal. Maestro CLEAR step-up; serves a change-of-circumstance webform. Submit, eligibility re-evaluated, recert date may shift.</td>
+        <td class="intake-cell"><strong>A · Sender · Asha kicks off out-of-cycle recert via internal webform.</strong> Member + reason-for-recert + new-circumstance drive Maestro to fan out a tailored recert packet. <em>Workspaces tail</em>: case Workspace. (Note: the canonical demo IS Maestro-triggered intake — this one is the manual exception path.)</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-vendor-compliance</span><br><span class="tenant">Ridgeview × Apex</span></td>
+        <td class="auth-cell"><strong>Naomi (Apex) uploads a mid-year insurance certificate</strong> on Ridgeview's vendor portal. Maestro CLEAR step-up; serves an attestation webform. Submit, vendor record updated, hold lifted if any.</td>
+        <td class="intake-cell"><strong>A · Sender · Olivia kicks off new-vendor onboarding via internal webform.</strong> Vendor type + spend tier + compliance reqs drive Maestro to fan out onboarding packet. <em>Workspaces tail</em>: vendor Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-employee-onboarding</span><br><span class="tenant">Cascade × Marcus Lee</span></td>
+        <td class="auth-cell"><strong>Marcus uploads I-9 documents pre-Day-1</strong> on Cascade's employee portal. Maestro CLEAR step-up (federal compliance gate); serves the I-9 doc-upload webform. Submit, HR receives, pre-Day-1 task closes.</td>
+        <td class="intake-cell"><strong>A · Sender · Karina kicks off onboarding for a new hire via internal HR webform.</strong> Role + department + start-date drive Maestro to fan out offer + I-9 + W-4 + benefits. <em>Workspaces tail</em>: onboarding Workspace.</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-licensing</span><br><span class="tenant">Northbrook × Avalon</span></td>
+        <td class="auth-cell"><strong>Mei renews her food-service license annually + adds an outdoor seating amendment</strong> on Northbrook's licensee portal. Maestro CLEAR step-up; serves a renewal webform. Submit, inspection scheduled.</td>
+        <td class="intake-cell"><strong>B · Self-service · Mei applies via applicant portal.</strong> Business type + capacity + menu + ownership drive Maestro to fan out license app + attestation + fee. <em>Workspaces tail</em>: license Workspace.</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="3">EDU · Education · 1 story</td></tr>
+
+      <tr>
+        <td><span class="vk">education</span><br><span class="tenant">Maple Ridge × Priya Shah</span></td>
+        <td class="auth-cell"><strong>Priya releases her official transcript to a graduate program</strong> on Maple Ridge's student portal. Maestro orchestrates CLEAR at login (FERPA-grade IDV creates biometric proof at session level). Maestro then serves a transcript-release webform — recipient, scope, custodian acknowledgment — bound to the F1 proof. Submit, registrar releases, audit logged.</td>
+        <td class="intake-cell"><strong>B · Self-service · Priya completes financial-aid acceptance webform on student portal.</strong> Aid package + loan tier + parent-PLUS election drive Maestro to fan out award letter + MPN + entrance counseling + parent-PLUS app + FERPA disclosure. <em>Workspaces tail</em>: student relationship Workspace.</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="3">Nonprofit · 1 story</td></tr>
+
+      <tr>
+        <td><span class="vk">nonprofit</span><br><span class="tenant">Harbor × Safe Streets</span></td>
+        <td class="auth-cell"><strong>Safe Streets' authorized rep submits the quarterly grant drawdown request</strong> on Harbor's grantee portal. Maestro orchestrates CLEAR at login (financial-controls gate creates biometric proof at session level). Maestro then serves a drawdown-request webform — line-item attestation, expended-amount certification, planned-spend disclosure — bound to the F1 proof. Submit, drawdown queued for Harbor program officer release.</td>
+        <td class="intake-cell"><strong>A · Sender · Harbor program officer fills the new-grant-config webform.</strong> Organization + project scope + budget tier + reporting cadence + equity riders drive Maestro to fan out master grant agreement + SOW + budget detail + reporting requirements + indemnification. <em>Workspaces tail</em>: grant relationship Workspace.</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <p style="font-size: 12.5px; color: var(--ink-mid);"><strong>Tally:</strong> 21 verticals × 2 use cases = <strong>42 new use case scripts</strong> to author. The spec column above is the <em>brief</em>; the actual narration (tag + head + lede + 5 beats per scene × 3 scenes per use case = 15 narrated beats per use case) needs to be written out per the established voice. Three exemplars below validate the pattern; the remaining 39 are queued as a follow-up batch.</p>
+
+  <h2><span class="num">Part V · Three exemplars</span>Fully-baked patterns to validate against</h2>
+
+  <!-- =============== EXEMPLAR 1: WEALTH =============== -->
+  <div class="exemplar">
+    <h3>FINS · Wealth <span class="vk">wealth</span></h3>
+    <p style="font-size: 13px; color: var(--ink-mid); margin: 0;">Hillside × Aster Capital. Archetype A in the canonical. Auth-fabric demo shows e-money/high-value wire authorization; intake-mechanics shows the sender webform → IMA package.</p>
+
+    <div class="uc-section auth">
+      <div class="header-row">
+        <span class="badge">Demo 1 · Auth-Fabric</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">High-value wire authorization · 3 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR</div>
+        <div class="scene-head">Mira logs into Hillside's client portal; Maestro orchestrates CLEAR at login.</div>
+        <div class="scene-lede">Mira Sundar, CFO of <em>Aster Capital</em>, opens the Hillside client portal. Instead of accepting just a password, Maestro orchestrates a CLEAR identity verification — biometric proof of identity established at the session level, before any transaction begins. <em>Witness event #1</em>.</div>
+        <ul class="beats-mini">
+          <li><strong>Mira hits Hillside's portal login.</strong> Username and password.</li>
+          <li><strong>Maestro intercepts and invokes CLEAR.</strong> Hillside-branded step-up — "verify your identity to continue."</li>
+          <li><strong>CLEAR session opens on Mira's phone.</strong> No app download — a one-tap text link.</li>
+          <li><strong>ID + selfie + biometric match.</strong> CLEAR runs the comparison; the result posts back to Maestro in seconds.</li>
+          <li><strong>Authenticated session opens.</strong> Biometric proof bound to the session. Witness event #1 logged.</li>
+        </ul>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM</div>
+        <div class="scene-head">Mira initiates a $4M intra-account transfer; Maestro serves the authorization webform — bound to the F1 proof.</div>
+        <div class="scene-lede">Inside her authenticated session, Mira initiates a $4M cash movement between two of Aster's accounts. The portal stays Hillside-branded; Maestro serves a transfer-authorization webform pre-filled from her IDV-bound identity and account context. <em>No second IDV</em> — the form inherits the session's biometric proof. <em>Witness event #2</em>.</div>
+        <ul class="beats-mini">
+          <li><strong>Mira opens "New Transfer" in the portal.</strong> Selects the from/to accounts and enters $4,000,000.</li>
+          <li><strong>Maestro renders the authorization webform inline.</strong> Pre-filled with from/to, amount, SWIFT, and the F1 identity binding.</li>
+          <li><strong>She adds the policy-required memo.</strong> Custom fields for transfers above $1M.</li>
+          <li><strong>Iris pre-screens.</strong> Anomaly check against Aster's normal pattern; no flag.</li>
+          <li><strong>Submit fires — bound to the established biometric proof.</strong> Witness event #2 logged.</li>
+        </ul>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING</div>
+        <div class="scene-head">Agreement Desk surfaces the CLEAR auth event and the transfer submission as one continuous identity thread.</div>
+        <div class="scene-lede">Maestro has been binding the auth event to the transaction event in the orchestration layer the whole time — Agreement Desk is the on-screen proxy that makes that invisible work visible. Hillside's compliance team sees the unified record: the CLEAR biometric authentication at portal entry, and the transfer submission — linked as a continuous identity thread. One audit trail. One defensible record. The chain-of-custody gap closes.</div>
+        <ul class="beats-mini">
+          <li><strong>Agreement Desk opens to Mira's session activity.</strong> The auth event and the transfer event sit in a single view.</li>
+          <li><strong>The link is explicit:</strong> "Verified by CLEAR · Mira Sundar · CA DL ***4892 · 13:42 EST" → "Transfer authorization · $4,000,000 · 13:47 EST".</li>
+          <li><strong>Iris confirms pattern match.</strong> Risk score below threshold; Priya's compliance queue gets a normal-priority item.</li>
+          <li><strong>The transfer queues for execution.</strong> Confirmation visible in Mira's portal.</li>
+          <li><strong>Defensible record.</strong> If the transaction is ever disputed, Hillside has both halves of the chain.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="uc-section intake">
+      <div class="header-row">
+        <span class="badge">Demo 2 · Intake-Mechanics</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">Sender webform · IMA package · Workspaces tail · 4 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 4 · INTAKE · SENDER WEBFORM</div>
+        <div class="scene-head">Priya fills Hillside's new-engagement webform for Aster Capital.</div>
+        <div class="scene-lede">Priya Das, Head of Compliance at Hillside Advisors, opens the new-engagement webform and configures the engagement for <em>Aster Capital</em>: entity type (LLC), AUM tier ($100M+), discretionary management mandate, custodian (Pershing).</div>
+        <ul class="beats-mini">
+          <li><strong>Priya selects "New Engagement" from Hillside's intake menu.</strong></li>
+          <li><strong>She fills entity type, mandate, AUM tier.</strong> Each selection branches what fields appear next.</li>
+          <li><strong>She selects custodian = Pershing.</strong> A Pershing-specific custodial agreement gets queued.</li>
+          <li><strong>Reg BI disclosure auto-attaches based on advisor type.</strong> No manual lookup.</li>
+          <li><strong>Priya reviews the configured package summary.</strong> 3 documents, 2 recipients, sequenced routing.</li>
+        </ul>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 4 · MAESTRO PACKAGES</div>
+        <div class="scene-head">Maestro fans out IMA + custodial agreement + Reg BI from Priya's selections.</div>
+        <div class="scene-lede">The moment Priya submits the webform, Maestro orchestrates: it pulls the IMA template for the entity type and AUM tier, the Pershing custodial agreement, and the Reg BI disclosure. Each document pre-fills with Aster's KYB data. The recipient list is built. The envelope is ready.</div>
+        <ul class="beats-mini">
+          <li><strong>Maestro pulls the right IMA template.</strong> LLC + discretionary at $100M+ tier = a specific contract variant.</li>
+          <li><strong>Pershing custodial agreement attaches automatically.</strong> Custodian-specific routing.</li>
+          <li><strong>Reg BI disclosure auto-includes.</strong> Compliance-driven.</li>
+          <li><strong>Aster's KYB record pre-fills 14 fields across the docs.</strong> No manual re-keying.</li>
+          <li><strong>Recipient routing built: Aster's authorized signatory first, Hillside compliance reviewer second.</strong></li>
+        </ul>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 4 · ENVELOPE DELIVERED</div>
+        <div class="scene-head">Aster's signatory reviews and signs in a Hillside-branded ceremony.</div>
+        <div class="scene-lede">The packaged envelope arrives at Aster's authorized signatory in seconds. Hillside-branded email, signing ceremony with the IMA + custodial + Reg BI together, identity verified at signing time. Compliance review fires automatically.</div>
+        <ul class="beats-mini">
+          <li><strong>Hillside-branded email lands in Aster's signatory's inbox.</strong> No login required.</li>
+          <li><strong>Ceremony opens with the three docs in order.</strong> Yellow START tab guides the signer.</li>
+          <li><strong>Signature applied across the three docs.</strong> One ceremony, three documents.</li>
+          <li><strong>Multi-recipient routing: Hillside compliance reviewer next.</strong> Priya's compliance officer receives the envelope automatically.</li>
+          <li><strong>Execution confirmed — certified copy issued.</strong> Audit trail complete.</li>
+        </ul>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP</div>
+        <div class="scene-head">Hillside, Aster, and the custodian continue in one Workspace.</div>
+        <div class="scene-lede">Onboarding closes; the relationship Workspace opens. Aster, Pershing, and Hillside's compliance team now have a single shared surface for the engagement going forward — same activity log, same agreement set, same Iris.</div>
+        <ul class="beats-mini">
+          <li><strong>Aster's signatory gets a Workspace invite.</strong> Hillside-branded.</li>
+          <li><strong>Engagement summary is visible to all three parties.</strong></li>
+          <li><strong>Iris is in the rail; activity log shows the full Maestro fan-out.</strong></li>
+          <li><strong>KYC checks running in the background.</strong></li>
+          <li><strong>Onboarding complete; relationship in motion.</strong> Same outcome as canonical, faster path.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== EXEMPLAR 2: PROVIDER =============== -->
+  <div class="exemplar">
+    <h3>HLS · Provider <span class="vk">provider</span></h3>
+    <p style="font-size: 13px; color: var(--ink-mid); margin: 0;">Riverside × Jordan Kim. Archetype B in the canonical. Auth-fabric demo shows DEA-grade step-up for a controlled-substance refill; intake-mechanics shows self-service patient pre-reg.</p>
+
+    <div class="uc-section auth">
+      <div class="header-row">
+        <span class="badge">Demo 1 · Auth-Fabric</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">Controlled-substance refill · 3 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR</div>
+        <div class="scene-head">Jordan logs into Riverside's patient portal; Maestro orchestrates DEA-grade CLEAR at login.</div>
+        <div class="scene-lede">Jordan Kim opens Riverside Health's patient portal. For patients with active controlled-substance prescriptions, Riverside requires DEA-grade identity proofing on every session. Maestro orchestrates CLEAR at login — biometric proof established before any clinical action begins. <em>Witness event #1</em>.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM</div>
+        <div class="scene-head">Jordan requests a Schedule II refill; Maestro serves the refill-request webform — bound to the F1 proof.</div>
+        <div class="scene-lede">Inside the authenticated session, Jordan opens "Refill Prescription." Maestro renders the refill-request webform inline — pre-filled with the active prescription, prescriber, dispensing pharmacy, and the F1 IDV identity binding. No second IDV. <em>Witness event #2</em>.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS</div>
+        <div class="scene-head">Riverside's clinical Agreement Desk shows the auth event and the refill request as one DEA-defensible record.</div>
+        <div class="scene-lede">The refill request queues for the prescriber's e-signature. Riverside's clinical Agreement Desk surfaces the unified record: the CLEAR biometric authentication at session entry, and the refill submission — linked as a continuous identity thread. One audit trail meets DEA's identity-proofing requirement.</div>
+      </div>
+    </div>
+
+    <div class="uc-section intake">
+      <div class="header-row">
+        <span class="badge">Demo 2 · Intake-Mechanics</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">Self-service patient pre-reg · 4 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 4 · INTAKE · SELF-SERVICE PORTAL</div>
+        <div class="scene-head">Jordan completes new-patient pre-reg in Riverside's portal the night before the visit.</div>
+        <div class="scene-lede">Jordan Kim opens Riverside Health's patient portal on a phone the night before a first appointment. Demographics, insurance card photo, reason for visit, allergies, current medications.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 4 · MAESTRO PACKAGES</div>
+        <div class="scene-head">Maestro packages the patient packet from Jordan's selections + insurance verification.</div>
+        <div class="scene-lede">Submit fires. Maestro pulls the right consent forms based on the visit type, runs an insurance verification (real-time eligibility), packages the patient packet, and routes it back to Jordan for signature.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 4 · ENVELOPE DELIVERED</div>
+        <div class="scene-head">Jordan signs HIPAA + financial responsibility + new-patient consent in one ceremony.</div>
+        <div class="scene-lede">The packet arrives in seconds — Riverside-branded, three forms in order. Jordan signs in the same portal session.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 4 OF 4 · WORKSPACE TAIL · CARE RELATIONSHIP</div>
+        <div class="scene-head">Riverside's care team picks up Jordan's record in Workspaces.</div>
+        <div class="scene-lede">Daniela Okafor, the patient coordinator, sees Jordan's pre-reg packet in the care Workspace — already verified, already routed to the EHR. Day-of arrival becomes a 60-second check-in.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== EXEMPLAR 3: SLGOV-RECERTIFICATION =============== -->
+  <div class="exemplar">
+    <h3>PS · Medicaid Recertification <span class="vk">slgov-recertification</span></h3>
+    <p style="font-size: 13px; color: var(--ink-mid); margin: 0;">Cascade × Diane Park. Archetype A-trig (Maestro-triggered) in the canonical. Auth-fabric demo shows mid-year change-of-circumstance; intake-mechanics shows the manual out-of-cycle exception path (since the canonical IS the system-triggered intake).</p>
+
+    <div class="uc-section auth">
+      <div class="header-row">
+        <span class="badge">Demo 1 · Auth-Fabric</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">Mid-year change of circumstance · 3 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR</div>
+        <div class="scene-head">Diane logs into Cascade's member portal; Maestro orchestrates CLEAR at login.</div>
+        <div class="scene-lede">Diane Park, mid-year on Medicaid, opens Cascade's member portal. Because eligibility data is sensitive and recipient impersonation is a known fraud surface, Maestro orchestrates CLEAR at login — biometric proof of identity established at the session level, before any change-of-circumstance action. <em>Witness event #1</em>.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM</div>
+        <div class="scene-head">Diane reports a mid-year address change; Maestro serves the change-of-circumstance webform — bound to the F1 proof.</div>
+        <div class="scene-lede">Inside the authenticated session, Diane opens "Update My Information." Maestro renders the change-of-circumstance webform — new address, effective date, reason — pre-filled with her existing record and the F1 IDV identity binding. No second IDV. <em>Witness event #2</em>.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 3 · CHAIN OF CUSTODY · CASCADE'S AGREEMENT DESK LINKS THE TWO EVENTS</div>
+        <div class="scene-head">Cascade's case Workspace + Agreement Desk show the auth and the address change as one continuous record.</div>
+        <div class="scene-lede">Cascade's eligibility engine re-runs the determination from the new address. Asha's case Workspace surfaces the unified record: the CLEAR biometric authentication at session entry, and the address-change submission — linked as a continuous identity thread. Audit-grade. Defensible against fraud and against benefit-administration audit alike.</div>
+      </div>
+    </div>
+
+    <div class="uc-section intake">
+      <div class="header-row">
+        <span class="badge">Demo 2 · Intake-Mechanics</span>
+        <span style="font-size: 12px; color: var(--ink-soft);">Out-of-cycle recert exception path · 4 scenes</span>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 1 OF 4 · INTAKE · SENDER WEBFORM</div>
+        <div class="scene-head">Asha kicks off an out-of-cycle recert via Cascade's internal exception webform.</div>
+        <div class="scene-lede">An audit hits Diane Park's record and Asha needs to recertify out of cycle. Asha opens Cascade's internal exception webform — member ID, reason-for-recert, new-circumstance details. Selections drive Maestro to assemble a tailored recert packet.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 2 OF 4 · MAESTRO PACKAGES</div>
+        <div class="scene-head">Maestro fans out a tailored exception recert packet.</div>
+        <div class="scene-lede">Asha submits. Maestro pulls the right verification questions for the audit reason, pre-fills from Cascade's system of record, and routes back to Diane for signature.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 3 OF 4 · ENVELOPE DELIVERED</div>
+        <div class="scene-head">Diane signs the exception recert packet — same flow as the auto-fired path.</div>
+        <div class="scene-lede">The exception packet arrives at Diane's preferred channel. She signs in a Cascade-branded ceremony.</div>
+      </div>
+
+      <div class="scene">
+        <div class="scene-tag">SCENE 4 OF 4 · WORKSPACE TAIL · CASE HISTORY</div>
+        <div class="scene-head">The exception recert lands in Diane's case Workspace alongside her annual recert record.</div>
+        <div class="scene-lede">Asha's case Workspace shows both the auto-fired annual recert (from the canonical demo) and this out-of-cycle exception recert in the same activity log. The audit reviewer can trace the decision.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2><span class="num">Part VI · The follow-up batch</span>Plan for the remaining 36 narrations</h2>
+
+  <p>The three exemplars above establish the voice. The remaining 18 verticals × 2 use cases = 36 narrations follow the same structure: 3 scenes for auth-fabric, 3 or 4 scenes for intake-mechanics depending on whether the vertical has a relationship continuation. Bulk-author batch produces:</p>
+
+  <ol style="font-size: 13.5px; color: var(--ink-mid); max-width: 800px;">
+    <li>Per-vertical <code>usecases</code> sub-objects ready to merge into <code>VERTICALS</code> in the shell.</li>
+    <li>JSON payloads under <code>_audits/usecase-payloads-2026-04-27.json</code> with the same <code>{path, value}</code> shape as the Scene 1 audit, except each entry adds an entire <code>usecases.<key></code> sub-tree per vertical rather than editing scene fields.</li>
+    <li>An adapted <code>push-audit-queue.mjs</code> runner that submits each vertical's two new use-case sub-objects as separate audit-queue entries.</li>
+  </ol>
+
+  <h3>Shell-side wiring (separate from copy)</h3>
+  <p>Authoring the narration is independent of wiring the architecture. The shell needs four things to make <code>?usecase=</code> work:</p>
+  <ol style="font-size: 13.5px; color: var(--ink-mid); max-width: 800px;">
+    <li>URL parsing: read <code>?usecase=</code>, default to "default" (canonical 5-scene).</li>
+    <li><code>VERTICALS</code> resolution: prefer <code>v.usecases?.[usecase]?.scenes</code> over <code>v.scenes</code> when usecase is set.</li>
+    <li>HOTSPOTS additions: 6 new keys (portal_clear_idv, portal_webform, portal_submit, webform_intake, maestro_package, envelope_deliver).</li>
+    <li>New iframe template files: <code>docusign-portal-shell.html</code> (with <code>?mode=clear-idv|webform|submit</code>), <code>docusign-webform-intake.html</code>, <code>docusign-maestro-package.html</code>. The portal-shell can be one file with three modes; intake/package can reuse existing CLEAR + workspace templates as much as possible.</li>
+  </ol>
+
+  <div class="marg">
+    Wiring + narration are independent batches. Wire first (4 hours of shell work), then bulk-author (best done in one long batch with a consistent voice). Or author first in the JSON payload format, then wire — narration is portable.
+  </div>
+
+  <h2><span class="num">Part VII · Decisions to confirm before bulk-authoring</span></h2>
+
+  <ol style="font-size: 13.5px; color: var(--ink-mid); max-width: 800px;">
+    <li><strong>Per-vertical specs (Part IV grid):</strong> do the auth-fabric triggers and intake-mechanics openings ring true for each vertical? Anything to swap?</li>
+    <li><strong>Workspaces tail on intake demos:</strong> kept as 4-scene where the engagement continues, 3-scene where it's transactional (slgov-311 is the only no-tail case currently). Confirm this rule.</li>
+    <li><strong>EDU + nonprofit:</strong> resolved 2026-04-27 — both get the same two use cases. EDU auth-fabric = transcript-release authorization (FERPA gate); EDU intake-mech = financial-aid acceptance (B/self-service). Nonprofit auth-fabric = quarterly grant drawdown (financial-controls gate); nonprofit intake-mech = sender-side new-grant configuration (A). Total scope is now 21 verticals × 2 use cases = 42 new scripts.</li>
+    <li><strong>Shell wiring sequence:</strong> wire the architecture first (so the URLs work even with placeholder narration) or author first (so the narration is ready to wire in)?</li>
+    <li><strong>Audit-queue submission:</strong> do the 38 use case scripts go through <code>/api/audit/submit</code> like the Scene 1 audit, or directly into the shell as a single PR?</li>
+  </ol>
+
+  <div class="foot">
+    Use case extension prepared 2026-04-27 against <code>stories/_shared/story-shell.html</code>. Architecture proposal: <code>?usecase=</code> sub-flow on existing shell. Three exemplars baked; 32 follow-up narrations queued. See <code>_audits/usecase-payloads-2026-04-27.json</code> for the structured spec data.
+  </div>
+
+</div>
+</body>
+</html>

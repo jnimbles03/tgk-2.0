@@ -1,0 +1,512 @@
+{
+  "audit": "usecase-extension-fins-hls-ps-2026-04-27",
+  "scope": "Extends every FINS/HLS/PS/EDU/nonprofit vertical (21 total) with two new sub-flow use cases behind ?usecase=auth-fabric and ?usecase=intake. Default 5-scene canonical story unchanged.",
+  "rationale": "The canonical 5-scene story is the headline; auth-fabric and intake-mechanics are the focused shorts that show Maestro doing differentiated orchestration work. Auth-fabric reproduces the original eMoney/Steve fraud-risk demo's central move: CLEAR fires at PORTAL LOGIN to establish a biometric proof of identity at the session level, then in-portal actions inherit that proof — no second IDV. Agreement Desk re-emerges in Scene 3 as the chain-of-custody viewer that links the auth event and the transaction event into a continuous identity thread. Intake-mechanics replaces Agreement Desk inbound with a webform-and-package mechanic. Three demos per vertical, one shell, one URL parameter.",
+  "reference_demo": "Original fraud/risk demo (uploads/index.html). Key narrative beats from F0-F4 scenes preserved: (F0) The Chain of Custody Gap problem statement; (F1) Authenticated Portal Entry — CLEAR at login creates biometric proof of identity; (F2) In-portal action with Maestro-served webform that inherits the F1 proof; (F3) Agreement Desk shows auth+transaction linked as continuous identity thread; (F4 optional) IAM for Fraud — Risk-Scaling Auth Visual showing CLEAR/SMS/OTP/biometric spectrum.",
+  "agreement_desk_role": "Across ALL three demo modes, Agreement Desk functions as a PROXY INTERFACE for Maestro orchestration. The actual orchestration work (risk-detect, IDV-invoke, identity-bind, form-serve, audit-link, package-fan-out) happens invisibly in the Maestro layer. Agreement Desk is the on-screen surface that makes that invisible work visible to the demo audience. Same template, different Maestro lens per demo: canonical = intake fan-out lens; auth-fabric = chain-of-custody binding lens; intake-mechanics = package fan-out lens. This is why one template can play multiple narrative roles without breaking.",
+  "architecture": {
+    "url_pattern": "/stories/_shared/story-shell.html?vertical=<key>&usecase=<auth-fabric|intake|default>",
+    "default_value": "default",
+    "shell_changes_required": [
+      "Read ?usecase= param at boot, default to 'default'",
+      "Prefer v.usecases?.[usecase]?.scenes over v.scenes when usecase is set",
+      "Add 6 new HOTSPOTS keys: portal_clear_idv, portal_webform, portal_submit, webform_intake, maestro_package, envelope_deliver",
+      "Create new iframe templates: docusign-portal-shell.html (modes=clear-idv|webform|submit), docusign-webform-intake.html, docusign-maestro-package.html"
+    ],
+    "verticals_object_extension": "Each VERTICALS[key] gains optional `usecases` sub-object with shape: { 'auth-fabric': { subtitle, scenes: [3 entries] }, 'intake': { subtitle, scenes: [3 or 4 entries] } }"
+  },
+  "scene_templates": {
+    "auth-fabric": {
+      "scene_count": 3,
+      "optional_scene_4": "IAM for Fraud — Risk-Scaling Auth Visual (concept frame from original demo's F4)",
+      "scene_order": ["portal-login-clear-idv", "in-session-action-webform", "agreement-desk-chain-of-custody"],
+      "key_narrative_move": "CLEAR fires at portal LOGIN (not at the sensitive action). Subsequent in-session actions inherit the biometric proof — no second IDV. Agreement Desk in Scene 3 links the two witnessed events as a continuous identity thread.",
+      "abstract_beats": [
+        {
+          "scene": 1,
+          "tag_format": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "iframe": "docusign-portal-shell.html?mode=clear-idv-login&vertical=<k>",
+          "hotspot_key": "portal_clear_idv",
+          "core_idea": "CLEAR establishes biometric proof of identity at session level — before any transaction.",
+          "abstract_beats": [
+            "Customer hits the vertical's portal login (username + password)",
+            "Maestro intercepts and invokes CLEAR — tenant-branded step-up modal",
+            "CLEAR session opens on customer's phone — no app download",
+            "ID + selfie + biometric match runs",
+            "Authenticated session opens; biometric proof bound to the session — witness event #1 logged"
+          ]
+        },
+        {
+          "scene": 2,
+          "tag_format": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "iframe": "docusign-portal-shell.html?mode=action-webform&vertical=<k>",
+          "hotspot_key": "portal_webform",
+          "core_idea": "In-portal action triggers a Maestro-served webform — inherits the F1 proof, no second IDV.",
+          "abstract_beats": [
+            "Inside the authenticated session, customer initiates the sensitive action (vertical-specific)",
+            "Maestro renders a dynamic webform inline — pre-filled from IDV-bound identity and action context",
+            "Customer reviews/edits any policy-required fields",
+            "Iris pre-screens for anomalies/policy violations",
+            "Submit fires — bound to the existing biometric proof — witness event #2 logged"
+          ]
+        },
+        {
+          "scene": 3,
+          "tag_format": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
+          "iframe": "docusign-agreement-desk.html?mode=chain-of-custody&vertical=<k>",
+          "hotspot_key": "portal_submit",
+          "core_idea": "Agreement Desk re-emerges as the chain-of-custody viewer — surfaces auth event + transaction event linked as a continuous identity thread.",
+          "abstract_beats": [
+            "Agreement Desk opens to the customer's session activity",
+            "Auth event (CLEAR session) and transaction event (in-portal submission) shown in single view",
+            "Explicit link: 'Verified by CLEAR · <name> · <ID> · <time>' → '<transaction> · <amount/details> · <time>'",
+            "Iris confirms pattern match or flags anomaly",
+            "Defensible record. Chain-of-custody gap closed."
+          ]
+        }
+      ]
+    },
+    "intake": {
+      "scene_count_min": 3,
+      "scene_count_max": 4,
+      "scene_order_3": ["webform", "maestro-package", "envelope-deliver"],
+      "scene_order_4": ["webform", "maestro-package", "envelope-deliver", "workspace-tail"],
+      "use_workspaces_tail_when": "Vertical has an ongoing customer relationship (most do); skip for transactional verticals (slgov-311)",
+      "abstract_beats": [
+        {
+          "scene": 1,
+          "tag_format_A": "SCENE 1 OF <N> · INTAKE · SENDER WEBFORM",
+          "tag_format_B": "SCENE 1 OF <N> · INTAKE · SELF-SERVICE",
+          "iframe": "docusign-webform-intake.html?vertical=<k>",
+          "hotspot_key": "webform_intake",
+          "abstract_beats": [
+            "Sender (internal employee) OR customer (self-service) opens the webform",
+            "Selections drive what fields/products appear (dynamic)",
+            "Pre-fill from systems of record",
+            "Configuration choices summarize the package shape",
+            "Submit triggers Maestro orchestration"
+          ]
+        },
+        {
+          "scene": 2,
+          "tag_format": "SCENE 2 OF <N> · MAESTRO PACKAGES",
+          "iframe": "docusign-maestro-package.html?vertical=<k>",
+          "hotspot_key": "maestro_package",
+          "abstract_beats": [
+            "Maestro pulls the right document templates based on selections",
+            "Documents pre-fill from systems of record",
+            "Recipient routing built from configuration",
+            "Optional sub-routes (compliance disclosures, custodian-specific docs) auto-attach",
+            "Envelope ready"
+          ]
+        },
+        {
+          "scene": 3,
+          "tag_format": "SCENE 3 OF <N> · ENVELOPE DELIVERED",
+          "iframe": "docusign-clear-idv.html + docusign-signing-ceremony.html",
+          "hotspot_key": "envelope_deliver",
+          "abstract_beats": [
+            "Tenant-branded email to recipient",
+            "Signing ceremony with all docs in order",
+            "Identity verified at signing time (CLEAR if needed)",
+            "Multi-recipient routing (if applicable)",
+            "Execution confirmed; certified copy issued"
+          ]
+        },
+        {
+          "scene": 4,
+          "tag_format": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
+          "iframe": "docusign-workspace.html?preset=<k>",
+          "hotspot_key": "workspace",
+          "use_when": "Vertical has ongoing customer relationship",
+          "abstract_beats": [
+            "Customer/recipient gets Workspace invite",
+            "Engagement summary visible to all parties",
+            "Iris in rail; activity log shows full Maestro fan-out",
+            "Background tasks (KYC, eligibility, etc.) running",
+            "Relationship in motion"
+          ]
+        }
+      ]
+    }
+  },
+  "per_vertical_specs": {
+    "wealth": {
+      "tenant": "Hillside",
+      "customer": "Aster Capital",
+      "auth-fabric": {
+        "trigger": "$4M intra-account cash transfer authorization",
+        "portal": "Hillside client portal",
+        "webform_purpose": "Transfer authorization + memo",
+        "outcome": "Transfer queued for execution; Iris anomaly check",
+        "fully_baked": true
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Priya (compliance head)",
+        "webform_purpose": "New-engagement configuration",
+        "package_contents": "IMA + Pershing custodial agreement + Reg BI disclosure",
+        "workspaces_tail": true,
+        "fully_baked": true
+      }
+    },
+    "banking": {
+      "tenant": "Meridian",
+      "customer": "Atlas Manufacturing",
+      "auth-fabric": {
+        "trigger": "$850k draw on $2.5M working-capital facility",
+        "portal": "Meridian commercial portal",
+        "webform_purpose": "Draw request with terms confirmation",
+        "outcome": "Draw queued; Sofia (credit ops) releases"
+      },
+      "intake": {
+        "archetype": "A (with D-archetype Workspaces tail)",
+        "actor": "Raj (commercial RM)",
+        "webform_purpose": "Credit-request configuration",
+        "package_contents": "Loan agreement + security agreement + UCC-1 + personal guaranty",
+        "workspaces_tail": true,
+        "note": "D-archetype: Workspaces tail is a deal room, not just relationship Workspace"
+      }
+    },
+    "insurance": {
+      "tenant": "Sentinel",
+      "customer": "Ramirez Family",
+      "auth-fabric": {
+        "trigger": "Mid-policy beneficiary or deductible change",
+        "portal": "Sentinel customer portal",
+        "webform_purpose": "Policy change request",
+        "outcome": "Change queued for underwriting review"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Marisol (underwriter)",
+        "webform_purpose": "Binder request configuration",
+        "package_contents": "Application + binder + dec page + mortgagee notice",
+        "workspaces_tail": true
+      }
+    },
+    "insurance-life": {
+      "tenant": "Beacon Mutual",
+      "customer": "Whitfield Family",
+      "auth-fabric": {
+        "trigger": "Post-claim payment redirect or contingent beneficiary add",
+        "portal": "Beacon claim portal",
+        "webform_purpose": "Payment redirect / beneficiary update",
+        "outcome": "Hold + manual review queue"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Camille (claims examiner)",
+        "webform_purpose": "Claim file configuration from inbound death notice",
+        "package_contents": "Proof of loss + payment election + tax forms",
+        "workspaces_tail": true,
+        "note": "Bridges the C-archetype canonical (inbound death notice) with the A-archetype intake mechanic"
+      }
+    },
+    "insurance-pc": {
+      "tenant": "Northgate Mutual",
+      "customer": "Patel Logistics",
+      "auth-fabric": {
+        "trigger": "Post-FNOL supplemental damage evidence upload",
+        "portal": "Northgate carrier portal",
+        "webform_purpose": "Status update with photo evidence",
+        "outcome": "Claim diary updates; photos attached to file"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Priya Patel (Patel Logistics fleet manager)",
+        "webform_purpose": "FNOL self-service from mobile",
+        "package_contents": "FNOL packet + investigation routing + sworn statement",
+        "workspaces_tail": true
+      }
+    },
+    "banking-deposits": {
+      "tenant": "Cedar Federal",
+      "customer": "Williams Household",
+      "auth-fabric": {
+        "trigger": "$50k external transfer setup to new account",
+        "portal": "Cedar Federal mobile app",
+        "webform_purpose": "Transfer config + new payee setup",
+        "outcome": "Transfer queued with risk-hold review"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Marcus (customer)",
+        "webform_purpose": "Open new account (joint checking + HYSA)",
+        "package_contents": "Account opening docs + ACH funding auth + signature card",
+        "workspaces_tail": true
+      }
+    },
+    "wealth-discovery": {
+      "tenant": "Cypress Wealth",
+      "customer": "Holcomb Family",
+      "auth-fabric": {
+        "trigger": "One-time IRA rollover-in initiation",
+        "portal": "Cypress client portal",
+        "webform_purpose": "Rollover configuration with source-account details",
+        "outcome": "Rollover instruction generated; advisor review"
+      },
+      "intake": {
+        "archetype": "A (with D-archetype Workspaces tail)",
+        "actor": "Reggie (senior advisor)",
+        "webform_purpose": "Discovery-config webform — multi-account intent",
+        "package_contents": "IRA + joint + family trust + advisory agreement",
+        "workspaces_tail": true,
+        "note": "D-archetype: Workspaces tail is the relationship room"
+      }
+    },
+    "provider": {
+      "tenant": "Riverside Health",
+      "customer": "Jordan Kim",
+      "auth-fabric": {
+        "trigger": "Schedule II prescription refill request",
+        "portal": "Riverside patient portal",
+        "webform_purpose": "Refill request with prescriber + pharmacy",
+        "outcome": "Refill queued for prescriber e-sig (DEA-grade IDV)",
+        "fully_baked": true
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Jordan (patient)",
+        "webform_purpose": "New-patient pre-registration",
+        "package_contents": "HIPAA + financial responsibility + new-patient consent + insurance verify",
+        "workspaces_tail": true,
+        "fully_baked": true
+      }
+    },
+    "lifesciences": {
+      "tenant": "Helix",
+      "customer": "Austin Research Clinic (HX-2104 trial)",
+      "auth-fabric": {
+        "trigger": "Mid-trial Serious Adverse Event (SAE) report",
+        "portal": "Helix study portal",
+        "webform_purpose": "SAE report with subject + event details",
+        "outcome": "IRB notification + sponsor pharmacovigilance fire"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Ethan (study manager)",
+        "webform_purpose": "Site-config webform — protocol + IRB + budget tier",
+        "package_contents": "CTA + budget + 1572 + IRB approval + financial disclosure",
+        "workspaces_tail": true
+      }
+    },
+    "payor": {
+      "tenant": "Unity Health Plan",
+      "customer": "Marcus Chen",
+      "auth-fabric": {
+        "trigger": "Prior authorization for a specialty drug",
+        "portal": "Unity member portal",
+        "webform_purpose": "PA request with diagnosis + prescriber",
+        "outcome": "Queued for clinical review"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Marcus (member)",
+        "webform_purpose": "Silver HMO enrollment via marketplace",
+        "package_contents": "Enrollment + ID card + welcome kit",
+        "workspaces_tail": true
+      }
+    },
+    "provider-roi": {
+      "tenant": "Catalina Medical Center",
+      "customer": "Eric Tan",
+      "auth-fabric": {
+        "trigger": "Revoke or modify the records release scope",
+        "portal": "Catalina patient portal",
+        "webform_purpose": "Revocation/modification webform",
+        "outcome": "Release halted; audit logged"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Renata (HIM specialist) — internal-side intake from inbound request",
+        "webform_purpose": "HIM intake from inbound ROI request",
+        "package_contents": "Consent + retrieval order + redaction instructions",
+        "workspaces_tail": false,
+        "note": "Bridges C-archetype canonical with A-archetype intake mechanic"
+      }
+    },
+    "fedgov": {
+      "tenant": "Department of Labor",
+      "customer": "Taylor Nguyen",
+      "auth-fabric": {
+        "trigger": "Weekly availability + earnings cert (UI fraud-sensitive)",
+        "portal": "State UI portal",
+        "webform_purpose": "Weekly cert with earnings/availability",
+        "outcome": "Payment queued or held"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Taylor (claimant)",
+        "webform_purpose": "Initial UI claim self-file",
+        "package_contents": "Determination packet + DD auth + work-search agreement",
+        "workspaces_tail": true
+      }
+    },
+    "slgov": {
+      "tenant": "Springfield Community Development",
+      "customer": "Marissa Rivera (1420 Oak Street)",
+      "auth-fabric": {
+        "trigger": "Permit modification (added scope, fee change)",
+        "portal": "Springfield permit portal",
+        "webform_purpose": "Modification request with revised scope",
+        "outcome": "Plan check re-engaged"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Marissa (applicant)",
+        "webform_purpose": "Permit application self-service",
+        "package_contents": "Application + plan check + fee authorization",
+        "workspaces_tail": true
+      }
+    },
+    "slgov-311": {
+      "tenant": "Greenhaven Public Works",
+      "customer": "Maria Cortez",
+      "auth-fabric": {
+        "trigger": "Track portfolio of open requests + add a follow-up",
+        "portal": "Greenhaven 311 citizen portal",
+        "webform_purpose": "Request update / follow-up submission",
+        "outcome": "Status thread updates; SMS notification"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Maria (citizen)",
+        "webform_purpose": "311 service request via QR scan",
+        "package_contents": "Dispatch packet + work-order generation",
+        "workspaces_tail": false,
+        "note": "Transactional — no Workspaces tail"
+      }
+    },
+    "slgov-benefits": {
+      "tenant": "Eastside Health & Human Services",
+      "customer": "Rivera Family (Yolanda)",
+      "auth-fabric": {
+        "trigger": "Change of household composition or income",
+        "portal": "Eastside benefits portal",
+        "webform_purpose": "Change-of-circumstance report",
+        "outcome": "Eligibility re-determined"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Yolanda (applicant)",
+        "webform_purpose": "SNAP application self-file from mobile",
+        "package_contents": "Application + verification asks + household attestation",
+        "workspaces_tail": true
+      }
+    },
+    "slgov-recertification": {
+      "tenant": "Cascade Medicaid",
+      "customer": "Diane Park",
+      "auth-fabric": {
+        "trigger": "Mid-year address change report",
+        "portal": "Cascade member portal",
+        "webform_purpose": "Change-of-circumstance webform",
+        "outcome": "Eligibility re-evaluated; recert date may shift",
+        "fully_baked": true
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Asha (eligibility specialist)",
+        "webform_purpose": "Out-of-cycle exception recert (manual path)",
+        "package_contents": "Tailored recert packet with audit-reason verification questions",
+        "workspaces_tail": true,
+        "fully_baked": true,
+        "note": "Canonical IS Maestro-triggered; intake here is the exception path"
+      }
+    },
+    "slgov-vendor-compliance": {
+      "tenant": "Ridgeview Procurement",
+      "customer": "Apex Logistics (Naomi)",
+      "auth-fabric": {
+        "trigger": "Mid-year insurance certificate upload",
+        "portal": "Ridgeview vendor portal",
+        "webform_purpose": "Attestation + cert upload",
+        "outcome": "Vendor record updated; hold lifted"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Olivia (compliance analyst)",
+        "webform_purpose": "New-vendor onboarding via internal webform",
+        "package_contents": "Onboarding packet + W-9 + COI request + DEI attestations",
+        "workspaces_tail": true,
+        "note": "Canonical IS Maestro-triggered renewal; intake here is new-vendor path"
+      }
+    },
+    "slgov-employee-onboarding": {
+      "tenant": "Cascade County HR",
+      "customer": "Marcus Lee (new caseworker)",
+      "auth-fabric": {
+        "trigger": "I-9 documents upload pre-Day-1",
+        "portal": "Cascade employee portal",
+        "webform_purpose": "I-9 doc upload webform",
+        "outcome": "HR receives; pre-Day-1 task closes"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Karina (HR business partner)",
+        "webform_purpose": "Onboarding kick-off for new hire (manual path)",
+        "package_contents": "Offer + I-9 + W-4 + benefits enrollment + equipment request",
+        "workspaces_tail": true,
+        "note": "Canonical IS background-check-triggered; intake here is the proactive HR path"
+      }
+    },
+    "slgov-licensing": {
+      "tenant": "Northbrook Licensing Bureau",
+      "customer": "Avalon Café (Mei Ortega)",
+      "auth-fabric": {
+        "trigger": "Annual license renewal + outdoor seating amendment",
+        "portal": "Northbrook licensee portal",
+        "webform_purpose": "Renewal + amendment webform",
+        "outcome": "Inspection scheduled"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Mei (applicant)",
+        "webform_purpose": "Restaurant license application via applicant portal",
+        "package_contents": "License app + attestation + fee + inspection checklist",
+        "workspaces_tail": true
+      }
+    },
+    "education": {
+      "tenant": "Maple Ridge",
+      "customer": "Priya Shah (Fall 2026 student onboarding)",
+      "auth-fabric": {
+        "trigger": "Official transcript release to a graduate program (FERPA-sensitive)",
+        "portal": "Maple Ridge student portal",
+        "webform_purpose": "Transcript release authorization — recipient + scope + custodian acknowledgment",
+        "outcome": "Registrar releases; FERPA audit logged",
+        "note": "FERPA gives the regulatory rationale for CLEAR at login (parallel to DEA in provider auth-fabric)"
+      },
+      "intake": {
+        "archetype": "B",
+        "actor": "Priya (student)",
+        "webform_purpose": "Financial-aid acceptance via student portal — aid package + loan tier + parent-PLUS election",
+        "package_contents": "Award letter + Master Promissory Note + entrance counseling cert + parent-PLUS application + FERPA disclosure",
+        "workspaces_tail": true,
+        "note": "Multi-party (student + parent + financial-aid office); different scope from canonical 5-scene general onboarding"
+      }
+    },
+    "nonprofit": {
+      "tenant": "Harbor",
+      "customer": "Safe Streets Initiative ($120k grantee)",
+      "auth-fabric": {
+        "trigger": "Quarterly grant drawdown request (financial-controls + impersonation surface)",
+        "portal": "Harbor grantee portal",
+        "webform_purpose": "Drawdown request — line-item attestation, expended-amount certification, planned-spend disclosure",
+        "outcome": "Drawdown queued for Harbor program officer release",
+        "note": "High analogue to wealth's high-value transfer auth-fabric — financial-controls + fraud surface + regulator-relevant chain of custody"
+      },
+      "intake": {
+        "archetype": "A",
+        "actor": "Harbor program officer",
+        "webform_purpose": "New-grant configuration — organization + project scope + budget tier + reporting cadence + equity riders",
+        "package_contents": "Master grant agreement + SOW + budget detail + reporting requirements + indemnification + equity rider",
+        "workspaces_tail": true
+      }
+    }
+  },
+  "fully_baked_count": 3,
+  "follow_up_count": 36,
+  "follow_up_note": "3 verticals (wealth, provider, slgov-recertification) are fully baked in the strategy memo. The remaining 18 verticals × 2 use cases = 36 narrations remain to author. Per-vertical specs above are the briefs; bulk-author batch produces full scene narration (tag, head, lede, 5 beats per scene × 3 scenes per use case = 15 narrated beats per use case). Total scope: 21 verticals × 2 use cases = 42 new use case scripts."
+}
