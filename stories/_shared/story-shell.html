@@ -1594,7 +1594,50 @@ if (!_overrideBypass) {
     });
   } catch (e) {}
 }
+/* Per-vertical Scene 1 iframe override. Keyed by vertical preset.
+   Pairs the canonical Scene 1 narration (rewritten per the archetype audit
+   — "Priya fills the webform", "Maria scans the QR", "Maestro detects the
+   recert window", etc.) with a Scene 1 iframe that visually matches.
+   Verticals NOT in this map fall through to the default
+   docusign-agreement-desk.html — i.e. only the genuinely-inbound C archetype
+   (insurance-life death notice, provider-roi external records request)
+   keeps the Desk inbox as Scene 1.
+   Banking and wealth-discovery are D archetype (Workspaces deal room) —
+   for now they get the webform-intake stub too; the proper deal-room
+   iframe is a follow-up. */
+const SCENE1_TEMPLATE_OVERRIDE = {
+  /* A · Sender webform */
+  wealth:                       "/story-templates/docusign-webform-intake.html",
+  insurance:                    "/story-templates/docusign-webform-intake.html",
+  lifesciences:                 "/story-templates/docusign-webform-intake.html",
+  nonprofit:                    "/story-templates/docusign-webform-intake.html",
+  /* A-trig · Maestro-triggered (still rendered as a sender-side webform UI) */
+  "slgov-recertification":      "/story-templates/docusign-webform-intake.html",
+  "slgov-vendor-compliance":    "/story-templates/docusign-webform-intake.html",
+  "slgov-employee-onboarding":  "/story-templates/docusign-webform-intake.html",
+  /* B · Self-service */
+  "insurance-pc":               "/story-templates/docusign-webform-intake.html",
+  "banking-deposits":           "/story-templates/docusign-webform-intake.html",
+  provider:                     "/story-templates/docusign-webform-intake.html",
+  payor:                        "/story-templates/docusign-webform-intake.html",
+  fedgov:                       "/story-templates/docusign-webform-intake.html",
+  slgov:                        "/story-templates/docusign-webform-intake.html",
+  "slgov-311":                  "/story-templates/docusign-webform-intake.html",
+  "slgov-benefits":             "/story-templates/docusign-webform-intake.html",
+  "slgov-licensing":            "/story-templates/docusign-webform-intake.html",
+  education:                    "/story-templates/docusign-webform-intake.html",
+  /* D · Workspaces deal room (interim — proper deal-room template is a follow-up) */
+  banking:                      "/story-templates/docusign-webform-intake.html",
+  "wealth-discovery":           "/story-templates/docusign-webform-intake.html",
+  /* NOT overridden (keep Agreement Desk for genuinely-inbound C archetype):
+     - insurance-life (death notice from funeral home)
+     - provider-roi (external records request from Silver Mountain) */
+};
+
 function srcForScene(i, vertical, splash){
+  if (i === 0 && SCENE1_TEMPLATE_OVERRIDE[vertical.preset]) {
+    return SCENE1_TEMPLATE_OVERRIDE[vertical.preset] + "?preset=" + vertical.preset;
+  }
   const fname = TEMPLATE_FILES[i].split("/").pop();
   if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
   return TEMPLATE_FILES[i] + "?preset=" + vertical.preset + (i === 4 && splash ? "&splash=1" : "");
