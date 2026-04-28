@@ -1544,6 +1544,9 @@ const BEAT_TO_INTERNAL = {
   signing:        ["s1", "s2", "s3", "s4", "s5"],   // 1:1 — email → start → adopt → finished → download
   navigator:      ["s1", "s2", "s3", "s4", "s4"],   // list → insights → fields → ask Iris → answer
   workspace:      [null, null, null, null, null],   // static template — no internal scene to drive
+  /* Webform-intake template (Scene 1 override for non-C-archetype verticals).
+     5 internal states — empty → fill 1 → fill 2 → fill 3 + preview → submit. */
+  webform_intake: ["s1", "s2", "s3", "s4", "s5"],
 };
 try {
   const ov = JSON.parse(localStorage.getItem("tgkAdmin.beatToInternal") || "null");
@@ -1841,7 +1844,11 @@ let currentTarget = null;
    locked to the iframe state. */
 function postBeatToFrame(){
   try {
-    const sceneKey = SCENE_KEYS[idx];
+    /* Read sceneKey from the actual built scene rather than the canonical
+     * SCENE_KEYS — important for ?usecase= and SCENE1_TEMPLATE_OVERRIDE
+     * paths where Scene 1 may use webform_intake / portal_clear_idv /
+     * etc. instead of agreement_desk. */
+    const sceneKey = (SCENES[idx] && SCENES[idx].sceneKey) || SCENE_KEYS[idx];
     const mapping = BEAT_TO_INTERNAL[sceneKey];
     const sceneId = mapping ? mapping[hotIdx] : null;
     if (!frame.contentWindow) return;

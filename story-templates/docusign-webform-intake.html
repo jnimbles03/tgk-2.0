@@ -3,113 +3,952 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Webform intake · Maestro proxy · TGK 2.0</title>
+<title>Webform intake · TGK 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap">
 <style>
   /*
-    Webform intake stub used by the intake-mechanics demo (Scene 1).
-    Same template renders for both Archetype A (sender / internal) and B
-    (self-service / external) — the preset informs which actor framing
-    appears in the header. The shell's hotspot system anchors via
-    data-hotspot=. Hotspots key: webform_intake.
+    Webform intake template — used by ?usecase=intake Scene 1 and as the
+    canonical Scene 1 override for 19 of 21 webform-archetype verticals.
+    Visual reference: Docusign Web Forms as embedded in Wealthscape Investor
+    (Maintenance Form Selector flow). Light gray page, white card, dark
+    portal header, green Next button, "Powered by Docusign" footer.
+
+    Five internal states (s1–s5) animate the form-fill journey. The shell
+    drives state via postMessage({type:"tgk:lockToBeat", sceneId:"s<N>"}).
+
+    Per-vertical preset wiring varies the portal brand, the form labels,
+    and the "Maestro will package" preview.
+
+    Hotspot anchors (data-hotspot on visible elements per state):
+      s1 → form_question      (the entry question / first selection)
+      s2 → form_doc_set       (selections that drive the doc set)
+      s3 → form_signer        (client/signer information)
+      s4 → form_review        (email details + review summary)
+      s5 → form_submit        (Submit / Preparing Document)
   */
+
   :root {
-    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-ecru: #F8F3F0;
-    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
-    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
-    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
+    --ink: #1F1A14; --ink-mid: #4F5460; --ink-soft: #6F7686;
+    --hair: #DDE1E8; --hair-strong: #C5CBD5;
+    --bg: #F4F5F7;
+    --green: #1FA35E;
+    --green-deep: #137A45;
+    --red: #D8262C;
+    --link: #1857B5;
+    --header-ink: #0E1015;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 18px rgba(0,0,0,0.04);
+    --shadow-modal: 0 8px 32px rgba(0,0,0,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
-  .frame { max-width: 720px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
-  .header { padding: 16px 24px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
-  .header .brand { font-weight: 600; font-size: 14px; }
-  .header .archetype-pill { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: rgba(76,0,255,0.08); color: var(--ds-cobalt); }
-  .body { padding: 28px 24px; }
-  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 10px; }
-  h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
-  .scope { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.5; max-width: 540px; }
-  .row-section { margin-bottom: 22px; }
-  .row-section h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 8px; }
-  .field-row { margin-bottom: 12px; }
-  .field-row label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-bottom: 4px; }
-  .field-row input, .field-row select { width: 100%; padding: 8px 12px; border: 1px solid var(--hair-strong); border-radius: 4px; font: inherit; font-size: 13px; background: var(--bg); }
-  .branch-flag { font-size: 11px; color: var(--ds-cobalt); margin-top: 4px; font-style: italic; }
-  .package-preview { background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; padding: 14px 18px; margin: 18px 0; }
-  .package-preview h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ds-cobalt); margin-bottom: 8px; }
-  .package-preview ul { list-style: none; }
-  .package-preview li { padding: 4px 0; font-size: 12.5px; color: var(--ink-mid); display: flex; gap: 8px; align-items: center; }
-  .package-preview li::before { content: '✦'; color: var(--ds-cobalt); font-size: 11px; }
-  .btn-submit { width: 100%; padding: 11px; background: var(--ds-cobalt); color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; }
-  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+  body {
+    font-family: 'Source Sans 3', -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* === Tenant-portal top header (Wealthscape-style dark bar) === */
+  .portal-header {
+    background: var(--header-ink); color: white;
+    padding: 22px 32px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .portal-header .brand {
+    font-weight: 700; font-size: 22px; letter-spacing: -0.01em;
+  }
+  .portal-header .brand .accent { color: #5BD2A0; margin-right: 4px; }
+  .portal-header .module {
+    margin-left: auto;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* === Form area === */
+  .stage { padding: 36px 24px 80px; }
+  .frame {
+    max-width: 760px; margin: 0 auto;
+    background: white; border-radius: 4px; box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .demo-banner {
+    padding: 16px 24px; background: #EEEEEE; color: var(--ink-soft);
+    text-align: center; font-size: 14px; letter-spacing: 0.01em;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .form-body { padding: 38px 56px; min-height: 480px; }
+
+  h1 {
+    font-size: 26px; font-weight: 700; line-height: 1.2;
+    margin-bottom: 18px; color: var(--ink);
+  }
+  h2 {
+    font-size: 22px; font-weight: 700; line-height: 1.25;
+    margin-bottom: 18px; color: var(--ink);
+  }
+
+  .lede {
+    font-size: 15px; color: var(--ink-mid); line-height: 1.55;
+    margin-bottom: 22px;
+  }
+  .lede + .lede { margin-top: -8px; }
+
+  ul.bullets {
+    list-style: disc; padding-left: 22px; margin: 0 0 22px;
+    font-size: 15px; color: var(--ink-mid); line-height: 1.7;
+  }
+  ul.bullets li::marker { color: var(--ink-mid); }
+
+  .field { margin-bottom: 22px; }
+  .field label {
+    display: block; font-size: 14px; font-weight: 700;
+    color: var(--ink); margin-bottom: 8px;
+  }
+  .field label .req { color: var(--red); margin-left: 3px; }
+  .field input[type="text"],
+  .field input[type="email"],
+  .field input[type="tel"],
+  .field select,
+  .field textarea {
+    width: 100%; padding: 11px 14px; font-size: 15px;
+    border: 1px solid var(--hair-strong); border-radius: 3px;
+    background: white; font-family: inherit; color: var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: 2px solid #4F8EE6; outline-offset: -1px; border-color: #4F8EE6;
+  }
+  .field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234F5460' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+    padding-right: 36px;
+  }
+  .field .help {
+    font-size: 13px; color: var(--ink-soft); margin-top: 6px;
+  }
+
+  /* Checkbox list */
+  .check-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .check-item {
+    display: flex; gap: 12px; padding: 14px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .check-item:last-child { border-bottom: 0; }
+  .check-item .box {
+    width: 22px; height: 22px; flex-shrink: 0;
+    border: 2px solid var(--hair-strong); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    background: white; transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .check-item.checked .box {
+    background: #4C00E9; border-color: #4C00E9;
+  }
+  .check-item.checked .box::after {
+    content: ""; width: 12px; height: 7px;
+    border: solid white; border-width: 0 0 2.5px 2.5px;
+    transform: rotate(-45deg) translateY(-2px);
+  }
+  .check-item .label {
+    font-size: 15px; color: var(--ink); font-weight: 600; line-height: 1.3;
+  }
+  .check-item .help {
+    font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;
+  }
+
+  /* Review summary boxes */
+  .review-box {
+    border: 1px solid var(--hair); border-radius: 3px;
+    padding: 22px 26px; margin-bottom: 22px;
+    position: relative; background: white;
+  }
+  .review-box .edit {
+    position: absolute; top: 18px; right: 18px;
+    width: 26px; height: 26px; opacity: 0.4;
+    border: 1px solid var(--hair-strong); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .review-box h3 {
+    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+  }
+  .review-row { margin-bottom: 12px; }
+  .review-row:last-child { margin-bottom: 0; }
+  .review-row .k { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .review-row .v { font-size: 14px; color: var(--ink-mid); }
+
+  /* Maestro packaging callout (revealed at s2/s3) */
+  .pkg-callout {
+    margin-top: 28px; padding: 18px 22px;
+    background: #F5F2FF; border-left: 3px solid #4C00E9;
+    border-radius: 0 3px 3px 0;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .pkg-callout.on { opacity: 1; transform: translateY(0); }
+  .pkg-callout .pkg-tag {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #4C00E9; margin-bottom: 8px;
+  }
+  .pkg-callout .pkg-list {
+    list-style: none; padding: 0; margin: 0;
+    font-size: 14px; color: var(--ink); line-height: 1.7;
+  }
+  .pkg-callout .pkg-list li::before {
+    content: "✦"; color: #4C00E9; margin-right: 8px; font-size: 11px;
+  }
+
+  /* Action row */
+  .actions {
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 56px 32px; justify-content: flex-end;
+  }
+  .actions .finish-later {
+    background: none; border: 0; padding: 8px 16px;
+    color: var(--ink-soft); font-size: 14px; cursor: pointer;
+    font-family: inherit; margin-right: auto;
+  }
+  .actions .btn {
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    padding: 10px 28px; border-radius: 3px; cursor: pointer;
+    border: 1px solid; letter-spacing: 0.01em;
+  }
+  .actions .btn.back {
+    background: white; color: var(--ink-soft); border-color: var(--hair-strong);
+  }
+  .actions .btn.next {
+    background: var(--green); color: white; border-color: var(--green);
+  }
+  .actions .btn.next:hover { background: var(--green-deep); border-color: var(--green-deep); }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 22px;
+    font-size: 13px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+  }
+  .footer .powered { display: flex; align-items: center; gap: 6px; }
+  .footer .ds-badge {
+    width: 14px; height: 14px;
+    background: linear-gradient(135deg, #4C00E9 0%, #FF5252 100%);
+    border-radius: 2px;
+  }
+  .footer a { color: var(--ink-mid); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* Preparing-document spinner state */
+  .preparing {
+    text-align: center; padding: 80px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  .preparing .spinner {
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 3px solid #E1DDF7; border-top-color: #4C00E9;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .preparing .label { font-size: 16px; color: var(--ink); font-weight: 600; }
+
+  /* Toast — "package sent" notification at top */
+  .toast {
+    position: fixed; top: 22px; left: 50%; transform: translateX(-50%) translateY(-80px);
+    background: #103923; color: white; padding: 12px 20px; border-radius: 4px;
+    font-size: 14px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 50;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.on { transform: translateX(-50%) translateY(0); }
+  .toast .check {
+    width: 16px; height: 16px; border-radius: 50%; background: #5BD2A0;
+    color: #103923; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* State management — only the active state's body is visible */
+  .state { display: none; }
+  .state.on { display: block; }
+
+  /* Highlight pulse for the focused element of the current beat */
+  .focus-target { position: relative; }
+  .focus-target::after {
+    content: ""; position: absolute; inset: -6px;
+    border: 2px solid #4C00E9; border-radius: 6px;
+    box-shadow: 0 0 0 6px rgba(76,0,233,0.08);
+    pointer-events: none; opacity: 0;
+    animation: focus-pulse 2s ease-in-out infinite;
+  }
+  @keyframes focus-pulse {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.01); }
+  }
 </style>
 </head>
 <body>
 
-<div class="frame">
-  <div class="header">
-    <div class="brand" id="brand">Tenant — Intake webform</div>
-    <span class="archetype-pill" id="archetype">SENDER</span>
+<div class="portal-header">
+  <div class="brand"><span class="accent">▲</span><span id="brand-name">Hillside</span></div>
+  <div class="module" id="module-name">Maintenance Form Selector</div>
+</div>
+
+<div class="stage">
+  <div class="frame">
+    <div class="demo-banner">This form is for demonstration purposes only.</div>
+
+    <!-- ============================================================
+         STATE s1 — Form Selector / opening question
+         ============================================================ -->
+    <div class="state on" data-state="s1">
+      <div class="form-body">
+        <h2 id="s1-title">Maintenance Form Selector</h2>
+        <p class="lede" id="s1-lede1">Please select the relevant forms to be sent to the client via Docusign. You will have an opportunity to prefill the necessary data before it's delivered to the client(s).</p>
+        <p class="lede" id="s1-lede2">Selections drive Maestro packaging — each field shapes which documents fan out, what gets pre-filled, and how routing is built.</p>
+
+        <ul class="bullets" id="s1-bullets">
+          <li>Some forms cannot be combined and must be sent separately.</li>
+          <li>The indicated signers <strong>must</strong> be consistent across all selected forms.</li>
+        </ul>
+
+        <div class="field" data-hotspot="form_question">
+          <label>Engagement type<span class="req">*</span></label>
+          <select id="s1-select"><option>— Select —</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE s2 — Configuration / doc-set selection
+         ============================================================ -->
+    <div class="state" data-state="s2">
+      <div class="form-body">
+        <h2 id="s2-title">Configuration</h2>
+        <p class="lede">Selections drive what Maestro packages. Pick the documents to include — the recipient list and pre-fill build automatically.</p>
+
+        <div class="field">
+          <label>Engagement type<span class="req">*</span></label>
+          <select><option id="s2-select-1">selected option</option></select>
+        </div>
+
+        <div data-hotspot="form_doc_set">
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;">Available documents <span style="font-weight:400;color:var(--ink-soft);font-size:13px;">— select up to 4 to include in the package</span></label>
+          <div class="check-list" id="s2-checks"></div>
+        </div>
+
+        <div class="pkg-callout on" id="s2-pkg">
+          <div class="pkg-tag">Maestro will package</div>
+          <ul class="pkg-list" id="s2-pkg-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE s3 — Client/Signer Information
+         ============================================================ -->
+    <div class="state" data-state="s3">
+      <div class="form-body">
+        <h2>Client / Signer Information</h2>
+
+        <div data-hotspot="form_signer">
+          <div class="field">
+            <label>Primary Signer's Legal Name<span class="req">*</span></label>
+            <input type="text" id="s3-name" />
+          </div>
+          <div class="field">
+            <label>Primary Signer's Email Address<span class="req">*</span></label>
+            <input type="email" id="s3-email" placeholder="username@example.com" />
+          </div>
+          <div class="field">
+            <label>Mobile Number for SMS Authentication<span class="req">*</span></label>
+            <div class="help">The number used below MUST have been previously associated and validated for that signer.</div>
+            <input type="tel" placeholder="(555) 555-0123" />
+          </div>
+          <div class="field">
+            <label>Number of Additional Signers Needed<span class="req">*</span></label>
+            <select><option>— Select —</option></select>
+          </div>
+        </div>
+
+        <div class="pkg-callout on">
+          <div class="pkg-tag">Maestro will route</div>
+          <ul class="pkg-list" id="s3-route-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE s4 — Email Details + Review
+         ============================================================ -->
+    <div class="state" data-state="s4">
+      <div class="form-body">
+        <h2>Review &amp; send</h2>
+
+        <div class="review-box" data-hotspot="form_review">
+          <div class="edit">✎</div>
+          <h3>Personalized Docusign email</h3>
+          <div class="review-row">
+            <div class="k">Email Subject</div>
+            <div class="v" id="s4-subject">— configured —</div>
+          </div>
+          <div class="review-row">
+            <div class="k">Client Message</div>
+            <div class="v" id="s4-message">— configured —</div>
+          </div>
+        </div>
+
+        <div class="review-box">
+          <div class="edit">✎</div>
+          <h3>Sender</h3>
+          <div class="review-row"><div class="k" id="s4-sender-role">Sender</div><div class="v" id="s4-sender-name">—</div></div>
+          <div class="review-row"><div class="k">Tenant</div><div class="v" id="s4-sender-tenant">—</div></div>
+        </div>
+
+        <div class="review-box">
+          <div class="edit">✎</div>
+          <h3>Package summary</h3>
+          <ul class="pkg-list" id="s4-pkg-list" style="font-size:14px;line-height:1.7;"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STATE s5 — Submit / Preparing Document
+         ============================================================ -->
+    <div class="state" data-state="s5">
+      <div class="preparing" data-hotspot="form_submit">
+        <div class="spinner"></div>
+        <div class="label" id="s5-label">Preparing package…</div>
+      </div>
+    </div>
+
+    <!-- Common action row — all states except s5 -->
+    <div class="actions" id="actions">
+      <button class="finish-later">Finish Later</button>
+      <button class="btn back">Back</button>
+      <button class="btn next">Next</button>
+    </div>
   </div>
-  <div class="body">
-    <div class="ms-tag">Maestro · Intake webform</div>
-    <h2 id="title">Configure intake</h2>
-    <div class="scope" id="scope">Selections drive Maestro packaging downstream. Each field shapes which documents fan out, what gets pre-filled, and how routing is built.</div>
 
-    <div class="row-section">
-      <h3>Configuration</h3>
-      <div class="field-row" data-hotspot="webform_field_1"><label>Selection 1 — drives doc set</label><input type="text" placeholder="primary configuration choice" /><div class="branch-flag">↳ branches downstream fields</div></div>
-      <div class="field-row" data-hotspot="webform_field_2"><label>Selection 2 — drives recipient routing</label><input type="text" placeholder="routing-relevant attribute" /></div>
-      <div class="field-row" data-hotspot="webform_field_3"><label>Selection 3 — drives compliance attachments</label><input type="text" placeholder="compliance-relevant attribute" /></div>
-    </div>
-
-    <div class="package-preview" data-hotspot="package_preview">
-      <h3>Maestro will package</h3>
-      <ul id="pkg-list">
-        <li>Document set inferred from configuration</li>
-        <li>Pre-fill from systems of record</li>
-        <li>Routing built per selection</li>
-        <li>Compliance attachments auto-included</li>
-      </ul>
-    </div>
-
-    <button class="btn-submit" data-hotspot="webform_submit">Submit → Trigger Maestro fan-out</button>
+  <div class="footer">
+    <div class="powered"><div class="ds-badge"></div> Powered by Docusign</div>
+    <span>·</span><a href="#">Privacy</a>
+    <span>·</span><a href="#">Terms</a>
   </div>
 </div>
 
-<div class="stub-banner">Stub · Maestro proxy · intake</div>
+<div class="toast" id="toast">
+  <div class="check">✓</div>
+  <span id="toast-msg">Package sent · routed to recipient</span>
+</div>
 
 <script>
+  /* Per-vertical preset wiring. Each entry shapes the form labels, the
+   * checkbox list, the "Maestro will package" preview, the routing list,
+   * the email subject/body, the sender, and the toast text. */
+  const PRESETS = {
+    wealth: {
+      brand: 'Hillside', module: 'New Engagement Webform',
+      headerAccent: '▲',
+      s1Title: 'New Engagement Webform',
+      s1Lede1: 'Select the relevant configuration for the new engagement. Maestro will fan out the document package automatically.',
+      engagementOptions: ['LLC · Discretionary · $100M+ AUM (Aster Capital)', 'Family trust · Non-discretionary', 'Individual · Advisory only'],
+      docs: [
+        { label: 'Investment Management Agreement', help: 'Drives the IMA template and fee schedule.' },
+        { label: 'Pershing custodial agreement', help: 'Custodian-specific routing.' },
+        { label: 'Reg BI disclosure', help: 'Auto-included for advisor type.' },
+        { label: 'Form ADV Part 2', help: 'Compliance attachment.' }
+      ],
+      checked: [true, true, true, false],
+      packageList: ['IMA template (entity + AUM tier)', 'Pershing custodial agreement', 'Reg BI disclosure', 'Pre-fill from KYB record'],
+      routeList: ['Aster authorized signatory · primary', 'Hillside compliance · counter-sign', 'Pershing operations · cc on completion'],
+      signerName: 'Aster Capital — authorized signatory',
+      signerEmail: 'signatory@astercapital.com',
+      emailSubject: 'New engagement: IMA + custodial · Aster Capital',
+      emailMessage: 'Mira — IMA, custodial, and Reg BI disclosure ready for signature. — Priya',
+      senderName: 'Priya Das', senderRole: 'Head of Compliance', senderTenant: 'Hillside Advisors',
+      toast: 'IMA package sent to Aster signatory'
+    },
+    banking: {
+      brand: 'Meridian', module: 'Credit Facility Webform',
+      s1Title: 'New Credit Facility Webform',
+      s1Lede1: 'Configure the facility. Maestro will assemble the four-document loan package and route to the guarantor and credit ops.',
+      engagementOptions: ['Working capital facility · $2.5M (Atlas Manufacturing)', 'Term loan', 'Asset-based revolver'],
+      docs: [
+        { label: 'Loan agreement', help: 'Master facility terms.' },
+        { label: 'Security agreement', help: 'Collateral pledged.' },
+        { label: 'UCC-1 financing statement', help: 'Filed at state.' },
+        { label: 'Personal guaranty', help: 'CFO sign as guarantor.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Loan agreement', 'Security agreement', 'UCC-1', 'Personal guaranty', 'Pre-fill from KYB'],
+      routeList: ['Diana Holbrook (CFO + guarantor) · primary', 'Sofia Kim (credit ops) · counter-sign'],
+      signerName: 'Diana Holbrook · Atlas Manufacturing',
+      signerEmail: 'diana@atlasmfg.com',
+      emailSubject: 'Atlas Mfg · $2.5M facility · 4-doc package',
+      emailMessage: 'Diana — Loan, security, UCC-1, and guaranty ready for signature. — Raj',
+      senderName: 'Raj Malhotra', senderRole: 'Commercial RM', senderTenant: 'Meridian',
+      toast: 'Loan package sent to Diana + credit ops'
+    },
+    insurance: {
+      brand: 'Sentinel', module: 'HO3 Binder Webform',
+      s1Title: 'HO3 Binder Webform',
+      s1Lede1: 'Configure the homeowners binder. Maestro packages application, binder, declarations, and mortgagee notice.',
+      engagementOptions: ['HO3 · 412 Briar Lane (Ramirez Family)', 'HO5 · Premier coverage', 'Renters · HO4'],
+      docs: [
+        { label: 'Application', help: 'Underwriting form.' },
+        { label: 'Binder', help: 'Temporary coverage.' },
+        { label: 'Declarations page', help: 'Coverage limits.' },
+        { label: 'Mortgagee notice', help: 'Auto-routed to lienholder.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Application', 'Binder', 'Declarations page', 'Mortgagee notice'],
+      routeList: ['Elena Ramirez · primary', 'Mortgagee · cc'],
+      signerName: 'Elena Ramirez', signerEmail: 'elena.ramirez@example.com',
+      emailSubject: 'Ramirez · HO3 binder · 412 Briar Lane',
+      emailMessage: 'Elena — application, binder, dec page, and mortgagee notice ready. — Marisol',
+      senderName: 'Marisol Vega', senderRole: 'Underwriter', senderTenant: 'Sentinel',
+      toast: 'HO3 binder sent to Ramirez'
+    },
+    'insurance-life': {
+      brand: 'Beacon Mutual', module: 'Death Claim Webform',
+      s1Title: 'Death Claim File Webform',
+      s1Lede1: 'Configure the claim file. Maestro packages proof of loss, payment election, and beneficiary acknowledgment.',
+      engagementOptions: ['Whole life · $750k (Whitfield)', 'Term life claim', 'Group life claim'],
+      docs: [
+        { label: 'Proof of loss', help: 'Required filing.' },
+        { label: 'Payment election', help: 'Lump sum / annuity.' },
+        { label: 'Tax forms (W-9 / W-8BEN)', help: 'Withholding setup.' },
+        { label: 'Beneficiary acknowledgment', help: 'Identity attestation.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Proof of loss', 'Payment election', 'Tax forms', 'Beneficiary acknowledgment'],
+      routeList: ['Theresa Whitfield (primary beneficiary) · primary', 'Beacon claims review · counter-sign'],
+      signerName: 'Theresa Whitfield', signerEmail: 'theresa.w@example.com',
+      emailSubject: 'Whitfield · death claim file · WC-2026-08214',
+      emailMessage: 'Theresa — claim packet for Marcus\'s policy ready for signature. — Camille',
+      senderName: 'Camille Boutros', senderRole: 'Claims Examiner', senderTenant: 'Beacon Mutual',
+      toast: 'Claim packet sent to Theresa'
+    },
+    'insurance-pc': {
+      brand: 'Northgate Mutual', module: 'FNOL Mobile Webform',
+      s1Title: 'First Notice of Loss',
+      s1Lede1: 'Submit the first notice of loss. Maestro packages the FNOL packet and routes to claims for adjuster assignment.',
+      engagementOptions: ['Commercial auto · I-78 incident (Patel Logistics)', 'Property · weather damage', 'GL · slip and fall'],
+      docs: [
+        { label: 'FNOL packet', help: 'Loss details + photos.' },
+        { label: 'Sworn statement', help: 'Insured attestation.' },
+        { label: 'Investigation routing', help: 'Auto-assigned adjuster.' },
+        { label: 'Subrogation notice', help: 'Optional.' }
+      ],
+      checked: [true, true, true, false],
+      packageList: ['FNOL packet', 'Sworn statement', 'Investigation routing'],
+      routeList: ['Priya Patel · submitter', 'Andre Sokolov (adjuster) · auto-assigned'],
+      signerName: 'Priya Patel', signerEmail: 'priya@patellogistics.com',
+      emailSubject: 'Patel · FNOL · CL-2026-31102',
+      emailMessage: 'Priya — FNOL packet ready. Adjuster Andre assigned. — Northgate',
+      senderName: 'Priya Patel', senderRole: 'Fleet Manager', senderTenant: 'Patel Logistics',
+      toast: 'FNOL submitted · adjuster assigned'
+    },
+    'banking-deposits': {
+      brand: 'Cedar Federal', module: 'Open New Account',
+      s1Title: 'Open new account',
+      s1Lede1: 'Configure your accounts. Cedar will package opening documents, ACH funding authorization, and signature card.',
+      engagementOptions: ['Joint checking + HYSA (Williams household)', 'Single checking', 'IRA / retirement'],
+      docs: [
+        { label: 'Account opening agreement', help: 'Master terms.' },
+        { label: 'ACH funding authorization', help: 'Same-day funding.' },
+        { label: 'Signature card', help: 'Authorized signers.' },
+        { label: 'Reg D disclosures', help: 'Compliance.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Account opening agreement', 'ACH funding authorization', 'Signature card', 'Reg D disclosures'],
+      routeList: ['Marcus Williams · primary', 'Adaeze Williams · joint signer'],
+      signerName: 'Adaeze Williams · joint signer', signerEmail: 'adaeze@example.com',
+      emailSubject: 'Cedar Federal · joint accounts · Williams',
+      emailMessage: 'Adaeze — account documents ready for both signatures. — Cedar',
+      senderName: 'Marcus Williams', senderRole: 'Customer', senderTenant: 'Cedar Federal',
+      toast: 'Account package sent to joint signers'
+    },
+    'wealth-discovery': {
+      brand: 'Cypress Wealth', module: 'Discovery Configuration',
+      s1Title: 'Multi-account discovery',
+      s1Lede1: 'Configure the multi-account engagement. Maestro packages the IRA, joint, family trust, and advisory agreements.',
+      engagementOptions: ['IRA + joint + family trust + advisory (Holcomb)', 'Single advisory', 'Estate planning bundle'],
+      docs: [
+        { label: 'IRA agreement', help: 'Rollover-in.' },
+        { label: 'Joint brokerage agreement', help: 'Walter + Esther.' },
+        { label: 'Family trust agreement', help: 'Co-trustee included.' },
+        { label: 'Advisory agreement', help: 'Cypress mandate.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['IRA agreement', 'Joint brokerage agreement', 'Family trust agreement', 'Advisory agreement'],
+      routeList: ['Walter Holcomb · primary', 'Esther Holcomb · joint', 'Co-trustee · trust agreement'],
+      signerName: 'Walter Holcomb', signerEmail: 'walter@example.com',
+      emailSubject: 'Cypress · multi-account · Holcomb family',
+      emailMessage: 'Walter, Esther — full set ready for both signatures. — Reggie',
+      senderName: 'Reggie Adesanya', senderRole: 'Senior Advisor', senderTenant: 'Cypress Wealth',
+      toast: 'Multi-account package sent to Holcomb family'
+    },
+    provider: {
+      brand: 'Riverside Health', module: 'New Patient Pre-Reg',
+      s1Title: 'New patient pre-registration',
+      s1Lede1: 'Complete pre-registration before your visit. Riverside packages HIPAA acknowledgment, financial responsibility, and new-patient consent.',
+      engagementOptions: ['New patient · primary care', 'Specialist consult', 'Pre-procedure intake'],
+      docs: [
+        { label: 'HIPAA acknowledgment', help: 'Privacy practices.' },
+        { label: 'Financial responsibility', help: 'Insurance + payment.' },
+        { label: 'New-patient consent', help: 'Treatment consent.' },
+        { label: 'Insurance verification', help: 'Real-time eligibility.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['HIPAA acknowledgment', 'Financial responsibility', 'New-patient consent', 'Insurance verification'],
+      routeList: ['Jordan Kim · patient', 'Care team · cc on completion'],
+      signerName: 'Jordan Kim', signerEmail: 'jordan.k@example.com',
+      emailSubject: 'Riverside · pre-reg packet',
+      emailMessage: 'Jordan — please complete before your visit tomorrow. — Riverside',
+      senderName: 'Jordan Kim', senderRole: 'Patient', senderTenant: 'Riverside Health',
+      toast: 'Pre-reg complete · routed to care team'
+    },
+    lifesciences: {
+      brand: 'Helix', module: 'Site Activation Webform',
+      s1Title: 'Site activation configuration',
+      s1Lede1: 'Configure the site activation. Maestro packages CTA, budget, FDA-1572, IRB approval, and financial disclosure.',
+      engagementOptions: ['HX-2104 trial · ARC site', 'HX-3001 trial', 'Phase II oncology'],
+      docs: [
+        { label: 'Clinical Trial Agreement', help: 'Master agreement.' },
+        { label: 'Budget', help: 'Per-subject costs.' },
+        { label: 'FDA-1572', help: 'Investigator commitment.' },
+        { label: 'IRB approval', help: 'Site-specific.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['CTA', 'Budget', 'FDA-1572', 'IRB approval', 'Financial disclosure'],
+      routeList: ['Dr. Halim (PI) · primary', 'IRB · counter-sign', 'Helix study mgr · cc'],
+      signerName: 'Dr. Halim · PI', signerEmail: 'halim@arcclinic.com',
+      emailSubject: 'HX-2104 · ARC site activation',
+      emailMessage: 'Dr. Halim — site activation packet ready. — Ethan',
+      senderName: 'Ethan Park', senderRole: 'Clinical Study Manager', senderTenant: 'Helix',
+      toast: 'Site activation package sent'
+    },
+    payor: {
+      brand: 'Unity', module: 'Marketplace Enrollment',
+      s1Title: 'Silver HMO enrollment',
+      s1Lede1: 'Complete your enrollment. Unity packages the enrollment form, ID card request, and welcome kit.',
+      engagementOptions: ['Silver HMO (Marcus Chen)', 'Bronze HSA', 'Gold PPO'],
+      docs: [
+        { label: 'Enrollment form', help: 'Plan + dependents.' },
+        { label: 'ID card request', help: 'Mailed and digital.' },
+        { label: 'Welcome kit', help: 'Member resources.' },
+        { label: 'PCP assignment', help: 'Network selection.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Enrollment form', 'ID card request', 'Welcome kit', 'PCP assignment'],
+      routeList: ['Marcus Chen · member', 'Unity member services · cc'],
+      signerName: 'Marcus Chen', signerEmail: 'marcus.chen@example.com',
+      emailSubject: 'Unity · Silver HMO enrollment',
+      emailMessage: 'Marcus — enrollment confirmation ready for signature. — Unity',
+      senderName: 'Marcus Chen', senderRole: 'Member', senderTenant: 'Unity Health Plan',
+      toast: 'Enrollment confirmed'
+    },
+    'provider-roi': {
+      brand: 'Catalina Medical', module: 'HIM Records Release',
+      s1Title: 'Records release intake',
+      s1Lede1: 'Configure the release. Maestro packages HIPAA authorization, retrieval order, and redaction instructions.',
+      engagementOptions: ['Disability claim records (Tan)', 'Legal subpoena', 'Patient self-request'],
+      docs: [
+        { label: 'HIPAA authorization', help: 'Patient consent.' },
+        { label: 'Retrieval order', help: 'Internal HIM workflow.' },
+        { label: 'Redaction instructions', help: 'Sensitive data handling.' },
+        { label: 'Fee acknowledgment', help: 'If applicable.' }
+      ],
+      checked: [true, true, true, false],
+      packageList: ['HIPAA authorization', 'Retrieval order', 'Redaction instructions'],
+      routeList: ['Eric Tan · patient', 'Silver Mountain · external requester'],
+      signerName: 'Eric Tan', signerEmail: 'eric.tan@example.com',
+      emailSubject: 'Catalina · records release · Silver Mountain',
+      emailMessage: 'Eric — HIPAA authorization for records release ready for signature. — Catalina',
+      senderName: 'Renata Voss', senderRole: 'HIM Specialist', senderTenant: 'Catalina Medical',
+      toast: 'Records release authorized'
+    },
+    fedgov: {
+      brand: 'State UI', module: 'UI Claim Webform',
+      s1Title: 'Initial UI claim',
+      s1Lede1: 'File your unemployment insurance claim. The system packages determination, direct-deposit authorization, and work-search agreement.',
+      engagementOptions: ['Initial UI claim', 'Reopen prior claim', 'Continued claim cycle'],
+      docs: [
+        { label: 'Determination packet', help: 'Eligibility decision.' },
+        { label: 'Direct deposit authorization', help: 'Payment routing.' },
+        { label: 'Work-search agreement', help: 'Weekly requirement.' },
+        { label: 'Tax withholding election', help: 'Optional.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Determination packet', 'DD authorization', 'Work-search agreement'],
+      routeList: ['Taylor Nguyen · claimant', 'DOL adjudicator · review'],
+      signerName: 'Taylor Nguyen', signerEmail: 'taylor.n@example.com',
+      emailSubject: 'UI claim · UI-2026-48211',
+      emailMessage: 'Taylor — claim packet ready for signature. — DOL',
+      senderName: 'Taylor Nguyen', senderRole: 'Claimant', senderTenant: 'Department of Labor',
+      toast: 'UI claim submitted'
+    },
+    slgov: {
+      brand: 'Springfield', module: 'Permit Application',
+      s1Title: 'Building permit application',
+      s1Lede1: 'Apply for a permit. Springfield packages application, plan-check, and fee authorization.',
+      engagementOptions: ['Residential building permit (1420 Oak)', 'Commercial permit', 'Electrical / mechanical only'],
+      docs: [
+        { label: 'Permit application', help: 'Scope + plans.' },
+        { label: 'Plan-check submission', help: 'Routed to building dept.' },
+        { label: 'Fee authorization', help: 'Permit + plan-check fees.' },
+        { label: 'Inspection schedule', help: 'Pre-approved milestones.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Permit application', 'Plan check', 'Fee authorization'],
+      routeList: ['Marissa Rivera · applicant', 'Plan check · review'],
+      signerName: 'Marissa Rivera', signerEmail: 'marissa@example.com',
+      emailSubject: 'Springfield · 1420 Oak permit application',
+      emailMessage: 'Marissa — permit packet ready. — Springfield',
+      senderName: 'Marissa Rivera', senderRole: 'Owner', senderTenant: 'Springfield',
+      toast: 'Permit application submitted'
+    },
+    'slgov-311': {
+      brand: 'Greenhaven', module: '311 Service Request',
+      s1Title: 'Service request',
+      s1Lede1: 'Report a service issue. Greenhaven packages dispatch and work-order generation.',
+      engagementOptions: ['Pothole · 1124 Cedar Ave', 'Streetlight outage', 'Illegal dumping'],
+      docs: [
+        { label: 'Dispatch packet', help: 'Crew assignment.' },
+        { label: 'Work-order generation', help: 'Tracked in ServiceNow.' }
+      ],
+      checked: [true, true],
+      packageList: ['Dispatch packet', 'Work-order generation', 'GPS / photo metadata'],
+      routeList: ['Greenhaven PW crew · assigned', 'Maria Cortez · citizen reporter'],
+      signerName: 'Maria Cortez', signerEmail: 'mariac@example.com',
+      emailSubject: '311 · Cedar Ave pothole',
+      emailMessage: 'Crew dispatched. SR-2026-71248. — Greenhaven',
+      senderName: 'Maria Cortez', senderRole: 'Citizen', senderTenant: 'Greenhaven Public Works',
+      toast: '311 request dispatched'
+    },
+    'slgov-benefits': {
+      brand: 'Eastside HHS', module: 'SNAP Application',
+      s1Title: 'SNAP application',
+      s1Lede1: 'Apply for SNAP benefits. The system packages application, verification asks, and household attestation.',
+      engagementOptions: ['SNAP household application (Rivera)', 'TANF', 'Medicaid'],
+      docs: [
+        { label: 'Application', help: 'Household + income.' },
+        { label: 'Verification asks', help: 'Documents needed.' },
+        { label: 'Household attestation', help: 'Composition affirmation.' }
+      ],
+      checked: [true, true, true],
+      packageList: ['Application', 'Verification asks', 'Household attestation'],
+      routeList: ['Yolanda Rivera · applicant', 'Eastside HHS reviewer · adjudication'],
+      signerName: 'Yolanda Rivera', signerEmail: 'yolanda@example.com',
+      emailSubject: 'SNAP · Rivera family',
+      emailMessage: 'Yolanda — application ready. — Eastside HHS',
+      senderName: 'Yolanda Rivera', senderRole: 'Applicant', senderTenant: 'Eastside HHS',
+      toast: 'SNAP application submitted'
+    },
+    'slgov-recertification': {
+      brand: 'Cascade Medicaid', module: 'Out-of-Cycle Recert',
+      s1Title: 'Out-of-cycle exception recert',
+      s1Lede1: 'Configure the exception recertification. Maestro packages tailored verification questions for the audit reason.',
+      engagementOptions: ['Audit-driven exception (Diane Park)', 'Cause-of-change recert', 'Annual recert'],
+      docs: [
+        { label: 'Tailored recert packet', help: 'Audit-reason specific.' },
+        { label: 'Audit-reason verification', help: 'Income + household.' },
+        { label: 'Exception authorization', help: 'Eligibility specialist sign-off.' }
+      ],
+      checked: [true, true, true],
+      packageList: ['Tailored recert packet', 'Audit-reason verification', 'Exception authorization'],
+      routeList: ['Diane Park · member', 'Asha Patel · eligibility review'],
+      signerName: 'Diane Park', signerEmail: 'diane@example.com',
+      emailSubject: 'Cascade · exception recert · BC-2025-44192-R',
+      emailMessage: 'Diane — exception recert packet ready. — Asha',
+      senderName: 'Asha Patel', senderRole: 'Eligibility Specialist', senderTenant: 'Cascade Medicaid',
+      toast: 'Exception recert sent'
+    },
+    'slgov-vendor-compliance': {
+      brand: 'Ridgeview', module: 'New Vendor Onboarding',
+      s1Title: 'New vendor onboarding',
+      s1Lede1: 'Configure new vendor onboarding. Maestro packages onboarding packet, W-9, COI request, and DEI attestations.',
+      engagementOptions: ['Class-A trucking vendor onboarding', 'Class-B services vendor', 'Sub-recipient grant flow-down'],
+      docs: [
+        { label: 'Onboarding packet', help: 'Master vendor agreement.' },
+        { label: 'W-9 request', help: 'Tax ID collection.' },
+        { label: 'COI request', help: 'Insurance verification.' },
+        { label: 'DEI attestations', help: 'Diversity reporting.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Onboarding packet', 'W-9', 'COI request', 'DEI attestations'],
+      routeList: ['Naomi (Apex Logistics compliance) · primary', 'Ridgeview procurement · counter-sign'],
+      signerName: 'Naomi · Apex Logistics', signerEmail: 'naomi@apexlogistics.com',
+      emailSubject: 'Ridgeview · new vendor · Apex Logistics',
+      emailMessage: 'Naomi — vendor onboarding packet ready. — Olivia',
+      senderName: 'Olivia Mendez', senderRole: 'Compliance Analyst', senderTenant: 'Ridgeview Procurement',
+      toast: 'Vendor onboarding sent to Apex'
+    },
+    'slgov-employee-onboarding': {
+      brand: 'Cascade County HR', module: 'New Hire Onboarding',
+      s1Title: 'New hire onboarding kickoff',
+      s1Lede1: 'Configure new hire onboarding. Maestro packages offer letter, I-9, W-4, benefits enrollment, and equipment request.',
+      engagementOptions: ['Caseworker I onboarding (Marcus Lee)', 'Senior case manager', 'Contract / temporary'],
+      docs: [
+        { label: 'Offer letter', help: 'Position + comp.' },
+        { label: 'I-9', help: 'Federal employment eligibility.' },
+        { label: 'W-4', help: 'Tax withholding.' },
+        { label: 'Benefits enrollment', help: 'Health + retirement.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Offer letter', 'I-9', 'W-4', 'Benefits enrollment', 'Equipment request'],
+      routeList: ['Marcus Lee · new hire', 'Cascade County HR · counter-sign'],
+      signerName: 'Marcus Lee', signerEmail: 'marcus.lee@example.com',
+      emailSubject: 'Cascade County · onboarding · Marcus Lee',
+      emailMessage: 'Marcus — onboarding packet ready. Day 1 in 9 days. — Karina',
+      senderName: 'Karina Yusuf', senderRole: 'HR Business Partner', senderTenant: 'Cascade County HR',
+      toast: 'Onboarding sent · Day 1 ready'
+    },
+    'slgov-licensing': {
+      brand: 'Northbrook', module: 'License Application',
+      s1Title: 'Restaurant license application',
+      s1Lede1: 'Apply for a restaurant license. Maestro packages license application, attestation, fee, and inspection checklist.',
+      engagementOptions: ['Restaurant license · Avalon Café (Mei Ortega)', 'Liquor license addition', 'License renewal'],
+      docs: [
+        { label: 'License application', help: 'Business + ownership.' },
+        { label: 'Attestation', help: 'Code compliance.' },
+        { label: 'Fee authorization', help: 'License + inspection.' },
+        { label: 'Inspection checklist', help: 'DOH + fire + zoning.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['License application', 'Attestation', 'Fee', 'Inspection checklist'],
+      routeList: ['Mei Ortega · applicant', 'Northbrook licensing · review'],
+      signerName: 'Mei Ortega', signerEmail: 'mei@avaloncafe.com',
+      emailSubject: 'Northbrook · Avalon Café license',
+      emailMessage: 'Mei — license packet ready. — Northbrook',
+      senderName: 'Mei Ortega', senderRole: 'Owner', senderTenant: 'Avalon Café',
+      toast: 'License application submitted'
+    },
+    education: {
+      brand: 'Maple Ridge', module: 'Financial Aid Acceptance',
+      s1Title: 'Financial aid acceptance',
+      s1Lede1: 'Accept your financial aid award. Maple Ridge packages award letter, MPN, entrance counseling, and parent-PLUS app.',
+      engagementOptions: ['Aid acceptance · Fall 2026 (Priya Shah)', 'Aid renewal', 'Aid appeal'],
+      docs: [
+        { label: 'Award letter', help: 'Aid breakdown.' },
+        { label: 'Master Promissory Note', help: 'Loan terms.' },
+        { label: 'Entrance counseling cert', help: 'Required for first-time borrowers.' },
+        { label: 'Parent-PLUS application', help: 'If applicable.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Award letter', 'MPN', 'Entrance counseling cert', 'Parent-PLUS app', 'FERPA disclosure'],
+      routeList: ['Priya Shah · student', 'Parent (PLUS) · co-sign', 'Maple Ridge financial aid · counter-sign'],
+      signerName: 'Priya Shah', signerEmail: 'priya@example.com',
+      emailSubject: 'Maple Ridge · Fall 2026 aid acceptance',
+      emailMessage: 'Priya — aid acceptance packet ready. — Maple Ridge',
+      senderName: 'Priya Shah', senderRole: 'Student', senderTenant: 'Maple Ridge',
+      toast: 'Aid accepted · enrollment activated'
+    },
+    nonprofit: {
+      brand: 'Harbor Foundation', module: 'New Grant Configuration',
+      s1Title: 'New grant configuration',
+      s1Lede1: 'Configure the grant. Maestro packages master grant agreement, SOW, budget detail, reporting requirements, indemnification, and equity rider.',
+      engagementOptions: ['$120k general operating grant (Safe Streets)', 'Project-restricted grant', 'Capacity-building grant'],
+      docs: [
+        { label: 'Master grant agreement', help: 'Master terms.' },
+        { label: 'Statement of work', help: 'Program scope.' },
+        { label: 'Budget detail', help: 'Line-item breakdown.' },
+        { label: 'Reporting requirements', help: 'Quarterly + annual.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Master grant agreement', 'SOW', 'Budget detail', 'Reporting requirements', 'Indemnification', 'Equity rider'],
+      routeList: ['Rosa Patel (Safe Streets ED) · primary', 'Harbor Foundation · counter-sign'],
+      signerName: 'Rosa Patel · Safe Streets ED', signerEmail: 'rosa@safestreets.org',
+      emailSubject: 'Harbor · Safe Streets · $120k grant',
+      emailMessage: 'Rosa — grant agreement set ready for signature. — Asha',
+      senderName: 'Asha Morgan', senderRole: 'Program Officer', senderTenant: 'Harbor Foundation',
+      toast: 'Grant package sent to Safe Streets'
+    },
+  };
+
+  /* Apply preset */
   const params = new URLSearchParams(location.search);
   const preset = params.get('preset') || 'wealth';
-  const PRESETS = {
-    wealth:               { tenant: 'Hillside',          archetype: 'SENDER · INTERNAL',     title: 'New engagement configuration',         pkg: ['IMA template (entity + AUM tier)', 'Pershing custodial agreement', 'Reg BI disclosure', 'Pre-fill from KYB record'] },
-    banking:              { tenant: 'Meridian',          archetype: 'SENDER · INTERNAL',     title: 'Credit facility request configuration', pkg: ['Loan agreement', 'Security agreement', 'UCC-1 financing statement', 'Personal guaranty', 'Pre-fill from KYB'] },
-    insurance:            { tenant: 'Sentinel',          archetype: 'SENDER · INTERNAL',     title: 'HO3 binder configuration',             pkg: ['Application', 'Binder', 'Declarations page', 'Mortgagee notice'] },
-    'insurance-life':     { tenant: 'Beacon Mutual',     archetype: 'SENDER · INTERNAL',     title: 'Death claim file configuration',       pkg: ['Proof of loss', 'Payment election', 'Tax forms', 'Beneficiary acknowledgment'] },
-    'insurance-pc':       { tenant: 'Northgate',         archetype: 'SELF-SERVICE · MOBILE', title: 'FNOL submission',                       pkg: ['FNOL packet', 'Sworn statement', 'Investigation routing', 'Photo evidence'] },
-    'banking-deposits':   { tenant: 'Cedar Federal',     archetype: 'SELF-SERVICE · MOBILE', title: 'Open new account',                      pkg: ['Account opening docs', 'ACH funding auth', 'Signature card', 'Reg D disclosures'] },
-    'wealth-discovery':   { tenant: 'Cypress Wealth',    archetype: 'SENDER · INTERNAL',     title: 'Multi-account discovery configuration', pkg: ['IRA agreement', 'Joint account', 'Family trust', 'Advisory agreement'] },
-    provider:             { tenant: 'Riverside Health',  archetype: 'SELF-SERVICE · PORTAL', title: 'New-patient pre-registration',          pkg: ['HIPAA acknowledgment', 'Financial responsibility', 'New-patient consent', 'Insurance verification'] },
-    lifesciences:         { tenant: 'Helix',             archetype: 'SENDER · INTERNAL',     title: 'Site activation configuration',         pkg: ['CTA', 'Budget', 'FDA-1572', 'IRB approval', 'Financial disclosure'] },
-    payor:                { tenant: 'Unity',             archetype: 'SELF-SERVICE · MARKETPLACE', title: 'Silver HMO enrollment',           pkg: ['Enrollment form', 'ID card request', 'Welcome kit', 'PCP assignment'] },
-    'provider-roi':       { tenant: 'Catalina Medical',  archetype: 'SENDER · INTERNAL',     title: 'HIM intake from inbound ROI',           pkg: ['HIPAA authorization', 'Retrieval order', 'Redaction instructions', 'Fee acknowledgment'] },
-    fedgov:               { tenant: 'State UI',          archetype: 'SELF-SERVICE · CITIZEN PORTAL', title: 'UI claim configuration',         pkg: ['Determination packet', 'DD authorization', 'Work-search agreement'] },
-    slgov:                { tenant: 'Springfield',       archetype: 'SELF-SERVICE · APPLICANT', title: 'Building permit application',         pkg: ['Permit application', 'Plan check', 'Fee authorization', 'Inspection schedule'] },
-    'slgov-311':          { tenant: 'Greenhaven PW',     archetype: 'SELF-SERVICE · CITIZEN', title: '311 service request',                  pkg: ['Dispatch packet', 'Work order generation', 'GPS / photo metadata'] },
-    'slgov-benefits':     { tenant: 'Eastside HHS',      archetype: 'SELF-SERVICE · MOBILE', title: 'SNAP application',                      pkg: ['Application', 'Verification asks', 'Household attestation'] },
-    'slgov-recertification': { tenant: 'Cascade Medicaid', archetype: 'SENDER · INTERNAL',  title: 'Out-of-cycle exception recert',         pkg: ['Tailored recert packet', 'Audit-reason verification', 'Exception authorization'] },
-    'slgov-vendor-compliance': { tenant: 'Ridgeview',    archetype: 'SENDER · INTERNAL',    title: 'New-vendor onboarding',                 pkg: ['Onboarding packet', 'W-9', 'COI request', 'DEI attestations'] },
-    'slgov-employee-onboarding': { tenant: 'Cascade County HR', archetype: 'SENDER · INTERNAL', title: 'New hire onboarding kickoff',     pkg: ['Offer letter', 'I-9', 'W-4', 'Benefits enrollment', 'Equipment request'] },
-    'slgov-licensing':    { tenant: 'Northbrook',        archetype: 'SELF-SERVICE · APPLICANT', title: 'Restaurant license application',  pkg: ['License application', 'Attestation', 'Fee', 'Inspection checklist'] },
-    education:            { tenant: 'Maple Ridge',       archetype: 'SELF-SERVICE · STUDENT', title: 'Financial-aid acceptance',            pkg: ['Award letter', 'Master Promissory Note', 'Entrance counseling cert', 'Parent-PLUS app', 'FERPA disclosure'] },
-    nonprofit:            { tenant: 'Harbor Foundation', archetype: 'SENDER · INTERNAL',    title: 'New grant configuration',               pkg: ['Master grant agreement', 'SOW', 'Budget detail', 'Reporting requirements', 'Indemnification', 'Equity rider'] },
-  };
   const p = PRESETS[preset] || PRESETS.wealth;
-  document.getElementById('brand').textContent = p.tenant + ' — Intake webform';
-  document.getElementById('archetype').textContent = p.archetype;
-  document.getElementById('title').textContent = p.title;
-  document.getElementById('pkg-list').innerHTML = p.pkg.map(x => `<li>${x}</li>`).join('');
+
+  document.getElementById('brand-name').textContent = p.brand;
+  document.getElementById('module-name').textContent = p.module;
+  document.getElementById('s1-title').textContent = p.s1Title;
+  document.getElementById('s1-lede1').textContent = p.s1Lede1;
+
+  // s1: Engagement select options
+  const s1Select = document.getElementById('s1-select');
+  s1Select.innerHTML = '<option>— Select —</option>' + p.engagementOptions.map(o => `<option>${o}</option>`).join('');
+
+  // s2: Selected option + check list
+  document.getElementById('s2-select-1').textContent = p.engagementOptions[0];
+  const checks = document.getElementById('s2-checks');
+  checks.innerHTML = p.docs.map((d, i) =>
+    `<div class="check-item ${p.checked[i] ? 'checked' : ''}">
+       <div class="box"></div>
+       <div>
+         <div class="label">${d.label}</div>
+         <div class="help">${d.help}</div>
+       </div>
+     </div>`).join('');
+
+  // s2/s4 package list
+  const renderList = (id, items) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = items.map(x => `<li>${x}</li>`).join('');
+  };
+  renderList('s2-pkg-list', p.packageList);
+  renderList('s3-route-list', p.routeList);
+  renderList('s4-pkg-list', p.packageList);
+
+  // s3 prefilled
+  document.getElementById('s3-name').value = p.signerName;
+  document.getElementById('s3-email').value = p.signerEmail;
+
+  // s4 review
+  document.getElementById('s4-subject').textContent = p.emailSubject;
+  document.getElementById('s4-message').textContent = p.emailMessage;
+  document.getElementById('s4-sender-name').textContent = p.senderName + ' · ' + p.senderRole;
+  document.getElementById('s4-sender-tenant').textContent = p.senderTenant;
+  document.getElementById('s4-sender-role').textContent = p.senderRole;
+
+  // s5 + toast
+  document.getElementById('s5-label').textContent = 'Preparing package…';
+  document.getElementById('toast-msg').textContent = p.toast;
+
+  /* === State management ===
+   * Listen for tgk:lockToBeat messages from the shell and switch state.
+   * Also support ?scene=sN URL param for direct linking. */
+  function showState(sceneId) {
+    const all = document.querySelectorAll('.state');
+    all.forEach(el => el.classList.toggle('on', el.dataset.state === sceneId));
+    const actions = document.getElementById('actions');
+    actions.style.display = (sceneId === 's5') ? 'none' : '';
+    /* On s5, kick the spinner-then-toast sequence. */
+    if (sceneId === 's5') {
+      const lbl = document.getElementById('s5-label');
+      lbl.textContent = 'Preparing package…';
+      setTimeout(() => { lbl.textContent = 'Routing recipients…'; }, 700);
+      setTimeout(() => { lbl.textContent = 'Sending envelope…'; }, 1400);
+      setTimeout(() => {
+        document.getElementById('toast').classList.add('on');
+        lbl.textContent = 'Package sent.';
+      }, 2100);
+    } else {
+      document.getElementById('toast').classList.remove('on');
+    }
+  }
+
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (!m || m.type !== 'tgk:lockToBeat') return;
+    const sid = m.sceneId;
+    if (sid && /^s[1-5]$/.test(sid)) showState(sid);
+  });
+
+  const initial = params.get('scene');
+  if (initial && /^s[1-5]$/.test(initial)) showState(initial);
 </script>
 
 </body>
