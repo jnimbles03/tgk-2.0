@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Funnel · 15 templates → 1 demo</title>
+<style>
+  /* ============================================================
+     Docusign FY27 tokens — refined for the funnel page
+     ============================================================ */
+  :root {
+    /* Brand palette */
+    --ds-deep-violet: #26065D;
+    --ds-inkwell:     #130032;
+    --ds-ecru:        #F8F3F0;
+    --ds-white:       #FFFFFF;
+    --ds-mist:        #CBC2FF;
+    --ds-poppy:       #FF5252;
+    --ds-cobalt:      #4C00FF;
+
+    /* Semantic */
+    --ds-bg:           var(--ds-ecru);
+    --ds-surface:      var(--ds-white);
+    --ds-text:         var(--ds-inkwell);
+    --ds-text-muted:   color-mix(in srgb, var(--ds-inkwell) 60%, transparent);
+    --ds-text-soft:    color-mix(in srgb, var(--ds-inkwell) 40%, transparent);
+    --ds-rule:         color-mix(in srgb, var(--ds-inkwell) 12%, transparent);
+    --ds-rule-strong:  color-mix(in srgb, var(--ds-inkwell) 22%, transparent);
+    --ds-mist-soft:    color-mix(in srgb, var(--ds-mist) 35%, var(--ds-white));
+
+    --ds-glow:         linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
+
+    --ds-font:         "DS Indigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ds-mono:         "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--ds-font);
+    color: var(--ds-text);
+    background: var(--ds-bg);
+    line-height: 1.55;
+  }
+
+  ::selection { background: var(--ds-mist); color: var(--ds-inkwell); }
+  :focus-visible { outline: 2px solid var(--ds-cobalt); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 64px 56px 96px; }
+
+  .kicker {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ds-cobalt);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: var(--ds-font);
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw + 1rem, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    color: var(--ds-text);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 500;
+    background: var(--ds-glow);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .deck {
+    font-family: var(--ds-font);
+    font-size: 1.125rem;
+    color: var(--ds-text-muted);
+    max-width: 65ch;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+
+  /* ===== Controls ===== */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 36px;
+    align-items: center;
+  }
+  .ctrl {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule-strong);
+    padding: 9px 18px;
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ds-text);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .ctrl:hover { border-color: var(--ds-inkwell); transform: translateY(-1px); }
+  .ctrl-hint {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--ds-text-soft);
+    margin-left: 8px;
+  }
+
+  /* ===== Funnel layout ===== */
+  .funnel { position: relative; }
+
+  .tier {
+    margin: 0 auto 16px;
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: max-width 0.3s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  .tier:hover { box-shadow: 0 4px 14px rgba(19, 0, 50, 0.08); border-color: var(--ds-rule-strong); }
+
+  /* Funnel widths — narrowing each tier */
+  .tier.t1 { max-width: 100%; }
+  .tier.t2 { max-width: 86%; }
+  .tier.t3 { max-width: 70%; }
+  .tier.t4 { max-width: 54%; }
+
+  /* Cobalt accent rail on the middle tiers */
+  .tier.t2,
+  .tier.t3,
+  .tier.t4 { border-left: 3px solid var(--ds-cobalt); }
+
+  /* TIER 5 — the single hero moment */
+  .tier.t5 {
+    max-width: 50%;
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border: 1px solid var(--ds-deep-violet);
+    box-shadow: 0 12px 32px rgba(38, 6, 93, 0.2);
+    position: relative;
+  }
+  .tier.t5::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1.5px;
+    background: var(--ds-glow);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Tier header */
+  .tier-head {
+    display: flex;
+    align-items: center;
+    padding: 20px 26px;
+    cursor: pointer;
+    user-select: none;
+    gap: 22px;
+    transition: background 0.2s ease;
+  }
+  .tier-head:hover { background: color-mix(in srgb, var(--ds-mist) 18%, transparent); }
+  .tier.t5 .tier-head:hover { background: color-mix(in srgb, var(--ds-cobalt) 14%, transparent); }
+  .tier.open .tier-head { border-bottom: 1px solid var(--ds-rule); }
+  .tier.t5.open .tier-head { border-bottom: 1px solid color-mix(in srgb, var(--ds-mist) 30%, transparent); }
+
+  .tier-num {
+    font-family: var(--ds-font);
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--ds-cobalt);
+    line-height: 1;
+    min-width: 64px;
+    text-align: center;
+    letter-spacing: -0.02em;
+  }
+  .tier.t5 .tier-num {
+    background: var(--ds-glow);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+  .tier-num em { font-style: italic; font-size: 1.5rem; font-weight: 400; }
+
+  .tier-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tier-tag {
+    font-family: var(--ds-font);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+  }
+  .tier.t5 .tier-tag { color: color-mix(in srgb, var(--ds-mist) 90%, transparent); }
+  .tier-name {
+    font-family: var(--ds-font);
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--ds-text);
+    letter-spacing: -0.01em;
+  }
+  .tier.t5 .tier-name { color: var(--ds-ecru); }
+  .tier-name em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ds-cobalt);
+  }
+  .tier.t5 .tier-name em { color: var(--ds-mist); }
+
+  .tier-summary {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--ds-text-muted);
+    text-align: right;
+    max-width: 340px;
+    line-height: 1.45;
+  }
+  .tier.t5 .tier-summary { color: var(--ds-mist); }
+
+  .tier-toggle {
+    width: 32px; height: 32px;
+    border: 1px solid var(--ds-rule-strong);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ds-text-muted);
+    font-family: var(--ds-font);
+    font-size: 1.125rem;
+    font-weight: 400;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+  }
+  .tier.open .tier-toggle { transform: rotate(45deg); border-color: var(--ds-cobalt); color: var(--ds-cobalt); }
+  .tier.t5 .tier-toggle { border-color: color-mix(in srgb, var(--ds-mist) 50%, transparent); color: var(--ds-mist); }
+  .tier.t5.open .tier-toggle { border-color: var(--ds-mist); color: var(--ds-mist); }
+
+  /* Tier body */
+  .tier-body {
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+    padding: 0 26px;
+  }
+  .tier.open .tier-body {
+    max-height: 1400px;
+    opacity: 1;
+    padding: 22px 26px 26px;
+  }
+
+  /* Funnel arrow between tiers */
+  .arrow {
+    display: flex;
+    justify-content: center;
+    margin: -4px 0 8px;
+    color: var(--ds-text-soft);
+    font-size: 0.875rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* ===== Tier 1 — Templates (compact rows) ===== */
+  .tpl-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--ds-rule);
+  }
+  .tpl-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--ds-rule);
+  }
+  .tpl-row .cat-label {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ds-cobalt);
+    font-weight: 600;
+  }
+  .tpl-row .cat-label .cat-count {
+    color: var(--ds-text-soft);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .tpl-row .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tpl {
+    display: inline-block;
+    background: var(--ds-mist-soft);
+    border: 1px solid color-mix(in srgb, var(--ds-mist) 60%, transparent);
+    padding: 5px 11px;
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: var(--ds-text);
+    cursor: default;
+    border-radius: 999px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .tpl:hover {
+    background: var(--ds-mist);
+    border-color: var(--ds-cobalt);
+  }
+  .tpl-hint {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--ds-text-soft);
+    margin: 0 0 12px;
+  }
+
+  /* ===== Tier 2 — Capabilities ===== */
+  .cap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .cap {
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    padding: 14px 16px;
+    border-radius: 8px;
+  }
+  .cap .cap-h {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+  .cap-name {
+    font-family: var(--ds-font);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    letter-spacing: -0.005em;
+  }
+  .cap-count {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-cobalt);
+    font-weight: 500;
+  }
+  .cap-desc {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    color: var(--ds-text-muted);
+    line-height: 1.5;
+    margin: 0 0 6px;
+  }
+  .cap-tpls {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    line-height: 1.5;
+  }
+
+  /* ===== Tier 3 — Use cases ===== */
+  .uc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .uc {
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    padding: 14px 16px;
+    border-radius: 8px;
+  }
+  .uc-tag {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+  .uc-name {
+    font-family: var(--ds-font);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    margin-bottom: 6px;
+    letter-spacing: -0.005em;
+  }
+  .uc-scenes {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    color: var(--ds-text-muted);
+    line-height: 1.5;
+    margin: 0 0 6px;
+  }
+  .uc-lens {
+    font-family: var(--ds-font);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-cobalt);
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  /* ===== Tier 4 — Verticals ===== */
+  .v-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .v {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-radius: 6px;
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: var(--ds-text);
+  }
+  .v .swatch {
+    width: 10px; height: 10px;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+  .v-deck {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: var(--ds-text-muted);
+    margin: 0 0 14px;
+    line-height: 1.55;
+    max-width: 65ch;
+  }
+  .v-deck code {
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    background: var(--ds-mist-soft);
+    padding: 1px 6px;
+    color: var(--ds-cobalt);
+    border-radius: 3px;
+    font-style: normal;
+  }
+
+  /* ===== Tier 5 — Demo story (hero) ===== */
+  .result {
+    background: color-mix(in srgb, var(--ds-cobalt) 12%, var(--ds-deep-violet));
+    border: 1px solid color-mix(in srgb, var(--ds-mist) 22%, transparent);
+    padding: 20px 24px;
+    border-radius: 10px;
+  }
+  .result .r-tag {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-mist);
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+  .result .r-h {
+    font-family: var(--ds-font);
+    font-size: 1.25rem;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--ds-ecru);
+    margin-bottom: 6px;
+    letter-spacing: -0.005em;
+  }
+  .result .r-url {
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--ds-mist) 80%, transparent);
+    margin: 4px 0 0;
+  }
+  .result .r-moment {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: var(--ds-ecru);
+    margin: 12px 0 0;
+    line-height: 1.5;
+  }
+  .result .r-note {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    color: var(--ds-mist);
+    margin: 16px 0 0;
+    line-height: 1.55;
+    max-width: 60ch;
+  }
+  .result .r-note code {
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 6px;
+    color: var(--ds-mist);
+    border-radius: 3px;
+  }
+
+  .foot {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ds-rule);
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    text-align: right;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">TGK 2.0 · Funnel walkthrough · 2026-04-28</div>
+  <h1>Fifteen templates funnel into <em>one</em> demo.</h1>
+  <p class="deck">Click any layer to see what's inside. The diagram narrows as you go down — many primitives at the top, one finished demo at the bottom.</p>
+
+  <div class="controls">
+    <button class="ctrl" id="expandAll">Expand all</button>
+    <button class="ctrl" id="collapseAll">Collapse all</button>
+    <span class="ctrl-hint">or click a tier to drill in</span>
+  </div>
+
+  <div class="funnel" id="funnel">
+
+    <!-- ============ TIER 1 ============ -->
+    <div class="tier t1" data-tier="1">
+      <div class="tier-head">
+        <div class="tier-num">15</div>
+        <div class="tier-title">
+          <span class="tier-tag">TIER 1 — PRODUCT TEMPLATES</span>
+          <span class="tier-name">The source palette</span>
+        </div>
+        <div class="tier-summary">All 15 product .html files Docusign templates can compose from.</div>
+        <div class="tier-toggle">+</div>
+      </div>
+      <div class="tier-body">
+        <p class="tpl-hint">Hover any chip for what it does.</p>
+        <div class="tpl-rows">
+
+          <div class="tpl-row">
+            <div class="cat-label">Intake <span class="cat-count">· 2</span></div>
+            <div class="chips">
+              <span class="tpl" title="Embedded data collection form">webform</span>
+              <span class="tpl" title="Self-service or sender-led intake">webform-intake</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Identity <span class="cat-count">· 1</span></div>
+            <div class="chips">
+              <span class="tpl" title="CLEAR biometric verification">clear-idv</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Workflow <span class="cat-count">· 3</span></div>
+            <div class="chips">
+              <span class="tpl" title="Maestro orchestration loop">maestro-loop</span>
+              <span class="tpl" title="Maestro package fan-out">maestro-package</span>
+              <span class="tpl" title="Agentic experiences surface">agents</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Signing <span class="cat-count">· 1</span></div>
+            <div class="chips">
+              <span class="tpl" title="Docusign eSignature envelope">signing-ceremony</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Agreement Desk <span class="cat-count">· 2</span></div>
+            <div class="chips">
+              <span class="tpl" title="Maestro proxy interface — canonical lens">agreement-desk</span>
+              <span class="tpl" title="Auth-fabric variant — chain-of-custody lens">agreement-desk-chain-of-custody</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Intelligence <span class="cat-count">· 1</span></div>
+            <div class="chips">
+              <span class="tpl" title="Navigator + Iris — extraction &amp; search">navigator</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Workspaces <span class="cat-count">· 2</span></div>
+            <div class="chips">
+              <span class="tpl" title="Multi-party collaboration workspace">workspace</span>
+              <span class="tpl" title="Splash variant">mastercard-workspace</span>
+            </div>
+          </div>
+
+          <div class="tpl-row">
+            <div class="cat-label">Embed Hosts <span class="cat-count">· 3</span></div>
+            <div class="chips">
+              <span class="tpl" title="Authenticated portal frame">portal-shell</span>
+              <span class="tpl" title="Epic-style host">ehr-desktop</span>
+              <span class="tpl" title="Generic host shell">portal</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼</div>
+
+    <!-- ============ TIER 2 ============ -->
+    <div class="tier t2" data-tier="2">
+      <div class="tier-head">
+        <div class="tier-num">8</div>
+        <div class="tier-title">
+          <span class="tier-tag">TIER 2 — CAPABILITY SCENES</span>
+          <span class="tier-name">Templates compose into <em>capability scenes</em></span>
+        </div>
+        <div class="tier-summary">15 templates roll up into 8 named Docusign capabilities.</div>
+        <div class="tier-toggle">+</div>
+      </div>
+      <div class="tier-body">
+        <div class="cap-grid">
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Intake</span><span class="cap-count">2 templates</span></div>
+            <p class="cap-desc">Webform-first capture. Sender-led or self-service. Selections drive what Maestro packages downstream.</p>
+            <div class="cap-tpls">webform · webform-intake</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Identity</span><span class="cap-count">1 template</span></div>
+            <p class="cap-desc">CLEAR biometric verification. Fires at session-start (auth-fabric) or at the transaction (canonical).</p>
+            <div class="cap-tpls">clear-idv</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Workflow</span><span class="cap-count">3 templates</span></div>
+            <p class="cap-desc">Maestro orchestration. The invisible engine — risk-detect, IDV-invoke, identity-bind, form-serve, package-fan-out.</p>
+            <div class="cap-tpls">maestro-loop · maestro-package · agents</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Signing</span><span class="cap-count">1 template</span></div>
+            <p class="cap-desc">Docusign eSignature ceremony. Envelope assembled by Maestro, signed in one continuous flow.</p>
+            <div class="cap-tpls">signing-ceremony</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Agreement Desk</span><span class="cap-count">2 templates</span></div>
+            <p class="cap-desc">Maestro's proxy interface. Two variants render different lenses: intake fan-out vs chain-of-custody.</p>
+            <div class="cap-tpls">agreement-desk · agreement-desk-chain-of-custody</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Agreement Intelligence</span><span class="cap-count">1 template</span></div>
+            <p class="cap-desc">Navigator + Iris. AI-driven extraction, search, retrieval. Writes structured data back to system-of-record.</p>
+            <div class="cap-tpls">navigator</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Workspaces</span><span class="cap-count">2 templates</span></div>
+            <p class="cap-desc">Multi-party post-signing collaboration. Tenant-branded; members, tasks, summary all preset-driven.</p>
+            <div class="cap-tpls">workspace · mastercard-workspace</div>
+          </div>
+
+          <div class="cap">
+            <div class="cap-h"><span class="cap-name">Embed Hosts</span><span class="cap-count">3 templates</span></div>
+            <p class="cap-desc">Authenticated portal shells where Docusign embeds headlessly. Hosts the customer's native UI around the agreement flow.</p>
+            <div class="cap-tpls">portal-shell · ehr-desktop · portal</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼</div>
+
+    <!-- ============ TIER 3 ============ -->
+    <div class="tier t3" data-tier="3">
+      <div class="tier-head">
+        <div class="tier-num">4</div>
+        <div class="tier-title">
+          <span class="tier-tag">TIER 3 — USE CASE PATTERNS</span>
+          <span class="tier-name">Capabilities sequence into <em>story patterns</em></span>
+        </div>
+        <div class="tier-summary">8 capabilities sequenced into 4 reusable use case patterns.</div>
+        <div class="tier-toggle">+</div>
+      </div>
+      <div class="tier-body">
+        <div class="uc-grid">
+
+          <div class="uc canon">
+            <div class="uc-tag">DEFAULT · ?usecase=(none)</div>
+            <div class="uc-name">Onboarding · canonical</div>
+            <p class="uc-scenes">5 scenes · Intake → Identity → Signing → Intelligence → Workspace</p>
+            <div class="uc-lens">Maestro lens · intake fan-out</div>
+          </div>
+
+          <div class="uc auth">
+            <div class="uc-tag">?usecase=auth-fabric</div>
+            <div class="uc-name">Auth-Fabric · CLEAR-at-the-door</div>
+            <p class="uc-scenes">3 scenes · Embed Host → Identity → Webform → Chain-of-custody</p>
+            <div class="uc-lens">Maestro lens · chain-of-custody binding</div>
+          </div>
+
+          <div class="uc intake">
+            <div class="uc-tag">?usecase=intake</div>
+            <div class="uc-name">Intake-Mechanics · webform → Maestro</div>
+            <p class="uc-scenes">3–4 scenes · Webform → Maestro Package → Signing (→ Workspace)</p>
+            <div class="uc-lens">Maestro lens · package fan-out</div>
+          </div>
+
+          <div class="uc maint">
+            <div class="uc-tag">?usecase=maintenance</div>
+            <div class="uc-name">Maintenance · sensitive change</div>
+            <p class="uc-scenes">3 scenes · Identity (step-up) → Webform → Approval queue</p>
+            <div class="uc-lens">Maestro lens · sensitive-change orchestration</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼</div>
+
+    <!-- ============ TIER 4 ============ -->
+    <div class="tier t4" data-tier="4">
+      <div class="tier-head">
+        <div class="tier-num">21</div>
+        <div class="tier-title">
+          <span class="tier-tag">TIER 4 — VERTICAL APPLIED</span>
+          <span class="tier-name">A vertical's <em>data</em> is applied</span>
+        </div>
+        <div class="tier-summary">Tenant brand, customer, narration. Authored as JSON. No code.</div>
+        <div class="tier-toggle">+</div>
+      </div>
+      <div class="tier-body">
+        <p class="v-deck">Pick one. The shell looks up <code>VERTICALS[v]</code> and <code>PRESETS[v]</code> and applies them to the chosen use case pattern. Brand color cascades, narration replaces, customer name swaps.</p>
+        <div class="v-grid">
+          <div class="v"><span class="swatch" style="background:#3FDA99"></span>wealth · Hillside</div>
+          <div class="v"><span class="swatch" style="background:#5BA1B8"></span>wealth-discovery · Cypress</div>
+          <div class="v"><span class="swatch" style="background:#2D8EFF"></span>banking · Meridian</div>
+          <div class="v"><span class="swatch" style="background:#6BB6FF"></span>banking-deposits · Cedar</div>
+          <div class="v"><span class="swatch" style="background:#F2B3C2"></span>insurance · Sentinel</div>
+          <div class="v"><span class="swatch" style="background:#B189D9"></span>insurance-life · Beacon</div>
+          <div class="v"><span class="swatch" style="background:#FF8A4D"></span>insurance-pc · Northgate</div>
+          <div class="v"><span class="swatch" style="background:#6FD6C8"></span>provider · Riverside</div>
+          <div class="v"><span class="swatch" style="background:#5BCDB8"></span>provider-roi · Catalina</div>
+          <div class="v"><span class="swatch" style="background:#C7A0FF"></span>lifesciences · Helix</div>
+          <div class="v"><span class="swatch" style="background:#6FDA9B"></span>payor · Unity</div>
+          <div class="v"><span class="swatch" style="background:#E8B800"></span>fedgov · DOL</div>
+          <div class="v"><span class="swatch" style="background:#E8A438"></span>slgov · Springfield</div>
+          <div class="v"><span class="swatch" style="background:#4CAF7A"></span>slgov-311 · Greenhaven</div>
+          <div class="v"><span class="swatch" style="background:#5DA9C9"></span>slgov-benefits · Eastside</div>
+          <div class="v"><span class="swatch" style="background:#94A3B8"></span>slgov-recert · Cascade</div>
+          <div class="v"><span class="swatch" style="background:#E89B5B"></span>slgov-vendor · Ridgeview</div>
+          <div class="v"><span class="swatch" style="background:#B589DB"></span>slgov-emp-onb · Cascade Co.</div>
+          <div class="v"><span class="swatch" style="background:#F2A56B"></span>slgov-licensing · Northbrook</div>
+          <div class="v"><span class="swatch" style="background:#F2C65A"></span>education · Maple Ridge</div>
+          <div class="v"><span class="swatch" style="background:#FFB86B"></span>nonprofit · Harbor</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼</div>
+
+    <!-- ============ TIER 5 — HERO MOMENT ============ -->
+    <div class="tier t5" data-tier="5">
+      <div class="tier-head">
+        <div class="tier-num">1</div>
+        <div class="tier-title">
+          <span class="tier-tag">RESULT</span>
+          <span class="tier-name">One demo story</span>
+        </div>
+        <div class="tier-summary"><em>Live URL · sales-ready · branded</em></div>
+        <div class="tier-toggle">+</div>
+      </div>
+      <div class="tier-body">
+        <div class="result">
+          <div class="r-tag">EXAMPLE</div>
+          <div class="r-h">Hillside × Aster Capital — IRA rollover</div>
+          <p class="r-url">/stories/story-wealth/?usecase=canonical</p>
+          <p class="r-moment">"$5M household opened in 15 minutes, fully paperless."</p>
+          <p class="r-note">Same shell rendered the demo. Same six locked files (1 shell + 5 scene templates) did the rendering. The only thing that changed from any other vertical is the <code>VERTICALS.wealth</code> data row.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">story-templates/ · stories/_shared/story-shell.html · 2026-04-28</div>
+
+</div>
+
+<script>
+  const tiers = document.querySelectorAll('.tier');
+  const expandBtn = document.getElementById('expandAll');
+  const collapseBtn = document.getElementById('collapseAll');
+
+  tiers.forEach(t => {
+    t.querySelector('.tier-head').addEventListener('click', () => {
+      t.classList.toggle('open');
+    });
+  });
+
+  expandBtn.addEventListener('click', () => {
+    tiers.forEach(t => t.classList.add('open'));
+  });
+  collapseBtn.addEventListener('click', () => {
+    tiers.forEach(t => t.classList.remove('open'));
+  });
+
+  // Open the first tier by default so it's clear what to do
+  tiers[0].classList.add('open');
+</script>
+</body>
+</html>

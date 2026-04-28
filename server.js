@@ -760,6 +760,9 @@ async function requireAudit(req, res, next) {
 // Friendly aliases: /audit and /audit/ → /audit.html
 app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
 
+// Friendly alias: /architecture and /architecture/ → /architecture.html
+app.get(['/architecture', '/architecture/'], (req, res) => res.redirect('/architecture.html'));
+
 // Gate the audit page itself before the static handler can serve it.
 app.get('/audit.html', requireAudit, (req, res) => {
   res.sendFile(path.join(__dirname, 'audit.html'));
