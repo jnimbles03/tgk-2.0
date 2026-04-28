@@ -100,14 +100,19 @@
     display: flex; align-items: center; gap: 0.06em;
     margin: 0 0 22px;
   }
-  /* Canvas-based rocket chevron — flickering flame plume + ember particles
-     trailing behind the ">" nose. Wider than the chevron alone so the trail
-     has room. (Honors prefers-reduced-motion → static chevron only.) */
+  /* Iris Logo Sting GIF (square, cropped). Sized larger than cap height so
+     the star reads at a glance, and feathered with a radial mask so the GIF's
+     deep-violet box edges dissolve into the hero background instead of
+     sitting in a visible rectangle. */
   .hero-cta-row .headline-chevron {
     display: inline-block;
-    width: 1.6em; height: 1.0em;
-    margin-right: 0.06em;
+    width: 1.5em; height: 1.5em;
+    margin: -0.25em 0.06em -0.25em -0.05em;
     flex-shrink: 0;
+    object-fit: contain;
+    background: transparent;
+    -webkit-mask-image: radial-gradient(circle at center, #000 48%, transparent 78%);
+            mask-image: radial-gradient(circle at center, #000 48%, transparent 78%);
   }
   .hero p {
     font-size: 17px; line-height: 1.6;
@@ -1656,13 +1661,11 @@
   <div class="hero-inner">
     <a class="masthead" href="/index-unified.html" title="Back to picker">
       <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
-      <span class="x">×</span>
-      <img src="/assets/brand/tgk-white.png" alt="TGK Capital">
     </a>
     <div class="badge">TGK 2.0 — IAM Storylines</div>
     <h1>Pick a vertical. Pick a use case.</h1>
     <div class="hero-cta-row">
-      <canvas class="headline-chevron" id="headlineChevron" aria-hidden="true"></canvas><span>Launch Demo</span>
+      <img class="headline-chevron" id="headlineChevron" src="/assets/iris/iris-logo-sting.gif" alt="" aria-hidden="true"><span>Launch Demo</span>
     </div>
   </div>
 </section>
@@ -2729,7 +2732,8 @@
   // ============================================================
   (function initHeadlineChevronCanvas() {
     const canvas = document.getElementById('headlineChevron');
-    if (!canvas) return;
+    // Headline rocket is now an Iris Logo Sting <img>, not a canvas — bail.
+    if (!canvas || canvas.tagName !== 'CANVAS') return;
     const ctx = canvas.getContext('2d');
     let W = 0, H = 0;
     const dpr = Math.max(1, window.devicePixelRatio || 1);

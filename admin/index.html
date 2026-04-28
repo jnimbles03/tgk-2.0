@@ -1465,6 +1465,61 @@ function openStoryEditor(verticalKey, usecase){
   showStoryView("edit");
 }
 
+/* Duplicate an existing vertical to a new key. Pre-loads metadata, default
+   scenes, AND every use-case variant the source has, so the new draft is a
+   complete working baseline — admin can save immediately or tweak first.
+   The new key isn't persisted until Save, so cancelling out of the editor
+   safely discards the duplicate. */
+function duplicateStory(sourceKey){
+  const proposed = (sourceKey + "-copy").replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+  const input = prompt(
+    `Duplicate "${sourceKey}" → new vertical key:\n` +
+    `(lowercase, hyphens; will become /stories/_shared/story-shell.html?vertical=<key>)`,
+    proposed
+  );
+  if (!input) return;
+  const cleanKey = input.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
+  if (!cleanKey) { toast("Invalid key", true); return; }
+  if (cleanKey === sourceKey) { toast("New key must differ from source", true); return; }
+
+  /* Collision check — surface the conflict before clobbering. */
+  const customStories = getStLocal("tgkAdmin.customStories", {});
+  const isExisting = !!VERTICALS_DATA[cleanKey] || !!customStories[cleanKey];
+  if (isExisting) {
+    if (!confirm(`Key "${cleanKey}" already exists. Overwrite when you Save?`)) return;
+  }
+
+  /* Build the canonical (default) draft from the source as the visible scene set,
+     then snapshot every other use-case variant onto _byUsecase so switching
+     tabs in the editor shows pre-filled scenes (not blanks). */
+  const defaultDraft = buildDraft(sourceKey, "default");
+  const byUsecase = { default: defaultDraft.scenes };
+  ["auth-fabric", "intake-3", "intake-4", "maintenance"].forEach(uc => {
+    const d = buildDraft(sourceKey, uc);
+    if (d && d.scenes && d.scenes.length) {
+      byUsecase[uc] = d.scenes.map(s => ({...s, beats: s.beats.map(b => ({...b}))}));
+    }
+  });
+
+  stState.isNew = true;
+  stState.vertical = cleanKey;
+  stState.usecase = "default";
+  stState.draft = {
+    meta: {
+      ...defaultDraft.meta,
+      key: cleanKey,
+      preset: cleanKey,
+      tenant: defaultDraft.meta.tenant ? `${defaultDraft.meta.tenant} (copy)` : "",
+      label: defaultDraft.meta.label,
+    },
+    usecase: "default",
+    scenes: byUsecase.default.map(s => ({...s, beats: s.beats.map(b => ({...b}))})),
+    _byUsecase: byUsecase,
+  };
+  showStoryView("edit");
+  toast(`Duplicated "${sourceKey}" → editing "${cleanKey}". Save to persist.`);
+}
+
 function showStoryView(view){
   stState.view = view;
   $('st-list-view').style.display = view === "list" ? "" : "none";
