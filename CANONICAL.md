@@ -81,42 +81,45 @@ portal folder (`wealth-hillside-aster`) redirecting to `?vertical=wealth`.
 
 The original 10 stay unchanged. The 11 new entries:
 
-| New vertical | Tenant + named customer | Mark color | Source sampler |
-|---|---|---|---|
-| `insurance-life` | Beacon Mutual × Whitfield Family — death claim | `#B189D9` | `insurance-life.html` |
-| `insurance-pc` | Northgate Mutual × Patel Logistics — commercial auto FNOL | `#FF8A4D` | `insurance-pc.html` |
-| `provider-roi` | Catalina Medical × Eric Tan — records release to Silver Mountain Disability | `#5BCDB8` | `hls-roi.html` |
-| `slgov-311` | Greenhaven Public Works × 1124 Cedar Ave pothole | `#4CAF7A` | `public-sector-311.html` |
-| `slgov-benefits` | Eastside HHS × Rivera family SNAP application | `#5DA9C9` | `public-sector-benefits.html` |
-| `slgov-recertification` | Cascade Medicaid × Diane Park annual recert | `#94A3B8` | `public-sector-recertification.html` |
-| `slgov-vendor-compliance` | Ridgeview Procurement × Apex Logistics annual COI | `#E89B5B` | `public-sector-vendor-compliance.html` |
-| `slgov-employee-onboarding` | Cascade County HR × Marcus Lee new caseworker | `#B589DB` | `public-sector-employee-onboarding.html` |
-| `slgov-licensing` | Northbrook Licensing Bureau × Avalon Café restaurant license | `#F2A56B` | `public-sector-licensing.html` |
-| `banking-deposits` | Cedar Federal Credit Union × Williams household — joint checking + high-yield savings | `#6BB6FF` | `banking-deposits.html` |
-| `wealth-discovery` | Cypress Wealth × Holcomb Family — IRA rollover + family trust | `#5BA1B8` | `wealth-onboarding.html` |
+| New vertical | Tenant + named customer | Mark color | **Splash default** | Source sampler |
+|---|---|---|---|---|
+| `insurance-life` | Beacon Mutual × Whitfield Family — death claim | `#B189D9` | **✓** | `insurance-life.html` |
+| `insurance-pc` | Northgate Mutual × Patel Logistics — commercial auto FNOL | `#FF8A4D` | **✓** | `insurance-pc.html` |
+| `provider-roi` | Catalina Medical × Eric Tan — records release to Silver Mountain Disability | `#5BCDB8` | ✗ | `hls-roi.html` |
+| `slgov-311` | Greenhaven Public Works × 1124 Cedar Ave pothole | `#4CAF7A` | ✗ | `public-sector-311.html` |
+| `slgov-benefits` | Eastside HHS × Rivera family SNAP application | `#5DA9C9` | **✓** | `public-sector-benefits.html` |
+| `slgov-recertification` | Cascade Medicaid × Diane Park annual recert | `#94A3B8` | ✗ | `public-sector-recertification.html` |
+| `slgov-vendor-compliance` | Ridgeview Procurement × Apex Logistics annual COI | `#E89B5B` | ✗ | `public-sector-vendor-compliance.html` |
+| `slgov-employee-onboarding` | Cascade County HR × Marcus Lee new caseworker | `#B589DB` | ✗ | `public-sector-employee-onboarding.html` |
+| `slgov-licensing` | Northbrook Licensing Bureau × Avalon Café restaurant license | `#F2A56B` | ✗ | `public-sector-licensing.html` |
+| `banking-deposits` | Cedar Federal Credit Union × Williams household — joint checking + high-yield savings | `#6BB6FF` | ✗ | `banking-deposits.html` |
+| `wealth-discovery` | Cypress Wealth × Holcomb Family — IRA rollover + family trust | `#5BA1B8` | **✓** | `wealth-onboarding.html` |
 
 Each new vertical has the same shape as the original 10:
 - Full shell `VERTICALS` entry: 5 scenes × 5 beats × tenant + customer narrative
 - Matching workspace `PRESETS` entry: tenant + email + summary + sections + activity + Iris + agent
 - Redirect at `/stories/story-<key>/index.html`
-- Splash works via `?splash=1` (now that the splash is inlined)
+- Splash works via `?splash=1` (now that the splash is inlined). **As of 2026-04-27,
+  splash is also enabled by default on 8 verticals via the `splashOk:true` flag in
+  the shell's `VERTICALS` map — see "Splash default" column below.** `?splash=0`
+  forces it off; `?splash=1` forces it on; no param uses the per-vertical default.
 
 **Original 10 verticals** (unchanged):
 
 Truth-test legend: ✓ wired · ◐ partial · ✗ missing · — not applicable.
 
-| Vertical key | Tenant + named customer | Mark color | All 5 scenes wired (head + lede + 5 beats) | Workspace preset exists | `?splash=1` works | Root sampler | Sampler decision | Future-state components |
-|---|---|---|---|---|---|---|---|---|
-| `wealth` | Hillside × Aster Capital — New Client Onboarding | `#3FDA99` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `wealth-onboarding.html` | fold or retire | ~6 (`wealth-onboarding`) |
-| `banking` | Meridian × Atlas Manufacturing — $2.5M Working Capital Facility | `#2D8EFF` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `banking-deposits.html` | fold or retire | ~6 (`retail-banking-deposits`) |
-| `insurance` | Sentinel × Ramirez Family — HO3 Policy Binding | `#F2B3C2` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `insurance-life.html`, `insurance-pc.html` | shell covers HO3; samplers are L&A and P&C niches | many (`insurance-life-annuities-*` + `insurance-pc-*`) |
-| `provider` | Riverside × Jordan Kim — New Patient Onboarding | `#6FD6C8` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `hls-discovery-process-map.html`, `hls-roi.html` | hls-roi is a distinct ROI flow, may earn its own preset | ~10 (`hls`, `hls-roi`) |
-| `lifesciences` | Helix × Austin Research Clinic — Site Activation for HX-2104 | `#C7A0FF` | ✓ | ✓ | ✓ (inlined 2026-04-26) | none | — | 0 dedicated; ad-hoc demos only |
-| `payor` | Unity × Marcus Chen — Silver HMO Enrollment | `#6FDA9B` | ✓ | ✓ | ✓ (inlined 2026-04-26) | none | — | 0 dedicated |
-| `fedgov` | DOL × Taylor Nguyen — UI Claim UI-2026-48211 | `#E8B800` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `public-sector-employee-onboarding.html`, `public-sector-recertification.html` | overlap with slgov; re-bucket | shared with slgov |
-| `slgov` | Springfield × 1420 Oak Street — Residential Building Permit | `#E8A438` | ✓ | ✓ | ✓ (inlined 2026-04-26) | `public-sector-311.html`, `-benefits`, `-licensing`, `-vendor-compliance` (+ shared with fedgov) | shell covers permit; the 6 samplers are 6 distinct slgov flavors | many (`public-sector-*` × 6 sub-scopes) |
-| `education` | Maple Ridge × Priya Shah — Fall 2026 Student Onboarding | `#F2C65A` | ✓ | ✓ (inlined 2026-04-26) | none | — | 0 dedicated |
-| `nonprofit` | Harbor × Safe Streets Initiative — $120k Grantee Onboarding | `#FFB86B` | ✓ | ✓ | ✓ (inlined 2026-04-26) | none | — | 0 dedicated |
+| Vertical key | Tenant + named customer | Mark color | All 5 scenes wired | Preset exists | `?splash=1` works | **Splash default** | Root sampler | Sampler decision | Future-state components |
+|---|---|---|---|---|---|---|---|---|---|
+| `wealth` | Hillside × Aster Capital — New Client Onboarding | `#3FDA99` | ✓ | ✓ | ✓ | **✓** | `wealth-onboarding.html` | fold or retire | ~6 (`wealth-onboarding`) |
+| `banking` | Meridian × Atlas Manufacturing — $2.5M Working Capital Facility | `#2D8EFF` | ✓ | ✓ | ✓ | **✓** | `banking-deposits.html` | fold or retire | ~6 (`retail-banking-deposits`) |
+| `insurance` | Sentinel × Ramirez Family — HO3 Policy Binding | `#F2B3C2` | ✓ | ✓ | ✓ | ✗ | `insurance-life.html`, `insurance-pc.html` | shell covers HO3; samplers are L&A and P&C niches | many (`insurance-life-annuities-*` + `insurance-pc-*`) |
+| `provider` | Riverside × Jordan Kim — New Patient Onboarding | `#6FD6C8` | ✓ | ✓ | ✓ | ✗ | `hls-discovery-process-map.html`, `hls-roi.html` | hls-roi is a distinct ROI flow, may earn its own preset | ~10 (`hls`, `hls-roi`) |
+| `lifesciences` | Helix × Austin Research Clinic — Site Activation for HX-2104 | `#C7A0FF` | ✓ | ✓ | ✓ | **✓** | none | — | 0 dedicated; ad-hoc demos only |
+| `payor` | Unity × Marcus Chen — Silver HMO Enrollment | `#6FDA9B` | ✓ | ✓ | ✓ | ✗ | none | — | 0 dedicated |
+| `fedgov` | DOL × Taylor Nguyen — UI Claim UI-2026-48211 | `#E8B800` | ✓ | ✓ | ✓ | ✗ | `public-sector-employee-onboarding.html`, `public-sector-recertification.html` | overlap with slgov; re-bucket | shared with slgov |
+| `slgov` | Springfield × 1420 Oak Street — Residential Building Permit | `#E8A438` | ✓ | ✓ | ✓ | ✗ | `public-sector-311.html`, `-benefits`, `-licensing`, `-vendor-compliance` (+ shared with fedgov) | shell covers permit; the 6 samplers are 6 distinct slgov flavors | many (`public-sector-*` × 6 sub-scopes) |
+| `education` | Maple Ridge × Priya Shah — Fall 2026 Student Onboarding | `#F2C65A` | ✓ | ✓ | ✓ | ✗ | none | — | 0 dedicated |
+| `nonprofit` | Harbor × Safe Streets Initiative — $120k Grantee Onboarding | `#FFB86B` | ✓ | ✓ | ✓ | **✓** | none | — | 0 dedicated |
 
 **Headline read:** narration is fully populated for **all 21 verticals** — 5
 scenes × 5 beats each, with tenant brand, named customer, and color

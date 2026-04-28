@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Story Arc Audit · FINS · HLS · PS · 2026-04-27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ink: #1F1A14;
+    --ink-mid: #5F5E5A;
+    --ink-soft: #8A8780;
+    --cream: #FAF7F2;
+    --cream-warm: #F5F0E6;
+    --hair: #E8E4DA;
+    --hair-strong: #D3D1C7;
+    --sage: #6B8A6F;
+    --sage-bg: #E8EFE7;
+    --sage-deep: #4F6E54;
+    --plum: #4B00E9;
+    --plum-bg: #EDEBFC;
+    --amber: #BA7517;
+    --amber-bg: #FBF0C9;
+    --rust: #B84A2C;
+    --rust-bg: #F8E5DD;
+    --rule: #D9D5C9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 56px 48px 96px; }
+
+  /* === EDITORIAL END === */
+  .kicker {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--sage-deep); font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400; font-size: 46px; line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0 0 22px;
+    color: var(--ink);
+  }
+  h1 em { font-style: italic; color: var(--sage-deep); }
+  .deck {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 20px; line-height: 1.45; color: var(--ink-mid);
+    max-width: 760px;
+    margin: 0 0 36px;
+  }
+  .meta {
+    font-size: 12px; color: var(--ink-soft);
+    margin-bottom: 56px; padding-bottom: 18px;
+    border-bottom: 1px solid var(--rule);
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .meta span { display: inline-flex; gap: 6px; }
+  .meta strong { color: var(--ink-mid); font-weight: 500; }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500; font-size: 28px; line-height: 1.2;
+    margin: 56px 0 18px;
+    color: var(--ink);
+  }
+  h2 .num {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; letter-spacing: 0.16em;
+    color: var(--sage-deep); font-weight: 600;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink);
+    margin: 32px 0 10px;
+  }
+  p { margin: 0 0 14px; max-width: 760px; }
+  p.lead {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px; color: var(--ink); line-height: 1.5;
+  }
+  .em-sage { color: var(--sage-deep); font-weight: 500; }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; color: var(--sage-deep);
+    background: var(--sage-bg); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* Hairline zone break */
+  .zone-break {
+    margin: 72px 0 56px;
+    border: 0; border-top: 1px solid var(--rule);
+    height: 0;
+  }
+  .zone-break-label {
+    text-align: center;
+    margin: -10px 0 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; letter-spacing: 0.22em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .zone-break-label span { background: var(--cream); padding: 0 14px; }
+
+  /* === ARCHETYPE CARDS === */
+  .archetypes {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--hair);
+    border: 1px solid var(--hair);
+    margin: 24px 0 8px;
+  }
+  .arc {
+    background: var(--cream-warm);
+    padding: 22px 24px;
+  }
+  .arc .tag {
+    font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--sage-deep); font-weight: 600; margin-bottom: 6px;
+  }
+  .arc h4 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 19px; margin: 0 0 8px; color: var(--ink);
+  }
+  .arc p { font-size: 13.5px; color: var(--ink-mid); margin: 0 0 10px; line-height: 1.5; }
+  .arc .scenes-mini {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--sage-deep);
+    background: var(--cream); padding: 8px 10px; border-radius: 3px;
+    margin-top: 8px; line-height: 1.6;
+  }
+  .arc.archetype-c { background: #F5F2EA; }
+  .arc.archetype-c .tag { color: var(--amber); }
+  .arc.archetype-d { background: #F5F2EA; }
+  .arc.archetype-d .tag { color: var(--plum); }
+
+  /* === ANALYTICAL END === */
+  .analytical {
+    font-family: 'Iowan Old Style', 'Charter', Georgia, serif;
+    font-size: 14.5px; line-height: 1.5;
+  }
+  .analytical h2 { font-family: 'Iowan Old Style', Georgia, serif; }
+
+  /* Diagnostic grid */
+  table.diag {
+    width: 100%; border-collapse: collapse;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    margin: 18px 0 14px;
+  }
+  table.diag thead th {
+    text-align: left; font-weight: 600; color: var(--ink-mid);
+    border-bottom: 1.5px solid var(--ink); padding: 8px 10px 6px;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  table.diag tbody td {
+    padding: 9px 10px; border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  table.diag .vk {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    color: var(--sage-deep); white-space: nowrap;
+  }
+  table.diag .tenant { color: var(--ink); font-weight: 500; font-size: 12px; }
+  table.diag .tenant .cust { color: var(--ink-soft); font-size: 11px; display: block; margin-top: 2px; }
+  table.diag .archetype-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    font-family: 'Inter', sans-serif;
+  }
+  .pill-A { background: var(--sage-bg); color: var(--sage-deep); }
+  .pill-B { background: #DCEAF5; color: #1B4D7A; }
+  .pill-C { background: var(--amber-bg); color: var(--amber); }
+  .pill-D { background: var(--plum-bg); color: var(--plum); }
+  .pill-A-trig { background: var(--sage-bg); color: var(--sage-deep); border: 1px dashed var(--sage); }
+
+  .arrow { color: var(--ink-soft); margin: 0 6px; }
+  .change-no { color: var(--sage-deep); font-weight: 500; font-size: 11px; }
+  .change-yes { color: var(--rust); font-weight: 500; font-size: 11px; }
+
+  table.diag .flags {
+    font-size: 11px; color: var(--ink-mid); line-height: 1.4;
+  }
+  table.diag .flags em {
+    font-style: normal; color: var(--rust); font-weight: 500;
+  }
+  table.diag .flags .ok {
+    color: var(--sage-deep); font-weight: 500;
+  }
+
+  /* Severity dots */
+  .sev { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  .sev-high { background: var(--rust); }
+  .sev-med { background: var(--amber); }
+  .sev-low { background: var(--sage); }
+  .sev-none { background: var(--hair-strong); }
+
+  /* Section dividers between FINS/HLS/PS */
+  table.diag tbody tr.section-row td {
+    background: var(--cream-warm);
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--sage-deep);
+    padding: 12px 10px 8px;
+    border-bottom: 1px solid var(--rule);
+    border-top: 1px solid var(--rule);
+  }
+
+  /* Sparkline-ish per-scene strip */
+  .scene-strip {
+    display: inline-flex; gap: 1px; vertical-align: middle;
+  }
+  .scene-strip span {
+    display: inline-block; width: 10px; height: 10px;
+    background: var(--hair-strong);
+  }
+  .scene-strip span.ok { background: var(--sage); }
+  .scene-strip span.flag { background: var(--rust); }
+  .scene-strip span.warn { background: var(--amber); }
+  .scene-strip span.skip { background: var(--hair); border: 1px dashed var(--hair-strong); }
+
+  /* Marginalia */
+  .marg {
+    border-left: 2px solid var(--sage);
+    padding: 4px 14px;
+    margin: 18px 0;
+    font-family: 'Iowan Old Style', Georgia, serif;
+    font-size: 13.5px; color: var(--ink-mid); font-style: italic;
+    background: var(--sage-bg);
+  }
+
+  /* Top fixes */
+  .fixes {
+    counter-reset: fix;
+    margin: 18px 0;
+  }
+  .fix-item {
+    counter-increment: fix;
+    display: grid; grid-template-columns: 32px 1fr;
+    gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--rule);
+  }
+  .fix-item:last-child { border-bottom: 0; }
+  .fix-item::before {
+    content: counter(fix);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 28px; color: var(--sage-deep); font-weight: 400;
+    line-height: 1; padding-top: 2px;
+  }
+  .fix-item .label {
+    font-weight: 600; font-size: 14px; margin-bottom: 4px;
+  }
+  .fix-item .body { font-size: 13px; color: var(--ink-mid); line-height: 1.5; max-width: 760px; }
+  .fix-item .stories {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--sage-deep); margin-top: 6px;
+  }
+
+  /* Submit-queue block */
+  .queue {
+    background: var(--cream-warm);
+    border: 1px solid var(--hair);
+    padding: 22px 24px; margin: 18px 0;
+    font-size: 13.5px;
+  }
+  .queue h4 { margin: 0 0 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .queue pre {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    background: var(--cream); padding: 12px 14px; border: 1px solid var(--hair);
+    overflow-x: auto; margin: 8px 0;
+  }
+  .queue .file-link {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    color: var(--plum);
+  }
+
+  /* Footer */
+  .foot {
+    margin-top: 64px; padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 11.5px; color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== EDITORIAL END ===================== -->
+
+  <div class="kicker">Story Arc Audit · 2026-04-27</div>
+  <h1>The spine assumes <em>inbound email</em>. Most B2C demos don't open that way.</h1>
+  <p class="deck">Of 19 stories across FINS, HLS, and PS, only three open in a way that actually matches the current Scene&nbsp;1 framing. Sixteen are forced into an Agreement-Desk-as-intake mental model that doesn't reflect how the work happens. The fix isn't 19 rewrites — it's one relabel and four archetypes.</p>
+
+  <div class="meta">
+    <span><strong>Scope</strong>&nbsp;FINS · HLS · PS · 19 stories</span>
+    <span><strong>Source of truth</strong>&nbsp;<code>stories/_shared/story-shell.html</code></span>
+    <span><strong>Capture</strong>&nbsp;<code>/api/audit/submit</code> queue</span>
+  </div>
+
+  <h2><span class="num">Part I · The thesis</span>The Scene 1 mismatch</h2>
+
+  <p class="lead">The shell hardwires Scene&nbsp;1 to <code>docusign-agreement-desk.html</code> and writes every story's opening as "internal user submits intake at the Agreement Desk." That metaphor is built for inbound mail-room work — paper, partner submissions, supplier docs arriving from outside. It is not the dominant pattern in B2C agreement work.</p>
+
+  <p>In FINS, HLS, and PS, the dominant patterns are two: an internal sender filling a webform that fires Maestro to dynamically assemble the package, or a customer self-serving the same webform from a portal/app. Agreement Desk does have a real role — it's just not the default. It's the right answer when something genuinely arrives <em>from outside</em>: a death notice from a funeral home, a records request from a disability carrier, a partner-submitted RFP. In those cases it earns its keep. Everywhere else, it's narrating a journey the work didn't take.</p>
+
+  <p>The proposal is small in surface area and large in coherence: rename Scene&nbsp;1 from <code>SENDER · Agreement Desk</code> to <code>INTAKE</code>, and let Scene&nbsp;1 host four archetypes instead of one. The shell template can stay; the iframe target can stay where the archetype is genuinely Agreement-Desk-shaped, and otherwise swap to a Webforms+Maestro mock or a Workspaces deal-room mock.</p>
+
+  <div class="marg">The spine itself isn't broken. The label and the default Scene&nbsp;1 iframe are. Every other scene (CLEAR, Signing, Navigator, Workspace) holds its position cleanly across all four archetypes — only the entry point varies.</div>
+
+  <h2><span class="num">Part II · The four archetypes</span>What replaces "the Sender opens the Agreement Desk"</h2>
+
+  <div class="archetypes">
+    <div class="arc">
+      <div class="tag">Archetype A · Default for B2C employees</div>
+      <h4>Sender Webform + Maestro</h4>
+      <p>An internal employee — RM, underwriter, eligibility specialist, advisor — fills out a webform. Maestro orchestrates dynamic packaging: pick products, make selections, pre-fill from system of record, generate a tailored envelope. Scene&nbsp;1 shows the webform and the Maestro fan-out, not an inbox.</p>
+      <p><strong>Sub-variant: Maestro-triggered.</strong> No human fills the form — a system event fires it (renewal date, expiring cert, BG-check clear, claim event). Same archetype, different ignition.</p>
+      <div class="scenes-mini">S1 Webform + Maestro · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+    </div>
+    <div class="arc">
+      <div class="tag">Archetype B · Default for customer-initiated</div>
+      <h4>Self-Service Webform + Maestro</h4>
+      <p>The customer hits a public-facing or embedded webform — patient portal pre-reg, mobile banking "open new account," state benefits portal, 311 QR scan, vendor compliance recert. Maestro receives, packages, and routes back. Scene&nbsp;1 shows the customer's experience of the webform; the sender side appears later (often in Workspaces) to triage and complete.</p>
+      <div class="scenes-mini">S1 Self-service Webform + Maestro · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+    </div>
+    <div class="arc archetype-c">
+      <div class="tag">Archetype C · The genuine inbound case</div>
+      <h4>Inbound Agreement Desk</h4>
+      <p>Something actually arrives from outside — a death notice, an external party's records request, a partner-submitted document. The Agreement Desk inbox catches it, applies AI parsing, and routes. This is the original Agreement Desk story and it remains valid; it's just not the right scaffolding for sender-driven or self-service flows.</p>
+      <div class="scenes-mini">S1 Agreement Desk inbound · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+    </div>
+    <div class="arc archetype-d">
+      <div class="tag">Archetype D · When the work is non-linear</div>
+      <h4>Workspaces-Led</h4>
+      <p>The engagement is too parallel, multi-party, or iterative for a webform-and-package opening. A commercial loan with credit-officer back-and-forth. A discovery process for a wealth household. A complex permit with multiple inspections. Scene&nbsp;1 opens a Workspaces deal/relationship room; documents and signatures emerge from within it across scenes.</p>
+      <div class="scenes-mini">S1 Workspaces deal room · S2 Webforms+Maestro inside Workspace · S3 CLEAR · S4 Signing · S5 Navigator</div>
+    </div>
+  </div>
+
+  <p style="margin-top: 18px; font-size: 13px; color: var(--ink-mid);">Note the scene-product order in Archetype&nbsp;D differs from A/B/C: Workspaces leads, Navigator trails. The shell can still render the same five scene slots; what changes is which iframe loads in slot&nbsp;1, and a small reordering of slot&nbsp;5 vs. slot&nbsp;4 narration.</p>
+
+  <!-- ===================== ZONE BREAK ===================== -->
+
+  <hr class="zone-break" />
+  <div class="zone-break-label"><span>The data</span></div>
+
+  <!-- ===================== ANALYTICAL END ===================== -->
+
+  <div class="analytical">
+
+  <h2><span class="num">Part III · The diagnostic grid</span>19 stories, current vs. intended</h2>
+
+  <p>Each row reads: where the story currently opens (per the shell narration), which archetype it should open as, and any flags in scenes 2–5 where the product sequence diverges from the spine. The four-cell strip on the right encodes scene fit (S1 / S2 / S3 / S4 / S5) — green = clean, amber = minor, red = re-anchor, dashed = optional/skip.</p>
+
+  <table class="diag">
+    <thead>
+      <tr>
+        <th>Vertical · tenant × customer</th>
+        <th>Currently opens as</th>
+        <th>Should open as</th>
+        <th>Scenes 2–5 flags</th>
+        <th style="width: 90px;">Strip</th>
+        <th style="width: 60px;">Sev</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr class="section-row"><td colspan="6">FINS · Financial Services · 7 stories</td></tr>
+
+      <tr>
+        <td><span class="vk">wealth</span><br><span class="tenant">Hillside <span class="cust">× Aster Capital — IMA onboarding</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-A">A · Sender Webform</span><br><span class="change-yes">re-anchor S1</span></td>
+        <td class="flags">S2–S5 <span class="ok">clean</span> · "Priya submits" reads as a webform, not an inbox</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-med"></span>med</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">banking</span><br><span class="tenant">Meridian <span class="cust">× Atlas Mfg — $2.5M working-capital facility</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-D">D · Workspaces-led</span><br><span class="change-yes">reorder S1↔S5 logic</span></td>
+        <td class="flags">$2.5M facility with parallel credit officer routing + four-doc package <em>is non-linear</em>. Workspaces deal room should open S1; Navigator extracts at S5.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="warn"></span><span class="warn"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance</span><br><span class="tenant">Sentinel <span class="cust">× Ramirez — HO3 binder</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-A">A · Sender Webform</span><br><span class="change-yes">re-anchor S1</span></td>
+        <td class="flags">S2–S5 <span class="ok">clean</span> · Marisol's binder request is a sender webform, not an inbox arrival</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-med"></span>med</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance-life</span><br><span class="tenant">Beacon Mutual <span class="cust">× Whitfield — death claim</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-no">already correct shape</span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-no">keep · sharpen</span></td>
+        <td class="flags">Death notice is genuinely inbound. <span class="ok">Right archetype</span>. Tighten S1 lede to lead with the inbound event (notice arrives from funeral home / state vital records), not "Camille opens."</td>
+        <td><span class="scene-strip"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">insurance-pc</span><br><span class="tenant">Northgate Mutual <span class="cust">× Patel Logistics — commercial auto FNOL</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">misframed</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service FNOL</span> + Andre triages<br><span class="change-yes">re-anchor S1</span></td>
+        <td class="flags">FNOL is loss-event-triggered: customer files via webform/app/phone; field adjuster picks up. S1 should open with the FNOL <em>arrival</em>, not Andre "opening."</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-med"></span>med</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">banking-deposits</span><br><span class="tenant">Cedar Federal <span class="cust">× Williams — joint checking + HYSA</span></span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service</span><br><span class="change-no">already correct</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service</span><br><span class="change-no">keep</span></td>
+        <td class="flags">"Marcus taps Open New Account on mobile." <span class="ok">Right archetype, right framing.</span> Only nit: scene tag still says "SENDER" — should read "INTAKE · self-service."</td>
+        <td><span class="scene-strip"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">wealth-discovery</span><br><span class="tenant">Cypress Wealth <span class="cust">× Holcomb — IRA + family trust</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-D">D · Workspaces-led</span><br><span class="change-yes">reorder + reframe</span></td>
+        <td class="flags">"Discovery session" is collaborative + multi-account. Should open in a Workspaces relationship room (Holcombs + Reggie + co-trustee), with Webforms+Maestro firing the multi-account package <em>inside</em> the Workspace at S2 or S3.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="warn"></span><span class="warn"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="6">HLS · Healthcare &amp; Life Sciences · 4 stories</td></tr>
+
+      <tr>
+        <td><span class="vk">provider</span><br><span class="tenant">Riverside <span class="cust">× Jordan Kim — new patient onboarding</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service portal</span><br><span class="change-yes">modernize S1</span></td>
+        <td class="flags">Modern provider intake is patient-portal pre-reg, not coordinator-side packet assembly. S1 should open with Jordan in the patient portal; Daniela triages later in Workspaces.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">lifesciences</span><br><span class="tenant">Helix <span class="cust">× ARC — site activation HX-2104</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">label only</span></td>
+        <td><span class="archetype-pill pill-A">A · Sender Webform</span><br><span class="change-yes">re-anchor S1</span></td>
+        <td class="flags">Sponsor-initiated site activation is exactly Archetype A — Ethan fills a study-config webform, Maestro fans out CTA + budget + 1572 + IRB. Just relabel.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">payor</span><br><span class="tenant">Unity <span class="cust">× Marcus Chen — Silver HMO enrollment</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service marketplace</span><br><span class="change-yes">modernize S1</span></td>
+        <td class="flags">Member self-service via marketplace is the dominant enrollment pattern. Brenda's "submits" framing reads like a back-office app the actual member never touches.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">provider-roi</span><br><span class="tenant">Catalina Medical <span class="cust">× Eric Tan — records request to Silver Mountain</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-no">already correct shape</span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-no">keep · sharpen</span></td>
+        <td class="flags">External requester (Silver Mountain Disability) <em>genuinely</em> initiates inbound to Catalina HIM. <span class="ok">Right archetype.</span> S1 should lead with the inbound request arriving, not Renata "opening."</td>
+        <td><span class="scene-strip"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr class="section-row"><td colspan="6">PS · Public Sector · 8 stories</td></tr>
+
+      <tr>
+        <td><span class="vk">fedgov</span><br><span class="tenant">DOL <span class="cust">× Taylor Nguyen — UI claim</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">misframed as inbound</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service state portal</span><br><span class="change-yes">modernize S1</span></td>
+        <td class="flags">UI claims are claimant-self-filed via state portal. "Arrives at the Department of Labor's desk" is paper-era language for a digital flow.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov</span><br><span class="tenant">Springfield <span class="cust">× 1420 Oak — residential building permit</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service permit portal</span><br><span class="change-yes">modernize S1</span></td>
+        <td class="flags">Modern permitting is applicant-self-service. "Dean opens the application" reads as front-counter intake; Marissa is the actual sender.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-311</span><br><span class="tenant">Greenhaven <span class="cust">× 1124 Cedar — pothole report</span></span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service</span> (with confused S1 head)<br><span class="change-yes">tighten S1 head</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service QR scan</span><br><span class="change-yes">lead with Maria, not Marisol</span></td>
+        <td class="flags">Body of S1 is right (Maria scans QR). Head says "Marisol opens" which contradicts the lede. Also: <em>Navigator at S4 is overweight</em> — pothole resolution lives in ServiceNow; Navigator scene reads forced.</td>
+        <td><span class="scene-strip"><span class="warn"></span><span class="warn"></span><span class="ok"></span><span class="warn"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-med"></span>med</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-benefits</span><br><span class="tenant">Eastside HHS <span class="cust">× Rivera family — SNAP application</span></span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service</span><br><span class="change-no">already correct</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service mobile</span><br><span class="change-no">keep</span></td>
+        <td class="flags">"Yolanda submits the SNAP application from her phone." <span class="ok">Right archetype.</span> Devon's framing in the head can stay (caseworker reviews after submission).</td>
+        <td><span class="scene-strip"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-recertification</span><br><span class="tenant">Cascade Medicaid <span class="cust">× Diane Park — annual recert</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">re-anchor on system event</span></td>
+        <td class="flags">Recert window auto-fires; no human "opens" anything. S1 should lead with Maestro detecting the renewal date, not Asha clicking. S2 already correctly uses OTP not CLEAR — keep.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-high"></span>high</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-vendor-compliance</span><br><span class="tenant">Ridgeview Procurement <span class="cust">× Apex Logistics — annual COI recert</span></span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-no">framing partially right</span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
+        <td class="flags">Beat 1 already says "Maestro detects Apex's expiring compliance certs" — <span class="ok">that's exactly right</span>. But scene head still says "Olivia opens" which softens the system-event framing. Lead with the Maestro detection.</td>
+        <td><span class="scene-strip"><span class="warn"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-employee-onboarding</span><br><span class="tenant">Cascade County HR <span class="cust">× Marcus Lee — Caseworker I onboarding</span></span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-no">framing partially right</span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
+        <td class="flags">Beat 1 already says "Background check clears — Marcus's onboarding triggers" — <span class="ok">that's the system event</span>. Scene head still leads with Karina "opening." Lead with the BG-check event firing Maestro.</td>
+        <td><span class="scene-strip"><span class="warn"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-low"></span>low</td>
+      </tr>
+
+      <tr>
+        <td><span class="vk">slgov-licensing</span><br><span class="tenant">Northbrook Licensing <span class="cust">× Avalon Café — restaurant license</span></span></td>
+        <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">misframed</span></td>
+        <td><span class="archetype-pill pill-B">B · Self-service applicant portal</span><br><span class="change-yes">modernize S1</span></td>
+        <td class="flags">Beat 1 says "Mei submits the application" — <em>Mei is the sender</em>. Scene head leading with Trevor is back-office framing. Modern PS licensing is applicant-portal-driven.</td>
+        <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
+        <td><span class="sev sev-med"></span>med</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <p style="font-size: 12.5px; color: var(--ink-mid); margin-top: 6px;">
+    <strong>Tally.</strong> Scene 1 needs surgery on <strong>16 of 19</strong> stories.
+    Of those: <span class="em-sage">10 are pure relabel/reframe</span> (current product is right, copy is wrong);
+    <span class="em-sage">3 modernize from sender-side to self-service</span> (provider, payor, fedgov, slgov, slgov-licensing — pick 3 to lead on);
+    <span class="em-sage">2 reorder for non-linearity</span> (banking, wealth-discovery → Workspaces-led);
+    <span class="em-sage">3 sharpen the inbound/triggered framing</span> (insurance-life, provider-roi, slgov-recertification + the 2 already-partially-right Maestro-triggered ones).
+    Scenes 2–5 are <strong>structurally clean across all 19</strong>; only slgov-311's S4 is genuinely overweight.
+  </p>
+
+  <h2><span class="num">Part IV · Top fixes</span>The five moves that resolve most of it</h2>
+
+  <div class="fixes">
+
+    <div class="fix-item">
+      <div>
+        <div class="label">Rename Scene 1 from "Sender · Agreement Desk" to "Intake," and define the four archetypes in the shell.</div>
+        <div class="body">One shell change unlocks the rest. Add a per-vertical <code>intake</code> field on each VERTICALS entry: <code>"webform-sender" | "webform-self-service" | "agreement-desk" | "workspaces"</code>. The scene tag, scene head template, and Scene 1 iframe target all branch off it. Keeps the 5-scene spine; honors the four real openings.</div>
+      </div>
+    </div>
+
+    <div class="fix-item">
+      <div>
+        <div class="label">Re-anchor Scene 1 copy on the 10 stories where the archetype is right but the framing forces Agreement-Desk language.</div>
+        <div class="body">Pure copy job. No iframe changes, no spine changes. Each scene gets a new tag ("INTAKE · sender webform" or "INTAKE · self-service" or "INTAKE · Maestro-triggered"), a rewritten head, and a tightened lede that leads with the actual ignition (form submit, system event, customer tap).</div>
+        <div class="stories">wealth · insurance · lifesciences · slgov-vendor-compliance · slgov-employee-onboarding · slgov-311 (head fix) · slgov-benefits (tag fix) · banking-deposits (tag fix) · insurance-life (lead with inbound) · provider-roi (lead with inbound)</div>
+      </div>
+    </div>
+
+    <div class="fix-item">
+      <div>
+        <div class="label">Modernize the 5 stories that should be self-service but currently read as back-office.</div>
+        <div class="body">Bigger lift — the actor changes. Scene 1 opens with the customer/applicant in their portal, not the employee opening the case. The internal employee shows up in S5 (Workspaces) for triage and follow-through, not S1.</div>
+        <div class="stories">provider · payor · fedgov · slgov · slgov-licensing</div>
+      </div>
+    </div>
+
+    <div class="fix-item">
+      <div>
+        <div class="label">Reorder banking ($2.5M facility) and wealth-discovery to Workspaces-led.</div>
+        <div class="body">These two are not webform-shaped engagements. Open Scene 1 in a Workspaces deal/relationship room with all parties present. Webforms+Maestro fire <em>inside</em> the Workspace at the appropriate moment to generate the package. Navigator still anchors S5 for repository extraction. This is a real spine variant — the only two stories that need it.</div>
+        <div class="stories">banking · wealth-discovery</div>
+      </div>
+    </div>
+
+    <div class="fix-item">
+      <div>
+        <div class="label">Sharpen the 3 Maestro-triggered stories so the system event is the visible ignition.</div>
+        <div class="body">slgov-recertification, slgov-vendor-compliance, and slgov-employee-onboarding are the cleanest examples of Maestro-as-orchestrator. The current shell head names a human "opening" the case. Lead with the trigger: "Cascade's recertification window fires for Diane Park." / "Maestro detects Apex's expiring COI." / "Marcus's background check clears — onboarding fires." This pattern alone sells Maestro better than any other single moment in the demo set.</div>
+        <div class="stories">slgov-recertification · slgov-vendor-compliance · slgov-employee-onboarding</div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2><span class="num">Part V · How to apply</span>Submission queue ready to push</h2>
+
+  <p>The findings above are encoded into per-vertical audit submissions in <code>_audits/audit-payloads-2026-04-27.json</code>, scoped to Scene 1 fields only (tag, head, lede first paragraph, beat 1 head). Each entry carries an explicit <code>note</code> with the archetype rationale, so when you review at <code>/admin/audit</code> you see <em>why</em> not just <em>what</em>.</p>
+
+  <div class="queue">
+    <h4>Push from the workspace folder</h4>
+    <p style="margin: 6px 0 8px; font-size: 12.5px; color: var(--ink-mid);">From your Replit shell or local with <code>REPLIT_URL</code> set:</p>
+    <pre>node _audits/push-audit-queue.mjs \
+  --base https://&lt;your-replit-domain&gt; \
+  --file _audits/audit-payloads-2026-04-27.json \
+  --author "Jimmy" \
+  --note "Story arc audit — FINS/HLS/PS Scene 1 archetype re-anchor"</pre>
+    <p style="margin: 8px 0 0; font-size: 12.5px; color: var(--ink-mid);">
+      Or paste each entry's <code>changes</code> block into the audit page modal at <code>/audit.html</code> one vertical at a time.<br>
+      Review the queue at <code>/admin/audit</code> · apply via Python importer per the existing TGK workflow.
+    </p>
+  </div>
+
+  <p style="font-size: 12.5px; color: var(--ink-mid);">
+    The submission entries propose <em>copy edits only</em> (Scene 1 tag, head, beat-1 head, partial lede). They do <em>not</em> change the iframe target — that's a separate shell-level change tied to Move&nbsp;1 (rename Scene 1, add the <code>intake</code> field). Sequence the moves: first land the relabel in the shell, then apply the copy edits from the queue, then wire the two D-archetype stories (banking, wealth-discovery) as a follow-up because they need real iframe rerouting.
+  </p>
+
+  <div class="marg">
+    The grid says only 3 stories are clean. The fixes section says 5 moves cover everything. Those numbers reconcile because most stories cluster — 10 of the 16 misframed are the same kind of misframing (Archetype A label/copy correction) and resolve in one editorial pass.
+  </div>
+
+  </div><!-- /.analytical -->
+
+  <div class="foot">
+    Audit prepared 2026-04-27 against <code>stories/_shared/story-shell.html</code> at the working-tree state. Capture pipeline: <code>/api/audit/storylines</code> + <code>/api/audit/submit</code>. See <code>CANONICAL.md</code> for the canonical 5-scene shape and live-state matrix.
+  </div>
+
+</div>
+</body>
+</html>
