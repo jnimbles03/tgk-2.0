@@ -79,22 +79,28 @@
     font-family:var(--editorial);
     font-style:italic;
     font-weight:500;
-    font-size:40px;
-    letter-spacing:-0.01em;
-    line-height:1.12;
-    margin-bottom:24px;
+    font-size:54px;
+    letter-spacing:-0.015em;
+    line-height:1.08;
+    margin-bottom:28px;
   }
-  .shell.lead-mode .lede{opacity:1;}
+  .shell.lead-mode .lede{opacity:1;font-size:16px;}
+  .shell.lead-mode .step-label{opacity:1;}
   .shell.lead-mode .stage-veil{opacity:1;}
+  /* Sidebar gets a warm cream wash in lead mode so the editorial side
+     reads as a distinct surface, not just a column on a white page. */
+  .shell.lead-mode .sidebar{background:#FBF8F2;}
 
   .shell.yield-mode .headline{
-    font-size:22px;
+    font-size:19px;
     font-weight:600;
-    margin-bottom:16px;
+    margin-bottom:14px;
+    letter-spacing:-0.01em;
   }
-  .shell.yield-mode .lede{opacity:0.55;font-size:14px;}
-  .shell.yield-mode .step-label{opacity:0.7;}
+  .shell.yield-mode .lede{opacity:0.42;font-size:13.5px;}
+  .shell.yield-mode .step-label{opacity:0.55;}
   .shell.yield-mode .stage-veil{opacity:0;}
+  .shell.yield-mode .sidebar{background:#fff;}
 
   /* Soft restore on sidebar hover: while focus is on the demo, hovering
      the sidebar fades the supporting prose back in so the user can re-read
@@ -104,12 +110,14 @@
 
   .stage-veil{
     position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(234,228,218,0.42) 0%,rgba(234,228,218,0.28) 100%);
+    background:linear-gradient(135deg,rgba(19,0,50,0.22) 0%,rgba(19,0,50,0.10) 70%,rgba(19,0,50,0.05) 100%);
     pointer-events:none;
     opacity:0;
-    transition:opacity 0.6s ease;
+    transition:opacity 0.7s ease;
     z-index:5;
   }
+  /* Sidebar background transition matches the lead/yield rhythm. */
+  .sidebar{transition:background 0.6s ease;}
 
   /* Calibrate mode: operator needs the demo at full brightness while
      dragging hotspots — disable the lead veil and force yield typography. */
@@ -217,8 +225,9 @@
 
     /* Mobile lead-mode: keep the editorial cue but cap the headline so it
        doesn't overflow the narration card on a phone. */
-    .shell.lead-mode .headline{font-size:24px;margin-bottom:10px;}
-    .shell.yield-mode .headline{font-size:18px;margin-bottom:10px;}
+    .shell.lead-mode .headline{font-size:26px;margin-bottom:10px;}
+    .shell.yield-mode .headline{font-size:16px;margin-bottom:10px;}
+    .shell.yield-mode .lede{font-size:12.5px;}
 
     /* Hotspot dot stays small but tappable; tip clamps so it never overflows the screen. */
     .hotspot .ring{width:16px;height:16px;}
@@ -2353,7 +2362,7 @@ function goTo(i, opts = {}){
    - enterYieldMode(): headline collapses to Inter 22px, lede drops to
      ~55% opacity, veil dissolves. Demo owns the visual weight.
    ========================================================= */
-const LEAD_HOLD_MS = 1600;
+const LEAD_HOLD_MS = 2600;
 let leadTimer = null;
 function enterLeadMode(){
   const shell = document.querySelector('.shell');
