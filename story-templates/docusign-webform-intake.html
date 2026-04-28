@@ -867,10 +867,87 @@
     },
   };
 
+  /* === Maintenance overrides ===
+   * When the shell loads this template with ?usecase=maintenance, we look up
+   * MAINTENANCE_PRESETS[preset] and overlay its fields on top of the intake
+   * preset. Only the fields we want to swap are listed; everything else (CSS,
+   * footer, action buttons, hotspot positions) inherits from the intake base.
+   * Verticals without a maintenance entry fall back to the intake content. */
+  const MAINTENANCE_PRESETS = {
+    wealth: {
+      module: 'Authorized Signer Update',
+      s1Title: 'Authorized Signer Update',
+      s1Lede1: 'Select the change to the Aster Capital authorized-signer roster. Maestro will route for dual authorization and Hillside compliance review.',
+      engagementOptions: ['Add new signer · Aster Capital ($100M+ AUM)', 'Remove signer', 'Update signing-authority scope'],
+      docs: [
+        { label: 'Authorized signer addendum', help: 'Adds Jamie Chen, VP Treasury.' },
+        { label: 'Signing-authority schedule', help: '$5M single-signer cap; unlimited under dual.' },
+        { label: 'KYB refresh', help: 'Pulls Aster\'s current beneficial-ownership record.' },
+        { label: 'Dual-authorization attestation', help: 'Daniel CEO co-authorizes.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Authorized signer addendum', 'Signing-authority schedule', 'KYB refresh', 'Dual-auth attestation', 'Identity binding · Jamie Chen'],
+      routeList: ['Mira Sundar (CFO) · initiator', 'Daniel Patel (CEO) · co-authorizer', 'Hillside compliance · review', 'Pershing custodian · record refresh'],
+      signerName: 'Jamie Chen · Aster Capital VP Treasury',
+      signerEmail: 'jamie.chen@astercapital.com',
+      emailSubject: 'Aster Capital · Authorized Signer Update · Jamie Chen',
+      emailMessage: 'Mira — Authorized-signer roster update ready for review. Daniel CEO co-authorization captured. — Priya',
+      senderName: 'Priya Das', senderRole: 'Head of Compliance', senderTenant: 'Hillside Advisors',
+      toast: 'Signer update routed · Pershing record will refresh'
+    },
+    'wealth-discovery': {
+      module: 'IRA Beneficiary Update',
+      s1Title: 'IRA Beneficiary Update',
+      s1Lede1: 'Select the beneficiary change to the Holcomb IRA. Maestro will route for spousal consent and Cypress fiduciary review.',
+      engagementOptions: ['Add charitable contingent · Holcomb IRA', 'Replace primary beneficiary', 'Update allocation percentages'],
+      docs: [
+        { label: 'IRA beneficiary designation form', help: 'Updates Schwab custodial record.' },
+        { label: 'Spousal consent form', help: 'Esther step-up auth path.' },
+        { label: 'Charity verification (501(c)(3))', help: 'IRS Pub 78 cross-check for Holcomb Family Foundation.' },
+        { label: 'Fiduciary acknowledgment', help: 'Reggie review · per IPS.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['IRA beneficiary form', 'Spousal consent', 'Charity 501(c)(3) verification', 'Fiduciary acknowledgment', 'Schwab IRA record refresh'],
+      routeList: ['Walter Holcomb · initiator (primary)', 'Esther Holcomb · spousal consent', 'Reggie Adesanya (advisor) · fiduciary review', 'Schwab custodian · record refresh'],
+      signerName: 'Walter Holcomb · Cypress IRA owner',
+      signerEmail: 'walter.h@example.com',
+      emailSubject: 'Holcomb · IRA Beneficiary Update · Add Foundation Contingent',
+      emailMessage: 'Walter — beneficiary update form ready. Spousal consent path queued for Esther. — Reggie',
+      senderName: 'Reggie Adesanya', senderRole: 'Senior Financial Advisor', senderTenant: 'Cypress Wealth',
+      toast: 'Beneficiary update sent · Schwab record will refresh'
+    },
+    'banking-deposits': {
+      module: 'Joint Account Beneficiary Update',
+      s1Title: 'Joint Account Beneficiary Update',
+      s1Lede1: 'Select the beneficiary change to the Williams household joint accounts. Maestro will route for dual-signer authorization and Cedar relationship-banker review.',
+      engagementOptions: ['Replace primary beneficiary · joint checking + HYSA (Williams)', 'Add contingent beneficiary', 'Update allocation percentages'],
+      docs: [
+        { label: 'Primary beneficiary designation', help: 'Replace parents → children.' },
+        { label: 'Contingent designation', help: 'Adaeze remains contingent.' },
+        { label: 'Dual-signer attestation', help: 'Both household signers.' },
+        { label: 'Household composition update', help: 'Reflects post-life-event state.' }
+      ],
+      checked: [true, true, true, true],
+      packageList: ['Primary beneficiary designation', 'Contingent designation', 'Dual-signer attestation', 'Household composition update', 'Cedar core record refresh'],
+      routeList: ['Marcus Williams · initiator', 'Adaeze Williams · joint authorization', 'Casey Anderson (relationship banker) · compliance review', 'Cedar core · record refresh'],
+      signerName: 'Marcus Williams · Cedar joint accounts',
+      signerEmail: 'marcus.williams@example.com',
+      emailSubject: 'Williams Household · Beneficiary Update · Joint Accounts',
+      emailMessage: 'Marcus — beneficiary update form ready. Adaeze joint-signer path queued. — Casey',
+      senderName: 'Casey Anderson', senderRole: 'Relationship Banker', senderTenant: 'Cedar Federal',
+      toast: 'Beneficiary update sent · core record will refresh'
+    }
+  };
+
   /* Apply preset */
   const params = new URLSearchParams(location.search);
   const preset = params.get('preset') || 'wealth';
-  const p = PRESETS[preset] || PRESETS.wealth;
+  const usecase = params.get('usecase') || 'default';
+  /* For ?usecase=maintenance, overlay maintenance fields on top of intake base.
+     Verticals without a maintenance entry fall through to intake content. */
+  const basePreset = PRESETS[preset] || PRESETS.wealth;
+  const overlay = (usecase === 'maintenance') ? (MAINTENANCE_PRESETS[preset] || null) : null;
+  const p = overlay ? Object.assign({}, basePreset, overlay) : basePreset;
 
   document.getElementById('brand-name').textContent = p.brand;
   document.getElementById('module-name').textContent = p.module;

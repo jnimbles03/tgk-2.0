@@ -1499,10 +1499,13 @@ const USECASE_SCENE_KEYS = {
   "intake-3":     ["webform_intake","maestro_package","envelope_deliver"],
   "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"],
   /* maintenance = customer-initiated sensitive change in the authenticated portal.
-     Scene 1+2 reuse portal-shell (CLEAR-at-the-door + policy-driven webform);
-     Scene 3 surfaces the change in an approval-queue view (default Agreement Desk,
-     NOT the chain-of-custody variant — that framing is reserved for auth-fabric). */
-  maintenance:    ["portal_clear_idv","portal_webform","agreement_desk"]
+     Scene 1 = portal-shell CLEAR-at-the-door step-up. Scene 2 = webform-intake
+     template (same visual treatment as the canonical onboarding intake — multi-
+     state form selector → configuration → signer → review → submit) but with
+     maintenance-specific content per (preset, usecase=maintenance). Scene 3 =
+     default Agreement Desk approval-queue view (NOT the chain-of-custody variant
+     — that framing is reserved for auth-fabric). */
+  maintenance:    ["portal_clear_idv","webform_intake","agreement_desk"]
 };
 const USECASE_TEMPLATE_FILES = {
   default: TEMPLATE_FILES,
@@ -1524,7 +1527,7 @@ const USECASE_TEMPLATE_FILES = {
   ],
   maintenance: [
     "/story-templates/docusign-portal-shell.html",
-    "/story-templates/docusign-portal-shell.html",
+    "/story-templates/docusign-webform-intake.html",
     "/story-templates/docusign-agreement-desk.html"
   ]
 };
@@ -1535,7 +1538,7 @@ const USECASE_TEMPLATE_MODES = {
   "auth-fabric": ["clear-idv-login", "action-webform", null],
   "intake-3":    [null, null, null],
   "intake-4":    [null, null, null, null],
-  maintenance:   ["clear-idv-login", "action-webform", "approval-queue"]
+  maintenance:   ["clear-idv-login", null, "approval-queue"]
 };
 
 /* =========================================================
@@ -1675,6 +1678,13 @@ function srcForUsecaseScene(i, vertical, usecaseKey, splash){
   if (TEMPLATE_BLOB_URLS[fname]) return TEMPLATE_BLOB_URLS[fname];
   const qp = new URLSearchParams();
   qp.set("preset", vertical.preset);
+  /* Pass the resolved usecase key so templates can switch content per
+     (preset, usecase) — e.g. webform-intake renders MAINTENANCE_PRESETS
+     when usecase=maintenance. Skip for default canonical and for
+     intake-3/intake-4 (those templates only need the preset). */
+  if (usecaseKey && usecaseKey !== "default" && !usecaseKey.startsWith("intake")) {
+    qp.set("usecase", usecaseKey);
+  }
   if (modes && modes[i]) qp.set("mode", modes[i]);
   /* For intake-4, scene 4 is workspace — preserve splash semantics. */
   if (usecaseKey === "intake-4" && i === 3 && splash) qp.set("splash", "1");
