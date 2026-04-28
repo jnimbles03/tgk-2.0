@@ -6,227 +6,877 @@
 <title>Customer portal · Maestro proxy · TGK 2.0</title>
 <style>
   /*
-    Customer-portal stub used by the auth-fabric demo.
-    Two modes via ?mode=:
-      - clear-idv-login    : Scene 1 — Maestro orchestrates CLEAR at portal login
-      - action-webform     : Scene 2 — Maestro serves a webform inside the authenticated session
+    Customer-portal template used by:
+      - ?usecase=auth-fabric  (Scenes 1 + 2)
+      - ?usecase=maintenance  (Scene 1)
+    Modes via ?mode=:
+      - clear-idv-login : Maestro orchestrates CLEAR at portal login
+      - action-webform  : Maestro serves a webform inside the authenticated session
 
-    The shell's hotspot system anchors to elements via data-hotspot=. Each mode
-    exposes named anchors that match the relevant HOTSPOTS entry in
-    story-shell.html (portal_clear_idv or portal_webform).
-
-    This file is a polished stub — it shows the right framing for the demo
-    moment, with placeholder per-vertical content. The polished iframe replica
-    can be authored in a follow-up; the demo URLs are functional today.
+    The clear-idv-login mode renders 5 distinct states (s1-s5) on a mobile-
+    portrait phone frame, modeled on the actual CLEAR mobile flow. Each beat
+    of the shell's narration advances the state via tgk:lockToBeat postMessage.
   */
   :root {
-    --ds-cobalt: #4C00FF; --ds-inkwell: #130032; --ds-deep-violet: #26065D;
-    --ds-mist: #CBC2FF; --ds-poppy: #FF5252; --ds-ecru: #F8F3F0; --ds-white: #FFFFFF;
-    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
-    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.04);
+    --ds-cobalt:        #4C00FF;
+    --ds-inkwell:       #130032;
+    --ds-deep-violet:   #26065D;
+    --ds-mist:          #CBC2FF;
+    --ds-mist-soft:     #EFEAFD;
+    --ds-poppy:         #FF5252;
+    --ds-ecru:          #F8F3F0;
+    --ds-white:         #FFFFFF;
+    --ink:              #1F1A14;
+    --ink-mid:          #5F5E5A;
+    --ink-soft:         #8A8780;
+    --bg-page:          #F0EAE0;
+    --hair:             #E4E8EE;
+    --hair-strong:      #C8CDD4;
+    --sage:             #1A8E5C;
+    --sage-bg:          #E8F5EE;
+    --shadow-md:        0 6px 24px rgba(19,0,50,0.08), 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-lg:        0 18px 50px rgba(19,0,50,0.18), 0 2px 8px rgba(0,0,0,0.06);
+    --phone-w:          384px;
+    --phone-h:          780px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; }
   body {
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
-    background: linear-gradient(180deg, #F0EBE0 0%, #FAF7F2 100%);
-    color: var(--ink); min-height: 100vh; padding: 24px;
+    background:
+      radial-gradient(1100px 700px at 30% 30%, rgba(203,194,255,0.45), transparent 60%),
+      linear-gradient(180deg, #F4ECDD 0%, #F0EAE0 60%, #E9E2D2 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
   }
-  .portal-window {
-    max-width: 960px; margin: 24px auto; background: white;
-    border-radius: 10px; box-shadow: var(--shadow-lg);
+
+  /* ============ Mobile portrait phone frame ============ */
+  .phone {
+    width: var(--phone-w);
+    height: var(--phone-h);
+    background: #fff;
+    border-radius: 44px;
+    box-shadow:
+      inset 0 0 0 11px #0B0B0F,
+      inset 0 0 0 13px #2A2A30,
+      var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .phone-screen {
+    position: absolute;
+    inset: 13px 13px 13px 13px;
+    border-radius: 32px;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ============ iOS-style status bar ============ */
+  .status-bar {
+    height: 44px;
+    flex-shrink: 0;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    position: relative;
+  }
+  .status-bar .clock { letter-spacing: -0.01em; }
+  .status-bar .island {
+    position: absolute;
+    left: 50%; top: 9px;
+    transform: translateX(-50%);
+    width: 110px; height: 28px;
+    background: #0B0B0F;
+    border-radius: 16px;
+  }
+  .status-bar .icons { display: flex; align-items: center; gap: 6px; }
+  .status-bar .icons svg { width: 16px; height: 11px; fill: var(--ink); }
+  .status-bar .battery {
+    width: 26px; height: 12px;
+    border: 1.4px solid var(--ink); border-radius: 3px;
+    position: relative; padding: 1.5px;
+  }
+  .status-bar .battery::after {
+    content: ""; position: absolute;
+    right: -3px; top: 3px; width: 2px; height: 4px;
+    background: var(--ink); border-radius: 0 2px 2px 0;
+  }
+  .status-bar .battery .fill { height: 100%; background: var(--ink); border-radius: 1px; width: 78%; }
+
+  /* ============ Tenant brand chrome (app mode) ============ */
+  .app-brand {
+    flex-shrink: 0;
+    padding: 14px 24px 8px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 17px; font-weight: 600;
+    color: var(--ds-inkwell);
+  }
+  .app-brand .mark {
+    width: 22px; height: 22px;
+    color: var(--ds-cobalt);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .app-brand .mark svg { width: 100%; height: 100%; }
+  .app-brand .ds-bug {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--ink-soft); font-weight: 500;
+  }
+  .app-brand .ds-bug .dot { width: 14px; height: 14px; border-radius: 3px; background: var(--ds-cobalt); position: relative; }
+  .app-brand .ds-bug .dot::after { content: ""; position: absolute; left: 3px; top: 3px; width: 6px; height: 6px; background: var(--ds-poppy); border-radius: 1px; }
+
+  /* ============ Mobile-Safari URL bar (browser mode) ============ */
+  .browser-url {
+    flex-shrink: 0;
+    margin: 8px 14px 10px;
+    padding: 9px 14px;
+    background: #ECEDEE;
+    border-radius: 12px;
+    font-size: 13px; color: var(--ink-mid);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .browser-url .lock { font-size: 11px; }
+  .browser-url .domain { flex: 1; font-weight: 500; color: var(--ink); }
+  .browser-url .reload { color: var(--ds-cobalt); font-size: 16px; }
+
+  /* ============ Content surface ============ */
+  .surface {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #fff;
+  }
+  .state {
+    position: absolute;
+    inset: 0;
+    padding: 0 24px;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .state.on { display: flex; }
+
+  /* ============ Common typography ============ */
+  h1.disp {
+    font-size: 28px; line-height: 1.2; letter-spacing: -0.012em;
+    font-weight: 600; color: var(--ds-inkwell); margin-bottom: 12px;
+  }
+  h2.head {
+    font-size: 20px; line-height: 1.3; font-weight: 600; color: var(--ds-inkwell); margin-bottom: 8px;
+  }
+  p.body { font-size: 15px; line-height: 1.5; color: var(--ink-mid); margin-bottom: 12px; }
+  p.small { font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
+
+  .btn-primary {
+    display: block; width: 100%; padding: 14px 18px;
+    background: var(--ds-deep-violet); color: #fff;
+    border: none; border-radius: 10px;
+    font: inherit; font-weight: 600; font-size: 15px;
+    cursor: pointer; text-align: center;
+  }
+  .btn-secondary {
+    display: block; width: 100%; padding: 14px 18px;
+    background: #F1F1F2; color: var(--ink);
+    border: none; border-radius: 10px;
+    font: inherit; font-weight: 500; font-size: 15px;
+    cursor: pointer; text-align: center; margin-top: 10px;
+  }
+  .btn-link { color: var(--ds-cobalt); font-weight: 500; font-size: 13px; text-decoration: underline; }
+
+  .powered {
+    flex-shrink: 0;
+    text-align: center;
+    padding: 16px 0 14px;
+    font-size: 11px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .powered .ds-bug-sm { width: 10px; height: 10px; border-radius: 2px; background: var(--ds-cobalt); position: relative; display: inline-block; }
+  .powered .ds-bug-sm::after { content: ""; position: absolute; left: 2px; top: 2px; width: 4px; height: 4px; background: var(--ds-poppy); border-radius: 1px; }
+
+  /* ============ s1 — Tenant portal sign-in ============ */
+  .signin-wrap { padding-top: 8px; }
+  .signin-wrap .greet { font-size: 13px; color: var(--ink-soft); margin-bottom: 4px; }
+  .signin-wrap .field { margin-bottom: 14px; }
+  .signin-wrap label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mid); margin-bottom: 6px; }
+  .signin-wrap input {
+    width: 100%; padding: 13px 14px; border: 1px solid var(--hair-strong); border-radius: 8px;
+    font: inherit; font-size: 15px; background: #fff; color: var(--ink);
+  }
+  .signin-wrap .field.focus input { border-color: var(--ds-cobalt); box-shadow: 0 0 0 3px rgba(76,0,255,0.10); }
+  .signin-wrap .row { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+  .signin-wrap .row .remember { font-size: 13px; color: var(--ink-mid); }
+  .signin-wrap .row .forgot { font-size: 13px; color: var(--ds-cobalt); font-weight: 500; }
+
+  /* ============ s2 — Maestro step-up modal (overlays s1) ============ */
+  .stepup-overlay {
+    position: absolute; inset: 0;
+    background: rgba(19,0,50,0.55);
+    display: flex; align-items: flex-end;
+    z-index: 10;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .stepup-card {
+    background: #fff;
+    width: 100%;
+    border-radius: 22px 22px 0 0;
+    padding: 24px 24px 28px;
+    box-shadow: 0 -8px 30px rgba(19,0,50,0.20);
+    animation: slideUp 0.32s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(80%); } to { transform: translateY(0); } }
+  .stepup-card .grab {
+    width: 38px; height: 4px; background: #D6D5D2; border-radius: 2px;
+    margin: -8px auto 14px;
+  }
+  .stepup-card .ms-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--ds-cobalt); background: var(--ds-mist-soft);
+    padding: 4px 10px; border-radius: 999px; margin-bottom: 12px;
+  }
+  .stepup-card .sparkle { width: 11px; height: 11px; }
+  .stepup-card .sparkle path { fill: var(--ds-cobalt); }
+
+  /* ============ s3 — CLEAR mobile session ============ */
+  .clear-wrap { padding-top: 12px; }
+  .clear-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; color: var(--ds-inkwell); }
+  .clear-logo .spinner {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.6px dashed var(--ds-deep-violet);
+    animation: spin 2.4s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .clear-illus {
+    margin: 12px auto 26px;
+    width: 168px; height: 168px;
+    position: relative;
+  }
+  .clear-illus .blob {
+    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+    width: 200px; height: 110px;
+    background: var(--ds-mist-soft);
+    border-radius: 50% 50% 0 0;
+  }
+  .clear-illus .phone-mini {
+    position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
+    width: 78px; height: 132px;
+    background: #fff;
+    border: 2.4px solid var(--ds-inkwell);
+    border-radius: 12px;
+  }
+  .clear-illus .phone-mini::before {
+    content: ""; position: absolute; left: 12px; top: 16px; right: 12px; height: 28px;
+    border-radius: 50%; background: var(--ds-mist);
+  }
+  .clear-illus .phone-mini::after {
+    content: ""; position: absolute; left: 12px; bottom: 14px; right: 12px; height: 8px;
+    background: var(--ds-mist); border-radius: 4px;
+    box-shadow: 0 -16px 0 var(--ds-mist), 0 -28px 0 var(--ds-mist);
+  }
+  .clear-illus .shield {
+    position: absolute; right: 18px; top: 6px;
+    width: 38px; height: 44px;
+    background: var(--ds-deep-violet);
+    clip-path: polygon(50% 0%, 100% 18%, 100% 60%, 50% 100%, 0% 60%, 0% 18%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .clear-illus .shield::after {
+    content: "✓"; color: #fff; font-size: 19px; font-weight: 700; transform: translateY(-2px);
+  }
+  .clear-progress {
+    margin-top: 18px;
+    background: var(--ds-mist-soft); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .clear-progress .step {
+    display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-mid);
+    padding: 6px 0;
+  }
+  .clear-progress .step .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--sage); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .clear-progress .step.pending .check { background: #fff; border: 1.4px solid var(--hair-strong); color: transparent; }
+  .clear-progress .step.active .check {
+    background: #fff; border: 1.4px solid var(--ds-cobalt); color: var(--ds-cobalt);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(76,0,255,0.4); } 50% { box-shadow: 0 0 0 6px rgba(76,0,255,0); } }
+  .clear-progress .step.active { color: var(--ink); font-weight: 500; }
+  .clear-progress .step.pending { color: var(--ink-soft); }
+
+  /* ============ s4 — Match returned ============ */
+  .match-wrap { padding-top: 8px; align-items: center; justify-content: center; display: flex; flex-direction: column; flex: 1; }
+  .match-circle {
+    width: 96px; height: 96px; border-radius: 50%;
+    background: var(--sage-bg);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 22px;
+    animation: matchPop 0.5s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes matchPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+  .match-circle::after {
+    content: "";
+    width: 44px; height: 22px;
+    border: solid var(--sage);
+    border-width: 0 0 4px 4px;
+    transform: rotate(-45deg) translateY(-4px);
+  }
+  .match-card {
+    background: var(--sage-bg); border: 1px solid rgba(26,142,92,0.20);
+    border-radius: 12px; padding: 14px 16px;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .match-card .row { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .match-card .row .k { color: var(--ink-soft); }
+  .match-card .row .v { color: var(--ink); font-weight: 500; }
+  .match-bar {
+    width: 100%; height: 4px; background: rgba(76,0,255,0.10); border-radius: 2px; overflow: hidden;
+    margin-top: 28px;
+  }
+  .match-bar::after {
+    content: ""; display: block; height: 100%; background: var(--ds-cobalt);
+    width: 0; animation: returnBar 1.5s ease-out forwards;
+  }
+  @keyframes returnBar { to { width: 100%; } }
+
+  /* ============ s5 — Authenticated portal dashboard ============ */
+  .dash-wrap { padding-top: 6px; }
+  .dash-greet { font-size: 13px; color: var(--ink-soft); margin-bottom: 2px; }
+  .dash-name { font-size: 22px; font-weight: 600; color: var(--ds-inkwell); margin-bottom: 14px; letter-spacing: -0.01em; }
+  .verified-banner {
+    background: var(--sage-bg); border: 1px solid rgba(26,142,92,0.18);
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: #146E48;
+    margin-bottom: 16px;
+  }
+  .verified-banner .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--sage); flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(26,142,92,0.18);
+  }
+  .verified-banner b { color: #0B5036; font-weight: 600; }
+
+  .acct-tile {
+    background: #fff; border: 1px solid var(--hair); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .acct-tile .ic {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--ds-mist-soft); color: var(--ds-cobalt);
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .acct-tile .ic svg { width: 18px; height: 18px; }
+  .acct-tile .mid { flex: 1; min-width: 0; }
+  .acct-tile .label { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px; }
+  .acct-tile .val { font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .acct-tile .sub { font-size: 12px; color: var(--ink-mid); margin-top: 2px; }
+
+  .cta-tile {
+    background: linear-gradient(135deg, var(--ds-deep-violet) 0%, var(--ds-cobalt) 100%);
+    color: #fff; border-radius: 12px;
+    padding: 14px 16px; margin-top: 8px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 600;
+  }
+  .cta-tile .arrow { margin-left: auto; }
+
+  /* ============ Bottom Safari nav (only shown in browser mode) ============ */
+  .nav-bar {
+    height: 50px; flex-shrink: 0;
+    border-top: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 16px;
+  }
+  .nav-bar svg { width: 22px; height: 22px; stroke: var(--ds-cobalt); stroke-width: 1.6; fill: none; }
+  .nav-bar .disabled svg { stroke: var(--ink-soft); opacity: 0.5; }
+
+  /* ============ action-webform mode (legacy — auth-fabric Scene 2) ============ */
+  /* Kept stub-quality for now; maintenance demos use webform-intake.html instead. */
+  .legacy-frame {
+    max-width: 700px; margin: 24px auto; background: white;
+    border-radius: 10px; box-shadow: var(--shadow-md);
     overflow: hidden; border: 1px solid var(--hair);
   }
-  .browser-bar {
+  .legacy-browser-bar {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px; background: #F4F4F2;
-    border-bottom: 1px solid var(--hair); font-size: 11px; color: var(--ink-soft);
+    padding: 10px 14px; background: #F4F4F2; border-bottom: 1px solid var(--hair);
+    font-size: 11px; color: var(--ink-soft);
   }
-  .browser-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #DDD8CE; }
-  .browser-bar .dot.r { background: #ED6A5E; } .browser-bar .dot.y { background: #F4BF4F; } .browser-bar .dot.g { background: #61C454; }
-  .browser-bar .url {
-    flex: 1; background: white; border: 1px solid var(--hair);
-    border-radius: 4px; padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    color: var(--ink-mid);
+  .legacy-browser-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #DDD8CE; }
+  .legacy-browser-bar .dot.r { background: #ED6A5E; }
+  .legacy-browser-bar .dot.y { background: #F4BF4F; }
+  .legacy-browser-bar .dot.g { background: #61C454; }
+  .legacy-browser-bar .url {
+    flex: 1; background: white; border: 1px solid var(--hair); border-radius: 4px;
+    padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mid);
   }
-  .portal-header {
-    padding: 18px 28px; background: white; border-bottom: 1px solid var(--hair);
-    display: flex; align-items: center; gap: 14px;
-  }
-  .portal-brand { font-size: 16px; font-weight: 600; color: var(--ink); }
-  .portal-customer { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
-
-  .portal-body { padding: 36px 32px; min-height: 480px; position: relative; }
-
-  /* === MODE: clear-idv-login === */
-  .login-card {
-    max-width: 380px; margin: 40px auto; padding: 32px;
-    background: white; border: 1px solid var(--hair); border-radius: 8px; box-shadow: var(--shadow-md);
-  }
-  .login-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
-  .login-card .sub { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; }
-  .login-card .field { margin-bottom: 14px; }
-  .login-card label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .login-card input { width: 100%; padding: 9px 12px; border: 1px solid var(--hair-strong); border-radius: 4px; font: inherit; font-size: 13px; }
-  .login-card .btn-login {
-    width: 100%; padding: 10px; background: var(--ds-cobalt); color: white;
-    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 8px;
-  }
-
-  .stepup-modal-bg {
-    position: absolute; inset: 0; background: rgba(19,0,50,0.40); display: none;
-    align-items: center; justify-content: center; padding: 20px;
-  }
-  .stepup-modal-bg.on { display: flex; }
-  .stepup-modal {
-    background: white; max-width: 420px; width: 100%; padding: 28px;
-    border-radius: 10px; box-shadow: var(--shadow-lg);
-  }
-  .stepup-modal .ms-tag {
-    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08);
-    padding: 3px 9px; border-radius: 3px; margin-bottom: 12px;
-  }
-  .stepup-modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-  .stepup-modal p { font-size: 13px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 18px; }
-  .stepup-modal .btn-clear {
-    width: 100%; padding: 10px; background: #1A8E5C; color: white;
-    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-
-  /* === MODE: action-webform === */
-  .session-banner {
-    background: rgba(26,142,92,0.08); border: 1px solid rgba(26,142,92,0.25);
-    border-radius: 4px; padding: 8px 14px; margin-bottom: 22px;
-    font-size: 12px; color: #1A8E5C; display: flex; align-items: center; gap: 8px;
-  }
-  .webform-card {
-    max-width: 580px; margin: 0 auto; padding: 28px;
-    background: white; border: 1px solid var(--hair); border-radius: 8px; box-shadow: var(--shadow-md);
-  }
-  .webform-card .ms-tag {
-    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08);
-    padding: 3px 9px; border-radius: 3px; margin-bottom: 10px;
-  }
+  .legacy-body { padding: 36px 32px; min-height: 480px; position: relative; }
+  .session-banner { background: rgba(26,142,92,0.08); border: 1px solid rgba(26,142,92,0.25); border-radius: 4px; padding: 8px 14px; margin-bottom: 22px; font-size: 12px; color: var(--sage); display: flex; align-items: center; gap: 8px; }
+  .webform-card { max-width: 580px; margin: 0 auto; padding: 28px; background: #fff; border: 1px solid var(--hair); border-radius: 8px; box-shadow: var(--shadow-md); }
+  .webform-card .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 10px; }
   .webform-card h2 { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
   .webform-card .scope { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; }
   .field-row { margin-bottom: 14px; }
   .field-row label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .field-row input, .field-row select {
-    width: 100%; padding: 8px 12px; border: 1px solid var(--hair-strong); border-radius: 4px;
-    font: inherit; font-size: 13px; background: var(--bg);
-  }
-  .field-row.prefilled input { background: rgba(76,0,255,0.04); color: var(--ink); }
+  .field-row input { width: 100%; padding: 8px 12px; border: 1px solid var(--hair-strong); border-radius: 4px; font: inherit; font-size: 13px; background: var(--ds-ecru); }
+  .field-row.prefilled input { background: rgba(76,0,255,0.04); }
   .field-row .prefill-flag { font-size: 10px; color: var(--ds-cobalt); margin-top: 3px; font-weight: 500; }
-
-  .identity-binding {
-    margin-top: 22px; padding: 12px; background: var(--bg);
-    border: 1px solid var(--hair); border-radius: 4px;
-    font-size: 12px; color: var(--ink-mid); display: flex; align-items: center; gap: 10px;
-  }
-  .identity-binding .check { width: 16px; height: 16px; border-radius: 50%; background: #1A8E5C; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
-
-  .btn-submit {
-    margin-top: 22px; width: 100%; padding: 11px; background: var(--ds-cobalt); color: white;
-    border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer;
-  }
-
-  .stub-banner {
-    position: fixed; bottom: 12px; right: 12px;
-    background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif;
-    letter-spacing: 0.04em; text-transform: uppercase;
-    padding: 5px 10px; border-radius: 999px; box-shadow: var(--shadow);
-  }
+  .identity-binding { margin-top: 22px; padding: 12px; background: var(--ds-ecru); border: 1px solid var(--hair); border-radius: 4px; font-size: 12px; color: var(--ink-mid); display: flex; align-items: center; gap: 10px; }
+  .identity-binding .check { width: 16px; height: 16px; border-radius: 50%; background: var(--sage); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .btn-submit { margin-top: 22px; width: 100%; padding: 11px; background: var(--ds-cobalt); color: #fff; border: none; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<div class="portal-window">
-  <div class="browser-bar">
-    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
-    <div class="url" id="url-bar">https://portal.&lt;tenant&gt;.com/</div>
-  </div>
-  <div class="portal-header">
-    <div class="portal-brand" id="brand">Customer Portal</div>
-    <div class="portal-customer" id="customer">— preset · auth-fabric demo</div>
-  </div>
-  <div class="portal-body" id="body">
-    <!-- Mode-specific content injected here -->
+<!-- ============================================================
+     CLEAR-IDV-LOGIN MODE — mobile-portrait phone with 5 states
+     ============================================================ -->
+<div class="phone" id="phone-mode">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span class="clock" id="clock">9:41</span>
+      <span class="island"></span>
+      <span class="icons">
+        <svg viewBox="0 0 16 11"><path d="M0 8h2v3H0zm4-2h2v5H4zm4-2h2v7H8zm4-3h2v10h-2z"/></svg>
+        <svg viewBox="0 0 16 11"><path d="M8 1.5C5 1.5 2.5 2.5 0.5 4.4L2 5.9C3.6 4.4 5.7 3.5 8 3.5s4.4 0.9 6 2.4L15.5 4.4C13.5 2.5 11 1.5 8 1.5zm0 4C6 5.5 4.2 6.2 2.8 7.4L4.3 8.9C5.3 8 6.6 7.5 8 7.5s2.7 0.5 3.7 1.4l1.5-1.5C11.8 6.2 10 5.5 8 5.5zm0 4c-0.8 0-1.6 0.3-2.1 0.9L8 12l2.1-1.6C9.6 9.8 8.8 9.5 8 9.5z"/></svg>
+        <span class="battery"><span class="fill"></span></span>
+      </span>
+    </div>
+
+    <!-- App-mode brand chrome (s1, s2, s4, s5) -->
+    <div class="app-brand" id="app-brand-row">
+      <span class="mark" id="brand-mark"></span>
+      <span id="brand-wordmark">Tenant</span>
+      <span class="ds-bug"><span class="dot"></span><span>Powered by Docusign</span></span>
+    </div>
+
+    <!-- Browser-mode URL bar (s3 — replaces app-brand row when CLEAR is loaded) -->
+    <div class="browser-url" id="browser-url-row" style="display:none;">
+      <span class="lock">🔒</span>
+      <span class="domain">verified.clearme.com</span>
+      <span class="reload">↻</span>
+    </div>
+
+    <div class="surface" id="surface">
+
+      <!-- ====== STATE s1 — Tenant portal sign-in ====== -->
+      <div class="state on" data-state="s1">
+        <div class="signin-wrap">
+          <div class="greet" id="greet-line">Welcome back to <span id="brand-tenant">Tenant</span></div>
+          <h1 class="disp" id="signin-name">Sign in</h1>
+
+          <div class="field" data-hotspot="login_username">
+            <label>Email</label>
+            <input type="text" id="signin-email" value="customer@example.com" readonly />
+          </div>
+
+          <div class="field focus" data-hotspot="login_password">
+            <label>Password</label>
+            <input type="password" value="••••••••••" readonly />
+          </div>
+
+          <div class="row">
+            <span class="remember">Keep me signed in</span>
+            <span class="forgot">Forgot?</span>
+          </div>
+
+          <button class="btn-primary" data-hotspot="login_submit">Sign in</button>
+          <button class="btn-secondary">Use Face ID</button>
+        </div>
+      </div>
+
+      <!-- ====== STATE s2 — Maestro step-up modal (overlays s1) ====== -->
+      <div class="state" data-state="s2">
+        <!-- Behind: dimmed sign-in (visible through overlay) -->
+        <div class="signin-wrap" style="opacity:0.55; pointer-events:none;">
+          <div class="greet">Welcome back to <span id="brand-tenant-2">Tenant</span></div>
+          <h1 class="disp">Sign in</h1>
+          <div class="field"><label>Email</label><input type="text" value="customer@example.com" readonly /></div>
+          <div class="field"><label>Password</label><input type="password" value="••••••••••" readonly /></div>
+        </div>
+
+        <div class="stepup-overlay">
+          <div class="stepup-card" data-hotspot="stepup_clear">
+            <div class="grab"></div>
+            <div class="ms-tag">
+              <svg class="sparkle" viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+              Maestro · Step-up identity
+            </div>
+            <h2 class="head">Verify your identity to continue</h2>
+            <p class="body">Before accessing your <span id="brand-portal-name">portal</span>, <span id="brand-tenant-3">Tenant</span> requires a one-time identity verification. CLEAR will guide you through ID and selfie capture — no app download.</p>
+            <button class="btn-primary">Verify with CLEAR &rarr;</button>
+            <p class="small" style="text-align:center; margin-top:12px;">
+              <a class="btn-link" href="#">Cancel and use SMS instead</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== STATE s3 — CLEAR mobile session ====== -->
+      <div class="state" data-state="s3">
+        <div class="clear-wrap">
+          <div class="clear-logo">
+            <span class="spinner"></span>
+            <span>CLEAR</span>
+          </div>
+
+          <div class="clear-illus" data-hotspot="clear_capture" aria-hidden="true">
+            <div class="blob"></div>
+            <div class="phone-mini"></div>
+            <div class="shield"></div>
+          </div>
+
+          <h2 class="head" style="text-align:center;">Verifying your identity</h2>
+          <p class="body" style="text-align:center;">Hold steady — CLEAR is checking your government ID against your live selfie.</p>
+
+          <div class="clear-progress">
+            <div class="step"><span class="check">✓</span><span>Government ID captured</span></div>
+            <div class="step"><span class="check">✓</span><span>Selfie captured</span></div>
+            <div class="step active"><span class="check">●</span><span>Biometric match in progress…</span></div>
+            <div class="step pending"><span class="check"></span><span>Returning to <span id="brand-portal-name-2">portal</span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== STATE s4 — Match returned ====== -->
+      <div class="state" data-state="s4">
+        <div class="match-wrap">
+          <div class="match-circle" data-hotspot="clear_match" aria-hidden="true"></div>
+          <h2 class="head" style="text-align:center;">Identity verified</h2>
+          <p class="body" style="text-align:center; max-width: 280px;">Your biometric match is bound to this session. No further verification needed for in-portal actions.</p>
+
+          <div class="match-card">
+            <div class="row"><span class="k">Verified by</span><span class="v">CLEAR</span></div>
+            <div class="row"><span class="k">Account holder</span><span class="v" id="match-name">Customer</span></div>
+            <div class="row"><span class="k">Method</span><span class="v">Biometric · IAL2</span></div>
+            <div class="row"><span class="k">Session bound</span><span class="v">✓ This session</span></div>
+          </div>
+
+          <div class="match-bar"></div>
+          <p class="small" style="margin-top:10px; text-align:center;">Returning you to <span id="match-portal">portal</span>…</p>
+        </div>
+      </div>
+
+      <!-- ====== STATE s5 — Authenticated portal dashboard ====== -->
+      <div class="state" data-state="s5">
+        <div class="dash-wrap" data-hotspot="authenticated_session">
+          <div class="dash-greet">Good morning,</div>
+          <div class="dash-name" id="dash-name">Customer</div>
+
+          <div class="verified-banner">
+            <span class="dot"></span>
+            <span><b>Session active · Verified by CLEAR</b> — biometric proof bound for sensitive actions</span>
+          </div>
+
+          <div id="dash-tiles">
+            <!-- per-preset tiles injected by JS -->
+          </div>
+
+          <div class="cta-tile" id="dash-cta">
+            <span id="dash-cta-text">Continue your in-app action</span>
+            <span class="arrow">&rarr;</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="powered">
+      <span class="ds-bug-sm"></span>
+      <span>Powered by Docusign</span>
+    </div>
   </div>
 </div>
 
-<div class="stub-banner">Stub · Maestro proxy · auth-fabric</div>
+<!-- ============================================================
+     ACTION-WEBFORM MODE — legacy desktop frame (auth-fabric S2)
+     Hidden by default; shown only when ?mode=action-webform.
+     ============================================================ -->
+<div class="legacy-frame" id="legacy-mode" style="display:none;">
+  <div class="legacy-browser-bar">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="url" id="legacy-url-bar">https://portal.&lt;tenant&gt;.com/</div>
+  </div>
+  <div class="legacy-body" id="legacy-body"></div>
+</div>
 
 <script>
-  const params = new URLSearchParams(location.search);
-  const preset = params.get('preset') || 'wealth';
-  const mode = params.get('mode') || 'clear-idv-login';
-
-  // Vertical → tenant + portal label (kept light; canonical lives in shell VERTICALS)
+  /* ────────────────────────────────────────────────────────────
+     Per-preset wiring. Extends the prior PRESETS map with:
+       - mark      : tenant brand mark SVG
+       - portal    : portal label ("client portal", "mobile app", etc.)
+       - customer  : customer first-name + identifier
+       - ctaText   : per-scenario CTA on s5 dashboard
+       - tiles     : 1-3 account tiles for s5
+     For maintenance flows, the dashboard surfaces a "Continue your
+     update" CTA; for auth-fabric the CTA is "Continue your transfer".
+     ──────────────────────────────────────────────────────────── */
   const PRESETS = {
-    wealth: { tenant: 'Hillside', portal: 'client portal', customer: 'Mira Sundar — Aster Capital' },
-    banking: { tenant: 'Meridian', portal: 'commercial portal', customer: 'Diana Holbrook — Atlas' },
-    insurance: { tenant: 'Sentinel', portal: 'customer portal', customer: 'Elena Ramirez' },
-    'insurance-life': { tenant: 'Beacon', portal: 'claim portal', customer: 'Theresa Whitfield' },
-    'insurance-pc': { tenant: 'Northgate', portal: 'carrier portal', customer: 'Priya Patel — Patel Logistics' },
-    'banking-deposits': { tenant: 'Cedar Federal', portal: 'mobile app', customer: 'Marcus Williams' },
-    'wealth-discovery': { tenant: 'Cypress Wealth', portal: 'client portal', customer: 'Walter Holcomb' },
-    provider: { tenant: 'Riverside Health', portal: 'patient portal', customer: 'Jordan Kim' },
-    lifesciences: { tenant: 'Helix', portal: 'study portal', customer: 'Dr. Halim — ARC' },
-    payor: { tenant: 'Unity', portal: 'member portal', customer: 'Marcus Chen' },
-    'provider-roi': { tenant: 'Catalina', portal: 'patient portal', customer: 'Eric Tan' },
-    fedgov: { tenant: 'State UI', portal: 'claimant portal', customer: 'Taylor Nguyen' },
-    slgov: { tenant: 'Springfield', portal: 'permit portal', customer: 'Marissa Rivera' },
-    'slgov-311': { tenant: 'Greenhaven', portal: '311 portal', customer: 'Maria Cortez' },
-    'slgov-benefits': { tenant: 'Eastside HHS', portal: 'benefits portal', customer: 'Yolanda Rivera' },
-    'slgov-recertification': { tenant: 'Cascade', portal: 'member portal', customer: 'Diane Park' },
-    'slgov-vendor-compliance': { tenant: 'Ridgeview', portal: 'vendor portal', customer: 'Naomi — Apex' },
-    'slgov-employee-onboarding': { tenant: 'Cascade County', portal: 'employee portal', customer: 'Marcus Lee' },
-    'slgov-licensing': { tenant: 'Northbrook', portal: 'licensee portal', customer: 'Mei Ortega — Avalon Café' },
-    education: { tenant: 'Maple Ridge', portal: 'student portal', customer: 'Priya Shah' },
-    nonprofit: { tenant: 'Harbor', portal: 'grantee portal', customer: 'Rosa Patel — Safe Streets' },
+    wealth: {
+      tenant: 'Hillside', wordmark: 'Hillside', portal: 'client portal',
+      customer: 'Mira Sundar — Aster Capital',
+      first: 'Mira', email: 'mira.sundar@astercapital.com',
+      domain: 'hillside-clients.example.com',
+      tiles: [
+        { lab: 'AUM', val: '$104.2M', sub: 'Aster Capital · discretionary' },
+        { lab: 'Cash position', val: '$8.4M', sub: 'Settled · available' },
+      ],
+      ctaText: 'Continue your in-portal action'
+    },
+    banking: {
+      tenant: 'Meridian', wordmark: 'Meridian', portal: 'commercial portal',
+      customer: 'Diana Holbrook — Atlas Manufacturing',
+      first: 'Diana', email: 'diana@atlasmfg.com',
+      domain: 'meridian-commercial.example.com',
+      tiles: [
+        { lab: 'Working capital facility', val: '$2.5M', sub: 'Atlas · drawn $1.65M' },
+        { lab: 'Available', val: '$850k', sub: 'Same-day draw' },
+      ],
+      ctaText: 'Continue your in-portal action'
+    },
+    insurance: {
+      tenant: 'Sentinel', wordmark: 'Sentinel', portal: 'customer portal',
+      customer: 'Elena Ramirez',
+      first: 'Elena', email: 'elena.ramirez@example.com',
+      domain: 'sentinel-customers.example.com',
+      tiles: [
+        { lab: 'HO3 policy', val: '$348k', sub: '412 Briar Lane · in force' },
+        { lab: 'Annual premium', val: '$1,842', sub: 'Autopay · standard form' },
+      ],
+      ctaText: 'Continue your policy change'
+    },
+    'insurance-life': {
+      tenant: 'Beacon', wordmark: 'Beacon', portal: 'claim portal',
+      customer: 'Theresa Whitfield',
+      first: 'Theresa', email: 'theresa.w@example.com',
+      domain: 'beacon-claims.example.com',
+      tiles: [
+        { lab: 'Claim WC-2026-08214', val: '$750k', sub: 'Approved · ACH queued' },
+      ],
+      ctaText: 'Continue your claim action'
+    },
+    'insurance-pc': {
+      tenant: 'Northgate', wordmark: 'Northgate', portal: 'carrier portal',
+      customer: 'Priya Patel — Patel Logistics',
+      first: 'Priya', email: 'priya@patellogistics.com',
+      domain: 'northgate-carrier.example.com',
+      tiles: [
+        { lab: 'Active claim', val: 'CL-2026-31102', sub: 'Commercial auto · I-78' },
+      ],
+      ctaText: 'Continue your claim update'
+    },
+    'banking-deposits': {
+      tenant: 'Cedar Federal', wordmark: 'Cedar', portal: 'mobile banking app',
+      customer: 'Marcus Williams',
+      first: 'Marcus', email: 'marcus.williams@example.com',
+      domain: 'cedarfederal.example.com',
+      tiles: [
+        { lab: 'Joint Checking', val: '$12,480', sub: 'Williams household · *4821' },
+        { lab: 'High-Yield Savings', val: '$87,500', sub: 'APY 4.25% · *9043' },
+      ],
+      ctaText: 'Continue your in-app action'
+    },
+    'wealth-discovery': {
+      tenant: 'Cypress Wealth', wordmark: 'Cypress', portal: 'client portal',
+      customer: 'Walter Holcomb',
+      first: 'Walter', email: 'walter.h@example.com',
+      domain: 'cypresswealth.example.com',
+      tiles: [
+        { lab: 'Traditional IRA', val: '$1,418,200', sub: 'Walter · rollover from AT&T 401(k)' },
+        { lab: 'Joint Taxable', val: '$612,440', sub: 'Walter + Esther' },
+      ],
+      ctaText: 'Continue your IRA update'
+    },
+    provider: {
+      tenant: 'Riverside', wordmark: 'Riverside Health', portal: 'patient portal',
+      customer: 'Jordan Kim',
+      first: 'Jordan', email: 'jordan.k@example.com',
+      domain: 'riverside-patients.example.com',
+      tiles: [
+        { lab: 'Upcoming visit', val: 'May 6 · 10:15a', sub: 'PCP · Dr. Mehta' },
+      ],
+      ctaText: 'Continue your portal action'
+    },
+    lifesciences: {
+      tenant: 'Helix', wordmark: 'Helix', portal: 'study portal',
+      customer: 'Dr. Halim — Austin Research Clinic',
+      first: 'Dr. Halim', email: 'k.halim@arcclinic.org',
+      domain: 'helix-studies.example.com',
+      tiles: [
+        { lab: 'Active study', val: 'HX-2104', sub: 'Site activation · ARC' },
+      ],
+      ctaText: 'Continue your study action'
+    },
+    payor: {
+      tenant: 'Unity', wordmark: 'Unity Health', portal: 'member portal',
+      customer: 'Marcus Chen',
+      first: 'Marcus', email: 'marcus.chen@example.com',
+      domain: 'unity-members.example.com',
+      tiles: [
+        { lab: 'Silver HMO plan', val: '$184/mo', sub: 'Effective May 1' },
+      ],
+      ctaText: 'Continue your member action'
+    },
+    'provider-roi': {
+      tenant: 'Catalina', wordmark: 'Catalina Medical', portal: 'patient portal',
+      customer: 'Eric Tan',
+      first: 'Eric', email: 'eric.tan@example.com',
+      domain: 'catalina-patients.example.com',
+      tiles: [
+        { lab: 'Records release', val: '142 pages', sub: '18-month scope · Silver Mountain' },
+      ],
+      ctaText: 'Continue your records release'
+    },
+    fedgov: {
+      tenant: 'State UI', wordmark: 'State UI', portal: 'claimant portal',
+      customer: 'Taylor Nguyen',
+      first: 'Taylor', email: 'taylor.n@example.com',
+      domain: 'ui-claimants.example.com',
+      tiles: [
+        { lab: 'Active claim', val: 'UI-2026-48211', sub: 'Weekly cert pending' },
+      ],
+      ctaText: 'Continue your claim action'
+    },
+    slgov: {
+      tenant: 'Springfield', wordmark: 'Springfield', portal: 'permit portal',
+      customer: 'Marissa Rivera',
+      first: 'Marissa', email: 'marissa.r@example.com',
+      domain: 'springfield-permits.example.com',
+      tiles: [
+        { lab: 'Active permit', val: 'BLD-2026-7421', sub: '1420 Oak Street' },
+      ],
+      ctaText: 'Continue your permit action'
+    },
+    'slgov-311': {
+      tenant: 'Greenhaven', wordmark: 'Greenhaven', portal: '311 portal',
+      customer: 'Maria Cortez',
+      first: 'Maria', email: 'maria.c@example.com',
+      domain: 'greenhaven-311.example.com',
+      tiles: [
+        { lab: 'Open requests', val: '2', sub: '1124 Cedar Ave' },
+      ],
+      ctaText: 'Continue your service request'
+    },
+    'slgov-benefits': {
+      tenant: 'Eastside HHS', wordmark: 'Eastside HHS', portal: 'benefits portal',
+      customer: 'Yolanda Rivera',
+      first: 'Yolanda', email: 'yolanda.r@example.com',
+      domain: 'eastside-benefits.example.com',
+      tiles: [
+        { lab: 'SNAP benefits', val: '$782/mo', sub: '4-person household' },
+      ],
+      ctaText: 'Continue your benefits action'
+    },
+    'slgov-recertification': {
+      tenant: 'Cascade', wordmark: 'Cascade', portal: 'member portal',
+      customer: 'Diane Park',
+      first: 'Diane', email: 'diane.park@example.com',
+      domain: 'cascade-members.example.com',
+      tiles: [
+        { lab: 'Coverage', val: 'Through Apr 2027', sub: 'Auto-renewed' },
+      ],
+      ctaText: 'Continue your recertification'
+    },
+    'slgov-vendor-compliance': {
+      tenant: 'Ridgeview', wordmark: 'Ridgeview', portal: 'vendor portal',
+      customer: 'Naomi Bashir — Apex Logistics',
+      first: 'Naomi', email: 'naomi@apexlogistics.com',
+      domain: 'ridgeview-vendors.example.com',
+      tiles: [
+        { lab: 'Active contract', val: '$4.2M/yr', sub: 'Class-A trucking · expires 2027' },
+      ],
+      ctaText: 'Continue your recert'
+    },
+    'slgov-employee-onboarding': {
+      tenant: 'Cascade County', wordmark: 'Cascade County', portal: 'employee portal',
+      customer: 'Marcus Lee',
+      first: 'Marcus', email: 'marcus.lee@cascadecounty.gov',
+      domain: 'cascade-employees.example.com',
+      tiles: [
+        { lab: 'Day 1', val: 'May 5', sub: 'Caseworker I · Family Services' },
+      ],
+      ctaText: 'Continue your onboarding'
+    },
+    'slgov-licensing': {
+      tenant: 'Northbrook', wordmark: 'Northbrook', portal: 'licensee portal',
+      customer: 'Mei Ortega — Avalon Café',
+      first: 'Mei', email: 'mei@avaloncafe.com',
+      domain: 'northbrook-licensees.example.com',
+      tiles: [
+        { lab: 'Restaurant license', val: 'LIC-2026-08820', sub: '88 Riverbend Ave · pending' },
+      ],
+      ctaText: 'Continue your license action'
+    },
+    education: {
+      tenant: 'Maple Ridge', wordmark: 'Maple Ridge', portal: 'student portal',
+      customer: 'Priya Shah',
+      first: 'Priya', email: 'priya.shah@mapleridge.edu',
+      domain: 'mapleridge-students.example.com',
+      tiles: [
+        { lab: 'Aid package', val: '$28,000', sub: 'Merit + Subsidized · Fall 2026' },
+      ],
+      ctaText: 'Continue your enrollment action'
+    },
+    nonprofit: {
+      tenant: 'Harbor', wordmark: 'Harbor Foundation', portal: 'grantee portal',
+      customer: 'Rosa Patel — Safe Streets',
+      first: 'Rosa', email: 'rosa@safestreets.org',
+      domain: 'harbor-grantees.example.com',
+      tiles: [
+        { lab: 'Active grant', val: '$120k · 2yr', sub: 'Safe Streets Initiative' },
+      ],
+      ctaText: 'Continue your grant action'
+    },
   };
 
-  const p = PRESETS[preset] || PRESETS.wealth;
-  document.getElementById('brand').textContent = p.tenant + ' ' + p.portal;
-  document.getElementById('customer').textContent = '— ' + p.customer;
-  document.getElementById('url-bar').textContent = 'https://' + p.tenant.toLowerCase().replace(/\s/g,'') + '.example.com/' + (mode === 'clear-idv-login' ? 'login' : 'transactions');
+  /* Generic mark SVG used in app brand chrome — works as a placeholder for
+     all tenants. Color flips to the tenant's accent in CSS via currentColor. */
+  const MARK_SVG = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.4"/><path d="M8 12 L11 15 L16 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  const body = document.getElementById('body');
+  /* ────────────────────────────────────────────────────────────
+     Bootstrap
+     ──────────────────────────────────────────────────────────── */
+  const params  = new URLSearchParams(location.search);
+  const preset  = params.get('preset') || 'wealth';
+  const mode    = params.get('mode')   || 'clear-idv-login';
+  const usecase = params.get('usecase') || 'default';
+  const p       = PRESETS[preset] || PRESETS.wealth;
 
-  if (mode === 'clear-idv-login') {
-    body.innerHTML = `
-      <div class="login-card">
-        <h1>Sign in</h1>
-        <div class="sub">Welcome back to ${p.tenant}.</div>
-        <div class="field"><label>Username</label><input type="text" value="${p.customer.split(' —')[0].toLowerCase().replace(/\\s/g,'.')}" data-hotspot="login_username"></div>
-        <div class="field"><label>Password</label><input type="password" value="••••••••••" data-hotspot="login_password"></div>
-        <button class="btn-login" data-hotspot="login_submit" onclick="document.getElementById('stepup').classList.add('on')">Sign in</button>
-      </div>
-      <div class="stepup-modal-bg" id="stepup">
-        <div class="stepup-modal">
-          <div class="ms-tag">Maestro · Step-up identity</div>
-          <h2>Verify your identity to continue</h2>
-          <p>Before accessing your ${p.portal} session, ${p.tenant} requires a one-time identity verification. CLEAR will guide you through ID + selfie capture on your phone — no app download.</p>
-          <button class="btn-clear" data-hotspot="stepup_clear">Verify with CLEAR →</button>
-        </div>
-      </div>
-    `;
-    setTimeout(() => document.getElementById('stepup').classList.add('on'), 600);
-  } else if (mode === 'action-webform') {
-    body.innerHTML = `
+  if (mode === 'action-webform') {
+    /* Show the legacy desktop frame for auth-fabric Scene 2; hide the phone. */
+    document.getElementById('phone-mode').style.display = 'none';
+    document.getElementById('legacy-mode').style.display = 'block';
+    document.getElementById('legacy-url-bar').textContent =
+      'https://' + p.domain + '/transactions';
+    document.getElementById('legacy-body').innerHTML = `
       <div class="session-banner" data-hotspot="session_banner">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1A8E5C"></span>
         <span>Authenticated · Verified by CLEAR · Session active</span>
       </div>
       <div class="webform-card" data-hotspot="webform_card">
         <div class="ms-tag">Maestro · Served webform</div>
-        <h2 id="form-title">Action authorization</h2>
-        <div class="scope" id="form-scope">A Maestro-served form, pre-filled from your authenticated session. Submit inherits your identity proof — no second verification needed.</div>
+        <h2>Action authorization</h2>
+        <div class="scope">A Maestro-served form, pre-filled from your authenticated session. Submit inherits your identity proof — no second verification needed.</div>
         <div class="field-row prefilled"><label>Account / Identifier</label><input type="text" value="auto-filled from session" readonly data-hotspot="form_field_1"><div class="prefill-flag">✦ Pre-filled from authenticated identity</div></div>
         <div class="field-row prefilled"><label>Action context</label><input type="text" value="auto-filled from in-portal selection" readonly data-hotspot="form_field_2"><div class="prefill-flag">✦ Pre-filled from request context</div></div>
         <div class="field-row"><label>Confirm / Memo</label><input type="text" placeholder="Add any required note" data-hotspot="form_memo"></div>
@@ -237,7 +887,77 @@
         <button class="btn-submit" data-hotspot="form_submit">Submit (no second IDV) →</button>
       </div>
     `;
+  } else {
+    /* clear-idv-login mode (default) — wire up the phone frame */
+    /* Brand chrome */
+    document.getElementById('brand-mark').innerHTML = MARK_SVG;
+    document.getElementById('brand-mark').style.color = 'var(--ds-cobalt)';
+    document.getElementById('brand-wordmark').textContent = p.wordmark;
+
+    /* s1 wire */
+    document.getElementById('signin-name').textContent = 'Sign in';
+    document.getElementById('signin-email').value = p.email;
+    document.getElementById('brand-tenant').textContent = p.wordmark;
+    document.getElementById('brand-tenant-2').textContent = p.wordmark;
+    document.getElementById('brand-tenant-3').textContent = p.wordmark;
+    document.getElementById('brand-portal-name').textContent = p.portal;
+    document.getElementById('brand-portal-name-2').textContent = p.portal;
+
+    /* s4 wire */
+    document.getElementById('match-name').textContent = p.customer.split(' —')[0];
+    document.getElementById('match-portal').textContent = p.portal;
+
+    /* s5 wire — dashboard */
+    document.getElementById('dash-name').textContent = p.first;
+    const tilesEl = document.getElementById('dash-tiles');
+    tilesEl.innerHTML = (p.tiles || []).map(t => `
+      <div class="acct-tile">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M3 10h18" stroke="currentColor" stroke-width="1.8"/>
+        </svg></div>
+        <div class="mid">
+          <div class="label">${t.lab}</div>
+          <div class="val">${t.val}</div>
+          <div class="sub">${t.sub}</div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('dash-cta-text').textContent = p.ctaText;
+
+    /* Status-bar clock — current time, formatted as h:mm */
+    const now = new Date();
+    const h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h % 12 || 12}:${m}`;
   }
+
+  /* ────────────────────────────────────────────────────────────
+     State management — listens for tgk:lockToBeat from the shell
+     and switches between s1-s5. Also accepts ?scene=sN URL param
+     for direct-link testing.
+     ──────────────────────────────────────────────────────────── */
+  function showState(sceneId) {
+    if (mode !== 'clear-idv-login') return;
+    const all = document.querySelectorAll('.state');
+    all.forEach(el => el.classList.toggle('on', el.dataset.state === sceneId));
+
+    /* Browser-mode URL bar swaps in for s3 (CLEAR session); app brand chrome
+       returns for s1/s2/s4/s5. */
+    const isBrowser = (sceneId === 's3');
+    document.getElementById('app-brand-row').style.display    = isBrowser ? 'none' : '';
+    document.getElementById('browser-url-row').style.display  = isBrowser ? '' : 'none';
+  }
+
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (!m || m.type !== 'tgk:lockToBeat') return;
+    const sid = m.sceneId;
+    if (sid && /^s[1-5]$/.test(sid)) showState(sid);
+  });
+
+  const initialScene = params.get('scene');
+  if (initialScene && /^s[1-5]$/.test(initialScene)) showState(initialScene);
 </script>
 
 </body>
