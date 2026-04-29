@@ -867,16 +867,31 @@ app.post('/api/builder/save', builderJson, async (req, res) => {
 });
 
 /* =========================================================================
-   VERTICALS REGISTRY READER
+   VERTICALS REGISTRY READER + EDITOR
    -------------------------------------------------------------------------
    builder.html in audit-mode hydrates from the canonical VERTICALS block
    inlined in stories/_shared/story-shell.html. We slice the literal out of
    the source, eval it in an isolated VM context, and serve the JSON for
-   the requested vertical (and optionally a specific usecase). The shell
-   file is trusted source; this endpoint is read-only.
+   the requested vertical (and optionally a specific usecase).
+
+   For canonical writes (POST /api/verticals/:key), we additionally parse
+   the literal with acorn to get byte-precise source ranges for every
+   editable string field (scene.head, scene.lede, scene.beats[i].head,
+   scene.beats[i].lede). Edits are applied as surgical text replacements
+   over the GitHub-fetched source, then committed via the Contents API.
+   That keeps the canonical file's hand-formatting intact and produces
+   clean per-rewrite git diffs.
+
+   Read path: local disk (fast, mtime-cached).
+   Write path: GitHub Contents API (source of truth — Repl FS may lag).
    ========================================================================= */
 const vm = require('vm');
+const acorn = require('acorn');
 const STORY_SHELL_PATH = path.join(__dirname, 'stories', '_shared', 'story-shell.html');
+const STORY_SHELL_REPO_PATH = 'stories/_shared/story-shell.html';
+const GITHUB_PAT = process.env.GITHUB_PAT || '';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'jnimbles03/tgk-2.0';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 let _verticalsCache = null; // { mtimeMs, data }
 
 function sliceVerticalsLiteral(src) {
@@ -949,7 +964,9 @@ app.get('/api/verticals', (req, res) => {
 
 // GET /api/verticals/:key  (?usecase=default|maintenance|fraud-fabric|...)
 // Returns the merged vertical entry for the requested key + usecase, with
-// the scenes array resolved to a single flat list.
+// the scenes array resolved to a single flat list. Also returns
+// `sourceAnchors` — per-field paths the Save button uses to identify which
+// literal to replace on POST.
 app.get('/api/verticals/:key', (req, res) => {
   const v = readVerticals();
   if (!v) return res.status(500).json({ error: 'verticals registry unavailable' });
@@ -968,6 +985,18 @@ app.get('/api/verticals/:key', (req, res) => {
     return res.status(404).json({ error: `usecase '${usecase}' not defined for vertical '${key}'` });
   }
 
+  // Source anchors — only built for usecase=default (the only shape currently
+  // stored as a flat array in the literal). For per-usecase variants we'd
+  // need a parallel walk; that's a follow-up.
+  let sourceAnchors = [];
+  if (Array.isArray(entry.scenes)) {
+    try {
+      sourceAnchors = extractSourceAnchorsForVertical(key);
+    } catch (e) {
+      console.error('[verticals] source-anchor extraction failed for', key, e.message);
+    }
+  }
+
   res.json({
     key,
     usecase,
@@ -980,8 +1009,348 @@ app.get('/api/verticals/:key', (req, res) => {
       category: entry.category || '',
       splashOk: !!entry.splashOk
     },
-    scenes
+    scenes,
+    sourceAnchors
   });
+});
+
+/* =========================================================================
+   SOURCE-ANCHOR EXTRACTION (acorn-driven)
+   -------------------------------------------------------------------------
+   For each editable string field (scene.head, scene.lede, scene.beats[i].head,
+   scene.beats[i].lede) inside a vertical's `scenes:` array, return a
+   { path, value, quoteStyle, sourceStart, sourceEnd } record. Offsets are
+   absolute byte positions inside the FULL story-shell.html file content,
+   so the POST handler can splice replacements without re-walking the AST.
+   ========================================================================= */
+
+function extractSourceAnchorsForVertical(verticalKey) {
+  const src = fs.readFileSync(STORY_SHELL_PATH, 'utf-8');
+  return extractSourceAnchorsFromSource(src, verticalKey);
+}
+
+function extractSourceAnchorsFromSource(src, verticalKey) {
+  // Locate the VERTICALS literal in the source, AST-parse it, navigate to
+  // the requested vertical's scenes array, walk the editable string fields.
+  const m = /const\s+VERTICALS\s*=\s*\{/m.exec(src);
+  if (!m) return [];
+  const literalStart = m.index + m[0].length - 1; // position of opening `{`
+  const literal = sliceVerticalsLiteral(src);
+  if (!literal) return [];
+
+  // acorn needs a parsable expression. Wrap the object literal in `(...)`.
+  // AST offsets are then relative to the wrapped string — the leading `(`
+  // is at offset 0, so subtract 1 to map back to literal-relative offsets,
+  // then add literalStart to get full-file offsets.
+  let ast;
+  try {
+    ast = acorn.parseExpressionAt('(' + literal + ')', 0, { ecmaVersion: 'latest' });
+  } catch (e) {
+    console.error('[anchors] acorn parse failed:', e.message);
+    return [];
+  }
+  if (!ast || ast.type !== 'ObjectExpression') return [];
+
+  const vProp = ast.properties.find(p => keyName(p.key) === verticalKey);
+  if (!vProp || vProp.value.type !== 'ObjectExpression') return [];
+
+  const scenesProp = vProp.value.properties.find(p => keyName(p.key) === 'scenes');
+  if (!scenesProp) return [];
+  const scenesNode = scenesProp.value;
+  // We only build anchors when scenes is a flat array literal — matches the
+  // current registry shape for every vertical. Per-usecase ObjectExpression
+  // shape (if it ever lands) is a follow-up.
+  if (scenesNode.type !== 'ArrayExpression') return [];
+
+  const anchors = [];
+  scenesNode.elements.forEach((sceneNode, sceneIdx) => {
+    if (!sceneNode || sceneNode.type !== 'ObjectExpression') return;
+    pushStringAnchor(anchors, sceneNode, 'head', `scenes[${sceneIdx}].head`, literalStart);
+    pushStringAnchor(anchors, sceneNode, 'lede', `scenes[${sceneIdx}].lede`, literalStart);
+    const beatsProp = sceneNode.properties.find(p => keyName(p.key) === 'beats');
+    if (beatsProp && beatsProp.value.type === 'ArrayExpression') {
+      beatsProp.value.elements.forEach((beatNode, beatIdx) => {
+        if (!beatNode || beatNode.type !== 'ObjectExpression') return;
+        pushStringAnchor(anchors, beatNode, 'head',
+          `scenes[${sceneIdx}].beats[${beatIdx}].head`, literalStart);
+        pushStringAnchor(anchors, beatNode, 'lede',
+          `scenes[${sceneIdx}].beats[${beatIdx}].lede`, literalStart);
+      });
+    }
+  });
+  return anchors;
+}
+
+function keyName(keyNode) {
+  if (!keyNode) return null;
+  if (keyNode.type === 'Identifier') return keyNode.name;
+  if (keyNode.type === 'Literal')    return String(keyNode.value);
+  return null;
+}
+
+function pushStringAnchor(anchors, objNode, propName, path, literalStart) {
+  const prop = objNode.properties.find(p => keyName(p.key) === propName);
+  if (!prop) return;
+  const v = prop.value;
+  if (!v) return;
+  // Only handle plain strings + plain template literals (no interpolations).
+  // Template literals with `${...}` expressions would need re-emitting; the
+  // canonical file doesn't use them inside scene narration, so we error out.
+  let quoteStyle, value;
+  if (v.type === 'Literal' && typeof v.value === 'string') {
+    quoteStyle = (v.raw && v.raw[0] === "'") ? 'single' : 'double';
+    value = v.value;
+  } else if (v.type === 'TemplateLiteral' && v.expressions.length === 0 && v.quasis.length === 1) {
+    quoteStyle = 'template';
+    value = v.quasis[0].value.cooked;
+  } else {
+    return; // unsupported shape — skip
+  }
+  // AST offsets are relative to the wrapped string '(' + literal + ')'. The
+  // leading '(' is at offset 0, so subtract 1 to map to literal-relative,
+  // then add literalStart for full-file absolute offsets.
+  const start = literalStart + (v.start - 1);
+  const end   = literalStart + (v.end - 1);
+  anchors.push({ path, value, quoteStyle, sourceStart: start, sourceEnd: end });
+}
+
+/* =========================================================================
+   JS LITERAL ENCODER
+   -------------------------------------------------------------------------
+   Encode a plain string as a JS literal that, when evaluated, reproduces it
+   exactly. Picks the same quoteStyle as the original where possible so git
+   diffs stay minimal:
+     - 'template' → backticks (preserves multi-line + HTML cleanly)
+     - 'double'   → "..." with backslash-escaped " and \
+     - 'single'   → '...' with backslash-escaped ' and \
+   Newlines and ${ are template-only hazards; if asked to encode a value
+   with newlines as 'double', we coerce to 'template' silently.
+   ========================================================================= */
+function encodeJsLiteral(value, quoteStyle) {
+  const v = String(value);
+  // Force template if newlines or backslashes-followed-by-newlines exist
+  // and the requested style can't carry them.
+  const hasNewline = /\n|\r/.test(v);
+  if (hasNewline && quoteStyle !== 'template') quoteStyle = 'template';
+
+  if (quoteStyle === 'template') {
+    // Escape: backticks and ${
+    const escaped = v.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+    return '`' + escaped + '`';
+  }
+  if (quoteStyle === 'single') {
+    const escaped = v.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return "'" + escaped + "'";
+  }
+  // default: double
+  const escaped = v.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return '"' + escaped + '"';
+}
+
+/* =========================================================================
+   GITHUB CONTENTS API CLIENT
+   -------------------------------------------------------------------------
+   Read + write the canonical story-shell.html via GitHub's Contents API.
+   No git binary, no checkout — just an HTTPS PUT with the file's current
+   sha for concurrency safety. Authenticated via the GITHUB_PAT env var.
+   ========================================================================= */
+async function githubGetFile(repoPath, ref) {
+  if (!GITHUB_PAT) throw new Error('GITHUB_PAT not configured');
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${encodeURI(repoPath)}?ref=${encodeURIComponent(ref)}`;
+  const r = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${GITHUB_PAT}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'tgk-2.0-builder'
+    }
+  });
+  if (!r.ok) {
+    const body = await r.text().catch(() => '');
+    throw new Error(`GitHub GET failed: ${r.status} ${body.slice(0, 200)}`);
+  }
+  const j = await r.json();
+  // GitHub returns base64 content with embedded newlines; decode straight
+  // through Buffer for perfect fidelity (no UTF-16 round-trip).
+  const content = Buffer.from(j.content, j.encoding || 'base64').toString('utf-8');
+  return { content, sha: j.sha };
+}
+
+async function githubPutFile(repoPath, content, sha, message, author) {
+  if (!GITHUB_PAT) throw new Error('GITHUB_PAT not configured');
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${encodeURI(repoPath)}`;
+  const body = {
+    message,
+    content: Buffer.from(content, 'utf-8').toString('base64'),
+    sha,
+    branch: GITHUB_BRANCH,
+    committer: author,
+    author: author
+  };
+  const r = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${GITHUB_PAT}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json',
+      'User-Agent': 'tgk-2.0-builder'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const txt = await r.text().catch(() => '');
+    const err = new Error(`GitHub PUT failed: ${r.status} ${txt.slice(0, 300)}`);
+    err.status = r.status;
+    throw err;
+  }
+  return r.json();
+}
+
+/* =========================================================================
+   POST /api/verticals/:key — admin canonical-write
+   -------------------------------------------------------------------------
+   Body: {
+     usecase: 'default' (only default supported in MVP — flat-array shape),
+     edits: [{ path: 'scenes[0].head', oldValue: '...', newValue: '...' }, ...],
+     commitMessage: 'optional one-line summary'
+   }
+   Flow:
+     1. requireEditor (magic-link session + EDIT_ALLOWLIST)
+     2. Fetch latest story-shell.html via GitHub Contents API → { content, sha }
+        We never trust the Repl FS as source of truth here.
+     3. AST-parse, locate the requested vertical, build sourceAnchors fresh.
+     4. For each edit:
+          - find the anchor for `path`
+          - verify anchor.value === edit.oldValue (concurrency check)
+          - encode edit.newValue using the anchor's quoteStyle
+          - record the splice
+     5. Apply splices in reverse order (latest offsets first) so earlier
+        splices don't shift later offsets.
+     6. Re-parse the resulting file's VERTICALS to ensure it still evaluates.
+        If not, abort 422 with the parse error.
+     7. PUT to GitHub with new content + sha.
+     8. Bust the local verticals cache so subsequent GETs see the update
+        (Repl FS still has old content until next pull / redeploy).
+     9. Return { ok, commit, html_url, sha }.
+   ========================================================================= */
+const verticalsWriteJson = express.json({ limit: '1mb' });
+app.post('/api/verticals/:key', requireEditor, verticalsWriteJson, async (req, res) => {
+  const verticalKey = req.params.key;
+  const usecase = (req.body && req.body.usecase) || 'default';
+  const edits = (req.body && Array.isArray(req.body.edits)) ? req.body.edits : null;
+  const commitMessage = (req.body && req.body.commitMessage)
+    || `edit(${verticalKey}): ${edits ? edits.length : 0} narration field(s) — via builder`;
+
+  if (!edits || !edits.length) {
+    return res.status(400).json({ error: 'edits[] is required and must be non-empty' });
+  }
+  if (usecase !== 'default') {
+    return res.status(400).json({
+      error: `MVP supports usecase=default only (got '${usecase}'); per-usecase write is a follow-up.`
+    });
+  }
+  if (!GITHUB_PAT) {
+    return res.status(503).json({
+      error: 'github_pat_not_configured',
+      message: 'GITHUB_PAT is not set in Replit Secrets — admin needs to provision a fine-grained PAT scoped to GITHUB_REPO with Contents read+write before canonical writes can ship.'
+    });
+  }
+
+  try {
+    // 1. Fetch source-of-truth from GitHub
+    const { content: sourceFromGh, sha } = await githubGetFile(STORY_SHELL_REPO_PATH, GITHUB_BRANCH);
+
+    // 2. Build fresh anchors from THAT content (not local FS)
+    const anchors = extractSourceAnchorsFromSource(sourceFromGh, verticalKey);
+    if (!anchors.length) {
+      return res.status(404).json({ error: `vertical '${verticalKey}' not found in canonical source` });
+    }
+    const byPath = new Map(anchors.map(a => [a.path, a]));
+
+    // 3. Validate every edit against current source value
+    const splices = [];
+    for (const edit of edits) {
+      if (!edit || typeof edit.path !== 'string'
+          || typeof edit.oldValue !== 'string'
+          || typeof edit.newValue !== 'string') {
+        return res.status(400).json({
+          error: 'each edit must have {path, oldValue, newValue} as strings',
+          offending: edit
+        });
+      }
+      const a = byPath.get(edit.path);
+      if (!a) {
+        return res.status(409).json({
+          error: 'unknown_path',
+          message: `path '${edit.path}' not found in current canonical source — registry shape may have changed since you hydrated. Reload to refresh.`
+        });
+      }
+      if (a.value !== edit.oldValue) {
+        return res.status(409).json({
+          error: 'value_drift',
+          message: `path '${edit.path}' has changed since you hydrated. Someone else may have edited the same field. Reload to refresh.`,
+          path: edit.path,
+          serverValue: a.value,
+          clientOldValue: edit.oldValue
+        });
+      }
+      splices.push({
+        start: a.sourceStart,
+        end:   a.sourceEnd,
+        text:  encodeJsLiteral(edit.newValue, a.quoteStyle)
+      });
+    }
+
+    // 4. Apply splices (highest offset first → no offset shifts)
+    splices.sort((a, b) => b.start - a.start);
+    let mutated = sourceFromGh;
+    for (const s of splices) {
+      mutated = mutated.slice(0, s.start) + s.text + mutated.slice(s.end);
+    }
+
+    // 5. Validate — parse the mutated VERTICALS literal end-to-end
+    const newLiteral = sliceVerticalsLiteral(mutated);
+    if (!newLiteral) {
+      return res.status(422).json({ error: 'mutation produced unparseable VERTICALS block (could not slice literal)' });
+    }
+    try {
+      vm.runInNewContext('(' + newLiteral + ')', {}, { timeout: 1500 });
+    } catch (e) {
+      return res.status(422).json({
+        error: 'post_edit_eval_failed',
+        message: 'After applying edits, the VERTICALS block no longer evaluates. Aborted; nothing committed.',
+        detail: e.message
+      });
+    }
+
+    // 6. Commit via GitHub Contents API
+    const author = {
+      name: req.editorEmail.split('@')[0],
+      email: req.editorEmail
+    };
+    const result = await githubPutFile(
+      STORY_SHELL_REPO_PATH, mutated, sha, commitMessage, author
+    );
+
+    // 7. Bust local cache (FS will catch up on next git pull / redeploy)
+    _verticalsCache = null;
+
+    res.json({
+      ok: true,
+      editor: req.editorEmail,
+      editsApplied: edits.length,
+      commit: {
+        sha: result.commit && result.commit.sha,
+        html_url: result.commit && result.commit.html_url,
+        message: commitMessage
+      },
+      contentSha: result.content && result.content.sha
+    });
+  } catch (e) {
+    console.error('[verticals/write] failed:', e.message);
+    res.status(e.status || 500).json({ error: 'write_failed', message: e.message });
+  }
 });
 
 // GET /api/builder/:token — fetch a saved config (used by shell async path / inspection)

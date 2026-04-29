@@ -870,6 +870,90 @@
   }
 
   /* ============================================================
+     Save-canonical button + result panel — admin-only edit flow.
+     The button is rendered only when /api/me reports the user is
+     on EDIT_ALLOWLIST AND the URL has ?vertical=<key>. The result
+     panel renders after a successful PUT, with the GitHub commit
+     URL the admin can verify against.
+     ============================================================ */
+  .btn-save-canonical {
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-color: var(--ds-deep-violet);
+  }
+  .btn-save-canonical:hover {
+    background: var(--ds-cobalt);
+    border-color: var(--ds-cobalt);
+  }
+  .btn-save-canonical:disabled {
+    background: color-mix(in srgb, var(--ds-deep-violet) 40%, transparent);
+    border-color: transparent;
+    color: var(--ds-ecru);
+    cursor: progress;
+  }
+  .save-result {
+    margin-top: 28px;
+    padding: 22px 26px;
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-deep-violet);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  .save-result.is-error { border-left-color: var(--ds-poppy); }
+  .save-result-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .save-result-tag {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ds-deep-violet);
+    padding: 3px 9px;
+    background: color-mix(in srgb, var(--ds-deep-violet) 8%, transparent);
+    border-radius: 999px;
+  }
+  .save-result.is-error .save-result-tag {
+    color: var(--ds-poppy);
+    background: color-mix(in srgb, var(--ds-poppy) 8%, transparent);
+  }
+  .save-result-dismiss {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--ds-text-soft);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .save-result-dismiss:hover { background: var(--ds-bg); color: var(--ds-text); }
+  .save-result-msg {
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    color: var(--ds-text);
+    line-height: 1.55;
+    margin: 0 0 12px;
+    white-space: pre-wrap;
+  }
+  .save-result-link {
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-cobalt);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    font-weight: 600;
+  }
+  .save-result-link:hover { color: var(--ds-deep-violet); }
+  .save-result.is-error .save-result-link { display: none; }
+
+  /* ============================================================
      iMovie filmstrip — pool of scene tiles + horizontal timeline
      + inspector. Replaces the old palette-zone / playlist-zone
      2-column layout for Step 3.
@@ -1532,7 +1616,24 @@
       <div class="wizard-nav-right">
         <span class="submit-status" id="submitStatus"></span>
         <button class="btn btn-secondary" type="button" id="btnReset">Start over</button>
+        <!-- Save canonical — admin-only; only rendered when /api/me reports
+             the user is on EDIT_ALLOWLIST AND ?vertical= is in the URL. -->
+        <button class="btn btn-save-canonical" type="button" id="btnSaveCanonical" hidden>Save to canonical →</button>
         <button class="btn" type="button" id="btnGenerate">Generate URL →</button>
+      </div>
+    </div>
+
+    <!-- Save result panel — appears under the wizard nav after a successful
+         POST /api/verticals/:key. Shows the GitHub commit URL + a quick
+         dismiss. Hidden by default. -->
+    <div class="save-result" id="saveResult" hidden>
+      <div class="save-result-head">
+        <span class="save-result-tag" id="saveResultTag">Saved</span>
+        <button type="button" class="save-result-dismiss" id="saveResultDismiss" aria-label="Dismiss">×</button>
+      </div>
+      <p class="save-result-msg" id="saveResultMsg"></p>
+      <div class="save-result-actions">
+        <a class="save-result-link" id="saveResultLink" target="_blank" rel="noopener">View commit on GitHub ↗</a>
       </div>
     </div>
   </div>
@@ -2296,21 +2397,73 @@
       if (!Array.isArray(scenes) || !scenes.length) return;
       timeline = scenes.map(s => {
         const templateId = inferTemplate(s.tag);
+        // Stash originals (head, lede, beats[].head, beats[].lede) so the
+        // Save button can build {oldValue, newValue} pairs by diffing the
+        // current state against what the server sent. The originals never
+        // mutate; the live `headline`/`lede`/`beats[].head`/`beats[].lede`
+        // do, via the inspector textarea handlers.
+        const origBeats = Array.isArray(s.beats) ? s.beats.map(b => ({
+          head: b.head || '',
+          lede: b.lede || ''
+        })) : [];
         return {
           uid: newUid(),
           templateId,
           tag: s.tag || '',
           headline: s.head || '',
           lede: s.lede || '',
-          beats: Array.isArray(s.beats) ? s.beats.map(b => ({
-            head: b.head || '',
-            lede: b.lede || ''
-          })) : []
+          beats: origBeats.map(b => ({ head: b.head, lede: b.lede })),
+          // Originals — read-only once hydrated.
+          _origHeadline: s.head || '',
+          _origLede:     s.lede || '',
+          _origBeats:    origBeats
         };
       });
       selectedUid = timeline[0]?.uid || null;
       renderTimeline();
       if (window.__lint) window.__lint.recomputeAuditCount();
+    }
+
+    // Build the diff-edits array the POST endpoint expects. Walks the live
+    // timeline, compares each editable field against its stashed original,
+    // emits one edit per changed field with the matching path.
+    function buildEditsFromTimeline() {
+      const edits = [];
+      timeline.forEach((t, sceneIdx) => {
+        if (typeof t._origHeadline === 'string' && t.headline !== t._origHeadline) {
+          edits.push({
+            path: `scenes[${sceneIdx}].head`,
+            oldValue: t._origHeadline,
+            newValue: t.headline
+          });
+        }
+        if (typeof t._origLede === 'string' && t.lede !== t._origLede) {
+          edits.push({
+            path: `scenes[${sceneIdx}].lede`,
+            oldValue: t._origLede,
+            newValue: t.lede
+          });
+        }
+        const orig = Array.isArray(t._origBeats) ? t._origBeats : [];
+        const cur  = Array.isArray(t.beats) ? t.beats : [];
+        for (let i = 0; i < Math.min(orig.length, cur.length); i++) {
+          if (cur[i].head !== orig[i].head) {
+            edits.push({
+              path: `scenes[${sceneIdx}].beats[${i}].head`,
+              oldValue: orig[i].head,
+              newValue: cur[i].head
+            });
+          }
+          if (cur[i].lede !== orig[i].lede) {
+            edits.push({
+              path: `scenes[${sceneIdx}].beats[${i}].lede`,
+              oldValue: orig[i].lede,
+              newValue: cur[i].lede
+            });
+          }
+        }
+      });
+      return edits;
     }
 
     // ---------- inspector renderer: include beats list + lint chips ----------
@@ -2431,6 +2584,7 @@
         return out;
       },
       hydrateFromCanonical,
+      buildEditsFromTimeline,
       resetToUsecaseDefault,
       length: () => timeline.length
     };
@@ -2604,12 +2758,149 @@
           window.__wizard.showStep(3);
         }
         if (window.__lint) window.__lint.recomputeAuditCount();
+        // Stash the vertical key + usecase on window so the save IIFE can
+        // build the POST URL without re-reading URL params.
+        window.__auditContext = { verticalKey, usecase };
+        // After hydration succeeds, kick the save IIFE — by this point
+        // /api/me has likely resolved, but we re-evaluate here to make sure
+        // the Save button shows even if the probe finished before hydrate.
+        if (typeof window.__refreshSaveButton === 'function') window.__refreshSaveButton();
       })
       .catch(err => {
         if (bannerText) {
           bannerText.textContent = `Audit hydrate failed: ${err.message}. Falling back to a clean wizard.`;
         }
       });
+  })();
+
+  // ============================================================
+  // Save canonical — admin-only edit-and-commit flow
+  // ------------------------------------------------------------
+  // 1. Probe /api/me on load. If authenticated AND on EDIT_ALLOWLIST,
+  //    set window.__isEditor = true.
+  // 2. When audit-mode hydration completes (window.__auditContext is
+  //    set) AND the user is an editor, reveal the Save button.
+  // 3. On Save click: window.__timeline.buildEditsFromTimeline()
+  //    builds the diff, we POST it to /api/verticals/<key>, surface
+  //    the GitHub commit URL on success or a clear error on failure.
+  // ============================================================
+  (function initSaveCanonical() {
+    const btn       = document.getElementById('btnSaveCanonical');
+    const result    = document.getElementById('saveResult');
+    const resultTag = document.getElementById('saveResultTag');
+    const resultMsg = document.getElementById('saveResultMsg');
+    const resultLink = document.getElementById('saveResultLink');
+    const resultDismiss = document.getElementById('saveResultDismiss');
+    if (!btn || !result) return;
+
+    let isEditor = false;
+    let editorEmail = null;
+
+    function refresh() {
+      const inAuditMode = !!window.__auditContext;
+      btn.hidden = !(inAuditMode && isEditor);
+    }
+    window.__refreshSaveButton = refresh;
+
+    // Probe /api/me — never blocks the page, never logs the user out.
+    fetch('/api/me', { cache: 'no-cache', credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(me => {
+        if (me && me.authenticated && me.isEditor) {
+          isEditor = true;
+          editorEmail = me.email || null;
+        }
+        refresh();
+      })
+      .catch(() => { /* silent — non-editors just won't see the button */ });
+
+    function showResult({ ok, message, commitUrl }) {
+      result.classList.toggle('is-error', !ok);
+      resultTag.textContent = ok ? 'Saved' : 'Save failed';
+      resultMsg.textContent = message || '';
+      if (ok && commitUrl) {
+        resultLink.href = commitUrl;
+        resultLink.style.display = '';
+      } else {
+        resultLink.style.display = 'none';
+      }
+      result.hidden = false;
+      result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    resultDismiss && resultDismiss.addEventListener('click', () => {
+      result.hidden = true;
+    });
+
+    btn.addEventListener('click', async () => {
+      const ctx = window.__auditContext;
+      if (!ctx) return;
+      const tl = window.__timeline;
+      if (!tl || typeof tl.buildEditsFromTimeline !== 'function') {
+        showResult({ ok: false, message: 'Timeline not initialised. Reload and try again.' });
+        return;
+      }
+      const edits = tl.buildEditsFromTimeline();
+      if (!edits.length) {
+        showResult({ ok: false, message: 'No changes to save — every field still matches the canonical source.' });
+        return;
+      }
+      // Lightweight confirm if you're about to commit a large rewrite —
+      // sanity check, no enterprise modal.
+      if (edits.length > 12 && !confirm(`Commit ${edits.length} narration changes to canonical?`)) {
+        return;
+      }
+      btn.disabled = true;
+      const origText = btn.textContent;
+      btn.textContent = `Saving ${edits.length} change${edits.length === 1 ? '' : 's'}…`;
+      try {
+        const r = await fetch(`/api/verticals/${encodeURIComponent(ctx.verticalKey)}`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            usecase: ctx.usecase || 'default',
+            edits,
+            commitMessage: `edit(${ctx.verticalKey}): ${edits.length} narration field${edits.length === 1 ? '' : 's'} via builder${editorEmail ? ' · ' + editorEmail : ''}`
+          })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok) {
+          const commitUrl = (data.commit && data.commit.html_url) || null;
+          const sha = (data.commit && data.commit.sha) || '';
+          showResult({
+            ok: true,
+            message: `${edits.length} change${edits.length === 1 ? '' : 's'} committed to canonical${sha ? ' (' + sha.slice(0, 7) + ')' : ''}.\nReplit will pick this up on next pull/redeploy.`,
+            commitUrl
+          });
+        } else if (r.status === 401) {
+          showResult({ ok: false, message: 'Your session expired. Sign in again at /audit/login and reload.' });
+        } else if (r.status === 403) {
+          showResult({ ok: false, message: data.message || 'Your email is not on the editor allowlist.' });
+        } else if (r.status === 503) {
+          showResult({ ok: false, message: data.message || 'GITHUB_PAT not configured on the server.' });
+        } else if (r.status === 409) {
+          showResult({
+            ok: false,
+            message: (data.message || 'Conflict — canonical has changed since you hydrated.') +
+              (data.path ? `\nPath: ${data.path}` : '') +
+              '\nReload to refresh, then re-apply your edits.'
+          });
+        } else if (r.status === 422) {
+          showResult({
+            ok: false,
+            message: (data.message || 'Edits applied but the result no longer parses — nothing was committed.') +
+              (data.detail ? `\nDetail: ${data.detail}` : '')
+          });
+        } else {
+          showResult({ ok: false, message: data.message || data.error || `Save failed (HTTP ${r.status}).` });
+        }
+      } catch (e) {
+        showResult({ ok: false, message: `Network error: ${e.message}` });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    });
   })();
 </script>
 </body>
