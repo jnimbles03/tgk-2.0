@@ -61,8 +61,30 @@ code,pre{font-family:var(--mono)}
 .stats-divider{width:1px;height:32px;background:var(--ds-rule);flex-shrink:0}
 .stats-source{margin-left:auto;font-size:.6875rem;color:var(--ds-soft);text-align:right;line-height:1.5}
 
-.main{display:grid;grid-template-columns:240px 1fr 320px;gap:0;overflow:hidden}
-.sidebar{background:var(--ds-surface);border-right:1px solid var(--ds-rule);overflow-y:auto;padding:16px}
+.main{display:grid;grid-template-columns:var(--left-w,240px) 4px 1fr 4px var(--right-w,320px);gap:0;overflow:hidden;transition:grid-template-columns .2s ease}
+.sidebar{background:var(--ds-surface);border-right:1px solid var(--ds-rule);overflow-y:auto;padding:16px;position:relative;min-width:0;transition:width .2s ease}
+
+/* ── SIDEBAR COLLAPSE ── */
+.sidebar-toggle{position:sticky;top:8px;z-index:10;float:right;margin:-4px -4px 6px 0;width:22px;height:22px;border-radius:5px;border:1px solid var(--ds-rule);background:var(--ds-ecru);color:var(--ds-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;flex-shrink:0;transition:all .15s}
+.sidebar-toggle:hover{background:var(--ds-cobalt);color:white;border-color:var(--ds-cobalt)}
+.detail-panel-toggle{position:sticky;top:8px;left:8px;z-index:10;float:left;margin:-4px 0 6px -4px;width:22px;height:22px;border-radius:5px;border:1px solid var(--ds-rule);background:var(--ds-ecru);color:var(--ds-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;flex-shrink:0;transition:all .15s}
+.detail-panel-toggle:hover{background:var(--ds-cobalt);color:white;border-color:var(--ds-cobalt)}
+
+.app.left-collapsed{--left-w:0px;--left-handle:0px}
+.app.right-collapsed{--right-w:0px;--right-handle:0px}
+.app.left-collapsed .sidebar{border-right:none}
+.app.right-collapsed .detail-panel{border-left:none}
+.app.left-collapsed .sidebar{overflow:hidden;padding:0}
+.app.left-collapsed .sidebar > *:not(.sidebar-toggle){opacity:0;pointer-events:none}
+.app.left-collapsed .sidebar-toggle{float:none;margin:8px auto;display:flex}
+.app.right-collapsed .detail-panel{overflow:hidden;padding:0}
+.app.right-collapsed .detail-panel > *:not(.detail-panel-toggle){opacity:0;pointer-events:none}
+.app.right-collapsed .detail-panel-toggle{float:none;margin:8px auto;display:flex}
+
+/* Resize handle */
+.resize-handle{width:4px;cursor:col-resize;background:transparent;transition:background .15s;z-index:30;align-self:stretch}
+.resize-handle:hover,.resize-handle:active{background:var(--ds-cobalt)}
+
 .sidebar-section{margin-bottom:20px}
 .sidebar-heading{font-size:.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ds-soft);font-weight:600;margin-bottom:8px}
 
@@ -283,15 +305,15 @@ tr.row-checked td{background:rgba(76,0,255,.07)!important}
 .modal-close-btn{width:100%;margin-top:20px;padding:10px;background:var(--ds-deep-violet);color:white;border:none;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer}
 
 @media(max-width:1200px){
-  .main{grid-template-columns:200px 1fr}
-  .detail-panel{display:none}
+  .main{grid-template-columns:var(--left-w,200px) 4px 1fr}
+  .detail-panel,.detail-panel-toggle,.resize-handle:last-of-type{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
 }
 @media print{
   .sidebar,.detail-panel,.tbl-toolbar,.topbar-right,.stats-bar,.toast,.modal-backdrop{display:none!important}
-  .main{grid-template-columns:1fr}
+  .main{grid-template-columns:1fr!important}.resize-handle{display:none}
   .app{height:auto;overflow:visible}
   table{font-size:.6875rem}
 }
@@ -349,6 +371,7 @@ tr.row-checked td{background:rgba(76,0,255,.07)!important}
 
     <!-- ── SIDEBAR ── -->
     <aside class="sidebar">
+      <button class="sidebar-toggle" id="leftToggle" onclick="toggleLeft()" title="Collapse left sidebar [ ]">◀</button>
 
       <div class="sidebar-section">
         <div class="sidebar-heading">Funnel Navigation</div>
@@ -527,6 +550,7 @@ tr.row-checked td{background:rgba(76,0,255,.07)!important}
 
     <!-- ── DETAIL PANEL ── -->
     <div class="detail-panel">
+      <button class="detail-panel-toggle" id="rightToggle" onclick="toggleRight()" title="Collapse right panel [ ]">▶</button>
       <div class="dp-header">
         <h4>Beat Detail</h4>
         <button class="dp-close" onclick="deselectRow()" title="Close">×</button>
@@ -1537,6 +1561,8 @@ document.addEventListener('keydown', e => {
     deselectRow();
   }
   if (e.key === '?' && !inInput) { showHelp(); return; }
+  if (e.key === '[' && !inInput) { e.preventDefault(); toggleLeft(); return; }
+  if (e.key === ']' && !inInput) { e.preventDefault(); toggleRight(); return; }
 
   if (!inInput && state.selectedId) {
     if (e.key === 'f') flagBeat({ stopPropagation:()=>{} }, state.selectedId);
@@ -1855,6 +1881,75 @@ function init() {
 }
 
 init();
+
+/* ── SIDEBAR COLLAPSE ── */
+const appEl = document.querySelector('.app');
+const leftToggleBtn = document.getElementById('leftToggle');
+const rightToggleBtn = document.getElementById('rightToggle');
+
+function toggleLeft() {
+  const collapsed = appEl.classList.toggle('left-collapsed');
+  leftToggleBtn.textContent = collapsed ? '▶' : '◀';
+  leftToggleBtn.title = collapsed ? 'Expand left sidebar [ ]' : 'Collapse left sidebar [ ]';
+}
+function toggleRight() {
+  const collapsed = appEl.classList.toggle('right-collapsed');
+  rightToggleBtn.textContent = collapsed ? '◀' : '▶';
+  rightToggleBtn.title = collapsed ? 'Expand right panel [ ]' : 'Collapse right panel [ ]';
+}
+
+
+/* ── DRAG-RESIZE HANDLES ── */
+(function() {
+  const mainEl = document.querySelector('.main');
+
+  function makeHandle(side) {
+    const h = document.createElement('div');
+    h.className = 'resize-handle';
+    h.title = 'Drag to resize';
+    return h;
+  }
+
+  // Left handle: between sidebar and table-area
+  const leftHandle = makeHandle('left');
+  const sidebar = document.querySelector('.sidebar');
+  const tableArea = document.querySelector('.table-area');
+  sidebar.after(leftHandle);
+
+  // Right handle: between table-area and detail-panel
+  const rightHandle = makeHandle('right');
+  const detailPanel = document.querySelector('.detail-panel');
+  tableArea.after(rightHandle);
+
+  function startResize(e, which) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const cols = getComputedStyle(mainEl).gridTemplateColumns.split(' ').map(parseFloat);
+    // cols[0]=left, cols[1]=middle(fr), cols[2]=right
+    const startLeft = cols[0];
+    const startRight = cols[2] || 320;
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX;
+      if (which === 'left') {
+        const newW = Math.max(120, Math.min(480, startLeft + dx));
+        mainEl.style.setProperty('--left-w', newW + 'px');
+      } else {
+        const newW = Math.max(180, Math.min(600, startRight - dx));
+        mainEl.style.setProperty('--right-w', newW + 'px');
+      }
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  leftHandle.addEventListener('mousedown', e => startResize(e, 'left'));
+  rightHandle.addEventListener('mousedown', e => startResize(e, 'right'));
+})();
 </script>
 </body>
 </html>
