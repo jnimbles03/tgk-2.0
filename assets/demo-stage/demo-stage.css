@@ -7,6 +7,227 @@
     --ds-poppy, --ds-ecru, --ds-white) and a --brand font stack.
    ================================================================= */
 
+/* =================================================================
+   SHELL LAYOUT — narrative left, demo right.
+   Mirrors /stories/_shared/story-shell.html so the stage pages feel
+   uniform with the rest of the vertical story demos.
+   Use class="ds-shell" on the outer wrapper to opt in.
+   ================================================================= */
+
+.ds-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border: 4px solid #132240;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--brand, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif);
+}
+
+.ds-shell-topbar {
+  flex-shrink: 0;
+  height: 54px;
+  background: #fff;
+  border-bottom: 1px solid #E4E4E7;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 22px;
+}
+.ds-shell-topbar .tenant-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ds-shell-topbar .tenant-mark .m {
+  width: 24px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ds-cobalt, #4C00FF);
+}
+.ds-shell-topbar .tenant-mark .m svg { width: 100%; height: 100%; }
+.ds-shell-topbar .tenant-mark .wm {
+  font-family: Fraunces, Georgia, serif;
+  font-style: italic; font-weight: 500;
+  font-size: 22px; color: #18181B;
+  letter-spacing: 0.005em;
+}
+.ds-shell-topbar .tenant-mark .story {
+  font-size: 13px; color: #71717A; margin-left: 14px;
+}
+.ds-shell-topbar .sp { flex: 1; }
+.ds-shell-topbar .vertical-chip {
+  margin-left: 14px;
+  padding: 4px 10px;
+  border: 1px solid #E4E4E7;
+  border-radius: 12px;
+  font-size: 11px; font-weight: 600; color: #3F3F46;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ds-shell-topbar a.back {
+  color: #3F3F46; text-decoration: none; font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 6px; border: 1px solid #E4E4E7;
+}
+.ds-shell-topbar a.back:hover { background: var(--ds-ecru, #F8F3F0); color: #18181B; }
+
+.ds-shell-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ds-shell-sidebar {
+  flex-shrink: 0;
+  width: 32%;
+  max-width: 460px;
+  min-width: 340px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 32px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.ds-shell-sidebar .brand-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--ds-inkwell, #130032);
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+}
+.ds-shell-sidebar .brand-slot svg { width: 22px; height: 22px; }
+
+.ds-shell-sidebar .step-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #3B82F6;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ds-shell-sidebar .headline {
+  font-size: 24px;
+  font-weight: 700;
+  color: #18181B;
+  letter-spacing: -0.018em;
+  line-height: 1.22;
+  margin-bottom: 18px;
+}
+.ds-shell-sidebar .lede {
+  font-size: 13.5px;
+  color: #52525B;
+  line-height: 1.6;
+  max-width: 96%;
+  opacity: 0.92;
+}
+.ds-shell-sidebar .lede p { margin: 0 0 10px; }
+.ds-shell-sidebar .lede p:last-child { margin-bottom: 0; }
+.ds-shell-sidebar .lede em { font-style: normal; font-weight: 600; color: #3F3F46; }
+
+/* Sidebar foot — controls + scrubber pinned to bottom */
+.ds-shell-sidebar .ds-shell-foot {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #E4E4E7;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ds-shell-sidebar .ds-shell-foot .ctrls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ds-shell-sidebar .ds-shell-foot button {
+  font-family: inherit;
+  font-size: 12px; font-weight: 500;
+  background: #fff; color: #18181B;
+  border: 1px solid #E4E4E7;
+  border-radius: 6px;
+  padding: 7px 11px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: background 140ms, border-color 140ms;
+}
+.ds-shell-sidebar .ds-shell-foot button:hover {
+  background: var(--ds-ecru, #F8F3F0);
+  border-color: var(--ds-cobalt, #4C00FF);
+}
+.ds-shell-sidebar .ds-shell-foot button.primary {
+  background: var(--ds-cobalt, #4C00FF);
+  color: #fff;
+  border-color: var(--ds-cobalt, #4C00FF);
+}
+.ds-shell-sidebar .ds-shell-foot button.primary:hover {
+  background: var(--ds-deep-violet, #26065D);
+  border-color: var(--ds-deep-violet, #26065D);
+}
+.ds-shell-sidebar .ds-shell-foot button svg { width: 12px; height: 12px; }
+.ds-shell-sidebar .ds-shell-foot .scrub-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; color: #71717A;
+  font-variant-numeric: tabular-nums;
+}
+.ds-shell-sidebar .ds-shell-foot .scrub-row .ds-time { min-width: 88px; text-align: right; }
+.ds-shell-sidebar .ds-shell-foot .ds-scrub { flex: 1; }
+.ds-shell-sidebar .ds-shell-foot .help-row {
+  font-size: 10.5px;
+  color: #A1A1AA;
+  letter-spacing: 0.04em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ds-shell-sidebar .ds-shell-foot .help-row kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid #E4E4E7;
+  background: #fff;
+  color: #3F3F46;
+}
+
+.ds-shell-stage-area {
+  flex: 1;
+  background: var(--ds-ecru, #F8F3F0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 28px;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* When the stage lives inside a shell, hide the floating callout overlay
+   and the bottom controls/help/beat-strip — the sidebar owns all of that. */
+.ds-shell .ds-callout { display: none !important; }
+.ds-shell-stage-area .ds-stage {
+  max-width: 100%;
+  margin: 0;
+  border-radius: 10px;
+}
+
+/* Mobile — stack: sidebar on top, demo below */
+@media (max-width: 920px) {
+  .ds-shell-body { flex-direction: column; }
+  .ds-shell-sidebar {
+    width: 100%; max-width: none; min-width: 0;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #E4E4E7;
+  }
+  .ds-shell-sidebar .headline { font-size: 19px; }
+  .ds-shell-sidebar .lede { font-size: 13px; }
+  .ds-shell-stage-area { padding: 12px 14px; }
+}
+
 /* -----------------------------------------------------------------
    Stage shell — 16:9 surface holding video + overlays
    ----------------------------------------------------------------- */

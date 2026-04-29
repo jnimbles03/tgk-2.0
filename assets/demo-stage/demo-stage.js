@@ -378,11 +378,18 @@
       return idx;
     }
 
-    // Callout — prefer cursor-anchored `say` field; fall back to beat copy.
+    // Sidebar elements — present on shell-layout pages (left rail narrative).
+    // When these exist they get painted alongside (or instead of) the callout.
+    var sbStepEl     = document.getElementById("ds-step-label");
+    var sbHeadlineEl = document.getElementById("ds-headline");
+    var sbLedeEl     = document.getElementById("ds-lede");
+    var sbPersonaEl  = document.getElementById("ds-persona");
+    var hasSidebar   = !!(sbStepEl || sbHeadlineEl || sbLedeEl);
+
+    // Callout / sidebar — prefer cursor-anchored `say` field; fall back to beat copy.
     // The cursor is the protagonist; cursorTrack[i].say drives narration.
     var lastCalloutKey = "";
     function paintCallout() {
-      if (!calloutEl) return;
       var ci = currentCursorIndex();
       var bi = currentBeatIndex();
       var say = null, counterStr = "", total = 0, idx = -1;
@@ -391,7 +398,6 @@
         for (var i = ci; i >= 0; i--) {
           if (cursorTrack[i].say) { say = cursorTrack[i].say; idx = i; break; }
         }
-        // Counter = "N / total cursor moves"
         total = cursorTrack.length;
         counterStr = (ci + 1) + " / " + total;
       }
@@ -402,19 +408,30 @@
         total = beats.length;
         counterStr = (bi + 1) + " / " + total;
       }
-      if (!say) {
-        calloutEl.classList.remove("is-visible");
-        return;
-      }
       var key = (idx >= 0 ? "c" + idx : "b" + bi);
-      if (key === lastCalloutKey) return;
+      if (key === lastCalloutKey && say) return;
       lastCalloutKey = key;
-      calloutEl.querySelector(".ds-callout-eyebrow").textContent = say.eyebrow || "Demo";
-      var counterEl = calloutEl.querySelector(".ds-callout-counter");
-      if (counterEl) counterEl.textContent = counterStr;
-      calloutEl.querySelector(".ds-callout-title").textContent = say.title || "";
-      calloutEl.querySelector(".ds-callout-body").textContent  = say.body || "";
-      calloutEl.classList.add("is-visible");
+
+      // Paint the in-stage overlay callout (when present)
+      if (calloutEl) {
+        if (!say) { calloutEl.classList.remove("is-visible"); }
+        else {
+          calloutEl.querySelector(".ds-callout-eyebrow").textContent = say.eyebrow || "Demo";
+          var counterEl = calloutEl.querySelector(".ds-callout-counter");
+          if (counterEl) counterEl.textContent = counterStr;
+          calloutEl.querySelector(".ds-callout-title").textContent = say.title || "";
+          calloutEl.querySelector(".ds-callout-body").textContent  = say.body || "";
+          calloutEl.classList.add("is-visible");
+        }
+      }
+      // Paint the sidebar narrative (shell layout)
+      if (hasSidebar && say) {
+        if (sbStepEl) {
+          sbStepEl.textContent = (say.eyebrow || "DEMO") + " · " + counterStr;
+        }
+        if (sbHeadlineEl) sbHeadlineEl.textContent = say.title || "";
+        if (sbLedeEl) sbLedeEl.innerHTML = "<p>" + (say.body || "").replace(/\n/g, "</p><p>") + "</p>";
+      }
     }
 
     // Cursor overlay positioning — assumes coords are normalized to a 1280x720 reference
