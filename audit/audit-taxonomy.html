@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGK 2.0 — Audit taxonomy</title>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon-32.svg">
+<style>
+  /* DSIndigo — Docusign typeface */
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-style:normal; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-style:normal; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2"); font-weight:700; font-style:normal; font-display:swap; }
+
+  :root {
+    --ds-deep-violet: #26065D;
+    --ds-inkwell:     #130032;
+    --ds-ecru:        #F8F3F0;
+    --ds-white:       #FFFFFF;
+    --ds-mist:        #CBC2FF;
+    --ds-poppy:       #FF5252;
+    --ds-cobalt:      #4C00FF;
+    --ds-bg:          var(--ds-ecru);
+    --ds-text:        var(--ds-inkwell);
+    --ds-text-muted:  color-mix(in srgb, var(--ds-inkwell) 60%, transparent);
+    --ds-text-soft:   color-mix(in srgb, var(--ds-inkwell) 40%, transparent);
+    --ds-rule:        color-mix(in srgb, var(--ds-inkwell) 12%, transparent);
+    --ds-rule-strong: color-mix(in srgb, var(--ds-inkwell) 22%, transparent);
+    --ds-glow:        linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
+    --ds-font:        "DSIndigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ds-mono:        "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--ds-font);
+    color: var(--ds-text);
+    background: var(--ds-bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 48px 96px; }
+  @media (max-width: 720px) { .wrap { padding: 40px 22px 72px; } }
+
+  .topmark {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 36px; color: var(--ds-inkwell);
+  }
+  .topmark .mark-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--ds-glow); flex-shrink: 0;
+  }
+  .topmark .mark-text { font-weight: 600; font-size: 1rem; letter-spacing: -0.01em; }
+  .topmark .mark-divider { width: 1px; height: 16px; background: var(--ds-rule-strong); margin: 0 4px; }
+  .topmark .mark-context { font-size: 0.875rem; color: var(--ds-text-soft); }
+
+  .kicker {
+    font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ds-cobalt); font-weight: 600; margin-bottom: 16px;
+  }
+  h1 {
+    font-weight: 700; font-size: clamp(2rem, 3vw + 1rem, 2.75rem);
+    line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 18px;
+  }
+  h1 em { font-style: italic; font-weight: 500; color: var(--ds-cobalt); }
+  .deck {
+    font-size: 1.0625rem; color: var(--ds-text-muted);
+    max-width: 64ch; margin: 0 0 56px; line-height: 1.55;
+  }
+
+  /* ===== Layer stack ===== */
+  .layer-stack {
+    display: flex; flex-direction: column; gap: 14px;
+    margin-bottom: 56px;
+  }
+  .layer {
+    background: var(--ds-white);
+    border: 1px solid var(--ds-rule);
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+    position: relative;
+    border-left-width: 4px;
+  }
+  @media (max-width: 720px) { .layer { padding: 22px 20px; } }
+
+  .layer.l-industry { border-left-color: var(--ds-mist); }
+  .layer.l-vertical { border-left-color: color-mix(in srgb, var(--ds-cobalt) 50%, var(--ds-mist)); }
+  .layer.l-story    { border-left-color: var(--ds-cobalt); }
+  .layer.l-scene    { border-left-color: var(--ds-deep-violet); }
+  .layer.l-beat     { border-left-color: var(--ds-poppy); }
+
+  .layer-head {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .layer-name {
+    font-weight: 700; font-size: 1.5rem;
+    letter-spacing: -0.015em; color: var(--ds-text);
+  }
+  .layer-tagline {
+    font-style: italic; font-weight: 500;
+    font-size: 1.0625rem; color: var(--ds-text-muted);
+  }
+  .layer-body { font-size: 0.9375rem; color: var(--ds-text); line-height: 1.6; }
+  .layer-body p { margin: 0 0 10px; }
+  .layer-body p:last-child { margin-bottom: 0; }
+  .layer-body em { font-style: italic; color: var(--ds-text-muted); }
+  .layer-body strong { font-weight: 600; }
+
+  /* Property grid inside each layer */
+  .props {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 6px 18px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--ds-rule);
+    font-size: 0.875rem;
+  }
+  @media (max-width: 540px) { .props { grid-template-columns: 1fr; gap: 2px 0; } }
+  .props dt {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ds-text-soft);
+    align-self: start;
+    padding-top: 2px;
+  }
+  .props dd {
+    margin: 0; color: var(--ds-text);
+  }
+  .props code {
+    font-family: var(--ds-mono);
+    font-size: 0.8125rem;
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--ds-deep-violet);
+  }
+  .props .audit-tag {
+    display: inline-block;
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    margin: 1px 4px 1px 0;
+    border-radius: 999px;
+  }
+  .props .audit-tag.cap     { background: rgba(255, 82, 82, 0.10); color: var(--ds-poppy); }
+  .props .audit-tag.brand   { background: rgba(76, 0, 255, 0.10); color: var(--ds-cobalt); }
+  .props .audit-tag.arc     { background: rgba(38, 6, 93, 0.10); color: var(--ds-deep-violet); }
+  .props .audit-tag.points  { background: rgba(203, 194, 255, 0.30); color: var(--ds-deep-violet); }
+  .props .audit-tag.parity  { background: rgba(19, 0, 50, 0.06); color: var(--ds-text); }
+  .props .audit-tag.workspaces { background: rgba(63, 218, 153, 0.16); color: #1F7A5C; }
+  .props .audit-tag.none    { background: var(--ds-bg); color: var(--ds-text-soft); }
+
+  /* Connector — vertical line + arrow between layer cards */
+  .layer + .layer::before {
+    content: "";
+    position: absolute;
+    left: 32px;
+    top: -14px;
+    width: 1.5px;
+    height: 14px;
+    background: var(--ds-rule-strong);
+  }
+  .layer + .layer::after {
+    content: "";
+    position: absolute;
+    left: 27px;
+    top: -7px;
+    width: 12px;
+    height: 7px;
+    background: var(--ds-bg);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+  }
+  @media (max-width: 720px) {
+    .layer + .layer::before { left: 24px; }
+    .layer + .layer::after { left: 19px; }
+  }
+
+  /* Attributes ribbon */
+  .attrs {
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 56px;
+    box-shadow: 0 16px 40px rgba(38, 6, 93, 0.18);
+  }
+  @media (max-width: 720px) { .attrs { padding: 22px 20px; } }
+  .attrs .kicker { color: var(--ds-mist); margin-bottom: 12px; }
+  .attrs h2 {
+    font-size: 1.375rem; font-weight: 500; font-style: italic;
+    margin: 0 0 18px; color: var(--ds-ecru); line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .attrs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 720px) { .attrs-grid { grid-template-columns: 1fr; } }
+  .attr {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(203, 194, 255, 0.24);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .attr .name {
+    font-weight: 600; font-size: 1rem; color: var(--ds-ecru);
+    margin-bottom: 6px;
+  }
+  .attr .desc {
+    font-size: 0.875rem; color: var(--ds-mist);
+    line-height: 1.55;
+  }
+  .attr code {
+    font-family: var(--ds-mono); font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(203, 194, 255, 0.28);
+    border-radius: 4px; padding: 1px 6px;
+    color: var(--ds-ecru);
+    margin-top: 8px; display: inline-block;
+  }
+
+  /* ===== Quick mapping table ===== */
+  .mapping {
+    background: var(--ds-white);
+    border: 1px solid var(--ds-rule);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 56px;
+  }
+  @media (max-width: 720px) { .mapping { padding: 22px 20px; } }
+  .mapping h2 {
+    font-size: 1.25rem; font-weight: 700; margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .mapping .deck {
+    font-size: 0.9375rem; color: var(--ds-text-muted);
+    margin: 0 0 22px;
+  }
+  .mapping table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .mapping th, .mapping td {
+    text-align: left; padding: 10px 14px;
+    border-bottom: 1px solid var(--ds-rule);
+    vertical-align: top;
+  }
+  .mapping th {
+    font-size: 0.6875rem; letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 600;
+    color: var(--ds-text-soft); padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--ds-rule-strong);
+  }
+  .mapping tr:last-child td { border-bottom: none; }
+  .mapping td.mono {
+    font-family: var(--ds-mono); font-size: 0.8125rem;
+    color: var(--ds-deep-violet);
+  }
+  .mapping td.layer-pill {
+    font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .mapping td.layer-pill.story  { color: var(--ds-cobalt); }
+  .mapping td.layer-pill.scene  { color: var(--ds-deep-violet); }
+  .mapping td.layer-pill.beat   { color: var(--ds-poppy); }
+  .mapping td.layer-pill.attr   { color: var(--ds-text-soft); }
+
+  /* Footer */
+  .foot {
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px solid var(--ds-rule);
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: var(--ds-text-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .foot .right { color: var(--ds-text-muted); }
+
+  /* Print: collapse to single-page reference */
+  @media print {
+    body { background: white; }
+    .wrap { padding: 24px; max-width: none; }
+    .layer { box-shadow: none; break-inside: avoid; }
+    .attrs { box-shadow: none; break-inside: avoid; }
+    .mapping { break-inside: avoid; }
+    .layer + .layer::before, .layer + .layer::after { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topmark">
+    <span class="mark-dot"></span>
+    <span class="mark-text">Docusign</span>
+    <span class="mark-divider"></span>
+    <span class="mark-context">TGK 2.0 — Audit reference</span>
+  </div>
+
+  <div class="kicker">Audit taxonomy · v1</div>
+  <h1>What you're <em>editing</em>, what to call it.</h1>
+  <p class="deck">When the audit flags something, name it at the right layer so the fix lands in the right place. Five layers from the industry segment down to the single moment of narrative advance — plus two attributes that ride on every beat.</p>
+
+  <!-- ===== Layer stack ===== -->
+  <div class="layer-stack">
+
+    <article class="layer l-industry">
+      <header class="layer-head">
+        <span class="layer-name">Industry</span>
+        <span class="layer-tagline">The market segment.</span>
+      </header>
+      <div class="layer-body">
+        <p>The vertical's home — Wealth, Banking, Insurance, Public Sector, Healthcare, Education, Nonprofit. Industry is structural and rarely the audit target; it's how stories get grouped on the picker.</p>
+      </div>
+      <dl class="props">
+        <dt>Examples</dt>
+        <dd>Wealth · Banking · Insurance · Public Sector · Healthcare · Life Sciences · Education · Nonprofit</dd>
+        <dt>Lives in</dt>
+        <dd><code>index-unified.html</code> · <code>geos.html</code> · the chooser pages</dd>
+        <dt>Audit applies</dt>
+        <dd><span class="audit-tag none">rarely flagged</span></dd>
+      </dl>
+    </article>
+
+    <article class="layer l-vertical">
+      <header class="layer-head">
+        <span class="layer-name">Vertical</span>
+        <span class="layer-tagline">A tenant × customer pair living in an industry.</span>
+      </header>
+      <div class="layer-body">
+        <p>The branded universe a story plays in. <em>Hillside × Aster Capital</em> is the wealth vertical; <em>Meridian × Atlas Manufacturing</em> is the commercial banking vertical. Identified by a <strong>vertical key</strong> like <code>wealth</code>, <code>banking-deposits</code>, <code>insurance-life</code>.</p>
+      </div>
+      <dl class="props">
+        <dt>Identifier</dt>
+        <dd><code>vertical key</code> — used in URLs (<code>?vertical=wealth</code>) and in the registry</dd>
+        <dt>Lives in</dt>
+        <dd><code>stories/_shared/story-shell.html</code> → <code>const VERTICALS = {…}</code></dd>
+        <dt>Editable</dt>
+        <dd><code>label</code> · <code>tenant</code> · <code>tenantColor</code> · <code>preset</code> · <code>category</code> · <code>splashOk</code></dd>
+        <dt>Audit applies</dt>
+        <dd>
+          <span class="audit-tag brand">Brand</span>
+          <span class="audit-tag points">Point solutions</span>
+        </dd>
+      </dl>
+    </article>
+
+    <article class="layer l-story">
+      <header class="layer-head">
+        <span class="layer-name">Story</span>
+        <span class="layer-tagline">One complete narrative arc inside a vertical.</span>
+      </header>
+      <div class="layer-body">
+        <p>A vertical typically has multiple stories — <em>Onboarding</em> (default), <em>Maintenance</em>, <em>Fraud Fabric</em>, <em>Intake</em>, <em>Workspaces</em>. Each is the same tenant × customer playing a different end-to-end arc. A story owns the sequence of scenes and the high-level subtitle the viewer sees.</p>
+      </div>
+      <dl class="props">
+        <dt>Identifier</dt>
+        <dd><code>vertical × usecase</code> — e.g. <code>wealth?usecase=default</code></dd>
+        <dt>Lives in</dt>
+        <dd><code>VERTICALS[&lt;key&gt;].scenes</code> (flat array for default; per-usecase variants synthesized at runtime)</dd>
+        <dt>Editable</dt>
+        <dd><code>subtitle</code> · scene order · scene count</dd>
+        <dt>Audit applies</dt>
+        <dd>
+          <span class="audit-tag arc">Story arc</span>
+          <span class="audit-tag workspaces">Workspaces</span>
+        </dd>
+      </dl>
+    </article>
+
+    <article class="layer l-scene">
+      <header class="layer-head">
+        <span class="layer-name">Scene</span>
+        <span class="layer-tagline">One act of the 5-act spine. Plays one Docusign UI template.</span>
+      </header>
+      <div class="layer-body">
+        <p>Five acts in canonical order: <strong>Intake · Identity · Signing · Data · Workspace</strong>. Variants run 3–4 acts. Each scene maps to one Docusign UI template iframe (Agreement Desk, CLEAR, Signing Ceremony, Navigator, Workspace) and gets its own opening headline + lede that play in the sidebar before the beats begin.</p>
+      </div>
+      <dl class="props">
+        <dt>Code path</dt>
+        <dd><code>scenes[N].tag</code> · <code>scenes[N].head</code> · <code>scenes[N].lede</code></dd>
+        <dt>Renders in</dt>
+        <dd>The opening lead-mode card (vignette) at scene start, then the 5 beats below it.</dd>
+        <dt>Editable</dt>
+        <dd><code>tag</code> · <code>head</code> · <code>lede</code> · <code>persona</code> · <code>beats[]</code></dd>
+        <dt>Audit applies</dt>
+        <dd>
+          <span class="audit-tag arc">Story arc</span>
+          <span class="audit-tag cap">Capabilities</span>
+          <span class="audit-tag parity">Interface parity</span>
+        </dd>
+      </dl>
+    </article>
+
+    <article class="layer l-beat">
+      <header class="layer-head">
+        <span class="layer-name">Beat</span>
+        <span class="layer-tagline">One micro-moment of advance within a scene. Drives autoplay.</span>
+      </header>
+      <div class="layer-body">
+        <p>Each beat is a single click in the demo: one head, one lede, one hotspot, one persona handoff if the actor changes. <em>"Priya selects 'New Engagement' from Hillside's intake menu"</em> is a beat. Five per scene typically. The viewer sees <strong>"Beat M of N"</strong> in the sidebar — that's the layer they feel. Renders as a <strong>vignette</strong> in the editorial sidebar card.</p>
+      </div>
+      <dl class="props">
+        <dt>Code path</dt>
+        <dd><code>scenes[N].beats[M].head</code> · <code>scenes[N].beats[M].lede</code></dd>
+        <dt>Editable</dt>
+        <dd><code>head</code> · <code>lede</code> · <code>persona</code> override</dd>
+        <dt>Audit applies</dt>
+        <dd>
+          <span class="audit-tag cap">Capabilities</span>
+          <span class="audit-tag arc">Story arc</span>
+        </dd>
+      </dl>
+    </article>
+
+  </div>
+  <!-- /layer-stack -->
+
+  <!-- ===== Attributes ribbon ===== -->
+  <section class="attrs">
+    <div class="kicker">Attributes (not layers)</div>
+    <h2>Every beat carries these — they're properties, not children.</h2>
+    <div class="attrs-grid">
+      <div class="attr">
+        <div class="name">Persona</div>
+        <div class="desc">
+          Who's acting at this beat. The persona-handoff gate pauses autoplay when this changes between beats.
+        </div>
+        <code>{ side, name, role }</code>
+      </div>
+      <div class="attr">
+        <div class="name">Hotspot</div>
+        <div class="desc">
+          Where the eye goes — the iframe anchor (a <code>data-hotspot</code> tag inside the Docusign template).
+        </div>
+        <code>{ target, x, y, tip, sub, side }</code>
+      </div>
+      <div class="attr">
+        <div class="name">Vignette</div>
+        <div class="desc">
+          The rendered editorial card — Fraunces italic headline + lede in the sidebar lead-mode pop. A beat <em>plays as</em> a vignette.
+        </div>
+        <code>presentation only</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Quick mapping table ===== -->
+  <section class="mapping">
+    <h2>When the audit says X, you're editing layer Y</h2>
+    <p class="deck">Glance reference for matching audit findings to the right edit surface.</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36%">Audit phrasing</th>
+          <th style="width:22%">Layer</th>
+          <th>Code path you'd edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Maestro / CLEAR / Iris / Navigator in narration"</td>
+          <td class="layer-pill beat">Beat (or Scene)</td>
+          <td class="mono">scenes[N].beats[M].lede &nbsp;·&nbsp; scenes[N].lede</td>
+        </tr>
+        <tr>
+          <td>"Scene 4 lede references a product instead of a capability"</td>
+          <td class="layer-pill scene">Scene</td>
+          <td class="mono">scenes[3].lede</td>
+        </tr>
+        <tr>
+          <td>"Beat 2 of 5 in Identity needs rewriting"</td>
+          <td class="layer-pill beat">Beat</td>
+          <td class="mono">scenes[1].beats[1].head &nbsp;·&nbsp; scenes[1].beats[1].lede</td>
+        </tr>
+        <tr>
+          <td>"Story arc breaks between Data and Workspace"</td>
+          <td class="layer-pill scene">Scene order</td>
+          <td class="mono">scenes[3] &nbsp;→&nbsp; scenes[4] (sequence + headings)</td>
+        </tr>
+        <tr>
+          <td>"Tenant color is off-brand"</td>
+          <td class="layer-pill story">Story envelope</td>
+          <td class="mono">VERTICALS[&lt;key&gt;].tenantColor</td>
+        </tr>
+        <tr>
+          <td>"SoR badge wrong / missing"</td>
+          <td class="layer-pill story">Story envelope</td>
+          <td class="mono">VERTICALS[&lt;key&gt;].preset · sor</td>
+        </tr>
+        <tr>
+          <td>"Vendor point solution chip is a process noun"</td>
+          <td class="layer-pill scene">Scene (current.points)</td>
+          <td class="mono">scenes[N].current.points[]</td>
+        </tr>
+        <tr>
+          <td>"Workspaces tagged but parties not named"</td>
+          <td class="layer-pill scene">Scene (future bullets)</td>
+          <td class="mono">scenes[N].future.tags · future.items[]</td>
+        </tr>
+        <tr>
+          <td>"Persona switch missing pause / wrong actor"</td>
+          <td class="layer-pill attr">Beat persona attr</td>
+          <td class="mono">scenes[N].beats[M].persona</td>
+        </tr>
+        <tr>
+          <td>"Hotspot points at the wrong UI element"</td>
+          <td class="layer-pill attr">Beat hotspot attr</td>
+          <td class="mono">scenes[N].beats[M].target (data-hotspot)</td>
+        </tr>
+        <tr>
+          <td>"Mock vendor mock vs. Docusign mock mismatch"</td>
+          <td class="layer-pill scene">Scene parity (component pair)</td>
+          <td class="mono">components/current-state/* &nbsp;↔&nbsp; components/future-state/*</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="foot">
+    <span>TGK 2.0 audit taxonomy · 2026-04-29</span>
+    <span class="right">Source: <code>audit/SKILL.md</code> · pairs with <code>audit/rules.json</code> &amp; <code>audit/audit.py</code></span>
+  </div>
+
+</div>
+</body>
+</html>
