@@ -154,10 +154,10 @@
 
     var params = new URLSearchParams(location.search);
     var isEmbed = params.get("embed") === "1";
-    var wantsAutoplay = params.get("autoplay") === "1";
+    var wantsAutoplay = params.get("autoplay") !== "0"; // default on; ?autoplay=0 disables
     var startSec = parseFloat(params.get("start") || "0");
     var startBeat = parseInt(params.get("beat") || "0", 10);
-    var speedOverride = parseFloat(params.get("speed") || "0");
+    var speedOverride = parseFloat(params.get("speed") || "1.5"); // default 1.5×
 
     if (isEmbed) document.body.classList.add("embed");
 
@@ -551,30 +551,77 @@
       var roleEl = sbPersonaEl.querySelector(".role");
       if (roleEl) roleEl.textContent = p.role || "";
     }
-    // Lead-mode trigger: when sceneId changes, expand the sidebar to the
-    // editorial state for ~2.6s, then retract. Sidebar replays the pop on
-    // every scene change so the headline swap reads as an editorial moment.
+    // Lead-mode trigger: when sceneId changes, pop the sidebar card BEFORE the
+    // background HTML scene switches. The card holds for a reading-time-based
+    // dwell, then retreats — and only then does the new scene become active.
     var lastSceneIdLead = null;
     var leadModeTimer = null;
+    var pendingSceneId = null;   // scene waiting to go live after retreat
+    var leadSceneFrozen = false; // blocks paintActiveScene during card dwell
+
+    // Reading-time dwell: 200 wpm baseline, clamped 1.8–4.5 s
+    function readingMs(el) {
+      var text = el ? el.textContent : "";
+      var words = text.trim().split(/\s+/).filter(Boolean).length;
+      return Math.max(1800, Math.min(4500, Math.round(words / 3.33 * 1000)));
+    }
+
+    // Snap the card back, unfreeze the scene, then optionally call cb.
+    function retreatLeadMode(cb) {
+      if (leadModeTimer) { clearTimeout(leadModeTimer); leadModeTimer = null; }
+      if (!shellEl) { if (cb) cb(); return; }
+      var sb = shellEl.querySelector(".ds-shell-sidebar");
+      // Trigger retreat animation + width collapse simultaneously
+      shellEl.classList.remove("lead-mode", "lead-mode-hinted");
+      if (sb) {
+        sb.classList.remove("is-popping");
+        void sb.offsetWidth;
+        sb.classList.add("is-retreating");
+      }
+      // After retreat animation, switch scene and clean up
+      setTimeout(function () {
+        if (sb) sb.classList.remove("is-retreating");
+        leadSceneFrozen = false;
+        if (pendingSceneId) {
+          var scenes = root.querySelectorAll(".ds-scene");
+          scenes.forEach(function (s) {
+            s.classList.toggle("is-active", s.dataset.scene === pendingSceneId);
+          });
+          pendingSceneId = null;
+        }
+        if (cb) cb();
+      }, 280);
+    }
+
     function maybeEnterLeadMode() {
       if (!shellEl) return;
       var idx = currentBeatIndex();
       var sid = idx >= 0 ? beats[idx].sceneId : null;
       if (!sid || sid === lastSceneIdLead) return;
       lastSceneIdLead = sid;
+      pendingSceneId = sid;
+      leadSceneFrozen = true;
+
       shellEl.classList.add("lead-mode");
       var sb = shellEl.querySelector(".ds-shell-sidebar");
       if (sb) {
-        sb.classList.remove("is-popping");
-        void sb.offsetWidth; // restart animation
+        sb.classList.remove("is-popping", "is-retreating");
+        void sb.offsetWidth;
         sb.classList.add("is-popping");
       }
+
+      // Dwell = time to read the headline + lede currently painted in the card
+      var ledeEl = sb ? sb.querySelector(".lede") : null;
+      var headEl = sb ? sb.querySelector(".headline") : null;
+      var combined = document.createElement("div");
+      if (headEl) combined.appendChild(headEl.cloneNode(true));
+      if (ledeEl) combined.appendChild(ledeEl.cloneNode(true));
+      var dwell = readingMs(combined);
+
       if (leadModeTimer) clearTimeout(leadModeTimer);
-      leadModeTimer = setTimeout(function () {
-        shellEl.classList.remove("lead-mode", "lead-mode-hinted");
-        if (sb) sb.classList.remove("is-popping");
-      }, 2600);
-      // Show lead-hint after short dwell
+      leadModeTimer = setTimeout(function () { retreatLeadMode(); }, dwell);
+
+      // Show lead-hint hint after short dwell
       setTimeout(function () {
         if (shellEl.classList.contains("lead-mode")) {
           shellEl.classList.add("lead-mode-hinted");
@@ -592,7 +639,8 @@
           spBtns.forEach(function (o) { o.classList.toggle("on", o === b); });
         });
       });
-      var def = sbSpeedPicker.querySelector('.sp[data-rate="1"]');
+      var def = sbSpeedPicker.querySelector('.sp[data-rate="1.5"]') ||
+                sbSpeedPicker.querySelector('.sp[data-rate="1"]');
       if (def) def.classList.add("on");
     }
 
@@ -612,10 +660,7 @@
       if (stageArea) {
         stageArea.addEventListener("click", function () {
           if (shellEl.classList.contains("lead-mode")) {
-            shellEl.classList.remove("lead-mode", "lead-mode-hinted");
-            if (leadModeTimer) clearTimeout(leadModeTimer);
-            var sb = shellEl.querySelector(".ds-shell-sidebar");
-            if (sb) sb.classList.remove("is-popping");
+            retreatLeadMode();
           }
         });
       }
@@ -624,6 +669,7 @@
     // Active-scene paint (scenes-mode only)
     function paintActiveScene() {
       if (!useScenes) return;
+      if (leadSceneFrozen) return; // hold while lead card is visible
       var idx = currentBeatIndex();
       if (idx < 0) return;
       var sceneId = beats[idx].sceneId;
@@ -767,7 +813,12 @@
         e.preventDefault(); return;
       }
       if (e.key === "ArrowRight") {
-        if (e.shiftKey) nudge(5);  else jumpToCursor(1);
+        if (shellEl && shellEl.classList.contains("lead-mode")) {
+          // Snap card back first, then advance on retreat completion
+          retreatLeadMode(function () { jumpToCursor(1); });
+          e.preventDefault(); return;
+        }
+        if (e.shiftKey) nudge(5); else jumpToCursor(1);
         e.preventDefault(); return;
       }
       if (e.key === ",") { video.playbackRate = Math.max(0.25, video.playbackRate - 0.1); return; }
