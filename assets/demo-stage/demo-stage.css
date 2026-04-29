@@ -1,0 +1,698 @@
+/* =================================================================
+   demo-stage.css — Docusign FY27 brand, Gebbia restraint
+   -----------------------------------------------------------------
+   Pairs with /assets/demo-stage/demo-stage.js
+   Hosts assume the page exposes the Docusign palette tokens
+   (--ds-cobalt, --ds-inkwell, --ds-deep-violet, --ds-mist,
+    --ds-poppy, --ds-ecru, --ds-white) and a --brand font stack.
+   ================================================================= */
+
+/* -----------------------------------------------------------------
+   Stage shell — 16:9 surface holding video + overlays
+   ----------------------------------------------------------------- */
+.ds-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  background: var(--ds-inkwell, #130032);
+  border-radius: 12px;
+  border: 1px solid rgba(19, 0, 50, 0.10);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 24px 56px -32px rgba(19, 0, 50, 0.55),
+    0 4px 14px -8px rgba(19, 0, 50, 0.18);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ds-stage video.ds-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* -----------------------------------------------------------------
+   Scenes mode — HTML scenes stacked, opacity-toggled
+   The stage uses a 1280×720 design space; scenes scale via transform
+   so coordinates inside scenes can be authored as pixels in that grid.
+   ----------------------------------------------------------------- */
+.ds-stage.scenes-mode { background: var(--ds-ecru, #F8F3F0); }
+.ds-stage.scenes-mode::after { display: none; } /* drop the dark vignette in scenes mode */
+
+.ds-stage .ds-scene {
+  position: absolute;
+  inset: 0;
+  width: 1280px;
+  height: 720px;
+  transform-origin: top left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms cubic-bezier(.2,.7,.2,1);
+  overflow: hidden;
+  background: var(--ds-white, #FFFFFF);
+}
+.ds-stage .ds-scene.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* Scaling happens via JS to keep cursor coordinates aligned with scene pixels */
+
+.ds-stage.scenes-mode .ds-play-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(248, 243, 240, 0.55) 0%,
+    rgba(248, 243, 240, 0.78) 100%
+  );
+}
+.ds-stage.scenes-mode .ds-play-overlay-hint {
+  color: var(--ds-deep-violet, #26065D);
+  text-shadow: none;
+}
+.ds-stage.scenes-mode .ds-play-overlay-hint kbd {
+  border-color: rgba(38, 6, 93, 0.25);
+  background: var(--ds-white, #FFFFFF);
+  color: var(--ds-inkwell, #130032);
+}
+
+/* Soft vignette at the bottom — keeps callouts legible when the video
+   is in a bright product UI scene. Sits above video, below overlays. */
+.ds-stage::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 38%;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(19, 0, 50, 0.42) 0%,
+    rgba(19, 0, 50, 0.14) 45%,
+    rgba(19, 0, 50, 0) 100%
+  );
+  z-index: 1;
+}
+
+/* -----------------------------------------------------------------
+   Play overlay — first-paint affordance, fades on first play
+   ----------------------------------------------------------------- */
+.ds-stage .ds-play-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    180deg,
+    rgba(19, 0, 50, 0.18) 0%,
+    rgba(19, 0, 50, 0.34) 100%
+  );
+  backdrop-filter: blur(2px) saturate(1.05);
+  -webkit-backdrop-filter: blur(2px) saturate(1.05);
+  cursor: pointer;
+  transition: opacity 320ms cubic-bezier(.2,.7,.2,1);
+}
+.ds-stage .ds-play-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.ds-stage .ds-play-overlay-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.ds-stage .ds-play-button {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--ds-cobalt, #4C00FF);
+  display: grid;
+  place-items: center;
+  border: none;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 18px 36px -12px rgba(76, 0, 255, 0.55),
+    0 4px 12px -6px rgba(19, 0, 50, 0.45);
+  transition: transform 200ms cubic-bezier(.2,.7,.2,1), box-shadow 200ms ease;
+}
+.ds-stage .ds-play-button:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 22px 44px -12px rgba(76, 0, 255, 0.65),
+    0 6px 16px -6px rgba(19, 0, 50, 0.5);
+}
+.ds-stage .ds-play-button svg {
+  width: 28px;
+  height: 28px;
+  margin-left: 4px; /* optical centering for the triangle */
+}
+.ds-stage .ds-play-button::before,
+.ds-stage .ds-play-button::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  animation: ds-play-pulse 2.4s cubic-bezier(.2,.7,.2,1) infinite;
+}
+.ds-stage .ds-play-button::after {
+  animation-delay: 1.2s;
+}
+@keyframes ds-play-pulse {
+  0%   { transform: scale(0.92); opacity: 0.6; }
+  60%  { transform: scale(1.18); opacity: 0;   }
+  100% { transform: scale(1.18); opacity: 0;   }
+}
+.ds-stage .ds-play-overlay-hint {
+  font-family: var(--brand, "DSIndigo", "Inter", -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.84);
+  text-shadow: 0 1px 6px rgba(19, 0, 50, 0.5);
+}
+.ds-stage .ds-play-overlay-hint kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--ds-white, #FFFFFF);
+  margin: 0 2px;
+  letter-spacing: 0.04em;
+}
+
+/* -----------------------------------------------------------------
+   Cursor overlay — opted in via JS cursorTrack; hidden by default
+   ----------------------------------------------------------------- */
+.ds-stage .ds-cursor {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  transform: translate(-4px, -4px);
+  transition:
+    left 280ms cubic-bezier(.25,.1,.25,1),
+    top  280ms cubic-bezier(.25,.1,.25,1),
+    opacity 200ms ease;
+  opacity: 0;
+}
+.ds-stage .ds-cursor.is-visible { opacity: 1; }
+.ds-stage .ds-cursor.is-clicking::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  transform: translate(-50%, -50%) scale(0.4);
+  animation: ds-click-pulse 460ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes ds-click-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0;   }
+}
+
+/* -----------------------------------------------------------------
+   Beat-callout overlay — the narrative card
+   ----------------------------------------------------------------- */
+.ds-stage .ds-callout {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  max-width: 380px;
+  padding: 14px 16px 14px 20px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ds-inkwell, #130032);
+  border-radius: 10px;
+  border: 1px solid rgba(19, 0, 50, 0.08);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 40px -22px rgba(19, 0, 50, 0.5);
+  font-family: var(--brand, "DSIndigo", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif);
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 240ms cubic-bezier(.2,.7,.2,1),
+    transform 280ms cubic-bezier(.2,.7,.2,1);
+}
+.ds-stage .ds-callout.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Cobalt left edge — single accent per callout, matches FY27 discipline */
+.ds-stage .ds-callout::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 14px; bottom: 14px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ds-cobalt, #4C00FF);
+}
+.ds-stage .ds-callout-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.ds-stage .ds-callout-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ds-deep-violet, #26065D);
+}
+.ds-stage .ds-callout-counter {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft, #6E6189);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(203, 194, 255, 0.32);
+}
+.ds-stage .ds-callout-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.32;
+  color: var(--ds-inkwell, #130032);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.005em;
+}
+.ds-stage .ds-callout-body {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink-mid, #4A3E6B);
+  margin: 0;
+}
+
+/* -----------------------------------------------------------------
+   Controls row — Prev / Play / Scrub / Time / Speed / Next
+   ----------------------------------------------------------------- */
+.ds-controls {
+  max-width: 1100px;
+  margin: 16px auto 0;
+  width: 100%;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+}
+.ds-controls button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--ds-white, #FFFFFF);
+  color: var(--ds-inkwell, #130032);
+  border: 1px solid rgba(19, 0, 50, 0.14);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 120ms ease,
+    box-shadow 140ms ease;
+}
+.ds-controls button:hover {
+  background: var(--ds-ecru, #F8F3F0);
+  border-color: rgba(76, 0, 255, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -8px rgba(19, 0, 50, 0.35);
+}
+.ds-controls button:active { transform: translateY(0); }
+.ds-controls button.primary {
+  background: var(--ds-cobalt, #4C00FF);
+  color: var(--ds-white, #FFFFFF);
+  border-color: var(--ds-cobalt, #4C00FF);
+  min-width: 108px;
+  justify-content: center;
+}
+.ds-controls button.primary:hover {
+  background: var(--ds-deep-violet, #26065D);
+  border-color: var(--ds-deep-violet, #26065D);
+  box-shadow: 0 6px 14px -8px rgba(38, 6, 93, 0.55);
+}
+.ds-controls button svg { width: 14px; height: 14px; }
+
+/* Scrubber — track + beat ticks layered together */
+.ds-scrub {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.ds-scrub input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 28px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+.ds-scrub input[type=range]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--ds-cobalt, #4C00FF) var(--pct, 0%),
+    rgba(19, 0, 50, 0.14) var(--pct, 0%)
+  );
+  border-radius: 999px;
+}
+.ds-scrub input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ds-cobalt, #4C00FF);
+  border: 2px solid var(--ds-white, #FFFFFF);
+  margin-top: -6px;
+  box-shadow: 0 2px 4px rgba(19, 0, 50, 0.35);
+  transition: transform 140ms ease;
+}
+.ds-scrub input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.ds-scrub input[type=range]::-moz-range-track {
+  height: 4px;
+  background: rgba(19, 0, 50, 0.14);
+  border-radius: 999px;
+}
+.ds-scrub input[type=range]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ds-cobalt, #4C00FF);
+  border: 2px solid var(--ds-white, #FFFFFF);
+}
+
+.ds-scrub .ds-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  pointer-events: none;
+  z-index: 1;
+}
+.ds-scrub .ds-ticks .ds-tick {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 12px;
+  background: rgba(38, 6, 93, 0.42);
+  border-radius: 1px;
+  transform: translateX(-1px);
+  transition: background 160ms ease, height 160ms ease, top 160ms ease, transform 160ms ease;
+}
+.ds-scrub .ds-ticks .ds-tick.is-active {
+  background: var(--ds-poppy, #FF5252);
+  height: 14px;
+  top: -5px;
+}
+
+.ds-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--ink-mid, #4A3E6B);
+  min-width: 96px;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+.ds-controls select {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--ds-white, #FFFFFF);
+  color: var(--ds-inkwell, #130032);
+  border: 1px solid rgba(19, 0, 50, 0.14);
+  border-radius: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+
+/* -----------------------------------------------------------------
+   Beat strip — scannable list of all beats, click to jump
+   ----------------------------------------------------------------- */
+.ds-beat-strip {
+  max-width: 1100px;
+  margin: 22px auto 0;
+  width: 100%;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  gap: 8px;
+}
+.ds-beat-chip {
+  position: relative;
+  text-align: left;
+  background: var(--ds-white, #FFFFFF);
+  border: 1px solid rgba(19, 0, 50, 0.10);
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 140ms ease,
+    box-shadow 160ms ease;
+}
+.ds-beat-chip:hover {
+  border-color: rgba(76, 0, 255, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -10px rgba(19, 0, 50, 0.32);
+}
+.ds-beat-chip.is-active {
+  border-color: var(--ds-cobalt, #4C00FF);
+  background: var(--ds-white, #FFFFFF);
+  box-shadow:
+    0 0 0 1px var(--ds-cobalt, #4C00FF),
+    0 8px 20px -12px rgba(76, 0, 255, 0.45);
+}
+/* Bottom-edge progress fill on the active chip */
+.ds-beat-chip::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ds-cobalt, #4C00FF), var(--ds-poppy, #FF5252));
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 220ms linear, opacity 200ms ease;
+  opacity: 0;
+}
+.ds-beat-chip.is-active::after {
+  opacity: 1;
+  transform: scaleX(var(--beat-progress, 0));
+}
+
+.ds-beat-chip .ds-beat-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.ds-beat-chip .ds-beat-num {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-soft, #6E6189);
+  font-variant-numeric: tabular-nums;
+}
+.ds-beat-chip.is-active .ds-beat-num { color: var(--ds-cobalt, #4C00FF); }
+.ds-beat-chip .ds-beat-time {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft, #6E6189);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(19, 0, 50, 0.04);
+}
+.ds-beat-chip.is-active .ds-beat-time {
+  color: var(--ds-deep-violet, #26065D);
+  background: rgba(203, 194, 255, 0.32);
+}
+.ds-beat-chip .ds-beat-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-deep-violet, #26065D);
+}
+.ds-beat-chip .ds-beat-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.32;
+  color: var(--ds-inkwell, #130032);
+  letter-spacing: -0.003em;
+}
+
+/* Beat-strip section header (rendered by host page) */
+.ds-beats-header {
+  max-width: 1100px;
+  margin: 28px auto 10px;
+  width: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ds-beats-header .ds-beats-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-deep-violet, #26065D);
+}
+.ds-beats-header .ds-beats-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(19, 0, 50, 0.10);
+}
+.ds-beats-header .ds-beats-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft, #6E6189);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* -----------------------------------------------------------------
+   Help row — keyboard hints
+   ----------------------------------------------------------------- */
+.ds-help {
+  max-width: 1100px;
+  margin: 12px auto 0;
+  width: 100%;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--ink-soft, #6E6189);
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.ds-help .ds-help-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ds-help kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(19, 0, 50, 0.14);
+  background: var(--ds-white, #FFFFFF);
+  color: var(--ds-inkwell, #130032);
+  box-shadow: 0 1px 0 rgba(19, 0, 50, 0.06);
+}
+
+/* -----------------------------------------------------------------
+   Selection style — Mist tint, brand-coherent
+   ----------------------------------------------------------------- */
+::selection {
+  background: rgba(203, 194, 255, 0.55);
+  color: var(--ds-inkwell, #130032);
+}
+
+/* -----------------------------------------------------------------
+   Reduced motion — strip animations for accessibility
+   ----------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ds-stage .ds-cursor,
+  .ds-stage .ds-callout,
+  .ds-stage .ds-play-overlay,
+  .ds-stage .ds-play-button,
+  .ds-controls button,
+  .ds-scrub .ds-ticks .ds-tick,
+  .ds-beat-chip,
+  .ds-beat-chip::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  .ds-stage .ds-play-button::before,
+  .ds-stage .ds-play-button::after { display: none; }
+}
+
+/* -----------------------------------------------------------------
+   Embed mode — strip surrounding chrome
+   ----------------------------------------------------------------- */
+body.embed .ds-stage {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+body.embed .ds-controls { padding: 8px 16px 12px; }
+body.embed .ds-help,
+body.embed .ds-beat-strip,
+body.embed .ds-beats-header { display: none; }
+
+/* -----------------------------------------------------------------
+   Mobile
+   ----------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .ds-controls {
+    grid-template-columns: auto 1fr auto;
+    row-gap: 10px;
+  }
+  .ds-controls #ds-prev,
+  .ds-controls #ds-next { grid-column: span 1; }
+  .ds-controls #ds-play { grid-column: 1 / -1; }
+  .ds-controls .ds-time { grid-column: 1 / -1; text-align: center; }
+  .ds-controls select   { grid-column: 1 / -1; }
+
+  .ds-stage .ds-callout {
+    max-width: calc(100% - 24px);
+    left: 12px;
+    bottom: 12px;
+    padding: 11px 12px 11px 16px;
+  }
+  .ds-stage .ds-callout-title { font-size: 13px; }
+  .ds-stage .ds-callout-body  { font-size: 12px; }
+
+  .ds-beat-strip {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

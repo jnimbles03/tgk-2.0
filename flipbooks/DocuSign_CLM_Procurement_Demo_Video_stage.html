@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drilling MSA — Black Mesa × Tritan — Stage | Docusign IAM</title>
+<meta name="description" content="A five-rig drilling-services MSA flows from Coupa through Maestro and AI-Assisted Review, signed by Black Mesa, Tritan, and counsel, and lands in Navigator with day-rate, HSE, and COI obligations extracted automatically.">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon/favicon-32.svg">
+
+<!-- =================================================================
+     STAGE PAGE — Drilling Services MSA (Black Mesa Energy × Tritan)
+     -----------------------------------------------------------------
+     6 HTML scenes: Coupa supplier · Maestro routing · AI-Assisted
+     Review · Multi-party signing · Navigator obligations · Coupa
+     renewal task. Powered by /assets/demo-stage/.
+     ================================================================= -->
+
+<style>
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ds-cobalt:#4C00FF; --ds-inkwell:#130032; --ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF; --ds-poppy:#FF5252; --ds-ecru:#F8F3F0; --ds-white:#FFFFFF;
+  --line:rgba(19,0,50,0.10); --line-strong:rgba(19,0,50,0.18);
+  --ink-mid:#4A3E6B; --ink-soft:#6E6189;
+  --brand:"DSIndigo","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after { box-sizing:border-box; }
+html,body { margin:0; padding:0; }
+body {
+  font-family:var(--brand); background:var(--ds-ecru); color:var(--ds-inkwell);
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+  display:flex; flex-direction:column;
+}
+
+.topbar { display:flex; align-items:center; gap:16px; padding:14px 24px; border-bottom:1px solid var(--line); background:var(--ds-white); }
+.topbar a.back { color:var(--ink-mid); text-decoration:none; font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); }
+.topbar a.back:hover { background:var(--ds-ecru); color:var(--ds-inkwell); }
+.topbar .iris { display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ds-deep-violet); font-size:14px; }
+.topbar .iris svg { width:24px; height:24px; }
+.topbar .pill { margin-left:auto; padding:4px 10px; border-radius:999px; background:rgba(203,194,255,0.32); color:var(--ds-deep-violet); font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; border:1px solid rgba(76,0,255,0.18); }
+
+.title-block { padding:32px 24px 16px; max-width:1100px; margin:0 auto; width:100%; }
+.title-block .eyebrow-row { display:flex; align-items:center; gap:10px; font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--ds-deep-violet); margin:0 0 14px; }
+.title-block .eyebrow-row .dot { width:3px; height:3px; border-radius:50%; background:rgba(38,6,93,0.45); }
+.title-block h1 { margin:0 0 8px; font-size:32px; font-weight:600; letter-spacing:-0.015em; line-height:1.18; color:var(--ds-inkwell); }
+.title-block .glow-rule { width:48px; height:2px; border-radius:2px; background:linear-gradient(135deg,var(--ds-poppy),var(--ds-cobalt)); margin:14px 0; }
+.title-block p { margin:0; color:var(--ink-mid); font-size:15px; line-height:1.55; max-width:680px; }
+.title-block .alt { margin-top:14px; font-size:12px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px; }
+.title-block .alt a { color:var(--ds-deep-violet); text-decoration:none; font-weight:500; border-bottom:1px solid rgba(38,6,93,0.25); padding-bottom:1px; transition:border-color 160ms ease; }
+.title-block .alt a:hover { border-bottom-color:var(--ds-cobalt); }
+
+.stage-wrap { flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:8px 24px 0; }
+
+footer.foot { margin-top:auto; padding:18px 24px 24px; text-align:center; color:var(--ink-soft); font-size:12px; }
+footer.foot a { color:var(--ds-deep-violet); text-decoration:none; }
+
+body.embed { background:transparent; }
+body.embed .topbar, body.embed .title-block, body.embed footer.foot { display:none; }
+body.embed .stage-wrap { padding:0; }
+
+/* =================================================================
+   SCENE STYLES — 1280×720 design space
+   ================================================================= */
+
+/* Coupa chrome (scenes 1, 6) */
+.coupa { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#1a1a1a; background:#f7f6f4; height:100%; width:100%; }
+.coupa-topnav { display:flex; align-items:center; height:54px; padding:0 24px; background:#fff; border-bottom:1px solid #e1e0dd; box-shadow:0 1px 0 rgba(0,0,0,0.03); }
+.coupa-brand { display:flex; align-items:center; gap:10px; }
+.coupa-mark { width:32px; height:32px; }
+.coupa-wordmark { font-size:22px; font-weight:600; color:#dc4c1c; letter-spacing:-0.01em; line-height:1; }
+.coupa-tabs { display:flex; gap:0; align-items:stretch; height:54px; margin-left:32px; }
+.coupa-tab { display:flex; align-items:center; padding:0 18px; font-size:13px; color:#1a1a1a; font-weight:500; border-bottom:3px solid transparent; cursor:default; }
+.coupa-tab.active { color:#dc4c1c; border-bottom-color:#dc4c1c; }
+.coupa-utils { margin-left:auto; display:flex; align-items:center; gap:14px; }
+.coupa-utils svg { color:#54595c; width:18px; height:18px; }
+.coupa-utils .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#f6a878,#dc4c1c); color:#fff; font-size:11px; font-weight:600; display:grid; place-items:center; }
+.coupa-content { padding:20px 24px; height:calc(100% - 54px); display:grid; grid-template-columns:1fr 360px; gap:18px; overflow:hidden; }
+
+.coupa-supplier-head { background:#fff; border:1px solid #e1e0dd; border-radius:6px; padding:18px 22px; margin-bottom:14px; }
+.coupa-bread { font-size:11px; color:#7c7c7c; margin-bottom:8px; display:flex; gap:6px; align-items:center; }
+.coupa-bread a { color:#dc4c1c; text-decoration:none; }
+.coupa-name-row { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+.coupa-supplier-icon { width:42px; height:42px; border-radius:8px; background:linear-gradient(135deg,#dc4c1c 0%,#b03000 100%); color:#fff; display:grid; place-items:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.coupa-name { font-size:24px; font-weight:600; color:#1a1a1a; letter-spacing:-0.015em; line-height:1.1; }
+.coupa-tags { display:flex; gap:6px; align-items:center; margin-left:auto; }
+.coupa-tag { font-size:11px; padding:3px 10px; border-radius:999px; font-weight:600; }
+.coupa-tag.green { background:#dff5e3; color:#2f7c44; }
+.coupa-tag.tier { background:#fff3e8; color:#a35a00; }
+.coupa-meta { font-size:12px; color:#54595c; display:flex; gap:18px; flex-wrap:wrap; padding-top:10px; border-top:1px solid #f1eee9; }
+.coupa-meta .lbl { color:#7c7c7c; margin-right:4px; }
+.coupa-meta b { color:#1a1a1a; font-weight:500; }
+
+.coupa-card { background:#fff; border:1px solid #e1e0dd; border-radius:6px; }
+.coupa-card-head { padding:12px 18px; border-bottom:1px solid #f1eee9; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#1a1a1a; }
+.coupa-card-head .head-icon { color:#dc4c1c; }
+.coupa-card-head .more { margin-left:auto; color:#7c7c7c; cursor:default; }
+.coupa-row { display:grid; grid-template-columns:140px 1fr; gap:14px; padding:12px 18px; border-bottom:1px solid #f7f5f1; align-items:flex-start; font-size:13px; }
+.coupa-row:last-child { border-bottom:none; }
+.coupa-row .lbl { color:#7c7c7c; font-size:12px; padding-top:1px; }
+.coupa-row .val { color:#1a1a1a; }
+.coupa-row .val small { color:#7c7c7c; display:block; font-size:11px; margin-top:1px; }
+.coupa-row .val .pill { display:inline-block; padding:1px 7px; border-radius:3px; font-size:11px; font-weight:500; margin-right:6px; vertical-align:1px; }
+.coupa-row .val .pill.ok { background:#e6f3eb; color:#2f7c44; }
+.coupa-row .val .pill.warn { background:#fff3e8; color:#a35a00; }
+
+.coupa-aside { display:flex; flex-direction:column; gap:14px; min-height:0; overflow:hidden; }
+.coupa-aside-card { background:#fff; border:1px solid #e1e0dd; border-radius:6px; }
+.coupa-aside-head { padding:12px 18px; font-size:13px; font-weight:600; color:#1a1a1a; border-bottom:1px solid #f1eee9; display:flex; align-items:center; gap:8px; }
+.coupa-aside-body { padding:6px 18px; }
+.coupa-activity { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #f7f5f1; align-items:flex-start; }
+.coupa-activity:last-child { border-bottom:none; }
+.coupa-activity .icon { width:24px; height:24px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:11px; }
+.coupa-activity .icon.alert { background:#fff3e8; color:#a35a00; }
+.coupa-activity .icon.due { background:#fde8e8; color:#a32020; }
+.coupa-activity .icon.note { background:#e6f3eb; color:#2f7c44; }
+.coupa-activity .meta { flex:1; min-width:0; font-size:12px; line-height:1.4; }
+.coupa-activity .meta .t { color:#1a1a1a; font-size:12px; }
+.coupa-activity .meta .when { color:#7c7c7c; font-size:11px; margin-top:1px; }
+.coupa-renewal-banner { background:linear-gradient(135deg,#fff3e8 0%,#fde8d4 100%); border:1px solid #f0c89d; border-radius:6px; padding:14px 18px; margin-bottom:14px; }
+.coupa-renewal-banner .badge { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#a35a00; margin-bottom:4px; }
+.coupa-renewal-banner h3 { margin:0 0 4px; font-size:15px; font-weight:600; color:#1a1a1a; }
+.coupa-renewal-banner p { margin:0; font-size:12px; color:#54595c; line-height:1.5; }
+
+/* Maestro Agreement Desk (scene 2) */
+.maestro { font-family:var(--brand); color:var(--ds-inkwell); background:linear-gradient(180deg,#f8f3f0 0%,#f0ecf7 100%); height:100%; width:100%; padding:30px 56px; overflow:hidden; }
+.maestro-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid rgba(38,6,93,0.10); }
+.maestro-mark { width:44px; height:44px; border-radius:9px; background:linear-gradient(135deg,#4C00FF 0%,#26065D 100%); display:grid; place-items:center; flex-shrink:0; }
+.maestro-mark svg { width:26px; height:26px; color:#fff; }
+.maestro-titles { display:flex; flex-direction:column; gap:2px; flex:1; }
+.maestro-eyebrow { font-size:10px; font-weight:600; letter-spacing:0.10em; text-transform:uppercase; color:var(--ds-deep-violet); }
+.maestro-title { font-size:24px; font-weight:600; color:var(--ds-inkwell); letter-spacing:-0.01em; line-height:1.15; }
+.maestro-id { font-size:12px; color:var(--ink-mid); font-variant-numeric:tabular-nums; }
+.maestro-progress { display:flex; align-items:center; gap:8px; padding:6px 12px; background:rgba(76,0,255,0.06); border:1px solid rgba(76,0,255,0.18); border-radius:999px; font-size:12px; color:var(--ds-deep-violet); }
+.maestro-progress .dot { width:8px; height:8px; border-radius:50%; background:#FF5252; box-shadow:0 0 0 3px rgba(255,82,82,0.25); animation:pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.maestro-cols { display:grid; grid-template-columns:1fr 360px; gap:24px; height:calc(100% - 90px); }
+
+.maestro-flow { background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px 22px; display:flex; flex-direction:column; gap:14px; box-shadow:0 1px 3px rgba(38,6,93,0.04); }
+.maestro-flow-head { font-size:13px; font-weight:600; color:var(--ds-inkwell); display:flex; align-items:center; gap:8px; }
+.maestro-graph { flex:1; display:flex; flex-direction:column; gap:0; padding:8px 0; }
+.maestro-step { display:flex; align-items:center; gap:14px; padding:14px 0; position:relative; }
+.maestro-step-line { position:absolute; left:23px; top:36px; bottom:-12px; width:2px; background:linear-gradient(180deg,var(--ds-cobalt) 0%,rgba(76,0,255,0.2) 100%); z-index:0; }
+.maestro-step:last-child .maestro-step-line { display:none; }
+.maestro-step-dot { width:48px; height:48px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:600; color:#fff; position:relative; z-index:1; box-shadow:0 4px 12px -4px rgba(76,0,255,0.4); }
+.maestro-step-dot.done { background:linear-gradient(135deg,#4C00FF,#26065D); }
+.maestro-step-dot.active { background:linear-gradient(135deg,#FF5252,#dc2c2c); animation:pulse 2.4s ease-in-out infinite; }
+.maestro-step-dot.pending { background:#e8e3f5; color:#7c6ed8; box-shadow:none; }
+.maestro-step-dot svg { width:20px; height:20px; }
+.maestro-step-meta { flex:1; min-width:0; }
+.maestro-step-title { font-size:14px; font-weight:600; color:var(--ds-inkwell); margin-bottom:2px; }
+.maestro-step-sub { font-size:12px; color:var(--ink-mid); line-height:1.4; }
+.maestro-step-when { font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+.maestro-recipients { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 20px; display:flex; flex-direction:column; gap:12px; }
+.maestro-recipients-head { font-size:13px; font-weight:600; color:var(--ds-inkwell); display:flex; align-items:center; gap:8px; padding-bottom:12px; border-bottom:1px solid #f0ecf7; }
+.maestro-recipients-head .count { color:var(--ink-soft); font-weight:400; margin-left:auto; }
+.maestro-recip { display:flex; align-items:center; gap:12px; padding:10px 0; }
+.maestro-recip .av { width:36px; height:36px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:600; }
+.maestro-recip .av.dc { background:linear-gradient(135deg,#7eafda,#0070d2); }
+.maestro-recip .av.rh { background:linear-gradient(135deg,#cba0d8,#7c3aed); }
+.maestro-recip .av.jc { background:linear-gradient(135deg,#f6a878,#dc4c1c); }
+.maestro-recip .info { flex:1; min-width:0; }
+.maestro-recip .info .nm { font-size:13px; font-weight:600; color:var(--ds-inkwell); line-height:1.2; }
+.maestro-recip .info .role { font-size:11px; color:var(--ink-mid); }
+.maestro-recip .state { font-size:10px; padding:3px 10px; border-radius:999px; font-weight:600; flex-shrink:0; }
+.maestro-recip .state.signed { background:#dff5e3; color:#2f7c44; }
+.maestro-recip .state.review { background:#fff3e8; color:#a35a00; }
+.maestro-recip .state.pending { background:#f0ecf7; color:#6c5f8c; }
+.maestro-recip .state.routing { background:#deecf9; color:#0064a8; }
+
+/* Word + AI-Assisted Review (scene 3 — duplicated from Sales scene 5 with drilling content) */
+.word-app { background:#f3f2f1; height:100%; display:flex; flex-direction:column; font-family:-apple-system,"Segoe UI",sans-serif; color:#252423; }
+.word-titlebar { background:#fff; border-bottom:1px solid #e1dfdd; padding:0 14px; display:flex; align-items:center; gap:14px; font-size:11px; height:32px; }
+.word-titlebar .file-tab { background:#185abd; color:#fff; padding:6px 16px; font-weight:600; font-size:12px; align-self:stretch; display:flex; align-items:center; }
+.word-tabs { display:flex; gap:18px; font-size:12px; color:#252423; align-self:stretch; align-items:flex-end; }
+.word-tabs span { padding:6px 2px 2px; cursor:default; }
+.word-tabs .on { color:#185abd; border-bottom:2.5px solid #185abd; padding-bottom:0; font-weight:600; }
+.word-titlebar .right-actions { margin-left:auto; display:flex; gap:14px; align-items:center; font-size:11px; color:#252423; }
+.word-titlebar .right-actions .pill { padding:3px 10px; background:#f5f0ff; color:#185abd; border-radius:3px; }
+.word-titlebar .right-actions .pill.share { background:#185abd; color:#fff; padding:4px 12px; }
+.word-ribbon { background:#fff; border-bottom:1px solid #e1dfdd; padding:6px 14px; display:flex; gap:0; align-items:stretch; font-size:11px; min-height:78px; }
+.word-ribbon .group { display:flex; align-items:center; gap:4px; padding:4px 10px; border-right:1px solid #f1eee9; }
+.word-ribbon .group:last-child { border-right:none; }
+.word-ribbon .review-pill { margin-left:auto; padding:0 14px; background:linear-gradient(135deg,#FF5252,#4C00FF); color:#fff; border-radius:6px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px; align-self:stretch; }
+.word-ribbon .review-pill svg { width:14px; height:14px; }
+.word-body { flex:1; display:grid; grid-template-columns:1fr 384px; min-height:0; background:#f3f2f1; }
+.word-doc-frame { background:#f3f2f1; padding:24px 36px 0; overflow:hidden; }
+.word-doc { background:#fff; padding:46px 64px; font-family:"Times New Roman", serif; font-size:11.5px; line-height:1.55; color:#252423; height:100%; box-shadow:0 0 0 1px #d2d0ce, 0 2px 4px rgba(0,0,0,0.04); }
+.word-doc p { margin:0 0 6px; text-indent:24px; }
+.word-doc h2 { font-family:-apple-system,"Segoe UI",sans-serif; font-size:13px; font-weight:700; margin:10px 0 6px; text-indent:24px; }
+.word-doc .term { color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy; text-underline-offset:3px; }
+.word-doc .highlight-yellow { background:#fff5a3; padding:0 2px; }
+.word-doc .num { font-weight:600; }
+.word-doc .section-box { border:1px solid #c9d6e8; padding:10px 14px; margin:6px 0; }
+.word-aside { background:#faf9f8; border-left:1px solid #e1dfdd; padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
+.aar-headbar { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#252423; padding-bottom:10px; border-bottom:1px solid #ececea; }
+.aar-headbar .ds-mark { width:14px; height:14px; }
+.aar-headbar .x { margin-left:auto; color:#605e5c; font-size:14px; }
+.aar-save-btn { padding:7px 12px; background:#fff; border:1px solid #d2d0ce; border-radius:4px; font-size:12px; color:#252423; align-self:flex-start; display:inline-flex; align-items:center; gap:6px; }
+.aar-save-btn .ds-mark { width:14px; height:14px; }
+.aar-back-row { display:flex; align-items:center; gap:8px; font-size:12px; color:#252423; padding-top:4px; }
+.aar-back-row .back { color:#605e5c; display:inline-flex; align-items:center; gap:4px; }
+.aar-back-row .pb-name { font-weight:600; }
+.aar-back-row .ai-tag { font-size:10px; font-weight:500; color:#7c3aed; background:#f5f0ff; padding:2px 8px; border-radius:999px; display:inline-flex; align-items:center; gap:3px; }
+.aar-back-row .more { margin-left:auto; color:#605e5c; }
+.aar-playbook-title { font-size:16px; font-weight:600; color:#252423; display:flex; align-items:center; gap:6px; margin:0 0 4px; }
+.aar-playbook-title .info { color:#605e5c; font-size:13px; opacity:0.7; }
+.aar-actions { display:flex; gap:8px; align-items:center; }
+.aar-actions .run { padding:6px 12px 6px 14px; background:#4C00FF; color:#fff; border-radius:5px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:8px; }
+.aar-actions .run .play-tri { width:0; height:0; border-left:6px solid #fff; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+.aar-actions .run .chev-down { padding-left:8px; border-left:1px solid rgba(255,255,255,0.4); margin-left:2px; }
+.aar-actions .edit { padding:6px 14px; background:#fff; border:1px solid #d2d0ce; border-radius:5px; font-size:12px; color:#252423; }
+.aar-pills-row { display:flex; gap:6px; flex-wrap:wrap; }
+.aar-pill { font-size:11px; padding:3px 10px; border-radius:999px; font-weight:500; }
+.aar-pill.review { background:#fff4e6; color:#a35a00; }
+.aar-pill.passed { background:#dff6dd; color:#0e6f0e; }
+.aar-pill.resolved { background:#deecf9; color:#0064a8; }
+.aar-list { display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.aar-item { background:#fff; border:1px solid #e1dfdd; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; position:relative; }
+.aar-item .badge { font-size:10px; padding:2px 8px; border-radius:999px; font-weight:500; align-self:flex-start; }
+.aar-item .badge.passed { background:#dff6dd; color:#0e6f0e; }
+.aar-item .badge.resolved { background:#deecf9; color:#0064a8; }
+.aar-item .badge.review { background:#fff4e6; color:#a35a00; }
+.aar-item .chev { position:absolute; right:12px; top:14px; color:#605e5c; }
+.aar-item .label { font-size:13px; color:#252423; padding-right:20px; }
+.aar-item .label.bold { font-weight:600; }
+
+/* Signing ceremony (scene 4) */
+.signing { font-family:var(--brand); background:#f5f5f7; height:100%; width:100%; display:flex; flex-direction:column; }
+.signing-bar { display:flex; align-items:center; gap:14px; padding:12px 24px; background:#26065D; color:#fff; height:48px; }
+.signing-bar .ds-logo { display:flex; align-items:center; gap:8px; font-weight:600; font-size:14px; }
+.signing-bar .ds-logo svg { width:18px; height:18px; }
+.signing-bar .doc-title { font-size:13px; opacity:0.85; }
+.signing-bar .actions { margin-left:auto; display:flex; gap:8px; align-items:center; font-size:12px; }
+.signing-bar .actions .btn { padding:5px 12px; border-radius:4px; background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); }
+.signing-progress { background:#fff; border-bottom:1px solid var(--line); padding:14px 32px; display:flex; align-items:center; gap:16px; height:62px; }
+.signing-progress .step { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-mid); }
+.signing-progress .step .num { width:24px; height:24px; border-radius:50%; background:#e8e3f5; color:var(--ds-deep-violet); display:grid; place-items:center; font-weight:700; font-size:11px; flex-shrink:0; }
+.signing-progress .step.done .num { background:#cfedcc; color:#194e18; }
+.signing-progress .step.current .num { background:var(--ds-cobalt); color:#fff; }
+.signing-progress .step .lbl { white-space:nowrap; }
+.signing-progress .step.current .lbl { color:var(--ds-inkwell); font-weight:600; }
+.signing-progress .arrow { color:#9b94a3; }
+.signing-progress .bar { flex:1; max-width:240px; height:6px; background:#e8e3f5; border-radius:3px; margin-left:auto; position:relative; overflow:hidden; }
+.signing-progress .bar .fill { position:absolute; left:0; top:0; bottom:0; width:65%; background:linear-gradient(90deg,#4C00FF 0%,#FF5252 100%); border-radius:3px; }
+.signing-pct { font-size:13px; font-weight:600; color:var(--ds-cobalt); font-variant-numeric:tabular-nums; }
+
+.signing-body { flex:1; display:grid; grid-template-columns:1fr 320px; min-height:0; }
+.signing-doc-frame { background:#e8e6e3; padding:24px 36px; overflow:hidden; }
+.signing-doc { background:#fff; padding:50px 64px; font-family:"Times New Roman",serif; font-size:11px; line-height:1.55; color:#252423; height:100%; box-shadow:0 4px 16px -8px rgba(0,0,0,0.15); position:relative; }
+.signing-doc .doc-title { text-align:center; font-weight:700; font-size:14px; margin-bottom:18px; letter-spacing:0.04em; }
+.signing-doc h2 { font-size:11.5px; font-weight:700; margin:10px 0 4px; }
+.signing-doc p { margin:0 0 6px; }
+.signing-field { display:inline-block; vertical-align:bottom; padding:4px 12px 2px; border-radius:3px; min-width:160px; min-height:24px; cursor:default; position:relative; }
+.signing-field.signed { background:#fffceb; border:1px dashed #e8c14b; }
+.signing-field.signed .signature-mark { font-family:"Brush Script MT","Lucida Handwriting",cursive; font-size:18px; color:#1a1a3a; }
+.signing-field.pending { background:#fff7c4; border:1px solid #e8c14b; cursor:pointer; }
+.signing-field.pending::before { content:"Sign"; font-family:var(--brand); font-size:10px; font-weight:600; color:#806400; letter-spacing:0.04em; padding:1px 5px; background:#e8c14b; border-radius:2px 0 2px 0; position:absolute; left:0; top:0; }
+.signing-field.pending::after { content:"→ Sign Here"; font-family:var(--brand); font-size:10px; color:#806400; position:absolute; left:calc(100% + 8px); top:6px; white-space:nowrap; font-weight:600; }
+.signing-field.pending.active { box-shadow:0 0 0 3px rgba(255,82,82,0.35); animation:pulse 2.4s ease-in-out infinite; }
+.signing-doc .field-label { font-size:9px; color:#605e5c; display:block; margin-top:2px; }
+
+.signing-aside { background:#fff; border-left:1px solid var(--line); padding:18px 20px; display:flex; flex-direction:column; gap:12px; }
+.signing-aside h3 { margin:0; font-size:13px; font-weight:600; color:var(--ds-inkwell); padding-bottom:10px; border-bottom:1px solid #f0ecf7; }
+.signing-recip { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f7f5f1; }
+.signing-recip:last-child { border-bottom:none; }
+.signing-recip .av { width:32px; height:32px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:600; }
+.signing-recip .av.dc { background:linear-gradient(135deg,#7eafda,#0070d2); }
+.signing-recip .av.rh { background:linear-gradient(135deg,#cba0d8,#7c3aed); }
+.signing-recip .av.jc { background:linear-gradient(135deg,#f6a878,#dc4c1c); }
+.signing-recip .info { flex:1; min-width:0; }
+.signing-recip .info .nm { font-size:12px; font-weight:600; color:var(--ds-inkwell); line-height:1.2; }
+.signing-recip .info .role { font-size:11px; color:var(--ink-mid); }
+.signing-recip .state { font-size:10px; padding:2px 8px; border-radius:999px; font-weight:600; flex-shrink:0; }
+.signing-recip .state.signed { background:#dff5e3; color:#2f7c44; }
+.signing-recip .state.signing { background:#fff3e8; color:#a35a00; animation:pulse 2.4s ease-in-out infinite; }
+.signing-recip .state.pending { background:#f0ecf7; color:#6c5f8c; }
+.signing-action-btn { background:var(--ds-cobalt); color:#fff; border:none; padding:11px 14px; border-radius:6px; font-size:13px; font-weight:600; margin-top:auto; cursor:default; box-shadow:0 4px 12px -4px rgba(76,0,255,0.4); }
+.signing-action-btn .arrow-right { margin-left:6px; }
+
+/* Navigator (scene 5 — extended with obligations chips) */
+.scene-navigator { background:#fff; height:100%; padding:42px 56px 32px; font-family:var(--brand); color:#130032; position:relative; }
+.nav-tabs { display:flex; gap:48px; border-bottom:1px solid #e8e3f5; margin-bottom:24px; }
+.nav-tab { padding:10px 2px 14px; font-size:18px; color:#6c5f8c; border-bottom:3px solid transparent; cursor:default; }
+.nav-tab.active { color:#1a3d6e; font-weight:600; border-bottom-color:#1a3d6e; }
+.nav-h { font-size:42px; font-weight:600; color:#130032; letter-spacing:-0.02em; margin:8px 0 28px; line-height:1; }
+.nav-controls { display:flex; align-items:center; gap:10px; margin-bottom:18px; position:relative; }
+.nav-search { width:340px; height:42px; background:#fff; border:1px solid #d4cee2; border-radius:6px; display:flex; align-items:center; gap:10px; padding:0 14px; font-size:14px; color:#9b94b3; }
+.nav-search svg { color:#6c5f8c; flex-shrink:0; }
+.nav-filter { padding:9px 14px; font-size:14px; background:#fff; border:1px solid #d4cee2; border-radius:6px; color:#130032; display:inline-flex; align-items:center; gap:8px; cursor:default; }
+.nav-filter .chev { color:#6c5f8c; font-size:11px; }
+.nav-filter.icon { padding:9px 12px; }
+.nav-filter.icon svg { width:14px; height:14px; }
+.nav-table { width:100%; border-collapse:collapse; margin-top:8px; }
+.nav-table th { font-size:14px; font-weight:600; color:#130032; text-align:left; padding:14px 14px 14px 0; border-bottom:1px solid #e8e3f5; }
+.nav-table th .sort-arrows { color:#1a3d6e; margin-left:6px; font-size:12px; }
+.nav-table td { font-size:14px; color:#130032; padding:18px 14px 14px 0; border-bottom:1px solid #f0ecf7; vertical-align:top; }
+.nav-table .file-cell { display:flex; align-items:center; gap:14px; }
+.nav-table .file-name { font-size:16px; color:#130032; font-weight:500; }
+.nav-icon-diamond { width:14px; height:14px; flex-shrink:0; transform:rotate(45deg); display:inline-block; position:relative; }
+.nav-icon-diamond .d { position:absolute; inset:0; background:linear-gradient(135deg,#9d50ff 0%,#6e3aff 50%,#4C00FF 100%); border-radius:2px; }
+.nav-table .party { color:#1a3d6e; text-decoration:underline; text-decoration-color:rgba(26,61,110,0.35); text-underline-offset:3px; display:inline-block; font-size:14px; line-height:1.7; background:#f0ecf7; padding:0 6px; border-radius:3px; margin-bottom:2px; }
+.nav-table .party-stack { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
+.nav-table .obligations-row { display:flex; flex-wrap:wrap; gap:6px; padding-top:8px; }
+.nav-table .obligation-chip { font-size:11px; font-weight:500; padding:3px 9px; border-radius:999px; background:#f5f0ff; color:#26065D; border:1px solid rgba(76,0,255,0.18); display:inline-flex; align-items:center; gap:5px; }
+.nav-table .obligation-chip .dot { width:5px; height:5px; border-radius:50%; }
+.nav-table .obligation-chip.day-rate .dot { background:#dc4c1c; }
+.nav-table .obligation-chip.coi .dot { background:#0064a8; }
+.nav-table .obligation-chip.hse .dot { background:#2f7c44; }
+.nav-table .obligation-chip.fm .dot { background:#7c3aed; }
+.nav-table .obligation-chip.term .dot { background:#a35a00; }
+.nav-table .date-link { color:#1a3d6e; text-decoration:underline; text-decoration-color:rgba(26,61,110,0.35); }
+
+@media (max-width:680px) { .title-block h1 { font-size:22px; } .title-block p { font-size:14px; } }
+</style>
+
+<link rel="stylesheet" href="../assets/demo-stage/demo-stage.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="./index.html" aria-label="Back to flipbook index">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    All flipbooks
+  </a>
+  <span class="iris" aria-label="Docusign IAM">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="#4C00FF" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="4" fill="#4C00FF"/>
+    </svg>
+    Docusign IAM
+  </span>
+  <span class="pill">Procurement · HTML stage</span>
+</header>
+
+<section class="title-block">
+  <div class="eyebrow-row">
+    <span>Stage view</span><span class="dot"></span>
+    <span>HTML scenes</span><span class="dot"></span>
+    <span>6 beats</span>
+  </div>
+  <h1>Drilling Services MSA — Black Mesa × Tritan</h1>
+  <div class="glow-rule" aria-hidden="true"></div>
+  <p>A five-rig drilling-services MSA flows from Coupa through Maestro and AI-Assisted Review, signed by Black Mesa, Tritan, and counsel, and lands in Navigator with day-rate, HSE, and COI obligations extracted automatically.</p>
+  <div class="alt">Prefer frame-by-frame? <a href="./DocuSign_CLM_Procurement_Demo_Video.html">Open the flipbook</a>.</div>
+</section>
+
+<section class="stage-wrap">
+  <div id="ds" class="ds-stage">
+
+    <!-- =========================================================
+         SCENE 1 — Coupa supplier record (Tritan Drilling Services)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="coupa-supplier">
+      <div class="coupa">
+        <div class="coupa-topnav">
+          <div class="coupa-brand">
+            <svg class="coupa-mark" viewBox="0 0 32 32">
+              <g fill="#dc4c1c">
+                <rect x="14.5" y="2" width="3" height="9" rx="1.5"/>
+                <rect x="14.5" y="21" width="3" height="9" rx="1.5"/>
+                <rect x="2" y="14.5" width="9" height="3" rx="1.5"/>
+                <rect x="21" y="14.5" width="9" height="3" rx="1.5"/>
+                <rect x="14.5" y="2" width="3" height="9" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="14.5" y="21" width="3" height="9" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="2" y="14.5" width="9" height="3" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="21" y="14.5" width="9" height="3" rx="1.5" transform="rotate(45 16 16)"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#dc4c1c"/>
+            </svg>
+            <span class="coupa-wordmark">coupa</span>
+          </div>
+          <div class="coupa-tabs">
+            <span class="coupa-tab">Home</span>
+            <span class="coupa-tab active">Suppliers</span>
+            <span class="coupa-tab">Sourcing</span>
+            <span class="coupa-tab">Contracts</span>
+            <span class="coupa-tab">Orders</span>
+            <span class="coupa-tab">Invoices</span>
+          </div>
+          <div class="coupa-utils">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="avatar">DC</span>
+          </div>
+        </div>
+        <div class="coupa-content">
+          <div>
+            <div class="coupa-supplier-head">
+              <div class="coupa-bread">
+                <a href="#">Suppliers</a>
+                <span style="color:#9b94a3;">›</span>
+                <span>Tritan Drilling Services</span>
+              </div>
+              <div class="coupa-name-row">
+                <div class="coupa-supplier-icon">TR</div>
+                <div class="coupa-name">Tritan Drilling Services</div>
+                <div class="coupa-tags">
+                  <span class="coupa-tag green">● Approved</span>
+                  <span class="coupa-tag tier">Tier 2</span>
+                </div>
+              </div>
+              <div class="coupa-meta">
+                <span><span class="lbl">Supplier ID</span><b>89221</b></span>
+                <span><span class="lbl">Onboarded</span><b>2024-03-14</b></span>
+                <span><span class="lbl">Region</span><b>Permian (Wolfcamp / Bone Spring)</b></span>
+                <span><span class="lbl">Buyer</span><b>Diego Castaneda</b></span>
+              </div>
+            </div>
+            <div class="coupa-card">
+              <div class="coupa-card-head">
+                <svg class="head-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                Supplier Profile
+                <span class="more">⋯</span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Tax</span>
+                <span class="val">
+                  <span class="pill ok">On file</span>
+                  W-9 · EIN 47-2914•••
+                  <small>Form W-9 uploaded 2024-03-14 · IRS-validated 2024-04-01</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Insurance</span>
+                <span class="val">
+                  <span class="pill ok">Valid</span>
+                  General Liability $25M
+                  <small>Carrier: Hartford · expires 2026-12-31 · COI uploaded 2025-09-12</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">HSE</span>
+                <span class="val">
+                  <span class="pill ok">Compliant</span>
+                  TRIR 0.84
+                  <small>ISN-verified · last refresh 14d ago · DART 0.31 · LTIFR 0.18</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Day rate</span>
+                <span class="val">
+                  Tier 2 · <b>$28,400 / rig-day</b>
+                  <small>Last review 2025-08-01 · index-linked: Permian rig count quarterly</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Active contract</span>
+                <span class="val">
+                  <a href="#" style="color:#dc4c1c; text-decoration:none;">MSA-2024-117 · 5-rig Drilling Services Agreement</a>
+                  <small>Effective 2024-04-01 · expires 2025-12-31 · 60-day notice required</small>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="coupa-aside">
+            <div class="coupa-renewal-banner">
+              <div class="badge">⚠ Renewal due</div>
+              <h3>MSA-2024-117 expires in 63 days</h3>
+              <p>Active 5-rig MSA renews 2025-12-31. Procurement should generate the renewal package before 2025-11-01.</p>
+            </div>
+            <div class="coupa-aside-card">
+              <div class="coupa-aside-head">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Activity
+              </div>
+              <div class="coupa-aside-body">
+                <div class="coupa-activity">
+                  <div class="icon alert">!</div>
+                  <div class="meta"><div class="t">COI renewal due in 18 months — Hartford</div><div class="when">Auto-monitor · today</div></div>
+                </div>
+                <div class="coupa-activity">
+                  <div class="icon note">✓</div>
+                  <div class="meta"><div class="t">HSE refresh accepted — TRIR 0.84</div><div class="when">14d ago · ISN sync</div></div>
+                </div>
+                <div class="coupa-activity">
+                  <div class="icon note">✓</div>
+                  <div class="meta"><div class="t">Day-rate review approved — Tier 2 retained</div><div class="when">2025-08-01 · D. Castaneda</div></div>
+                </div>
+                <div class="coupa-activity">
+                  <div class="icon due">⏱</div>
+                  <div class="meta"><div class="t">5-rig MSA signed — Black Mesa × Tritan</div><div class="when">2024-04-01 · Initial term</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 2 — Maestro Agreement Desk routing
+         ========================================================= -->
+    <section class="ds-scene" data-scene="maestro-desk">
+      <div class="maestro">
+        <div class="maestro-head">
+          <div class="maestro-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><line x1="8" y1="8" x2="11" y2="15"/><line x1="16" y1="8" x2="13" y2="15"/></svg>
+          </div>
+          <div class="maestro-titles">
+            <span class="maestro-eyebrow">Docusign Maestro · Agreement Desk</span>
+            <span class="maestro-title">Drilling Services MSA — 5-rig Renewal</span>
+            <span class="maestro-id">Workflow E-77912 · Black Mesa Energy × Tritan Drilling Services</span>
+          </div>
+          <div class="maestro-progress"><span class="dot"></span> 2 of 5 steps complete · routing</div>
+        </div>
+        <div class="maestro-cols">
+          <div class="maestro-flow">
+            <div class="maestro-flow-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Workflow
+            </div>
+            <div class="maestro-graph">
+              <div class="maestro-step">
+                <div class="maestro-step-dot done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="maestro-step-meta">
+                  <div class="maestro-step-title">Generate package from Coupa data</div>
+                  <div class="maestro-step-sub">Pulled W-9, COI, HSE, day-rate · pre-filled MSA template · attached Schedule A (rig-by-rig SOW)</div>
+                </div>
+                <div class="maestro-step-when">Tue 09:14</div>
+                <div class="maestro-step-line"></div>
+              </div>
+              <div class="maestro-step">
+                <div class="maestro-step-dot done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="maestro-step-meta">
+                  <div class="maestro-step-title">Internal review &amp; approval</div>
+                  <div class="maestro-step-sub">Diego Castaneda (Procurement) · Rachel Holm (Legal) · AI-Assisted Review against Drilling MSA Playbook</div>
+                </div>
+                <div class="maestro-step-when">Tue 14:42</div>
+                <div class="maestro-step-line"></div>
+              </div>
+              <div class="maestro-step">
+                <div class="maestro-step-dot active"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg></div>
+                <div class="maestro-step-meta">
+                  <div class="maestro-step-title">Counterparty review — Tritan</div>
+                  <div class="maestro-step-sub">Jess Crowley (Counsel) redlining indemnification clause · 2 comments returned</div>
+                </div>
+                <div class="maestro-step-when">In progress</div>
+                <div class="maestro-step-line"></div>
+              </div>
+              <div class="maestro-step">
+                <div class="maestro-step-dot pending"><span style="color:#7c6ed8; font-size:13px;">4</span></div>
+                <div class="maestro-step-meta">
+                  <div class="maestro-step-title">Multi-party signature</div>
+                  <div class="maestro-step-sub">Sequential: Tritan counsel → Tritan ops → Black Mesa procurement → Black Mesa legal</div>
+                </div>
+                <div class="maestro-step-when">Pending</div>
+                <div class="maestro-step-line"></div>
+              </div>
+              <div class="maestro-step">
+                <div class="maestro-step-dot pending"><span style="color:#7c6ed8; font-size:13px;">5</span></div>
+                <div class="maestro-step-meta">
+                  <div class="maestro-step-title">Land in Navigator · push obligations to Coupa</div>
+                  <div class="maestro-step-sub">Day rate · HSE · COI · force majeure · termination terms — all extracted and bound to Tritan supplier record</div>
+                </div>
+                <div class="maestro-step-when">Pending</div>
+              </div>
+            </div>
+          </div>
+          <div class="maestro-recipients">
+            <div class="maestro-recipients-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0 -4 -4 H5 a4 4 0 0 0 -4 4 v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2 a4 4 0 0 0 -3 -3.87"/><path d="M16 3.13 a4 4 0 0 1 0 7.75"/></svg>
+              Recipients
+              <span class="count">4</span>
+            </div>
+            <div class="maestro-recip">
+              <div class="av dc">DC</div>
+              <div class="info"><div class="nm">Diego Castaneda</div><div class="role">Procurement · Black Mesa</div></div>
+              <span class="state signed">Signed</span>
+            </div>
+            <div class="maestro-recip">
+              <div class="av rh">RH</div>
+              <div class="info"><div class="nm">Rachel Holm</div><div class="role">Legal · Black Mesa</div></div>
+              <span class="state signed">Signed</span>
+            </div>
+            <div class="maestro-recip">
+              <div class="av jc">JC</div>
+              <div class="info"><div class="nm">Jess Crowley</div><div class="role">Counsel · Tritan</div></div>
+              <span class="state review">Redlining</span>
+            </div>
+            <div class="maestro-recip">
+              <div class="av" style="background:linear-gradient(135deg,#dca878,#a35a00);">PT</div>
+              <div class="info"><div class="nm">Pat Tanaka</div><div class="role">Ops · Tritan</div></div>
+              <span class="state pending">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 3 — Word + AI-Assisted Review (drilling MSA)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="ai-review">
+      <div class="word-app">
+        <div class="word-titlebar">
+          <span class="file-tab">File</span>
+          <div class="word-tabs">
+            <span class="on">Home</span><span>Insert</span><span>Draw</span><span>Design</span><span>Layout</span><span>References</span><span>Mailings</span><span>Review</span><span>View</span>
+          </div>
+          <div class="right-actions">
+            <span class="pill">💬 Comments</span>
+            <span class="pill share">⇧ Share ▾</span>
+          </div>
+        </div>
+        <div class="word-ribbon">
+          <div class="group" style="font-family:'Times New Roman',serif;">Arial · 10 · <b>B</b> <i>I</i> <u>U</u></div>
+          <div class="group" style="opacity:0.6;">≡ ≡ ≡ ≡ &nbsp; ¶</div>
+          <div class="group" style="display:flex; gap:6px;">
+            <div style="padding:8px 14px; background:#deecf9; border:1px solid #185abd; border-radius:2px; font-size:9px; color:#185abd;">Normal</div>
+            <div style="padding:8px 14px; background:#fff; border:1px solid #e1dfdd; border-radius:2px; font-size:9px;">No Spacing</div>
+            <div style="padding:8px 14px; background:#fff; border:1px solid #e1dfdd; border-radius:2px; font-size:9px;">Heading 7</div>
+          </div>
+          <div class="review-pill">
+            <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)"><path d="M12 3 L13.5 9 L20 9 L14.5 13 L17 19 L12 15 L7 19 L9.5 13 L4 9 L10.5 9 Z"/></svg>
+            <div style="display:flex; flex-direction:column; line-height:1.1;">
+              <span style="font-size:10px; opacity:0.85;">Docusign</span>
+              <span style="font-size:11px; font-weight:700;">AI-Assisted Review</span>
+            </div>
+          </div>
+        </div>
+        <div class="word-body">
+          <div class="word-doc-frame">
+            <div class="word-doc">
+              <p style="text-align:center; font-weight:700; font-size:14px; text-indent:0; margin-bottom:14px;">DRILLING SERVICES MASTER SERVICE AGREEMENT</p>
+              <p style="text-indent:0;">This Drilling Services Master Service Agreement ("Agreement") is made effective as of November 1, 2025 between <span class="term">Black Mesa Energy</span>, LLC, a Delaware limited liability company ("Customer"), and <span class="term">Tritan Drilling Services</span>, Inc., a Texas corporation ("Contractor"), and governs Contractor's provision of land-based drilling services on Customer's Permian Basin properties.</p>
+              <h2 style="text-indent:0; margin-top:14px;">2. SCOPE &amp; DAY RATE</h2>
+              <p><span class="num">2.1 Rigs.</span> Contractor shall provide and operate five (5) Tier 2 land rigs, each meeting the Schedule A specifications, on Customer's Wolfcamp and Bone Spring leases.</p>
+              <p class="highlight-yellow" style="text-indent:24px;">Day rate: $28,400 per rig-day, indexed quarterly to Permian rig count per Schedule B.</p>
+              <p><span class="num">2.2 Standby &amp; Move Rates.</span> Standby rate is sixty percent (60%) of day rate. Move rate is forty percent (40%) of day rate or actual cost, whichever is greater.</p>
+              <div class="section-box">
+                <h2 style="text-indent:0; margin-top:0;">3. HSE COMPLIANCE</h2>
+                <p><span class="num">3.1 TRIR Threshold.</span> Contractor's twelve-month rolling Total Recordable Incident Rate ("TRIR") shall not exceed 1.0. Customer may suspend drilling operations and withhold day rates if TRIR exceeds threshold for two consecutive months. Contractor's current TRIR is 0.84 as of the Effective Date.</p>
+                <p><span class="num">3.2 ISN Verification.</span> Contractor shall maintain active ISNetworld registration in good standing throughout the Term and shall refresh HSE attestations no less frequently than every thirty (30) days. Customer shall have the right to audit Contractor's HSE program upon thirty (30) days' notice.</p>
+                <p><span class="num">3.3 Stop-Work Authority.</span> Both parties grant their personnel unconditional authority to halt operations upon perception of imminent risk to person, property, or the environment, without retaliation or wage forfeiture.</p>
+              </div>
+              <h2 style="text-indent:0; margin-top:14px;">4. INSURANCE &amp; INDEMNIFICATION</h2>
+              <p><span class="num">4.1 Coverage Minimums.</span> Contractor shall maintain (i) General Liability insurance of not less than $25M per occurrence; (ii) Auto Liability of $5M; (iii) Workers' Compensation as required by law; and (iv) Operator's Extra Expense (control of well) of $50M. Certificate of Insurance shall name <span class="term">Black Mesa Energy</span> as additional insured.</p>
+              <p><span class="num">4.2 Indemnification — Knock-for-Knock.</span> Each party shall defend, indemnify, and hold the other harmless against claims arising out of injury to its own personnel or damage to its own property, regardless of fault, except where such injury or damage is caused by the gross negligence or willful misconduct of the indemnitee. Indemnification shall not apply to fines or penalties imposed by regulatory authorities for the indemnitor's violations.</p>
+              <p><span class="num">4.3 Force Majeure.</span> Neither party shall be liable for delay or failure in performance caused by acts of God, governmental orders, blowouts, or industrial action affecting the offshore drilling industry generally, provided that the affected party gives prompt notice and uses commercially reasonable efforts to mitigate.</p>
+            </div>
+          </div>
+          <div class="word-aside">
+            <div class="aar-headbar">
+              <svg class="ds-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4C00FF"/></svg>
+              Docusign AI-Assisted Review
+              <span class="x">×</span>
+            </div>
+            <button class="aar-save-btn">
+              <svg class="ds-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4C00FF"/></svg>
+              Save to Agreement Desk
+            </button>
+            <div class="aar-back-row">
+              <span class="back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                <span class="pb-name">View Playbook</span>
+              </span>
+              <span class="ai-tag">✦ AI-Assisted</span>
+              <span class="more">⋮</span>
+            </div>
+            <div class="aar-playbook-title">Drilling MSA Playbook · Tier 2 <span class="info">ⓘ</span></div>
+            <div class="aar-actions">
+              <button class="run">
+                <span class="play-tri"></span>
+                Run All
+                <span class="chev-down">▾</span>
+              </button>
+              <button class="edit">Edit</button>
+            </div>
+            <div class="aar-pills-row">
+              <span class="aar-pill review">Needs Review (2)</span>
+              <span class="aar-pill passed">Passed (9)</span>
+              <span class="aar-pill resolved">Resolved (1)</span>
+            </div>
+            <div class="aar-list">
+              <div class="aar-item">
+                <span class="badge resolved">Resolved</span>
+                <span class="chev">▾</span>
+                <span class="label bold">Day rate ≤ Tier 2 ceiling ($28,400/rig-day)</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge passed">Passed</span>
+                <span class="chev">▾</span>
+                <span class="label">HSE TRIR threshold &lt; 1.0</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge passed">Passed</span>
+                <span class="chev">▾</span>
+                <span class="label">COI minimum $25M GL + $50M OEE</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge passed">Passed</span>
+                <span class="chev">▾</span>
+                <span class="label">Knock-for-knock indemnification structure</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge review">Needs review</span>
+                <span class="chev">▾</span>
+                <span class="label bold">Force majeure carveout for industrial action</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge review">Needs review</span>
+                <span class="chev">▾</span>
+                <span class="label">Indemnitee gross-negligence exception scope</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge passed">Passed</span>
+                <span class="chev">▾</span>
+                <span class="label">Stop-work authority (mutual, unconditional)</span>
+              </div>
+              <div class="aar-item">
+                <span class="badge passed">Passed</span>
+                <span class="chev">▾</span>
+                <span class="label">Termination for convenience · 60-day notice</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 4 — Multi-party signing ceremony
+         ========================================================= -->
+    <section class="ds-scene" data-scene="signing">
+      <div class="signing">
+        <div class="signing-bar">
+          <div class="ds-logo">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M8 13 L11 16 L17 9" stroke="#26065D" stroke-width="2" fill="none"/></svg>
+            Docusign
+          </div>
+          <span class="doc-title">Drilling Services MSA — Black Mesa × Tritan</span>
+          <div class="actions">
+            <span class="btn">Other Actions ▾</span>
+            <span class="btn">Finish Later</span>
+          </div>
+        </div>
+        <div class="signing-progress">
+          <div class="step done"><span class="num">✓</span><span class="lbl">Diego Castaneda</span></div>
+          <span class="arrow">→</span>
+          <div class="step done"><span class="num">✓</span><span class="lbl">Rachel Holm</span></div>
+          <span class="arrow">→</span>
+          <div class="step current"><span class="num">3</span><span class="lbl">Jess Crowley · signing</span></div>
+          <span class="arrow">→</span>
+          <div class="step"><span class="num">4</span><span class="lbl">Pat Tanaka</span></div>
+          <div class="bar"><div class="fill"></div></div>
+          <span class="signing-pct">65%</span>
+        </div>
+        <div class="signing-body">
+          <div class="signing-doc-frame">
+            <div class="signing-doc">
+              <div class="doc-title">DRILLING SERVICES MASTER SERVICE AGREEMENT</div>
+              <p style="text-align:center; font-size:10px; color:#605e5c;">Page 18 of 22 · Signature Page</p>
+              <p style="margin-top:24px;"><b>IN WITNESS WHEREOF</b>, the parties have caused this Drilling Services Master Service Agreement to be executed by their duly authorized representatives as of the Effective Date written below.</p>
+              <div style="margin-top:32px; display:grid; grid-template-columns:1fr 1fr; gap:36px;">
+                <div>
+                  <p style="font-weight:700; margin-bottom:18px;">BLACK MESA ENERGY, LLC</p>
+                  <p>By: <span class="signing-field signed"><span class="signature-mark">Diego Castaneda</span></span></p>
+                  <span class="field-label">Name: Diego Castaneda · Title: VP Procurement · Date: 11/04/2025</span>
+                  <p style="margin-top:18px;">By: <span class="signing-field signed"><span class="signature-mark">Rachel Holm</span></span></p>
+                  <span class="field-label">Name: Rachel Holm · Title: General Counsel · Date: 11/05/2025</span>
+                </div>
+                <div>
+                  <p style="font-weight:700; margin-bottom:18px;">TRITAN DRILLING SERVICES, INC.</p>
+                  <p>By: <span class="signing-field pending active">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+                  <span class="field-label">Name: Jess Crowley · Title: Counsel · Date: <span style="opacity:0.4">__/__/____</span></span>
+                  <p style="margin-top:18px;">By: <span class="signing-field" style="background:#f5f0ff; border:1px dashed #cbc2ff; min-width:160px; min-height:24px;"></span></p>
+                  <span class="field-label">Name: Pat Tanaka · Title: VP Operations · Date: <span style="opacity:0.4">__/__/____</span></span>
+                </div>
+              </div>
+              <p style="margin-top:32px; font-size:10px; color:#605e5c; text-align:center;">[ Schedule A — Rig Specifications &nbsp;·&nbsp; Schedule B — Day Rate Index follows ]</p>
+            </div>
+          </div>
+          <aside class="signing-aside">
+            <h3>Recipients · 4</h3>
+            <div class="signing-recip"><div class="av dc">DC</div><div class="info"><div class="nm">Diego Castaneda</div><div class="role">Procurement · Black Mesa</div></div><span class="state signed">Signed</span></div>
+            <div class="signing-recip"><div class="av rh">RH</div><div class="info"><div class="nm">Rachel Holm</div><div class="role">Legal · Black Mesa</div></div><span class="state signed">Signed</span></div>
+            <div class="signing-recip"><div class="av jc">JC</div><div class="info"><div class="nm">Jess Crowley</div><div class="role">Counsel · Tritan</div></div><span class="state signing">Signing</span></div>
+            <div class="signing-recip"><div class="av" style="background:linear-gradient(135deg,#dca878,#a35a00);">PT</div><div class="info"><div class="nm">Pat Tanaka</div><div class="role">Ops · Tritan</div></div><span class="state pending">Pending</span></div>
+            <button class="signing-action-btn">Sign Now <span class="arrow-right">→</span></button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 5 — Navigator with executed MSA + obligations
+         ========================================================= -->
+    <section class="ds-scene" data-scene="navigator">
+      <div class="scene-navigator">
+        <div class="nav-tabs">
+          <div class="nav-tab active">Docusign Agreements</div>
+          <div class="nav-tab">Docusign Agreement Desk</div>
+          <div class="nav-tab">Activity</div>
+        </div>
+        <div class="nav-h">Recently Executed</div>
+        <div class="nav-controls">
+          <div class="nav-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Try keywords or phrases
+          </div>
+          <button class="nav-filter">Sets <span class="chev">▾</span></button>
+          <button class="nav-filter">Expiration Date <span class="chev">▾</span></button>
+          <button class="nav-filter">Parties <span class="chev">▾</span></button>
+          <button class="nav-filter icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            All Filters
+          </button>
+        </div>
+        <table class="nav-table">
+          <thead>
+            <tr>
+              <th style="width:42%">File Name &amp; Obligations</th>
+              <th style="width:18%">Parties</th>
+              <th style="width:18%">Agreement Type</th>
+              <th style="width:11%">Effective <span class="sort-arrows">⇅</span></th>
+              <th style="width:11%">Expires <span class="sort-arrows">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="file-cell">
+                  <span class="nav-icon-diamond"><span class="d"></span></span>
+                  <span class="file-name">MSA Black Mesa × Tritan Drilling.docx</span>
+                </div>
+                <div class="obligations-row">
+                  <span class="obligation-chip day-rate"><span class="dot"></span>Day rate · Tier 2 · $28.4K</span>
+                  <span class="obligation-chip hse"><span class="dot"></span>HSE TRIR &lt; 1.0</span>
+                  <span class="obligation-chip coi"><span class="dot"></span>COI · $25M GL · expires 12/2026</span>
+                  <span class="obligation-chip fm"><span class="dot"></span>Force majeure · industrial action carveout</span>
+                  <span class="obligation-chip term"><span class="dot"></span>Termination · 60-day notice</span>
+                </div>
+              </td>
+              <td><div class="party-stack"><span class="party">Black Mesa Energy</span><span class="party">Tritan Drilling Services</span></div></td>
+              <td>Drilling Services MSA</td>
+              <td><span class="date-link">11/1/2025</span></td>
+              <td>11/1/2030</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="file-cell">
+                  <span class="nav-icon-diamond"><span class="d"></span></span>
+                  <span class="file-name">Schedule A — 5-Rig SOW.docx</span>
+                </div>
+                <div class="obligations-row">
+                  <span class="obligation-chip day-rate"><span class="dot"></span>Permian rigs · Wolfcamp + Bone Spring</span>
+                </div>
+              </td>
+              <td><div class="party-stack"><span class="party">Black Mesa Energy</span><span class="party">Tritan Drilling Services</span></div></td>
+              <td>Statement of Work</td>
+              <td>11/1/2025</td>
+              <td>11/1/2030</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="file-cell">
+                  <span class="nav-icon-diamond"><span class="d"></span></span>
+                  <span class="file-name">Schedule B — Day Rate Index.docx</span>
+                </div>
+                <div class="obligations-row">
+                  <span class="obligation-chip day-rate"><span class="dot"></span>Quarterly indexation · Permian rig count</span>
+                </div>
+              </td>
+              <td><div class="party-stack"><span class="party">Black Mesa Energy</span><span class="party">Tritan Drilling Services</span></div></td>
+              <td>Schedule</td>
+              <td>11/1/2025</td>
+              <td>11/1/2030</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 6 — Coupa receives renewal task back (round-trip)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="coupa-renewal">
+      <div class="coupa">
+        <div class="coupa-topnav">
+          <div class="coupa-brand">
+            <svg class="coupa-mark" viewBox="0 0 32 32">
+              <g fill="#dc4c1c">
+                <rect x="14.5" y="2" width="3" height="9" rx="1.5"/>
+                <rect x="14.5" y="21" width="3" height="9" rx="1.5"/>
+                <rect x="2" y="14.5" width="9" height="3" rx="1.5"/>
+                <rect x="21" y="14.5" width="9" height="3" rx="1.5"/>
+                <rect x="14.5" y="2" width="3" height="9" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="14.5" y="21" width="3" height="9" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="2" y="14.5" width="9" height="3" rx="1.5" transform="rotate(45 16 16)"/>
+                <rect x="21" y="14.5" width="9" height="3" rx="1.5" transform="rotate(45 16 16)"/>
+              </g>
+              <circle cx="16" cy="16" r="4" fill="#dc4c1c"/>
+            </svg>
+            <span class="coupa-wordmark">coupa</span>
+          </div>
+          <div class="coupa-tabs">
+            <span class="coupa-tab">Home</span>
+            <span class="coupa-tab">Suppliers</span>
+            <span class="coupa-tab">Sourcing</span>
+            <span class="coupa-tab">Contracts</span>
+            <span class="coupa-tab active">Inbox</span>
+            <span class="coupa-tab">Orders</span>
+          </div>
+          <div class="coupa-utils">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="avatar">DC</span>
+          </div>
+        </div>
+        <div class="coupa-content" style="grid-template-columns:1fr;">
+          <div>
+            <div class="coupa-bread" style="margin-bottom:14px;"><a href="#">Inbox</a><span style="color:#9b94a3;">›</span><span>Procurement Tasks</span></div>
+            <h2 style="font-size:28px; font-weight:600; margin:0 0 18px; color:#1a1a1a; letter-spacing:-0.015em;">Inbox · Procurement</h2>
+            <div class="coupa-card" style="margin-bottom:14px;">
+              <div class="coupa-card-head" style="background:linear-gradient(90deg,#fff7eb 0%,#fff 100%);">
+                <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#dc4c1c;"></span>
+                Tritan Drilling Services · 5-rig MSA renewal — landed from Docusign Navigator
+                <span class="more">⋯</span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Source</span>
+                <span class="val">Docusign Navigator · MSA executed 11/1/2025
+                  <small>Auto-pushed by Maestro · Workflow E-77912 · binds to supplier 89221</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">New term</span>
+                <span class="val"><b>11/1/2025 → 11/1/2030</b> · 5-year initial term
+                  <small>60-day non-renewal notice · auto-renewal disabled · indexed quarterly</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Day rate</span>
+                <span class="val">Tier 2 retained · $28,400 / rig-day
+                  <small>Schedule B index review scheduled 02/01/2026, 05/01/2026, 08/01/2026, 11/01/2026</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">COI</span>
+                <span class="val"><span class="pill ok">Synced</span> $25M GL + $50M OEE on file · Hartford
+                  <small>Renewal reminder set for 10/01/2026 (60d before expiry)</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">HSE</span>
+                <span class="val"><span class="pill ok">Monitored</span> TRIR threshold &lt; 1.0 — current 0.84
+                  <small>30-day attestation cadence enforced via ISN sync</small>
+                </span>
+              </div>
+              <div class="coupa-row">
+                <span class="lbl">Tasks created</span>
+                <span class="val">
+                  <span style="display:block; padding:3px 0;">▢ Day-rate index review · Q1 2026 (assigned to D. Castaneda)</span>
+                  <span style="display:block; padding:3px 0;">▢ COI renewal reminder · 10/01/2026 (assigned to D. Castaneda)</span>
+                  <span style="display:block; padding:3px 0;">▢ HSE attestation · monthly (auto)</span>
+                  <span style="display:block; padding:3px 0;">▢ Force majeure carveout review · annual (assigned to R. Holm)</span>
+                </span>
+              </div>
+            </div>
+            <div style="font-size:12px; color:#7c7c7c; padding:14px 18px; background:#fff; border:1px solid #e1e0dd; border-radius:6px;">
+              <b>Pipeline summary:</b> Coupa → Maestro fans out the package → AI-Assisted Review against the Drilling MSA Playbook → multi-party signing → Navigator extracts obligations → Coupa receives them as monitored tasks.
+              The system of record is Coupa; the system of execution is Docusign IAM. Each side keeps its own queue.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<section class="ds-controls" aria-label="Demo stage controls">
+  <button id="ds-prev" aria-label="Previous beat" title="Previous beat (left arrow)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Prev beat
+  </button>
+  <button id="ds-play" class="primary" aria-label="Play / pause" title="Play / pause (Space)">
+    <svg id="ds-play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+    <span id="ds-play-label">Play</span>
+  </button>
+  <div class="ds-scrub">
+    <div id="ds-ticks" class="ds-ticks" aria-hidden="true"></div>
+    <input type="range" id="ds-scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub demo">
+  </div>
+  <span class="ds-time" id="ds-time">0:00 / 0:00</span>
+  <select id="ds-speed" aria-label="Playback speed">
+    <option value="0.5">0.5x</option>
+    <option value="0.75">0.75x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.5">1.5x</option>
+    <option value="2">2x</option>
+  </select>
+  <button id="ds-next" aria-label="Next beat" title="Next beat (right arrow)">
+    Next beat
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+</section>
+
+<div class="ds-beats-header" aria-hidden="true">
+  <span class="ds-beats-eyebrow">Beats</span>
+  <span class="ds-beats-rule"></span>
+  <span class="ds-beats-count">6 beats</span>
+</div>
+<div id="ds-beats" class="ds-beat-strip" aria-label="Jump to beat"></div>
+
+<div class="ds-help">
+  <span class="ds-help-item"><kbd>Space</kbd> play / pause</span>
+  <span class="ds-help-item"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> prev / next beat</span>
+  <span class="ds-help-item"><kbd>Shift</kbd> + <kbd>&larr;</kbd><kbd>&rarr;</kbd> &plusmn;5s</span>
+</div>
+
+<footer class="foot">
+  <a href="./index.html">All Docusign IAM flipbooks</a>
+</footer>
+
+<script src="../assets/demo-stage/demo-stage.js"></script>
+<script>
+  DemoStage.init('#ds', {
+    totalDuration: 180,
+    beats: [
+      { t:   0, sceneId: "coupa-supplier", eyebrow: "Coupa · Suppliers",  title: "Tritan is the system-of-record supplier",      body: "Approved · Tier 2 · W-9, COI Hartford $25M, HSE TRIR 0.84, day rate $28.4K. Procurement reads from Coupa first." },
+      { t:  30, sceneId: "maestro-desk",   eyebrow: "Docusign Maestro",   title: "Package fans out — Black Mesa internal first",  body: "Diego (Procurement) and Rachel (Legal) signed. Now routed to Jess (Counsel) at Tritan for redlines." },
+      { t:  60, sceneId: "ai-review",      eyebrow: "AI-Assisted Review", title: "Drilling MSA Playbook runs against the package", body: "Day rate Resolved at Tier 2 ceiling. HSE / COI / knock-for-knock indemnification all Passed. Force majeure carveout flagged for review." },
+      { t:  90, sceneId: "signing",        eyebrow: "Signing ceremony",   title: "Tritan counsel signs · Pat Tanaka next",        body: "Sequential signing: Black Mesa side complete, Tritan side in progress. Signature audit trail bound to the workflow." },
+      { t: 120, sceneId: "navigator",      eyebrow: "Navigator",          title: "MSA + Schedules land as a connected set",       body: "Day rate · HSE TRIR · COI renewal · force majeure · termination — all extracted as obligation chips on the agreement." },
+      { t: 150, sceneId: "coupa-renewal",  eyebrow: "Coupa · Inbox",      title: "Obligations push back to Coupa as tasks",       body: "COI reminder, day-rate index review, HSE attestation, force majeure annual review — Coupa keeps procurement's queue intact." }
+    ],
+    cursorTrack: [
+      // Scene 1: hover Tritan supplier name → renewal banner → day rate row
+      { t:   3, x: 230, y: 130 },
+      { t:  12, x: 1020, y: 220 },
+      { t:  22, x: 380, y: 540 },
+      // Scene 2: cursor on Jess Crowley active step → recipients list
+      { t:  34, x:  220, y: 470, action: "click" },
+      { t:  45, x: 1080, y: 470 },
+      // Scene 3: Run All → Force majeure needs review
+      { t:  63, x:  995, y: 305, action: "click" },
+      { t:  78, x: 1100, y: 580 },
+      // Scene 4: Sign Now field
+      { t:  92, x: 800, y: 380, action: "click" },
+      { t: 110, x: 1160, y: 660, action: "click" },
+      // Scene 5: hover obligations chips
+      { t: 124, x:  280, y: 410 },
+      { t: 138, x:  640, y: 460 },
+      // Scene 6: COI synced row
+      { t: 154, x:  340, y: 420 },
+      { t: 170, x:  340, y: 540 }
+    ]
+  });
+</script>
+
+</body>
+</html>

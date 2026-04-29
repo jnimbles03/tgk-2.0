@@ -1741,7 +1741,13 @@ const USECASE_SCENE_KEYS = {
      Skips the 5-scene canonical prelude; lands directly in the multi-party
      Workspace surface. Narration reuses canonical Scene 5 unless a vertical
      authors a dedicated v.usecases.workspaces block. */
-  workspaces:     ["workspace"]
+  workspaces:     ["workspace"],
+  /* sales-deepdive = single-scene iframe of the Agentforce-Driven Close stage.
+     procurement-deepdive = single-scene iframe of the Drilling MSA stage.
+     The stage runs in ?embed=1 mode and drives its own beat strip; the shell
+     wraps it in vertical chrome and synthesizes 5 beats of intro narration. */
+  "sales-deepdive":      ["sales_deepdive"],
+  "procurement-deepdive":["procurement_deepdive"]
 };
 const USECASE_TEMPLATE_FILES = {
   default: TEMPLATE_FILES,
@@ -1768,6 +1774,12 @@ const USECASE_TEMPLATE_FILES = {
   ],
   workspaces: [
     "/story-templates/docusign-workspace.html"
+  ],
+  "sales-deepdive": [
+    "/flipbooks/IAM_for_Sales_and_Agentforce_Demo_stage.html"
+  ],
+  "procurement-deepdive": [
+    "/flipbooks/DocuSign_CLM_Procurement_Demo_Video_stage.html"
   ]
 };
 /* Optional ?mode= params per scene per usecase. Lets the same template
@@ -1778,7 +1790,9 @@ const USECASE_TEMPLATE_MODES = {
   "intake-3":    [null, null, null],
   "intake-4":    [null, null, null, null],
   maintenance:   ["clear-idv-login", null, "approval-queue"],
-  workspaces:    [null]
+  workspaces:    [null],
+  "sales-deepdive":       [null],
+  "procurement-deepdive": [null]
 };
 
 /* =========================================================
@@ -1805,6 +1819,12 @@ const BEAT_TO_INTERNAL = {
      5 internal states — sign-in → step-up modal → CLEAR mobile session →
      match returned → authenticated portal dashboard. */
   portal_clear_idv: ["s1", "s2", "s3", "s4", "s5"],
+  /* Stage deep-dives — the iframe is a self-driving stage page. The shell's
+     5 beats are synthesized intro narration; the stage drives its own beat
+     strip + cursor inside the iframe, not via postMessage. Mapping to dummy
+     s1-s5 keeps the BEAT_TO_INTERNAL contract simple. */
+  sales_deepdive:        ["s1", "s2", "s3", "s4", "s5"],
+  procurement_deepdive:  ["s1", "s2", "s3", "s4", "s5"],
 };
 try {
   const ov = JSON.parse(localStorage.getItem("tgkAdmin.beatToInternal") || "null");
@@ -2059,6 +2079,13 @@ function srcForUsecaseScene(i, vertical, usecaseKey, splash){
   /* For workspaces standalone, the only scene is the workspace itself —
      preserve the same splash semantics as canonical Scene 5. */
   if (usecaseKey === "workspaces" && i === 0 && splash) qp.set("splash", "1");
+  /* Stage deep-dives need ?embed=1 so the stage page strips its own topbar /
+     title-block / footer (the shell provides those). The stage's controls,
+     beats strip, and help row stay visible inside the iframe so the user can
+     drive the stage's own beats independently of the shell's beats. */
+  if (usecaseKey === "sales-deepdive" || usecaseKey === "procurement-deepdive") {
+    qp.set("embed", "1");
+  }
   return path + "?" + qp.toString();
 }
 function loadIDBTemplateOverrides(){
@@ -2246,6 +2273,39 @@ if (usecaseObj?.scenes) {
     ...s5,
     tag: (s5.tag || "").replace(/SCENE 5 OF 5/i, "SCENE 1 OF 1"),
   }];
+} else if (usecase === "sales-deepdive") {
+  /* Synthesize a 1-scene introduction to the Agentforce-Driven Close stage.
+     The same intro plays regardless of vertical — the stage iframe is the
+     storyline. Beats are intro callouts that frame what the user is about
+     to see. The stage's own beat strip drives the actual content. */
+  scenesSource = [{
+    tag: "DEEP DIVE · 1 OF 1 · IAM FOR SALES",
+    head: "Agentforce-Driven Close — Mary at Ventura × Stellar Logical",
+    persona: { side:"advisor", name:"Mary Wilson", role:"Sales Rep · Fontara, Inc." },
+    lede:`<p>From inside Salesforce, Agentforce launches a Docusign agreement at the right opportunity stage, pre-filled from CRM data. The full 9-beat product UI plays inside the stage on the right — use its own controls (Space, ←/→) to step through.</p><p>This deep-dive sits next to <span class="em">${v.tenant}</span>'s ${v.label.toLowerCase()} story to show the same agreement spine in a B2B sales motion.</p>`,
+    beats:[
+      {head:"Mary opens the opportunity in Salesforce.", lede:`<p>Stellar Logical · $475K pipeline. The opportunity record lives where the rep already works — no second tab to assemble paperwork.</p>`},
+      {head:"Agentforce flags the agreement gap.", lede:`<p>"Does Stellar Logical have an active NDA?" — surfaced from the opp record itself, not searched for.</p>`},
+      {head:"Workflow picker + AI-Assisted Review.", lede:`<p>MSA selected. Docusign generates the package, runs the playbook (5 needs review · 11 passed · 1 resolved) before it goes out.</p>`},
+      {head:"Customer-side Iris answers in-line.", lede:`<p>Stellar Logical asks "What are the down payment terms?" — answered against the live MSA, no back-channel email.</p>`},
+      {head:"Renewal lands back in Salesforce.", lede:`<p>11 months later, Agentforce x Iris answers "what's the deadline for non-renewal?" — from inside the same Salesforce surface Mary started in.</p>`}
+    ]
+  }];
+} else if (usecase === "procurement-deepdive") {
+  /* Synthesize a 1-scene introduction to the Drilling MSA stage. */
+  scenesSource = [{
+    tag: "DEEP DIVE · 1 OF 1 · CLM PROCUREMENT",
+    head: "Drilling Services MSA — Black Mesa × Tritan",
+    persona: { side:"advisor", name:"Diego Castaneda", role:"Procurement · Black Mesa Energy" },
+    lede:`<p>A five-rig drilling-services MSA flows from Coupa through Maestro and AI-Assisted Review, signed multi-party, and lands in Navigator with day-rate, HSE, and COI obligations extracted automatically. The full 6-beat product UI plays inside the stage on the right — drive it with its own controls.</p><p>This deep-dive sits next to <span class="em">${v.tenant}</span>'s ${v.label.toLowerCase()} story to show the same agreement spine in a procurement-led motion.</p>`,
+    beats:[
+      {head:"Coupa is the system of record for Tritan.", lede:`<p>Approved · Tier 2 · W-9 on file · COI Hartford $25M · HSE TRIR 0.84 · day rate $28.4K. Procurement reads from Coupa first.</p>`},
+      {head:"Maestro fans out the package.", lede:`<p>Diego (Procurement) and Rachel (Legal) signed internally. Now routed to Jess (Counsel) at Tritan for redlines.</p>`},
+      {head:"AI-Assisted Review on the Drilling MSA Playbook.", lede:`<p>Day rate Resolved at Tier 2. HSE / COI / knock-for-knock all Passed. Force majeure carveout flagged for review.</p>`},
+      {head:"Navigator extracts the obligations.", lede:`<p>Day rate · HSE TRIR · COI renewal · force majeure · termination — all bound to the agreement as obligation chips.</p>`},
+      {head:"Coupa receives the renewal task.", lede:`<p>Obligations push back to Coupa as monitored tasks: COI reminder, day-rate review, HSE attestation. The procurement queue stays intact.</p>`}
+    ]
+  }];
 } else {
   scenesSource = v.scenes;
 }
@@ -2259,7 +2319,8 @@ const ACTIVE_SCENE_KEYS = USECASE_SCENE_KEYS[usecaseKey] || USECASE_SCENE_KEYS.d
    back so the shell never silently renders the wrong scenes. The workspaces
    case has a synthesis path above so it's intentionally exempt from the
    warning when usecaseObj is missing. */
-if (usecase !== "default" && !usecaseObj && usecase !== "workspaces") {
+if (usecase !== "default" && !usecaseObj && usecase !== "workspaces" &&
+    usecase !== "sales-deepdive" && usecase !== "procurement-deepdive") {
   console.warn(`[tgk] vertical "${verticalKey}" has no "${usecase}" usecase — falling back to canonical 5-scene`);
 }
 /* Splash defaults to the vertical's splashOk flag (set on the verticals where

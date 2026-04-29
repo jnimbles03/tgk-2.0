@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM for Sales — Agentforce origination — Stage | Docusign IAM</title>
+<meta name="description" content="From inside Salesforce, Agentforce launches a Docusign agreement at the right opportunity stage, pre-filled from CRM data. Reps stop assembling packets; Agentforce does.">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon/favicon-32.svg">
+
+<!-- =================================================================
+     STAGE PAGE — Agentforce-Driven Close (HTML scenes)
+     -----------------------------------------------------------------
+     Pure-HTML rebuild of the IAM-for-Sales demo. 9 sequential scenes
+     replace the source video; the demo-stage primitive drives them
+     with a virtual clock + cursor overlay + beat callouts.
+     ================================================================= -->
+
+<style>
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ds-cobalt:#4C00FF; --ds-inkwell:#130032; --ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF; --ds-poppy:#FF5252; --ds-ecru:#F8F3F0; --ds-white:#FFFFFF;
+  --line:rgba(19,0,50,0.10); --line-strong:rgba(19,0,50,0.18);
+  --ink-mid:#4A3E6B; --ink-soft:#6E6189;
+  --brand:"DSIndigo","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after { box-sizing:border-box; }
+html,body { margin:0; padding:0; }
+body {
+  font-family:var(--brand); background:var(--ds-ecru); color:var(--ds-inkwell);
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+  display:flex; flex-direction:column;
+}
+
+/* Top bar */
+.topbar { display:flex; align-items:center; gap:16px; padding:14px 24px; border-bottom:1px solid var(--line); background:var(--ds-white); }
+.topbar a.back { color:var(--ink-mid); text-decoration:none; font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); }
+.topbar a.back:hover { background:var(--ds-ecru); color:var(--ds-inkwell); }
+.topbar .iris { display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ds-deep-violet); font-size:14px; }
+.topbar .iris svg { width:24px; height:24px; }
+.topbar .pill { margin-left:auto; padding:4px 10px; border-radius:999px; background:rgba(203,194,255,0.32); color:var(--ds-deep-violet); font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; border:1px solid rgba(76,0,255,0.18); }
+
+.title-block { padding:32px 24px 16px; max-width:1100px; margin:0 auto; width:100%; }
+.title-block .eyebrow-row { display:flex; align-items:center; gap:10px; font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--ds-deep-violet); margin:0 0 14px; }
+.title-block .eyebrow-row .dot { width:3px; height:3px; border-radius:50%; background:rgba(38,6,93,0.45); }
+.title-block h1 { margin:0 0 8px; font-size:32px; font-weight:600; letter-spacing:-0.015em; line-height:1.18; color:var(--ds-inkwell); }
+.title-block .glow-rule { width:48px; height:2px; border-radius:2px; background:linear-gradient(135deg,var(--ds-poppy),var(--ds-cobalt)); margin:14px 0; }
+.title-block p { margin:0; color:var(--ink-mid); font-size:15px; line-height:1.55; max-width:680px; }
+.title-block .alt { margin-top:14px; font-size:12px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px; }
+.title-block .alt a { color:var(--ds-deep-violet); text-decoration:none; font-weight:500; border-bottom:1px solid rgba(38,6,93,0.25); padding-bottom:1px; transition:border-color 160ms ease; }
+.title-block .alt a:hover { border-bottom-color:var(--ds-cobalt); }
+
+.stage-wrap { flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:8px 24px 0; }
+
+footer.foot { margin-top:auto; padding:18px 24px 24px; text-align:center; color:var(--ink-soft); font-size:12px; }
+footer.foot a { color:var(--ds-deep-violet); text-decoration:none; }
+footer.foot a:hover { text-decoration:underline; }
+
+body.embed { background:transparent; }
+body.embed .topbar, body.embed .title-block, body.embed footer.foot { display:none; }
+body.embed .stage-wrap { padding:0; }
+
+/* =================================================================
+   SCENE STYLES — all scenes use a 1280×720 design space.
+   The demo-stage primitive scales the whole .ds-scene element to fit
+   the responsive 16:9 stage container.
+   ================================================================= */
+
+/* Salesforce-style chrome (used by scenes 1, 2, 3, 8, 9) */
+.sfdc { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Salesforce Sans",sans-serif; color:#080707; background:#f3f3f3; height:100%; width:100%; }
+.sfdc-topnav { display:flex; align-items:center; gap:14px; height:48px; padding:0 16px; background:#fff; border-bottom:1px solid #e5e5e5; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
+.sfdc-applauncher { width:24px; height:24px; display:grid; grid-template-columns:repeat(3,5px); grid-template-rows:repeat(3,5px); gap:2px; cursor:default; padding:3px; border-radius:3px; }
+.sfdc-applauncher span { background:#54698d; border-radius:1px; }
+.sfdc-applauncher:hover { background:#f4f6f9; }
+.sfdc-app-icon { width:24px; height:24px; border-radius:4px; background:linear-gradient(135deg,#fcb95b 0%,#f59542 100%); display:grid; place-items:center; color:#fff; flex-shrink:0; }
+.sfdc-app-icon svg { width:14px; height:14px; }
+.sfdc-app-title { font-size:15px; font-weight:600; color:#080707; letter-spacing:-0.01em; }
+.sfdc-tabs { display:flex; gap:0; align-items:stretch; height:48px; }
+.sfdc-tab { display:flex; align-items:center; padding:0 14px; font-size:13px; color:#3e3e3c; font-weight:400; border-bottom:3px solid transparent; cursor:default; transition:background 100ms ease; }
+.sfdc-tab:hover { background:#f4f6f9; }
+.sfdc-tab.active { color:#0070d2; font-weight:600; border-bottom-color:#0070d2; background:#f3f8fb; }
+.sfdc-tab.active::before { content:""; display:inline-block; width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid #0070d2; margin-right:6px; vertical-align:middle; }
+.sfdc-search { flex:1; max-width:520px; height:32px; background:#fff; border:1px solid #dddbda; border-radius:4px; display:flex; align-items:center; gap:8px; padding:0 10px; font-size:13px; color:#706e6b; margin-left:auto; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
+.sfdc-search svg { color:#706e6b; flex-shrink:0; }
+.sfdc-icon-btn { width:32px; height:32px; display:grid; place-items:center; color:#54698d; cursor:default; border-radius:4px; transition:background 120ms; }
+.sfdc-icon-btn:hover { background:#f4f6f9; }
+.sfdc-avatar { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#7eafda,#0070d2); color:#fff; font-size:11px; font-weight:600; display:grid; place-items:center; cursor:default; box-shadow:inset 0 0 0 2px #fff,0 1px 2px rgba(0,0,0,0.1); }
+
+.sfdc-content { padding:14px 16px 0; height:calc(100% - 48px); overflow:hidden; background:#f3f3f3; }
+.sfdc-record-head { background:#fff; border:1px solid #dddbda; border-radius:4px 4px 0 0; padding:14px 18px 12px; display:flex; flex-direction:column; gap:8px; position:relative; }
+.sfdc-bread { font-size:11px; color:#3e3e3c; display:flex; gap:8px; align-items:center; }
+.sfdc-bread .pip { width:18px; height:18px; border-radius:3px; background:#fcb95b; display:grid; place-items:center; color:#fff; font-size:11px; }
+.sfdc-bread a { color:#0070d2; text-decoration:none; }
+.sfdc-rec-row { display:flex; align-items:flex-start; gap:14px; }
+.sfdc-rec-iconcell { width:38px; height:38px; border-radius:4px; background:#fcb95b; display:grid; place-items:center; flex-shrink:0; }
+.sfdc-rec-iconcell svg { width:22px; height:22px; color:#fff; }
+.sfdc-rec-block { display:flex; flex-direction:column; gap:1px; }
+.sfdc-rec-eyebrow { font-size:11px; color:#3e3e3c; font-weight:400; }
+.sfdc-rec-name { font-size:20px; font-weight:600; color:#080707; letter-spacing:-0.012em; line-height:1.15; }
+.sfdc-actions { margin-left:auto; display:flex; gap:6px; align-self:flex-start; }
+.sfdc-btn { padding:6px 14px; font-size:12px; font-weight:500; border:1px solid #dddbda; background:#fff; color:#0070d2; border-radius:4px; cursor:default; transition:background 120ms; }
+.sfdc-btn:hover { background:#f4f6f9; }
+.sfdc-btn.primary { background:#0070d2; color:#fff; border-color:#0070d2; }
+.sfdc-btn.primary:hover { background:#005fb2; }
+.sfdc-btn.ds { display:inline-flex; align-items:center; gap:6px; }
+.sfdc-btn.ds .ds-mark { width:14px; height:14px; }
+.sfdc-rec-meta { display:flex; gap:18px; padding-top:8px; border-top:1px solid #f3f2f2; font-size:12px; color:#3e3e3c; flex-wrap:wrap; }
+.sfdc-rec-meta .meta { display:flex; flex-direction:column; gap:1px; min-width:130px; }
+.sfdc-rec-meta .meta-label { font-size:10px; color:#706e6b; }
+.sfdc-rec-meta .meta-value { font-size:13px; color:#080707; font-weight:500; }
+.sfdc-rec-meta .meta-value a { color:#0070d2; text-decoration:none; }
+
+/* Path — proper Lightning Path component */
+.sfdc-path { background:#fff; border:1px solid #dddbda; border-top:none; padding:0 18px 12px; display:flex; align-items:center; gap:0; }
+.sfdc-path-track { flex:1; display:flex; align-items:stretch; height:30px; }
+.sfdc-path-step { flex:1; background:#ecebea; color:#3e3e3c; font-size:11px; font-weight:500; display:flex; align-items:center; justify-content:center; clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%,11px 50%); margin-right:-9px; padding:0 8px 0 18px; }
+.sfdc-path-step:first-child { clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%); padding-left:10px; }
+.sfdc-path-step.done { background:#cfedcc; color:#194e18; }
+.sfdc-path-step.done::before { content:"✓"; margin-right:4px; font-weight:700; }
+.sfdc-path-step.current { background:#0070d2; color:#fff; font-weight:600; }
+.sfdc-path-mark { margin-left:14px; padding:6px 14px; background:#0070d2; color:#fff; border-radius:4px; font-size:11px; font-weight:500; display:inline-flex; align-items:center; gap:6px; cursor:default; }
+.sfdc-path-mark::before { content:"✓"; }
+
+/* Two-col body */
+.sfdc-body-grid { display:grid; grid-template-columns:1fr 380px; gap:12px; margin-top:12px; height:calc(100% - 200px); }
+.sfdc-card { background:#fff; border:1px solid #dddbda; border-radius:4px; padding:0; overflow:hidden; }
+.sfdc-card-head { padding:12px 18px; border-bottom:1px solid #f3f2f2; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#080707; }
+.sfdc-card-head .toggle { margin-left:auto; color:#54698d; }
+.sfdc-card-body { padding:14px 18px; }
+.sfdc-field-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }
+.sfdc-field { display:flex; flex-direction:column; gap:2px; padding:8px 0; border-bottom:1px solid #f3f2f2; position:relative; }
+.sfdc-field .pencil { position:absolute; right:0; top:8px; width:14px; height:14px; color:#9b94a3; opacity:0; transition:opacity 120ms; }
+.sfdc-field:hover .pencil { opacity:1; }
+.sfdc-field-label { font-size:11px; color:#706e6b; font-weight:400; }
+.sfdc-field-value { font-size:13px; color:#080707; padding-right:18px; }
+.sfdc-field-value a { color:#0070d2; text-decoration:none; }
+
+.sfdc-aside { display:flex; flex-direction:column; gap:10px; min-height:0; }
+.sfdc-aside-card { background:#fff; border:1px solid #dddbda; border-radius:4px; font-size:12px; color:#3e3e3c; }
+.sfdc-aside-card .head { padding:10px 14px; border-bottom:1px solid #f3f2f2; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#080707; }
+.sfdc-aside-card .head .icon { width:14px; height:14px; color:#54698d; }
+.sfdc-aside-card .head .count { color:#3e3e3c; font-weight:400; font-size:12px; }
+.sfdc-aside-card .head .ovr { margin-left:auto; color:#54698d; cursor:default; }
+.sfdc-aside-card .body { padding:10px 14px; }
+.sfdc-aside-card .row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f3f2f2; gap:8px; }
+.sfdc-aside-card .row:last-child { border-bottom:none; }
+.sfdc-aside-card .row .name { color:#0070d2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sfdc-aside-card .row .qty { color:#3e3e3c; font-size:11px; }
+.sfdc-aside-card .row .price { color:#080707; font-weight:500; font-variant-numeric:tabular-nums; }
+.sfdc-aside-card .activity-item { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid #f3f2f2; align-items:flex-start; }
+.sfdc-aside-card .activity-item:last-child { border-bottom:none; }
+.sfdc-aside-card .activity-item .av-icon { width:24px; height:24px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; color:#fff; font-size:10px; }
+.sfdc-aside-card .activity-item .av-icon.call { background:#04844b; }
+.sfdc-aside-card .activity-item .av-icon.email { background:#f59542; }
+.sfdc-aside-card .activity-item .av-icon.task { background:#0070d2; }
+.sfdc-aside-card .activity-item .meta { flex:1; min-width:0; }
+.sfdc-aside-card .activity-item .meta .t { font-size:12px; color:#080707; line-height:1.3; }
+.sfdc-aside-card .activity-item .meta .when { font-size:10px; color:#706e6b; margin-top:1px; }
+
+/* Agentforce side panel (scene 2) */
+.agf-panel { position:absolute; right:0; top:48px; bottom:0; width:380px; background:linear-gradient(180deg,#fafbff 0%,#eeebff 100%); border-left:1px solid #d8d8e8; display:flex; flex-direction:column; padding:16px 18px 18px; }
+.agf-panel-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#1a1a3a; padding-bottom:12px; border-bottom:1px solid #e2dff3; }
+.agf-panel-head .icons { margin-left:auto; display:flex; gap:8px; color:#54698d; }
+.agf-panel-head .icons svg { width:14px; height:14px; opacity:0.65; }
+.agf-bot-wrap { display:flex; flex-direction:column; align-items:center; padding:18px 0 4px; }
+.agf-greet { text-align:center; font-size:20px; font-weight:600; color:#1a1a3a; margin:14px 0 10px; letter-spacing:-0.005em; }
+.agf-body { font-size:13px; color:#3e3e3c; line-height:1.55; padding:0 8px; text-align:center; }
+.agf-body em { color:#1a1a3a; font-style:italic; }
+.agf-input { margin-top:auto; background:#fff; border:1px solid #c8c8d8; border-radius:10px; padding:14px 16px; font-size:14px; color:#1a1a3a; min-height:52px; display:flex; align-items:center; box-shadow:0 1px 3px rgba(38,6,93,0.06); }
+.agf-input .send-arrow { margin-left:auto; width:28px; height:28px; border-radius:6px; background:linear-gradient(135deg,#cbc2ff,#a397ff); display:grid; place-items:center; color:#26065D; }
+.agf-input .send-arrow svg { width:14px; height:14px; }
+
+/* Reusable Docusign Agent / Iris bot illustration */
+.ds-bot-svg { width:170px; height:170px; flex-shrink:0; }
+.ds-bot-svg.small { width:130px; height:130px; }
+
+/* Workflow modal (scene 3) */
+.modal-backdrop { position:absolute; inset:0; background:rgba(19,0,50,0.45); display:grid; place-items:center; backdrop-filter:blur(0.5px); -webkit-backdrop-filter:blur(0.5px); }
+.workflow-modal { width:920px; background:#fff; border-radius:10px; box-shadow:0 28px 56px -12px rgba(19,0,50,0.5); padding:26px 30px 32px; position:relative; }
+.workflow-modal .close { position:absolute; right:18px; top:18px; width:30px; height:30px; display:grid; place-items:center; border-radius:50%; border:1px solid #dddbda; color:#54698d; cursor:default; font-size:14px; background:#fff; }
+.workflow-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.workflow-head .ds-brand { display:flex; align-items:center; gap:10px; }
+.workflow-head .ds-brand-mark { width:28px; height:28px; }
+.workflow-head .ds-brand-name { font-size:18px; font-weight:600; color:#130032; letter-spacing:-0.02em; }
+.workflow-head .add-btn { padding:8px 16px; font-size:12px; font-weight:500; color:#130032; background:#fff; border:1px solid #dddbda; border-radius:6px; cursor:default; display:inline-flex; align-items:center; gap:6px; }
+.workflow-search-label { font-size:12px; font-weight:600; color:#605e5c; margin-bottom:6px; display:block; }
+.workflow-search { width:100%; padding:10px 14px; font-size:13px; background:#f8f8f8; border:1px solid #dddbda; border-radius:6px; margin-bottom:18px; color:#706e6b; cursor:default; }
+.workflow-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.workflow-card { padding:18px 16px 16px; border:1px solid #e3e3e3; border-radius:8px; background:#fff; position:relative; min-height:108px; display:flex; flex-direction:column; gap:14px; cursor:default; }
+.workflow-card .name { font-size:14px; font-weight:500; color:#080707; line-height:1.3; padding-right:22px; }
+.workflow-card .more { position:absolute; right:14px; top:14px; color:#706e6b; font-weight:600; font-size:13px; letter-spacing:0.04em; cursor:default; }
+.workflow-card .start { padding:6px 14px; font-size:12px; font-weight:500; border:1px solid #dddbda; background:#fff; color:#080707; border-radius:4px; align-self:flex-start; cursor:default; }
+.workflow-card.highlight { box-shadow:0 0 0 3px var(--ds-poppy,#FF5252); border-color:transparent; }
+.workflow-modal .brace-mark { position:absolute; right:24px; bottom:20px; width:38px; height:38px; background:#ffe6c7; border-radius:6px; display:grid; place-items:center; font-family:ui-monospace,Menlo,monospace; color:#806440; font-size:12px; cursor:default; }
+
+/* Cast slide (scene 4) */
+.scene-cast { background:linear-gradient(180deg,#26065D 0%,#1a0445 100%); color:#fff; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:54px; position:relative; }
+.scene-cast::before { content:""; position:absolute; left:0; top:0; right:0; height:6px; background:linear-gradient(90deg,#FF5252 0%,#4C00FF 50%,#26065D 100%); }
+.cast-row { display:flex; align-items:flex-start; gap:88px; }
+.cast-cell { display:flex; flex-direction:column; align-items:center; gap:14px; width:200px; position:relative; }
+.cast-portrait { width:160px; height:160px; border-radius:50%; background:#fff; padding:5px; box-sizing:border-box; box-shadow:0 8px 24px -10px rgba(0,0,0,0.4); }
+.cast-portrait.ringed { padding:0; box-shadow:0 0 0 5px var(--ds-poppy,#FF5252), 0 8px 24px -10px rgba(0,0,0,0.4); }
+.cast-portrait-inner { width:100%; height:100%; border-radius:50%; overflow:hidden; position:relative; background:linear-gradient(180deg,#e8e6f4 0%,#c8c4dc 100%); }
+.cast-portrait-inner svg { width:100%; height:100%; display:block; }
+.cast-name { font-size:20px; font-weight:600; line-height:1.15; letter-spacing:-0.01em; margin-top:4px; }
+.cast-role { font-size:14px; opacity:0.85; }
+.cast-org { font-size:13px; opacity:0.7; }
+.cast-divider { width:1px; height:120px; background:rgba(255,255,255,0.18); margin-top:30px; align-self:center; }
+.cast-arrow { color:#fff; font-size:26px; align-self:flex-start; padding-top:14px; opacity:0.6; font-weight:300; }
+.cast-action-row { display:flex; align-items:flex-start; gap:88px; }
+.cast-action { width:200px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+.cast-action svg { color:#fff; opacity:0.95; }
+.cast-action span { font-size:14px; font-weight:400; line-height:1.45; max-width:180px; }
+
+/* Word + AI-Assisted Review (scene 5) */
+.word-app { background:#f3f2f1; height:100%; display:flex; flex-direction:column; font-family:-apple-system,"Segoe UI",sans-serif; color:#252423; }
+.word-titlebar { background:#fff; border-bottom:1px solid #e1dfdd; padding:0 14px; display:flex; align-items:center; gap:14px; font-size:11px; height:32px; }
+.word-titlebar .file-tab { background:#185abd; color:#fff; padding:6px 16px; font-weight:600; font-size:12px; align-self:stretch; display:flex; align-items:center; }
+.word-tabs { display:flex; gap:18px; font-size:12px; color:#252423; align-self:stretch; align-items:flex-end; }
+.word-tabs span { padding:6px 2px 2px; cursor:default; }
+.word-tabs .on { color:#185abd; border-bottom:2.5px solid #185abd; padding-bottom:0; font-weight:600; }
+.word-titlebar .right-actions { margin-left:auto; display:flex; gap:14px; align-items:center; font-size:11px; color:#252423; }
+.word-titlebar .right-actions .pill { padding:3px 10px; background:#f5f0ff; color:#185abd; border-radius:3px; display:inline-flex; align-items:center; gap:4px; }
+.word-titlebar .right-actions .pill.share { background:#185abd; color:#fff; padding:4px 12px; }
+.word-titlebar .right-actions .pill.review { background:#deecf9; color:#185abd; }
+
+.word-ribbon { background:#fff; border-bottom:1px solid #e1dfdd; padding:6px 14px; display:flex; gap:0; align-items:stretch; font-size:11px; min-height:78px; }
+.word-ribbon .group { display:flex; align-items:center; gap:4px; padding:4px 10px; border-right:1px solid #f1eee9; }
+.word-ribbon .group:last-child { border-right:none; }
+.word-ribbon .group-stack { display:flex; flex-direction:column; gap:3px; }
+.word-ribbon .row { display:flex; align-items:center; gap:4px; height:22px; }
+.word-ribbon .icon-btn { width:18px; height:18px; display:grid; place-items:center; color:#252423; }
+.word-ribbon .pill { padding:2px 7px; background:#fff; border:1px solid #d2d0ce; border-radius:3px; font-size:11px; min-width:28px; height:20px; display:inline-flex; align-items:center; justify-content:center; gap:3px; color:#252423; }
+.word-ribbon .pill.font { min-width:88px; padding:2px 8px; }
+.word-ribbon .pill.size { min-width:42px; }
+.word-ribbon .style-tile { padding:8px 16px 6px; background:#fff; border:1px solid #e1dfdd; border-radius:2px; font-size:9px; color:#252423; line-height:1.2; min-width:72px; height:54px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; cursor:default; }
+.word-ribbon .style-tile .ex { font-family:'Times New Roman', serif; font-size:11px; line-height:1; color:#252423; margin-bottom:auto; padding-bottom:8px; }
+.word-ribbon .style-tile.on { background:#deecf9; border-color:#185abd; }
+.word-ribbon .style-tile.on .ex { color:#185abd; }
+.word-ribbon .styles-pane-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 10px; font-size:9px; color:#252423; }
+.word-ribbon .styles-pane-btn .icn { width:18px; height:18px; }
+.word-ribbon .review-pill { margin-left:auto; padding:0 14px; background:linear-gradient(135deg,#FF5252,#4C00FF); color:#fff; border-radius:6px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px; align-self:stretch; }
+.word-ribbon .review-pill svg { width:14px; height:14px; }
+
+.word-body { flex:1; display:grid; grid-template-columns:1fr 384px; min-height:0; background:#f3f2f1; }
+.word-doc-frame { background:#f3f2f1; padding:24px 36px 0; overflow:hidden; }
+.word-doc { background:#fff; padding:46px 64px; font-family:"Times New Roman", serif; font-size:11.5px; line-height:1.55; color:#252423; height:100%; box-shadow:0 0 0 1px #d2d0ce, 0 2px 4px rgba(0,0,0,0.04); }
+.word-doc p { margin:0 0 6px; text-indent:24px; }
+.word-doc p.no-indent { text-indent:0; }
+.word-doc h2 { font-family:-apple-system,"Segoe UI",sans-serif; font-size:13px; font-weight:700; margin:10px 0 6px; text-indent:24px; }
+.word-doc h3 { font-family:"Times New Roman", serif; font-size:11.5px; font-weight:600; margin:8px 0 4px; }
+.word-doc .term { color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy; text-underline-offset:3px; text-decoration-thickness:1px; }
+.word-doc .highlight-yellow { background:#fff5a3; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.word-doc .num { font-weight:600; }
+.word-doc .section-box { border:1px solid #c9d6e8; padding:10px 14px; margin:6px 0; background:#fff; }
+
+.word-aside { background:#faf9f8; border-left:1px solid #e1dfdd; padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
+.aar-headbar { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#252423; padding-bottom:10px; border-bottom:1px solid #ececea; }
+.aar-headbar .ds-mark { width:14px; height:14px; }
+.aar-headbar .x { margin-left:auto; color:#605e5c; cursor:default; font-size:14px; line-height:1; }
+.aar-save-btn { padding:7px 12px; background:#fff; border:1px solid #d2d0ce; border-radius:4px; font-size:12px; color:#252423; align-self:flex-start; display:inline-flex; align-items:center; gap:6px; }
+.aar-save-btn .ds-mark { width:14px; height:14px; }
+.aar-back-row { display:flex; align-items:center; gap:8px; font-size:12px; color:#252423; padding-top:4px; }
+.aar-back-row .back { color:#605e5c; display:inline-flex; align-items:center; gap:4px; }
+.aar-back-row .pb-name { font-weight:600; color:#252423; }
+.aar-back-row .ai-tag { font-size:10px; font-weight:500; color:#7c3aed; background:#f5f0ff; padding:2px 8px; border-radius:999px; display:inline-flex; align-items:center; gap:3px; }
+.aar-back-row .more { margin-left:auto; color:#605e5c; cursor:default; font-size:14px; line-height:1; }
+.aar-playbook-title { font-size:16px; font-weight:600; color:#252423; display:flex; align-items:center; gap:6px; margin:0 0 4px; }
+.aar-playbook-title .info { color:#605e5c; font-size:13px; opacity:0.7; }
+.aar-actions { display:flex; gap:8px; align-items:center; }
+.aar-actions .run { padding:6px 12px 6px 14px; background:#4C00FF; color:#fff; border-radius:5px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:8px; box-shadow:0 1px 2px rgba(76,0,255,0.3); }
+.aar-actions .run .play-tri { width:0; height:0; border-left:6px solid #fff; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+.aar-actions .run .chev-down { padding-left:8px; border-left:1px solid rgba(255,255,255,0.4); margin-left:2px; }
+.aar-actions .edit { padding:6px 14px; background:#fff; border:1px solid #d2d0ce; border-radius:5px; font-size:12px; color:#252423; }
+.aar-pills-row { display:flex; gap:6px; margin:2px 0 4px; flex-wrap:wrap; }
+.aar-pill { font-size:11px; padding:3px 10px; border-radius:999px; font-weight:500; }
+.aar-pill.review { background:#fff4e6; color:#a35a00; }
+.aar-pill.passed { background:#dff6dd; color:#0e6f0e; }
+.aar-pill.resolved { background:#deecf9; color:#0064a8; }
+
+.aar-list { display:flex; flex-direction:column; gap:6px; overflow:hidden; padding-top:2px; }
+.aar-item { background:#fff; border:1px solid #e1dfdd; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; position:relative; }
+.aar-item .badge-row { display:flex; align-items:center; }
+.aar-item .badge { font-size:10px; padding:2px 8px; border-radius:999px; font-weight:500; }
+.aar-item .badge.passed { background:#dff6dd; color:#0e6f0e; }
+.aar-item .badge.resolved { background:#deecf9; color:#0064a8; }
+.aar-item .badge.review { background:#fff4e6; color:#a35a00; }
+.aar-item .chev { position:absolute; right:12px; top:14px; color:#605e5c; }
+.aar-item .label { font-size:13px; color:#252423; padding-right:20px; }
+.aar-item .label.bold { font-weight:600; }
+
+/* Customer-side Iris (scene 6) */
+.scene-iris-customer { background:#f5f5f7; height:100%; display:grid; grid-template-columns:1fr 384px; position:relative; }
+.iris-doc-frame { background:#f5f5f7; padding:24px 36px 24px 56px; overflow:hidden; }
+.iris-doc { background:#fff; padding:48px 64px; font-family:"Times New Roman",serif; font-size:13px; line-height:1.75; color:#252423; height:100%; box-shadow:0 0 0 1px #e0dcef, 0 2px 6px rgba(38,6,93,0.05); }
+.iris-doc p { margin:0 0 10px; }
+.iris-doc .footer-line { font-size:11px; color:#605e5c; margin-top:24px; padding-top:14px; border-top:1px solid #ececea; }
+.iris-side { background:linear-gradient(180deg,#fafbff 0%,#f0ecff 100%); border-left:1px solid #e0dcef; padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
+.iris-side-head { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #e2dff3; }
+.iris-side-head .helpful { font-size:11px; color:#7a7a92; display:flex; align-items:center; gap:8px; }
+.iris-side-head .helpful svg { width:14px; height:14px; color:#9b94a3; }
+.iris-zoom { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
+.iris-zoom .zoom-btn { width:24px; height:24px; border-radius:50%; background:#fff; border:1px solid #d8d8e8; display:grid; place-items:center; color:#54698d; font-size:14px; line-height:1; cursor:default; }
+.iris-zoom .zoom-pct { font-size:11px; color:#7a7a92; font-variant-numeric:tabular-nums; }
+.iris-q-head { font-size:18px; font-weight:600; color:#1a1a3a; line-height:1.25; letter-spacing:-0.005em; }
+.iris-answer-loading { display:flex; flex-direction:column; gap:10px; }
+.iris-loading-label { font-size:13px; color:#7c3aed; display:flex; align-items:center; gap:6px; font-weight:500; }
+.iris-loading-label .sparkle { color:#7c3aed; }
+.iris-loading { display:flex; flex-direction:column; gap:10px; }
+.iris-loading-bar { height:11px; border-radius:6px; background:linear-gradient(90deg,#cbc2ff 0%,#FF5252 30%,#cbc2ff 100%); animation:iris-shimmer 1.6s linear infinite; background-size:200% 100%; }
+.iris-loading-bar:nth-child(1) { width:88%; }
+.iris-loading-bar:nth-child(2) { width:96%; }
+.iris-loading-bar:nth-child(3) { width:64%; }
+@keyframes iris-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.iris-input-wrap { margin-top:auto; }
+.iris-input { background:#fff; border:1px solid #c8c8d8; border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:10px; font-size:13px; color:#9090a8; box-shadow:0 1px 3px rgba(38,6,93,0.06); }
+.iris-input .send { margin-left:auto; width:26px; height:26px; border-radius:6px; background:linear-gradient(135deg,#cbc2ff,#a397ff); display:grid; place-items:center; color:#26065D; }
+.iris-input .send svg { width:13px; height:13px; }
+.iris-disclaimer { font-size:10px; color:#7a7a92; padding:8px 4px 0; line-height:1.3; }
+.iris-brace { position:absolute; right:24px; bottom:24px; width:38px; height:38px; background:#ffe6c7; border-radius:6px; display:grid; place-items:center; font-family:ui-monospace,Menlo,monospace; color:#806440; font-size:12px; cursor:default; z-index:2; }
+
+/* Navigator (scene 7) */
+.scene-navigator { background:#fff; height:100%; padding:42px 56px 32px; font-family:var(--brand); color:#130032; position:relative; }
+.nav-tabs { display:flex; gap:48px; border-bottom:1px solid #e8e3f5; margin-bottom:24px; }
+.nav-tab { padding:10px 2px 14px; font-size:18px; color:#6c5f8c; border-bottom:3px solid transparent; cursor:default; letter-spacing:-0.005em; }
+.nav-tab.active { color:#1a3d6e; font-weight:600; border-bottom-color:#1a3d6e; }
+.nav-h { font-size:42px; font-weight:600; color:#130032; letter-spacing:-0.02em; margin:8px 0 28px; line-height:1; }
+.nav-controls { display:flex; align-items:center; gap:10px; margin-bottom:18px; position:relative; }
+.nav-search { flex:0 0 auto; width:340px; height:42px; background:#fff; border:1px solid #d4cee2; border-radius:6px; display:flex; align-items:center; gap:10px; padding:0 14px; font-size:14px; color:#9b94b3; box-shadow:0 1px 0 rgba(19,0,50,0.02); }
+.nav-search svg { color:#6c5f8c; flex-shrink:0; }
+.nav-filter { padding:9px 14px; font-size:14px; font-weight:400; background:#fff; border:1px solid #d4cee2; border-radius:6px; color:#130032; display:inline-flex; align-items:center; gap:8px; cursor:default; }
+.nav-filter .chev { color:#6c5f8c; font-size:11px; }
+.nav-filter.icon { padding:9px 12px; }
+.nav-filter.icon svg { width:14px; height:14px; }
+.nav-gear { position:absolute; right:0; top:9px; width:30px; height:30px; display:grid; place-items:center; color:#6c5f8c; cursor:default; }
+.nav-table { width:100%; border-collapse:collapse; margin-top:8px; }
+.nav-table th { font-size:14px; font-weight:600; color:#130032; text-align:left; padding:14px 14px 14px 0; border-bottom:1px solid #e8e3f5; }
+.nav-table th .sort-arrows { color:#1a3d6e; margin-left:6px; font-size:12px; vertical-align:1px; }
+.nav-table td { font-size:14px; color:#130032; padding:24px 14px 24px 0; border-bottom:1px solid #f0ecf7; vertical-align:middle; }
+.nav-table tr:hover td { background:#fafaff; }
+.nav-table .file-cell { display:flex; align-items:center; gap:14px; }
+.nav-table .file-cell .file-name { font-size:16px; color:#130032; }
+.nav-icon-diamond { width:14px; height:14px; flex-shrink:0; transform:rotate(45deg); display:inline-block; position:relative; }
+.nav-icon-diamond .d { position:absolute; inset:0; background:linear-gradient(135deg,#9d50ff 0%,#6e3aff 50%,#4C00FF 100%); border-radius:2px; box-shadow:0 1px 2px rgba(76,0,255,0.25); }
+.nav-table .party { color:#1a3d6e; text-decoration:underline; text-decoration-color:rgba(26,61,110,0.35); text-underline-offset:3px; text-decoration-thickness:0.5px; display:inline-block; font-size:14px; line-height:1.7; background:#f0ecf7; padding:0 6px; border-radius:3px; margin-bottom:2px; cursor:default; }
+.nav-table .party-stack { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
+.nav-table .date-link { color:#1a3d6e; text-decoration:underline; text-decoration-color:rgba(26,61,110,0.35); text-underline-offset:3px; text-decoration-thickness:0.5px; cursor:default; }
+.nav-paging { display:inline-flex; align-items:center; gap:10px; margin-top:24px; padding:8px 14px; border:1px solid #d4cee2; border-radius:6px; width:fit-content; font-size:14px; color:#130032; cursor:default; }
+.nav-paging .chev { color:#6c5f8c; font-size:11px; }
+.nav-brace { position:absolute; right:32px; bottom:24px; width:42px; height:42px; background:#ffe6c7; border-radius:6px; display:grid; place-items:center; font-family:ui-monospace,Menlo,monospace; color:#806440; font-size:13px; cursor:default; }
+
+/* Seller Home (scenes 8, 9) */
+.sfdc-seller-home { background:#f3f3f3; height:100%; }
+.sh-content { padding:16px 20px 20px; height:calc(100% - 48px); overflow:hidden; }
+.sh-greet { display:flex; align-items:baseline; gap:14px; margin-bottom:14px; }
+.sh-greet b { font-size:22px; color:#080707; font-weight:600; letter-spacing:-0.01em; }
+.sh-greet span { font-size:13px; color:#3e3e3c; }
+.sh-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.sh-card { background:#fff; border:1px solid #dddbda; border-radius:6px; padding:14px 16px 16px; min-height:178px; display:flex; flex-direction:column; gap:6px; }
+.sh-card h4 { margin:0; font-size:14px; font-weight:600; color:#080707; display:flex; align-items:center; gap:6px; }
+.sh-card h4 .pencil { margin-left:auto; color:#9b94a3; opacity:0.4; }
+.sh-card h4 .chev { color:#54698d; opacity:0.5; margin-left:auto; }
+.sh-card .sub { font-size:11px; color:#706e6b; line-height:1.4; }
+.sh-card-body { display:flex; align-items:center; gap:18px; flex:1; padding:8px 0; }
+.donut-wrap { position:relative; flex-shrink:0; }
+.donut { width:90px; height:90px; transform:rotate(-90deg); }
+.donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; line-height:1.1; }
+.donut-center .num { font-size:14px; font-weight:700; color:#080707; }
+.donut-center .lbl { font-size:9px; color:#3e3e3c; }
+.sh-stats { display:flex; flex-direction:column; gap:4px; }
+.sh-stat { font-size:11px; color:#3e3e3c; display:flex; align-items:center; gap:8px; line-height:1.4; }
+.sh-stat .swatch { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.sh-card .view-btn { align-self:flex-start; padding:5px 12px; background:#fff; border:1px solid #dddbda; border-radius:4px; color:#0070d2; font-size:11px; cursor:default; transition:background 120ms; }
+.sh-card .view-btn:hover { background:#f4f6f9; }
+.sh-card .view-btn.primary { background:#0070d2; color:#fff; border-color:#0070d2; }
+.sh-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 0; gap:6px; flex:1; text-align:center; }
+.sh-empty svg { color:#cbe5ed; }
+.sh-empty .msg { font-size:11px; color:#3e3e3c; line-height:1.4; }
+
+/* Goals card */
+.goal-circles { display:flex; gap:6px; align-items:center; padding:4px 0; }
+.goal-circles .gc { width:30px; height:30px; border-radius:50%; border:1.5px solid #d8dde6; display:grid; place-items:center; color:#0070d2; font-size:11px; }
+.goal-circles .gc.done { background:#fff; color:#04844b; border-color:#04844b; }
+.goal-circles .gc.center { width:42px; height:42px; background:radial-gradient(circle,#7c3aed 0%,#4C00FF 100%); color:#fff; border:none; }
+.goal-circles .gc.center svg { width:18px; height:18px; }
+.goal-circles .gc.empty { border-color:#d8dde6; }
+
+/* Docusign Agent panel for Seller Home (scenes 8, 9) */
+.dsa-panel { position:absolute; right:0; top:48px; bottom:0; width:344px; background:linear-gradient(180deg,#fafbff 0%,#f0ecff 100%); border-left:1px solid #d8d8e8; display:flex; flex-direction:column; padding:16px 18px 18px; }
+.dsa-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#1a1a3a; padding-bottom:10px; border-bottom:1px solid #e2dff3; }
+.dsa-head .icons { margin-left:auto; display:flex; gap:8px; color:#54698d; }
+.dsa-head .icons svg { width:13px; height:13px; opacity:0.6; }
+.dsa-bot-wrap { display:flex; flex-direction:column; align-items:center; padding:14px 0 6px; }
+.dsa-greet { font-size:20px; font-weight:600; color:#1a1a3a; margin:14px 0 8px; letter-spacing:-0.005em; text-align:center; }
+.dsa-body { font-size:13px; color:#3e3e3c; line-height:1.5; padding:0 6px; text-align:center; }
+.dsa-body em { color:#1a1a3a; font-style:italic; }
+.dsa-input { margin-top:auto; background:#fff; border:1px solid #c8c8d8; border-radius:8px; padding:11px 14px; font-size:13px; color:#9090a8; display:flex; align-items:center; gap:8px; }
+.dsa-input .send { margin-left:auto; width:24px; height:24px; border-radius:5px; background:linear-gradient(135deg,#cbc2ff,#a397ff); display:grid; place-items:center; color:#26065D; flex-shrink:0; }
+.dsa-input .send svg { width:12px; height:12px; }
+
+/* Q&A view of the agent panel (scene 9) */
+.dsa-qa { display:flex; flex-direction:column; gap:12px; padding:6px 0; overflow:hidden; flex:1; min-height:0; }
+.dsa-msg { display:flex; gap:10px; align-items:flex-start; }
+.dsa-msg .av { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; }
+.dsa-msg .av.user { background:linear-gradient(135deg,#7eafda,#0070d2); color:#fff; font-size:11px; font-weight:600; }
+.dsa-msg .av.bot { background:#cbc2ff; overflow:hidden; }
+.dsa-msg .av.bot svg { width:24px; height:24px; }
+.dsa-msg .bubble { font-size:13px; color:#252423; line-height:1.5; flex:1; }
+.dsa-msg .bubble .iris-source { color:#7c3aed; font-style:italic; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-top:6px; }
+.dsa-msg .bubble .iris-source svg { width:12px; height:12px; }
+.dsa-msg .bubble a.link { color:#0070d2; text-decoration:underline; text-decoration-color:#bcd4ed; text-underline-offset:2px; }
+.dsa-msg .bubble ul { margin:4px 0; padding-left:14px; font-size:12px; }
+.dsa-msg .bubble ul li { margin-bottom:2px; }
+.dsa-actions { display:flex; gap:12px; color:#9b94c8; padding-left:38px; font-size:13px; }
+.dsa-actions svg { width:14px; height:14px; }
+
+/* Selection / reduced motion handled in demo-stage.css */
+
+@media (max-width:680px) { .title-block h1 { font-size:22px; } .title-block p { font-size:14px; } }
+</style>
+
+<link rel="stylesheet" href="../assets/demo-stage/demo-stage.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="./index.html" aria-label="Back to flipbook index">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    All flipbooks
+  </a>
+  <span class="iris" aria-label="Docusign IAM">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="#4C00FF" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="4" fill="#4C00FF"/>
+    </svg>
+    Docusign IAM
+  </span>
+  <span class="pill">Sales · HTML stage</span>
+</header>
+
+<section class="title-block">
+  <div class="eyebrow-row">
+    <span>Stage view</span><span class="dot"></span>
+    <span>HTML scenes</span><span class="dot"></span>
+    <span>9 beats</span>
+  </div>
+  <h1>IAM for Sales — Agentforce origination</h1>
+  <div class="glow-rule" aria-hidden="true"></div>
+  <p>From inside Salesforce, Agentforce launches a Docusign agreement at the right opportunity stage, pre-filled from CRM data. Reps stop assembling packets; Agentforce does.</p>
+  <div class="alt">Prefer frame-by-frame? <a href="./IAM_for_Sales_and_Agentforce_Demo.html">Open the flipbook</a>.</div>
+</section>
+
+<section class="stage-wrap">
+  <div id="ds" class="ds-stage">
+
+    <!-- =========================================================
+         SCENE 1 — Salesforce opportunity (Stellar Logical)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="opp">
+      <div class="sfdc">
+        <div class="sfdc-topnav">
+          <span class="sfdc-applauncher" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span class="sfdc-app-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 4 H21 V8 L13 14 V20 L11 20 V14 L3 8 Z"/></svg>
+          </span>
+          <span class="sfdc-app-title">Sales</span>
+          <div class="sfdc-tabs">
+            <span class="sfdc-tab">Home</span>
+            <span class="sfdc-tab active">Opportunities <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"/></svg></span>
+            <span class="sfdc-tab">Leads</span>
+            <span class="sfdc-tab">Tasks</span>
+            <span class="sfdc-tab">Files</span>
+            <span class="sfdc-tab">Accounts</span>
+            <span class="sfdc-tab">Contacts</span>
+            <span class="sfdc-tab">Campaigns</span>
+            <span class="sfdc-tab">Dashboards</span>
+            <span class="sfdc-tab">Reports</span>
+            <span class="sfdc-tab">Chatter</span>
+          </div>
+          <div class="sfdc-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search...</div>
+          <span class="sfdc-icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9 9 a3 3 0 0 1 6 0 c0 2 -3 2 -3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span class="sfdc-icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 1 v6 M12 17 v6 M4.22 4.22 l4.24 4.24 M15.54 15.54 l4.24 4.24 M1 12 h6 M17 12 h6 M4.22 19.78 l4.24-4.24 M15.54 8.46 l4.24-4.24"/></svg></span>
+          <span class="sfdc-icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <span class="sfdc-avatar">MW</span>
+        </div>
+        <div class="sfdc-content">
+          <div class="sfdc-record-head">
+            <div class="sfdc-bread">
+              <span class="pip">★</span>
+              <a href="#">Opportunity</a>
+              <span style="color:#9b94a3;">›</span>
+              <span>Stellar Logical - Global Implementation</span>
+              <span style="margin-left:auto; color:#3e3e3c; font-size:11px;">Version 2 · Current</span>
+            </div>
+            <div class="sfdc-rec-row">
+              <div class="sfdc-rec-iconcell">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 L4 6 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V6 Z" opacity="0.9"/><path d="M9 11 L11 13 L15 9" stroke="#fcb95b" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              </div>
+              <div class="sfdc-rec-block">
+                <span class="sfdc-rec-eyebrow">Opportunity</span>
+                <span class="sfdc-rec-name">Stellar Logical - Global Implementation</span>
+              </div>
+              <div class="sfdc-actions">
+                <button class="sfdc-btn">+ Follow</button>
+                <button class="sfdc-btn ds">
+                  <svg class="ds-mark" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4C00FF"/><path d="M8 13 L11 16 L17 9" stroke="#fff" stroke-width="2" fill="none"/></svg>
+                  Send with Docusign
+                </button>
+                <button class="sfdc-btn ds primary">
+                  <svg class="ds-mark" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M8 13 L11 16 L17 9" stroke="#4C00FF" stroke-width="2" fill="none"/></svg>
+                  Start with Docusign
+                </button>
+              </div>
+            </div>
+            <div class="sfdc-rec-meta">
+              <div class="meta"><span class="meta-label">Account</span><span class="meta-value"><a href="#">Stellar Logical</a></span></div>
+              <div class="meta"><span class="meta-label">Close Date</span><span class="meta-value">10/31/2025</span></div>
+              <div class="meta"><span class="meta-label">Amount</span><span class="meta-value">$475,000.00</span></div>
+              <div class="meta"><span class="meta-label">Opportunity Owner</span><span class="meta-value">Mary Wilson</span></div>
+            </div>
+          </div>
+          <div class="sfdc-path">
+            <div class="sfdc-path-track">
+              <div class="sfdc-path-step done">Qualification</div>
+              <div class="sfdc-path-step done">Needs Analysis</div>
+              <div class="sfdc-path-step done">Value Proposition</div>
+              <div class="sfdc-path-step current">Negotiation/Review</div>
+              <div class="sfdc-path-step">Closed</div>
+            </div>
+            <span class="sfdc-path-mark">Mark Stage as Complete</span>
+          </div>
+          <div class="sfdc-body-grid">
+            <div class="sfdc-card">
+              <div class="sfdc-card-head">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                Opportunity Information
+                <span class="toggle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4 H4 V11 M13 4 H20 V11 M11 20 H4 V13 M13 20 H20 V13"/></svg></span>
+              </div>
+              <div class="sfdc-card-body">
+                <div class="sfdc-field-grid">
+                  <div class="sfdc-field"><span class="sfdc-field-label">Opportunity Owner</span><span class="sfdc-field-value">Mary Wilson</span><svg class="pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5 a2.121 2.121 0 0 1 3 3 L7 19 l-4 1 1-4 z"/></svg></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Type</span><span class="sfdc-field-value">New Customer</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Opportunity Name</span><span class="sfdc-field-value">Stellar Logical - Global Implementation</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Lead Source</span><span class="sfdc-field-value">Partner Referral</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Account Name</span><span class="sfdc-field-value"><a href="#">Stellar Logical</a></span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Amount</span><span class="sfdc-field-value">$475,000.00</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Close Date</span><span class="sfdc-field-value">10/31/2025</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Next Step</span><span class="sfdc-field-value">Send MSA</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Stage</span><span class="sfdc-field-value">Negotiation/Review</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Probability (%)</span><span class="sfdc-field-value">75%</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Forecast Category</span><span class="sfdc-field-value">Commit</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Main Competitor(s)</span><span class="sfdc-field-value">John Deere</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Delivery/Installation Status</span><span class="sfdc-field-value">Yet to begin</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="sfdc-aside">
+              <div class="sfdc-aside-card">
+                <div class="head">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                  Products <span class="count">(3)</span>
+                  <span class="ovr">⌄</span>
+                </div>
+                <div class="body">
+                  <div class="row"><span class="name">GenWatt Gasoline 100kW</span><span class="qty">×1.00</span><span class="price">$190K</span></div>
+                  <div class="row"><span class="name">GenWatt Diesel 1000kW</span><span class="qty">×2.00</span><span class="price">$200K</span></div>
+                  <div class="row"><span class="name">Installation: Industrial</span><span class="qty">×1.00</span><span class="price">$85K</span></div>
+                </div>
+              </div>
+              <div class="sfdc-aside-card">
+                <div class="head">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Activity
+                  <span class="ovr">⌄</span>
+                </div>
+                <div class="body">
+                  <div class="activity-item">
+                    <div class="av-icon call">📞</div>
+                    <div class="meta"><div class="t">Logged a call with Stellar legal</div><div class="when">2d ago</div></div>
+                  </div>
+                  <div class="activity-item">
+                    <div class="av-icon email">✉</div>
+                    <div class="meta"><div class="t">Sent quote · GenWatt × 3 line items</div><div class="when">5d ago</div></div>
+                  </div>
+                  <div class="activity-item">
+                    <div class="av-icon task">✓</div>
+                    <div class="meta"><div class="t">Email: NDA follow-up to Jack Rogers</div><div class="when">1w ago</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 2 — Salesforce opp + Agentforce panel asks NDA Q
+         ========================================================= -->
+    <section class="ds-scene" data-scene="agentforce">
+      <div class="sfdc" style="position:relative">
+        <div class="sfdc-topnav">
+          <span class="sfdc-applauncher" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span class="sfdc-app-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4 H21 V8 L13 14 V20 L11 20 V14 L3 8 Z"/></svg></span>
+          <span class="sfdc-app-title">Sales</span>
+          <div class="sfdc-tabs">
+            <span class="sfdc-tab">Home</span>
+            <span class="sfdc-tab active">Opportunities</span>
+            <span class="sfdc-tab">Leads</span><span class="sfdc-tab">Tasks</span><span class="sfdc-tab">Files</span><span class="sfdc-tab">Accounts</span>
+          </div>
+          <div class="sfdc-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search...</div>
+          <span class="sfdc-avatar">MW</span>
+        </div>
+        <div class="sfdc-content" style="padding-right:396px">
+          <div class="sfdc-record-head">
+            <div class="sfdc-bread"><span class="pip">★</span> <a href="#">Opportunity</a> <span style="color:#9b94a3;">›</span> Stellar Logical - Global Implementation</div>
+            <div class="sfdc-rec-row">
+              <div class="sfdc-rec-iconcell">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L4 6 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V6 Z" opacity="0.9"/><path d="M9 11 L11 13 L15 9" stroke="#fcb95b" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              </div>
+              <div class="sfdc-rec-block">
+                <span class="sfdc-rec-eyebrow">Opportunity</span>
+                <span class="sfdc-rec-name">Stellar Logical - Global Implementation</span>
+              </div>
+              <div class="sfdc-actions">
+                <button class="sfdc-btn">+ Follow</button>
+                <button class="sfdc-btn ds primary">Start with Docusign</button>
+              </div>
+            </div>
+            <div class="sfdc-rec-meta">
+              <div class="meta"><span class="meta-label">Account</span><span class="meta-value">Stellar Logical</span></div>
+              <div class="meta"><span class="meta-label">Close Date</span><span class="meta-value">10/31/2025</span></div>
+              <div class="meta"><span class="meta-label">Amount</span><span class="meta-value">$475,000.00</span></div>
+            </div>
+          </div>
+          <div class="sfdc-path">
+            <div class="sfdc-path-track">
+              <div class="sfdc-path-step done">Qualification</div>
+              <div class="sfdc-path-step done">Needs Analysis</div>
+              <div class="sfdc-path-step done">Value Proposition</div>
+              <div class="sfdc-path-step current">Negotiation/Review</div>
+              <div class="sfdc-path-step">Closed</div>
+            </div>
+          </div>
+          <div class="sfdc-body-grid" style="grid-template-columns:1fr; height:auto;">
+            <div class="sfdc-card">
+              <div class="sfdc-card-head">Opportunity Information</div>
+              <div class="sfdc-card-body">
+                <div class="sfdc-field-grid">
+                  <div class="sfdc-field"><span class="sfdc-field-label">Opportunity Name</span><span class="sfdc-field-value">Stellar Logical - Global Implementation</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Account Name</span><span class="sfdc-field-value"><a href="#">Stellar Logical</a></span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Stage</span><span class="sfdc-field-value">Negotiation/Review</span></div>
+                  <div class="sfdc-field"><span class="sfdc-field-label">Amount</span><span class="sfdc-field-value">$475,000.00</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="agf-panel">
+          <div class="agf-panel-head">
+            Docusign Agent
+            <span class="icons">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><polyline points="9 5 12 2 15 5"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
+          </div>
+          <div class="agf-bot-wrap">
+            <svg class="ds-bot-svg" viewBox="0 0 200 200" aria-hidden="true">
+              <defs>
+                <radialGradient id="botBg" cx="50%" cy="40%" r="60%">
+                  <stop offset="0%" stop-color="#f5f3ff"/>
+                  <stop offset="50%" stop-color="#e2dcff"/>
+                  <stop offset="100%" stop-color="#bcb3ff"/>
+                </radialGradient>
+                <linearGradient id="botBody" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#fafafa"/>
+                  <stop offset="100%" stop-color="#d8d4ec"/>
+                </linearGradient>
+              </defs>
+              <circle cx="100" cy="100" r="98" fill="url(#botBg)"/>
+              <!-- sparkles -->
+              <g fill="#a397ff">
+                <path d="M40 50 L42 55 L47 56 L42 57 L40 62 L38 57 L33 56 L38 55 Z" opacity="0.7"/>
+                <path d="M170 70 L172 76 L178 77 L172 78 L170 84 L168 78 L162 77 L168 76 Z" opacity="0.7"/>
+                <path d="M155 140 L156 144 L160 145 L156 146 L155 150 L154 146 L150 145 L154 144 Z" opacity="0.7"/>
+              </g>
+              <!-- antenna -->
+              <line x1="100" y1="46" x2="100" y2="58" stroke="#1a1a3a" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="44" r="3.5" fill="#FF5252"/>
+              <!-- head -->
+              <ellipse cx="100" cy="86" rx="36" ry="34" fill="url(#botBody)" stroke="#1a1a3a" stroke-width="1.5"/>
+              <!-- visor / sunglasses band -->
+              <path d="M68 84 Q100 72 132 84 L132 92 Q100 84 68 92 Z" fill="#1a1a3a"/>
+              <ellipse cx="86" cy="88" rx="6" ry="4" fill="#7eafda"/>
+              <ellipse cx="114" cy="88" rx="6" ry="4" fill="#7eafda"/>
+              <!-- smile -->
+              <path d="M88 102 Q100 110 112 102" stroke="#1a1a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <!-- body -->
+              <rect x="76" y="118" width="48" height="40" rx="10" fill="url(#botBody)" stroke="#1a1a3a" stroke-width="1.5"/>
+              <!-- chest light -->
+              <circle cx="100" cy="138" r="4" fill="#7c3aed"/>
+              <!-- arms -->
+              <path d="M76 130 Q60 130 60 148" stroke="#1a1a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M124 130 Q140 130 140 148" stroke="#1a1a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <circle cx="60" cy="150" r="4" fill="#1a1a3a"/>
+              <circle cx="140" cy="150" r="4" fill="#1a1a3a"/>
+              <!-- cloud / base -->
+              <path d="M40 178 Q60 168 100 174 Q140 168 160 178 L160 184 Q100 188 40 184 Z" fill="#fff" opacity="0.85"/>
+            </svg>
+          </div>
+          <div class="agf-greet">Let's chat!</div>
+          <div class="agf-body">Hi, I'm Agentforce! I use AI to search trusted sources, and more. Ask me <em>"What else can you do?"</em> to see how I can simplify your workday. How can I help?</div>
+          <div class="agf-input">
+            Does Stellar Logical have an active NDA?
+            <span class="send-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 3 — Workflow picker modal (over dimmed Salesforce)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="workflow-modal">
+      <div class="sfdc" style="position:relative">
+        <div class="sfdc-topnav">
+          <span class="sfdc-applauncher" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span class="sfdc-app-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4 H21 V8 L13 14 V20 L11 20 V14 L3 8 Z"/></svg></span>
+          <span class="sfdc-app-title">Sales</span>
+          <div class="sfdc-tabs">
+            <span class="sfdc-tab">Home</span><span class="sfdc-tab active">Opportunities</span><span class="sfdc-tab">Leads</span><span class="sfdc-tab">Tasks</span><span class="sfdc-tab">Files</span>
+          </div>
+          <div class="sfdc-search">Search...</div>
+          <span class="sfdc-avatar">MW</span>
+        </div>
+        <div class="sfdc-content">
+          <div class="sfdc-record-head">
+            <div class="sfdc-bread"><span class="pip">★</span> Opportunity › Stellar Logical - Global Implementation</div>
+            <div class="sfdc-rec-row">
+              <div class="sfdc-rec-iconcell"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L4 6 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V6 Z" opacity="0.9"/></svg></div>
+              <div class="sfdc-rec-block">
+                <span class="sfdc-rec-eyebrow">Opportunity</span>
+                <span class="sfdc-rec-name">Stellar Logical - Global Implementation</span>
+              </div>
+              <div class="sfdc-actions">
+                <button class="sfdc-btn">+ Follow</button>
+                <button class="sfdc-btn ds primary">Start with Docusign</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-backdrop">
+          <div class="workflow-modal">
+            <button class="close" aria-label="Close">×</button>
+            <div class="workflow-head">
+              <div class="ds-brand">
+                <svg class="ds-brand-mark" viewBox="0 0 32 32">
+                  <rect x="6" y="2" width="14" height="20" rx="3" fill="#4C00FF"/>
+                  <path d="M14 6 H22 A6 6 0 0 1 22 18 H14 Z" fill="#FF5252"/>
+                  <rect x="6" y="22" width="20" height="6" rx="3" fill="#26065D"/>
+                </svg>
+                <span class="ds-brand-name">docusign</span>
+              </div>
+              <button class="add-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add a Workflow
+              </button>
+            </div>
+            <span class="workflow-search-label">Search workflows</span>
+            <input type="text" class="workflow-search" placeholder="Search workflows" disabled>
+            <div class="workflow-grid">
+              <div class="workflow-card highlight">
+                <span class="more">⋯</span>
+                <div class="name">MSA</div>
+                <button class="start">Start</button>
+              </div>
+              <div class="workflow-card">
+                <span class="more">⋯</span>
+                <div class="name">General Legal Request</div>
+                <button class="start">Start</button>
+              </div>
+              <div class="workflow-card">
+                <span class="more">⋯</span>
+                <div class="name">Send for Signature: NDA</div>
+                <button class="start">Start</button>
+              </div>
+              <div class="workflow-card">
+                <span class="more">⋯</span>
+                <div class="name">SOW</div>
+                <button class="start">Start</button>
+              </div>
+              <div class="workflow-card">
+                <span class="more">⋯</span>
+                <div class="name">Sales Amendment</div>
+                <button class="start">Start</button>
+              </div>
+              <div class="workflow-card">
+                <span class="more">⋯</span>
+                <div class="name">Sales Order</div>
+                <button class="start">Start</button>
+              </div>
+            </div>
+            <div class="brace-mark">{⋯}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 4 — Three-role cast slide
+         ========================================================= -->
+    <section class="ds-scene" data-scene="cast">
+      <div class="scene-cast">
+        <div class="cast-row">
+          <!-- Mary Wilson — Sales Rep -->
+          <div class="cast-cell">
+            <div class="cast-portrait">
+              <div class="cast-portrait-inner">
+                <svg viewBox="0 0 200 200" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="bgM" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#e8e0d4"/><stop offset="100%" stop-color="#c9bca6"/></linearGradient>
+                    <linearGradient id="skM" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#dcc8b3"/><stop offset="100%" stop-color="#a48a6e"/></linearGradient>
+                    <linearGradient id="hairM" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#6a4a3a"/><stop offset="100%" stop-color="#3d281d"/></linearGradient>
+                  </defs>
+                  <rect width="200" height="200" fill="url(#bgM)"/>
+                  <!-- shoulders / shirt -->
+                  <path d="M30 200 Q30 150 70 138 L130 138 Q170 150 170 200 Z" fill="#3d281d" opacity="0.7"/>
+                  <!-- neck -->
+                  <rect x="86" y="118" width="28" height="28" fill="url(#skM)"/>
+                  <!-- hair back -->
+                  <path d="M52 100 Q52 60 100 50 Q148 60 148 100 L148 160 Q142 130 130 122 L70 122 Q58 130 52 160 Z" fill="url(#hairM)"/>
+                  <!-- face -->
+                  <ellipse cx="100" cy="98" rx="36" ry="42" fill="url(#skM)"/>
+                  <!-- hair front fringe (shoulder-length parted) -->
+                  <path d="M64 78 Q72 56 100 54 Q132 56 138 80 Q132 70 116 70 Q104 64 96 76 Q86 86 78 86 Q72 84 68 88 Q64 88 64 78 Z" fill="url(#hairM)"/>
+                  <!-- eyes (closed/smiling crescents) -->
+                  <path d="M84 96 Q88 102 92 96" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  <path d="M108 96 Q112 102 116 96" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  <!-- smile -->
+                  <path d="M88 116 Q100 124 112 116" stroke="#7a4a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="cast-name">Mary Wilson</div>
+            <div class="cast-role">Sales Rep</div>
+            <div class="cast-org">Fontara, Inc.</div>
+          </div>
+          <div class="cast-divider"></div>
+          <!-- Leona Legal — with red ring -->
+          <div class="cast-cell">
+            <div class="cast-portrait ringed">
+              <div class="cast-portrait-inner">
+                <svg viewBox="0 0 200 200" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="bgL" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#ede4d6"/><stop offset="100%" stop-color="#cdbea7"/></linearGradient>
+                    <linearGradient id="skL" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f3dcc6"/><stop offset="100%" stop-color="#c4a486"/></linearGradient>
+                    <linearGradient id="hairL" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#c47a4a"/><stop offset="100%" stop-color="#7a3a1a"/></linearGradient>
+                  </defs>
+                  <rect width="200" height="200" fill="url(#bgL)"/>
+                  <!-- shoulders / plaid shirt suggestion -->
+                  <path d="M30 200 Q30 150 70 138 L130 138 Q170 150 170 200 Z" fill="#3d281d" opacity="0.6"/>
+                  <line x1="40" y1="180" x2="160" y2="180" stroke="#1a1a1a" stroke-width="1" opacity="0.3"/>
+                  <line x1="80" y1="140" x2="80" y2="200" stroke="#1a1a1a" stroke-width="1" opacity="0.3"/>
+                  <line x1="120" y1="140" x2="120" y2="200" stroke="#1a1a1a" stroke-width="1" opacity="0.3"/>
+                  <!-- neck -->
+                  <rect x="88" y="120" width="24" height="24" fill="url(#skL)"/>
+                  <!-- hair back (short bob) -->
+                  <path d="M58 96 Q58 58 100 52 Q142 58 142 96 L142 132 Q130 124 100 124 Q70 124 58 132 Z" fill="url(#hairL)"/>
+                  <!-- face -->
+                  <ellipse cx="100" cy="100" rx="34" ry="38" fill="url(#skL)"/>
+                  <!-- bangs -->
+                  <path d="M68 76 Q76 60 100 56 Q124 60 132 76 Q124 72 100 72 Q76 72 68 76 Z" fill="url(#hairL)"/>
+                  <!-- glasses frames -->
+                  <circle cx="86" cy="98" r="9" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                  <circle cx="114" cy="98" r="9" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                  <line x1="95" y1="98" x2="105" y2="98" stroke="#1a1a1a" stroke-width="2"/>
+                  <!-- eyes inside glasses -->
+                  <circle cx="86" cy="98" r="2" fill="#1a1a1a"/>
+                  <circle cx="114" cy="98" r="2" fill="#1a1a1a"/>
+                  <!-- smile -->
+                  <path d="M88 116 Q100 122 112 116" stroke="#7a4a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="cast-name">Leona Legal</div>
+            <div class="cast-role">Legal</div>
+            <div class="cast-org">Fontara, Inc.</div>
+          </div>
+          <div class="cast-divider"></div>
+          <!-- Jack Rogers — Customer -->
+          <div class="cast-cell">
+            <div class="cast-portrait">
+              <div class="cast-portrait-inner">
+                <svg viewBox="0 0 200 200" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="bgJ" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#dde0e5"/><stop offset="100%" stop-color="#a8aebc"/></linearGradient>
+                    <linearGradient id="skJ" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#e0bd9c"/><stop offset="100%" stop-color="#a37856"/></linearGradient>
+                  </defs>
+                  <rect width="200" height="200" fill="url(#bgJ)"/>
+                  <!-- jacket / suit -->
+                  <path d="M20 200 Q20 144 60 132 L84 144 L100 156 L116 144 L140 132 Q180 144 180 200 Z" fill="#1a1a1a"/>
+                  <!-- shirt -->
+                  <path d="M84 144 L100 156 L116 144 L116 200 L84 200 Z" fill="#fff"/>
+                  <!-- neck -->
+                  <rect x="86" y="118" width="28" height="22" fill="url(#skJ)"/>
+                  <!-- bald head -->
+                  <ellipse cx="100" cy="92" rx="42" ry="48" fill="url(#skJ)"/>
+                  <!-- subtle hair shadow at back -->
+                  <path d="M58 92 Q58 70 80 56 Q100 50 120 56 Q142 70 142 92 Q142 80 100 76 Q58 80 58 92 Z" fill="#5a4332" opacity="0.18"/>
+                  <!-- ears -->
+                  <ellipse cx="58" cy="100" rx="6" ry="10" fill="url(#skJ)"/>
+                  <ellipse cx="142" cy="100" rx="6" ry="10" fill="url(#skJ)"/>
+                  <!-- eyes (closed/smiling crescents) -->
+                  <path d="M82 96 Q88 104 94 96" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                  <path d="M106 96 Q112 104 118 96" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                  <!-- smile -->
+                  <path d="M84 118 Q100 130 116 118" stroke="#7a4a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="cast-name">Jack Rogers</div>
+            <div class="cast-role">Customer</div>
+            <div class="cast-org">Stellar Logical</div>
+          </div>
+        </div>
+        <div class="cast-action-row">
+          <div class="cast-action">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6 a2 2 0 0 0 -2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+            <span>Generate &amp; send NDA, MSA &amp; Sales Order</span>
+          </div>
+          <div class="cast-arrow">→</div>
+          <div class="cast-action">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+            <span>Legal review and approval</span>
+          </div>
+          <div class="cast-arrow">→</div>
+          <div class="cast-action">
+            <svg width="40" height="32" viewBox="0 0 60 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 26 C 8 8, 16 4, 24 14 C 30 22, 38 20, 50 6"/><line x1="6" y1="29" x2="14" y2="22"/></svg>
+            <span>Customer reviews and signs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 5 — Word + AI-Assisted Review
+         ========================================================= -->
+    <section class="ds-scene" data-scene="ai-review">
+      <div class="word-app">
+        <div class="word-titlebar">
+          <span class="file-tab">File</span>
+          <div class="word-tabs">
+            <span class="on">Home</span><span>Insert</span><span>Draw</span><span>Design</span><span>Layout</span><span>References</span><span>Mailings</span><span>Review</span><span>View</span>
+          </div>
+          <div class="right-actions">
+            <span class="pill">💬 Comments</span>
+            <span class="pill review">✎ Reviewing ▾</span>
+            <span class="pill share">⇧ Share ▾</span>
+          </div>
+        </div>
+        <div class="word-ribbon">
+          <!-- Paste -->
+          <div class="group">
+            <div class="group-stack" style="align-items:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#252423" stroke-width="1.4"><rect x="6" y="3" width="12" height="4" rx="1"/><rect x="4" y="7" width="16" height="14" rx="1"/></svg>
+              <span style="font-size:9px; color:#252423;">Paste ▾</span>
+            </div>
+          </div>
+          <!-- Font -->
+          <div class="group">
+            <div class="group-stack">
+              <div class="row">
+                <span class="pill font">Arial <span style="margin-left:auto; color:#605e5c;">▾</span></span>
+                <span class="pill size">10 <span style="color:#605e5c;">▾</span></span>
+                <span class="icon-btn" title="Grow"><span style="font-size:10px;">A^</span></span>
+                <span class="icon-btn" title="Shrink"><span style="font-size:10px;">A˅</span></span>
+                <span class="icon-btn" title="Aa">Aa</span>
+              </div>
+              <div class="row">
+                <span class="icon-btn" style="font-weight:700;">B</span>
+                <span class="icon-btn" style="font-style:italic;">I</span>
+                <span class="icon-btn" style="text-decoration:underline;">U</span>
+                <span class="icon-btn" style="font-size:9px;">x²</span>
+                <span class="icon-btn" style="font-size:9px;">x₂</span>
+                <span class="icon-btn" style="position:relative;">A<span style="position:absolute; left:6px; bottom:1px; width:8px; height:2px; background:#185abd;"></span></span>
+                <span class="icon-btn" style="position:relative;">⌖<span style="position:absolute; left:8px; bottom:1px; width:6px; height:2px; background:#fff200;"></span></span>
+                <span class="icon-btn" style="position:relative;">A<span style="position:absolute; left:6px; bottom:1px; width:8px; height:2px; background:#c0383b;"></span></span>
+              </div>
+            </div>
+          </div>
+          <!-- Paragraph -->
+          <div class="group">
+            <div class="group-stack">
+              <div class="row">
+                <span class="icon-btn" title="Bullets">≡▾</span>
+                <span class="icon-btn" title="Numbers">1▾</span>
+                <span class="icon-btn" title="Multilevel">≣▾</span>
+                <span class="icon-btn" title="Decrease indent">⇤</span>
+                <span class="icon-btn" title="Increase indent">⇥</span>
+                <span class="icon-btn" title="Sort">↕</span>
+                <span class="icon-btn">¶</span>
+              </div>
+              <div class="row">
+                <span class="icon-btn" title="Left align">≡</span>
+                <span class="icon-btn" title="Center align">≣</span>
+                <span class="icon-btn" title="Right align">≡</span>
+                <span class="icon-btn" title="Justify">≡</span>
+                <span class="icon-btn" title="Line spacing">↕</span>
+                <span class="icon-btn" title="Shading">▢</span>
+                <span class="icon-btn" title="Borders">⊞</span>
+              </div>
+            </div>
+          </div>
+          <!-- Styles -->
+          <div class="group" style="gap:6px; padding:0 10px;">
+            <div class="style-tile on"><span class="ex">AaBbCcDdEe</span><span>Normal</span></div>
+            <div class="style-tile"><span class="ex">AaBbCcDdEe</span><span>No Spacing</span></div>
+            <div class="style-tile"><span class="ex">AaBbCcDdEe</span><span>Heading 7</span></div>
+            <div class="style-tile"><span class="ex">AaBbCcDdEe</span><span>Subtle Emph...</span></div>
+            <div class="styles-pane-btn"><span class="icn">⫷</span><span>Styles<br>Pane</span></div>
+          </div>
+          <!-- Right cluster -->
+          <div class="group" style="margin-left:auto; gap:8px;">
+            <div class="group-stack" style="align-items:center;"><span style="font-size:18px;">🎤</span><span style="font-size:9px; color:#252423;">Dictate ▾</span></div>
+            <div class="group-stack" style="align-items:center;"><span style="font-size:14px;">🛡</span><span style="font-size:9px; color:#252423;">Sensitivity</span></div>
+            <div class="group-stack" style="align-items:center;"><span style="font-size:14px;">⊞</span><span style="font-size:9px; color:#252423;">Add-ins</span></div>
+            <div class="group-stack" style="align-items:center;"><span style="font-size:14px;">✎</span><span style="font-size:9px; color:#252423;">Editor</span></div>
+          </div>
+          <div class="review-pill">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 9 L14.5 13 L17 19 L12 15 L7 19 L9.5 13 L4 9 L10.5 9 Z" fill="rgba(255,255,255,0.92)"/></svg>
+            <div style="display:flex; flex-direction:column; line-height:1.1; align-items:flex-start;">
+              <span style="font-size:10px; opacity:0.85;">Docusign</span>
+              <span style="font-size:11px; font-weight:700;">AI-Assisted Review</span>
+            </div>
+          </div>
+        </div>
+        <div class="word-body">
+          <div class="word-doc-frame">
+            <div class="word-doc">
+              <p>forth in Section 1.2 (Restrictions) if <span class="term">Fontara</span> has a reasonable belief of Customer's non-compliance; and (c) as otherwise set forth in the Agreement.</p>
+              <h2>3.3 Usage Data.</h2>
+              <p><span class="term">Fontara</span> may collect and use data, information, or insights generated or derived from the use of <span class="term">Fontara</span> Services ("Usage Data") for its business purposes, including industry analysis, benchmarking, analytics, marketing, and developing, training and improving its products and services. Before doing so, <span class="term">Fontara</span> will deidentify and anonymize all Usage Data in such manner that does not allow for the identification of Customer Data, or Customer's Confidential Information, and will disclose such Usage Data in aggregate form only.</p>
+              <p class="no-indent" style="text-indent:24px;"><span class="highlight-yellow">Payment terms must be no more than 30 days from invoice receipt.</span></p>
+              <div class="section-box">
+                <h2 style="text-indent:0; margin-top:0;">4. PAYMENT OF FEES</h2>
+                <p><span class="num">4.1 Fees.</span> Except as expressly set forth in the applicable Order Form or SOW, Customer will pay all fees set forth in the Order Form or SOW in accordance with this Section 4. (a) <span class="term">Fontara</span> Services fees are invoiced annually in advance; (b) the first invoice will coincide with the Order Start Date of an Order Form or the effective date of a SOW; (c) payment will be due within sixty (60) days from the invoice receipt date; and (d) all amounts will be denominated in and payable in the currency specified in the Order Form and/or SOW. Unless otherwise agreed to by the Parties and expressly noted in the Order Form and/or SOW, invoices will be sent to Customer via email. Upon execution by Customer and <span class="term">Fontara</span>, each Order Form and/or SOW is non-cancellable and non-refundable except as provided in the Agreement, and the Term set forth in the Order Form for <span class="term">Fontara</span> Services is a continuous and non-divisible commitment for the full duration of the Term regardless of any invoice schedule. Customer may withhold from payment any charge or amount disputed by Customer in good faith pending resolution of such dispute, provided that Customer: (i) notifies <span class="term">Fontara</span> of the dispute prior to the date such payment is due, specifying in such notice (A) the amount in dispute, and (B) the reason for the dispute set out in sufficient detail to facilitate investigation by <span class="term">Fontara</span> and resolution by the Parties; (ii) makes timely payment of all undisputed charges and amounts; (iii) works diligently to resolve the dispute promptly; and (iv) pays all amounts that are determined to be payable by resolution of the dispute (by adversarial proceedings, agreement or otherwise) within thirty (30) days following such resolution.</p>
+                <p><span class="num">4.2 Purchase Orders.</span> If Customer issues a purchase order, then it shall be for the full amount set forth in the applicable Order Form or SOW, and <span class="term">Fontara</span> hereby rejects any additional or conflicting terms appearing in a purchase order or any other ordering materials submitted by Customer. Upon request, <span class="term">Fontara</span> shall reference the purchase order number on its invoices, provided, however, that Customer acknowledges that it is Customer's responsibility to provide the corresponding purchase order information (including a purchase order number) to <span class="term">Fontara</span> upon the signing of any Order Form. Customer agrees that a failure to provide <span class="term">Fontara</span> with the corresponding purchase order will not relieve Customer of its obligations to provide payment to <span class="term">Fontara</span> pursuant to Section 4.1 (Fees) above.</p>
+                <p><span class="num">4.3 Offsets; Late Charges; Attorneys' Fees.</span> If Customer owes <span class="term">Fontara</span> any amounts that are not derived from the Agreement, such amounts will not be withheld or offset against any invoice issued under the Agreement. <span class="term">Fontara</span> may assess late charges equal to the lesser of one and one-half percent (1.5%) of the unpaid balance per month or the highest rate allowed by applicable law. Customer will be responsible for any reasonable attorneys' fees, costs, and expenses incurred by <span class="term">Fontara</span> to collect any amounts that are not paid when due. If Customer fails to timely pay any amounts due under the Agreement, then without limiting any of its other rights or remedies, <span class="term">Fontara</span> may, upon prior written…</p>
+              </div>
+            </div>
+          </div>
+          <div class="word-aside">
+            <div class="aar-headbar">
+              <svg class="ds-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4C00FF"/></svg>
+              Docusign AI-Assisted Review
+              <span class="x">×</span>
+            </div>
+            <button class="aar-save-btn">
+              <svg class="ds-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4C00FF"/></svg>
+              Save to Agreement Desk
+            </button>
+            <div class="aar-back-row">
+              <span class="back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                <span class="pb-name">View Playbook</span>
+              </span>
+              <span class="ai-tag">✦ AI-Assisted</span>
+              <span class="more">⋮</span>
+            </div>
+            <div class="aar-playbook-title">MSA Playbook - 1st Party <span class="info">ⓘ</span></div>
+            <div class="aar-actions">
+              <button class="run">
+                <span class="play-tri"></span>
+                Run All
+                <span class="chev-down">▾</span>
+              </button>
+              <button class="edit">Edit</button>
+            </div>
+            <div class="aar-pills-row">
+              <span class="aar-pill review">Needs Review (5)</span>
+              <span class="aar-pill passed">Passed (11)</span>
+              <span class="aar-pill resolved">Resolved (1)</span>
+            </div>
+            <div class="aar-list">
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge resolved">Resolved</span></div>
+                <span class="chev">▾</span>
+                <span class="label bold">30-day payment terms</span>
+              </div>
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge passed">Passed</span></div>
+                <span class="chev">▾</span>
+                <span class="label">Annual payments</span>
+              </div>
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge passed">Passed</span></div>
+                <span class="chev">▾</span>
+                <span class="label">Tech, services, and IP rights</span>
+              </div>
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge passed">Passed</span></div>
+                <span class="chev">▾</span>
+                <span class="label">Prohibits reselling</span>
+              </div>
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge passed">Passed</span></div>
+                <span class="chev">▾</span>
+                <span class="label">Limited to internal use</span>
+              </div>
+              <div class="aar-item">
+                <div class="badge-row"><span class="badge passed">Passed</span></div>
+                <span class="chev">▾</span>
+                <span class="label">No most favored nation</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 6 — Customer-side Iris Q&A
+         ========================================================= -->
+    <section class="ds-scene" data-scene="iris-customer">
+      <div class="scene-iris-customer">
+        <div class="iris-doc-frame">
+          <div class="iris-doc">
+            <p>…subscription terms will be set forth in applicable <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy; text-underline-offset:3px;">Fontara</span> Order Form(s) and SOW(s), each of which become binding on the execution of an Order Form and/or SOW. Each Order Form constitutes the following documents in effect as of the effective date, collectively referred to as the <b>"Agreement"</b>, that consists of:</p>
+            <p>(a) Service Schedule(s) to this MSA or a Service Schedule; 3. Service Description(s).</p>
+            <p>The order of precedence between the documents in the Service Schedule(s) is determined by the Order Form and/or SOW. In the event of a conflict, the order of precedence is the order of control.</p>
+            <p><b>4.</b> <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy;">Fontara</span> provides <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy;">Fontara</span> Services to Customer as set forth in the Order Form and during the term of the Agreement, <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy;">Fontara</span> grants to Customer a non-exclusive, non-transferable right and license during the Term, solely for its and its Affiliates' use in accordance with the Documentation, to: (a) access and use the <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy;">Fontara</span> Services; (b) through its Account Administrator, permit its Authorized Users to access and use the <span style="color:#605e5c; text-decoration:underline; text-decoration-color:#a40000; text-decoration-style:wavy;">Fontara</span> Services: and (c) access and use the Documentation.</p>
+            <p>5. <b>Governing Law:</b> San Francisco County, California</p>
+            <p class="footer-line">English (US) ▾ &nbsp;·&nbsp; Terms of Use &nbsp;·&nbsp; Privacy &nbsp;&nbsp;&nbsp;&nbsp; Copyright © 2025 Docusign, Inc. All rights reserved.</p>
+          </div>
+        </div>
+        <div class="iris-side">
+          <div class="iris-side-head">
+            <span class="helpful">
+              Was this helpful?
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9 V5 a3 3 0 0 0 -6 0 v0 c0 1 1 2 1 3 V9 H4 a2 2 0 0 0 -2 2 v8 a2 2 0 0 0 2 2 h13 a2 2 0 0 0 2 -1.5 l2 -7 a2 2 0 0 0 -2 -2.5 H14"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 15 V19 a3 3 0 0 0 6 0 v0 c0 -1 -1 -2 -1 -3 V15 H20 a2 2 0 0 0 2 -2 V5 a2 2 0 0 0 -2 -2 H7 a2 2 0 0 0 -2 1.5 l-2 7 a2 2 0 0 0 2 2.5 H10"/></svg>
+            </span>
+            <div class="iris-zoom">
+              <span class="zoom-btn">+</span>
+              <span class="zoom-pct">156%</span>
+              <span class="zoom-btn">−</span>
+            </div>
+          </div>
+          <div class="iris-q-head">What are the down payment terms?</div>
+          <div class="iris-answer-loading">
+            <div class="iris-loading-label">
+              <svg class="sparkle" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L13.5 9 L20 9 L14.5 13 L17 19 L12 15 L7 19 L9.5 13 L4 9 L10.5 9 Z"/></svg>
+              Getting you an answer…
+            </div>
+            <div class="iris-loading">
+              <div class="iris-loading-bar"></div>
+              <div class="iris-loading-bar"></div>
+              <div class="iris-loading-bar"></div>
+            </div>
+          </div>
+          <div class="iris-input-wrap">
+            <div class="iris-input">
+              What would you like to know?
+              <span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+            </div>
+            <div class="iris-disclaimer">Responses are generated with AI and are not legal advice.</div>
+          </div>
+        </div>
+        <div class="iris-brace">{⋯}</div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 7 — Navigator (Docusign Agreements list)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="navigator">
+      <div class="scene-navigator">
+        <div class="nav-tabs">
+          <div class="nav-tab active">Docusign Agreements</div>
+          <div class="nav-tab">Docusign Agreement Desk</div>
+          <div class="nav-tab">Activity</div>
+        </div>
+        <div class="nav-h">Completed</div>
+        <div class="nav-controls">
+          <div class="nav-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Try keywords or phrases
+          </div>
+          <button class="nav-filter">Sets <span class="chev">▾</span></button>
+          <button class="nav-filter">Expiration Date <span class="chev">▾</span></button>
+          <button class="nav-filter">Parties <span class="chev">▾</span></button>
+          <button class="nav-filter icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            All Filters
+          </button>
+          <span class="nav-gear">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+        </div>
+        <table class="nav-table">
+          <thead>
+            <tr>
+              <th style="width:35%">File Name</th>
+              <th style="width:18%">Parties</th>
+              <th style="width:22%">Agreement Type</th>
+              <th style="width:12%">Effective Date <span class="sort-arrows">⇅</span></th>
+              <th style="width:13%">Expiration Date <span class="sort-arrows">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="file-cell">
+                  <span class="nav-icon-diamond"><span class="d"></span></span>
+                  <span class="file-name">MSA Stellar Logical.docx</span>
+                </div>
+              </td>
+              <td><div class="party-stack"><span class="party">Fontara</span><span class="party">Stellar Logical</span></div></td>
+              <td>Master Service Agreement</td>
+              <td><span class="date-link">10/1/2025</span></td>
+              <td>10/1/2026</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="file-cell">
+                  <span class="nav-icon-diamond"><span class="d"></span></span>
+                  <span class="file-name">NDA Stellar Logical.docx</span>
+                </div>
+              </td>
+              <td><div class="party-stack"><span class="party">Fontara</span><span class="party">Stellar Logical</span></div></td>
+              <td>Non-Disclosure Agreement</td>
+              <td>10/1/2025</td>
+              <td>10/1/2026</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="nav-paging">5 / Page <span class="chev">▾</span></div>
+        <div class="nav-brace">{⋯}</div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 8 — Seller Home + Docusign Agent (initial state)
+         ========================================================= -->
+    <section class="ds-scene" data-scene="seller-home">
+      <div class="sfdc sfdc-seller-home" style="position:relative">
+        <div class="sfdc-topnav">
+          <span class="sfdc-applauncher" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span class="sfdc-app-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4 H21 V8 L13 14 V20 L11 20 V14 L3 8 Z"/></svg></span>
+          <span class="sfdc-app-title">Sales</span>
+          <div class="sfdc-tabs">
+            <span class="sfdc-tab active">Home</span>
+            <span class="sfdc-tab">Opportunities</span><span class="sfdc-tab">Leads</span><span class="sfdc-tab">Tasks</span><span class="sfdc-tab">Files</span><span class="sfdc-tab">Accounts</span><span class="sfdc-tab">Contacts</span><span class="sfdc-tab">Campaigns</span>
+          </div>
+          <div class="sfdc-search">Search...</div>
+          <span class="sfdc-avatar">MW</span>
+        </div>
+        <div class="sh-content" style="padding-right:362px">
+          <div class="sh-greet"><b>Seller Home</b><span>Good afternoon, Mary. Let's get selling!</span></div>
+          <div class="sh-grid">
+            <div class="sh-card">
+              <h4>Close Deals <svg class="pencil" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5 a2.121 2.121 0 0 1 3 3 L7 19 l-4 1 1-4 z"/></svg></h4>
+              <span class="sub">Opportunities owned by me and closing this quarter</span>
+              <div class="sh-card-body">
+                <div class="donut-wrap">
+                  <svg class="donut" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e0e0e0" stroke-width="3.2"/>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#54acdf" stroke-width="3.2" stroke-dasharray="100 100" stroke-linecap="butt"/>
+                  </svg>
+                  <div class="donut-center"><span class="num">$475K</span><span class="lbl">Total Pipeline</span></div>
+                </div>
+                <div class="sh-stats">
+                  <div class="sh-stat"><span class="swatch" style="background:#04844b"></span>$0 Open</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#3e3e3c"></span>$475K Won</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#c23934"></span>$0 Lost</div>
+                </div>
+              </div>
+              <button class="view-btn">View Opportunities</button>
+            </div>
+            <div class="sh-card">
+              <h4>Plan My Accounts</h4>
+              <span class="sub">Accounts owned by me</span>
+              <div class="sh-card-body">
+                <div class="donut-wrap">
+                  <svg class="donut" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e0e0e0" stroke-width="3.2"/>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c23934" stroke-width="3.2" stroke-dasharray="100 100"/>
+                  </svg>
+                  <div class="donut-center"><span class="num" style="font-size:18px;">12</span><span class="lbl">Accounts</span></div>
+                </div>
+                <div class="sh-stats">
+                  <div class="sh-stat"><span class="swatch" style="background:#04844b"></span>0 Upcoming Activity</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#0070d2"></span>0 Past Activity</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#c23934"></span>12 No Activity</div>
+                </div>
+              </div>
+              <button class="view-btn">View Accounts</button>
+            </div>
+            <div class="sh-card">
+              <h4>Grow Relationships</h4>
+              <span class="sub">Contacts owned by me and created in the last 90 days</span>
+              <div class="sh-card-body">
+                <div class="donut-wrap">
+                  <svg class="donut" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e0e0e0" stroke-width="3.2"/>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c23934" stroke-width="3.2" stroke-dasharray="100 100"/>
+                  </svg>
+                  <div class="donut-center"><span class="num" style="font-size:18px;">20</span><span class="lbl">Contacts</span></div>
+                </div>
+                <div class="sh-stats">
+                  <div class="sh-stat"><span class="swatch" style="background:#04844b"></span>0 Upcoming Activity</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#0070d2"></span>0 Past Activity</div>
+                  <div class="sh-stat"><span class="swatch" style="background:#c23934"></span>20 No Activity</div>
+                </div>
+              </div>
+              <button class="view-btn">View Contacts</button>
+            </div>
+            <div class="sh-card">
+              <h4>My Goals</h4>
+              <span class="sub">Set personal weekly or monthly goals for emails, calls, and meetings.</span>
+              <div class="sh-card-body" style="justify-content:center;">
+                <div class="goal-circles">
+                  <div class="gc empty"></div>
+                  <div class="gc done">✓</div>
+                  <div class="gc center"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L14.5 9 L22 9 L16 13 L18 21 L12 16.5 L6 21 L8 13 L2 9 L9.5 9 Z"/></svg></div>
+                  <div class="gc empty"></div>
+                </div>
+              </div>
+              <button class="view-btn primary">Set goals</button>
+            </div>
+            <div class="sh-card">
+              <h4>Today's Events</h4>
+              <div class="sh-empty">
+                <svg width="68" height="48" viewBox="0 0 100 60" fill="none" stroke="#bdd6e0" stroke-width="1"><path d="M5 50 L25 28 L42 38 L60 22 L78 32 L95 18"/><circle cx="60" cy="22" r="3" fill="#bdd6e0"/><path d="M0 55 L100 55"/><path d="M75 8 L82 4 L88 9 Z" fill="#cbe5ed"/></svg>
+                <div class="msg">Looks like you're free and<br>clear the rest of the day.</div>
+              </div>
+              <button class="view-btn">View Calendar</button>
+            </div>
+            <div class="sh-card">
+              <h4>Today's Tasks <span class="chev">▾</span></h4>
+              <div class="sh-empty">
+                <svg width="80" height="48" viewBox="0 0 100 60" fill="none" stroke="#bdd6e0" stroke-width="1"><path d="M5 48 L25 30 L40 38 L52 22 L70 30 L85 16 L95 22"/><circle cx="50" cy="32" r="6" fill="#cbe5ed" opacity="0.5"/><path d="M0 55 L100 55"/></svg>
+                <div class="msg">Nothing due today. Be a go-getter,<br>and check back soon.</div>
+              </div>
+              <button class="view-btn">View All</button>
+            </div>
+          </div>
+        </div>
+        <aside class="dsa-panel">
+          <div class="dsa-head">
+            Docusign Agent
+            <span class="icons">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9 9 a3 3 0 0 1 6 0 c0 2 -3 2 -3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><polyline points="9 5 12 2 15 5"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
+          </div>
+          <div class="dsa-bot-wrap">
+            <svg class="ds-bot-svg small" viewBox="0 0 200 200" aria-hidden="true">
+              <defs>
+                <radialGradient id="bot8Bg" cx="50%" cy="40%" r="60%">
+                  <stop offset="0%" stop-color="#f5f3ff"/><stop offset="50%" stop-color="#e2dcff"/><stop offset="100%" stop-color="#bcb3ff"/>
+                </radialGradient>
+                <linearGradient id="bot8Body" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#fafafa"/><stop offset="100%" stop-color="#d8d4ec"/></linearGradient>
+              </defs>
+              <circle cx="100" cy="100" r="98" fill="url(#bot8Bg)"/>
+              <g fill="#a397ff"><path d="M40 50 L42 55 L47 56 L42 57 L40 62 L38 57 L33 56 L38 55 Z" opacity="0.7"/><path d="M168 70 L170 76 L176 77 L170 78 L168 84 L166 78 L160 77 L166 76 Z" opacity="0.7"/><path d="M155 140 L156 144 L160 145 L156 146 L155 150 L154 146 L150 145 L154 144 Z" opacity="0.7"/></g>
+              <line x1="100" y1="46" x2="100" y2="58" stroke="#1a1a3a" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="44" r="3.5" fill="#FF5252"/>
+              <ellipse cx="100" cy="86" rx="36" ry="34" fill="url(#bot8Body)" stroke="#1a1a3a" stroke-width="1.5"/>
+              <path d="M68 84 Q100 72 132 84 L132 92 Q100 84 68 92 Z" fill="#1a1a3a"/>
+              <ellipse cx="86" cy="88" rx="6" ry="4" fill="#7eafda"/>
+              <ellipse cx="114" cy="88" rx="6" ry="4" fill="#7eafda"/>
+              <path d="M88 102 Q100 110 112 102" stroke="#1a1a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <rect x="76" y="118" width="48" height="40" rx="10" fill="url(#bot8Body)" stroke="#1a1a3a" stroke-width="1.5"/>
+              <circle cx="100" cy="138" r="4" fill="#7c3aed"/>
+              <path d="M76 130 Q60 130 60 148" stroke="#1a1a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M124 130 Q140 130 140 148" stroke="#1a1a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <circle cx="60" cy="150" r="4" fill="#1a1a3a"/>
+              <circle cx="140" cy="150" r="4" fill="#1a1a3a"/>
+              <path d="M40 178 Q60 168 100 174 Q140 168 160 178 L160 184 Q100 188 40 184 Z" fill="#fff" opacity="0.85"/>
+            </svg>
+          </div>
+          <div class="dsa-greet">Let's chat!</div>
+          <div class="dsa-body">Hi, I'm Agentforce! I use AI to search trusted sources, and more. Ask me <em>"What else can you do?"</em> to see how I can simplify your workday. How can I help?</div>
+          <div class="dsa-input">
+            Describe your task or ask a question…
+            <span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SCENE 9 — Iris × Agentforce: renewal Q answered inline
+         ========================================================= -->
+    <section class="ds-scene" data-scene="iris-renewal">
+      <div class="sfdc sfdc-seller-home" style="position:relative">
+        <div class="sfdc-topnav">
+          <span class="sfdc-applauncher" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span class="sfdc-app-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4 H21 V8 L13 14 V20 L11 20 V14 L3 8 Z"/></svg></span>
+          <span class="sfdc-app-title">Sales</span>
+          <div class="sfdc-tabs">
+            <span class="sfdc-tab active">Home</span>
+            <span class="sfdc-tab">Opportunities</span><span class="sfdc-tab">Leads</span><span class="sfdc-tab">Tasks</span><span class="sfdc-tab">Files</span><span class="sfdc-tab">Accounts</span>
+          </div>
+          <div class="sfdc-search">Search...</div>
+          <span class="sfdc-avatar">MW</span>
+        </div>
+        <div class="sh-content" style="padding-right:362px">
+          <div class="sh-greet"><b>Seller Home</b><span>Good afternoon, Mary. Let's get selling!</span></div>
+          <div class="sh-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="sh-card" style="opacity:0.5">
+              <h4>Close Deals</h4>
+              <span class="sub">Opportunities owned by me</span>
+              <div class="sh-card-body">
+                <div class="donut-wrap">
+                  <svg class="donut" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e0e0e0" stroke-width="3.2"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#54acdf" stroke-width="3.2" stroke-dasharray="100 100"/></svg>
+                  <div class="donut-center"><span class="num">$475K</span><span class="lbl">Total Pipeline</span></div>
+                </div>
+                <div class="sh-stats"><div class="sh-stat"><span class="swatch" style="background:#3e3e3c"></span>$475K Won</div></div>
+              </div>
+              <button class="view-btn">View Opportunities</button>
+            </div>
+            <div class="sh-card" style="opacity:0.5">
+              <h4>Today's Tasks <span class="chev">▾</span></h4>
+              <div class="sh-empty">
+                <svg width="80" height="48" viewBox="0 0 100 60" fill="none" stroke="#bdd6e0" stroke-width="1"><path d="M5 48 L25 30 L40 38 L52 22 L70 30 L85 16 L95 22"/><circle cx="50" cy="32" r="6" fill="#cbe5ed" opacity="0.5"/></svg>
+                <div class="msg">Nothing due today.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="dsa-panel">
+          <div class="dsa-head">
+            Docusign Agent
+            <span class="icons">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9 9 a3 3 0 0 1 6 0 c0 2 -3 2 -3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
+          </div>
+          <div class="dsa-qa">
+            <div class="dsa-msg">
+              <div class="av bot">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M8 12 a4 4 0 0 1 8 0" stroke="#1a1a3a" stroke-width="1.5" fill="none"/><circle cx="9.5" cy="11" r="1.2" fill="#1a1a3a"/><circle cx="14.5" cy="11" r="1.2" fill="#1a1a3a"/><path d="M9 15 Q12 17 15 15" stroke="#1a1a3a" stroke-width="1.4" fill="none"/></svg>
+              </div>
+              <div class="bubble">
+                Here are your upcoming renewals:
+                <ul>
+                  <li><b>Stellar Logical</b> — Contract Value: $475,000 — Renewal Date: 10/15/2026</li>
+                  <li><b>BrightWave Solutions</b> — Contract Value: $850,000 — Renewal Date: 11/01/2026</li>
+                </ul>
+                <span class="iris-source">
+                  <svg viewBox="0 0 24 24" fill="#7c3aed"><path d="M12 2 L13.5 9 L20 9 L14.5 13 L17 19 L12 15 L7 19 L9.5 13 L4 9 L10.5 9 Z"/></svg>
+                  Supported by Docusign Iris
+                </span>
+              </div>
+            </div>
+            <div class="dsa-actions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9 V5 a3 3 0 0 0 -6 0 v0 c0 1 1 2 1 3 V9 H4 a2 2 0 0 0 -2 2 v8 a2 2 0 0 0 2 2 h13 a2 2 0 0 0 2 -1.5 l2 -7 a2 2 0 0 0 -2 -2.5 H14"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 15 V19 a3 3 0 0 0 6 0 v0 c0 -1 -1 -2 -1 -3 V15 H20 a2 2 0 0 0 2 -2 V5 a2 2 0 0 0 -2 -2 H7 a2 2 0 0 0 -2 1.5 l-2 7 a2 2 0 0 0 2 2.5 H10"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15 H4 a2 2 0 0 1 -2 -2 V4 a2 2 0 0 1 2 -2 h9 a2 2 0 0 1 2 2 v1"/></svg>
+            </div>
+            <div class="dsa-msg">
+              <div class="av user">MW</div>
+              <div class="bubble">What is the deadline for submitting a notice of non-renewal according to Stellar Logical's?</div>
+            </div>
+            <div class="dsa-msg">
+              <div class="av bot">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M8 12 a4 4 0 0 1 8 0" stroke="#1a1a3a" stroke-width="1.5" fill="none"/><circle cx="9.5" cy="11" r="1.2" fill="#1a1a3a"/><circle cx="14.5" cy="11" r="1.2" fill="#1a1a3a"/><path d="M9 15 Q12 17 15 15" stroke="#1a1a3a" stroke-width="1.4" fill="none"/></svg>
+              </div>
+              <div class="bubble">
+                Notice is required 60 days before expiration of the contract, which is <b>August 15, 2026</b>. You can view the MSA <a href="#" class="link">here</a>.
+                <span class="iris-source">
+                  <svg viewBox="0 0 24 24" fill="#7c3aed"><path d="M12 2 L13.5 9 L20 9 L14.5 13 L17 19 L12 15 L7 19 L9.5 13 L4 9 L10.5 9 Z"/></svg>
+                  Supported by Docusign Iris
+                </span>
+              </div>
+            </div>
+            <div class="dsa-actions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9 V5 a3 3 0 0 0 -6 0 v0 c0 1 1 2 1 3 V9 H4 a2 2 0 0 0 -2 2 v8 a2 2 0 0 0 2 2 h13 a2 2 0 0 0 2 -1.5 l2 -7 a2 2 0 0 0 -2 -2.5 H14"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 15 V19 a3 3 0 0 0 6 0 v0 c0 -1 -1 -2 -1 -3 V15 H20 a2 2 0 0 0 2 -2 V5 a2 2 0 0 0 -2 -2 H7 a2 2 0 0 0 -2 1.5 l-2 7 a2 2 0 0 0 2 2.5 H10"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
+            </div>
+          </div>
+          <div class="dsa-input">
+            Describe your task or ask a question…
+            <span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<section class="ds-controls" aria-label="Demo stage controls">
+  <button id="ds-prev" aria-label="Previous beat" title="Previous beat (left arrow)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Prev beat
+  </button>
+  <button id="ds-play" class="primary" aria-label="Play / pause" title="Play / pause (Space)">
+    <svg id="ds-play-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+    <span id="ds-play-label">Play</span>
+  </button>
+  <div class="ds-scrub">
+    <div id="ds-ticks" class="ds-ticks" aria-hidden="true"></div>
+    <input type="range" id="ds-scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub demo">
+  </div>
+  <span class="ds-time" id="ds-time">0:00 / 0:00</span>
+  <select id="ds-speed" aria-label="Playback speed">
+    <option value="0.5">0.5x</option>
+    <option value="0.75">0.75x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.5">1.5x</option>
+    <option value="2">2x</option>
+  </select>
+  <button id="ds-next" aria-label="Next beat" title="Next beat (right arrow)">
+    Next beat
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+</section>
+
+<div class="ds-beats-header" aria-hidden="true">
+  <span class="ds-beats-eyebrow">Beats</span>
+  <span class="ds-beats-rule"></span>
+  <span class="ds-beats-count">9 beats</span>
+</div>
+<div id="ds-beats" class="ds-beat-strip" aria-label="Jump to beat"></div>
+
+<div class="ds-help">
+  <span class="ds-help-item"><kbd>Space</kbd> play / pause</span>
+  <span class="ds-help-item"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> prev / next beat</span>
+  <span class="ds-help-item"><kbd>Shift</kbd> + <kbd>&larr;</kbd><kbd>&rarr;</kbd> &plusmn;5s</span>
+  <span class="ds-help-item"><kbd>,</kbd> <kbd>.</kbd> playback speed</span>
+</div>
+
+<footer class="foot">
+  <a href="./index.html">All Docusign IAM flipbooks</a>
+</footer>
+
+<script src="../assets/demo-stage/demo-stage.js"></script>
+<script>
+  // Beat timeline — each beat carries a sceneId so the player swaps the
+  // corresponding .ds-scene[data-scene="..."] into view.
+  // Cursor coords are in the 1280×720 design space.
+  DemoStage.init('#ds', {
+    totalDuration: 255,
+    beats: [
+      { t:   0, sceneId: "opp",            eyebrow: "Sales",            title: "Mary opens the opportunity",            body: "Stellar Logical · $475K pipeline. Lives inside Salesforce — no second tab to assemble paperwork." },
+      { t:  18, sceneId: "agentforce",     eyebrow: "Agentforce",       title: "Agentforce flags the agreement gap",    body: "\"Does Stellar Logical have an active NDA?\" — surfaced from the opp record itself, not searched for." },
+      { t:  48, sceneId: "workflow-modal", eyebrow: "IAM Workflows",    title: "Workflow picker",                       body: "MSA, NDA, SOW, Sales Order. Mary picks MSA — Docusign generates the package, pre-filled from CRM data." },
+      { t:  78, sceneId: "cast",           eyebrow: "Three roles",      title: "One agreement, three handoffs",         body: "Sales generates → Legal reviews → Customer signs. Same flow, no email tag." },
+      { t: 108, sceneId: "ai-review",      eyebrow: "AI-Assisted Review", title: "Playbook runs against the MSA",       body: "5 needs review · 11 passed · 1 resolved. Drift from the standard MSA is flagged in seconds." },
+      { t: 140, sceneId: "iris-customer",  eyebrow: "Customer side",    title: "Iris answers questions in-line",        body: "Stellar Logical: \"What are the down payment terms?\" — answered against the live MSA, no back-channel email." },
+      { t: 170, sceneId: "navigator",      eyebrow: "Navigator",        title: "Both agreements land as a connected pair", body: "MSA + NDA in Docusign Agreements. Parties, effective date, type — extracted automatically." },
+      { t: 200, sceneId: "seller-home",    eyebrow: "Back in CRM",      title: "Same surface for the rep",              body: "Mary returns to Seller Home. Docusign Agent on the right — same product, opposite end of the deal." },
+      { t: 228, sceneId: "iris-renewal",   eyebrow: "Iris × Agentforce", title: "Renewal question, answered inline",    body: "\"What's the deadline for non-renewal?\" — answered from the MSA, from inside Salesforce." }
+    ],
+    cursorTrack: [
+      // Scene 1: hover near the Stellar Logical opp name
+      { t:   2, x: 380, y: 168 },
+      { t:   8, x: 720, y: 540 }, // glance at Products card
+      // Scene 2: cursor on the Agentforce input
+      { t:  20, x: 1080, y: 580, action: "click" },
+      { t:  30, x: 1080, y: 660 }, // arrow to Send
+      // Scene 3: cursor on MSA Start button
+      { t:  52, x: 415, y: 350, action: "click" },
+      { t:  60, x: 480, y: 388, action: "click" },
+      // Scene 4: cast — hold center
+      { t:  80, x: 460, y: 320 },
+      { t:  90, x: 640, y: 320 },
+      { t: 100, x: 820, y: 320 },
+      // Scene 5: AI-Assisted Review — Run All → drill into Resolved item → glance at the highlighted clause
+      { t: 110, x:  970, y: 305, action: "click" },
+      { t: 120, x: 1110, y: 540 }, // hover over "30-day payment terms" Resolved item
+      { t: 132, x:  370, y: 320 }, // glance at yellow highlight in the doc
+      // Scene 6: Iris — input + sparkle
+      { t: 142, x: 1100, y: 390 },
+      { t: 152, x: 1100, y: 600 },
+      // Scene 7: Navigator — Docusign Agreements tab → MSA row → Fontara party link
+      { t: 172, x:  220, y: 130, action: "click" }, // active tab
+      { t: 182, x:  240, y: 410 }, // MSA row
+      { t: 192, x:  490, y: 405 }, // Fontara party link
+      // Scene 8: Seller Home — agent input
+      { t: 202, x: 1100, y: 660 },
+      // Scene 9: cursor sits in the chat near the answer
+      { t: 230, x: 1100, y: 380 },
+      { t: 248, x: 1100, y: 600 }
+    ]
+  });
+</script>
+
+</body>
+</html>

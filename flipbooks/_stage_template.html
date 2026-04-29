@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- =================================================================
+     STAGE PAGE SKELETON — copy this to /flipbooks/<slug>_stage.html
+     -----------------------------------------------------------------
+     Demo-stage pattern (option 3, master template promotion):
+       1. Copy this file to <slug>_stage.html
+       2. Fill in {{TITLE}}, {{TAG}}, {{BLURB}}, {{N_BEATS}}, {{DURATION}}
+       3. Author scene-specific CSS in the SCENE STYLES section
+       4. Author HTML scenes inside <div id="ds" class="ds-stage">
+          (each scene is `<section class="ds-scene" data-scene="...">`,
+           authored in 1280×720 design space)
+       5. Author beats config + cursorTrack in the DemoStage.init() call
+       6. Register the stage in /flipbooks/_build_vignettes.py STAGES list
+       7. Re-run `python3 _build_vignettes.py` — picks up the stage in
+          /flipbooks/index.html and /flipbooks/manifest.json
+
+     Existing stages: see Sales (IAM_for_Sales_and_Agentforce) and
+     Procurement (DocuSign_CLM_Procurement_Demo_Video) for reference.
+     ================================================================= -->
+
+<title>{{TITLE}} — Stage | Docusign IAM</title>
+<meta name="description" content="{{BLURB}}">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon/favicon-32.svg">
+
+<style>
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ds-cobalt:#4C00FF; --ds-inkwell:#130032; --ds-deep-violet:#26065D;
+  --ds-mist:#CBC2FF; --ds-poppy:#FF5252; --ds-ecru:#F8F3F0; --ds-white:#FFFFFF;
+  --line:rgba(19,0,50,0.10); --line-strong:rgba(19,0,50,0.18);
+  --ink-mid:#4A3E6B; --ink-soft:#6E6189;
+  --brand:"DSIndigo","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after { box-sizing:border-box; }
+html,body { margin:0; padding:0; }
+body { font-family:var(--brand); background:var(--ds-ecru); color:var(--ds-inkwell); -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+
+.topbar { display:flex; align-items:center; gap:16px; padding:14px 24px; border-bottom:1px solid var(--line); background:var(--ds-white); }
+.topbar a.back { color:var(--ink-mid); text-decoration:none; font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); }
+.topbar .iris { display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ds-deep-violet); font-size:14px; }
+.topbar .iris svg { width:24px; height:24px; }
+.topbar .pill { margin-left:auto; padding:4px 10px; border-radius:999px; background:rgba(203,194,255,0.32); color:var(--ds-deep-violet); font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; border:1px solid rgba(76,0,255,0.18); }
+
+.title-block { padding:32px 24px 16px; max-width:1100px; margin:0 auto; width:100%; }
+.title-block .eyebrow-row { display:flex; align-items:center; gap:10px; font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--ds-deep-violet); margin:0 0 14px; }
+.title-block .eyebrow-row .dot { width:3px; height:3px; border-radius:50%; background:rgba(38,6,93,0.45); }
+.title-block h1 { margin:0 0 8px; font-size:32px; font-weight:600; letter-spacing:-0.015em; line-height:1.18; }
+.title-block .glow-rule { width:48px; height:2px; border-radius:2px; background:linear-gradient(135deg,var(--ds-poppy),var(--ds-cobalt)); margin:14px 0; }
+.title-block p { margin:0; color:var(--ink-mid); font-size:15px; line-height:1.55; max-width:680px; }
+
+.stage-wrap { flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:8px 24px 0; }
+
+footer.foot { margin-top:auto; padding:18px 24px 24px; text-align:center; color:var(--ink-soft); font-size:12px; }
+footer.foot a { color:var(--ds-deep-violet); text-decoration:none; }
+
+body.embed { background:transparent; }
+body.embed .topbar, body.embed .title-block, body.embed footer.foot { display:none; }
+body.embed .stage-wrap { padding:0; }
+
+/* =================================================================
+   SCENE STYLES — author scene-specific styles here.
+   All scenes use a 1280×720 design space; the demo-stage primitive
+   scales the .ds-scene element via JS to fit the responsive 16:9 stage.
+   ================================================================= */
+
+/* Example — replace with your scene styles
+.my-scene { background:#fff; height:100%; }
+.my-scene .header { ... }
+*/
+
+</style>
+
+<link rel="stylesheet" href="../assets/demo-stage/demo-stage.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="./index.html"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> All flipbooks</a>
+  <span class="iris"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#4C00FF" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="#4C00FF"/></svg> Docusign IAM</span>
+  <span class="pill">{{TAG}} · HTML stage</span>
+</header>
+
+<section class="title-block">
+  <div class="eyebrow-row">
+    <span>Stage view</span><span class="dot"></span>
+    <span>HTML scenes</span><span class="dot"></span>
+    <span>{{N_BEATS}} beats</span>
+  </div>
+  <h1>{{TITLE}}</h1>
+  <div class="glow-rule" aria-hidden="true"></div>
+  <p>{{BLURB}}</p>
+</section>
+
+<section class="stage-wrap">
+  <div id="ds" class="ds-stage">
+
+    <!-- ============== SCENES go here ==============
+         Each scene = <section class="ds-scene" data-scene="<id>">
+         Author content in the 1280×720 design space.
+         Examples below — replace with real scenes. -->
+
+    <section class="ds-scene" data-scene="example-1">
+      <div style="background:#fff; height:100%; padding:60px; font-family:var(--brand);">
+        <h1 style="font-size:48px; color:#130032;">Scene 1 — Replace me</h1>
+        <p style="color:#4A3E6B; font-size:18px;">Author your first product UI scene here.</p>
+      </div>
+    </section>
+
+    <section class="ds-scene" data-scene="example-2">
+      <div style="background:#26065D; color:#fff; height:100%; padding:60px; font-family:var(--brand);">
+        <h1 style="font-size:48px;">Scene 2 — Replace me</h1>
+        <p style="font-size:18px; opacity:0.85;">Cast slide, transition, or chapter break.</p>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<section class="ds-controls" aria-label="Demo stage controls">
+  <button id="ds-prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> Prev beat</button>
+  <button id="ds-play" class="primary"><svg id="ds-play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg><span id="ds-play-label">Play</span></button>
+  <div class="ds-scrub"><div id="ds-ticks" class="ds-ticks" aria-hidden="true"></div><input type="range" id="ds-scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub demo"></div>
+  <span class="ds-time" id="ds-time">0:00 / 0:00</span>
+  <select id="ds-speed"><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select>
+  <button id="ds-next">Next beat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</section>
+
+<div class="ds-beats-header" aria-hidden="true">
+  <span class="ds-beats-eyebrow">Beats</span>
+  <span class="ds-beats-rule"></span>
+  <span class="ds-beats-count">{{N_BEATS}} beats</span>
+</div>
+<div id="ds-beats" class="ds-beat-strip" aria-label="Jump to beat"></div>
+
+<div class="ds-help">
+  <span class="ds-help-item"><kbd>Space</kbd> play / pause</span>
+  <span class="ds-help-item"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> prev / next beat</span>
+  <span class="ds-help-item"><kbd>Shift</kbd> + <kbd>&larr;</kbd><kbd>&rarr;</kbd> &plusmn;5s</span>
+</div>
+
+<footer class="foot"><a href="./index.html">All Docusign IAM flipbooks</a></footer>
+
+<script src="../assets/demo-stage/demo-stage.js"></script>
+<script>
+  // Beats: each entry has { t (seconds, relative to 0), sceneId (matches data-scene),
+  //   eyebrow, title, body }. Replace with your storyline.
+  // CursorTrack: optional. { t, x, y, action?: "click" }. Coordinates are in the
+  //   1280×720 design space, scaled by the player to fit the responsive stage.
+  DemoStage.init('#ds', {
+    totalDuration: 60,
+    beats: [
+      { t:  0, sceneId: "example-1", eyebrow: "Step 1", title: "First beat",  body: "Replace this beat config with your storyline narration." },
+      { t: 30, sceneId: "example-2", eyebrow: "Step 2", title: "Second beat", body: "The active beat is highlighted in the strip below the stage." }
+    ],
+    cursorTrack: [
+      // { t: 5, x: 640, y: 360, action: "click" }
+    ]
+  });
+</script>
+
+</body>
+</html>
