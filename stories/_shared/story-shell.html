@@ -2286,12 +2286,25 @@ function mergeUsecasesBundle(bundle){
 
     VERTICALS.custom = custom;
     // Also register a preset so the workspace template wears the brand.
+    // Copy the full bundle the picker captured — partial copies leave the
+    // workspace template dressed in the source vertical's customer/SoR/etc.
     if (typeof window.PRESETS === 'object' && window.PRESETS) {
       window.PRESETS.custom = clone(window.PRESETS[srcKey] || {});
-      window.PRESETS.custom.tenant = cfg.tenant;
+      window.PRESETS.custom.tenant      = cfg.tenant;
       window.PRESETS.custom.tenantColor = cfg.tenantColor;
+      window.PRESETS.custom.tenantLogo  = cfg.tenantLogo || null;
+      // PRESETS.customer is the raw customer name without the "× " prefix
+      // that subtitle carries — strip it if the picker added one.
+      if (cfg.customer) {
+        window.PRESETS.custom.customer = cfg.customer.replace(/^×\s*/, '');
+      }
+      if (cfg.sor)             window.PRESETS.custom.sor             = cfg.sor;
+      if (cfg.signatureMoment) window.PRESETS.custom.signatureMoment = cfg.signatureMoment;
     }
-    console.log(`[tgk] custom vertical loaded · scaffolded from ${srcKey} · tenant ${cfg.tenant}`);
+    console.log(
+      `[tgk] custom vertical loaded · scaffolded from ${srcKey} · tenant=${cfg.tenant}` +
+      ` · customer=${cfg.customer || '—'} · logo=${cfg.tenantLogo ? 'yes' : 'no'}`
+    );
   } catch (e) { console.warn("[tgk] custom vertical parse failed:", e); }
 })();
 const v = VERTICALS[verticalKey] || VERTICALS.wealth;
@@ -2377,8 +2390,19 @@ const LIVE = JSON.parse(JSON.stringify(HOTSPOTS));
 
 // Apply tenant + subtitle
 const $ = (id) => document.getElementById(id);
-$('tn-mark').style.color = v.tenantColor;
-$('tn-mark').innerHTML = MARK_SVG;
+// Render the tenant mark — uploaded logo if the picker provided one
+// (cfg.tenantLogo is a base64 dataURL stored on v.tenantLogo by
+// loadCustomVertical above), otherwise fall back to the default
+// MARK_SVG colored with the tenant brand color.
+if (v.tenantLogo) {
+  $('tn-mark').style.color = '';
+  $('tn-mark').innerHTML =
+    `<img src="${v.tenantLogo}" alt="${(v.tenant || '').replace(/"/g, '&quot;')}" ` +
+    `style="width:100%;height:100%;object-fit:contain;display:block;">`;
+} else {
+  $('tn-mark').style.color = v.tenantColor;
+  $('tn-mark').innerHTML = MARK_SVG;
+}
 $('tn-wm').textContent = v.tenant;
 $('story-subtitle').textContent = v.subtitle;
 $('vertical-chip').textContent = v.label;
