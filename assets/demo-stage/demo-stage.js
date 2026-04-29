@@ -629,6 +629,33 @@
       });
     }
 
+    // Scene-tabs in the shell topbar — highlight the tab matching current scene.
+    // Tabs are <span class="t" data-scene-ids="opp,agentforce,..."> in the topbar.
+    var sceneTabsEl = shellEl ? shellEl.querySelector(".scene-tabs") : null;
+    if (sceneTabsEl) {
+      var tabs = sceneTabsEl.querySelectorAll(".t");
+      tabs.forEach(function (t) {
+        t.addEventListener("click", function () {
+          var ids = (t.dataset.sceneIds || "").split(",").map(function (s) { return s.trim(); });
+          if (!ids.length) return;
+          // Jump to the first beat whose sceneId matches this tab's first id
+          var target = beats.findIndex(function (b) { return ids.indexOf(b.sceneId) !== -1; });
+          if (target >= 0) video.currentTime = beats[target].t;
+        });
+      });
+    }
+    function paintActiveTab() {
+      if (!sceneTabsEl) return;
+      var idx = currentBeatIndex();
+      if (idx < 0) return;
+      var sid = beats[idx].sceneId;
+      var tabs = sceneTabsEl.querySelectorAll(".t");
+      tabs.forEach(function (t) {
+        var ids = (t.dataset.sceneIds || "").split(",").map(function (s) { return s.trim(); });
+        t.classList.toggle("on", ids.indexOf(sid) !== -1);
+      });
+    }
+
     // Time-update tick
     video.addEventListener("timeupdate", function () {
       paintTime();
@@ -641,6 +668,7 @@
       paintPips();
       paintProgress();
       paintPersona();
+      paintActiveTab();
       maybeEnterLeadMode();
     });
     video.addEventListener("loadedmetadata", function () {
@@ -657,6 +685,7 @@
       paintPips();
       paintProgress();
       paintPersona();
+      paintActiveTab();
       // Initial lead-mode pop on first paint
       maybeEnterLeadMode();
       // Honor ?start / ?beat
