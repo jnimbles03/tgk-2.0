@@ -21,6 +21,15 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const AUDIT_USER = process.env.AUDIT_USER || 'audit';
 const AUDIT_PASSWORD = process.env.AUDIT_PASSWORD || '';
 const AUDIT_EMAIL_DOMAIN = (process.env.AUDIT_EMAIL_DOMAIN || 'docusign.com').toLowerCase();
+// Edit allowlist — emails that can hit the canonical-write endpoints (POST /api/verticals/:key,
+// future fix-write paths). Comma-separated. The domain check on /audit/request is bypassed
+// for any email on this list, so off-domain admins (e.g. personal gmail) can still magic-link in.
+const EDIT_ALLOWLIST = (process.env.EDIT_ALLOWLIST || 'patrick.t.meyer@gmail.com')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+function isEditorEmail(email) {
+  if (!email) return false;
+  return EDIT_ALLOWLIST.includes(String(email).toLowerCase());
+}
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const RESEND_FROM = process.env.RESEND_FROM || 'onboarding@resend.dev';
 const AUDIT_BASE_URL = process.env.AUDIT_BASE_URL || ''; // e.g. https://your-repl.replit.app
@@ -757,6 +766,45 @@ async function requireAudit(req, res, next) {
   res.status(401).send('Authentication required.');
 }
 
+// requireEditor — gates canonical-write endpoints. Two-step:
+//   1. requireAudit  → ensures a verified email session exists (sets req.auditUser)
+//   2. allowlist     → ensures that email is in EDIT_ALLOWLIST. Hard 403 if not.
+// Basic-auth fallback resolves to "<user>@local"; we explicitly do NOT allow
+// those to write (basic-auth is a break-glass identity, not an editor identity).
+async function requireEditor(req, res, next) {
+  return requireAudit(req, res, () => {
+    const email = req.auditUser || '';
+    if (email.endsWith('@local')) {
+      return res.status(403).json({
+        error: 'editor_basic_auth_blocked',
+        message: 'Canonical edits require magic-link auth (basic-auth fallback is read-only).'
+      });
+    }
+    if (!isEditorEmail(email)) {
+      return res.status(403).json({
+        error: 'not_in_editor_allowlist',
+        message: `Editor allowlist does not include ${email}. Ask an admin to add you to EDIT_ALLOWLIST.`
+      });
+    }
+    req.editorEmail = email;
+    next();
+  });
+}
+
+// GET /api/me — lightweight probe builder.html uses to decide whether to
+// render the Save button. Returns 200 with {email, isEditor} if the caller
+// has a valid magic-link session, else 401. Never prompts; never redirects.
+app.get('/api/me', async (req, res) => {
+  const sid = parseCookies(req)['tgk_audit'];
+  const session = await findValidSession(sid);
+  if (!session) return res.status(401).json({ authenticated: false });
+  res.json({
+    authenticated: true,
+    email: session.email,
+    isEditor: isEditorEmail(session.email)
+  });
+});
+
 // Friendly aliases: /audit and /audit/ → /audit.html
 app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
 
@@ -1052,9 +1100,12 @@ app.post('/audit/request', express.urlencoded({ extended: false }), async (req, 
   const email = String((req.body && req.body.email) || '').trim().toLowerCase();
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const onDomain = email.endsWith('@' + AUDIT_EMAIL_DOMAIN);
-  if (!valid || !onDomain) {
+  // Allowlisted editors bypass the domain check — that's how off-domain admins
+  // (personal gmail, etc.) can sign in to the canonical-write surface.
+  const onAllowlist = isEditorEmail(email);
+  if (!valid || (!onDomain && !onAllowlist)) {
     const msg = encodeURIComponent(
-      `Email must be a valid @${AUDIT_EMAIL_DOMAIN} address.`);
+      `Email must be a valid @${AUDIT_EMAIL_DOMAIN} address (or on the editor allowlist).`);
     return res.redirect('/audit/login?err=' + msg);
   }
   if (!RESEND_API_KEY) {

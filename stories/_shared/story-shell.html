@@ -44,14 +44,34 @@
   .topbar .scene-tabs .t.on::after{content:"";position:absolute;left:0;right:0;bottom:-19px;height:2.5px;background:var(--ink);border-radius:2px;}
   .topbar .vertical-chip{margin-left:14px;padding:4px 10px;border:1px solid var(--hair);border-radius:12px;font-size:11px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.06em;}
 
-  .body{flex:1;display:flex;overflow:hidden;min-height:0;}
+  /* Body is a flex container with a 24%-rail SPACER (::before) and the
+     stage. The .sidebar is taken out of flex flow and positioned absolute
+     over the spacer + (in lead-mode) the left edge of the stage. This is
+     the key to a snappy lead-mode pop: the stage iframe never reflows
+     when the sidebar resizes, so width animation no longer triggers a
+     per-frame layout pass on the iframe. The card "floats" over the
+     stage in lead-mode, then pulls back to the rail width.
+
+     The ::before spacer is hardcoded to the rail width so there's always
+     a consistent slot reserved for the sidebar — even when it's wide. */
+  .body{flex:1;display:flex;overflow:hidden;min-height:0;position:relative;}
+  .body::before{
+    content:"";
+    flex-shrink:0;
+    width:24%;
+    max-width:420px;
+    min-width:320px;
+  }
 
   /* Sidebar default state = collapsed rail. Story has already retreated;
      this is the chapter-caption mode where the demo owns the room.
      On scene change the .shell.lead-mode class expands it to the wider
-     editorial state below. */
+     editorial state below. position:absolute keeps the .stage at a
+     fixed width regardless of sidebar size — no iframe reflow during
+     the pop. */
   .sidebar{
-    flex-shrink:0;
+    position:absolute;
+    top:0; left:0; bottom:0;
     width:24%;
     max-width:420px;
     min-width:320px;
@@ -59,28 +79,28 @@
     display:flex;
     flex-direction:column;
     padding:28px 32px 24px;
-    position:relative;
-    /* Snappier retreat — was 0.95s; now ~0.42s with a clean ease-out so
-       the demo gets the room quickly. */
+    z-index:5;
+    /* One rhythm: ~0.28s with a soft spring tail so the card lands
+       crisply. Width, padding, background all follow the same curve so
+       the eye locks to a single motion. */
     transition:
-      width 0.42s cubic-bezier(.4,0,.2,1),
-      max-width 0.42s cubic-bezier(.4,0,.2,1),
-      min-width 0.42s cubic-bezier(.4,0,.2,1),
-      padding 0.36s ease-out,
-      background 0.36s ease-out;
+      width 0.28s cubic-bezier(.34, 1.18, .64, 1),
+      max-width 0.28s cubic-bezier(.34, 1.18, .64, 1),
+      min-width 0.28s cubic-bezier(.34, 1.18, .64, 1),
+      padding 0.24s cubic-bezier(.4,0,.2,1),
+      background 0.18s ease-out;
+    will-change:width;
   }
   /* Bounce-in pop when entering lead-mode — fires on every beat so the
-     viewer's eye snaps to the new narration. The .is-popping class is
-     added by enterLeadMode() and removed when the animation ends, so the
-     animation replays on every beat change (CSS animations don't
-     re-fire when the same class is re-added without a reset). */
+     viewer's eye snaps to the new narration. Punchier than before:
+     0.30s with a tighter overshoot so it reads as "snap" not "settle". */
   @keyframes leadPop {
-    0%   { transform: scale(0.985); }
-    55%  { transform: scale(1.012); }
+    0%   { transform: scale(0.982); }
+    55%  { transform: scale(1.010); }
     100% { transform: scale(1); }
   }
   .sidebar.is-popping {
-    animation: leadPop 0.42s cubic-bezier(.34, 1.56, .64, 1);
+    animation: leadPop 0.30s cubic-bezier(.34, 1.45, .64, 1);
     will-change: transform;
   }
   .brand-slot{margin-bottom:28px;display:flex;align-items:center;gap:10px;}
@@ -105,14 +125,16 @@
   .persona{
     display:flex;align-items:center;gap:10px;
     margin-bottom:16px;
-    transition:gap 0.6s ease, margin-bottom 0.6s ease, opacity 0.4s ease;
+    /* Locked to the sidebar's 0.28s rhythm so the persona swell lands
+       on the same frame the column finishes resizing. */
+    transition:gap 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1), opacity 0.22s ease;
   }
   .persona .avatar{
     flex-shrink:0;width:28px;height:28px;border-radius:50%;
     display:inline-flex;align-items:center;justify-content:center;
     background:var(--tenant-accent);
     color:#fff;font-size:10.5px;font-weight:700;letter-spacing:0.04em;
-    transition:background 0.5s ease, width 0.6s ease, height 0.6s ease, font-size 0.6s ease;
+    transition:background 0.32s ease, width 0.26s cubic-bezier(.4,0,.2,1), height 0.26s cubic-bezier(.4,0,.2,1), font-size 0.26s cubic-bezier(.4,0,.2,1);
     text-transform:uppercase;
     box-shadow:0 0 0 2px rgba(255,255,255,0.6);
   }
@@ -143,25 +165,26 @@
   .step-label{
     font-size:11.5px;font-weight:600;color:var(--step-blue);
     letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;
-    transition:opacity 0.25s ease, font-size 0.7s ease, letter-spacing 0.7s ease, margin-bottom 0.7s ease;
+    transition:opacity 0.22s ease, font-size 0.26s cubic-bezier(.4,0,.2,1), letter-spacing 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1);
   }
   .headline{
     font-family:var(--ui-font);font-size:22px;font-weight:700;
     color:var(--ink);letter-spacing:-0.015em;line-height:1.22;margin-bottom:18px;
+    /* font-style/font-family/font-weight aren't smoothly interpolatable —
+       they snap on the property-change frame. Removing them from the
+       transition list lets the size/spacing motion read as one clean
+       lerp instead of "size lerps slowly, family snaps mid-motion". */
     transition:
-      opacity 0.25s ease,
-      font-size 0.75s cubic-bezier(.2,.8,.2,1),
-      font-weight 0.6s ease,
-      font-style 0.6s ease,
-      font-family 0.6s ease,
-      letter-spacing 0.7s ease,
-      line-height 0.7s ease,
-      margin-bottom 0.7s ease;
+      opacity 0.22s ease,
+      font-size 0.28s cubic-bezier(.34, 1.18, .64, 1),
+      letter-spacing 0.26s cubic-bezier(.4,0,.2,1),
+      line-height 0.26s cubic-bezier(.4,0,.2,1),
+      margin-bottom 0.26s cubic-bezier(.4,0,.2,1);
   }
   .lede{
     font-size:13.5px;color:var(--ink-soft);line-height:1.6;
     margin-bottom:20px;max-width:92%;
-    transition:opacity 0.6s ease, font-size 0.7s ease, color 0.7s ease;
+    transition:opacity 0.24s ease, font-size 0.26s cubic-bezier(.4,0,.2,1), color 0.26s ease;
     opacity:0.85;
   }
   .lede p + p{margin-top:10px;}
@@ -354,8 +377,13 @@
     .topbar .vertical-chip,.tenant-mark .story{display:none;}
     .tenant-mark .wm{font-size:18px;}
 
-    .body{flex-direction:column;height:auto;overflow:visible;}
-    .sidebar{width:100%;max-width:none;min-width:0;padding:18px 18px 14px;border-bottom:1px solid var(--hair);}
+    .body{flex-direction:column;height:auto;overflow:visible;position:static;}
+    /* Kill the desktop spacer on mobile — sidebar stacks above the stage,
+       no rail to reserve. */
+    .body::before{display:none;}
+    /* Take the sidebar back into normal flow so it stacks above the
+       iframe instead of floating over it. */
+    .sidebar{position:static;width:100%;max-width:none;min-width:0;padding:18px 18px 14px;border-bottom:1px solid var(--hair);}
     .brand-slot{margin-bottom:12px;}
     .brand-slot .ds{font-size:17px;}
     .step-label{margin-bottom:6px;font-size:11px;letter-spacing:0.18em;}
