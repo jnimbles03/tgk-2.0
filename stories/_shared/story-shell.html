@@ -222,6 +222,62 @@
   }
   body.calibrate .lead-hint{display:none !important;}
 
+  /* Persona-handoff hint — shown when autoplay pauses at a persona switch.
+     Required manual gesture (click anywhere on the stage / arrow / Next /
+     spacebar) before the story moves to the next actor. The pulsing arrow
+     telegraphs "you've got the wheel". Hidden by default; JS toggles
+     [hidden] off when paused-for-persona is true. */
+  .persona-handoff{
+    margin-top:14px;
+    padding:9px 12px;
+    background:rgba(75,0,233,0.06);
+    border:1px solid rgba(75,0,233,0.2);
+    border-radius:8px;
+    font-size:12.5px;
+    color:var(--ink-mid);
+    display:flex;
+    align-items:center;
+    gap:9px;
+    line-height:1.45;
+    letter-spacing:0.01em;
+    animation:handoffFadeIn 0.32s cubic-bezier(.34, 1.18, .64, 1);
+  }
+  .persona-handoff .handoff-arrow{
+    color:var(--ds-purple);
+    font-weight:700;
+    font-size:16px;
+    line-height:1;
+    animation:handoffArrow 1.4s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  .persona-handoff .handoff-text strong{color:var(--ink);font-weight:600;}
+  .persona-handoff kbd{
+    font-family:ui-monospace,monospace;
+    font-size:10.5px;
+    padding:1px 5px;
+    background:#fff;
+    border:1px solid var(--hair);
+    border-radius:3px;
+    color:var(--ink-mid);
+    font-weight:600;
+    line-height:1;
+  }
+  @keyframes handoffArrow{
+    0%,100%{transform:translateX(0);opacity:0.7;}
+    50%{transform:translateX(3px);opacity:1;}
+  }
+  @keyframes handoffFadeIn{
+    from{opacity:0;transform:translateY(2px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  /* While paused-for-persona, glow the persona avatar so the eye knows
+     who's stepping in next — same purple as the cue. */
+  .sidebar.is-handoff-pending .persona .avatar{
+    box-shadow:0 0 0 3px rgba(75,0,233,0.32),0 0 0 6px rgba(75,0,233,0.12);
+    transition:box-shadow 0.32s ease;
+  }
+  body.calibrate .persona-handoff{display:none !important;}
+
   /* ===================== Lead state — sidebar collapse =====================
      On every scene change the shell enters .lead-mode for ~2.6s. The
      sidebar widens from a 24% rail to a 48% editorial column, the
@@ -502,6 +558,13 @@
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
       <div class="lead-hint" id="lead-hint" aria-hidden="true">Click anywhere to begin</div>
+      <!-- Persona-switch handoff cue. Shown only when autoplay is paused
+           because the next beat hands off to a different actor. Cleared
+           the moment the user manually advances. -->
+      <div class="persona-handoff" id="persona-handoff" aria-live="polite" hidden>
+        <span class="handoff-arrow">→</span>
+        <span class="handoff-text">Click or <kbd>→</kbd> to hand off to <strong id="handoff-actor">the next actor</strong></span>
+      </div>
       <div class="foot-spacer"></div>
       <div class="beat-pips" id="beat-pips"></div>
       <div class="progress">
@@ -2924,6 +2987,9 @@ function exitLeadMode(){
   });
 })();
 function advance(){
+  // Clear the persona-handoff gate first — a click/arrow/Next that lands
+  // here is the user's manual gesture across the seam.
+  onManualAdvance();
   const scene = SCENES[idx];
   if (hotIdx < scene.hotspots.length - 1) {
     hotIdx++;
@@ -2937,6 +3003,7 @@ function advance(){
   else { goTo(0, {force:true}); }
 }
 function rewind(){
+  onManualAdvance();
   const scene = SCENES[idx];
   if (hotIdx > 0) {
     hotIdx--;
@@ -2956,6 +3023,77 @@ function fmt(ms){
   const m = Math.floor(s / 60), r = s % 60;
   return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
 }
+/* =========================================================
+   Persona-handoff gate — autoplay pauses when the next beat
+   hands off to a different actor. The user must click, hit
+   →, or press Next/Space before the story crosses the seam.
+   On manual advance, autoplay resumes if it was on.
+   ========================================================= */
+let pausedForPersona = false;
+let resumeOnManualAdvance = false;
+
+/* Resolve a beat's persona using the same precedence as renderSidebar:
+   per-beat override → scene-level → canonical 5-act fallback. */
+function resolvePersona(sceneIdx, beatIdx){
+  const scene = SCENES[sceneIdx];
+  if (!scene) return null;
+  const beat = scene.hotspots && scene.hotspots[beatIdx];
+  return (beat && beat.beatPersona) || scene.persona || personaFallback(sceneIdx);
+}
+
+function personaKey(p){
+  if (!p) return '';
+  return [p.side || '', p.name || '', p.role || ''].join('|').toLowerCase();
+}
+
+/* Returns the upcoming (sceneIdx, beatIdx) given the current cursor, or
+   null if there's nothing left. Mirrors advance()'s wraparound logic. */
+function peekNextPosition(){
+  const scene = SCENES[idx];
+  if (!scene) return null;
+  if (hotIdx < scene.hotspots.length - 1) return { i: idx, h: hotIdx + 1 };
+  if (idx < SCENES.length - 1)            return { i: idx + 1, h: 0 };
+  return null; // last beat of last scene — no handoff to gate
+}
+
+function isPersonaSwitchAhead(){
+  const next = peekNextPosition();
+  if (!next) return false;
+  const cur  = resolvePersona(idx, hotIdx);
+  const nxt  = resolvePersona(next.i, next.h);
+  return personaKey(cur) !== personaKey(nxt);
+}
+
+function showHandoffCue(){
+  const next = peekNextPosition();
+  const nxt  = next ? resolvePersona(next.i, next.h) : null;
+  const label = (nxt && (nxt.name || (SIDE_LABEL[nxt.side] || 'the next actor'))) || 'the next actor';
+  const cue = $('persona-handoff');
+  const actorEl = $('handoff-actor');
+  if (actorEl) actorEl.textContent = label;
+  if (cue) cue.hidden = false;
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.add('is-handoff-pending');
+}
+function hideHandoffCue(){
+  const cue = $('persona-handoff');
+  if (cue) cue.hidden = true;
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.remove('is-handoff-pending');
+}
+
+/* Called from every manual-advance path. If we were paused at a persona
+   seam, clear the gate and re-enter autoplay if it was running before. */
+function onManualAdvance(){
+  if (!pausedForPersona) return;
+  pausedForPersona = false;
+  hideHandoffCue();
+  if (resumeOnManualAdvance) {
+    resumeOnManualAdvance = false;
+    if (!playing) togglePlay(); // resume autoplay
+  }
+}
+
 function tickTimer(){
   if (!playing) return;
   const scene = SCENES[idx];
@@ -2969,6 +3107,16 @@ function tickTimer(){
   const beatElapsed  = (performance.now() - beatStart)  * playbackRate;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
+    // Persona-switch gate: pause autoplay at every actor handoff and
+    // require a manual click/arrow to cross. Lets the viewer absorb
+    // who's stepping in before the next beat plays.
+    if (isPersonaSwitchAhead()) {
+      pausedForPersona = true;
+      resumeOnManualAdvance = playing; // remember to re-arm autoplay after the gesture
+      togglePlay(); // sets playing=false, swaps the icon, stops the rAF loop
+      showHandoffCue();
+      return; // tickTimer won't be re-scheduled because togglePlay paused
+    }
     advance(); // advance() resets beatStart (and sceneStart on scene swap)
   }
   raf = requestAnimationFrame(tickTimer);
@@ -2993,6 +3141,16 @@ function togglePlay(){
 $('prev-btn').addEventListener('click', rewind);
 $('next-btn').addEventListener('click', advance);
 $('play-toggle').addEventListener('click', togglePlay);
+// The persona-handoff cue is itself a click target — clicking it
+// satisfies the "arrow or click" gate and advances. Cursor:pointer is
+// applied dynamically when the cue becomes visible (see CSS hover state
+// would also work but we want it explicit).
+(function wireHandoffCueClick(){
+  const cue = document.getElementById('persona-handoff');
+  if (!cue) return;
+  cue.style.cursor = 'pointer';
+  cue.addEventListener('click', advance);
+})();
 document.querySelectorAll('#scene-tabs .t').forEach(t => t.addEventListener('click', () => {
   const k = parseInt(t.dataset.i, 10);
   if (Number.isFinite(k) && k >= 0 && k < SCENES.length) goTo(k);
