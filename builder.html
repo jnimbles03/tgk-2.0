@@ -757,6 +757,372 @@
     margin-left: auto;
   }
   .playlist-foot .reset-link:hover { color: var(--ds-deep-violet); }
+
+  /* ============================================================
+     iMovie filmstrip — pool of scene tiles + horizontal timeline
+     + inspector. Replaces the old palette-zone / playlist-zone
+     2-column layout for Step 3.
+     ============================================================ */
+
+  .imovie-card {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  @media (max-width: 640px) {
+    .imovie-card { padding: 22px 18px; border-left-width: 2px; }
+  }
+
+  .imovie-zone + .imovie-zone {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ds-rule);
+  }
+
+  .zone-label {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .zone-sub {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: var(--ds-text-soft);
+    margin: 0 0 14px;
+    line-height: 1.5;
+  }
+  .zone-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .zone-meta {
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: var(--ds-text-soft);
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== Pool of scenes (top) ===== */
+  .pool-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .pool-row { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  }
+  .pool-tile {
+    position: relative;
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: grab;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+  }
+  .pool-tile:hover {
+    border-color: var(--ds-cobalt);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(19, 0, 50, 0.08);
+  }
+  .pool-tile.is-dragging { opacity: 0.45; cursor: grabbing; }
+  .pool-tile:active { cursor: grabbing; }
+  .pool-poster {
+    position: relative;
+    height: 72px;
+    background: var(--ds-deep-violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .pool-poster::before,
+  .pool-poster::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 6px;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255, 255, 255, 0.85) 0 4px,
+        transparent 4px 10px);
+    opacity: 0.55;
+  }
+  .pool-poster::before { top: 0; }
+  .pool-poster::after  { bottom: 0; }
+  .pool-glyph {
+    font-family: var(--ds-mono);
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--ds-ecru);
+    letter-spacing: 0.06em;
+  }
+  .pool-meta {
+    padding: 8px 10px 10px;
+  }
+  .pool-name {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .pool-role {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+  .pool-add {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ds-cobalt);
+    border: none;
+    font-family: var(--ds-mono);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.15);
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .pool-add:hover { background: var(--ds-ecru); transform: scale(1.08); }
+
+  /* ===== Filmstrip timeline (middle) ===== */
+  .filmstrip-wrap {
+    background: var(--ds-mist-soft);
+    border: 1px solid var(--ds-rule);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    min-height: 152px;
+  }
+  .filmstrip-wrap::-webkit-scrollbar { height: 8px; }
+  .filmstrip-wrap::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--ds-inkwell) 18%, transparent);
+    border-radius: 4px;
+  }
+  .filmstrip-track {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    min-height: 124px;
+  }
+  .filmstrip-empty {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--ds-text-soft);
+    text-align: center;
+    padding: 36px 16px;
+    border: 1.5px dashed var(--ds-rule-strong);
+    border-radius: 8px;
+    background: var(--ds-mist-soft);
+  }
+  .filmstrip-wrap.is-dragging-over {
+    background: color-mix(in srgb, var(--ds-mist) 50%, var(--ds-white));
+    border-color: var(--ds-cobalt);
+  }
+
+  .film-tile {
+    position: relative;
+    flex: 0 0 184px;
+    background: var(--ds-white);
+    border: 1.5px solid var(--ds-rule);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: grab;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+  }
+  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 60%, var(--ds-rule)); }
+  .film-tile.is-selected {
+    border-color: var(--ds-cobalt);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent);
+  }
+  .film-tile.is-dragging { opacity: 0.4; cursor: grabbing; }
+  .film-tile.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt); }
+  .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt); }
+  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
+  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
+
+  .film-poster {
+    position: relative;
+    height: 78px;
+    background: var(--ds-deep-violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .film-poster::before,
+  .film-poster::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 7px;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255, 255, 255, 0.85) 0 4px,
+        transparent 4px 11px);
+    opacity: 0.6;
+  }
+  .film-poster::before { top: 0; }
+  .film-poster::after  { bottom: 0; }
+  .film-step {
+    position: absolute;
+    top: 10px; left: 8px;
+    font-family: var(--ds-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: var(--ds-ecru);
+    background: rgba(19, 0, 50, 0.5);
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    backdrop-filter: blur(2px);
+  }
+  .film-glyph {
+    font-family: var(--ds-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ds-ecru);
+    letter-spacing: 0.06em;
+  }
+  .film-remove {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(19, 0, 50, 0.5);
+    color: var(--ds-ecru);
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+    transition: background 0.15s ease;
+    opacity: 0;
+  }
+  .film-tile:hover .film-remove,
+  .film-tile.is-selected .film-remove { opacity: 1; }
+  .film-remove:hover { background: var(--ds-poppy); }
+  .film-meta { padding: 8px 10px 10px; }
+  .film-name {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .film-tag {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    line-height: 1.3;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Poster gradient palette (shared by .pool-poster + .film-poster) */
+  [data-poster="violet"]       { background: linear-gradient(135deg, var(--ds-deep-violet) 0%, color-mix(in srgb, var(--ds-deep-violet) 60%, var(--ds-cobalt)) 100%); }
+  [data-poster="cobalt"]       { background: linear-gradient(135deg, var(--ds-cobalt) 0%, color-mix(in srgb, var(--ds-cobalt) 55%, var(--ds-inkwell)) 100%); }
+  [data-poster="cobalt-deep"]  { background: linear-gradient(135deg, var(--ds-cobalt) 0%, var(--ds-inkwell) 100%); }
+  [data-poster="poppy"]        { background: linear-gradient(135deg, var(--ds-poppy) 0%, color-mix(in srgb, var(--ds-poppy) 55%, var(--ds-deep-violet)) 100%); }
+  [data-poster="mist"]         { background: linear-gradient(135deg, var(--ds-mist) 0%, color-mix(in srgb, var(--ds-mist) 60%, var(--ds-cobalt)) 100%); }
+  [data-poster="mint"]         { background: linear-gradient(135deg, #5BCDB8 0%, #2D8A8A 100%); }
+  [data-poster="slate"]        { background: linear-gradient(135deg, #6B7A8C 0%, #94A3B8 100%); }
+  [data-poster="glow"]         { background: var(--ds-glow); }
+  [data-poster="teal"]         { background: linear-gradient(135deg, #6FD6C8 0%, #2D8A8A 100%); }
+  [data-poster="amber"]        { background: linear-gradient(135deg, #E8A438 0%, #C77B1F 100%); }
+  [data-poster="violet-poppy"] { background: linear-gradient(135deg, var(--ds-deep-violet) 0%, var(--ds-poppy) 100%); }
+
+  /* Mist is light enough that ecru text disappears — flip to deep violet. */
+  [data-poster="mist"] .pool-glyph,
+  [data-poster="mist"] .film-glyph { color: var(--ds-deep-violet); }
+  [data-poster="mist"] .film-step  { background: rgba(38, 6, 93, 0.55); }
+  [data-poster="mist"] .film-remove { background: rgba(38, 6, 93, 0.45); }
+
+  /* ===== Inspector (bottom) ===== */
+  .inspector {
+    margin-top: 18px;
+    background: var(--ds-mist-soft);
+    border: 1px solid var(--ds-rule);
+    border-radius: 8px;
+    padding: 18px 22px;
+    animation: stepFade 0.22s ease;
+  }
+  .inspector-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .inspector-label {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+  }
+  .inspector-label strong {
+    font-style: italic;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ds-cobalt);
+    font-size: 0.9375rem;
+  }
+  .inspector-close {
+    background: transparent;
+    border: none;
+    color: var(--ds-text-soft);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .inspector-close:hover { background: rgba(19, 0, 50, 0.06); color: var(--ds-text); }
+
+  .inspector-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 </style>
 </head>
 <body>
@@ -979,302 +1345,62 @@
   </div>
   <!-- /Step 2 -->
 
-  <!-- ===== Step 3 — Scenes ===== -->
+  <!-- ===== Step 3 — Scenes (iMovie pool + filmstrip + inspector) ===== -->
   <div class="wizard-step" data-step="3">
     <h2 class="step-title">Assemble the <em>scenes</em>.</h2>
-    <p class="step-deck">Click bricks from the library to add them. Drag the handle to reorder. Edit narration inline.</p>
+    <p class="step-deck">Drag a tile from the pool down into the timeline. Click any tile in the timeline to edit its narration.</p>
 
-    <div class="playlist-card">
-    <div class="playlist-grid">
+    <div class="imovie-card">
 
-      <!-- ===== Palette (left): the 13-template library ===== -->
-      <div class="palette-zone">
-        <div class="zone-label">Library</div>
-        <div class="zone-sub">Click a brick to add it to the playlist.</div>
-        <div class="palette" id="palette">
+      <!-- ===== Pool of scenes (top) ===== -->
+      <div class="imovie-zone pool-zone">
+        <div class="zone-label">Scene pool · 13 templates</div>
+        <p class="zone-sub">Drag onto the timeline, or tap <span style="font-family:var(--ds-mono);font-weight:700;color:var(--ds-cobalt);">+</span> to append.</p>
+        <div class="pool-row" id="pool" aria-label="Scene pool"></div>
+      </div>
 
-          <div class="palette-chip" data-template="agreement-desk">
-            <span class="chip-glyph">AD</span>
-            <span class="chip-body">
-              <div class="chip-name">Agreement Desk</div>
-              <div class="chip-role">Sender · Maestro proxy</div>
-            </span>
-            <span class="chip-add">+</span>
+      <!-- ===== Horizontal timeline ===== -->
+      <div class="imovie-zone timeline-zone">
+        <div class="zone-label-row">
+          <span class="zone-label">Timeline</span>
+          <span class="zone-meta" id="sceneCount">0 scenes</span>
+        </div>
+        <div class="filmstrip-wrap" id="filmstripWrap" aria-label="Demo timeline">
+          <div class="filmstrip-track" id="timeline"></div>
+        </div>
+        <div class="filmstrip-empty" id="timelineEmpty" hidden>Drop scenes here, or tap + on a tile in the pool above.</div>
+      </div>
+
+      <!-- ===== Inspector (bottom) ===== -->
+      <div class="inspector" id="inspector" hidden aria-live="polite">
+        <div class="inspector-head">
+          <span class="inspector-label">Inspector · <strong id="inspectorTitle">—</strong></span>
+          <button type="button" class="inspector-close" id="inspectorClose" aria-label="Close inspector">×</button>
+        </div>
+        <div class="inspector-fields">
+          <div class="scene-field-row">
+            <label class="scene-field-label" for="inspTag">Tag</label>
+            <input type="text" id="inspTag" maxlength="40" placeholder="Sender · Maestro proxy">
           </div>
-
-          <div class="palette-chip" data-template="clear-idv">
-            <span class="chip-glyph">ID</span>
-            <span class="chip-body">
-              <div class="chip-name">CLEAR IDV</div>
-              <div class="chip-role">Identity at the door</div>
-            </span>
-            <span class="chip-add">+</span>
+          <div class="scene-field-row">
+            <label class="scene-field-label" for="inspHeadline">Headline</label>
+            <input type="text" id="inspHeadline" maxlength="80" placeholder="$5M household, one envelope.">
           </div>
-
-          <div class="palette-chip" data-template="signing-ceremony">
-            <span class="chip-glyph">SG</span>
-            <span class="chip-body">
-              <div class="chip-name">Signing Ceremony</div>
-              <div class="chip-role">Capture the signature</div>
-            </span>
-            <span class="chip-add">+</span>
+          <div class="scene-field-row">
+            <label class="scene-field-label" for="inspLede">Lede</label>
+            <textarea id="inspLede" rows="2" maxlength="240" placeholder="One short sentence the prospect will remember."></textarea>
           </div>
-
-          <div class="palette-chip" data-template="navigator">
-            <span class="chip-glyph">NV</span>
-            <span class="chip-body">
-              <div class="chip-name">Navigator</div>
-              <div class="chip-role">Post-signing data view</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="workspace">
-            <span class="chip-glyph">WS</span>
-            <span class="chip-body">
-              <div class="chip-name">Workspace</div>
-              <div class="chip-role">Collaboration room</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="webform">
-            <span class="chip-glyph">WF</span>
-            <span class="chip-body">
-              <div class="chip-name">Webform</div>
-              <div class="chip-role">Public-facing intake</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="webform-intake">
-            <span class="chip-glyph">WI</span>
-            <span class="chip-body">
-              <div class="chip-name">Webform Intake</div>
-              <div class="chip-role">Triaged inbound queue</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="maestro-loop">
-            <span class="chip-glyph">ML</span>
-            <span class="chip-body">
-              <div class="chip-name">Maestro Loop</div>
-              <div class="chip-role">Orchestration close-up</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="maestro-package">
-            <span class="chip-glyph">MP</span>
-            <span class="chip-body">
-              <div class="chip-name">Maestro Package</div>
-              <div class="chip-role">Multi-doc fan-out</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="agents">
-            <span class="chip-glyph">AG</span>
-            <span class="chip-body">
-              <div class="chip-name">Agents</div>
-              <div class="chip-role">Agentic actions panel</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="ehr-desktop">
-            <span class="chip-glyph">EH</span>
-            <span class="chip-body">
-              <div class="chip-name">EHR Desktop</div>
-              <div class="chip-role">Clinician embed</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="portal-shell">
-            <span class="chip-glyph">PS</span>
-            <span class="chip-body">
-              <div class="chip-name">Portal Shell</div>
-              <div class="chip-role">Tenant portal frame</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
-          <div class="palette-chip" data-template="agreement-desk-coc">
-            <span class="chip-glyph">CC</span>
-            <span class="chip-body">
-              <div class="chip-name">AD · Chain-of-custody</div>
-              <div class="chip-role">Variant for fraud-fabric</div>
-            </span>
-            <span class="chip-add">+</span>
-          </div>
-
         </div>
       </div>
 
-      <!-- ===== Playlist (right): the assembled story ===== -->
-      <div class="playlist-zone">
-        <div class="zone-label">Your playlist · scaffolded from Wealth Management</div>
-        <div class="playlist" id="playlist">
-
-          <div class="playlist-scene" data-template="agreement-desk">
-            <div class="scene-head">
-              <span class="scene-handle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
-                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
-                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
-                </svg>
-              </span>
-              <span class="scene-step">SCENE 1</span>
-              <span class="scene-name">Agreement Desk</span>
-              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
-            </div>
-            <div class="scene-fields">
-              <div class="scene-field-row">
-                <label class="scene-field-label">Tag</label>
-                <input type="text" value="Sender">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Headline</label>
-                <input type="text" value="$5M household, one envelope.">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Lede</label>
-                <textarea rows="2">Aster Capital sends the IRA rollover packet — Maestro fans the pieces out invisibly behind the desk.</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="playlist-scene" data-template="clear-idv">
-            <div class="scene-head">
-              <span class="scene-handle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
-                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
-                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
-                </svg>
-              </span>
-              <span class="scene-step">SCENE 2</span>
-              <span class="scene-name">CLEAR IDV</span>
-              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
-            </div>
-            <div class="scene-fields">
-              <div class="scene-field-row">
-                <label class="scene-field-label">Tag</label>
-                <input type="text" value="Identity">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Headline</label>
-                <input type="text" value="Verified once, trusted everywhere.">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Lede</label>
-                <textarea rows="2">Hillside hands identity to CLEAR — one IAL2 verification binds to every downstream document.</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="playlist-scene" data-template="signing-ceremony">
-            <div class="scene-head">
-              <span class="scene-handle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
-                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
-                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
-                </svg>
-              </span>
-              <span class="scene-step">SCENE 3</span>
-              <span class="scene-name">Signing Ceremony</span>
-              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
-            </div>
-            <div class="scene-fields">
-              <div class="scene-field-row">
-                <label class="scene-field-label">Tag</label>
-                <input type="text" value="Signing">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Headline</label>
-                <input type="text" value="Signed at the kitchen table.">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Lede</label>
-                <textarea rows="2">Aster signs the rollover docs from a phone — no PDF print, no overnight courier, no advisor handoff.</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="playlist-scene" data-template="navigator">
-            <div class="scene-head">
-              <span class="scene-handle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
-                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
-                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
-                </svg>
-              </span>
-              <span class="scene-step">SCENE 4</span>
-              <span class="scene-name">Navigator</span>
-              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
-            </div>
-            <div class="scene-fields">
-              <div class="scene-field-row">
-                <label class="scene-field-label">Tag</label>
-                <input type="text" value="Data">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Headline</label>
-                <input type="text" value="Every clause, every counterparty, queryable.">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Lede</label>
-                <textarea rows="2">The signed packet lands in Navigator — beneficiaries, fee schedule, and rollover terms are extracted and indexed.</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="playlist-scene" data-template="workspace">
-            <div class="scene-head">
-              <span class="scene-handle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
-                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
-                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
-                </svg>
-              </span>
-              <span class="scene-step">SCENE 5</span>
-              <span class="scene-name">Workspace</span>
-              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
-            </div>
-            <div class="scene-fields">
-              <div class="scene-field-row">
-                <label class="scene-field-label">Tag</label>
-                <input type="text" value="Workspace">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Headline</label>
-                <input type="text" value="Where the household lives, post-signing.">
-              </div>
-              <div class="scene-field-row">
-                <label class="scene-field-label">Lede</label>
-                <textarea rows="2">Aster, the advisor, and the trust attorney share one room — every future document anchored to the household.</textarea>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="playlist-foot">
-          <span class="scene-count" id="sceneCount">5 scenes</span>
-          <span>·</span>
-          <span>3-scene minimum, no hard max.</span>
-          <button type="button" class="reset-link" id="btnResetPlaylist">Reset playlist to industry default</button>
-        </div>
+      <div class="playlist-foot">
+        <span>3-scene minimum, no hard max.</span>
+        <button type="button" class="reset-link" id="btnResetPlaylist">Reset timeline to industry default</button>
       </div>
 
     </div>
-    <!-- /playlist-card -->
+    <!-- /imovie-card -->
+
 
     <div class="wizard-nav">
       <button class="btn btn-secondary" type="button" data-wizard-back>← Back</button>
@@ -1543,6 +1669,15 @@
       return;
     }
 
+    // Pull the assembled timeline. 3-scene minimum is advertised in the foot.
+    const scenes = (window.__timeline && window.__timeline.getScenes()) || [];
+    if (scenes.length < 3) {
+      $('errorPanel').textContent = `Timeline needs at least 3 scenes (currently ${scenes.length}). Drag tiles from the pool, or hit "Reset timeline to industry default".`;
+      $('errorPanel').classList.add('active');
+      if (window.__wizard) window.__wizard.showStep(3);
+      return;
+    }
+
     $('btnGenerate').disabled = true;
     $('submitStatus').textContent = 'Saving config…';
 
@@ -1560,14 +1695,15 @@
       signatureMoment: moment,
       usecase,
       sourceVertical: industry,
-      // Minimal scenes payload — for v1 we hand the shell an empty scenes
-      // array and let the shell's narration fall back to the source vertical's
-      // narration via the merge bundle (the source-vertical scaffold).
-      // Expand this with custom-authored scenes in a follow-up.
-      scenes: [],
+      // Scenes payload — assembled from the iMovie timeline in Step 3.
+      // Each entry: { template, name, tag, headline, lede }.
+      // Empty narration (tag/headline/lede) means "fall back to the source
+      // vertical's narration via the shell's merge bundle".
+      scenes,
       _builderMeta: {
         builtAt: new Date().toISOString(),
         sourceVertical: industry,
+        sceneCount: scenes.length,
         hasLogo: !!logoDataUrl
       }
     };
@@ -1633,7 +1769,365 @@
   // the result panel actually had .active to remove).
   $('btnReset').addEventListener('click', () => {
     if (window.__wizard) window.__wizard.showStep(1);
+    if (window.__timeline) window.__timeline.resetToUsecaseDefault();
   });
+
+  // ============================================================
+  // iMovie pool + horizontal timeline + inspector
+  // ------------------------------------------------------------
+  // The single source of truth for scene templates is SCENE_LIBRARY.
+  // The poster gradient palette lives in CSS ([data-poster="..."]).
+  // Future: when assets/clips/index.json exists, render a real
+  // poster image inside the .pool-poster / .film-poster instead
+  // of the gradient-only placeholder. Tiles without a clip keep
+  // the gradient, so heterogeneous pools work cleanly.
+  // ============================================================
+  (function initTimeline() {
+    const SCENE_LIBRARY = [
+      { id: 'agreement-desk',     glyph: 'AD', name: 'Agreement Desk',         role: 'Sender · Maestro proxy',        poster: 'violet' },
+      { id: 'clear-idv',          glyph: 'ID', name: 'CLEAR IDV',              role: 'Identity at the door',          poster: 'cobalt' },
+      { id: 'signing-ceremony',   glyph: 'SG', name: 'Signing Ceremony',       role: 'Capture the signature',         poster: 'poppy' },
+      { id: 'navigator',          glyph: 'NV', name: 'Navigator',              role: 'Post-signing data view',        poster: 'mist' },
+      { id: 'workspace',          glyph: 'WS', name: 'Workspace',              role: 'Collaboration room',            poster: 'mint' },
+      { id: 'webform',            glyph: 'WF', name: 'Webform',                role: 'Public-facing intake',          poster: 'slate' },
+      { id: 'webform-intake',     glyph: 'WI', name: 'Webform Intake',         role: 'Triaged inbound queue',         poster: 'slate' },
+      { id: 'maestro-loop',       glyph: 'ML', name: 'Maestro Loop',           role: 'Orchestration close-up',        poster: 'cobalt-deep' },
+      { id: 'maestro-package',    glyph: 'MP', name: 'Maestro Package',        role: 'Multi-doc fan-out',             poster: 'violet' },
+      { id: 'agents',             glyph: 'AG', name: 'Agents',                 role: 'Agentic actions panel',         poster: 'glow' },
+      { id: 'ehr-desktop',        glyph: 'EH', name: 'EHR Desktop',            role: 'Clinician embed',               poster: 'teal' },
+      { id: 'portal-shell',       glyph: 'PS', name: 'Portal Shell',           role: 'Tenant portal frame',           poster: 'amber' },
+      { id: 'agreement-desk-coc', glyph: 'CC', name: 'AD · Chain-of-custody',  role: 'Variant for fraud-fabric',      poster: 'violet-poppy' }
+    ];
+    const SCENE_BY_ID = Object.fromEntries(SCENE_LIBRARY.map(s => [s.id, s]));
+
+    // Default playlists per usecase. Match what the shell ships per usecase
+    // so "Reset to industry default" mirrors the live demo.
+    const USECASE_DEFAULTS = {
+      'default':      ['agreement-desk', 'clear-idv', 'signing-ceremony', 'navigator', 'workspace'],
+      'fraud-fabric': ['agreement-desk-coc', 'clear-idv', 'signing-ceremony'],
+      'intake':       ['webform', 'webform-intake', 'agreement-desk', 'navigator'],
+      'maintenance':  ['agreement-desk', 'clear-idv', 'signing-ceremony']
+    };
+
+    // Placeholder narration — used when a tile is added with no industry
+    // context. The shell still renders proper narration from CANONICAL.md
+    // when scenes[].narration is empty, so these are first-pass affordances.
+    const NARRATION_FALLBACK = {
+      'agreement-desk':     { tag: 'Sender',    headline: '$5M household, one envelope.',                lede: 'Aster Capital sends the IRA rollover packet — Maestro fans the pieces out invisibly behind the desk.' },
+      'clear-idv':          { tag: 'Identity',  headline: 'Verified once, trusted everywhere.',          lede: 'Hillside hands identity to CLEAR — one IAL2 verification binds to every downstream document.' },
+      'signing-ceremony':   { tag: 'Signing',   headline: 'Signed at the kitchen table.',                lede: 'Aster signs the rollover docs from a phone — no PDF print, no overnight courier, no advisor handoff.' },
+      'navigator':          { tag: 'Data',      headline: 'Every clause, every counterparty, queryable.',lede: 'The signed packet lands in Navigator — beneficiaries, fee schedule, and rollover terms are extracted and indexed.' },
+      'workspace':          { tag: 'Workspace', headline: 'Where the household lives, post-signing.',    lede: 'Aster, the advisor, and the trust attorney share one room — every future document anchored to the household.' },
+      'webform':            { tag: 'Intake',    headline: 'One link, fully triaged.',                    lede: 'A public webform captures the customer’s ask, then Maestro routes it to the right queue with chain-of-custody intact.' },
+      'webform-intake':     { tag: 'Queue',     headline: 'Inbound, sorted, picked up.',                 lede: 'Triaged requests stack into a Maestro-fed queue — humans focus on the calls that need a human.' },
+      'maestro-loop':       { tag: 'Maestro',   headline: 'Orchestration, in the open.',                 lede: 'The Maestro graph fans out, waits, retries — every step auditable.' },
+      'maestro-package':    { tag: 'Maestro',   headline: 'One packet, many parts.',                     lede: 'Maestro assembles the binder — disclosures, KYC, signature card — and ships it as one Agreement.' },
+      'agents':             { tag: 'Agents',    headline: 'The work, picked up.',                        lede: 'IAM agents take the next action without waiting on a human gate.' },
+      'ehr-desktop':        { tag: 'Clinical',  headline: 'Embedded in Epic.',                           lede: 'The clinician never leaves the chart — consent, intake, and signature stay in-context.' },
+      'portal-shell':       { tag: 'Portal',    headline: 'A room of one’s own.',                   lede: 'The tenant’s branded portal hosts every artifact post-signing.' },
+      'agreement-desk-coc': { tag: 'Custody',   headline: 'Bound at the door.',                          lede: 'Identity binds to the agreement at the desk — every downstream signature carries the chain.' }
+    };
+
+    const $$ = sel => document.querySelectorAll(sel);
+    const elPool       = document.getElementById('pool');
+    const elTimeline   = document.getElementById('timeline');
+    const elTimelineWrap = document.getElementById('filmstripWrap');
+    const elEmpty      = document.getElementById('timelineEmpty');
+    const elCount      = document.getElementById('sceneCount');
+    const elInspector  = document.getElementById('inspector');
+    const elInspTitle  = document.getElementById('inspectorTitle');
+    const elInspTag    = document.getElementById('inspTag');
+    const elInspHead   = document.getElementById('inspHeadline');
+    const elInspLede   = document.getElementById('inspLede');
+    const elInspClose  = document.getElementById('inspectorClose');
+    const elReset      = document.getElementById('btnResetPlaylist');
+
+    let timeline = [];   // [{ uid, templateId, tag, headline, lede }]
+    let selectedUid = null;
+    let nextUid = 1;
+    let dragSource = null;  // { type: 'pool'|'timeline', templateId?, uid? }
+    const newUid = () => 'tl-' + (nextUid++);
+
+    const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+    ));
+
+    // ---------- render ----------
+    function renderPool() {
+      elPool.innerHTML = SCENE_LIBRARY.map(s => `
+        <div class="pool-tile" draggable="true" data-template="${s.id}" title="${escapeHtml(s.name)} — ${escapeHtml(s.role)}">
+          <div class="pool-poster" data-poster="${s.poster}">
+            <span class="pool-glyph">${s.glyph}</span>
+            <button type="button" class="pool-add" data-action="add" aria-label="Add ${escapeHtml(s.name)} to timeline">+</button>
+          </div>
+          <div class="pool-meta">
+            <div class="pool-name">${escapeHtml(s.name)}</div>
+            <div class="pool-role">${escapeHtml(s.role)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline() {
+      elTimeline.innerHTML = timeline.map((item, idx) => {
+        const s = SCENE_BY_ID[item.templateId];
+        if (!s) return '';
+        const sel = item.uid === selectedUid ? ' is-selected' : '';
+        const tagText = item.tag || s.role;
+        return `
+          <div class="film-tile${sel}" data-uid="${item.uid}" draggable="true">
+            <div class="film-poster" data-poster="${s.poster}">
+              <span class="film-step">SCENE ${idx + 1}</span>
+              <span class="film-glyph">${s.glyph}</span>
+              <button type="button" class="film-remove" data-action="remove" aria-label="Remove ${escapeHtml(s.name)}">×</button>
+            </div>
+            <div class="film-meta">
+              <div class="film-name">${escapeHtml(s.name)}</div>
+              <div class="film-tag" data-role="tag">${escapeHtml(tagText)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      elEmpty.hidden = timeline.length > 0;
+      elCount.textContent = timeline.length === 1 ? '1 scene' : `${timeline.length} scenes`;
+      renderInspector();
+    }
+
+    function renderInspector() {
+      if (!selectedUid) { elInspector.hidden = true; return; }
+      const idx = timeline.findIndex(t => t.uid === selectedUid);
+      if (idx === -1) { elInspector.hidden = true; selectedUid = null; return; }
+      const item = timeline[idx];
+      const s = SCENE_BY_ID[item.templateId];
+      elInspector.hidden = false;
+      elInspTitle.textContent = `Scene ${idx + 1} · ${s.name}`;
+      elInspTag.value      = item.tag || '';
+      elInspHead.value     = item.headline || '';
+      elInspLede.value     = item.lede || '';
+    }
+
+    // ---------- mutations ----------
+    function newItem(templateId) {
+      const s = SCENE_BY_ID[templateId];
+      if (!s) return null;
+      const fb = NARRATION_FALLBACK[templateId] || { tag: s.role, headline: '', lede: '' };
+      return { uid: newUid(), templateId, tag: fb.tag, headline: fb.headline, lede: fb.lede };
+    }
+    function appendTemplate(templateId) {
+      const item = newItem(templateId);
+      if (!item) return;
+      timeline.push(item);
+      selectedUid = item.uid;
+      renderTimeline();
+      // Scroll the new tile into view
+      requestAnimationFrame(() => {
+        const tile = elTimeline.querySelector(`.film-tile[data-uid="${item.uid}"]`);
+        tile?.scrollIntoView({ behavior: 'smooth', inline: 'end', block: 'nearest' });
+      });
+    }
+    function removeUid(uid) {
+      const idx = timeline.findIndex(t => t.uid === uid);
+      if (idx === -1) return;
+      timeline.splice(idx, 1);
+      if (selectedUid === uid) {
+        selectedUid = timeline[Math.min(idx, timeline.length - 1)]?.uid || null;
+      }
+      renderTimeline();
+    }
+    function resetToUsecaseDefault() {
+      const usecase = (document.getElementById('f-usecase') || {}).value || 'default';
+      const ids = USECASE_DEFAULTS[usecase] || USECASE_DEFAULTS.default;
+      timeline = ids.map(id => newItem(id)).filter(Boolean);
+      selectedUid = timeline[0]?.uid || null;
+      renderTimeline();
+    }
+
+    // ---------- pool drag + click ----------
+    elPool.addEventListener('dragstart', (e) => {
+      const tile = e.target.closest('.pool-tile');
+      if (!tile) return;
+      dragSource = { type: 'pool', templateId: tile.dataset.template };
+      tile.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'copy';
+      try { e.dataTransfer.setData('text/plain', tile.dataset.template); } catch (_) {}
+    });
+    elPool.addEventListener('dragend', (e) => {
+      const tile = e.target.closest('.pool-tile');
+      tile?.classList.remove('is-dragging');
+      dragSource = null;
+      elTimelineWrap.classList.remove('is-dragging-over');
+      elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
+        el.classList.remove('is-drop-before', 'is-drop-after');
+      });
+    });
+    elPool.addEventListener('click', (e) => {
+      const tile = e.target.closest('.pool-tile');
+      if (!tile) return;
+      // Both the + button and the tile body append. The + just lives there
+      // for affordance; the whole tile is also clickable.
+      appendTemplate(tile.dataset.template);
+    });
+
+    // ---------- timeline drag + click ----------
+    elTimeline.addEventListener('dragstart', (e) => {
+      const tile = e.target.closest('.film-tile');
+      if (!tile) return;
+      dragSource = { type: 'timeline', uid: tile.dataset.uid };
+      tile.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', tile.dataset.uid); } catch (_) {}
+    });
+    elTimeline.addEventListener('dragend', (e) => {
+      const tile = e.target.closest('.film-tile');
+      tile?.classList.remove('is-dragging');
+      dragSource = null;
+      elTimelineWrap.classList.remove('is-dragging-over');
+      elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
+        el.classList.remove('is-drop-before', 'is-drop-after');
+      });
+    });
+
+    // The whole filmstrip-wrap is the drop target. We compute insertion
+    // index against the tiles inside.
+    elTimelineWrap.addEventListener('dragenter', (e) => {
+      if (!dragSource) return;
+      e.preventDefault();
+      elTimelineWrap.classList.add('is-dragging-over');
+    });
+    elTimelineWrap.addEventListener('dragover', (e) => {
+      if (!dragSource) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = dragSource.type === 'pool' ? 'copy' : 'move';
+      const tile = e.target.closest('.film-tile');
+      elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
+        el.classList.remove('is-drop-before', 'is-drop-after');
+      });
+      if (tile) {
+        const r = tile.getBoundingClientRect();
+        const before = (e.clientX - r.left) < r.width / 2;
+        tile.classList.add(before ? 'is-drop-before' : 'is-drop-after');
+      }
+    });
+    elTimelineWrap.addEventListener('dragleave', (e) => {
+      // Only clear if we left the wrap entirely
+      if (!elTimelineWrap.contains(e.relatedTarget)) {
+        elTimelineWrap.classList.remove('is-dragging-over');
+        elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
+          el.classList.remove('is-drop-before', 'is-drop-after');
+        });
+      }
+    });
+    elTimelineWrap.addEventListener('drop', (e) => {
+      e.preventDefault();
+      elTimelineWrap.classList.remove('is-dragging-over');
+      if (!dragSource) return;
+
+      // Resolve target index
+      let targetIdx = timeline.length;
+      const tile = e.target.closest('.film-tile');
+      if (tile) {
+        const r = tile.getBoundingClientRect();
+        const before = (e.clientX - r.left) < r.width / 2;
+        const idx = timeline.findIndex(t => t.uid === tile.dataset.uid);
+        if (idx !== -1) targetIdx = before ? idx : idx + 1;
+      }
+
+      if (dragSource.type === 'pool') {
+        const item = newItem(dragSource.templateId);
+        if (item) {
+          timeline.splice(targetIdx, 0, item);
+          selectedUid = item.uid;
+        }
+      } else if (dragSource.type === 'timeline') {
+        const fromIdx = timeline.findIndex(t => t.uid === dragSource.uid);
+        if (fromIdx !== -1) {
+          const [moved] = timeline.splice(fromIdx, 1);
+          if (fromIdx < targetIdx) targetIdx--;
+          timeline.splice(targetIdx, 0, moved);
+        }
+      }
+      dragSource = null;
+      renderTimeline();
+    });
+
+    // Click select & remove
+    elTimeline.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('[data-action="remove"]');
+      if (removeBtn) {
+        e.stopPropagation();
+        const tile = removeBtn.closest('.film-tile');
+        if (tile) removeUid(tile.dataset.uid);
+        return;
+      }
+      const tile = e.target.closest('.film-tile');
+      if (!tile) return;
+      selectedUid = tile.dataset.uid;
+      renderTimeline();
+    });
+
+    // ---------- inspector edits sync back ----------
+    function bindInspectorField(input, key) {
+      input.addEventListener('input', () => {
+        if (!selectedUid) return;
+        const item = timeline.find(t => t.uid === selectedUid);
+        if (!item) return;
+        item[key] = input.value;
+        // Live-update the visible tag on the timeline tile without a full re-render
+        if (key === 'tag') {
+          const tagEl = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"] [data-role="tag"]`);
+          if (tagEl) tagEl.textContent = input.value || (SCENE_BY_ID[item.templateId]?.role ?? '');
+        }
+      });
+    }
+    bindInspectorField(elInspTag,  'tag');
+    bindInspectorField(elInspHead, 'headline');
+    bindInspectorField(elInspLede, 'lede');
+    elInspClose.addEventListener('click', () => {
+      selectedUid = null;
+      renderTimeline();
+    });
+
+    // Reset link
+    elReset.addEventListener('click', resetToUsecaseDefault);
+
+    // When the usecase changes upstream (Step 1) and timeline is still
+    // pristine, swap defaults silently. Otherwise leave user edits alone.
+    document.getElementById('f-usecase').addEventListener('change', () => {
+      // Heuristic: "pristine" = current timeline matches one of the usecase defaults
+      // exactly (same templateIds, same fallback narration). If user edited anything,
+      // leave it and rely on the explicit Reset link.
+      const allFallback = timeline.every(item => {
+        const fb = NARRATION_FALLBACK[item.templateId];
+        if (!fb) return false;
+        return item.tag === fb.tag && item.headline === fb.headline && item.lede === fb.lede;
+      });
+      const idsMatch = (() => {
+        const cur = timeline.map(t => t.templateId).join('|');
+        return Object.values(USECASE_DEFAULTS).some(arr => arr.join('|') === cur);
+      })();
+      if (allFallback && idsMatch) resetToUsecaseDefault();
+    });
+
+    // Expose for the Generate handler + Start over
+    window.__timeline = {
+      getScenes: () => timeline.map(t => {
+        const s = SCENE_BY_ID[t.templateId];
+        return {
+          template: t.templateId,
+          name: s?.name || t.templateId,
+          tag: t.tag || '',
+          headline: t.headline || '',
+          lede: t.lede || ''
+        };
+      }),
+      resetToUsecaseDefault,
+      length: () => timeline.length
+    };
+
+    // Initial render
+    renderPool();
+    resetToUsecaseDefault();
+  })();
 </script>
 </body>
 </html>
