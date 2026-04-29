@@ -1562,36 +1562,177 @@ body.embed .stage-wrap { padding:0; }
       { t: 200, sceneId: "seller-home",    eyebrow: "Back in CRM",      title: "Same surface for the rep",              body: "Mary returns to Seller Home. Docusign Agent on the right — same product, opposite end of the deal." },
       { t: 228, sceneId: "iris-renewal",   eyebrow: "Iris × Agentforce", title: "Renewal question, answered inline",    body: "\"What's the deadline for non-renewal?\" — answered from the MSA, from inside Salesforce." }
     ],
+    // Cursor IS the storyteller — every keyframe is one micro-action.
+    // Right/Left arrow steps through these one at a time. Each `say` updates
+    // the callout. Click pulses fire on entries with action:"click".
     cursorTrack: [
-      // Scene 1: hover near the Stellar Logical opp name
-      { t:   2, x: 380, y: 168 },
-      { t:   8, x: 720, y: 540 }, // glance at Products card
-      // Scene 2: cursor on the Agentforce input
-      { t:  20, x: 1080, y: 580, action: "click" },
-      { t:  30, x: 1080, y: 660 }, // arrow to Send
-      // Scene 3: cursor on MSA Start button
-      { t:  52, x: 415, y: 350, action: "click" },
-      { t:  60, x: 480, y: 388, action: "click" },
-      // Scene 4: cast — hold center
-      { t:  80, x: 460, y: 320 },
-      { t:  90, x: 640, y: 320 },
-      { t: 100, x: 820, y: 320 },
-      // Scene 5: AI-Assisted Review — Run All → drill into Resolved item → glance at the highlighted clause
-      { t: 110, x:  970, y: 305, action: "click" },
-      { t: 120, x: 1110, y: 540 }, // hover over "30-day payment terms" Resolved item
-      { t: 132, x:  370, y: 320 }, // glance at yellow highlight in the doc
-      // Scene 6: Iris — input + sparkle
-      { t: 142, x: 1100, y: 390 },
-      { t: 152, x: 1100, y: 600 },
-      // Scene 7: Navigator — Docusign Agreements tab → MSA row → Fontara party link
-      { t: 172, x:  220, y: 130, action: "click" }, // active tab
-      { t: 182, x:  240, y: 410 }, // MSA row
-      { t: 192, x:  490, y: 405 }, // Fontara party link
-      // Scene 8: Seller Home — agent input
-      { t: 202, x: 1100, y: 660 },
-      // Scene 9: cursor sits in the chat near the answer
-      { t: 230, x: 1100, y: 380 },
-      { t: 248, x: 1100, y: 600 }
+      // ─── Scene 1 — Salesforce opp · t 0–18 ───────────────────────────
+      { t:  1, x: 240, y: 130,
+        say:{ eyebrow:"Sales", title:"Mary opens her opportunity",
+              body:"Stellar Logical · $475K · close 10/31. The opp lives inside Salesforce — no second tab to assemble paperwork." } },
+      { t:  4, x: 620, y: 245,
+        say:{ eyebrow:"Stage", title:"Negotiation/Review",
+              body:"Three earlier stages already done. The deal's ready except for the agreement piece." } },
+      { t:  8, x: 1080, y: 420, action:"click",
+        say:{ eyebrow:"Products · 3", title:"GenWatt × 3 — $475K configured",
+              body:"Two generators and an installation line. Salesforce already has the amounts; Mary already picked them." } },
+      { t: 12, x: 1080, y: 580,
+        say:{ eyebrow:"Activity", title:"NDA follow-up sent · 1w ago",
+              body:"That's the gap. The legal step hasn't moved — and Mary hasn't checked whether Stellar even has one on file." } },
+      { t: 16, x: 640, y: 320,
+        say:{ eyebrow:"Pivot", title:"Agentforce noticed before Mary did",
+              body:"Watch — the agent flags the missing NDA from the opp record itself, no search required." } },
+
+      // ─── Scene 2 — Agentforce panel · t 18–48 ────────────────────────
+      { t: 19, x: 1100, y: 200,
+        say:{ eyebrow:"Agentforce", title:"Docusign Agent in the rail",
+              body:"Docked on the right of every opp. Already context-aware — it sees Stellar Logical and the deal stage." } },
+      { t: 23, x: 1100, y: 320,
+        say:{ eyebrow:"Bot", title:"\"Let's chat!\"",
+              body:"Same surface, no popup, no separate tool. The agent greets and is ready for the question." } },
+      { t: 28, x: 1100, y: 600, action:"click",
+        say:{ eyebrow:"Question", title:"\"Does Stellar Logical have an active NDA?\"",
+              body:"Mary types one line. The agent was already prepared for it." } },
+      { t: 33, x: 1170, y: 660, action:"click",
+        say:{ eyebrow:"Send", title:"Submit",
+              body:"Agentforce queries the agreement record. Iris reads the agreement library in the background." } },
+      { t: 38, x: 240, y: 245,
+        say:{ eyebrow:"Scoped", title:"Stellar Logical only",
+              body:"The agent doesn't search globally — it scopes by the opp's account. Faster, fewer false hits." } },
+      { t: 43, x: 1100, y: 400,
+        say:{ eyebrow:"Answer", title:"No active NDA on file",
+              body:"The agent confirms the gap. It also surfaces the next step before Mary asks." } },
+      { t: 46, x: 1100, y: 500, action:"click",
+        say:{ eyebrow:"CTA", title:"Generate the agreement",
+              body:"Mary accepts. The Docusign workflow picker is about to take over." } },
+
+      // ─── Scene 3 — Workflow modal · t 48–78 ─────────────────────────
+      { t: 50, x: 640, y: 200,
+        say:{ eyebrow:"Docusign", title:"Workflow picker opens",
+              body:"Centered over Salesforce. Docusign-branded, but rendered as a Lightning component — Mary stays on this page." } },
+      { t: 55, x: 240, y: 350,
+        say:{ eyebrow:"Choices", title:"Six packaged workflows",
+              body:"MSA · NDA · SOW · Sales Order · Sales Amendment · General Legal Request. All pre-built; no template hunting." } },
+      { t: 60, x: 240, y: 350, action:"click",
+        say:{ eyebrow:"MSA", title:"Mary picks MSA",
+              body:"The Master Service Agreement — the right artifact for a new customer at this deal size." } },
+      { t: 66, x: 280, y: 410, action:"click",
+        say:{ eyebrow:"Start", title:"Generate the package",
+              body:"One click. Maestro takes the Stellar opp data and pre-fills every field. No retyping." } },
+      { t: 72, x: 640, y: 600,
+        say:{ eyebrow:"Behind the scenes", title:"Maestro orchestrates",
+              body:"Generation, internal review, customer review, multi-party signing — all routed automatically." } },
+
+      // ─── Scene 4 — Cast slide · t 78–108 ─────────────────────────────
+      { t: 80, x: 240, y: 380,
+        say:{ eyebrow:"Sales", title:"Mary Wilson · Sales Rep",
+              body:"The agreement starts on the sales side. Mary generates and sends it." } },
+      { t: 86, x: 240, y: 600,
+        say:{ eyebrow:"Step 1", title:"Generate & send NDA, MSA, Sales Order",
+              body:"All three documents in one package, sequenced. Maestro fans them out in the right order." } },
+      { t: 92, x: 640, y: 380,
+        say:{ eyebrow:"Legal", title:"Leona Legal · Fontara's reviewer",
+              body:"Internal review against the playbook before anything reaches the customer." } },
+      { t: 99, x: 1040, y: 380,
+        say:{ eyebrow:"Customer", title:"Jack Rogers · Stellar Logical",
+              body:"The customer-side reviewer and signer. The MSA's destination." } },
+      { t: 105, x: 640, y: 600,
+        say:{ eyebrow:"Three roles", title:"Sales → Legal → Customer",
+              body:"No email tag, no version chaos. Same agreement spine, three handoffs." } },
+
+      // ─── Scene 5 — Word + AI-Assisted Review · t 108–140 ─────────────
+      { t: 110, x: 480, y: 320,
+        say:{ eyebrow:"MSA in Word", title:"Mid-document, mid-review",
+              body:"The generated MSA. Standard clauses are in place; the ones that drift from the playbook get flagged." } },
+      { t: 114, x: 380, y: 350, action:"click",
+        say:{ eyebrow:"Yellow flag", title:"30-day payment terms",
+              body:"AI flagged this clause as out of standard (default is 60 days). Already moved to Resolved with the override approved." } },
+      { t: 118, x: 950, y: 220,
+        say:{ eyebrow:"AAR panel", title:"AI-Assisted Review docked right",
+              body:"Same Word surface, but with an AI reviewer working alongside Mary. Runs against the MSA Playbook." } },
+      { t: 122, x: 970, y: 305, action:"click",
+        say:{ eyebrow:"Run All", title:"Playbook ran in seconds",
+              body:"5 needs review · 11 passed · 1 resolved. What used to be a legal back-and-forth is now a 5-second pass." } },
+      { t: 127, x: 1110, y: 410,
+        say:{ eyebrow:"Pills", title:"Status grouping",
+              body:"Each clause has a status. Resolved means an approved override. Passed means standard. Needs review is what Mary should look at." } },
+      { t: 131, x: 1110, y: 540,
+        say:{ eyebrow:"Resolved", title:"30-day payment terms · clause-anchored",
+              body:"Click → jump to the exact line in the MSA. The AI cites where it found the issue." } },
+      { t: 135, x: 1110, y: 620,
+        say:{ eyebrow:"Passed", title:"Annual payments · standard",
+              body:"This one matched the playbook exactly. No review needed." } },
+      { t: 138, x: 950, y: 660,
+        say:{ eyebrow:"Confidence", title:"Mary signs off in minutes",
+              body:"What used to be a 2-day legal review is now a 5-minute scan. The MSA's ready to send to Stellar." } },
+
+      // ─── Scene 6 — Customer-side Iris · t 140–170 ────────────────────
+      { t: 142, x: 380, y: 320,
+        say:{ eyebrow:"Customer side", title:"Stellar's reviewer reads the MSA",
+              body:"Same Docusign surface — different role. The customer doesn't install anything; they get a link." } },
+      { t: 146, x: 1100, y: 280,
+        say:{ eyebrow:"Iris", title:"\"What are the down payment terms?\"",
+              body:"The customer asks Iris in-line. Same agreement, both sides read from the same source." } },
+      { t: 152, x: 1100, y: 420,
+        say:{ eyebrow:"Loading", title:"Iris reading the live MSA",
+              body:"Three shimmer bars — Iris is querying the actual document, not a cached summary." } },
+      { t: 158, x: 1100, y: 600,
+        say:{ eyebrow:"Answer", title:"Grounded · no hallucination",
+              body:"The answer comes back with a source citation. The customer never has to email back asking." } },
+      { t: 165, x: 380, y: 600,
+        say:{ eyebrow:"Ready to sign", title:"No back-channel email",
+              body:"The customer's questions answered without delay. The MSA's ready to be executed." } },
+
+      // ─── Scene 7 — Navigator · t 170–200 ────────────────────────────
+      { t: 172, x: 220, y: 130, action:"click",
+        say:{ eyebrow:"Navigator", title:"Docusign Agreements",
+              body:"Once executed, both agreements (NDA + MSA) land here as the agreement record." } },
+      { t: 178, x: 240, y: 410,
+        say:{ eyebrow:"MSA Stellar Logical", title:"Master Service Agreement",
+              body:"Effective 10/1/2025 · expires 10/1/2026. Auto-extracted from the executed PDF." } },
+      { t: 184, x: 490, y: 410,
+        say:{ eyebrow:"Parties", title:"Fontara × Stellar Logical",
+              body:"Both parties extracted as linked entities. Click either to see all agreements with that party." } },
+      { t: 190, x: 880, y: 410,
+        say:{ eyebrow:"Effective date", title:"10/1/2025 · clause-anchored",
+              body:"Iris pulled the date from the MSA itself. Same goes for renewal date and termination notice." } },
+      { t: 196, x: 240, y: 480,
+        say:{ eyebrow:"NDA · connected", title:"One agreement set",
+              body:"The NDA from earlier in the deal flow is in Navigator too — and linked to the MSA." } },
+
+      // ─── Scene 8 — Seller Home · t 200–228 ──────────────────────────
+      { t: 202, x: 240, y: 100,
+        say:{ eyebrow:"Back in CRM", title:"Mary's Seller Home",
+              body:"Mary returns to her dashboard. The MSA is signed; Stellar's a customer." } },
+      { t: 208, x: 240, y: 320,
+        say:{ eyebrow:"Pipeline", title:"$475K Won",
+              body:"The donut already reflects the closed deal. Salesforce reads the agreement state from Docusign automatically." } },
+      { t: 214, x: 1100, y: 240,
+        say:{ eyebrow:"Docusign Agent", title:"Same panel · same surface",
+              body:"The Agentforce panel from Scene 2 is back — but now it's tracking Mary's portfolio of executed agreements." } },
+      { t: 220, x: 1100, y: 580,
+        say:{ eyebrow:"Idle prompt", title:"\"Describe your task\"",
+              body:"The agent's standing by. Ready for whatever Mary asks next." } },
+      { t: 226, x: 1100, y: 360,
+        say:{ eyebrow:"What's next", title:"Renewal · 11 months out",
+              body:"Watch — the next moment is Mary asking about renewal terms. Iris already has the answer." } },
+
+      // ─── Scene 9 — Iris renewal Q · t 228–255 ───────────────────────
+      { t: 229, x: 1100, y: 280,
+        say:{ eyebrow:"Renewal pipeline", title:"Two renewals listed",
+              body:"Stellar Logical · 10/15/2026 · BrightWave · 11/01/2026. The agent reads from Navigator." } },
+      { t: 236, x: 1100, y: 460, action:"click",
+        say:{ eyebrow:"Mary's question", title:"\"Deadline for non-renewal?\"",
+              body:"She types the question Salesforce can't answer alone. The agent knows where to look." } },
+      { t: 242, x: 1100, y: 580,
+        say:{ eyebrow:"Iris answers", title:"60 days · Aug 15, 2026",
+              body:"Pulled directly from the MSA. The clause is cited; Mary has the answer in seconds." } },
+      { t: 248, x: 1140, y: 600, action:"click",
+        say:{ eyebrow:"\"View MSA\"", title:"Direct link to the source",
+              body:"One click and Mary's looking at the exact clause that grounds the answer. No second-guessing." } },
+      { t: 253, x: 640, y: 360,
+        say:{ eyebrow:"The loop closes", title:"Same agreement · same surface · same agent",
+              body:"From the open opp to the signed MSA to the renewal answer — Mary never left Salesforce. That's the IAM-for-Sales motion." } }
     ]
   });
 </script>

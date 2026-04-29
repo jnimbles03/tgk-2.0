@@ -355,8 +355,7 @@
       });
     }
 
-    // Beat callout
-    var lastBeatIdx = -1;
+    // Beat index helper — based on current time
     function currentBeatIndex() {
       var t = video.currentTime;
       var idx = -1;
@@ -366,21 +365,55 @@
       }
       return idx;
     }
+
+    // Cursor index helper — most recent cursorTrack keyframe at <= t
+    function currentCursorIndex() {
+      if (!cursorTrack.length) return -1;
+      var t = video.currentTime;
+      var idx = -1;
+      for (var i = 0; i < cursorTrack.length; i++) {
+        if (cursorTrack[i].t <= t + 0.001) idx = i;
+        else break;
+      }
+      return idx;
+    }
+
+    // Callout — prefer cursor-anchored `say` field; fall back to beat copy.
+    // The cursor is the protagonist; cursorTrack[i].say drives narration.
+    var lastCalloutKey = "";
     function paintCallout() {
       if (!calloutEl) return;
-      var idx = currentBeatIndex();
-      if (idx === lastBeatIdx) return;
-      lastBeatIdx = idx;
-      if (idx < 0) {
+      var ci = currentCursorIndex();
+      var bi = currentBeatIndex();
+      var say = null, counterStr = "", total = 0, idx = -1;
+      // Walk back from current cursor to find the most recent `say`
+      if (ci >= 0) {
+        for (var i = ci; i >= 0; i--) {
+          if (cursorTrack[i].say) { say = cursorTrack[i].say; idx = i; break; }
+        }
+        // Counter = "N / total cursor moves"
+        total = cursorTrack.length;
+        counterStr = (ci + 1) + " / " + total;
+      }
+      // Fallback to beat copy if no cursor say found
+      if (!say && bi >= 0) {
+        var b = beats[bi];
+        say = { eyebrow: b.eyebrow, title: b.title, body: b.body };
+        total = beats.length;
+        counterStr = (bi + 1) + " / " + total;
+      }
+      if (!say) {
         calloutEl.classList.remove("is-visible");
         return;
       }
-      var b = beats[idx];
-      calloutEl.querySelector(".ds-callout-eyebrow").textContent = b.eyebrow || "Demo";
+      var key = (idx >= 0 ? "c" + idx : "b" + bi);
+      if (key === lastCalloutKey) return;
+      lastCalloutKey = key;
+      calloutEl.querySelector(".ds-callout-eyebrow").textContent = say.eyebrow || "Demo";
       var counterEl = calloutEl.querySelector(".ds-callout-counter");
-      if (counterEl) counterEl.textContent = (idx + 1) + " / " + beats.length;
-      calloutEl.querySelector(".ds-callout-title").textContent   = b.title || "";
-      calloutEl.querySelector(".ds-callout-body").textContent    = b.body || "";
+      if (counterEl) counterEl.textContent = counterStr;
+      calloutEl.querySelector(".ds-callout-title").textContent = say.title || "";
+      calloutEl.querySelector(".ds-callout-body").textContent  = say.body || "";
       calloutEl.classList.add("is-visible");
     }
 
@@ -494,6 +527,17 @@
       if (target >= beats.length) target = beats.length - 1;
       if (beats[target]) video.currentTime = beats[target].t;
     }
+    // Step through cursor keyframes — each press = one micro-action.
+    // Falls back to beat-step when the demo has no cursorTrack.
+    function jumpToCursor(d) {
+      if (!cursorTrack.length) { jumpToBeat(d); return; }
+      var ci = currentCursorIndex();
+      var target = ci + d;
+      if (target < 0) target = 0;
+      if (target >= cursorTrack.length) target = cursorTrack.length - 1;
+      var kf = cursorTrack[target];
+      if (kf) video.currentTime = kf.t;
+    }
     function nudge(dt) {
       var t = Math.max(0, Math.min((video.duration || 0) - 0.05, video.currentTime + dt));
       video.currentTime = t;
@@ -503,8 +547,8 @@
     }
 
     if (playBtn) playBtn.addEventListener("click", toggle);
-    if (prevBtn) prevBtn.addEventListener("click", function () { jumpToBeat(-1); });
-    if (nextBtn) nextBtn.addEventListener("click", function () { jumpToBeat(1); });
+    if (prevBtn) prevBtn.addEventListener("click", function () { jumpToCursor(-1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { jumpToCursor(1); });
     if (scrub) {
       scrub.addEventListener("input", function (e) {
         if (!isFinite(video.duration)) return;
@@ -524,11 +568,11 @@
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
       if (e.key === " " || e.key === "Spacebar") { toggle(); e.preventDefault(); return; }
       if (e.key === "ArrowLeft")  {
-        if (e.shiftKey) nudge(-5); else jumpToBeat(-1);
+        if (e.shiftKey) nudge(-5); else jumpToCursor(-1);
         e.preventDefault(); return;
       }
       if (e.key === "ArrowRight") {
-        if (e.shiftKey) nudge(5);  else jumpToBeat(1);
+        if (e.shiftKey) nudge(5);  else jumpToCursor(1);
         e.preventDefault(); return;
       }
       if (e.key === ",") { video.playbackRate = Math.max(0.25, video.playbackRate - 0.1); return; }
