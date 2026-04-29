@@ -841,7 +841,7 @@
   .pool-tile:active { cursor: grabbing; }
   .pool-poster {
     position: relative;
-    height: 72px;
+    height: 84px;
     background: var(--ds-deep-violet);
     display: flex;
     align-items: center;
@@ -909,67 +909,91 @@
 
   /* ===== Filmstrip timeline (middle) ===== */
   .filmstrip-wrap {
-    background: var(--ds-mist-soft);
-    border: 1px solid var(--ds-rule);
+    background: var(--ds-inkwell);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     padding: 14px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    min-height: 152px;
+    min-height: 168px;
   }
-  .filmstrip-wrap::-webkit-scrollbar { height: 8px; }
+  .filmstrip-wrap::-webkit-scrollbar { height: 6px; }
+  .filmstrip-wrap::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); }
   .filmstrip-wrap::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--ds-inkwell) 18%, transparent);
-    border-radius: 4px;
+    background: rgba(203, 194, 255, 0.28);
+    border-radius: 3px;
   }
   .filmstrip-track {
     display: flex;
-    gap: 8px;
-    align-items: stretch;
-    min-height: 124px;
+    gap: 6px;
+    align-items: center;
+    min-height: 140px;
   }
   .filmstrip-empty {
     font-family: var(--ds-font);
     font-style: italic;
     font-size: 0.875rem;
-    color: var(--ds-text-soft);
+    color: rgba(203, 194, 255, 0.65);
     text-align: center;
     padding: 36px 16px;
-    border: 1.5px dashed var(--ds-rule-strong);
+    border: 1.5px dashed rgba(203, 194, 255, 0.22);
     border-radius: 8px;
-    background: var(--ds-mist-soft);
+    background: rgba(255, 255, 255, 0.03);
+    width: 100%;
   }
   .filmstrip-wrap.is-dragging-over {
-    background: color-mix(in srgb, var(--ds-mist) 50%, var(--ds-white));
+    background: color-mix(in srgb, var(--ds-cobalt) 22%, var(--ds-inkwell));
     border-color: var(--ds-cobalt);
+  }
+
+  /* Clip-junction connector — sits between tiles in the timeline */
+  .film-connector {
+    flex: 0 0 auto;
+    align-self: center;
+    color: rgba(203, 194, 255, 0.32);
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0 1px;
+    margin-bottom: 18px; /* offset to align with the poster's visual centre */
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* Keyboard-hint bar below the timeline */
+  .timeline-hints {
+    margin-top: 8px;
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-text-soft);
+    letter-spacing: 0.03em;
   }
 
   .film-tile {
     position: relative;
-    flex: 0 0 184px;
+    flex: 0 0 196px;
     background: var(--ds-white);
-    border: 1.5px solid var(--ds-rule);
+    border: 1.5px solid rgba(255, 255, 255, 0.18);
     border-radius: 6px;
     overflow: hidden;
     cursor: grab;
     transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
     user-select: none;
   }
-  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 60%, var(--ds-rule)); }
+  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 80%, rgba(255,255,255,0.18)); }
   .film-tile.is-selected {
     border-color: var(--ds-cobalt);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 40%, transparent);
   }
   .film-tile.is-dragging { opacity: 0.4; cursor: grabbing; }
   .film-tile.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt); }
   .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt); }
-  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
-  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
+  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 40%, transparent); }
+  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 40%, transparent); }
 
   .film-poster {
     position: relative;
-    height: 78px;
+    height: 92px;
     background: var(--ds-deep-violet);
     display: flex;
     align-items: center;
@@ -1005,7 +1029,7 @@
   }
   .film-glyph {
     font-family: var(--ds-mono);
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--ds-ecru);
     letter-spacing: 0.06em;
@@ -1117,6 +1141,14 @@
     transition: background 0.15s ease, color 0.15s ease;
   }
   .inspector-close:hover { background: rgba(19, 0, 50, 0.06); color: var(--ds-text); }
+
+  /* Inspector poster chip — small gradient swatch matching the scene's color */
+  .inspector-poster-chip {
+    width: 26px; height: 26px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    border: 1px solid rgba(19, 0, 50, 0.12);
+  }
 
   .inspector-fields {
     display: flex;
@@ -1369,13 +1401,15 @@
         </div>
         <div class="filmstrip-wrap" id="filmstripWrap" aria-label="Demo timeline">
           <div class="filmstrip-track" id="timeline"></div>
+          <div class="filmstrip-empty" id="timelineEmpty" hidden>Drop scenes here, or tap + on a tile in the pool above.</div>
         </div>
-        <div class="filmstrip-empty" id="timelineEmpty" hidden>Drop scenes here, or tap + on a tile in the pool above.</div>
+        <div class="timeline-hints" aria-label="Keyboard shortcuts: Click to select, Left and Right arrow keys to navigate, Backspace or Delete to remove">Click to select · ← → to navigate · ⌫ or Del to remove</div>
       </div>
 
       <!-- ===== Inspector (bottom) ===== -->
       <div class="inspector" id="inspector" hidden aria-live="polite">
         <div class="inspector-head">
+          <span class="inspector-poster-chip" id="inspPosterChip" data-poster="violet" aria-hidden="true"></span>
           <span class="inspector-label">Inspector · <strong id="inspectorTitle">—</strong></span>
           <button type="button" class="inspector-close" id="inspectorClose" aria-label="Close inspector">×</button>
         </div>
@@ -1928,7 +1962,7 @@
     }
 
     function renderTimeline() {
-      elTimeline.innerHTML = timeline.map((item, idx) => {
+      const tiles = timeline.map((item, idx) => {
         const s = SCENE_BY_ID[item.templateId];
         if (!s) return '';
         const sel = item.uid === selectedUid ? ' is-selected' : '';
@@ -1946,7 +1980,15 @@
             </div>
           </div>
         `;
-      }).join('');
+      });
+
+      // Interleave clip-junction connectors between tiles
+      const parts = tiles.flatMap((tile, idx) =>
+        idx < tiles.length - 1
+          ? [tile, '<span class="film-connector" aria-hidden="true">▸</span>']
+          : [tile]
+      );
+      elTimeline.innerHTML = parts.join('');
       elEmpty.hidden = timeline.length > 0;
       elCount.textContent = timeline.length === 1 ? '1 scene' : `${timeline.length} scenes`;
       renderInspector();
@@ -1960,6 +2002,9 @@
       const s = SCENE_BY_ID[item.templateId];
       elInspector.hidden = false;
       elInspTitle.textContent = `Scene ${idx + 1} · ${s.name}`;
+      // Update poster chip to match the scene's gradient
+      const chip = document.getElementById('inspPosterChip');
+      if (chip) chip.dataset.poster = s.poster;
       elInspTag.value      = item.tag || '';
       elInspHead.value     = item.headline || '';
       elInspLede.value     = item.lede || '';
@@ -1980,7 +2025,7 @@
       renderTimeline();
       // Scroll the new tile into view
       requestAnimationFrame(() => {
-        const tile = elTimeline.querySelector(`.film-tile[data-uid="${item.uid}"]`);
+        const tile = elTimeline.querySelector(`.film-tile[data-uid="${CSS.escape(item.uid)}"]`);
         tile?.scrollIntoView({ behavior: 'smooth', inline: 'end', block: 'nearest' });
       });
     }
@@ -2133,7 +2178,7 @@
         item[key] = input.value;
         // Live-update the visible tag on the timeline tile without a full re-render
         if (key === 'tag') {
-          const tagEl = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"] [data-role="tag"]`);
+          const tagEl = elTimeline.querySelector(`.film-tile[data-uid="${CSS.escape(selectedUid)}"] [data-role="tag"]`);
           if (tagEl) tagEl.textContent = input.value || (SCENE_BY_ID[item.templateId]?.role ?? '');
         }
       });
@@ -2144,6 +2189,40 @@
     elInspClose.addEventListener('click', () => {
       selectedUid = null;
       renderTimeline();
+    });
+
+    // Keyboard shortcuts (only when Step 3 is active and focus isn't in a text field)
+    document.addEventListener('keydown', (e) => {
+      if (window.__wizard?.getStep() !== 3) return;
+      const tag = e.target.tagName;
+      const inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !inField && selectedUid) {
+        e.preventDefault();
+        removeUid(selectedUid);
+        return;
+      }
+      if (e.key === 'Escape' && selectedUid) {
+        selectedUid = null;
+        renderTimeline();
+        return;
+      }
+      if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !inField && timeline.length > 0) {
+        e.preventDefault();
+        const idx = timeline.findIndex(t => t.uid === selectedUid);
+        let newIdx;
+        if (e.key === 'ArrowLeft') {
+          newIdx = idx === -1 ? 0 : Math.max(0, idx - 1);
+        } else {
+          newIdx = idx === -1 ? 0 : Math.min(timeline.length - 1, idx + 1);
+        }
+        selectedUid = timeline[newIdx]?.uid || null;
+        renderTimeline();
+        requestAnimationFrame(() => {
+          const tile = elTimeline.querySelector(`.film-tile[data-uid="${CSS.escape(selectedUid)}"]`);
+          tile?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+        });
+      }
     });
 
     // Reset link
