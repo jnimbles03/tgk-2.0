@@ -1194,15 +1194,17 @@
       </div>
 
       <div class="form-row">
-        <label for="f-usecase">Use case</label>
+        <label for="f-shell">Story shell</label>
         <div>
-          <select id="f-usecase" required>
-            <option value="default">Onboarding · canonical (5 scenes)</option>
-            <option value="fraud-fabric">Fraud Fabric · CLEAR-at-the-door (3 scenes)</option>
-            <option value="intake">Intake-Mechanics · webform → Maestro (3-4 scenes)</option>
-            <option value="maintenance">Maintenance · sensitive change (3 scenes)</option>
+          <select id="f-shell" required>
+            <option value="default">5-scene canonical · Agreement Desk · CLEAR · Signing · Navigator · Workspace</option>
+            <option value="fraud-fabric">3-scene Fraud Fabric · chain-of-custody · CLEAR · Signing</option>
+            <option value="intake">3–4 scene Intake · Webform → Triage → Desk → Navigator</option>
+            <option value="maintenance">3-scene Maintenance · Agreement Desk · CLEAR · Signing</option>
+            <option value="workspaces">1-scene Workspaces · Workspace synthesis</option>
+            <option value="blank">Blank · start in the iMovie pool</option>
           </select>
-          <div class="help">Determines which scenes the playlist starts with — you can swap any of them in Step 3.</div>
+          <div class="help">Picks the narrative spine — agnostic of which existing demo it maps to. Drag scenes in or out in Step 3.</div>
         </div>
       </div>
 
@@ -1605,6 +1607,42 @@
     }
   }
 
+  // Downscale a raster image dataURL through a canvas so the payload going
+  // to /api/builder/save stays well under the server's body limit. A 500KB
+  // PNG becomes ~666KB base64, which used to trip the global 64kb cap with
+  // HTTP 413. We resize the longest edge to 480px and re-encode as JPEG
+  // q=0.85 (typical drop: ~95%). SVG is left untouched — it's already small
+  // and rasterizing would lose its scalable nature.
+  function shrinkDataUrl(dataUrl, maxEdge, mime, quality) {
+    return new Promise((resolve, reject) => {
+      // SVG stays vector-pure — pass through.
+      if (/^data:image\/svg\+xml/i.test(dataUrl)) return resolve(dataUrl);
+      const img = new Image();
+      img.onload = () => {
+        const w0 = img.naturalWidth, h0 = img.naturalHeight;
+        if (!w0 || !h0) return resolve(dataUrl);
+        const longest = Math.max(w0, h0);
+        const scale = longest > maxEdge ? maxEdge / longest : 1;
+        const w = Math.round(w0 * scale), h = Math.round(h0 * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        // Crisp, alpha-respecting resize.
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          resolve(canvas.toDataURL(mime || 'image/jpeg', quality ?? 0.85));
+        } catch (e) {
+          // toDataURL can throw on tainted canvases; fall back to original.
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
   $('f-logo').addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -1622,8 +1660,18 @@
     }
     $('errorPanel').classList.remove('active');
     const reader = new FileReader();
-    reader.onload = () => {
-      logoDataUrl = reader.result;
+    reader.onload = async () => {
+      const raw = reader.result;
+      // PNG with alpha → keep PNG. JPEG/WebP → JPEG. SVG is passed through
+      // by shrinkDataUrl. The size guard above already rejected anything
+      // over 500KB raw, but the canvas resize buys another order of magnitude.
+      const isPng  = /^data:image\/png/i.test(raw);
+      const outMime = isPng ? 'image/png' : 'image/jpeg';
+      try {
+        logoDataUrl = await shrinkDataUrl(raw, 480, outMime, 0.85);
+      } catch (_) {
+        logoDataUrl = raw;
+      }
       renderLogoPreview();
     };
     reader.onerror = () => {
@@ -1654,7 +1702,13 @@
   // Generate
   $('btnGenerate').addEventListener('click', async () => {
     const industry = $('f-industry').value;
-    const usecase  = $('f-usecase').value;
+    // Step 1's "Story shell" picker — agnostic spine pattern. The cfg we
+    // ship the shell still expects a `usecase` key (the live story-shell
+    // recognizes default/fraud-fabric/intake/maintenance/workspaces), so
+    // we map blank → default since blank just means "no preset, the rep
+    // built the timeline from scratch in the iMovie pool".
+    const shell = $('f-shell').value;
+    const usecase = (shell === 'blank') ? 'default' : shell;
     const tenant   = $('f-tenant').value.trim();
     const customer = $('f-customer').value.trim();
     const color    = $('f-color').value.trim();
@@ -1703,6 +1757,7 @@
       _builderMeta: {
         builtAt: new Date().toISOString(),
         sourceVertical: industry,
+        shell,                       // the picker's raw choice ("blank", "workspaces", etc)
         sceneCount: scenes.length,
         hasLogo: !!logoDataUrl
       }
@@ -1726,7 +1781,7 @@
       $('resultUrl').dataset.url = fullUrl;
       const logoSize = logoDataUrl ? Math.round(logoDataUrl.length * 0.75 / 1024) : 0;
       $('resultMeta').textContent =
-        `Token ${token} · expires in ${expiresInDays} days · ${usecase} · scaffolded from ${industry}` +
+        `Token ${token} · expires in ${expiresInDays} days · shell:${shell} · scaffolded from ${industry}` +
         (logoDataUrl ? ` · logo embedded (~${logoSize} KB)` : '');
       $('resultPanel').classList.add('active');
       $('submitStatus').textContent = 'Saved.';
@@ -1800,13 +1855,17 @@
     ];
     const SCENE_BY_ID = Object.fromEntries(SCENE_LIBRARY.map(s => [s.id, s]));
 
-    // Default playlists per usecase. Match what the shell ships per usecase
-    // so "Reset to industry default" mirrors the live demo.
-    const USECASE_DEFAULTS = {
+    // Default playlists per shell pattern. The keys map to the live shell's
+    // usecase keys 1:1 except for 'blank', which is a builder-only escape
+    // hatch (start in the iMovie pool with nothing). On Generate, blank
+    // gets normalized to 'default' for the cfg.usecase the shell consumes.
+    const SHELL_DEFAULTS = {
       'default':      ['agreement-desk', 'clear-idv', 'signing-ceremony', 'navigator', 'workspace'],
       'fraud-fabric': ['agreement-desk-coc', 'clear-idv', 'signing-ceremony'],
       'intake':       ['webform', 'webform-intake', 'agreement-desk', 'navigator'],
-      'maintenance':  ['agreement-desk', 'clear-idv', 'signing-ceremony']
+      'maintenance':  ['agreement-desk', 'clear-idv', 'signing-ceremony'],
+      'workspaces':   ['workspace'],
+      'blank':        []
     };
 
     // Placeholder narration — used when a tile is added with no industry
@@ -1935,8 +1994,8 @@
       renderTimeline();
     }
     function resetToUsecaseDefault() {
-      const usecase = (document.getElementById('f-usecase') || {}).value || 'default';
-      const ids = USECASE_DEFAULTS[usecase] || USECASE_DEFAULTS.default;
+      const shell = (document.getElementById('f-shell') || {}).value || 'default';
+      const ids = SHELL_DEFAULTS[shell] || SHELL_DEFAULTS.default;
       timeline = ids.map(id => newItem(id)).filter(Boolean);
       selectedUid = timeline[0]?.uid || null;
       renderTimeline();
@@ -2090,12 +2149,14 @@
     // Reset link
     elReset.addEventListener('click', resetToUsecaseDefault);
 
-    // When the usecase changes upstream (Step 1) and timeline is still
+    // When the shell changes upstream (Step 1) and the timeline is still
     // pristine, swap defaults silently. Otherwise leave user edits alone.
-    document.getElementById('f-usecase').addEventListener('change', () => {
-      // Heuristic: "pristine" = current timeline matches one of the usecase defaults
-      // exactly (same templateIds, same fallback narration). If user edited anything,
-      // leave it and rely on the explicit Reset link.
+    document.getElementById('f-shell').addEventListener('change', () => {
+      // Heuristic: "pristine" = current timeline matches one of the shell
+      // defaults exactly (same templateIds, same fallback narration). If
+      // the rep edited anything, leave it and rely on the explicit Reset
+      // link. The 'blank' shell counts as pristine when timeline is empty.
+      if (timeline.length === 0) { resetToUsecaseDefault(); return; }
       const allFallback = timeline.every(item => {
         const fb = NARRATION_FALLBACK[item.templateId];
         if (!fb) return false;
@@ -2103,7 +2164,7 @@
       });
       const idsMatch = (() => {
         const cur = timeline.map(t => t.templateId).join('|');
-        return Object.values(USECASE_DEFAULTS).some(arr => arr.join('|') === cur);
+        return Object.values(SHELL_DEFAULTS).some(arr => arr.join('|') === cur);
       })();
       if (allFallback && idsMatch) resetToUsecaseDefault();
     });

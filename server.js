@@ -787,7 +787,11 @@ function newBuilderToken() {
 }
 
 // POST /api/builder/save — picker hands us a config, we mint a token + return URL
-app.post('/api/builder/save', async (req, res) => {
+// Local body parser at 1mb to fit a tenant-logo dataURL plus the scenes
+// payload — the global 64kb cap on line ~55 is too tight for that. Same
+// pattern the /admin/audit/* routes use further down.
+const builderJson = express.json({ limit: '1mb' });
+app.post('/api/builder/save', builderJson, async (req, res) => {
   try {
     const cfg = req.body || {};
     if (!cfg.tenant || !cfg.customer || !cfg.scenes || !Array.isArray(cfg.scenes)) {
