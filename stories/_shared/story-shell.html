@@ -622,7 +622,7 @@ const HOTSPOTS = {
   ],
 
   /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
-     Webform → workflow packages → Envelope delivered (+ optional Workspaces tail).
+     Webform → workflow packages → Envelope delivered (+ optional shared workspace tail).
      The explicit alternative to Agreement Desk inbound. */
   /* Recalibrated 2026-04-28 — old map referenced webform_field_1/2/3 etc
      which don't exist in the rebuilt multi-state template. Real anchors
@@ -716,8 +716,8 @@ const VERTICALS = {
           persona:{side:"handoff", name:"Hillside × Aster", role:"Shared Workspace"}},
          {head:"The AI assistant is live in the agent rail.", lede:`<p>The Activity tab shows every workflow step completed. The AI assistant answers questions grounded in the executed IMA and onboarding file.</p>`,
           persona:{side:"system", name:"AI assistant", role:"AI · Agent Rail"}},
-         {head:"KYC verification task open.", lede:`<p>The task drills into the Wealth Agent — automated checks running in the background. KYC, accreditation, and custody confirmation in one place.</p>`,
-          persona:{side:"system", name:"Wealth Agent", role:"Automated KYC + Accreditation"}},
+         {head:"KYC verification task open.", lede:`<p>The task drills into the onboarding agent — automated checks running in the background. KYC, accreditation, and custody confirmation in one place.</p>`,
+          persona:{side:"system", name:"Onboarding Agent", role:"Automated KYC + Accreditation"}},
          {head:"Onboarding complete — relationship in motion.", lede:`<p>Every document executed, every check passed, every party in the same Workspace. Hillside's compliance team has the full audit trail.</p>`}
        ]}
     ]
@@ -1759,7 +1759,7 @@ const TEMPLATE_FILES = [
    The shell resolves which set to use from the URL param. Default
    is the canonical 5-scene story above. fraud-fabric is the runtime
    IDV+webform fabric (3 scenes); intake is the webform-and-the workflow
-   intake mechanic (3 scenes transactional, or 4 with Workspaces tail
+   intake mechanic (3 scenes transactional, or 4 with shared workspace tail
    for relationship verticals). Per-vertical narration lives in
    v.usecases[<key>].scenes — populated from the inline narrations
    bundle in <script id="tgk-usecases">.
@@ -1961,7 +1961,7 @@ if (!_overrideBypass) {
    default docusign-agreement-desk.html with its agreement_desk hotspots —
    i.e. only the genuinely-inbound C archetype (insurance-life, provider-roi)
    keeps the Desk inbox as Scene 1.
-   Banking and wealth-discovery are D archetype (Workspaces deal room) —
+   Banking and wealth-discovery are D archetype (shared workspace deal room) —
    for now they get the webform-intake stub too; the proper deal-room
    iframe is a follow-up. */
 const SCENE1_OVERRIDE = {
@@ -1989,7 +1989,7 @@ const SCENE1_TEMPLATE_OVERRIDE = {
   "slgov-benefits":             SCENE1_OVERRIDE,
   "slgov-licensing":            SCENE1_OVERRIDE,
   education:                    SCENE1_OVERRIDE,
-  /* D · Workspaces deal room (interim — proper deal-room template is a follow-up) */
+  /* D · shared workspace deal room (interim — proper deal-room template is a follow-up) */
   banking:                      SCENE1_OVERRIDE,
   "wealth-discovery":           SCENE1_OVERRIDE,
   /* NOT overridden (keep Agreement Desk for genuinely-inbound C archetype):
@@ -2001,7 +2001,7 @@ const SCENE1_TEMPLATE_OVERRIDE = {
    Archetype-driven Scene 1 routing.
    The admin /admin#stories editor exposes an Archetype field per
    vertical (A · sender-webform, A-trig · workflow-triggered, B · self-
-   service, C · inbound, D · Workspaces deal room). When the admin sets
+   service, C · inbound, D · shared workspace deal room). When the admin sets
    an archetype, that overrides the hardcoded SCENE1_TEMPLATE_OVERRIDE
    above — useful for new (custom) verticals and for re-routing an
    existing one without editing this file.
@@ -2363,7 +2363,7 @@ if (usecaseObj?.scenes) {
   scenesSource = v.scenes;
 }
 /* For ?usecase=intake we pick a 3- or 4-scene scene-key set based on whether
-   the vertical's intake has a Workspaces tail (i.e. 4 scenes). */
+   the vertical's intake has a shared workspace tail (i.e. 4 scenes). */
 const usecaseKey = (usecase === "intake")
   ? (scenesSource.length >= 4 ? "intake-4" : "intake-3")
   : usecase;
@@ -2377,7 +2377,7 @@ if (usecase !== "default" && !usecaseObj && usecase !== "workspaces" &&
   console.warn(`[tgk] vertical "${verticalKey}" has no "${usecase}" usecase — falling back to canonical 5-scene`);
 }
 /* Splash defaults to the vertical's splashOk flag (set on the verticals where
-   Scene 5 lands as a genuine Workspaces moment — multi-party, async, persistent).
+   Scene 5 lands as a genuine shared workspace moment — multi-party, async, persistent).
    ?splash=1 forces on; ?splash=0 forces off. */
 const splashParam = params.get("splash");
 const splashOn = splashParam === "1" ? true
@@ -3577,7 +3577,7 @@ loadIDBTemplateOverrides().then((count) => {
             },
             {
               "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · CARE RELATIONSHIP",
-              "head": "Riverside's care team picks up Jordan's record in Workspaces.",
+              "head": "Riverside's care team picks up Jordan's record in the shared workspace.",
               "lede": "<p>Daniela Okafor, the patient coordinator, sees Jordan's pre-reg packet in the care Workspace — already verified, already routed to the EHR. Day-of arrival becomes a 60-second check-in.</p>",
               "beats": [
                 {
