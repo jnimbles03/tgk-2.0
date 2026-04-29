@@ -619,10 +619,10 @@
     <div class="builder-list" id="builder-list"></div>
     <div class="builder-add-row">
       <select id="builder-template">
-        <option value="agreement-desk">Sender (Agreement Desk · Maestro)</option>
+        <option value="agreement-desk">Sender (Agreement Desk · the workflow)</option>
         <option value="clear-idv">Identity (identity verification)</option>
         <option value="signing">Signing</option>
-        <option value="navigator">Navigator</option>
+        <option value="navigator">Agreement Repository</option>
         <option value="workspace">Workspace</option>
       </select>
       <button class="btn" id="builder-add">+ Add scene</button>
@@ -723,7 +723,7 @@ const INDUSTRY_LABELS = {
   GEO:  'GEO (B2B industries)',
 };
 
-const SCENE_LABELS = ['Sender','Identity','Signing','Navigator','Workspace'];
+const SCENE_LABELS = ['Sender','Identity','Signing','the agreement repository','Workspace'];
 
 /* Per-scene mock template + per-beat internal-scene resolution.
    Mirrors story-shell.html (TEMPLATE_FILES + BEAT_TO_INTERNAL).
@@ -735,7 +735,7 @@ const BEAT_INTERNAL = [
   ['s1','s2','s2','s3','s3'],     // scene 0  Sender (Agreement Desk)
   ['s1','s2','s3','s6','s7'],     // scene 1  Identity (identity verification)
   ['s1','s2','s3','s4','s5'],     // scene 2  Signing
-  ['s1','s2','s3','s4','s4'],     // scene 3  Navigator
+  ['s1','s2','s3','s4','s4'],     // scene 3  the agreement repository
   ['—','—','—','—','—'],            // scene 4  Workspace (no internal scenes)
 ];
 function defaultSceneProduct(si) {
@@ -1266,7 +1266,7 @@ function downloadStorylinesXlsx() {
       ['Subtitle (raw)', v.subtitle || ''], ['Mark color', v.tenantColor || ''], ['Preset', v.preset || ''], ['Category', v.category || ''],
       [], ['Scene','Beat #','Hotspot','Field','Source text'],
     ];
-    const SCENES = [['Sender','agreement_desk'],['Identity','clear_idv'],['Signing','signing'],['Navigator','navigator'],['Workspace','workspace']];
+    const SCENES = [['Sender','agreement_desk'],['Identity','clear_idv'],['Signing','signing'],['the agreement repository','navigator'],['Workspace','workspace']];
     v.scenes.forEach((sc, si) => {
       const [name, hot] = SCENES[si];
       rows.push([`SCENE ${si+1} · ${name.toUpperCase()}`, '—', hot, 'Scene tag', sc.tag || '']);
@@ -1734,7 +1734,7 @@ document.getElementById('rename-apply').addEventListener('click', applyRename);
    ========================================================= */
 const PRODUCTS = [
   // Orchestration & intake
-  { id: 'maestro',         label: 'Maestro',          group: 'Orchestration' },
+  { id: 'maestro',         label: 'the workflow',          group: 'Orchestration' },
   { id: 'webforms',        label: 'Web Forms',        group: 'Orchestration' },
   { id: 'agreement-desk',  label: 'Agreement Desk',   group: 'Orchestration' },
   // Identity (IAM)
@@ -1746,7 +1746,7 @@ const PRODUCTS = [
   { id: 'esignature',      label: 'eSignature',       group: 'Signing' },
   { id: 'iam',             label: 'IAM (auth fabric)',group: 'Signing' },
   // Post-signature insight + collaboration
-  { id: 'navigator',       label: 'Navigator',        group: 'Insights' },
+  { id: 'navigator',       label: 'the agreement repository',        group: 'Insights' },
   { id: 'iris',            label: 'AI assistant',        group: 'Insights' },
   { id: 'workspaces',      label: 'Workspaces',       group: 'Collaboration' },
   // Lifecycle
@@ -1760,7 +1760,7 @@ const SCENE_DEFAULT_PRODUCTS = {
   0: ['maestro','webforms'],          // Sender (Agreement Desk)
   1: ['clear','iam-verify'],          // Identity
   2: ['esignature'],                  // Signing
-  3: ['navigator','iris'],            // Navigator
+  3: ['navigator','iris'],            // the agreement repository
   4: ['workspaces'],                  // Workspace
 };
 
@@ -1921,7 +1921,7 @@ const SCENE_TEMPLATE_LABELS = {
   'agreement-desk': 'Sender · Agreement Desk',
   'clear-idv':      'Identity · identity verification',
   'signing':        'Signing',
-  'navigator':      'Navigator',
+  'navigator':      'the agreement repository',
   'workspace':      'Workspace',
 };
 const SCENE_TEMPLATE_DEFAULTS = {
