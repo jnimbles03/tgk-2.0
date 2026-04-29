@@ -1849,7 +1849,7 @@
          FINS / HLS / PUBSEC stories. -->
     <div class="grid c3 step2-b2c hidden">
 
-      <a class="card unified-link" href="/index-unified.html" data-crumb="Financial Services">
+      <a class="card unified-link" href="/index-unified.html?mode=story&amp;cluster=fins" data-crumb="Financial Services" data-cluster="fins">
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="6" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
           <path d="M3 10 H21" stroke="currentColor" stroke-width="1.6"/>
@@ -1860,7 +1860,7 @@
         <div class="meta">Open in unified picker &rsaquo;</div>
       </a>
 
-      <a class="card unified-link" href="/index-unified.html" data-crumb="Healthcare &amp; Life Sciences">
+      <a class="card unified-link" href="/index-unified.html?mode=story&amp;cluster=hls" data-crumb="Healthcare &amp; Life Sciences" data-cluster="hls">
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 4 V20 M4 12 H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>
@@ -1870,7 +1870,7 @@
         <div class="meta">Open in unified picker &rsaquo;</div>
       </a>
 
-      <a class="card unified-link" href="/index-unified.html" data-crumb="Public Sector">
+      <a class="card unified-link" href="/index-unified.html?mode=story&amp;cluster=ps" data-crumb="Public Sector" data-cluster="ps">
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 20 L4 10 L12 4 L20 10 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
           <path d="M9 20 V14 H15 V20" stroke="currentColor" stroke-width="1.6"/>
@@ -2373,6 +2373,42 @@
     document.querySelectorAll('[data-pick]').forEach(el => {
       el.addEventListener('click', onPick, { once: true });
     });
+    // Unified-link cards (b2c verticals) navigate to /index-unified.html.
+    // Bind an explicit click handler so the first click always wins, even
+    // mid-scroll/mid-revealUp animation. Otherwise some browsers swallow
+    // the first tap as a hover/scroll-stop and require a second click.
+    document.querySelectorAll('.unified-link').forEach(el => {
+      const fresh = el.cloneNode(true);
+      el.parentNode.replaceChild(fresh, el);
+    });
+    document.querySelectorAll('.unified-link').forEach(el => {
+      el.addEventListener('click', onUnifiedLinkPick);
+    });
+  }
+
+  function onUnifiedLinkPick(e) {
+    // Suppress default <a> navigation so we control timing — the smooth
+    // scroll triggered by the prior step's onPick can otherwise swallow
+    // the first click on iOS/Safari.
+    e.preventDefault();
+    const el = e.currentTarget;
+    el.classList.add('sel');
+    document.body.classList.add('flow-started');
+    // Stamp picked-val on Step 2 for visual continuity
+    const sect = el.closest('.sect');
+    if (sect) {
+      const pv = sect.querySelector('.picked-val');
+      const txt = (el.dataset.crumb || '').replace(/&amp;/g, '&');
+      if (pv) pv.textContent = txt;
+      sect.classList.add('done', 'collapsed');
+    }
+    if (el.dataset.crumb) {
+      picks.push(el.dataset.crumb);
+      renderCrumb();
+    }
+    // Navigate. Use a microtask so the click visual ('sel' state) paints first.
+    const href = el.getAttribute('href');
+    requestAnimationFrame(() => { window.location.href = href; });
   }
 
   function onPick(e) {

@@ -5812,6 +5812,21 @@ function askNavAI() {
   // Park on stage 1 at init so only the vertical grid is visible.
   setWizardStage(1);
 
+  // Cluster handoff from /geos.html: ?cluster=fins|hls|ps pre-selects the
+  // vertical so the user lands directly on stage 2 (subverticals).
+  const urlCluster = params.get('cluster');
+  const CLUSTER_TO_VERTICAL = {
+    fins: 'financial-services',
+    hls:  'hls',
+    ps:   'public-sector',
+    pubsec: 'public-sector'
+  };
+  const preselectKey = urlCluster && CLUSTER_TO_VERTICAL[urlCluster.toLowerCase()];
+  if (preselectKey && CATALOG[preselectKey]) {
+    // Defer to next frame so the vertical grid + handlers are fully wired.
+    requestAnimationFrame(() => selectVertical(preselectKey));
+  }
+
   // ---------- Launch handler — bridges to existing index.html machinery ----------
   window.launchUseCase = function () {
     if (launchBtn.disabled) return;

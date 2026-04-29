@@ -326,6 +326,201 @@
     font-size: 22px; font-weight: 600; color: var(--purple);
     pointer-events: none;
   }
+
+  /* ===== Edit-scenes button on each storyline card ===== */
+  .card-head .edit-scenes-btn {
+    margin-left: 10px;
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--hair-strong);
+    color: var(--ink-mid);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.12s;
+  }
+  .card-head .edit-scenes-btn:hover {
+    background: var(--purple-bg);
+    color: var(--purple);
+    border-color: var(--purple);
+  }
+
+  /* ===== Storyline-builder modal ===== */
+  .builder-modal { width: 760px; max-width: 96vw; max-height: 88vh; display: flex; flex-direction: column; }
+  .builder-modal h2 { margin-bottom: 4px; }
+  .builder-storyline {
+    font-size: 12px; color: var(--ink-soft);
+    font-family: ui-monospace, Menlo, monospace;
+    margin-bottom: 14px;
+  }
+  .builder-list {
+    flex: 1; min-height: 0; overflow-y: auto;
+    border: 1px solid var(--hair); border-radius: 6px;
+    background: #FCFAF7;
+    padding: 6px;
+  }
+  .builder-scene {
+    display: grid;
+    grid-template-columns: 22px 60px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 5px;
+    transition: box-shadow 0.12s, border-color 0.12s;
+  }
+  .builder-scene:hover { border-color: var(--hair-strong); }
+  .builder-scene.dragging { opacity: 0.5; }
+  .builder-scene.drop-target { border-color: var(--purple); box-shadow: 0 0 0 2px rgba(75,0,233,0.12); }
+  .builder-scene .drag-handle {
+    cursor: grab; color: var(--ink-soft);
+    user-select: none; line-height: 1;
+    font-size: 14px; text-align: center;
+  }
+  .builder-scene .drag-handle:active { cursor: grabbing; }
+  .builder-scene .scene-num {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px; font-weight: 600;
+    color: var(--purple);
+    background: var(--purple-bg);
+    padding: 3px 7px; border-radius: 4px;
+    text-align: center;
+  }
+  .builder-scene .scene-body { min-width: 0; }
+  .builder-scene .scene-template {
+    font-size: 10.5px; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .builder-scene .scene-head-text {
+    font-size: 13px; color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .builder-scene .scene-actions {
+    display: flex; gap: 4px;
+  }
+  .builder-scene .iconbtn {
+    background: transparent; border: 1px solid transparent;
+    width: 24px; height: 24px; border-radius: 4px;
+    cursor: pointer; color: var(--ink-mid);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+    font-size: 13px;
+  }
+  .builder-scene .iconbtn:hover { background: var(--hair); color: var(--ink); }
+  .builder-scene .iconbtn.danger:hover { background: var(--danger-bg); color: var(--danger); }
+
+  .builder-add-row {
+    display: flex; gap: 8px;
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed var(--hair-strong);
+  }
+  .builder-add-row select {
+    flex: 1; font-family: inherit; font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--hair-strong);
+    border-radius: 4px; background: var(--surface);
+  }
+
+  /* Scene-edit sub-modal */
+  .scene-edit-modal { width: 540px; max-width: 92vw; }
+  .scene-edit-modal .field-row { margin-bottom: 12px; }
+  .scene-edit-modal label { display: block; font-size: 12px; font-weight: 500;
+    color: var(--ink-mid); margin: 0 0 4px; }
+  .scene-edit-modal input[type="text"], .scene-edit-modal textarea, .scene-edit-modal select {
+    width: 100%; font-family: inherit; font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--hair-strong);
+    border-radius: 4px; background: var(--surface); color: var(--ink);
+  }
+  .scene-edit-modal textarea { min-height: 60px; resize: vertical; }
+  .scene-edit-modal .persona-grid {
+    display: grid; grid-template-columns: 130px 1fr 1fr; gap: 8px;
+  }
+
+  /* ===== Product picker — chip cell + popover ===== */
+  .row .product.has-picker {
+    cursor: pointer;
+    display: flex; flex-wrap: wrap; gap: 4px;
+    align-items: center; min-height: 28px;
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.4;
+  }
+  .row .product.has-picker .pchip {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 7px; border-radius: 10px;
+    background: var(--purple-bg); color: var(--purple);
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .row .product.has-picker .pchip.legacy {
+    background: var(--amber-bg); color: var(--amber);
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10.5px;
+  }
+  .row .product.has-picker:empty::before,
+  .row .product.has-picker.placeholder::before {
+    content: attr(data-default);
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 11.5px;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  .row .product.has-picker.placeholder { padding: 6px 10px; }
+  .row .product.has-picker.dirty {
+    border-color: var(--amber); background: #FFFBEC;
+  }
+
+  .product-popover {
+    position: absolute;
+    z-index: 220;
+    background: var(--surface);
+    border: 1px solid var(--hair-strong);
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(31,26,20,0.18);
+    padding: 10px 12px;
+    width: 280px; max-height: 360px; overflow-y: auto;
+    font-size: 12.5px;
+  }
+  .product-popover .pp-group {
+    margin-bottom: 8px;
+  }
+  .product-popover .pp-group:last-child { margin-bottom: 0; }
+  .product-popover .pp-group-label {
+    font-size: 10.5px; font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .product-popover label.pp-opt {
+    display: flex; align-items: center; gap: 7px;
+    padding: 5px 6px; border-radius: 4px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .product-popover label.pp-opt:hover { background: var(--hair); }
+  .product-popover label.pp-opt input { margin: 0; }
+  .product-popover .pp-foot {
+    border-top: 1px solid var(--hair);
+    margin-top: 8px; padding-top: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .product-popover .pp-clear {
+    font-size: 11.5px; color: var(--ink-mid);
+    background: transparent; border: 0; cursor: pointer;
+    padding: 4px 6px; border-radius: 4px;
+  }
+  .product-popover .pp-clear:hover { color: var(--danger); background: var(--danger-bg); }
+  .product-popover .pp-done {
+    font-size: 11.5px; color: var(--purple); font-weight: 600;
+    background: transparent; border: 0; cursor: pointer;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .product-popover .pp-done:hover { background: var(--purple-bg); }
 </style>
 </head>
 <body>
@@ -411,6 +606,64 @@
       <button class="btn" id="rename-cancel">Cancel</button>
       <button class="btn" id="rename-preview-btn">Preview matches</button>
       <button class="btn primary" id="rename-apply" disabled>Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Storyline-builder modal: reorder / add / remove / edit scenes -->
+<div class="modal-bg" id="builder-bg">
+  <div class="modal builder-modal">
+    <h2>Edit scene sequence</h2>
+    <div class="builder-storyline" id="builder-storyline"></div>
+    <div class="sub">Drag scenes to reorder. Click the pencil to edit a scene's tag, head, and persona. Add a scene from the spine library below — beats are kept as-is when reordering.</div>
+    <div class="builder-list" id="builder-list"></div>
+    <div class="builder-add-row">
+      <select id="builder-template">
+        <option value="agreement-desk">Sender (Agreement Desk · Maestro)</option>
+        <option value="clear-idv">Identity (CLEAR IDV)</option>
+        <option value="signing">Signing</option>
+        <option value="navigator">Navigator</option>
+        <option value="workspace">Workspace</option>
+      </select>
+      <button class="btn" id="builder-add">+ Add scene</button>
+    </div>
+    <div class="actions">
+      <button class="btn" id="builder-cancel">Cancel</button>
+      <button class="btn primary" id="builder-save">Save scene order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scene-edit sub-modal: tag, head, persona -->
+<div class="modal-bg" id="scene-edit-bg">
+  <div class="modal scene-edit-modal">
+    <h2 id="scene-edit-title">Edit scene</h2>
+    <div class="sub">Tag and head appear in the shell sidebar. Persona controls the avatar + role badge for the scene-level intro card.</div>
+    <div class="field-row">
+      <label>Tag</label>
+      <input type="text" id="se-tag" placeholder="SCENE 1 OF 5 · INTAKE · SENDER WEBFORM" />
+    </div>
+    <div class="field-row">
+      <label>Scene head</label>
+      <textarea id="se-head" placeholder="One-line scene headline shown above the lede"></textarea>
+    </div>
+    <div class="field-row">
+      <label>Persona</label>
+      <div class="persona-grid">
+        <select id="se-persona-side">
+          <option value="">— side —</option>
+          <option value="advisor">advisor</option>
+          <option value="client">client</option>
+          <option value="system">system</option>
+          <option value="handoff">handoff</option>
+        </select>
+        <input type="text" id="se-persona-name" placeholder="Name" />
+        <input type="text" id="se-persona-role" placeholder="Role / firm" />
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="se-cancel">Cancel</button>
+      <button class="btn primary" id="se-save">Save</button>
     </div>
   </div>
 </div>
@@ -692,6 +945,7 @@ function renderStorylines() {
           <span class="title">${v.tenant || ''} ${v.subtitle || ''}</span>
           <span class="pill ${cat}">${cat}</span>
           <span class="meta">${v.preset || ''}</span>
+          <button class="edit-scenes-btn" type="button" title="Reorder, add, remove scenes">Edit scenes</button>
         </div>
         <div class="fields">${sceneRows}</div>
       </div>`;
@@ -704,11 +958,13 @@ function renderStorylines() {
     el.addEventListener('blur', onBlur);
     el.addEventListener('keydown', onKey);
   });
-  // Product cells (storylines tab only — Discovery rows have no-edit cells)
+  // Product cells (storylines tab only — Discovery rows have no-edit cells).
+  // Now rendered as a chip cell + popover picker; click-to-open is wired via
+  // event delegation in the picker section, so we only need to seed the chip
+  // markup from dataset.value here.
   cards.querySelectorAll('.product:not(.no-edit)').forEach(el => {
-    el.contentEditable = 'true';
-    el.addEventListener('input', onProductEdit);
-    el.addEventListener('keydown', onProductKey);
+    el.classList.add('has-picker');
+    renderProductCellChips(el);
   });
 }
 
@@ -720,16 +976,18 @@ function rowHtml(sceneClass, sceneTag, stepCol, field, value, path, productInfo)
 
   // Product cell — only present for storyline scene-head and beat-head rows.
   // For lede rows and discovery rows, productInfo is null and we emit an
-  // inert empty cell so the 5-col grid stays aligned.
+  // inert empty cell so the 5-col grid stays aligned. The current value is
+  // stashed in data-value (not the cell body) so the chip renderer can
+  // re-derive the chips from a clean source string.
   let productCell;
   if (productInfo) {
     const ppath = pathToKey(productInfo.path);
     const pdirty = state.edits.storylines.has(ppath);
-    const pcur = (productInfo.current || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const pval = (productInfo.current || '')
+      .replace(/"/g,'&quot;');
     const pdef = (productInfo.defaultLabel || '')
       .replace(/"/g,'&quot;');
-    productCell = `<div class="product${pdirty ? ' dirty' : ''}" data-product-path="${ppath}" data-default="${pdef}">${pcur}</div>`;
+    productCell = `<div class="product${pdirty ? ' dirty' : ''}" data-product-path="${ppath}" data-default="${pdef}" data-value="${pval}"></div>`;
   } else {
     productCell = `<div class="product no-edit"></div>`;
   }
@@ -1464,6 +1722,444 @@ document.getElementById('rename-preview-btn').addEventListener('click', renderRe
   el.addEventListener('input', () => { document.getElementById('rename-apply').disabled = true; });
 });
 document.getElementById('rename-apply').addEventListener('click', applyRename);
+
+/* =========================================================
+   Canonical Docusign product list
+   ----------------------------------------------------------
+   Drives the product picker popover on storyline rows. Multi-
+   select; storage shape on `product` is a comma-separated list
+   of ids (e.g. "maestro,webforms"). Free-text overrides from
+   pre-picker edits are preserved as a 'legacy' chip until the
+   user re-picks.
+   ========================================================= */
+const PRODUCTS = [
+  // Orchestration & intake
+  { id: 'maestro',         label: 'Maestro',          group: 'Orchestration' },
+  { id: 'webforms',        label: 'Web Forms',        group: 'Orchestration' },
+  { id: 'agreement-desk',  label: 'Agreement Desk',   group: 'Orchestration' },
+  // Identity (IAM)
+  { id: 'clear',           label: 'CLEAR (IDV)',      group: 'Identity' },
+  { id: 'iam-verify',      label: 'IAM Verify',       group: 'Identity' },
+  { id: 'iam-identify',    label: 'IAM Identify',     group: 'Identity' },
+  { id: 'iam-coreid',      label: 'IAM CoreID',       group: 'Identity' },
+  // Signing
+  { id: 'esignature',      label: 'eSignature',       group: 'Signing' },
+  { id: 'iam',             label: 'IAM (auth fabric)',group: 'Signing' },
+  // Post-signature insight + collaboration
+  { id: 'navigator',       label: 'Navigator',        group: 'Insights' },
+  { id: 'iris',            label: 'Iris (AI)',        group: 'Insights' },
+  { id: 'workspaces',      label: 'Workspaces',       group: 'Collaboration' },
+  // Lifecycle
+  { id: 'clm',             label: 'CLM',              group: 'Lifecycle' },
+];
+const PRODUCTS_BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+const PRODUCT_GROUP_ORDER = ['Orchestration','Identity','Signing','Insights','Collaboration','Lifecycle'];
+
+// Default product hint per scene template — what the shell uses today.
+const SCENE_DEFAULT_PRODUCTS = {
+  0: ['maestro','webforms'],          // Sender (Agreement Desk)
+  1: ['clear','iam-verify'],          // Identity
+  2: ['esignature'],                  // Signing
+  3: ['navigator','iris'],            // Navigator
+  4: ['workspaces'],                  // Workspace
+};
+
+// Parse stored product value → array of ids and an optional legacy free-text remainder.
+function parseProductValue(raw) {
+  if (!raw) return { ids: [], legacy: '' };
+  const tokens = String(raw).split(',').map(s => s.trim()).filter(Boolean);
+  const ids = []; const legacy = [];
+  for (const t of tokens) {
+    if (PRODUCTS_BY_ID[t]) ids.push(t);
+    else legacy.push(t);
+  }
+  return { ids, legacy: legacy.join(', ') };
+}
+function serializeProductSelection(ids, legacy) {
+  const parts = [...ids];
+  if (legacy && legacy.trim()) parts.push(legacy.trim());
+  return parts.join(', ');
+}
+
+/* =========================================================
+   Product picker — chip cell + click-to-open popover
+   ----------------------------------------------------------
+   Replaces the contenteditable .product cell. The cell is now
+   click-only; the popover hosts the multi-select. We still
+   hand the resulting string to the existing edit map so the
+   submit pipeline doesn't change.
+   ========================================================= */
+function renderProductCellChips(el) {
+  const raw = el.dataset.value || '';
+  const { ids, legacy } = parseProductValue(raw);
+  el.classList.toggle('placeholder', ids.length === 0 && !legacy);
+  if (ids.length === 0 && !legacy) {
+    el.innerHTML = '';
+    return;
+  }
+  const chipHtml = [
+    ...ids.map(id => `<span class="pchip">${PRODUCTS_BY_ID[id].label}</span>`),
+    legacy ? `<span class="pchip legacy" title="Legacy free-text — re-pick to migrate">${escapeHtml(legacy)}</span>` : '',
+  ].filter(Boolean).join('');
+  el.innerHTML = chipHtml;
+}
+
+let openPopover = null;
+function closeProductPopover() {
+  if (openPopover) { openPopover.remove(); openPopover = null; }
+  document.removeEventListener('mousedown', onPopoverOutside, true);
+  document.removeEventListener('keydown', onPopoverKey, true);
+}
+function onPopoverOutside(e) {
+  if (openPopover && !openPopover.contains(e.target) && !e.target.closest('.product')) {
+    closeProductPopover();
+  }
+}
+function onPopoverKey(e) {
+  if (e.key === 'Escape') closeProductPopover();
+}
+
+function openProductPopover(cellEl) {
+  closeProductPopover();
+  const raw = cellEl.dataset.value || '';
+  const { ids, legacy } = parseProductValue(raw);
+  const selected = new Set(ids);
+
+  const pop = document.createElement('div');
+  pop.className = 'product-popover';
+  // Position next to the cell
+  const r = cellEl.getBoundingClientRect();
+  const top = window.scrollY + r.bottom + 4;
+  // Right-align the popover to the cell's right edge so it doesn't run off
+  // the page on right-hand product columns.
+  pop.style.top = `${top}px`;
+  pop.style.left = `${Math.max(8, window.scrollX + r.right - 280)}px`;
+
+  let html = '';
+  for (const group of PRODUCT_GROUP_ORDER) {
+    const items = PRODUCTS.filter(p => p.group === group);
+    if (items.length === 0) continue;
+    html += `<div class="pp-group"><div class="pp-group-label">${group}</div>`;
+    for (const p of items) {
+      const checked = selected.has(p.id) ? 'checked' : '';
+      html += `<label class="pp-opt"><input type="checkbox" data-pid="${p.id}" ${checked}><span>${p.label}</span></label>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="pp-foot">
+    <button class="pp-clear" type="button">Clear all</button>
+    <button class="pp-done" type="button">Done</button>
+  </div>`;
+  pop.innerHTML = html;
+  document.body.appendChild(pop);
+  openPopover = pop;
+
+  function commit() {
+    const newIds = [...pop.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.dataset.pid);
+    const newVal = serializeProductSelection(newIds, legacy);
+    cellEl.dataset.value = newVal;
+    renderProductCellChips(cellEl);
+    onProductCellCommit(cellEl);
+  }
+
+  pop.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', commit);
+  });
+  pop.querySelector('.pp-clear').addEventListener('click', () => {
+    pop.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    // Also drop any legacy free-text on Clear All.
+    cellEl.dataset.value = '';
+    renderProductCellChips(cellEl);
+    onProductCellCommit(cellEl);
+  });
+  pop.querySelector('.pp-done').addEventListener('click', closeProductPopover);
+
+  // Defer outside-click binding so the click that opened us doesn't close us.
+  setTimeout(() => {
+    document.addEventListener('mousedown', onPopoverOutside, true);
+    document.addEventListener('keydown', onPopoverKey, true);
+  }, 0);
+}
+
+function onProductCellCommit(cellEl) {
+  const pathKey = cellEl.dataset.productPath;
+  const path = pathKey.split('|').map(p => /^\d+$/.test(p) ? parseInt(p,10) : p);
+  const newVal = (cellEl.dataset.value || '').trim();
+  let cur = state.storylinesOrig;
+  for (const p of path) cur = cur && cur[p];
+  const orig = cur == null ? '' : String(cur);
+  if (newVal === orig) {
+    state.edits.storylines.delete(pathKey);
+    cellEl.classList.remove('dirty');
+  } else {
+    state.edits.storylines.set(pathKey, { path, value: newVal });
+    cellEl.classList.add('dirty');
+  }
+  refreshDirtyPill();
+}
+
+// Event delegation: any .has-picker click opens the popover.
+document.addEventListener('click', (e) => {
+  const cell = e.target.closest('.row .product.has-picker');
+  if (!cell) return;
+  // Avoid re-opening if the click was inside an existing popover.
+  if (e.target.closest('.product-popover')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openProductPopover(cell);
+});
+
+/* =========================================================
+   Storyline builder — per-card "Edit scenes" modal
+   ----------------------------------------------------------
+   Holds an in-memory clone of the storyline's scenes. User
+   reorders (drag handle), edits metadata (sub-modal), adds
+   from spine, or removes. Save serializes the new array as a
+   single edit at path [storyKey, 'scenes'].
+   ========================================================= */
+const SCENE_TEMPLATE_LABELS = {
+  'agreement-desk': 'Sender · Agreement Desk',
+  'clear-idv':      'Identity · CLEAR IDV',
+  'signing':        'Signing',
+  'navigator':      'Navigator',
+  'workspace':      'Workspace',
+};
+const SCENE_TEMPLATE_DEFAULTS = {
+  'agreement-desk': {
+    tagPrefix: 'INTAKE · SENDER WEBFORM',
+    head: 'New scene — sender intake',
+    persona: { side: 'advisor', name: '', role: '' },
+    template: 'agreement-desk',
+  },
+  'clear-idv': {
+    tagPrefix: 'IDENTITY · CLEAR',
+    head: 'New scene — identity verification',
+    persona: { side: 'client', name: '', role: '' },
+    template: 'clear-idv',
+  },
+  'signing': {
+    tagPrefix: 'SIGNING',
+    head: 'New scene — signing ceremony',
+    persona: { side: 'client', name: '', role: '' },
+    template: 'signing',
+  },
+  'navigator': {
+    tagPrefix: 'NAVIGATOR',
+    head: 'New scene — agreement insights',
+    persona: { side: 'advisor', name: '', role: '' },
+    template: 'navigator',
+  },
+  'workspace': {
+    tagPrefix: 'WORKSPACE',
+    head: 'New scene — collaborative workspace',
+    persona: { side: 'system', name: '', role: '' },
+    template: 'workspace',
+  },
+};
+
+const builderState = {
+  storyKey: null,
+  scenes: null,        // working copy
+  draggingIdx: null,   // for drag-and-drop reordering
+  editingIdx: null,    // for scene-edit sub-modal
+};
+
+function inferTemplateForScene(sc, fallbackIdx) {
+  // Try explicit `template` field first; fall back to sniffing the tag, then
+  // to position (0..4 → spine order).
+  if (sc && sc.template && SCENE_TEMPLATE_LABELS[sc.template]) return sc.template;
+  const tag = String((sc && sc.tag) || '').toLowerCase();
+  if (tag.includes('webform') || tag.includes('agreement desk') || tag.includes('intake')) return 'agreement-desk';
+  if (tag.includes('clear') || tag.includes('identity') || tag.includes('idv')) return 'clear-idv';
+  if (tag.includes('signing') || tag.includes('ceremony')) return 'signing';
+  if (tag.includes('navigator')) return 'navigator';
+  if (tag.includes('workspace')) return 'workspace';
+  return ['agreement-desk','clear-idv','signing','navigator','workspace'][fallbackIdx % 5];
+}
+
+function openBuilderForKey(storyKey) {
+  const v = state.storylines[storyKey];
+  if (!v) return;
+  builderState.storyKey = storyKey;
+  // Deep clone so cancel discards cleanly
+  builderState.scenes = JSON.parse(JSON.stringify(v.scenes || []));
+  document.getElementById('builder-storyline').textContent =
+    `${storyKey} · ${v.tenant || ''} ${v.subtitle || ''}`.trim();
+  renderBuilderList();
+  document.getElementById('builder-bg').classList.add('on');
+}
+function closeBuilder() {
+  document.getElementById('builder-bg').classList.remove('on');
+  builderState.storyKey = null;
+  builderState.scenes = null;
+}
+
+function renderBuilderList() {
+  const list = document.getElementById('builder-list');
+  list.innerHTML = builderState.scenes.map((sc, i) => {
+    const tmpl = inferTemplateForScene(sc, i);
+    const tmplLabel = SCENE_TEMPLATE_LABELS[tmpl] || tmpl;
+    const head = (sc.head || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const beatCount = (sc.beats || []).length;
+    return `
+      <div class="builder-scene" draggable="true" data-idx="${i}">
+        <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+        <div class="scene-num">S${i+1}</div>
+        <div class="scene-body">
+          <div class="scene-template">${tmplLabel} · ${beatCount} beat${beatCount===1?'':'s'}</div>
+          <div class="scene-head-text">${head || '<span style="color:var(--ink-soft);font-style:italic">(no head)</span>'}</div>
+        </div>
+        <div class="scene-actions">
+          <button class="iconbtn" data-act="edit"   title="Edit tag / head / persona">✎</button>
+          <button class="iconbtn danger" data-act="remove" title="Remove scene">✕</button>
+        </div>
+      </div>`;
+  }).join('') || '<div class="empty-card" style="margin:20px">No scenes yet — add one below.</div>';
+
+  list.querySelectorAll('.builder-scene').forEach(row => {
+    const idx = parseInt(row.dataset.idx, 10);
+    row.addEventListener('dragstart', (e) => {
+      builderState.draggingIdx = idx;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      // Firefox needs setData to start a drag
+      try { e.dataTransfer.setData('text/plain', String(idx)); } catch (e) {}
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      list.querySelectorAll('.builder-scene').forEach(r => r.classList.remove('drop-target'));
+      builderState.draggingIdx = null;
+    });
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      list.querySelectorAll('.builder-scene').forEach(r => r.classList.remove('drop-target'));
+      row.classList.add('drop-target');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drop-target'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const from = builderState.draggingIdx;
+      const to = idx;
+      if (from == null || from === to) return;
+      const moved = builderState.scenes.splice(from, 1)[0];
+      builderState.scenes.splice(to, 0, moved);
+      renderBuilderList();
+    });
+    row.querySelector('[data-act="edit"]').addEventListener('click', () => openSceneEdit(idx));
+    row.querySelector('[data-act="remove"]').addEventListener('click', () => {
+      if (!confirm(`Remove scene ${idx+1} (${builderState.scenes[idx].head || 'no head'})? This will drop its beats too.`)) return;
+      builderState.scenes.splice(idx, 1);
+      renderBuilderList();
+    });
+  });
+}
+
+function builderAddScene() {
+  const tmpl = document.getElementById('builder-template').value;
+  const def = SCENE_TEMPLATE_DEFAULTS[tmpl];
+  if (!def) return;
+  const sceneNum = builderState.scenes.length + 1;
+  const newScene = {
+    tag: `SCENE ${sceneNum} OF ${sceneNum} · ${def.tagPrefix}`,
+    head: def.head,
+    persona: { ...def.persona },
+    lede: '<p>(write the scene lede in the scene rows after saving)</p>',
+    template: def.template,
+    beats: [],
+  };
+  builderState.scenes.push(newScene);
+  renderBuilderList();
+}
+
+function openSceneEdit(idx) {
+  const sc = builderState.scenes[idx];
+  if (!sc) return;
+  builderState.editingIdx = idx;
+  document.getElementById('scene-edit-title').textContent = `Edit scene ${idx+1}`;
+  document.getElementById('se-tag').value = sc.tag || '';
+  document.getElementById('se-head').value = sc.head || '';
+  const p = sc.persona || {};
+  document.getElementById('se-persona-side').value = p.side || '';
+  document.getElementById('se-persona-name').value = p.name || '';
+  document.getElementById('se-persona-role').value = p.role || '';
+  document.getElementById('scene-edit-bg').classList.add('on');
+}
+function closeSceneEdit() {
+  document.getElementById('scene-edit-bg').classList.remove('on');
+  builderState.editingIdx = null;
+}
+function saveSceneEdit() {
+  const idx = builderState.editingIdx;
+  if (idx == null) return closeSceneEdit();
+  const sc = builderState.scenes[idx];
+  if (!sc) return closeSceneEdit();
+  sc.tag = document.getElementById('se-tag').value.trim();
+  sc.head = document.getElementById('se-head').value.trim();
+  const side = document.getElementById('se-persona-side').value;
+  const name = document.getElementById('se-persona-name').value.trim();
+  const role = document.getElementById('se-persona-role').value.trim();
+  if (side || name || role) {
+    sc.persona = { ...(sc.persona || {}) };
+    if (side) sc.persona.side = side; else delete sc.persona.side;
+    if (name) sc.persona.name = name; else delete sc.persona.name;
+    if (role) sc.persona.role = role; else delete sc.persona.role;
+  } else {
+    delete sc.persona;
+  }
+  closeSceneEdit();
+  renderBuilderList();
+}
+
+function saveBuilder() {
+  const key = builderState.storyKey;
+  if (!key) return;
+  const newScenes = JSON.parse(JSON.stringify(builderState.scenes));
+  const origScenes = state.storylinesOrig[key]?.scenes || [];
+  // Renumber `SCENE N OF M` prefixes if present, so the tag count stays in
+  // sync with the new length.
+  const total = newScenes.length;
+  newScenes.forEach((sc, i) => {
+    if (sc.tag) {
+      sc.tag = sc.tag.replace(/SCENE\s+\d+\s+OF\s+\d+/i, `SCENE ${i+1} OF ${total}`);
+    }
+  });
+  state.storylines[key].scenes = newScenes;
+  // Capture as a single whole-array edit on the scenes path. The submit
+  // pipeline applies it as a partial overlay (cur[last] = v) which works
+  // for arrays.
+  const pathKey = `${key}|scenes`;
+  if (JSON.stringify(newScenes) !== JSON.stringify(origScenes)) {
+    state.edits.storylines.set(pathKey, { path: [key, 'scenes'], value: newScenes });
+  } else {
+    state.edits.storylines.delete(pathKey);
+  }
+  // Also drop any per-row edits within this storyline's scenes since the
+  // whole-array edit supersedes them — keeps the diff clean.
+  for (const k of [...state.edits.storylines.keys()]) {
+    if (k === pathKey) continue;
+    if (k.startsWith(`${key}|scenes|`)) state.edits.storylines.delete(k);
+  }
+  closeBuilder();
+  refreshDirtyPill();
+  render();
+  toast(`Scene order saved · submit when ready`, 'success');
+}
+
+document.getElementById('builder-cancel').addEventListener('click', closeBuilder);
+document.getElementById('builder-save').addEventListener('click', saveBuilder);
+document.getElementById('builder-add').addEventListener('click', builderAddScene);
+document.getElementById('se-cancel').addEventListener('click', closeSceneEdit);
+document.getElementById('se-save').addEventListener('click', saveSceneEdit);
+
+// Click-binding for "Edit scenes" buttons is wired in renderStorylines via
+// event delegation below.
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.edit-scenes-btn');
+  if (!btn) return;
+  const card = btn.closest('.card');
+  if (!card) return;
+  openBuilderForKey(card.dataset.key);
+});
 
 bootstrap();
 </script>
