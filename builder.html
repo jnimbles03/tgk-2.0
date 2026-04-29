@@ -4,7 +4,35 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>TGK 2.0 — Demo builder</title>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon-32.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
 <style>
+  /* ============================================================
+     DSIndigo — Docusign's custom typeface, loaded from Akamai CDN
+     ============================================================ */
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");
+    font-weight: 500; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");
+    font-weight: 600; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DSIndigo";
+    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");
+    font-weight: 700; font-style: normal; font-display: swap;
+  }
+
   /* ============================================================
      Docusign FY27 tokens — same system as architecture page
      ============================================================ */
@@ -27,7 +55,15 @@
     --ds-mist-soft:    color-mix(in srgb, var(--ds-mist) 35%, var(--ds-white));
     --ds-glow:         linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
 
-    --ds-font:         "DS Indigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Spacing rhythm (Gebbia scale) */
+    --ds-space-xs:  8px;
+    --ds-space-sm:  14px;
+    --ds-space-md:  24px;
+    --ds-space-lg:  40px;
+    --ds-space-xl:  64px;
+    --ds-space-2xl: 96px;
+
+    --ds-font:         "DSIndigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ds-mono:         "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
 
@@ -44,6 +80,41 @@
   :focus-visible { outline: 2px solid var(--ds-cobalt); outline-offset: 3px; border-radius: 2px; }
 
   .wrap { max-width: 920px; margin: 0 auto; padding: 56px 48px 96px; }
+  @media (max-width: 640px) {
+    .wrap { padding: 40px 22px 72px; }
+  }
+
+  /* Top mark — small Docusign wordmark above the kicker */
+  .topmark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 36px;
+    color: var(--ds-inkwell);
+  }
+  .topmark .mark-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--ds-glow);
+    flex-shrink: 0;
+  }
+  .topmark .mark-text {
+    font-family: var(--ds-font);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    color: var(--ds-inkwell);
+  }
+  .topmark .mark-divider {
+    width: 1px; height: 16px;
+    background: var(--ds-rule-strong);
+    margin: 0 4px;
+  }
+  .topmark .mark-context {
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-text-soft);
+  }
 
   .kicker {
     font-family: var(--ds-font);
@@ -52,7 +123,7 @@
     text-transform: uppercase;
     color: var(--ds-cobalt);
     font-weight: 600;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
   h1 {
     font-family: var(--ds-font);
@@ -60,23 +131,22 @@
     font-size: clamp(1.875rem, 3vw + 1rem, 2.5rem);
     line-height: 1.05;
     letter-spacing: -0.02em;
-    margin: 0 0 14px;
+    margin: 0 0 18px;
   }
+  /* H1 italic accent — cobalt, not glow.
+     The Glow gradient is reserved for the result panel (the page's one hero moment). */
   h1 em {
     font-style: italic;
     font-weight: 500;
-    background: var(--ds-glow);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--ds-cobalt);
   }
   .deck {
     font-family: var(--ds-font);
-    font-size: 1rem;
+    font-size: 1.0625rem;
     color: var(--ds-text-muted);
-    max-width: 65ch;
-    margin: 0 0 32px;
-    line-height: 1.5;
+    max-width: 60ch;
+    margin: 0 0 44px;
+    line-height: 1.55;
   }
 
   /* ===== Form ===== */
@@ -85,16 +155,26 @@
     border: 1px solid var(--ds-rule);
     border-left: 3px solid var(--ds-cobalt);
     border-radius: 12px;
-    padding: 28px 32px;
+    padding: 36px 40px;
     box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  @media (max-width: 640px) {
+    .form-card { padding: 24px 20px; border-left-width: 2px; }
   }
   .form-row {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 16px;
+    grid-template-columns: 160px 1fr;
+    gap: 20px;
     align-items: center;
-    padding: 12px 0;
+    padding: 16px 0;
     border-bottom: 1px solid var(--ds-rule);
+  }
+  @media (max-width: 640px) {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 14px 0;
+    }
   }
   .form-row:last-of-type { border-bottom: none; padding-bottom: 0; }
   .form-row > label {
@@ -110,25 +190,27 @@
     background: var(--ds-bg);
     border: 1px solid var(--ds-rule-strong);
     border-radius: 6px;
-    padding: 9px 12px;
+    padding: 11px 14px;
     font-family: var(--ds-font);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     color: var(--ds-text);
     width: 100%;
-    transition: border-color 0.18s ease;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
   }
   .form-row select:focus,
   .form-row input[type="text"]:focus {
     outline: none;
     border-color: var(--ds-cobalt);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 14%, transparent);
   }
   .form-row .swatch-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
   }
   .form-row .swatch {
-    width: 22px; height: 22px;
+    width: 26px; height: 26px;
     border-radius: 4px;
     border: 1px solid var(--ds-rule-strong);
     flex-shrink: 0;
@@ -136,63 +218,75 @@
   .form-row .help {
     font-family: var(--ds-font);
     font-style: italic;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--ds-text-soft);
-    margin-top: 4px;
+    margin-top: 6px;
     grid-column: 2;
+    line-height: 1.5;
+  }
+  @media (max-width: 640px) {
+    .form-row .help { grid-column: 1; }
   }
 
   /* ===== Submit + result ===== */
   .submit-row {
-    margin-top: 28px;
+    margin-top: 36px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 14px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 640px) {
+    .submit-row { justify-content: stretch; }
+    .submit-row .btn { flex: 1; justify-content: center; min-height: 44px; }
   }
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 11px 22px;
+    padding: 12px 24px;
     background: var(--ds-poppy);
     color: var(--ds-ecru);
     border: 1px solid var(--ds-poppy);
     border-radius: 6px;
     font-family: var(--ds-font);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
   }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(255, 82, 82, 0.35); }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(19, 0, 50, 0.16); }
   .btn:active { transform: translateY(0); }
-  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .btn-secondary {
     background: transparent;
     color: var(--ds-inkwell);
-    border-color: var(--ds-inkwell);
+    border-color: var(--ds-rule-strong);
   }
-  .btn-secondary:hover { background: var(--ds-inkwell); color: var(--ds-ecru); box-shadow: none; }
+  .btn-secondary:hover { background: var(--ds-inkwell); color: var(--ds-ecru); border-color: var(--ds-inkwell); box-shadow: none; }
 
   .submit-status {
     font-family: var(--ds-font);
     font-style: italic;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--ds-text-soft);
   }
 
-  /* Result panel — Deep Violet hero, like the architecture page Tier 5 */
+  /* Result panel — Deep Violet hero, the page's single Glow moment */
   .result-panel {
-    margin-top: 32px;
+    margin-top: 36px;
     background: var(--ds-deep-violet);
     color: var(--ds-ecru);
     border-radius: 12px;
-    padding: 26px 30px;
-    box-shadow: 0 12px 32px rgba(38, 6, 93, 0.2);
+    padding: 32px 36px;
+    box-shadow: 0 16px 40px rgba(38, 6, 93, 0.22);
     position: relative;
     display: none;
+  }
+  @media (max-width: 640px) {
+    .result-panel { padding: 24px 22px; }
   }
   .result-panel.active { display: block; }
   .result-panel::before {
@@ -209,18 +303,20 @@
   }
   .result-tag {
     font-family: var(--ds-mono);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--ds-mist);
-    letter-spacing: 0.12em;
-    margin-bottom: 8px;
+    letter-spacing: 0.16em;
+    margin-bottom: 10px;
   }
   .result-h {
     font-family: var(--ds-font);
     font-style: italic;
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 500;
-    margin: 0 0 12px;
+    line-height: 1.25;
+    margin: 0 0 16px;
     color: var(--ds-ecru);
+    letter-spacing: -0.01em;
   }
   .result-url-row {
     display: flex;
@@ -233,11 +329,12 @@
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(203, 194, 255, 0.3);
     border-radius: 6px;
-    padding: 9px 12px;
+    padding: 11px 14px;
     font-family: var(--ds-mono);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: var(--ds-ecru);
     word-break: break-all;
+    line-height: 1.4;
   }
   .result-actions {
     display: flex;
@@ -245,16 +342,17 @@
     flex-wrap: wrap;
   }
   .result-action {
-    padding: 8px 16px;
+    padding: 10px 18px;
     background: var(--ds-mist);
     color: var(--ds-deep-violet);
     border: none;
     border-radius: 6px;
     font-family: var(--ds-font);
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease;
+    min-height: 40px;
   }
   .result-action:hover { background: var(--ds-ecru); }
   .result-action.ghost {
@@ -264,47 +362,443 @@
   }
   .result-action.ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--ds-ecru); }
   .result-meta {
-    margin-top: 12px;
+    margin-top: 14px;
     font-family: var(--ds-font);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--ds-mist);
     font-style: italic;
+    line-height: 1.5;
   }
 
   /* Error panel */
   .error-panel {
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: rgba(255, 82, 82, 0.08);
-    border: 1px solid var(--ds-poppy);
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: rgba(255, 82, 82, 0.06);
+    border: 1px solid color-mix(in srgb, var(--ds-poppy) 50%, transparent);
+    border-left: 3px solid var(--ds-poppy);
     border-radius: 6px;
     font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-poppy);
+    font-size: 0.9375rem;
+    color: var(--ds-inkwell);
     display: none;
+    line-height: 1.5;
   }
   .error-panel.active { display: block; }
 
   .foot {
-    margin-top: 36px;
-    padding-top: 14px;
+    margin-top: 56px;
+    padding-top: 18px;
     border-top: 1px solid var(--ds-rule);
     font-family: var(--ds-mono);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--ds-text-soft);
     text-align: right;
+    letter-spacing: 0.02em;
   }
+
+  /* ===== Wizard stepper ===== */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 32px 0 44px;
+    padding: 0;
+  }
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-node .node-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ds-bg);
+    border: 1.5px solid var(--ds-rule-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ds-text-soft);
+    transition: all 0.2s ease;
+  }
+  .step-node .node-label {
+    font-family: var(--ds-font);
+    font-size: 0.8125rem;
+    color: var(--ds-text-soft);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: color 0.2s ease;
+  }
+  .step-node.is-active .node-circle {
+    background: var(--ds-cobalt);
+    border-color: var(--ds-cobalt);
+    color: var(--ds-ecru);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-cobalt) 14%, transparent);
+  }
+  .step-node.is-active .node-label {
+    color: var(--ds-text);
+    font-weight: 600;
+  }
+  .step-node.is-complete .node-circle {
+    background: var(--ds-deep-violet);
+    border-color: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+  }
+  .step-node.is-complete .node-label {
+    color: var(--ds-text-muted);
+  }
+  .step-node.is-complete .node-circle::after {
+    content: "✓";
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .step-node.is-complete .node-circle .node-num { display: none; }
+  .step-line {
+    flex: 1;
+    height: 1.5px;
+    background: var(--ds-rule-strong);
+    margin: 0 12px;
+    margin-bottom: 28px;
+    transition: background 0.2s ease;
+  }
+  .step-line.is-complete {
+    background: var(--ds-deep-violet);
+  }
+  @media (max-width: 640px) {
+    .stepper { gap: 0; }
+    .step-node .node-label { font-size: 0.75rem; text-align: center; }
+    .step-line { margin: 0 8px 28px; }
+  }
+
+  /* ===== Wizard step container ===== */
+  .wizard-step {
+    display: none;
+    animation: stepFade 0.28s ease;
+  }
+  .wizard-step.is-active { display: block; }
+  .wizard-step.is-hidden-by-result { display: none !important; }
+  @keyframes stepFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .step-title {
+    font-family: var(--ds-font);
+    font-size: clamp(1.375rem, 1.5vw + 1rem, 1.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    color: var(--ds-text);
+  }
+  .step-title em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--ds-cobalt);
+  }
+  .step-deck {
+    font-family: var(--ds-font);
+    font-size: 1rem;
+    color: var(--ds-text-muted);
+    max-width: 60ch;
+    margin: 0 0 28px;
+    line-height: 1.55;
+  }
+  .wizard-nav {
+    margin-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .wizard-nav .wizard-nav-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 640px) {
+    .wizard-nav { justify-content: stretch; }
+    .wizard-nav .btn { flex: 1; justify-content: center; min-height: 44px; }
+    .wizard-nav .wizard-nav-right { width: 100%; }
+  }
+
+  /* ===== Playlist card ===== */
+  .playlist-card {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    border-radius: 12px;
+    padding: 36px 40px;
+    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
+  }
+  @media (max-width: 640px) {
+    .playlist-card { padding: 24px 20px; border-left-width: 2px; }
+  }
+
+  .playlist-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .playlist-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+
+  .palette-zone .zone-label,
+  .playlist-zone .zone-label {
+    font-family: var(--ds-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .palette-zone .zone-sub {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.8125rem;
+    color: var(--ds-text-soft);
+    margin: -8px 0 14px;
+    line-height: 1.5;
+  }
+
+  /* Palette chips */
+  .palette {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .palette-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-radius: 6px;
+    cursor: grab;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .palette-chip:hover {
+    background: var(--ds-mist-soft);
+    border-color: var(--ds-cobalt);
+    transform: translateX(2px);
+  }
+  .palette-chip .chip-glyph {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--ds-mist);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ds-deep-violet);
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .palette-chip .chip-body { min-width: 0; flex: 1; }
+  .palette-chip .chip-name {
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    line-height: 1.25;
+  }
+  .palette-chip .chip-role {
+    font-family: var(--ds-font);
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--ds-text-soft);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+  .palette-chip .chip-add {
+    font-family: var(--ds-mono);
+    font-size: 0.875rem;
+    color: var(--ds-cobalt);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Playlist column */
+  .playlist {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .playlist-scene {
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-left: 2px solid var(--ds-cobalt);
+    border-radius: 8px;
+    padding: 18px 20px;
+    position: relative;
+  }
+  .scene-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .scene-handle {
+    cursor: grab;
+    color: var(--ds-text-soft);
+    flex-shrink: 0;
+    line-height: 0;
+  }
+  .scene-step {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-cobalt);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    background: color-mix(in srgb, var(--ds-cobalt) 10%, transparent);
+    padding: 3px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .scene-name {
+    font-family: var(--ds-font);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ds-text);
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
+  .scene-remove {
+    background: transparent;
+    border: none;
+    color: var(--ds-text-soft);
+    cursor: pointer;
+    font-size: 1.125rem;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .scene-remove:hover { background: rgba(255, 82, 82, 0.08); color: var(--ds-poppy); }
+
+  .scene-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .scene-field-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .scene-field-row > .scene-field-label {
+    font-family: var(--ds-font);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+    padding-top: 9px;
+  }
+  .scene-field-row input[type="text"],
+  .scene-field-row textarea {
+    background: var(--ds-white);
+    border: 1px solid var(--ds-rule);
+    border-radius: 5px;
+    padding: 8px 11px;
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    color: var(--ds-text);
+    width: 100%;
+    transition: border-color 0.18s ease;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .scene-field-row input[type="text"]:focus,
+  .scene-field-row textarea:focus {
+    outline: none;
+    border-color: var(--ds-cobalt);
+  }
+
+  .playlist-foot {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--ds-rule);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-text-soft);
+  }
+  .playlist-foot .scene-count {
+    font-weight: 600;
+    color: var(--ds-text);
+  }
+  .playlist-foot .reset-link {
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-cobalt);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    margin-left: auto;
+  }
+  .playlist-foot .reset-link:hover { color: var(--ds-deep-violet); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <div class="kicker">TGK 2.0 · Demo builder · 2026-04-28</div>
-  <h1>Spin up a custom <em>demo URL</em>.</h1>
-  <p class="deck">Pick an industry as the narration scaffold, override tenant + customer + brand, get back a clean shareable URL — same five-scene shell, your data. Demos persist for 30 days.</p>
+  <div class="topmark">
+    <span class="mark-dot" aria-hidden="true"></span>
+    <span class="mark-text">Docusign</span>
+    <span class="mark-divider" aria-hidden="true"></span>
+    <span class="mark-context">TGK 2.0 internal</span>
+  </div>
 
-  <div class="form-card">
-    <form id="builderForm">
+  <div class="kicker">Demo builder · 2026-04-28</div>
+  <h1>Spin up a custom <em>demo URL</em>.</h1>
+  <p class="deck">Three steps: pick a scaffold, brand the demo, assemble the scenes. Get back a clean shareable URL that lives for 30 days.</p>
+
+  <!-- ===== Wizard stepper ===== -->
+  <div class="stepper" id="stepper">
+    <div class="step-node is-active" data-step="1">
+      <span class="node-circle"><span class="node-num">1</span></span>
+      <span class="node-label">Scaffold</span>
+    </div>
+    <div class="step-line" data-line="1-2"></div>
+    <div class="step-node" data-step="2">
+      <span class="node-circle"><span class="node-num">2</span></span>
+      <span class="node-label">Brand</span>
+    </div>
+    <div class="step-line" data-line="2-3"></div>
+    <div class="step-node" data-step="3">
+      <span class="node-circle"><span class="node-num">3</span></span>
+      <span class="node-label">Scenes</span>
+    </div>
+  </div>
+
+  <form id="builderForm">
+
+  <!-- ===== Step 1 — Scaffold ===== -->
+  <div class="wizard-step is-active" data-step="1">
+    <h2 class="step-title">Pick the <em>scaffold</em>.</h2>
+    <p class="step-deck">This sets the narration baseline and the starting playlist. You'll override anything you want in the next two steps.</p>
+
+    <div class="form-card">
 
       <div class="form-row">
         <label for="f-industry">Industry</label>
@@ -342,8 +836,28 @@
             <option value="intake">Intake-Mechanics · webform → Maestro (3-4 scenes)</option>
             <option value="maintenance">Maintenance · sensitive change (3 scenes)</option>
           </select>
+          <div class="help">Determines which scenes the playlist starts with — you can swap any of them in Step 3.</div>
         </div>
       </div>
+
+    </div>
+    <!-- /form-card -->
+
+    <div class="wizard-nav">
+      <span></span>
+      <div class="wizard-nav-right">
+        <button class="btn" type="button" data-wizard-next>Next: Brand the demo →</button>
+      </div>
+    </div>
+  </div>
+  <!-- /Step 1 -->
+
+  <!-- ===== Step 2 — Brand ===== -->
+  <div class="wizard-step" data-step="2">
+    <h2 class="step-title">Brand the <em>demo</em>.</h2>
+    <p class="step-deck">Override what the scaffold prefilled. Every field is editable — change as much or as little as you want.</p>
+
+    <div class="form-card">
 
       <div class="form-row">
         <label for="f-tenant">Tenant</label>
@@ -399,10 +913,11 @@
             <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="
               flex: 1;
               font-family: var(--ds-font);
-              font-size: 0.875rem;
+              font-size: 0.9375rem;
               color: var(--ds-text);
+              min-width: 200px;
             ">
-            <button type="button" id="btnLogoClear" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8125rem;">Clear</button>
+            <button type="button" id="btnLogoClear" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.875rem;">Clear</button>
           </div>
           <div class="help">PNG, JPG, SVG, or WebP. Max 500 KB. Optional.</div>
         </div>
@@ -452,29 +967,342 @@
         </div>
       </div>
 
-    </form>
-
-    <div class="submit-row">
-      <span class="submit-status" id="submitStatus"></span>
-      <button class="btn btn-secondary" type="button" id="btnReset">Reset</button>
-      <button class="btn" type="button" id="btnGenerate">Generate URL →</button>
     </div>
+    <!-- /form-card -->
 
-    <div class="error-panel" id="errorPanel"></div>
-
-    <div class="result-panel" id="resultPanel">
-      <div class="result-tag">DEMO URL · LIVE NOW</div>
-      <h3 class="result-h" id="resultHeadline"></h3>
-      <div class="result-url-row">
-        <span class="result-url" id="resultUrl"></span>
-        <button class="result-action" id="btnCopy">Copy</button>
-        <button class="result-action ghost" id="btnOpen">Open ↗</button>
-      </div>
-      <div class="result-actions">
-        <span class="result-meta" id="resultMeta"></span>
+    <div class="wizard-nav">
+      <button class="btn btn-secondary" type="button" data-wizard-back>← Back</button>
+      <div class="wizard-nav-right">
+        <button class="btn" type="button" data-wizard-next>Next: Assemble scenes →</button>
       </div>
     </div>
+  </div>
+  <!-- /Step 2 -->
 
+  <!-- ===== Step 3 — Scenes ===== -->
+  <div class="wizard-step" data-step="3">
+    <h2 class="step-title">Assemble the <em>scenes</em>.</h2>
+    <p class="step-deck">Click bricks from the library to add them. Drag the handle to reorder. Edit narration inline.</p>
+
+    <div class="playlist-card">
+    <div class="playlist-grid">
+
+      <!-- ===== Palette (left): the 13-template library ===== -->
+      <div class="palette-zone">
+        <div class="zone-label">Library</div>
+        <div class="zone-sub">Click a brick to add it to the playlist.</div>
+        <div class="palette" id="palette">
+
+          <div class="palette-chip" data-template="agreement-desk">
+            <span class="chip-glyph">AD</span>
+            <span class="chip-body">
+              <div class="chip-name">Agreement Desk</div>
+              <div class="chip-role">Sender · Maestro proxy</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="clear-idv">
+            <span class="chip-glyph">ID</span>
+            <span class="chip-body">
+              <div class="chip-name">CLEAR IDV</div>
+              <div class="chip-role">Identity at the door</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="signing-ceremony">
+            <span class="chip-glyph">SG</span>
+            <span class="chip-body">
+              <div class="chip-name">Signing Ceremony</div>
+              <div class="chip-role">Capture the signature</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="navigator">
+            <span class="chip-glyph">NV</span>
+            <span class="chip-body">
+              <div class="chip-name">Navigator</div>
+              <div class="chip-role">Post-signing data view</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="workspace">
+            <span class="chip-glyph">WS</span>
+            <span class="chip-body">
+              <div class="chip-name">Workspace</div>
+              <div class="chip-role">Collaboration room</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="webform">
+            <span class="chip-glyph">WF</span>
+            <span class="chip-body">
+              <div class="chip-name">Webform</div>
+              <div class="chip-role">Public-facing intake</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="webform-intake">
+            <span class="chip-glyph">WI</span>
+            <span class="chip-body">
+              <div class="chip-name">Webform Intake</div>
+              <div class="chip-role">Triaged inbound queue</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="maestro-loop">
+            <span class="chip-glyph">ML</span>
+            <span class="chip-body">
+              <div class="chip-name">Maestro Loop</div>
+              <div class="chip-role">Orchestration close-up</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="maestro-package">
+            <span class="chip-glyph">MP</span>
+            <span class="chip-body">
+              <div class="chip-name">Maestro Package</div>
+              <div class="chip-role">Multi-doc fan-out</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="agents">
+            <span class="chip-glyph">AG</span>
+            <span class="chip-body">
+              <div class="chip-name">Agents</div>
+              <div class="chip-role">Agentic actions panel</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="ehr-desktop">
+            <span class="chip-glyph">EH</span>
+            <span class="chip-body">
+              <div class="chip-name">EHR Desktop</div>
+              <div class="chip-role">Clinician embed</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="portal-shell">
+            <span class="chip-glyph">PS</span>
+            <span class="chip-body">
+              <div class="chip-name">Portal Shell</div>
+              <div class="chip-role">Tenant portal frame</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+          <div class="palette-chip" data-template="agreement-desk-coc">
+            <span class="chip-glyph">CC</span>
+            <span class="chip-body">
+              <div class="chip-name">AD · Chain-of-custody</div>
+              <div class="chip-role">Variant for fraud-fabric</div>
+            </span>
+            <span class="chip-add">+</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== Playlist (right): the assembled story ===== -->
+      <div class="playlist-zone">
+        <div class="zone-label">Your playlist · scaffolded from Wealth Management</div>
+        <div class="playlist" id="playlist">
+
+          <div class="playlist-scene" data-template="agreement-desk">
+            <div class="scene-head">
+              <span class="scene-handle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
+                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
+                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
+                </svg>
+              </span>
+              <span class="scene-step">SCENE 1</span>
+              <span class="scene-name">Agreement Desk</span>
+              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
+            </div>
+            <div class="scene-fields">
+              <div class="scene-field-row">
+                <label class="scene-field-label">Tag</label>
+                <input type="text" value="Sender">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Headline</label>
+                <input type="text" value="$5M household, one envelope.">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Lede</label>
+                <textarea rows="2">Aster Capital sends the IRA rollover packet — Maestro fans the pieces out invisibly behind the desk.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="playlist-scene" data-template="clear-idv">
+            <div class="scene-head">
+              <span class="scene-handle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
+                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
+                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
+                </svg>
+              </span>
+              <span class="scene-step">SCENE 2</span>
+              <span class="scene-name">CLEAR IDV</span>
+              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
+            </div>
+            <div class="scene-fields">
+              <div class="scene-field-row">
+                <label class="scene-field-label">Tag</label>
+                <input type="text" value="Identity">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Headline</label>
+                <input type="text" value="Verified once, trusted everywhere.">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Lede</label>
+                <textarea rows="2">Hillside hands identity to CLEAR — one IAL2 verification binds to every downstream document.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="playlist-scene" data-template="signing-ceremony">
+            <div class="scene-head">
+              <span class="scene-handle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
+                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
+                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
+                </svg>
+              </span>
+              <span class="scene-step">SCENE 3</span>
+              <span class="scene-name">Signing Ceremony</span>
+              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
+            </div>
+            <div class="scene-fields">
+              <div class="scene-field-row">
+                <label class="scene-field-label">Tag</label>
+                <input type="text" value="Signing">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Headline</label>
+                <input type="text" value="Signed at the kitchen table.">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Lede</label>
+                <textarea rows="2">Aster signs the rollover docs from a phone — no PDF print, no overnight courier, no advisor handoff.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="playlist-scene" data-template="navigator">
+            <div class="scene-head">
+              <span class="scene-handle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
+                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
+                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
+                </svg>
+              </span>
+              <span class="scene-step">SCENE 4</span>
+              <span class="scene-name">Navigator</span>
+              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
+            </div>
+            <div class="scene-fields">
+              <div class="scene-field-row">
+                <label class="scene-field-label">Tag</label>
+                <input type="text" value="Data">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Headline</label>
+                <input type="text" value="Every clause, every counterparty, queryable.">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Lede</label>
+                <textarea rows="2">The signed packet lands in Navigator — beneficiaries, fee schedule, and rollover terms are extracted and indexed.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="playlist-scene" data-template="workspace">
+            <div class="scene-head">
+              <span class="scene-handle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="4" cy="3" r="0.8"/><circle cx="10" cy="3" r="0.8"/>
+                  <circle cx="4" cy="7" r="0.8"/><circle cx="10" cy="7" r="0.8"/>
+                  <circle cx="4" cy="11" r="0.8"/><circle cx="10" cy="11" r="0.8"/>
+                </svg>
+              </span>
+              <span class="scene-step">SCENE 5</span>
+              <span class="scene-name">Workspace</span>
+              <button class="scene-remove" type="button" aria-label="Remove scene">×</button>
+            </div>
+            <div class="scene-fields">
+              <div class="scene-field-row">
+                <label class="scene-field-label">Tag</label>
+                <input type="text" value="Workspace">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Headline</label>
+                <input type="text" value="Where the household lives, post-signing.">
+              </div>
+              <div class="scene-field-row">
+                <label class="scene-field-label">Lede</label>
+                <textarea rows="2">Aster, the advisor, and the trust attorney share one room — every future document anchored to the household.</textarea>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="playlist-foot">
+          <span class="scene-count" id="sceneCount">5 scenes</span>
+          <span>·</span>
+          <span>3-scene minimum, no hard max.</span>
+          <button type="button" class="reset-link" id="btnResetPlaylist">Reset playlist to industry default</button>
+        </div>
+      </div>
+
+    </div>
+    <!-- /playlist-card -->
+
+    <div class="wizard-nav">
+      <button class="btn btn-secondary" type="button" data-wizard-back>← Back</button>
+      <div class="wizard-nav-right">
+        <span class="submit-status" id="submitStatus"></span>
+        <button class="btn btn-secondary" type="button" id="btnReset">Start over</button>
+        <button class="btn" type="button" id="btnGenerate">Generate URL →</button>
+      </div>
+    </div>
+  </div>
+  <!-- /Step 3 -->
+
+  </form>
+  <!-- /builderForm -->
+
+  <div class="error-panel" id="errorPanel"></div>
+
+  <div class="result-panel" id="resultPanel">
+    <div class="result-tag">DEMO URL · LIVE NOW</div>
+    <h3 class="result-h" id="resultHeadline"></h3>
+    <div class="result-url-row">
+      <span class="result-url" id="resultUrl"></span>
+      <button class="result-action" id="btnCopy">Copy</button>
+      <button class="result-action ghost" id="btnOpen">Open ↗</button>
+    </div>
+    <div class="result-actions">
+      <span class="result-meta" id="resultMeta"></span>
+    </div>
   </div>
 
   <div class="foot">/api/builder/save · /stories/custom-:token/ · 2026-04-28</div>
@@ -482,6 +1310,91 @@
 </div>
 
 <script>
+  // ============== Wizard navigation ==============
+  // Three-step guided flow. Only one .wizard-step is .is-active at a time.
+  // The stepper at the top reflects current + completed steps.
+  (function initWizard() {
+    const TOTAL_STEPS = 3;
+    let currentStep = 1;
+
+    const $$ = sel => document.querySelectorAll(sel);
+    const $1 = sel => document.querySelector(sel);
+
+    function showStep(n, opts = {}) {
+      n = Math.max(1, Math.min(TOTAL_STEPS, n));
+      currentStep = n;
+
+      // Toggle .is-active on step containers
+      $$('.wizard-step').forEach(el => {
+        el.classList.toggle('is-active', Number(el.dataset.step) === n);
+      });
+
+      // Update stepper nodes (active / complete states)
+      $$('.step-node').forEach(el => {
+        const s = Number(el.dataset.step);
+        el.classList.toggle('is-active', s === n);
+        el.classList.toggle('is-complete', s < n);
+      });
+
+      // Update connecting lines
+      $$('.step-line').forEach(el => {
+        const fromStep = Number(el.dataset.line.split('-')[0]);
+        el.classList.toggle('is-complete', fromStep < n);
+      });
+
+      // Scroll to top of page on step change (unless suppressed)
+      if (!opts.skipScroll) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // Next / Back buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('[data-wizard-next]')) {
+        e.preventDefault();
+        showStep(currentStep + 1);
+      } else if (e.target.matches('[data-wizard-back]')) {
+        e.preventDefault();
+        showStep(currentStep - 1);
+      }
+    });
+
+    // Click a stepper node to jump (only allowed for completed or current steps)
+    $$('.step-node').forEach(el => {
+      el.addEventListener('click', () => {
+        const s = Number(el.dataset.step);
+        if (s <= currentStep || el.classList.contains('is-complete')) {
+          showStep(s);
+        }
+      });
+    });
+
+    // Expose for other handlers (e.g. Generate success → mark step 3 complete)
+    window.__wizard = { showStep, getStep: () => currentStep };
+
+    // Observe the result panel — when it becomes .active, hide the wizard steps
+    // so the result is the only thing on screen. When it goes inactive (Start
+    // over), restore Step 1.
+    const resultPanel = document.getElementById('resultPanel');
+    if (resultPanel) {
+      const obs = new MutationObserver(() => {
+        const isActive = resultPanel.classList.contains('active');
+        $$('.wizard-step').forEach(el => el.classList.toggle('is-hidden-by-result', isActive));
+        $$('.step-node').forEach(el => {
+          if (isActive) { el.classList.add('is-complete'); el.classList.remove('is-active'); }
+        });
+        $$('.step-line').forEach(el => {
+          if (isActive) el.classList.add('is-complete');
+        });
+        if (!isActive) {
+          // Coming back from result → go to Step 1
+          showStep(1, { skipScroll: true });
+        }
+      });
+      obs.observe(resultPanel, { attributes: true, attributeFilter: ['class'] });
+    }
+  })();
+
   // ============== Industry → defaults map ==============
   // Keeps the form pre-fillable when you change industry. Brand colors and
   // SoRs come from CANONICAL.md / the shell's VERTICALS map.
@@ -714,6 +1627,13 @@
 
   // Initial defaults
   applyIndustryDefaults();
+
+  // Wizard hook on Start over: ensure we always land on Step 1 even if no
+  // result was generated (the MutationObserver in initWizard only fires when
+  // the result panel actually had .active to remove).
+  $('btnReset').addEventListener('click', () => {
+    if (window.__wizard) window.__wizard.showStep(1);
+  });
 </script>
 </body>
 </html>
