@@ -57,12 +57,28 @@
     flex-direction:column;
     padding:28px 32px 24px;
     position:relative;
+    /* Snappier retreat — was 0.95s; now ~0.42s with a clean ease-out so
+       the demo gets the room quickly. */
     transition:
-      width 0.95s cubic-bezier(.2,.8,.2,1),
-      max-width 0.95s cubic-bezier(.2,.8,.2,1),
-      min-width 0.95s cubic-bezier(.2,.8,.2,1),
-      padding 0.7s ease,
-      background 0.7s ease;
+      width 0.42s cubic-bezier(.4,0,.2,1),
+      max-width 0.42s cubic-bezier(.4,0,.2,1),
+      min-width 0.42s cubic-bezier(.4,0,.2,1),
+      padding 0.36s ease-out,
+      background 0.36s ease-out;
+  }
+  /* Bounce-in pop when entering lead-mode — fires on every beat so the
+     viewer's eye snaps to the new narration. The .is-popping class is
+     added by enterLeadMode() and removed when the animation ends, so the
+     animation replays on every beat change (CSS animations don't
+     re-fire when the same class is re-added without a reset). */
+  @keyframes leadPop {
+    0%   { transform: scale(0.985); }
+    55%  { transform: scale(1.012); }
+    100% { transform: scale(1); }
+  }
+  .sidebar.is-popping {
+    animation: leadPop 0.42s cubic-bezier(.34, 1.56, .64, 1);
+    will-change: transform;
   }
   .brand-slot{margin-bottom:28px;display:flex;align-items:center;gap:10px;}
   .brand-slot .ds{display:flex;align-items:center;gap:7px;font-weight:700;font-size:20px;color:var(--ds-inkwell);letter-spacing:-0.01em;text-decoration:none;transition:opacity 0.15s;cursor:pointer;}
@@ -2625,39 +2641,78 @@ function goTo(i, opts = {}){
 
 /* =========================================================
    Sidebar collapse — the lead → yield spatial choreography.
-   - enterLeadMode(): expand sidebar to ~48% width, swap typography
-     into Fraunces italic, drop the cream wash. LINGERS until the
-     user interacts (no auto-timeout). After LEAD_HINT_DELAY_MS a
-     subtle "Click anywhere to begin" hint fades in below the lede
-     so a still viewer knows it's their move.
+   - enterLeadMode(): pop the sidebar to ~48% width with a subtle
+     bounce, swap typography into Fraunces italic, drop the cream
+     wash. AUTO-COLLAPSES after a dynamic read window computed from
+     the current beat's word count (clamped 3.0s–6.5s). The user
+     can still dismiss early by interacting with the stage.
    - exitLeadMode(): return to the 24% rail with compact Inter
-     typography. Demo grows into the freed space. Triggered by stage
-     mouseenter/click, arrow keys, space, or escape.
+     typography. Demo grows into the freed space.
 
-   The user reads one continuous headline as the column migrates from
-   the editorial column to the chapter rail — at their pace, not on a
-   timer.
+   The cycle (pop → read → retreat) fires per BEAT, not per scene —
+   every new piece of narration gets one pulse of attention before
+   yielding the room back to the demo.
    ========================================================= */
-const LEAD_HINT_DELAY_MS = 1500;
+const LEAD_HINT_DELAY_MS = 1200;
+const LEAD_AUTO_EXIT_MIN = 3000;     // floor — even one-word beats hold this long
+const LEAD_AUTO_EXIT_MAX = 6500;     // ceiling — long beats still don't camp on screen
+const LEAD_AUTO_EXIT_BUFFER_MS = 500;// settle time after the words are "read"
+const LEAD_AUTO_EXIT_WPS = 4.2;      // ~250 wpm — slightly above average for snap
 let hintTimer = null;
+let autoExitTimer = null;
+
+/* Word count for the current beat's headline + lede, used to size the
+   auto-collapse window. Falls back to a reasonable default if the DOM
+   isn't fully populated yet (e.g. very first render). */
+function currentBeatReadMs(){
+  const headline = document.querySelector('.headline');
+  const lede = document.querySelector('.lede');
+  const text = ((headline && headline.textContent) || '') + ' ' +
+               ((lede && lede.textContent) || '');
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  if (!words) return 4000;
+  const ms = (words / LEAD_AUTO_EXIT_WPS) * 1000 + LEAD_AUTO_EXIT_BUFFER_MS;
+  return Math.max(LEAD_AUTO_EXIT_MIN, Math.min(LEAD_AUTO_EXIT_MAX, ms));
+}
+
 function enterLeadMode(){
   const shell = document.querySelector('.shell');
+  const sidebarEl = document.getElementById('sidebar');
   if (!shell) return;
   shell.classList.add('lead-mode');
   shell.classList.remove('lead-mode-hinted');
+
+  // Replay the pop animation on every entry. CSS animations don't re-fire
+  // when the same class is re-added, so we remove .is-popping, force a
+  // reflow, and re-add it. animationend cleans it up.
+  if (sidebarEl) {
+    sidebarEl.classList.remove('is-popping');
+    void sidebarEl.offsetWidth; // reflow
+    sidebarEl.classList.add('is-popping');
+  }
+
   if (hintTimer) clearTimeout(hintTimer);
   hintTimer = setTimeout(() => {
     if (shell.classList.contains('lead-mode')) {
       shell.classList.add('lead-mode-hinted');
     }
   }, LEAD_HINT_DELAY_MS);
+
+  // Auto-collapse after a read-window proportional to the beat's text.
+  if (autoExitTimer) clearTimeout(autoExitTimer);
+  autoExitTimer = setTimeout(() => {
+    if (shell.classList.contains('lead-mode')) exitLeadMode();
+  }, currentBeatReadMs());
 }
 function exitLeadMode(){
   const shell = document.querySelector('.shell');
+  const sidebarEl = document.getElementById('sidebar');
   if (!shell) return;
-  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+  if (hintTimer)     { clearTimeout(hintTimer);     hintTimer = null; }
+  if (autoExitTimer) { clearTimeout(autoExitTimer); autoExitTimer = null; }
   shell.classList.remove('lead-mode');
   shell.classList.remove('lead-mode-hinted');
+  if (sidebarEl) sidebarEl.classList.remove('is-popping');
 }
 // Stage interaction (mouseenter, click) and navigation keys exit the
 // lead beat early — the user's already engaged with the demo.
@@ -2682,6 +2737,9 @@ function advance(){
     hotIdx++;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
+    // Beat change → re-pop the sidebar so the new narration grabs the
+    // eye, then auto-retreats. Same cycle as scene change.
+    enterLeadMode();
   }
   else if (idx < SCENES.length - 1) { goTo(idx + 1); }
   else { goTo(0, {force:true}); }
@@ -2692,6 +2750,7 @@ function rewind(){
     hotIdx--;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
+    enterLeadMode();
   }
   else if (idx > 0) {
     goTo(idx - 1);
