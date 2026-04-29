@@ -1,4 +1,7 @@
-run = "npm start"
+# `run` is the legacy fallback — Replit's "Project" workflow below is what
+# the Run button actually triggers. Both point at bin/replit-start.sh so a
+# Run/Restart pulls origin/main before booting (see that script's header).
+run = "bash bin/replit-start.sh"
 entrypoint = "server.js"
 modules = ["nodejs-20"]
 
@@ -38,7 +41,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js"
+# bin/replit-start.sh hard-resets to origin/main, then execs node server.js.
+# Every Run/Restart wipes Replit's "Published your App" auto-commits and
+# pulls Mac's latest pushed work in one click. See the script header.
+args = "bash bin/replit-start.sh"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
