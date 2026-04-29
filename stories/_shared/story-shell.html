@@ -279,10 +279,43 @@
   .hotspot-layer{position:absolute;inset:0;pointer-events:none;z-index:10;}
   .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
   .hotspot.on{opacity:1;}
-  /* Subtle dot — small ring with a tiny solid center, gentle slow pulse, no expanding ping */
-  .hotspot .ring{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ds-purple);background:rgba(75,0,233,0.18);box-shadow:0 0 0 0 rgba(75,0,233,0.32);animation:hotspotPulse 2.4s ease-in-out infinite;position:relative;}
+  /* The pulsing dot is hidden during normal playback — replaced by .shell-cursor
+     which moves smoothly between hotspot positions and click-pulses on arrival.
+     Calibrate mode still shows the ring so authors can see what they're dragging. */
+  .hotspot .ring{display:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ds-purple);background:rgba(75,0,233,0.18);box-shadow:0 0 0 0 rgba(75,0,233,0.32);animation:hotspotPulse 2.4s ease-in-out infinite;position:relative;}
+  body.calibrate .hotspot .ring{display:block;}
   .hotspot .ring::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:var(--ds-purple);transform:translate(-50%,-50%);}
   @keyframes hotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,0.32);}50%{box-shadow:0 0 0 5px rgba(75,0,233,0);}}
+
+  /* Synthetic mouse cursor — persistent element that mirrors the active
+     hotspot's position with a smooth transition, click-pulses on arrival.
+     Replaces the pulsing dot as the visual indicator for what to click. */
+  .shell-cursor{
+    position:absolute; width:28px; height:28px;
+    pointer-events:none; z-index:12;
+    transform:translate(-4px,-4px);
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.45));
+    opacity:0;
+    transition:
+      left 0.65s cubic-bezier(.4,0,.2,1),
+      top 0.65s cubic-bezier(.4,0,.2,1),
+      opacity 0.35s ease;
+  }
+  .shell-cursor.is-visible{opacity:1;}
+  .shell-cursor::after{
+    content:""; position:absolute; left:50%; top:50%;
+    width:36px; height:36px; border-radius:50%;
+    border:2px solid var(--ds-purple);
+    transform:translate(-50%,-50%) scale(0.4);
+    opacity:0;
+    pointer-events:none;
+  }
+  .shell-cursor.is-clicking::after{animation:shellCursorClick 480ms ease-out forwards;}
+  @keyframes shellCursorClick{
+    0%{transform:translate(-50%,-50%) scale(0.4); opacity:0.9;}
+    100%{transform:translate(-50%,-50%) scale(1.5); opacity:0;}
+  }
+  body.calibrate .shell-cursor{display:none;}
   .hotspot .num{display:none;}
   .hotspot .tip{position:absolute;background:var(--ds-inkwell);color:#fff;padding:8px 12px;border-radius:5px;font-size:12px;font-weight:500;width:max-content;max-width:240px;box-shadow:0 4px 14px rgba(19,0,50,0.22);line-height:1.4;}
   .hotspot .tip.right{left:42px;top:50%;transform:translateY(-50%);}
@@ -542,8 +575,8 @@ const HOTSPOTS = {
     {target:"access_workspace", x:"50%", y:"60%", tip:"Click 'Access your workspace'",                   sub:"Tenant-branded email · s1",      side:"top"},
     {target:"tabs_strip",       x:"22%", y:"22%", tip:"Overview tab = summary; Tasks = worklist",        sub:"Workspace home · s2",             side:"right"},
     {target:"iris_rail",        x:"82%", y:"22%", tip:"Iris agent rail flips to Ask Iris",                sub:"Per-document Q&A · s3",           side:"left"},
-    {target:"agent_panel",      x:"78%", y:"42%", tip:"Drill into a task · the agent runs checks",       sub:"Live KYC pass · s4",              side:"left"},
-    {target:"agent_panel",      x:"78%", y:"75%", tip:"Agent done — Approve & advance",                  sub:"Action taken · s5",               side:"left"}
+    {target:"agent_status",     x:"78%", y:"42%", tip:"Drill into a task · the agent runs checks",       sub:"Live KYC pass · s4",              side:"left"},
+    {target:"agent_summary",    x:"78%", y:"75%", tip:"Agent done — Approve & advance",                  sub:"Action taken · s5",               side:"left"}
   ],
 
   /* === Hotspots for ?usecase=fraud-fabric (3 scenes) ===
@@ -573,12 +606,19 @@ const HOTSPOTS = {
     {target:"identity_binding",x:"50%", y:"70%", tip:"Identity binding visible: Verified by CLEAR", sub:"Continuous identity thread",      side:"right"},
     {target:"form_submit",     x:"50%", y:"82%", tip:"Submit fires — bound to F1 proof",         sub:"Witness event #2 logged",          side:"top"}
   ],
+  /* Recalibrated 2026-04-29 — anchor names now match what the chain-of-
+     custody template actually shows. Old names (new_row/documents_tab/
+     send_for_signature/send) were copied from agreement_desk and pointed
+     at the wrong containers (session-header, chain-row, iris-row,
+     audit-footer respectively). Cursor would land on the wrong element.
+     Now: session_header → witness_auth → witness_txn → iris_attribution
+     → audit_record, walking the actual chain-of-custody surface. */
   portal_submit: [
-    {target:"new_row",         x:"40%", y:"38%", tip:"Agreement Desk surfaces the linked record", sub:"Auth event + transaction event",  side:"right"},
-    {target:"documents_tab",   x:"40%", y:"50%", tip:"Explicit chain link: CLEAR → submission",    sub:"One continuous identity thread",  side:"right"},
-    {target:"new_row",         x:"50%", y:"60%", tip:"Iris confirms pattern match",              sub:"Risk score below threshold",       side:"top"},
-    {target:"send_for_signature", x:"60%", y:"40%", tip:"Action queued for execution",            sub:"Transaction confirmed",            side:"left"},
-    {target:"send",            x:"50%", y:"82%", tip:"Defensible record stored",                 sub:"Audit-grade chain of custody",     side:"top"}
+    {target:"session_header",   x:"50%", y:"15%", tip:"Verified session — CLEAR-bound customer",     sub:"Identity-bound from F1 proof",     side:"bottom"},
+    {target:"witness_auth",     x:"30%", y:"40%", tip:"Witness #1 — authenticated portal entry",     sub:"CLEAR biometric · session-bound",  side:"right"},
+    {target:"witness_txn",      x:"70%", y:"40%", tip:"Witness #2 — in-session transaction",        sub:"Identity inherited from F1 proof", side:"left"},
+    {target:"iris_attribution", x:"50%", y:"68%", tip:"Iris confirms pattern + risk threshold",     sub:"Identity binding unbroken",        side:"top"},
+    {target:"audit_record",     x:"50%", y:"82%", tip:"Defensible record stored",                   sub:"Audit-grade chain of custody",     side:"top"}
   ],
 
   /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
@@ -2397,6 +2437,31 @@ const SCENES = scenesSource.map((s, i) => {
 const frame = $('scene');
 const sidebar = $('sidebar');
 const layer = $('hotspot-layer');
+
+/* Persistent synthetic cursor that visually replaces the hotspot ring
+   during normal playback. Lives inside .hotspot-layer; mirrors the active
+   hotspot's left/top so it animates smoothly between beats. Click-pulses
+   on each beat advance via the .is-clicking class.
+   Authoring tip: SVG path is a simple Mac-style arrow anchored at top-left. */
+const shellCursorEl = document.createElement('div');
+shellCursorEl.className = 'shell-cursor';
+shellCursorEl.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true"><path d="M4 2 L4 18 L8.5 14 L11.5 21 L14 20 L11 13 L17 13 Z" fill="#FFFFFF" stroke="#130032" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+layer.appendChild(shellCursorEl);
+
+/* Move the cursor to mirror the active hotspot, fire a click pulse.
+   Called from every code path that puts the dot into its final position
+   (synchronous x/y fallback, async tgk:rect response, safety timeout). */
+function syncShellCursor(left, top){
+  if (!shellCursorEl) return;
+  shellCursorEl.style.left = left;
+  shellCursorEl.style.top  = top;
+  shellCursorEl.classList.add('is-visible');
+  // restart the click-pulse animation
+  shellCursorEl.classList.remove('is-clicking');
+  void shellCursorEl.offsetWidth;
+  shellCursorEl.classList.add('is-clicking');
+}
+
 let idx = 0;
 let hotIdx = 0;
 let playing = false;
@@ -2462,9 +2527,12 @@ function positionHotspotFromRect(msg){
   const scaleY = iframeRect.height / vpH;
   const cx = iframeRect.left + (msg.rect.x + msg.rect.w / 2) * scaleX;
   const cy = iframeRect.top  + (msg.rect.y + msg.rect.h / 2) * scaleY;
-  currentHotspotEl.style.left = (cx - stageRect.left) + "px";
-  currentHotspotEl.style.top  = (cy - stageRect.top)  + "px";
+  const leftPx = (cx - stageRect.left) + "px";
+  const topPx  = (cy - stageRect.top)  + "px";
+  currentHotspotEl.style.left = leftPx;
+  currentHotspotEl.style.top  = topPx;
   currentHotspotEl.classList.add("on");
+  syncShellCursor(leftPx, topPx);
 }
 
 /* Listen for rect responses from the iframe. */
@@ -2548,7 +2616,8 @@ function renderPersona(persona){
 }
 function renderHotspot(){
   const scene = SCENES[idx];
-  layer.innerHTML = "";
+  // Tear down old hotspot DOM but keep the persistent .shell-cursor in place.
+  layer.querySelectorAll('.hotspot').forEach(el => el.remove());
   currentHotspotEl = null;
   currentTarget = null;
   if (!scene.hotspots || !scene.hotspots.length) return;
@@ -2577,7 +2646,10 @@ function renderHotspot(){
     // as a placeholder while the iframe rect arrives).
     el.style.left = spot.x;
     el.style.top  = spot.y;
-    if (!currentTarget) el.classList.add('on');
+    if (!currentTarget) {
+      el.classList.add('on');
+      syncShellCursor(spot.x, spot.y);
+    }
   }
 
   // Tell the iframe which internal scene + target element this beat needs.
@@ -2593,9 +2665,13 @@ function renderHotspot(){
       if (currentHotspotEl !== safetyEl) return;          // moved on
       if (safetyEl.classList.contains('on')) return;      // already positioned
       if (currentTarget !== safetyTarget) return;
-      if (spot.x && spot.y) { safetyEl.style.left = spot.x; safetyEl.style.top = spot.y; }
-      else { safetyEl.style.left = '50%'; safetyEl.style.top = '50%'; }
+      let fbLeft, fbTop;
+      if (spot.x && spot.y) { fbLeft = spot.x; fbTop = spot.y; }
+      else { fbLeft = '50%'; fbTop = '50%'; }
+      safetyEl.style.left = fbLeft;
+      safetyEl.style.top  = fbTop;
       safetyEl.classList.add('on');
+      syncShellCursor(fbLeft, fbTop);
     }, 600);
   }
 }

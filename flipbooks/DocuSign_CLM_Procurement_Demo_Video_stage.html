@@ -318,6 +318,117 @@ body.embed .stage-wrap { padding:0; }
 .nav-table .date-link { color:#1a3d6e; text-decoration:underline; text-decoration-color:rgba(26,61,110,0.35); }
 
 @media (max-width:680px) { .title-block h1 { font-size:22px; } .title-block p { font-size:14px; } }
+
+/* =================================================================
+   SCENE ANIMATION — make every Procurement scene feel alive on entry.
+   Each rule keys off `.ds-scene.is-active`.
+   ================================================================= */
+
+/* Scene 1 — Coupa supplier: renewal banner pulses; activity rows fade in */
+.ds-scene[data-scene="coupa-supplier"] .coupa-renewal-banner { opacity:0; transform:translateX(8px); }
+.ds-scene[data-scene="coupa-supplier"] .coupa-row,
+.ds-scene[data-scene="coupa-supplier"] .coupa-activity { opacity:0; transform:translateY(4px); }
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-renewal-banner {
+  animation: procIn 0.5s ease-out 0.3s forwards, procRenewalPulse 2.6s ease-in-out 1s infinite;
+}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(1){animation:procIn 0.4s ease-out 0.4s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(2){animation:procIn 0.4s ease-out 0.55s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(3){animation:procIn 0.4s ease-out 0.7s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(4){animation:procIn 0.4s ease-out 0.85s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(5){animation:procIn 0.4s ease-out 1.0s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-row:nth-child(6){animation:procIn 0.4s ease-out 1.15s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-activity:nth-child(1){animation:procIn 0.4s ease-out 0.6s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-activity:nth-child(2){animation:procIn 0.4s ease-out 0.75s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-activity:nth-child(3){animation:procIn 0.4s ease-out 0.9s forwards;}
+.ds-scene[data-scene="coupa-supplier"].is-active .coupa-activity:nth-child(4){animation:procIn 0.4s ease-out 1.05s forwards;}
+@keyframes procIn { to { opacity:1; transform:translate(0,0); } }
+@keyframes procRenewalPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,76,28,0.18); }
+  50%     { box-shadow: 0 0 0 6px rgba(220,76,28,0); }
+}
+
+/* Scene 2 — Maestro: workflow steps cascade in; active step pulses */
+.ds-scene[data-scene="maestro-desk"] .maestro-step,
+.ds-scene[data-scene="maestro-desk"] .maestro-recip { opacity:0; transform:translateX(-8px); }
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-step:nth-child(1){animation:procStepIn 0.45s ease-out 0.25s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-step:nth-child(2){animation:procStepIn 0.45s ease-out 0.4s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-step:nth-child(3){animation:procStepIn 0.45s ease-out 0.55s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-step:nth-child(4){animation:procStepIn 0.45s ease-out 0.7s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-step:nth-child(5){animation:procStepIn 0.45s ease-out 0.85s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-recip:nth-of-type(1){animation:procRecipIn 0.4s ease-out 0.6s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-recip:nth-of-type(2){animation:procRecipIn 0.4s ease-out 0.75s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-recip:nth-of-type(3){animation:procRecipIn 0.4s ease-out 0.9s forwards;}
+.ds-scene[data-scene="maestro-desk"].is-active .maestro-recip:nth-of-type(4){animation:procRecipIn 0.4s ease-out 1.05s forwards;}
+@keyframes procStepIn { to { opacity:1; transform:translateX(0); } }
+@keyframes procRecipIn { to { opacity:1; transform:translateX(0); } }
+
+/* Scene 3 — AI-Assisted Review: pills + items stagger; Run All breathes */
+.ds-scene[data-scene="ai-review"] .aar-pill,
+.ds-scene[data-scene="ai-review"] .aar-item { opacity:0; transform:translateY(6px); }
+.ds-scene[data-scene="ai-review"].is-active .aar-pill { animation: procAarIn 0.4s ease-out forwards; }
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(1){animation-delay:0.5s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(2){animation-delay:0.65s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(3){animation-delay:0.8s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item { animation: procAarIn 0.45s ease-out forwards; }
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(1){animation-delay:1.0s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(2){animation-delay:1.12s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(3){animation-delay:1.24s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(4){animation-delay:1.36s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(5){animation-delay:1.48s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(6){animation-delay:1.6s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(7){animation-delay:1.72s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(8){animation-delay:1.84s;}
+@keyframes procAarIn { to { opacity:1; transform:translateY(0); } }
+.ds-scene[data-scene="ai-review"].is-active .aar-actions .run {
+  animation: procRunPulse 2.4s ease-in-out 0.2s infinite;
+}
+@keyframes procRunPulse {
+  0%,100% { box-shadow: 0 1px 2px rgba(76,0,255,0.3); }
+  50%     { box-shadow: 0 1px 2px rgba(76,0,255,0.3), 0 0 0 4px rgba(76,0,255,0.12); }
+}
+
+/* Scene 4 — Signing ceremony: progress bar fills; pending field pulses;
+   already-signed signatures fade in like ink hitting paper */
+.ds-scene[data-scene="signing"] .signing-progress .bar .fill { width: 0; }
+.ds-scene[data-scene="signing"].is-active .signing-progress .bar .fill {
+  animation: procFillBar 1.2s cubic-bezier(.4,0,.2,1) 0.5s forwards;
+}
+@keyframes procFillBar { to { width: 65%; } }
+.ds-scene[data-scene="signing"] .signing-field.signed .signature-mark { opacity:0; transform:scale(0.94); }
+.ds-scene[data-scene="signing"].is-active .signing-field.signed:nth-of-type(1) .signature-mark {
+  animation: procInk 0.7s cubic-bezier(.2,.8,.2,1) 0.4s forwards;
+}
+.ds-scene[data-scene="signing"].is-active .signing-field.signed:nth-of-type(2) .signature-mark {
+  animation: procInk 0.7s cubic-bezier(.2,.8,.2,1) 0.9s forwards;
+}
+@keyframes procInk { to { opacity:1; transform:scale(1); } }
+
+/* Scene 5 — Navigator with obligations: rows + obligation chips cascade */
+.ds-scene[data-scene="navigator"] .nav-table tbody tr,
+.ds-scene[data-scene="navigator"] .obligation-chip { opacity:0; transform:translateY(4px); }
+.ds-scene[data-scene="navigator"].is-active .nav-table tbody tr:nth-child(1){animation:procIn 0.5s ease-out 0.3s forwards;}
+.ds-scene[data-scene="navigator"].is-active .nav-table tbody tr:nth-child(2){animation:procIn 0.5s ease-out 0.55s forwards;}
+.ds-scene[data-scene="navigator"].is-active .nav-table tbody tr:nth-child(3){animation:procIn 0.5s ease-out 0.8s forwards;}
+.ds-scene[data-scene="navigator"].is-active .obligation-chip:nth-child(1){animation:procIn 0.35s ease-out 0.7s forwards;}
+.ds-scene[data-scene="navigator"].is-active .obligation-chip:nth-child(2){animation:procIn 0.35s ease-out 0.85s forwards;}
+.ds-scene[data-scene="navigator"].is-active .obligation-chip:nth-child(3){animation:procIn 0.35s ease-out 1.0s forwards;}
+.ds-scene[data-scene="navigator"].is-active .obligation-chip:nth-child(4){animation:procIn 0.35s ease-out 1.15s forwards;}
+.ds-scene[data-scene="navigator"].is-active .obligation-chip:nth-child(5){animation:procIn 0.35s ease-out 1.3s forwards;}
+
+/* Scene 6 — Coupa renewal task: rows cascade like the inbox is being populated */
+.ds-scene[data-scene="coupa-renewal"] .coupa-row { opacity:0; transform:translateX(8px); }
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(1){animation:procRowIn 0.45s ease-out 0.3s forwards;}
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(2){animation:procRowIn 0.45s ease-out 0.45s forwards;}
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(3){animation:procRowIn 0.45s ease-out 0.6s forwards;}
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(4){animation:procRowIn 0.45s ease-out 0.75s forwards;}
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(5){animation:procRowIn 0.45s ease-out 0.9s forwards;}
+.ds-scene[data-scene="coupa-renewal"].is-active .coupa-row:nth-child(6){animation:procRowIn 0.45s ease-out 1.05s forwards;}
+@keyframes procRowIn { to { opacity:1; transform:translateX(0); } }
+
+/* Reduced motion — strip animations */
+@media (prefers-reduced-motion: reduce) {
+  .ds-scene * { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
 </style>
 
 <link rel="stylesheet" href="../assets/demo-stage/demo-stage.css">

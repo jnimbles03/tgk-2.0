@@ -422,6 +422,127 @@ body.embed .stage-wrap { padding:0; }
 /* Selection / reduced motion handled in demo-stage.css */
 
 @media (max-width:680px) { .title-block h1 { font-size:22px; } .title-block p { font-size:14px; } }
+
+/* =================================================================
+   SCENE ANIMATION — make every scene feel alive when it becomes active.
+   Each animation keys off `.ds-scene.is-active` so it fires on entry.
+   ================================================================= */
+
+/* Scene 2 — Agentforce input: typewriter effect on the question */
+.ds-scene[data-scene="agentforce"] .agf-input { position:relative; overflow:hidden; }
+.ds-scene[data-scene="agentforce"] .agf-input > span:first-child {
+  display:inline-block; white-space:nowrap; overflow:hidden;
+  border-right:2px solid var(--ds-cobalt);
+  width:0;
+}
+.ds-scene[data-scene="agentforce"].is-active .agf-input > span:first-child {
+  animation: salesType 1.6s steps(46, end) 0.4s forwards, salesCaret 0.7s step-end infinite;
+}
+@keyframes salesType { from {width:0;} to {width:100%;} }
+@keyframes salesCaret { 50% { border-color:transparent; } }
+
+/* Scene 2 — bot eyes blink */
+.ds-scene[data-scene="agentforce"].is-active .ds-bot-svg { animation: salesFloat 4.2s ease-in-out infinite; }
+@keyframes salesFloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+
+/* Scene 3 — Workflow modal slides up + scrim fades in */
+.ds-scene[data-scene="workflow-modal"] .modal-backdrop { opacity:0; }
+.ds-scene[data-scene="workflow-modal"] .workflow-modal { transform:translateY(24px); opacity:0; }
+.ds-scene[data-scene="workflow-modal"].is-active .modal-backdrop { animation: salesScrim 0.45s ease-out 0.05s forwards; }
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-modal { animation: salesModalIn 0.55s cubic-bezier(.2,.8,.2,1) 0.15s forwards; }
+@keyframes salesScrim { to { opacity:1; } }
+@keyframes salesModalIn { to { transform:translateY(0); opacity:1; } }
+/* Stagger workflow cards as they appear */
+.ds-scene[data-scene="workflow-modal"] .workflow-card { opacity:0; transform:translateY(8px); }
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card { animation: salesCardIn 0.4s ease-out forwards; }
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(1){animation-delay:0.45s;}
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(2){animation-delay:0.55s;}
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(3){animation-delay:0.65s;}
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(4){animation-delay:0.75s;}
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(5){animation-delay:0.85s;}
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card:nth-child(6){animation-delay:0.95s;}
+@keyframes salesCardIn { to { opacity:1; transform:translateY(0); } }
+.ds-scene[data-scene="workflow-modal"].is-active .workflow-card.highlight {
+  animation: salesCardIn 0.4s ease-out 0.45s forwards, salesHighlightPulse 1.6s ease-in-out 1.2s infinite;
+}
+@keyframes salesHighlightPulse { 0%,100%{box-shadow:0 0 0 3px var(--ds-poppy);} 50%{box-shadow:0 0 0 6px rgba(255,82,82,0.45);} }
+
+/* Scene 5 — AAR pills + list items stagger in */
+.ds-scene[data-scene="ai-review"] .aar-pill,
+.ds-scene[data-scene="ai-review"] .aar-item { opacity:0; transform:translateY(6px); }
+.ds-scene[data-scene="ai-review"].is-active .aar-pill { animation: salesAarIn 0.4s ease-out forwards; }
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(1){animation-delay:0.5s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(2){animation-delay:0.65s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-pill:nth-child(3){animation-delay:0.8s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item { animation: salesAarIn 0.45s ease-out forwards; }
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(1){animation-delay:1.0s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(2){animation-delay:1.15s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(3){animation-delay:1.3s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(4){animation-delay:1.45s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(5){animation-delay:1.6s;}
+.ds-scene[data-scene="ai-review"].is-active .aar-item:nth-child(6){animation-delay:1.75s;}
+@keyframes salesAarIn { to { opacity:1; transform:translateY(0); } }
+/* Run All button breathes */
+.ds-scene[data-scene="ai-review"].is-active .aar-actions .run {
+  animation: salesRunPulse 2.4s ease-in-out 0.2s infinite;
+}
+@keyframes salesRunPulse {
+  0%,100% { box-shadow: 0 1px 2px rgba(76,0,255,0.3); }
+  50%     { box-shadow: 0 1px 2px rgba(76,0,255,0.3), 0 0 0 4px rgba(76,0,255,0.12); }
+}
+
+/* Scene 7 — Navigator rows fade in with subtle slide */
+.ds-scene[data-scene="navigator"] .nav-table tbody tr,
+.ds-scene[data-scene="navigator"] .nav-h,
+.ds-scene[data-scene="navigator"] .nav-controls { opacity:0; transform:translateY(4px); }
+.ds-scene[data-scene="navigator"].is-active .nav-h { animation: salesNavIn 0.4s ease-out 0.2s forwards; }
+.ds-scene[data-scene="navigator"].is-active .nav-controls { animation: salesNavIn 0.4s ease-out 0.4s forwards; }
+.ds-scene[data-scene="navigator"].is-active .nav-table tbody tr:nth-child(1){animation:salesNavIn 0.5s ease-out 0.7s forwards;}
+.ds-scene[data-scene="navigator"].is-active .nav-table tbody tr:nth-child(2){animation:salesNavIn 0.5s ease-out 0.95s forwards;}
+@keyframes salesNavIn { to { opacity:1; transform:translateY(0); } }
+
+/* Scene 9 — Iris renewal Q&A: chat messages appear sequentially */
+.ds-scene[data-scene="iris-renewal"] .dsa-msg,
+.ds-scene[data-scene="iris-renewal"] .dsa-actions { opacity:0; transform:translateY(8px); }
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-msg:nth-of-type(1){animation:salesChatIn 0.5s ease-out 0.3s forwards;}
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-actions:nth-of-type(1){animation:salesChatIn 0.4s ease-out 0.7s forwards;}
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-msg:nth-of-type(2){animation:salesChatIn 0.5s ease-out 1.2s forwards;}
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-msg:nth-of-type(3){animation:salesChatIn 0.5s ease-out 2.0s forwards;}
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-actions:nth-of-type(2){animation:salesChatIn 0.4s ease-out 2.4s forwards;}
+@keyframes salesChatIn { to { opacity:1; transform:translateY(0); } }
+
+/* Ambient — bot illustrations float gently when their scene is active */
+.ds-scene.is-active .dsa-bot,
+.ds-scene.is-active .agf-bot-wrap > .ds-bot-svg { will-change: transform; }
+.ds-scene[data-scene="seller-home"].is-active .dsa-bot-wrap .ds-bot-svg,
+.ds-scene[data-scene="iris-renewal"].is-active .dsa-bot-wrap .ds-bot-svg {
+  animation: salesFloat 4.2s ease-in-out infinite;
+}
+
+/* Scene 1 — opp record: subtle activity-row pulse to feel "live" */
+.ds-scene[data-scene="opp"].is-active .activity-item:first-child {
+  animation: salesActPulse 2.6s ease-in-out 0.4s 2;
+}
+@keyframes salesActPulse {
+  0%,100% { background: transparent; }
+  50%     { background: rgba(252, 185, 91, 0.10); }
+}
+
+/* Scene 6 — Iris customer: input "What would you like to know?" gets a typing caret */
+.ds-scene[data-scene="iris-customer"] .iris-input {
+  position:relative;
+}
+.ds-scene[data-scene="iris-customer"].is-active .iris-input::after {
+  content:""; position:absolute; left:155px; top:50%;
+  width:1px; height:14px; background:var(--ds-cobalt);
+  transform:translateY(-50%);
+  animation: salesCaret 0.7s step-end infinite;
+}
+
+/* Reduced motion — strip animations */
+@media (prefers-reduced-motion: reduce) {
+  .ds-scene * { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
 </style>
 
 <link rel="stylesheet" href="../assets/demo-stage/demo-stage.css">
