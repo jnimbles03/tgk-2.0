@@ -92,10 +92,36 @@
   .layer.l-scene    { border-left-color: var(--ds-deep-violet); }
   .layer.l-beat     { border-left-color: var(--ds-poppy); }
 
+  /* Collapsible layer cards */
   .layer-head {
     display: flex; align-items: baseline; gap: 16px;
     margin-bottom: 8px; flex-wrap: wrap;
+    cursor: pointer; user-select: none;
   }
+  .layer-head:hover .layer-name { color: var(--ds-cobalt); }
+  .layer.is-collapsed .layer-head { margin-bottom: 0; }
+  .layer-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--ds-text-soft);
+    transition: transform 0.22s cubic-bezier(.4,0,.2,1), color 0.15s;
+    align-self: center;
+  }
+  .layer.is-collapsed .layer-chevron { transform: rotate(-90deg); }
+  .layer-head:hover .layer-chevron { color: var(--ds-cobalt); }
+  .layer-collapsible {
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.26s cubic-bezier(.4,0,.2,1),
+                opacity 0.22s ease;
+    opacity: 1;
+  }
+  .layer.is-collapsed .layer-collapsible {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  .layer-collapsible-inner { min-height: 0; overflow: hidden; }
   .layer-name {
     font-weight: 700; font-size: 1.5rem;
     letter-spacing: -0.015em; color: var(--ds-text);
@@ -320,11 +346,13 @@
   <!-- ===== Layer stack ===== -->
   <div class="layer-stack">
 
-    <article class="layer l-industry">
+    <article class="layer l-industry is-collapsed">
       <header class="layer-head">
         <span class="layer-name">Industry</span>
         <span class="layer-tagline">The market segment.</span>
+        <svg class="layer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
       </header>
+      <div class="layer-collapsible"><div class="layer-collapsible-inner">
       <div class="layer-body">
         <p>The vertical's home — Wealth, Banking, Insurance, Public Sector, Healthcare, Education, Nonprofit. Industry is structural and rarely the audit target; it's how stories get grouped on the picker.</p>
       </div>
@@ -336,13 +364,16 @@
         <dt>Audit applies</dt>
         <dd><span class="audit-tag none">rarely flagged</span></dd>
       </dl>
+      </div></div>
     </article>
 
-    <article class="layer l-vertical">
+    <article class="layer l-vertical is-collapsed">
       <header class="layer-head">
         <span class="layer-name">Vertical</span>
         <span class="layer-tagline">A tenant × customer pair living in an industry.</span>
+        <svg class="layer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
       </header>
+      <div class="layer-collapsible"><div class="layer-collapsible-inner">
       <div class="layer-body">
         <p>The branded universe a story plays in. <em>Hillside × Aster Capital</em> is the wealth vertical; <em>Meridian × Atlas Manufacturing</em> is the commercial banking vertical. Identified by a <strong>vertical key</strong> like <code>wealth</code>, <code>banking-deposits</code>, <code>insurance-life</code>.</p>
       </div>
@@ -359,13 +390,16 @@
           <span class="audit-tag points">Point solutions</span>
         </dd>
       </dl>
+      </div></div>
     </article>
 
-    <article class="layer l-story">
+    <article class="layer l-story is-collapsed">
       <header class="layer-head">
         <span class="layer-name">Story</span>
         <span class="layer-tagline">One complete narrative arc inside a vertical.</span>
+        <svg class="layer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
       </header>
+      <div class="layer-collapsible"><div class="layer-collapsible-inner">
       <div class="layer-body">
         <p>A vertical typically has multiple stories — <em>Onboarding</em> (default), <em>Maintenance</em>, <em>Fraud Fabric</em>, <em>Intake</em>, <em>Workspaces</em>. Each is the same tenant × customer playing a different end-to-end arc. A story owns the sequence of scenes and the high-level subtitle the viewer sees.</p>
       </div>
@@ -382,13 +416,16 @@
           <span class="audit-tag workspaces">Workspaces</span>
         </dd>
       </dl>
+      </div></div>
     </article>
 
-    <article class="layer l-scene">
+    <article class="layer l-scene is-collapsed">
       <header class="layer-head">
         <span class="layer-name">Scene</span>
         <span class="layer-tagline">One act of the 5-act spine. Plays one Docusign UI template.</span>
+        <svg class="layer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
       </header>
+      <div class="layer-collapsible"><div class="layer-collapsible-inner">
       <div class="layer-body">
         <p>Five acts in canonical order: <strong>Intake · Identity · Signing · Data · Workspace</strong>. Variants run 3–4 acts. Each scene maps to one Docusign UI template iframe (Agreement Desk, CLEAR, Signing Ceremony, Navigator, Workspace) and gets its own opening headline + lede that play in the sidebar before the beats begin.</p>
       </div>
@@ -406,13 +443,16 @@
           <span class="audit-tag parity">Interface parity</span>
         </dd>
       </dl>
+      </div></div>
     </article>
 
-    <article class="layer l-beat">
+    <article class="layer l-beat is-collapsed">
       <header class="layer-head">
         <span class="layer-name">Beat</span>
         <span class="layer-tagline">One micro-moment of advance within a scene. Drives autoplay.</span>
+        <svg class="layer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
       </header>
+      <div class="layer-collapsible"><div class="layer-collapsible-inner">
       <div class="layer-body">
         <p>Each beat is a single click in the demo: one head, one lede, one hotspot, one persona handoff if the actor changes. <em>"Priya selects 'New Engagement' from Hillside's intake menu"</em> is a beat. Five per scene typically. The viewer sees <strong>"Beat M of N"</strong> in the sidebar — that's the layer they feel. Renders as a <strong>vignette</strong> in the editorial sidebar card.</p>
       </div>
@@ -427,6 +467,7 @@
           <span class="audit-tag arc">Story arc</span>
         </dd>
       </dl>
+      </div></div>
     </article>
 
   </div>
@@ -539,5 +580,12 @@
   </div>
 
 </div>
+<script>
+  document.querySelectorAll(".layer .layer-head").forEach(function (hd) {
+    hd.addEventListener("click", function () {
+      hd.closest(".layer").classList.toggle("is-collapsed");
+    });
+  });
+</script>
 </body>
 </html>
