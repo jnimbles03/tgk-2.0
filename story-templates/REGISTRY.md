@@ -193,6 +193,52 @@ authorization signing for disability / workers' comp / claims.
 
 ---
 
+### 7. `docusign-connected-forms.html` — callable vignette
+
+**Covers:** Two views in one file, toggleable by URL or shell postMessage:
+
+1. **Maestro · Add Connected Forms** — a 3-step wizard inside the workflow
+   builder canvas. The operator picks a forms vendor (Quik!, Dispatch,
+   Fontara, Acme), chooses who selects the forms (participant), and wires
+   up data sources (Salesforce, Wealthbox, Redtail, Guidewire, ServiceNow).
+   The "Add Connected Forms" node on the canvas turns green when configured.
+2. **App Center · Field Mapping** — the post-install admin surface where
+   vendor form fields are bound to Docusign / CRM fields. Suggested
+   mappings, unsupported field types, search + paginated 100-row list.
+
+**Best for:** any beat where the demo needs to show *how forms get into
+Maestro* (Scene 1 drill-down) or *where the form data is mapped after
+install* (Scene 4 admin tour). Strongest fit on form-heavy verticals —
+wealth onboarding (Quik! + CRM), L&A new business, P&C claims, FNOL.
+
+**URL params:** `?embed=1` hides the outer chrome (use when iframed) ·
+`?view=maestro|appcenter` deep-links a view · `?preset=wealth|wealth-discovery|insurance|insurance-life|insurance-pc|generic`
+preselects the right vendor + data sources · `?step=1|2|3|done` lands
+the wizard mid-flow or in the configured success state.
+
+**Per-vertical presets ship today:**
+- `wealth` — Aster Capital · Quik! + Salesforce/Wealthbox · Account → Salesforce
+- `wealth-discovery` — Cypress Wealth · Quik! + Salesforce/Redtail · Account → Salesforce
+- `insurance` — Sentinel HO3 · Fontara + Guidewire PAS · Policy → Guidewire
+- `insurance-life` — Beacon Mutual death claim · Fontara + Policy admin · Policy → Policy admin
+- `insurance-pc` — Northgate FNOL · Fontara + Guidewire ClaimCenter · Claim → ClaimCenter
+
+**Hotspot anchors:** `cf_node`, `cf_step1`, `cf_step2`, `cf_step3`,
+`cf_field_mapping` — queryable via `tgk:queryRect` so the shell's
+calibrator can pin shell-level hotspots to elements inside the iframe.
+
+**Adaptation slots:**
+- Add a new entry to the `PRESETS` map in the script — title, vendors,
+  participant default, sources, App Center copy.
+- Vendor logos render from `.logo .quik|.dispatch|.fontara|.acme` CSS;
+  add a new vendor by extending the vendor logo CSS block + adding it
+  to `vendors[]` in the relevant preset.
+- App Center copy (`acTitle`, `acVendor`, `acTarget`, `acConnection`,
+  `acObject`) is preset-driven; field rows are static for now — swap
+  in vertical-specific field names if a beat needs them.
+
+---
+
 ## SoR badge kits
 
 A badge kit is a tiny per-vendor recipe — primary color, secondary color,

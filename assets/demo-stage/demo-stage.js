@@ -466,9 +466,14 @@
       cursorEl.style.left = (x * sx) + "px";
       cursorEl.style.top  = (y * sy) + "px";
       cursorEl.classList.add("is-visible");
-      if (prev.action === "click" && Math.abs(t - prev.t) < 0.25) {
+      // Pulse on arrival at every cursor keyframe — the cursor "clicks" each
+      // target as it lands. Tighter for action:"click" entries, lighter pulse
+      // for hovers, but the visual is the same — every step looks intentional.
+      if (Math.abs(t - prev.t) < 0.25) {
+        cursorEl.classList.remove("is-clicking");
+        void cursorEl.offsetWidth;
         cursorEl.classList.add("is-clicking");
-        setTimeout(function () { cursorEl && cursorEl.classList.remove("is-clicking"); }, 420);
+        setTimeout(function () { cursorEl && cursorEl.classList.remove("is-clicking"); }, 460);
       }
     }
 

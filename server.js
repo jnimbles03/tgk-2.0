@@ -818,6 +818,124 @@ app.post('/api/builder/save', builderJson, async (req, res) => {
   }
 });
 
+/* =========================================================================
+   VERTICALS REGISTRY READER
+   -------------------------------------------------------------------------
+   builder.html in audit-mode hydrates from the canonical VERTICALS block
+   inlined in stories/_shared/story-shell.html. We slice the literal out of
+   the source, eval it in an isolated VM context, and serve the JSON for
+   the requested vertical (and optionally a specific usecase). The shell
+   file is trusted source; this endpoint is read-only.
+   ========================================================================= */
+const vm = require('vm');
+const STORY_SHELL_PATH = path.join(__dirname, 'stories', '_shared', 'story-shell.html');
+let _verticalsCache = null; // { mtimeMs, data }
+
+function sliceVerticalsLiteral(src) {
+  const m = /const\s+VERTICALS\s*=\s*\{/m.exec(src);
+  if (!m) return null;
+  const start = m.index + m[0].length - 1; // position of opening `{`
+  let depth = 0;
+  let i = start;
+  let inS = false, inD = false, inT = false;
+  let inLC = false, inBC = false;
+  const n = src.length;
+  while (i < n) {
+    const c = src[i];
+    const nxt = src[i + 1] || '';
+    if (inLC) { if (c === '\n') inLC = false; i++; continue; }
+    if (inBC) { if (c === '*' && nxt === '/') { inBC = false; i += 2; continue; } i++; continue; }
+    if (inS)  { if (c === '\\') { i += 2; continue; } if (c === "'") inS = false; i++; continue; }
+    if (inD)  { if (c === '\\') { i += 2; continue; } if (c === '"') inD = false; i++; continue; }
+    if (inT)  { if (c === '\\') { i += 2; continue; } if (c === '`') inT = false; i++; continue; }
+    if (c === '/' && nxt === '/') { inLC = true; i += 2; continue; }
+    if (c === '/' && nxt === '*') { inBC = true; i += 2; continue; }
+    if (c === "'") { inS = true; i++; continue; }
+    if (c === '"') { inD = true; i++; continue; }
+    if (c === '`') { inT = true; i++; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') { depth--; if (depth === 0) return src.slice(start, i + 1); }
+    i++;
+  }
+  return null;
+}
+
+function readVerticals() {
+  let stat;
+  try { stat = fs.statSync(STORY_SHELL_PATH); } catch { return null; }
+  if (_verticalsCache && _verticalsCache.mtimeMs === stat.mtimeMs) {
+    return _verticalsCache.data;
+  }
+  const src = fs.readFileSync(STORY_SHELL_PATH, 'utf-8');
+  const literal = sliceVerticalsLiteral(src);
+  if (!literal) return null;
+  let data;
+  try {
+    data = vm.runInNewContext('(' + literal + ')', {}, { timeout: 1000 });
+  } catch (e) {
+    console.error('[verticals] eval failed:', e.message);
+    return null;
+  }
+  _verticalsCache = { mtimeMs: stat.mtimeMs, data };
+  return data;
+}
+
+// GET /api/verticals — list of vertical keys with light metadata
+app.get('/api/verticals', (req, res) => {
+  const v = readVerticals();
+  if (!v) return res.status(500).json({ error: 'verticals registry unavailable' });
+  const list = Object.entries(v).map(([key, e]) => ({
+    key,
+    label: e.label || key,
+    tenant: e.tenant || '',
+    subtitle: e.subtitle || '',
+    category: e.category || '',
+    preset: e.preset || '',
+    sceneCount: Array.isArray(e.scenes) ? e.scenes.length : 0,
+    usecases: Array.isArray(e.scenes)
+      ? ['default']
+      : (e.scenes && typeof e.scenes === 'object' ? Object.keys(e.scenes) : [])
+  }));
+  res.json({ verticals: list });
+});
+
+// GET /api/verticals/:key  (?usecase=default|maintenance|fraud-fabric|...)
+// Returns the merged vertical entry for the requested key + usecase, with
+// the scenes array resolved to a single flat list.
+app.get('/api/verticals/:key', (req, res) => {
+  const v = readVerticals();
+  if (!v) return res.status(500).json({ error: 'verticals registry unavailable' });
+  const key = req.params.key;
+  const entry = v[key];
+  if (!entry) return res.status(404).json({ error: `unknown vertical '${key}'` });
+
+  const usecase = (req.query.usecase || 'default').toString();
+  let scenes = null;
+  if (Array.isArray(entry.scenes)) {
+    scenes = entry.scenes;
+  } else if (entry.scenes && typeof entry.scenes === 'object') {
+    scenes = entry.scenes[usecase] || entry.scenes.default || null;
+  }
+  if (!scenes) {
+    return res.status(404).json({ error: `usecase '${usecase}' not defined for vertical '${key}'` });
+  }
+
+  res.json({
+    key,
+    usecase,
+    meta: {
+      label: entry.label || key,
+      tenant: entry.tenant || '',
+      subtitle: entry.subtitle || '',
+      tenantColor: entry.tenantColor || '',
+      preset: entry.preset || '',
+      category: entry.category || '',
+      splashOk: !!entry.splashOk
+    },
+    scenes
+  });
+});
+
 // GET /api/builder/:token — fetch a saved config (used by shell async path / inspection)
 app.get('/api/builder/:token', async (req, res) => {
   try {

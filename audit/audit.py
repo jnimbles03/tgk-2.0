@@ -85,6 +85,7 @@ INDEX_FILES = [
 
 COMPONENT_CURRENT_DIR = REPO_ROOT / "components" / "current-state"
 COMPONENT_FUTURE_DIR = REPO_ROOT / "components" / "future-state"
+STORY_SHELL_PATH = REPO_ROOT / "stories" / "_shared" / "story-shell.html"
 
 
 def discover_targets(scope: str | None, explicit: list[str]) -> list[Path]:
@@ -111,6 +112,9 @@ def discover_targets(scope: str | None, explicit: list[str]) -> list[Path]:
             targets.extend(
                 sorted(p for p in COMPONENT_FUTURE_DIR.glob("*.html") if p.name != "_base.css.html")
             )
+    if scope in (None, "story-shell"):
+        if STORY_SHELL_PATH.exists():
+            targets.append(STORY_SHELL_PATH)
     return targets
 
 
@@ -406,6 +410,158 @@ def check_step_structure(html: str, rel: str, rules: dict, findings: list[Findin
                         )
 
 
+VERTICALS_OPEN_RE = re.compile(r"const\s+VERTICALS\s*=\s*\{", re.MULTILINE)
+
+# head: "..."  |  head: '...'  |  head: `...`
+# Captures the field name and the inner string content. Handles backslash escapes.
+NARRATION_FIELD_RE = re.compile(
+    r"\b(head|lede|headline)\s*:\s*([\"'`])((?:\\.|(?!\2).)*?)\2",
+    re.DOTALL,
+)
+
+HTML_TAG_STRIP_RE = re.compile(r"<[^>]+>")
+
+
+def find_verticals_block(html: str) -> tuple[int, int] | None:
+    """Find (start, end) byte offsets of the VERTICALS object literal — from the
+    opening `{` after `const VERTICALS = ` through its matching `}`. Walks JS
+    strings (single, double, template), block comments, and line comments so a
+    `}` inside a backtick string doesn't end the block early."""
+    m = VERTICALS_OPEN_RE.search(html)
+    if not m:
+        return None
+    start = m.end() - 1  # position of opening `{`
+    depth = 0
+    i = start
+    n = len(html)
+    in_s = in_d = in_t = False
+    in_lc = in_bc = False
+    while i < n:
+        c = html[i]
+        nxt = html[i + 1] if i + 1 < n else ""
+        if in_lc:
+            if c == "\n":
+                in_lc = False
+            i += 1
+            continue
+        if in_bc:
+            if c == "*" and nxt == "/":
+                in_bc = False
+                i += 2
+                continue
+            i += 1
+            continue
+        if in_s:
+            if c == "\\":
+                i += 2
+                continue
+            if c == "'":
+                in_s = False
+            i += 1
+            continue
+        if in_d:
+            if c == "\\":
+                i += 2
+                continue
+            if c == '"':
+                in_d = False
+            i += 1
+            continue
+        if in_t:
+            if c == "\\":
+                i += 2
+                continue
+            if c == "`":
+                in_t = False
+            i += 1
+            continue
+        if c == "/" and nxt == "/":
+            in_lc = True
+            i += 2
+            continue
+        if c == "/" and nxt == "*":
+            in_bc = True
+            i += 2
+            continue
+        if c == "'":
+            in_s = True
+        elif c == '"':
+            in_d = True
+        elif c == "`":
+            in_t = True
+        elif c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return (start, i + 1)
+        i += 1
+    return None
+
+
+def check_capability_language(html: str, rel: str, rules: dict, findings: list[Finding]) -> None:
+    """Flag IAM product names inside scene narration prose (head / lede / beats[].head /
+    beats[].lede). Capabilities-not-products rule: the story arc should describe the
+    transaction, not the IAM product line. Tags, SoR badges, persona role labels, and
+    scene tag/label fields are exempt — those are deliberate product-naming surfaces.
+
+    Scope: story-shell.html (and any file with a top-level `const VERTICALS = {…}` literal).
+    """
+    cfg = rules.get("narration_banned_products")
+    if not cfg:
+        return
+
+    # Only run on files that actually carry the VERTICALS registry.
+    block = find_verticals_block(html)
+    if block is None:
+        return
+    block_start, block_end = block
+    region = html[block_start:block_end]
+
+    # Build a case-insensitive single regex of all banned product names.
+    replacements = cfg.get("replacements", {}) or {}
+    if not replacements:
+        return
+    # Sort by length descending so multi-word names match before their substrings
+    # ("Web Forms" before "Forms", "Agreement Desk" before "Agreement").
+    products = sorted(replacements.keys(), key=len, reverse=True)
+    product_re = re.compile(
+        r"\b(?:" + "|".join(re.escape(p) for p in products) + r")\b",
+        re.IGNORECASE,
+    )
+
+    seen: set[tuple[int, str, int]] = set()  # dedupe (line, product_lower, value_offset)
+
+    for nm in NARRATION_FIELD_RE.finditer(region):
+        field = nm.group(1)
+        value = nm.group(3)
+        value_start_in_html = block_start + nm.start(3)
+        # Strip HTML tags for cleaner context output, but match offsets in the raw value
+        # since findings reference the raw line in the source file.
+        for pm in product_re.finditer(value):
+            product = pm.group(0)
+            line = line_of(html, value_start_in_html + pm.start())
+            key = (line, product.lower(), value_start_in_html + pm.start())
+            if key in seen:
+                continue
+            seen.add(key)
+            canonical = next((p for p in products if p.lower() == product.lower()), product)
+            suggestions = replacements.get(canonical, [])
+            hint_suggestions = "; ".join(suggestions[:3]) if suggestions else "rewrite as a capability the transaction demands"
+            stripped = HTML_TAG_STRIP_RE.sub("", value).strip()
+            findings.append(
+                Finding(
+                    file=rel,
+                    line=line,
+                    category="Capabilities",
+                    severity="High",
+                    message=f"Product name '{product}' in scene narration ({field}:)",
+                    hint=f"Story arc should describe the capability, not the product. Try: {hint_suggestions}.",
+                    context=stripped[:140],
+                )
+            )
+
+
 def check_iam_tags(html: str, rel: str, rules: dict, findings: list[Finding]) -> None:
     valid = set(rules["iam_products"])
     for sid, body_line, parsed, err in extract_steps_blocks(html):
@@ -507,6 +663,7 @@ CHECKERS = [
     check_iam_tags,
     check_point_solutions_mechanical,
     check_svg_style,
+    check_capability_language,
 ]
 
 SEVERITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
@@ -580,7 +737,7 @@ def render_markdown(grouped: dict[str, list[Finding]]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Mechanical audit pass for TGK 2.0 discovery assets.")
     parser.add_argument("files", nargs="*", help="Specific files to audit (absolute or repo-relative paths).")
-    parser.add_argument("--scope", choices=["swim-lane", "index", "component-current", "component-future"],
+    parser.add_argument("--scope", choices=["swim-lane", "index", "component-current", "component-future", "story-shell"],
                         help="Limit to a scope when no files are given. Default: all scopes.")
     parser.add_argument("--format", choices=["json", "markdown"], default="json",
                         help="Output format. Default: json (consumed by the LLM pass).")

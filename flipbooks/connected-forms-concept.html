@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>Connected Forms — Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F0F12;
+    --ink-2: #2B2B33;
+    --ink-3: #5A5A66;
+    --ink-4: #8B8B96;
+    --line: #E4E4EA;
+    --line-2: #D6D6DD;
+    --bg: #F5F5F7;
+    --bg-2: #FAFAFC;
+    --card: #FFFFFF;
+    --violet: #4C00FF;
+    --violet-600: #3B00C8;
+    --violet-50: #F1ECFF;
+    --violet-100: #E6DBFF;
+    --violet-200: #C9B5FF;
+    --violet-tint: #FAF6FF;
+    --green: #1F8F4F;
+    --red: #D7263D;
+    --shadow-sm: 0 1px 2px rgba(15,15,18,.06), 0 1px 1px rgba(15,15,18,.04);
+    --shadow-md: 0 6px 24px rgba(15,15,18,.08), 0 2px 6px rgba(15,15,18,.05);
+    --shadow-lg: 0 24px 60px rgba(15,15,18,.14), 0 6px 12px rgba(15,15,18,.06);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #ECEDF0;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+  }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ---------- Top toolbar (asset chrome, not part of replica) ---------- */
+  .chrome {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.85);
+    backdrop-filter: saturate(150%) blur(10px);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 20px;
+  }
+  .chrome .brand {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 18px; letter-spacing: .2px;
+  }
+  .chrome .brand .dot { color: var(--violet); }
+  .chrome .meta { color: var(--ink-3); font-size: 12px; }
+  .chrome .spacer { flex: 1; }
+  .chrome .seg {
+    display: inline-flex; background: #fff; border: 1px solid var(--line);
+    padding: 2px; border-radius: 999px; box-shadow: var(--shadow-sm);
+  }
+  .chrome .seg button {
+    border: 0; background: transparent; padding: 6px 14px;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+    border-radius: 999px;
+  }
+  .chrome .seg button.is-on {
+    background: var(--ink); color: #fff;
+  }
+
+  /* ---------- Stage ---------- */
+  .stage {
+    padding: 28px clamp(20px, 4vw, 56px) 80px;
+    display: flex; justify-content: center;
+  }
+  .stage > section { display: none; }
+  .stage > section.is-on { display: block; }
+
+  /* ---------- View 1: Maestro ---------- */
+  .maestro {
+    width: min(1280px, 100%);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .maestro-top {
+    height: 44px;
+    background: linear-gradient(180deg, #15161B 0%, #0F1015 100%);
+    color: #E9E9EE;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 14px;
+    border-bottom: 1px solid #000;
+  }
+  .traffic { display: flex; gap: 6px; margin-right: 4px; }
+  .traffic span { width: 11px; height: 11px; border-radius: 50%; background: #2B2C32; display: inline-block; }
+  .ds-monogram {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: linear-gradient(135deg, #FFB13B 0%, #F25C25 35%, #4C00FF 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .maestro-top .title { font-size: 13px; color: #B7B8C2; }
+  .maestro-top .pill {
+    background: #2A2B33; color: #C8C9D2; font-size: 10.5px; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px; letter-spacing: .3px; text-transform: uppercase;
+  }
+  .maestro-top .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .maestro-top .ghost {
+    background: transparent; border: 1px solid #2A2B33; color: #C8C9D2;
+    font-size: 12px; padding: 5px 10px; border-radius: 6px;
+  }
+  .maestro-top .primary {
+    background: var(--violet); color: #fff; border: 0;
+    font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px;
+  }
+
+  .maestro-body {
+    display: grid; grid-template-columns: 1fr 460px;
+    background: var(--bg);
+    min-height: 720px;
+  }
+
+  /* canvas */
+  .canvas {
+    position: relative;
+    background:
+      radial-gradient(circle at 1px 1px, #D9D9E0 1px, transparent 1px) 0 0/20px 20px,
+      var(--bg);
+    padding: 32px 40px 80px;
+  }
+  .canvas-toolbar {
+    position: absolute; left: 24px; bottom: 20px;
+    display: flex; align-items: center; gap: 6px;
+    background: #fff; border: 1px solid var(--line);
+    border-radius: 8px; padding: 4px 6px;
+    box-shadow: var(--shadow-sm);
+  }
+  .canvas-toolbar button {
+    border: 0; background: transparent; width: 28px; height: 28px;
+    color: var(--ink-3); border-radius: 6px; font-size: 14px;
+  }
+  .canvas-toolbar .zoom { font-size: 11.5px; color: var(--ink-3); padding: 0 6px; }
+
+  .flow {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0; padding-top: 12px;
+  }
+  .node {
+    width: 280px; background: #fff; border: 1px solid var(--line-2);
+    border-radius: 10px; padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .node .row { display: flex; align-items: center; gap: 10px; }
+  .node .square { width: 18px; height: 18px; border-radius: 4px; background: #DDD; }
+  .node .bar { height: 8px; background: #DCDCE3; border-radius: 999px; flex: 1; }
+  .node .bar.short { max-width: 60%; }
+  .node .bar.tiny { max-width: 30%; }
+
+  .connector {
+    width: 2px; height: 28px; background: #C8C8D0;
+    position: relative;
+  }
+  .connector::after {
+    content: ""; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+    border-top: 6px solid #C8C8D0;
+  }
+
+  .node-active {
+    width: 280px; background: #fff;
+    border: 2px solid var(--violet); border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 0 0 6px rgba(76,0,255,.08), var(--shadow-md);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .node-active .head { display: flex; align-items: center; gap: 8px; }
+  .node-active .spark {
+    width: 18px; height: 18px; color: var(--violet);
+  }
+  .node-active .label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .node-active .more { margin-left: auto; color: var(--ink-4); font-size: 16px; line-height: 1; }
+  .node-active .config {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 10px; font-size: 12px; color: var(--ink-3);
+  }
+  .node-active .config a {
+    color: var(--violet); font-weight: 600; text-decoration: none; font-size: 12px;
+  }
+  .plus {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--violet); color: #fff; border: 0;
+    display: grid; place-items: center; font-size: 22px; font-weight: 300;
+    margin-top: 16px; box-shadow: 0 6px 20px rgba(76,0,255,.35);
+  }
+
+  /* ---------- Drawer ---------- */
+  .drawer {
+    background: #fff;
+    border-left: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .drawer-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .drawer-header label {
+    display: block; font-size: 12px; font-weight: 500; color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .drawer-header label .req { color: var(--red); }
+  .drawer-header .field {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line-2); border-radius: 8px;
+    padding: 9px 12px; background: #fff;
+  }
+  .drawer-header .field input {
+    border: 0; outline: 0; width: 100%; font-size: 13.5px; color: var(--ink); font-family: inherit;
+  }
+  .drawer-header .close {
+    position: absolute; top: 14px; right: 14px;
+    background: transparent; border: 0; width: 28px; height: 28px;
+    color: var(--ink-3); font-size: 18px;
+  }
+  .drawer-header .meta-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; color: var(--ink-4); margin-top: 6px;
+  }
+  .drawer-header { position: relative; }
+
+  .how {
+    margin: 14px 20px 0;
+    background: var(--violet-50);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--violet-600); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    user-select: none;
+  }
+  .how svg { width: 14px; height: 14px; }
+
+  .steps {
+    flex: 1; overflow-y: auto;
+    padding: 18px 20px 20px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .steps h4 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 600;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: .4px;
+  }
+
+  .step {
+    display: grid; grid-template-columns: 28px 1fr; gap: 10px;
+    align-items: start;
+  }
+  .step .num {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11.5px; font-weight: 700;
+    margin-top: 2px;
+  }
+  .step.todo .num { background: var(--violet-50); color: var(--violet); border: 1px solid var(--violet-100); }
+  .step.todo .body .q { color: var(--ink-4); }
+  .step.done .num { background: var(--violet); color: #fff; }
+  .step.done .num.check svg { width: 12px; height: 12px; }
+  .step.active .num { background: var(--violet); color: #fff; }
+
+  .step .body .q { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .step.done .body .q { color: var(--ink-3); font-weight: 500; }
+  .step.done .body .a {
+    font-size: 12px; color: var(--ink-4); margin-top: 2px;
+  }
+
+  /* form library cards */
+  .vendor-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .vendor {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .12s, box-shadow .12s, background .12s;
+  }
+  .vendor:hover { border-color: var(--violet-200); }
+  .vendor.is-on { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(76,0,255,.12); }
+  .vendor .logo { height: 26px; display: flex; align-items: center; margin-bottom: 6px; }
+  .vendor .name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .vendor .desc { font-size: 11px; color: var(--ink-4); margin-top: 2px; line-height: 1.4; }
+
+  .vendor .logo .quik {
+    background: #ED1C24; color: #fff; font-weight: 800; font-style: italic;
+    padding: 2px 8px; border-radius: 3px; font-size: 13px; transform: skew(-8deg);
+    letter-spacing: .5px;
+  }
+  .vendor .logo .dispatch {
+    color: #112B5E; font-weight: 700; font-size: 14px; letter-spacing: -.3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .vendor .logo .dispatch::before {
+    content: ""; width: 14px; height: 14px;
+    background: linear-gradient(135deg, #2B6BFF 0%, #112B5E 100%);
+    border-radius: 50%;
+  }
+  .vendor .logo .fontara {
+    color: #1A4D2E; font-family: 'DM Serif Display', serif; font-size: 16px;
+  }
+  .vendor .logo .fontara::before {
+    content: "❋"; color: #6FBF73; margin-right: 5px;
+  }
+  .vendor .logo .acme {
+    background: #C8102E; color: #fff; font-weight: 900; font-style: italic;
+    padding: 2px 10px; border-radius: 999px; font-size: 12px; letter-spacing: 1.5px;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+  }
+
+  /* participant select */
+  .select {
+    border: 1px solid var(--line-2); border-radius: 8px;
+    padding: 9px 12px; background: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--ink-3); margin-bottom: 8px;
+    cursor: pointer; position: relative;
+  }
+  .select.has-value { color: var(--ink); font-weight: 500; }
+  .select .caret { color: var(--ink-4); font-size: 10px; }
+  .select-menu {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 6px; z-index: 10; display: none;
+  }
+  .select.is-open .select-menu { display: block; }
+  .select-menu .opt {
+    padding: 8px 10px; font-size: 12.5px; color: var(--ink); border-radius: 6px;
+  }
+  .select-menu .opt:hover { background: var(--violet-50); color: var(--violet-600); }
+  .select-menu .opt.add { color: var(--ink-4); border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; }
+
+  /* data sources */
+  .ds-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .ds-row {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; cursor: pointer;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .ds-row:hover { border-color: var(--violet-200); }
+  .ds-row.is-on { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(76,0,255,.12); }
+  .ds-icon { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; flex: 0 0 auto; }
+  .ds-icon.sf { background: #00A1E0; color: #fff; }
+  .ds-icon.wb { background: #1F5AA8; color: #fff; }
+  .ds-icon.rt { background: #D7263D; color: #fff; }
+  .ds-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .ds-allow {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--ink-3);
+  }
+  .ds-allow input { accent-color: var(--violet); }
+
+  .step-actions {
+    display: flex; gap: 8px; margin-top: 6px;
+  }
+  .btn-next {
+    background: var(--violet); color: #fff; border: 0;
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600;
+  }
+  .btn-next:disabled { background: var(--violet-100); color: var(--violet-200); cursor: not-allowed; }
+  .btn-finish { background: var(--ink); }
+
+  .drawer-footer {
+    border-top: 1px solid var(--line);
+    padding: 12px 20px;
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  .drawer-footer .ghost {
+    background: #fff; color: var(--ink-2); border: 1px solid var(--line-2);
+    padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500;
+  }
+  .drawer-footer .apply {
+    background: var(--violet); color: #fff; border: 0;
+    padding: 8px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  }
+
+  /* Restart link */
+  .restart {
+    text-align: center; margin: 14px 20px 0;
+    font-size: 11.5px; color: var(--violet); cursor: pointer;
+  }
+  .restart:hover { text-decoration: underline; }
+
+  /* ---------- View 2: Field Mappings ---------- */
+  .appcenter {
+    width: min(1280px, 100%);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .ac-top {
+    height: 60px; background: #fff; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; padding: 0 22px; gap: 18px;
+  }
+  .ac-logo {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; color: var(--ink);
+  }
+  .ac-logo .ds-mono {
+    width: 24px; height: 24px; border-radius: 5px;
+    background: linear-gradient(135deg, #FFB13B 0%, #F25C25 35%, #4C00FF 100%);
+  }
+  .ac-logo .name {
+    font-size: 18px; letter-spacing: -.2px;
+  }
+  .ac-logo .name b { color: var(--ink); }
+  .ac-logo .pill {
+    background: var(--ink); color: #fff; padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: .4px; margin-left: 6px;
+  }
+  .ac-tabs { display: flex; gap: 22px; margin-left: 8px; }
+  .ac-tabs a {
+    color: var(--ink-3); font-size: 14px; text-decoration: none; font-weight: 500;
+    padding: 18px 0; border-bottom: 2px solid transparent;
+  }
+  .ac-tabs a.is-on { color: var(--ink); border-bottom-color: var(--ink); }
+  .ac-top .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .ac-top .demo-btn {
+    border: 1px solid var(--line-2); background: #fff; padding: 7px 12px;
+    border-radius: 8px; font-size: 12.5px; color: var(--ink); display: inline-flex;
+    align-items: center; gap: 6px;
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #F4D63A; color: var(--ink); font-weight: 700; font-size: 11px;
+    display: grid; place-items: center;
+  }
+
+  .ac-body { display: grid; grid-template-columns: 220px 1fr; min-height: 660px; }
+  .ac-side {
+    background: #FAFAFC; border-right: 1px solid var(--line);
+    padding: 22px 16px;
+  }
+  .ac-side .item {
+    padding: 8px 10px; font-size: 13px; color: var(--ink-3); border-radius: 6px;
+    cursor: pointer; margin-bottom: 2px;
+  }
+  .ac-side .item.is-on { background: #ECECF1; color: var(--ink); font-weight: 600; }
+  .ac-side .admin {
+    color: var(--violet); font-size: 13px; font-weight: 500; padding: 12px 10px 0;
+    border-top: 1px solid var(--line); margin-top: 10px;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .ac-main { padding: 22px 36px 40px; background: #fff; }
+  .crumbs { font-size: 12px; color: var(--ink-4); margin-bottom: 16px; }
+  .crumbs a { color: var(--ink-3); text-decoration: none; }
+  .crumbs .sep { margin: 0 6px; color: var(--ink-4); }
+  .crumbs .here { color: var(--ink); font-weight: 500; }
+
+  .ac-main h1 {
+    font-size: 22px; font-weight: 700; margin: 4px 0 6px; letter-spacing: -.3px;
+  }
+  .ac-main .lede { color: var(--ink-3); font-size: 13px; max-width: 560px; margin-bottom: 20px; }
+
+  .map-card {
+    border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .map-card .title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .map-card h2 { font-size: 16px; margin: 0; }
+  .filters { display: flex; gap: 8px; }
+  .pill-select {
+    border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px;
+    background: #fff; font-size: 12.5px; color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  .pill-select .caret { color: var(--ink-4); font-size: 10px; }
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    padding: 10px 0;
+  }
+  .search {
+    flex: 1; max-width: 280px;
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line-2); border-radius: 999px;
+    padding: 7px 14px; background: #fff;
+  }
+  .search input { border: 0; outline: 0; font-size: 12.5px; flex: 1; color: var(--ink); font-family: inherit; }
+  .toolbar .right { margin-left: auto; }
+
+  .columns { display: grid; grid-template-columns: 1fr 28px 1fr; gap: 10px; align-items: center; }
+  .col-head {
+    font-size: 12px; font-weight: 600; color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .col-head.qf::before { content: ""; width: 10px; height: 10px; background: #ED1C24; border-radius: 2px; transform: skew(-12deg); }
+  .col-head.sf::before { content: ""; width: 12px; height: 12px; background: #00A1E0; border-radius: 50%; }
+  .field-row {
+    border: 1px solid var(--line-2); border-radius: 8px; padding: 9px 12px;
+    background: #fff; font-size: 12.5px; color: var(--ink-2);
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 36px;
+  }
+  .field-row.muted { color: var(--ink-4); }
+  .field-row .x { color: var(--ink-4); font-size: 14px; cursor: pointer; }
+  .field-row .person {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--ink-4);
+    display: inline-block; margin-right: 6px; vertical-align: -2px;
+  }
+  .field-row.unsupported { background: #FAFAFC; color: var(--ink-4); }
+  .field-row.unsupported::before {
+    content: "!"; width: 14px; height: 14px; border-radius: 50%;
+    background: #C7C7D0; color: #fff; font-size: 10px; font-weight: 700;
+    display: inline-grid; place-items: center; margin-right: 8px;
+  }
+  .arrow {
+    color: var(--ink-4); text-align: center; font-size: 14px;
+  }
+  .arrow.muted { color: #D6D6DD; }
+
+  .pager {
+    margin-top: 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .pager .ps {
+    border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 10px;
+    font-size: 12px; color: var(--ink-2); background: #fff;
+  }
+  .pager .info { font-size: 12px; color: var(--ink-3); }
+  .pager .pages { display: inline-flex; gap: 4px; margin-left: auto; }
+  .pager .pages button {
+    width: 28px; height: 28px; border: 0; background: transparent;
+    border-radius: 6px; font-size: 12px; color: var(--ink-2);
+  }
+  .pager .pages button.is-on { background: var(--violet); color: #fff; font-weight: 600; }
+  .save-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+  .save-btn {
+    background: var(--violet); color: #fff; border: 0;
+    padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+
+  /* utility */
+  .hidden { display: none !important; }
+
+  @media (max-width: 1100px) {
+    .maestro-body { grid-template-columns: 1fr 420px; }
+  }
+  @media (max-width: 900px) {
+    .maestro-body { grid-template-columns: 1fr; }
+    .drawer { border-left: 0; border-top: 1px solid var(--line); }
+    .ac-body { grid-template-columns: 1fr; }
+    .ac-side { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <span class="brand">Connected Forms <span class="dot">·</span> Concept</span>
+  <span class="meta">XPLAT-3214 · Release 1 CY26</span>
+  <span class="spacer"></span>
+  <div class="seg" role="tablist">
+    <button class="is-on" data-view="maestro">Maestro · Add Connected Forms</button>
+    <button data-view="appcenter">App Center · Field Mapping</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============== VIEW 1: MAESTRO ============== -->
+  <section id="view-maestro" class="is-on">
+    <div class="maestro">
+      <div class="maestro-top">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <div class="ds-monogram"></div>
+        <span class="title">Untitled</span>
+        <span class="pill">Unpublished</span>
+        <div class="right">
+          <button class="ghost">Preview</button>
+          <button class="primary">Publish</button>
+        </div>
+      </div>
+
+      <div class="maestro-body">
+        <!-- canvas -->
+        <div class="canvas">
+          <div class="flow">
+            <div class="node">
+              <div class="row"><span class="square"></span><span class="bar"></span></div>
+              <div class="bar short"></div>
+              <div class="bar tiny"></div>
+            </div>
+            <div class="connector"></div>
+            <div class="node">
+              <div class="row"><span class="square"></span><span class="bar"></span></div>
+              <div class="bar short"></div>
+              <div class="bar tiny"></div>
+            </div>
+            <div class="connector"></div>
+            <div class="node-active" id="cf-node">
+              <div class="head">
+                <svg class="spark" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5l1.7 5.1 5.3.4-4.1 3.4 1.4 5.2L10 12.7l-4.3 2.9 1.4-5.2L3 7l5.3-.4z"/></svg>
+                <span class="label">Add Connected Forms</span>
+                <span class="more">⋯</span>
+              </div>
+              <div class="config">
+                <span id="cf-config-text">Configuration in progress</span>
+                <a href="#" id="cf-edit">Edit</a>
+              </div>
+            </div>
+            <div class="connector"></div>
+            <button class="plus" aria-label="Add step">+</button>
+          </div>
+
+          <div class="canvas-toolbar">
+            <button aria-label="Zoom out">−</button>
+            <span class="zoom">75%</span>
+            <button aria-label="Zoom in">+</button>
+          </div>
+        </div>
+
+        <!-- drawer -->
+        <aside class="drawer" id="drawer">
+          <div class="drawer-header">
+            <button class="close" aria-label="Close">✕</button>
+            <label for="step-name">Step Name <span class="req">*</span></label>
+            <div class="field">
+              <input id="step-name" value="Add Connected Forms">
+            </div>
+            <div class="meta-row"><span></span><span><span id="char-count">22</span>/100</span></div>
+          </div>
+
+          <div class="how" id="how-toggle">
+            <span>See how it works</span>
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3.5 5.5l3.5 3.5 3.5-3.5"/></svg>
+          </div>
+
+          <div class="steps">
+            <h4>Set up your forms</h4>
+
+            <!-- Step 1 -->
+            <div class="step active" id="step-1">
+              <div class="num">1</div>
+              <div class="body">
+                <div class="q">Where will the forms come from?</div>
+                <div class="step-content" data-content-for="step-1">
+                  <div class="vendor-grid">
+                    <div class="vendor" data-name="Quik! Form Library">
+                      <div class="logo"><span class="quik">QUIK!</span></div>
+                      <div class="name">Quik! Form Library</div>
+                      <div class="desc">This is a short description</div>
+                    </div>
+                    <div class="vendor" data-name="Dispatch Wealth Solutions">
+                      <div class="logo"><span class="dispatch">Dispatch</span></div>
+                      <div class="name">Dispatch Wealth Solutions</div>
+                      <div class="desc">This is a short description</div>
+                    </div>
+                    <div class="vendor" data-name="Fontara Forms">
+                      <div class="logo"><span class="fontara">fontara</span></div>
+                      <div class="name">Fontara Forms</div>
+                      <div class="desc">This is a short description</div>
+                    </div>
+                    <div class="vendor" data-name="Acme Corp Forms">
+                      <div class="logo"><span class="acme">ACME</span></div>
+                      <div class="name">Acme Corp Forms</div>
+                      <div class="desc">This is a short description</div>
+                    </div>
+                  </div>
+                  <div class="step-actions">
+                    <button class="btn-next" data-next="step-2" disabled>Next</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step todo" id="step-2">
+              <div class="num">2</div>
+              <div class="body">
+                <div class="q">Who will be selecting the forms?</div>
+                <div class="step-content hidden" data-content-for="step-2">
+                  <label style="font-size:11.5px;color:var(--ink-3);font-weight:500;display:block;margin-bottom:6px">Participant</label>
+                  <div class="select" id="participant-select">
+                    <span class="value">Select a participant</span>
+                    <span class="caret">▾</span>
+                    <div class="select-menu">
+                      <div class="opt" data-val="Preparer">Preparer</div>
+                      <div class="opt" data-val="User who last published this workflow">User who last published this workflow</div>
+                      <div class="opt" data-val="User who starts this workflow">User who starts this workflow</div>
+                      <div class="opt add" data-val="">+ Add Participant</div>
+                    </div>
+                  </div>
+                  <div class="step-actions">
+                    <button class="btn-next" data-next="step-3" disabled>Next</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step todo" id="step-3">
+              <div class="num">3</div>
+              <div class="body">
+                <div class="q">Where will form data come from?</div>
+                <div class="step-content hidden" data-content-for="step-3">
+                  <label style="font-size:11.5px;color:var(--ink-3);font-weight:500;display:block;margin-bottom:6px">Select all that apply</label>
+                  <div class="ds-list">
+                    <div class="ds-row" data-name="Salesforce">
+                      <div class="ds-icon sf">
+                        <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor"><path d="M5.5 2.5a3 3 0 0 1 5.6-.7 2.5 2.5 0 0 1 3.4 2.7 2.7 2.7 0 0 1-1.3 5 2.4 2.4 0 0 1-3.8 1.2 3 3 0 0 1-5.5-.5A2.8 2.8 0 0 1 1 7.6a2.6 2.6 0 0 1 1.4-4.4 2.4 2.4 0 0 1 3.1-.7z"/></svg>
+                      </div>
+                      <div class="ds-name">Salesforce</div>
+                    </div>
+                    <div class="ds-row" data-name="Wealthbox">
+                      <div class="ds-icon wb">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="12" height="12" rx="3"/></svg>
+                      </div>
+                      <div class="ds-name">Wealthbox</div>
+                    </div>
+                    <div class="ds-row" data-name="Redtail">
+                      <div class="ds-icon rt">
+                        <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor"><path d="M2 7c0-2 2-3 4-3 1 0 2 .5 2.5 1L11 3l1 2-2 2 1 2-1 2-3-1c-1 .5-2 1-3 1-2 0-3-1-3-2 0-1 1-1 1-2z"/></svg>
+                      </div>
+                      <div class="ds-name">Redtail</div>
+                    </div>
+                  </div>
+                  <label class="ds-allow">
+                    <input type="checkbox" id="allow-own"> Allow preparer to use their own connection
+                  </label>
+                  <div class="step-actions" style="margin-top:12px">
+                    <button class="btn-next btn-finish" data-next="done" disabled>Finish</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="restart" id="restart">↻ Restart walkthrough</div>
+          </div>
+
+          <div class="drawer-footer">
+            <button class="ghost">Cancel</button>
+            <button class="apply">Apply</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== VIEW 2: APP CENTER ============== -->
+  <section id="view-appcenter">
+    <div class="appcenter">
+      <div class="ac-top">
+        <div class="ac-logo">
+          <div class="ds-mono"></div>
+          <div class="name"><b>Docusign</b> <span style="color:var(--ink-3)">app center</span><span class="pill">BETA</span></div>
+        </div>
+        <div class="ac-tabs">
+          <a href="#">Browse</a>
+          <a href="#" class="is-on">Manage</a>
+        </div>
+        <div class="right">
+          <button class="demo-btn">Try in Demo Account ↗</button>
+          <div class="avatar">PS</div>
+        </div>
+      </div>
+
+      <div class="ac-body">
+        <div class="ac-side">
+          <div class="item is-on">Installed Apps</div>
+          <div class="item">Approved Apps</div>
+          <div class="admin">View all Admin settings ↗</div>
+        </div>
+
+        <div class="ac-main">
+          <div class="crumbs">
+            <a href="#">Installed Apps</a><span class="sep">›</span>
+            <span class="here">Manage Field Mappings</span>
+          </div>
+          <h1>QuikForms Field Mapping</h1>
+          <p class="lede">Review the suggested mappings to ensure the data is correctly mapped to Docusign fields for accurate analysis.</p>
+
+          <div class="map-card">
+            <div class="title-row">
+              <h2>Account</h2>
+              <div class="filters">
+                <div class="pill-select">Apps (3) <span class="caret">▾</span></div>
+                <div class="pill-select">Connection: Connection Name <span class="caret">▾</span></div>
+                <div class="pill-select">Object: Account <span class="caret">▾</span></div>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <div class="search">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><path d="M9.5 9.5l3 3"/></svg>
+                <input placeholder="Search fields...">
+              </div>
+              <div class="right">
+                <div class="pill-select">Status <span class="caret">▾</span></div>
+              </div>
+            </div>
+
+            <div class="columns">
+              <div><span class="col-head qf">QuikForms fields</span></div>
+              <div></div>
+              <div><span class="col-head sf">Salesforce fields</span></div>
+
+              <div class="field-row">Account Name (text)</div>
+              <div class="arrow">→</div>
+              <div class="field-row"><span><span class="person"></span>Party</span><span class="x">✕</span></div>
+
+              <div class="field-row">Account Name (text)</div>
+              <div class="arrow">→</div>
+              <div class="field-row"><span><span class="person"></span>Party</span><span class="x">✕</span></div>
+
+              <div class="field-row muted">Account Name (text)</div>
+              <div class="arrow muted">→</div>
+              <div class="field-row muted">— Select field —</div>
+
+              <div class="field-row muted">Account Name (text)</div>
+              <div class="arrow muted">→</div>
+              <div class="field-row unsupported">Unsupported Field Type</div>
+
+              <div class="field-row muted">Account Name (text)</div>
+              <div class="arrow muted">→</div>
+              <div class="field-row muted">— Select field —</div>
+
+              <div class="field-row muted">Account Name (text)</div>
+              <div class="arrow muted">→</div>
+              <div class="field-row muted">— Select field —</div>
+
+              <div class="field-row muted">Account Name (text)</div>
+              <div class="arrow muted">→</div>
+              <div class="field-row muted">— Select field —</div>
+            </div>
+
+            <div class="pager">
+              <div class="ps">50 / Page ▾</div>
+              <div class="info">1–50 of 100</div>
+              <div class="pages">
+                <button>‹</button>
+                <button class="is-on">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+                <button>7</button>
+                <button>›</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button class="save-btn">Save Mappings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // View toggle
+  document.querySelectorAll('.chrome .seg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.chrome .seg button').forEach(b => b.classList.remove('is-on'));
+      btn.classList.add('is-on');
+      const view = btn.dataset.view;
+      document.querySelectorAll('.stage > section').forEach(s => s.classList.remove('is-on'));
+      document.getElementById('view-' + view).classList.add('is-on');
+    });
+  });
+
+  // Step Name field char count
+  const stepName = document.getElementById('step-name');
+  const charCount = document.getElementById('char-count');
+  stepName?.addEventListener('input', () => { charCount.textContent = stepName.value.length; });
+
+  // How it works toggle (visual only)
+  document.getElementById('how-toggle')?.addEventListener('click', e => {
+    e.currentTarget.querySelector('svg').style.transform =
+      e.currentTarget.querySelector('svg').style.transform === 'rotate(180deg)' ? '' : 'rotate(180deg)';
+  });
+
+  // ----- Wizard state -----
+  const state = { vendor: null, participant: null, sources: [] };
+
+  function setStep(num, status) {
+    const el = document.getElementById('step-' + num);
+    el.classList.remove('todo', 'active', 'done');
+    el.classList.add(status);
+    const numEl = el.querySelector('.num');
+    if (status === 'done') {
+      numEl.classList.add('check');
+      numEl.innerHTML = '<svg viewBox="0 0 12 10" fill="none" stroke="white" stroke-width="2"><path d="M1 5l3 3 7-7"/></svg>';
+    } else {
+      numEl.classList.remove('check');
+      numEl.textContent = num;
+    }
+    // toggle content visibility
+    const content = el.querySelector('[data-content-for]');
+    if (content) content.classList.toggle('hidden', status !== 'active');
+    // update saved answer rows
+    let answer = el.querySelector('.a');
+    if (status === 'done') {
+      if (!answer) {
+        answer = document.createElement('div');
+        answer.className = 'a';
+        el.querySelector('.body').appendChild(answer);
+      }
+      const map = { 1: state.vendor, 2: state.participant, 3: state.sources.join(', ') };
+      answer.textContent = map[num] || '';
+    } else if (answer) {
+      answer.remove();
+    }
+  }
+
+  // Vendor selection (Step 1)
+  document.querySelectorAll('#step-1 .vendor').forEach(v => {
+    v.addEventListener('click', () => {
+      document.querySelectorAll('#step-1 .vendor').forEach(x => x.classList.remove('is-on'));
+      v.classList.add('is-on');
+      state.vendor = v.dataset.name;
+      document.querySelector('#step-1 .btn-next').disabled = false;
+    });
+  });
+
+  // Participant selection (Step 2)
+  const partSel = document.getElementById('participant-select');
+  partSel?.addEventListener('click', e => {
+    if (e.target.classList.contains('opt')) {
+      const val = e.target.dataset.val;
+      if (val) {
+        partSel.querySelector('.value').textContent = val;
+        partSel.classList.add('has-value');
+        state.participant = val;
+        document.querySelector('#step-2 .btn-next').disabled = false;
+      }
+      partSel.classList.remove('is-open');
+    } else {
+      partSel.classList.toggle('is-open');
+    }
+  });
+  document.addEventListener('click', e => {
+    if (!partSel?.contains(e.target)) partSel?.classList.remove('is-open');
+  });
+
+  // Data source selection (Step 3)
+  document.querySelectorAll('#step-3 .ds-row').forEach(r => {
+    r.addEventListener('click', () => {
+      r.classList.toggle('is-on');
+      const name = r.dataset.name;
+      if (r.classList.contains('is-on')) {
+        if (!state.sources.includes(name)) state.sources.push(name);
+      } else {
+        state.sources = state.sources.filter(n => n !== name);
+      }
+      document.querySelector('#step-3 .btn-next').disabled = state.sources.length === 0;
+    });
+  });
+
+  // Next / Finish buttons
+  document.querySelectorAll('.btn-next').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.next;
+      const currentStep = parseInt(btn.closest('.step').id.split('-')[1]);
+      setStep(currentStep, 'done');
+      if (target === 'done') {
+        document.getElementById('cf-config-text').textContent = 'Configured';
+        document.getElementById('cf-node').style.borderColor = 'var(--green)';
+        document.getElementById('cf-node').style.boxShadow = '0 0 0 6px rgba(31,143,79,.10), var(--shadow-md)';
+      } else {
+        const next = parseInt(target.split('-')[1]);
+        setStep(next, 'active');
+      }
+    });
+  });
+
+  // Restart
+  document.getElementById('restart')?.addEventListener('click', () => {
+    state.vendor = null; state.participant = null; state.sources = [];
+    setStep(1, 'active');
+    setStep(2, 'todo');
+    setStep(3, 'todo');
+    document.querySelectorAll('.vendor, .ds-row').forEach(x => x.classList.remove('is-on'));
+    document.querySelectorAll('.btn-next').forEach(b => b.disabled = true);
+    const ps = document.getElementById('participant-select');
+    if (ps) { ps.querySelector('.value').textContent = 'Select a participant'; ps.classList.remove('has-value'); }
+    document.getElementById('cf-config-text').textContent = 'Configuration in progress';
+    document.getElementById('cf-node').style.borderColor = '';
+    document.getElementById('cf-node').style.boxShadow = '';
+  });
+
+  // Edit link on canvas node — flash drawer to indicate where to interact
+  document.getElementById('cf-edit')?.addEventListener('click', e => {
+    e.preventDefault();
+    const d = document.getElementById('drawer');
+    d.animate([{ background: '#fff' }, { background: 'var(--violet-tint)' }, { background: '#fff' }], { duration: 700 });
+  });
+</script>
+
+</body>
+</html>

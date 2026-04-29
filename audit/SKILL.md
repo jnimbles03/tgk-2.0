@@ -23,6 +23,7 @@ If the user named specific files, audit those. Otherwise ask (or infer from cont
 - `component-current` — `components/current-state/*.html` (vendor mocks)
 - `component-future` — `components/future-state/*.html` (Docusign mocks)
 - `index` — `index.html`, `index-playbook.html`, `landing.html`
+- `story-shell` — `stories/_shared/story-shell.html` (the canonical VERTICALS narration; runs the Capabilities pass)
 - `all` — everything above
 
 ### 2. Run the mechanical pass
@@ -41,7 +42,7 @@ Read the JSON. Don't just dump it — fold its findings into the final report's 
 
 ### 3. Do the LLM-judgment passes
 
-For each file in scope, do **four** judgment passes. Don't skip any — they're the whole reason this is a skill and not a lint script. Use the rubrics below.
+For each file in scope, do **five** judgment passes. Don't skip any — they're the whole reason this is a skill and not a lint script. Use the rubrics below.
 
 #### 3a. Story-arc pass (swim-lane files only)
 
@@ -109,6 +110,30 @@ For each swim-lane step that pairs a current-state component (`step.current.medi
 **How to run this pass efficiently:** for each step, Read both files and diff their `<title>`, visible headings, and visible field labels. You don't need pixel-perfect comparison — you need narrative consistency.
 
 **Flag in report under:** `Interface parity`.
+
+#### 3e. Capability-language pass (story-shell.html VERTICALS narration)
+
+**Question to answer per scene:** Does the narration prose (`head` / `lede` / `beats[].head` / `beats[].lede`) describe the *capability the transaction demands*, or does it name an IAM product line where a capability would do?
+
+This is the rule Jimmy added 2026-04-29: the story arc should read as the work the transaction needs done — *identity verification*, *the orchestration*, *the agreement repository* — not as a parade of product names. Tags, SoR badges, persona role labels, and scene tag prefixes are exempt; those are deliberate product-naming surfaces.
+
+**Rubric — flag if:**
+
+- A name from `rules.json → narration_banned_products.replacements` appears in any of the in-scope narration fields (`scene.head`, `scene.lede`, `scene.beats[].head`, `scene.beats[].lede`). The mechanical pass already surfaces every hit as `[High][Capabilities]` findings — your job is to pick the right capability replacement in context.
+- A scene's narrative arc collapses if you remove every product mention. If the *only* thing distinguishing two scenes is which IAM product is named, the underlying business capability isn't carrying the story.
+
+**Rubric — keep the chip if:**
+
+- The mention sits in an exempt field: `tag`, `tags`, `label`, `preset`, `category`, `tenant`, `tenantColor`, `subtitle`, persona `name`/`role`, SoR badge text. The audit script masks these automatically; if you see one of these flagged, downgrade or drop it.
+- The product is named once at the *introduction* of the demo (Scene 1 lede or subtitle) to set context, and the rest of the demo carries the capability frame. One controlled mention is fine; ambient sprinkling is not.
+
+**How to run this pass efficiently:** the mechanical pass at `python3 audit/audit.py --scope story-shell` produces every `[Capabilities]` finding with line numbers and a suggested replacement from `rules.json → narration_banned_products.replacements`. For each one, propose the *best* replacement in context — the suggestion list is first-pass, not gospel. Group findings by scene so the narrative shape is auditable.
+
+**Editor surface:** open `/builder.html?vertical=<key>&usecase=<key>` for live, in-place review. The page hydrates from `/api/verticals/<key>` (which reads the canonical VERTICALS registry from `stories/_shared/story-shell.html`) and surfaces every banned-product hit as a clickable lint chip beside the narration field. Click a chip to copy the suggested capability replacement to clipboard. The page is *report-only* — fixes still get committed via Cowork-on-Mac per the editing-workflow memory.
+
+**Known limitation:** the live registry currently stores `scenes` as a flat array per vertical. The per-usecase variants (`maintenance`, `fraud-fabric`, `intake`, `workspaces`) are synthesized at runtime in story-shell.html, not in the registry block the route reads. Audit mode covers the canonical `default` arc; the variants need a separate pass when their synthesis source is exposed.
+
+**Flag in report under:** `Capabilities`.
 
 ### 4. Write the report
 

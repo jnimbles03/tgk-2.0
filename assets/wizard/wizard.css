@@ -1,0 +1,60 @@
+/* ============================================================
+   TGK 2.0 — Wizard primitive (CSS)
+   Extracted from index-unified.html on 2026-04-29 as part of the
+   geos × index-unified picker consolidation. Owns ONLY the generic
+   visuals; pages keep their own per-stage show/hide rules because
+   those are tied to page-specific element ids.
+
+   Contract:
+   - <body> gets `wizard-mode` + `wizard-stage-{1..N}` classes from
+     wizard.js's setStage(n).
+   - The page MUST supply its own per-stage visibility rules. Example:
+       body.wizard-mode .my-section { display: none; }
+       body.wizard-mode.wizard-stage-2 #subverticalSection { display: block; }
+   - The page MAY include a back button matching `.wizard-back`
+     (default id `#wizardBack`). It auto-shows on stages 2+.
+
+   What's NOT in here (intentionally):
+   - Hero-collapse / nav-chrome hide rules — those reference page-
+     specific selectors (.landing-header, .landing-section, etc.)
+     and live in the consumer page.
+   ============================================================ */
+
+/* Back button — appears at top of the page body once the user has
+   stepped past stage 1. Inkwell-on-cream pill with a leading chevron.
+   The page can override .wizard-back to match its own type stack. */
+.wizard-back {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 11px;
+  border: 1px solid rgba(19, 0, 50, 0.14);
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(19, 0, 50, 0.72);
+  font: 500 13px/1 "DSIndigo", Helvetica, Arial, sans-serif;
+  cursor: pointer;
+  margin-bottom: 22px;
+  transition:
+    border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.wizard-back:hover {
+  border-color: rgba(19, 0, 50, 0.36);
+  color: #130032;
+}
+.wizard-back svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Show the back button on every stage past stage 1.
+   N=2..6 covered — extend if a consumer needs more stages. */
+body.wizard-mode.wizard-stage-2 .wizard-back,
+body.wizard-mode.wizard-stage-3 .wizard-back,
+body.wizard-mode.wizard-stage-4 .wizard-back,
+body.wizard-mode.wizard-stage-5 .wizard-back,
+body.wizard-mode.wizard-stage-6 .wizard-back {
+  display: inline-flex;
+}

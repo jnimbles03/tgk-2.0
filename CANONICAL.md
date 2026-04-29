@@ -302,6 +302,122 @@ In dependency order. Don't skip ahead — each step de-risks the next.
 
 ---
 
+## Picker consolidation — geos × index-unified
+
+**Decision (2026-04-29):** the surviving picker will be a **new
+consolidated file** (name TBD; provisionally `/picker.html` or a
+rebuilt `/index.html`), not a takeover of either existing file. Both
+`geos.html` (function-first) and `index-unified.html` (vertical-first)
+become redirects once the new file ships. The FINS/HLS/PS path uses
+**inline cluster cards + handoff to a vertical chooser** — the b2c
+wizard isn't being inlined into geos's existing flow; the new picker
+will host both halves cleanly.
+
+### Wizard primitive — extracted 2026-04-29
+
+`/assets/wizard/wizard.css` and `/assets/wizard/wizard.js` now own the
+generic wizard pattern:
+
+- **wizard.css** — `.wizard-back` button visuals + the "show back
+  button on stages 2–6" rule. Page-specific show/hide rules
+  (`#subverticalSection` etc.) stay in the consumer page because
+  they're tied to the page's DOM.
+- **wizard.js** — exposes `window.WizardPrimitive` with `setStage(n)`,
+  `getStage()`, and `attachBack({ btnSelector, onBack, escapeGuard })`.
+  Pages keep their own state-clearing handler inside `onBack`.
+
+**DOM contract:** `<body>` accepts `wizard-mode` + `wizard-stage-{N}`
+classes. Page supplies a back button (default selector `#wizardBack`)
+and per-stage CSS show/hide rules.
+
+### Status
+
+- ✓ Wizard primitive extracted to `/assets/wizard/`.
+- ✓ `index-unified.html` consumes the primitive — its local
+  `setWizardStage` is now a thin wrapper around `WizardPrimitive.setStage`,
+  and its back-button + Escape wiring is one `attachBack` call. Behavior
+  unchanged.
+- ✓ `geos.html` loads `wizard.css` + `wizard.js` for forward-compat. It
+  doesn't add `wizard-mode` to body today (still uses `.locked` section
+  unlocking), so zero behavior change; assets are pre-positioned for the
+  consolidated file.
+- ☐ Build the consolidated picker file consuming the primitive.
+- ☐ Flip `server.js` `/` route + Pages-deploy redirect from
+  `index-unified.html` to the new file.
+- ☐ Convert `geos.html` and `index-unified.html` to redirects.
+
+### Visual + structural state of the two pages
+
+- Hero / STEP-1 layout is already aligned between geos and unified
+  (cross-reference comments inside each file confirm — "matching the
+  equivalent compression on geos.html", "Aligned to .option-card in
+  index-unified.html").
+- geos handles Procurement + Sales itself (linking to flipbook
+  demo-stage pages) and hands the b2c path off to index-unified via
+  `?cluster=fins|hls|ps`. index-unified honors the cluster param and
+  pre-selects the matching vertical (see `CLUSTER_TO_VERTICAL` in its
+  IIFE).
+- Routing today: `server.js` redirects `/` → `/index-unified.html`;
+  the Pages workflow's generated `index.html` also redirects to
+  `/index-unified.html`. geos.html is reachable only by direct URL.
+
+---
+
+## Callable vignettes
+
+Vignettes are reusable Docusign UI moments that any vertical can iframe
+into any beat. Unlike scene templates (which are slotted at fixed
+positions in the 5-scene spine), vignettes are operator-driven — narration
+JSON references them per-beat as drill-downs or scene replacements.
+
+| Vignette | File | URL params | First-wired verticals |
+|---|---|---|---|
+| **Connected Forms** (Maestro · Add Connected Forms wizard + App Center · Field Mapping) | `/story-templates/docusign-connected-forms.html` | `?embed=1` (hide chrome) · `?view=maestro\|appcenter` · `?preset=wealth\|wealth-discovery\|insurance\|insurance-life\|insurance-pc\|generic` · `?step=1\|2\|3\|done` | wealth, wealth-discovery, insurance, insurance-life, insurance-pc |
+
+### Connected Forms — calling pattern
+
+```html
+<!-- As a Scene 1 / Scene 4 drill-down, embedded in a beat: -->
+<iframe src="/story-templates/docusign-connected-forms.html?embed=1&preset=wealth&view=maestro&step=2"></iframe>
+```
+
+The shell can also drive it post-mount via postMessage:
+
+```js
+iframe.contentWindow.postMessage({ type: "tgk:lockToBeat", view: "appcenter", step: "done" }, "*");
+iframe.contentWindow.postMessage({ type: "tgk:setPreset", preset: "insurance-life" }, "*");
+```
+
+Hotspot anchors inside the vignette (queryable via `tgk:queryRect`):
+`cf_node`, `cf_step1`, `cf_step2`, `cf_step3`, `cf_field_mapping`.
+
+### Why this lives outside the 5-scene spine
+
+The 5-scene spine (Agreement Desk · CLEAR · Signing · Navigator ·
+Workspace) is locked. Connected Forms isn't a sixth scene — it's a
+configuration moment that sits inside Maestro (visualized as Scene 1's
+Agreement Desk) and inside App Center (a Docusign admin surface, not
+part of any one scene). Treating it as a callable vignette lets:
+
+- wealth and insurance verticals use it as a Scene 1 drill-down
+  ("Priya's onboarding workflow includes a Connected Forms step"),
+- any vertical reference it from Scene 4 narration as a "where the
+  forms came from" admin tour,
+- new vignettes be added later without changing the spine.
+
+### How to add a new vignette
+
+1. Drop the template in `/story-templates/docusign-<name>.html`.
+2. Support `?embed=1` (hide outer chrome) + `?preset=` (per-vertical
+   defaults) + the postMessage protocol used by the shell
+   (`tgk:lockToBeat`, `tgk:queryRect`, replying with `tgk:rect`).
+3. Tag interactive sub-elements with `data-hotspot="<name>"` so the
+   shell's calibrator can pin shell-level hotspots to them.
+4. Register the row in the table above + bump
+   `REGISTRY.md` "Story-level templates" count.
+
+---
+
 ## Open questions that need a human decision
 
 The next session blocks on these. Each shapes how P2 (sampler

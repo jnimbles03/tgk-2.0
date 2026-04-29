@@ -10,11 +10,11 @@
       - ?usecase=fraud-fabric  (Scenes 1 + 2)
       - ?usecase=maintenance  (Scene 1)
     Modes via ?mode=:
-      - clear-idv-login : Maestro orchestrates CLEAR at portal login
+      - clear-idv-login : Maestro orchestrates identity verification at portal login
       - action-webform  : Maestro serves a webform inside the authenticated session
 
     The clear-idv-login mode renders 5 distinct states (s1-s5) on a mobile-
-    portrait phone frame, modeled on the actual CLEAR mobile flow. Each beat
+    portrait phone frame, modeled on the actual identity verification mobile flow. Each beat
     of the shell's narration advances the state via tgk:lockToBeat postMessage.
   */
   :root {
@@ -252,7 +252,7 @@
   .stepup-card .sparkle { width: 11px; height: 11px; }
   .stepup-card .sparkle path { fill: var(--ds-cobalt); }
 
-  /* ============ s3 — CLEAR mobile session ============ */
+  /* ============ s3 — identity verification mobile session ============ */
   .clear-wrap { padding-top: 12px; }
   .clear-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; color: var(--ds-inkwell); }
   .clear-logo .spinner {
@@ -449,7 +449,7 @@
 <body>
 
 <!-- ============================================================
-     CLEAR-IDV-LOGIN MODE — mobile-portrait phone with 5 states
+     identity verification-IDV-LOGIN MODE — mobile-portrait phone with 5 states
      ============================================================ -->
 <div class="phone" id="phone-mode">
   <div class="phone-screen">
@@ -470,7 +470,7 @@
       <span class="ds-bug"><span class="dot"></span><span>Powered by Docusign</span></span>
     </div>
 
-    <!-- Browser-mode URL bar (s3 — replaces app-brand row when CLEAR is loaded) -->
+    <!-- Browser-mode URL bar (s3 — replaces app-brand row when identity verification is loaded) -->
     <div class="browser-url" id="browser-url-row" style="display:none;">
       <span class="lock">🔒</span>
       <span class="domain">verified.clearme.com</span>
@@ -523,8 +523,8 @@
               Maestro · Step-up identity
             </div>
             <h2 class="head">Verify your identity to continue</h2>
-            <p class="body">Before accessing your <span id="brand-portal-name">portal</span>, <span id="brand-tenant-3">Tenant</span> requires a one-time identity verification. CLEAR will guide you through ID and selfie capture — no app download.</p>
-            <button class="btn-primary">Verify with CLEAR &rarr;</button>
+            <p class="body">Before accessing your <span id="brand-portal-name">portal</span>, <span id="brand-tenant-3">Tenant</span> requires a one-time identity verification. Identity verification will guide you through ID and selfie capture — no app download.</p>
+            <button class="btn-primary">Verify with identity verification &rarr;</button>
             <p class="small" style="text-align:center; margin-top:12px;">
               <a class="btn-link" href="#">Cancel and use SMS instead</a>
             </p>
@@ -532,12 +532,12 @@
         </div>
       </div>
 
-      <!-- ====== STATE s3 — CLEAR mobile session ====== -->
+      <!-- ====== STATE s3 — identity verification mobile session ====== -->
       <div class="state" data-state="s3">
         <div class="clear-wrap">
           <div class="clear-logo">
             <span class="spinner"></span>
-            <span>CLEAR</span>
+            <span>identity verification</span>
           </div>
 
           <div class="clear-illus" data-hotspot="clear_capture" aria-hidden="true">
@@ -547,7 +547,7 @@
           </div>
 
           <h2 class="head" style="text-align:center;">Verifying your identity</h2>
-          <p class="body" style="text-align:center;">Hold steady — CLEAR is checking your government ID against your live selfie.</p>
+          <p class="body" style="text-align:center;">Hold steady — identity verification is checking your government ID against your live selfie.</p>
 
           <div class="clear-progress">
             <div class="step"><span class="check">✓</span><span>Government ID captured</span></div>
@@ -566,7 +566,7 @@
           <p class="body" style="text-align:center; max-width: 280px;">Your biometric match is bound to this session. No further verification needed for in-portal actions.</p>
 
           <div class="match-card">
-            <div class="row"><span class="k">Verified by</span><span class="v">CLEAR</span></div>
+            <div class="row"><span class="k">Verified by</span><span class="v">identity verification</span></div>
             <div class="row"><span class="k">Account holder</span><span class="v" id="match-name">Customer</span></div>
             <div class="row"><span class="k">Method</span><span class="v">Biometric · IAL2</span></div>
             <div class="row"><span class="k">Session bound</span><span class="v">✓ This session</span></div>
@@ -585,7 +585,7 @@
 
           <div class="verified-banner">
             <span class="dot"></span>
-            <span><b>Session active · Verified by CLEAR</b> — biometric proof bound for sensitive actions</span>
+            <span><b>Session active · identity verified</b> — biometric proof bound for sensitive actions</span>
           </div>
 
           <div id="dash-tiles">
@@ -871,7 +871,7 @@
     document.getElementById('legacy-body').innerHTML = `
       <div class="session-banner" data-hotspot="session_banner">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1A8E5C"></span>
-        <span>Authenticated · Verified by CLEAR · Session active</span>
+        <span>Authenticated · identity verified · Session active</span>
       </div>
       <div class="webform-card" data-hotspot="webform_card">
         <div class="ms-tag">Maestro · Served webform</div>
@@ -882,7 +882,7 @@
         <div class="field-row"><label>Confirm / Memo</label><input type="text" placeholder="Add any required note" data-hotspot="form_memo"></div>
         <div class="identity-binding" data-hotspot="identity_binding">
           <div class="check">✓</div>
-          <span><strong>Identity bound · </strong>${p.customer.split(' —')[0]} · CLEAR-verified · this session</span>
+          <span><strong>Identity bound · </strong>${p.customer.split(' —')[0]} · identity-verified · this session</span>
         </div>
         <button class="btn-submit" data-hotspot="form_submit">Submit (no second IDV) →</button>
       </div>
@@ -942,7 +942,7 @@
     const all = document.querySelectorAll('.state');
     all.forEach(el => el.classList.toggle('on', el.dataset.state === sceneId));
 
-    /* Browser-mode URL bar swaps in for s3 (CLEAR session); app brand chrome
+    /* Browser-mode URL bar swaps in for s3 (identity verification session); app brand chrome
        returns for s1/s2/s4/s5. */
     const isBrowser = (sceneId === 's3');
     document.getElementById('app-brand-row').style.display    = isBrowser ? 'none' : '';

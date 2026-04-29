@@ -759,6 +759,117 @@
   .playlist-foot .reset-link:hover { color: var(--ds-deep-violet); }
 
   /* ============================================================
+     Audit-mode banner + capability-language lint pills.
+     Shown only when builder.html is opened with ?vertical=<key>.
+     ============================================================ */
+  .audit-banner {
+    display: none;
+    margin: 0 0 28px;
+    padding: 14px 18px;
+    background: color-mix(in srgb, var(--ds-cobalt) 6%, var(--ds-surface));
+    border: 1px solid var(--ds-rule);
+    border-left: 3px solid var(--ds-cobalt);
+    border-radius: 8px;
+    font-family: var(--ds-font);
+    font-size: 0.9375rem;
+    color: var(--ds-text);
+    line-height: 1.5;
+  }
+  .audit-banner.is-active { display: block; }
+  .audit-banner strong { color: var(--ds-deep-violet); }
+  .audit-banner .audit-count {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 10px;
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-radius: 999px;
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+  .lint-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    grid-column: 2;
+  }
+  @media (max-width: 640px) { .lint-chips { grid-column: 1; } }
+  .lint-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 82, 82, 0.06);
+    border: 1px solid color-mix(in srgb, var(--ds-poppy) 40%, transparent);
+    border-radius: 999px;
+    font-family: var(--ds-mono);
+    font-size: 0.75rem;
+    color: var(--ds-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .lint-chip:hover { background: rgba(255, 82, 82, 0.12); }
+  .lint-chip .chip-product {
+    font-weight: 700;
+    color: var(--ds-poppy);
+  }
+  .lint-chip .chip-arrow { color: var(--ds-text-soft); }
+  .lint-chip .chip-suggest {
+    font-style: italic;
+    color: var(--ds-deep-violet);
+  }
+  .beats-list {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--ds-rule);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .beats-list .beats-label {
+    font-family: var(--ds-font);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-text-soft);
+    font-weight: 600;
+  }
+  .beat-row {
+    background: var(--ds-bg);
+    border: 1px solid var(--ds-rule);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .beat-row .beat-num {
+    font-family: var(--ds-mono);
+    font-size: 0.6875rem;
+    color: var(--ds-cobalt);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  .beat-row textarea {
+    background: var(--ds-white);
+    border: 1px solid var(--ds-rule);
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-family: var(--ds-font);
+    font-size: 0.875rem;
+    color: var(--ds-text);
+    width: 100%;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .beat-row textarea:focus {
+    outline: none;
+    border-color: var(--ds-cobalt);
+  }
+
+  /* ============================================================
      iMovie filmstrip — pool of scene tiles + horizontal timeline
      + inspector. Replaces the old palette-zone / playlist-zone
      2-column layout for Step 3.
@@ -1139,6 +1250,12 @@
   <h1>Spin up a custom <em>demo URL</em>.</h1>
   <p class="deck">Three steps: pick a scaffold, brand the demo, assemble the scenes. Get back a clean shareable URL that lives for 30 days.</p>
 
+  <!-- Audit-mode banner — only renders when ?vertical=<key> is present in the URL. -->
+  <div class="audit-banner" id="auditBanner" role="status">
+    <span id="auditBannerText">Auditing canonical demo</span>
+    <span class="audit-count" id="auditCount">0 hits</span>
+  </div>
+
   <!-- ===== Wizard stepper ===== -->
   <div class="stepper" id="stepper">
     <div class="step-node is-active" data-step="1">
@@ -1197,10 +1314,10 @@
         <label for="f-shell">Story shell</label>
         <div>
           <select id="f-shell" required>
-            <option value="default">5-scene canonical · Agreement Desk · CLEAR · Signing · Navigator · Workspace</option>
-            <option value="fraud-fabric">3-scene Fraud Fabric · chain-of-custody · CLEAR · Signing</option>
+            <option value="default">5-scene canonical · Agreement Desk · identity verification · Signing · Navigator · Workspace</option>
+            <option value="fraud-fabric">3-scene Fraud Fabric · chain-of-custody · identity verification · Signing</option>
             <option value="intake">3–4 scene Intake · Webform → Triage → Desk → Navigator</option>
-            <option value="maintenance">3-scene Maintenance · Agreement Desk · CLEAR · Signing</option>
+            <option value="maintenance">3-scene Maintenance · Agreement Desk · identity verification · Signing</option>
             <option value="workspaces">1-scene Workspaces · Workspace synthesis</option>
             <option value="blank">Blank · start in the iMovie pool</option>
           </select>
@@ -1386,11 +1503,17 @@
           </div>
           <div class="scene-field-row">
             <label class="scene-field-label" for="inspHeadline">Headline</label>
-            <input type="text" id="inspHeadline" maxlength="80" placeholder="$5M household, one envelope.">
+            <input type="text" id="inspHeadline" placeholder="$5M household, one envelope.">
+            <div class="lint-chips" id="lintHead" hidden></div>
           </div>
           <div class="scene-field-row">
             <label class="scene-field-label" for="inspLede">Lede</label>
-            <textarea id="inspLede" rows="2" maxlength="240" placeholder="One short sentence the prospect will remember."></textarea>
+            <textarea id="inspLede" rows="3" placeholder="One short sentence the prospect will remember."></textarea>
+            <div class="lint-chips" id="lintLede" hidden></div>
+          </div>
+          <div class="beats-list" id="inspBeats" hidden>
+            <span class="beats-label">Beats — capability-language lint runs on each</span>
+            <div id="inspBeatsList"></div>
           </div>
         </div>
       </div>
@@ -1840,7 +1963,7 @@
   (function initTimeline() {
     const SCENE_LIBRARY = [
       { id: 'agreement-desk',     glyph: 'AD', name: 'Agreement Desk',         role: 'Sender · Maestro proxy',        poster: 'violet' },
-      { id: 'clear-idv',          glyph: 'ID', name: 'CLEAR IDV',              role: 'Identity at the door',          poster: 'cobalt' },
+      { id: 'clear-idv',          glyph: 'ID', name: 'identity verification',              role: 'Identity at the door',          poster: 'cobalt' },
       { id: 'signing-ceremony',   glyph: 'SG', name: 'Signing Ceremony',       role: 'Capture the signature',         poster: 'poppy' },
       { id: 'navigator',          glyph: 'NV', name: 'Navigator',              role: 'Post-signing data view',        poster: 'mist' },
       { id: 'workspace',          glyph: 'WS', name: 'Workspace',              role: 'Collaboration room',            poster: 'mint' },
@@ -1873,7 +1996,7 @@
     // when scenes[].narration is empty, so these are first-pass affordances.
     const NARRATION_FALLBACK = {
       'agreement-desk':     { tag: 'Sender',    headline: '$5M household, one envelope.',                lede: 'Aster Capital sends the IRA rollover packet — Maestro fans the pieces out invisibly behind the desk.' },
-      'clear-idv':          { tag: 'Identity',  headline: 'Verified once, trusted everywhere.',          lede: 'Hillside hands identity to CLEAR — one IAL2 verification binds to every downstream document.' },
+      'clear-idv':          { tag: 'Identity',  headline: 'Verified once, trusted everywhere.',          lede: 'Hillside hands identity to identity verification — one IAL2 verification binds to every downstream document.' },
       'signing-ceremony':   { tag: 'Signing',   headline: 'Signed at the kitchen table.',                lede: 'Aster signs the rollover docs from a phone — no PDF print, no overnight courier, no advisor handoff.' },
       'navigator':          { tag: 'Data',      headline: 'Every clause, every counterparty, queryable.',lede: 'The signed packet lands in Navigator — beneficiaries, fee schedule, and rollover terms are extracted and indexed.' },
       'workspace':          { tag: 'Workspace', headline: 'Where the household lives, post-signing.',    lede: 'Aster, the advisor, and the trust attorney share one room — every future document anchored to the household.' },
@@ -2125,7 +2248,7 @@
     });
 
     // ---------- inspector edits sync back ----------
-    function bindInspectorField(input, key) {
+    function bindInspectorField(input, key, lintTargetId) {
       input.addEventListener('input', () => {
         if (!selectedUid) return;
         const item = timeline.find(t => t.uid === selectedUid);
@@ -2136,15 +2259,126 @@
           const tagEl = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"] [data-role="tag"]`);
           if (tagEl) tagEl.textContent = input.value || (SCENE_BY_ID[item.templateId]?.role ?? '');
         }
+        if (lintTargetId && window.__lint) {
+          window.__lint.renderChips(input.value, document.getElementById(lintTargetId));
+          window.__lint.recomputeAuditCount();
+        }
       });
     }
     bindInspectorField(elInspTag,  'tag');
-    bindInspectorField(elInspHead, 'headline');
-    bindInspectorField(elInspLede, 'lede');
+    bindInspectorField(elInspHead, 'headline', 'lintHead');
+    bindInspectorField(elInspLede, 'lede',     'lintLede');
     elInspClose.addEventListener('click', () => {
       selectedUid = null;
       renderTimeline();
     });
+
+    // ---------- audit-mode hydration: load canonical scenes from /api/verticals ----------
+    // Templated tiles in the iMovie pool aren't load-bearing here — we infer
+    // the closest tile from the canonical scene's `tag` so the visual filmstrip
+    // still reads. The narration (head/lede/beats) is the actual content.
+    function inferTemplate(tag) {
+      const t = String(tag || '').toUpperCase();
+      if (/WORKSPACE|DEAL ROOM/.test(t)) return 'workspace';
+      if (/IDENTITY|IDV|identity verification/.test(t)) return 'clear-idv';
+      if (/SIGNING|SIGN/.test(t))      return 'signing-ceremony';
+      if (/DATA|NAVIGATOR|EXTRACT/.test(t)) return 'navigator';
+      if (/WEBFORM|TRIAGE|QUEUE/.test(t)) return 'webform';
+      if (/CHAIN[\s-]?OF[\s-]?CUSTODY|CUSTODY/.test(t)) return 'agreement-desk-coc';
+      if (/MAESTRO/.test(t))           return 'maestro-loop';
+      if (/AGENT/.test(t))             return 'agents';
+      if (/PORTAL/.test(t))            return 'portal-shell';
+      if (/EHR|CLINICAL/.test(t))      return 'ehr-desktop';
+      return 'agreement-desk';
+    }
+
+    function hydrateFromCanonical(scenes) {
+      if (!Array.isArray(scenes) || !scenes.length) return;
+      timeline = scenes.map(s => {
+        const templateId = inferTemplate(s.tag);
+        return {
+          uid: newUid(),
+          templateId,
+          tag: s.tag || '',
+          headline: s.head || '',
+          lede: s.lede || '',
+          beats: Array.isArray(s.beats) ? s.beats.map(b => ({
+            head: b.head || '',
+            lede: b.lede || ''
+          })) : []
+        };
+      });
+      selectedUid = timeline[0]?.uid || null;
+      renderTimeline();
+      if (window.__lint) window.__lint.recomputeAuditCount();
+    }
+
+    // ---------- inspector renderer: include beats list + lint chips ----------
+    const elInspBeats = document.getElementById('inspBeats');
+    const elInspBeatsList = document.getElementById('inspBeatsList');
+    const elLintHead = document.getElementById('lintHead');
+    const elLintLede = document.getElementById('lintLede');
+
+    const _origRenderInspector = renderInspector;
+    renderInspector = function () {
+      _origRenderInspector();
+      if (!selectedUid) {
+        if (elInspBeats) elInspBeats.hidden = true;
+        return;
+      }
+      const item = timeline.find(t => t.uid === selectedUid);
+      if (!item) return;
+      // Lint pills for headline + lede
+      if (window.__lint) {
+        window.__lint.renderChips(item.headline || '', elLintHead);
+        window.__lint.renderChips(item.lede || '', elLintLede);
+      }
+      // Beats — only show when present (audit-mode only)
+      const beats = Array.isArray(item.beats) ? item.beats : [];
+      if (beats.length === 0) {
+        if (elInspBeats) elInspBeats.hidden = true;
+        return;
+      }
+      elInspBeats.hidden = false;
+      elInspBeatsList.innerHTML = beats.map((_, i) => `
+        <div class="beat-row" data-beat="${i}">
+          <span class="beat-num">BEAT ${i + 1}</span>
+          <textarea data-field="head" rows="1" placeholder="Beat head"></textarea>
+          <div class="lint-chips" data-lint="head" hidden></div>
+          <textarea data-field="lede" rows="2" placeholder="Beat lede"></textarea>
+          <div class="lint-chips" data-lint="lede" hidden></div>
+        </div>
+      `).join('');
+      // Populate values + wire input handlers + initial lint
+      elInspBeatsList.querySelectorAll('.beat-row').forEach(row => {
+        const i = Number(row.dataset.beat);
+        const beat = beats[i];
+        const headTa = row.querySelector('[data-field="head"]');
+        const ledeTa = row.querySelector('[data-field="lede"]');
+        const lintH  = row.querySelector('[data-lint="head"]');
+        const lintL  = row.querySelector('[data-lint="lede"]');
+        headTa.value = beat.head || '';
+        ledeTa.value = beat.lede || '';
+        if (window.__lint) {
+          window.__lint.renderChips(headTa.value, lintH);
+          window.__lint.renderChips(ledeTa.value, lintL);
+        }
+        headTa.addEventListener('input', () => {
+          beat.head = headTa.value;
+          if (window.__lint) {
+            window.__lint.renderChips(headTa.value, lintH);
+            window.__lint.recomputeAuditCount();
+          }
+        });
+        ledeTa.addEventListener('input', () => {
+          beat.lede = ledeTa.value;
+          if (window.__lint) {
+            window.__lint.renderChips(ledeTa.value, lintL);
+            window.__lint.recomputeAuditCount();
+          }
+        });
+      });
+    };
 
     // Reset link
     elReset.addEventListener('click', resetToUsecaseDefault);
@@ -2178,9 +2412,25 @@
           name: s?.name || t.templateId,
           tag: t.tag || '',
           headline: t.headline || '',
-          lede: t.lede || ''
+          lede: t.lede || '',
+          beats: Array.isArray(t.beats) ? t.beats.map(b => ({ head: b.head, lede: b.lede })) : []
         };
       }),
+      getAllNarrationStrings: () => {
+        const out = [];
+        for (const t of timeline) {
+          if (t.headline) out.push(t.headline);
+          if (t.lede)     out.push(t.lede);
+          if (Array.isArray(t.beats)) {
+            for (const b of t.beats) {
+              if (b.head) out.push(b.head);
+              if (b.lede) out.push(b.lede);
+            }
+          }
+        }
+        return out;
+      },
+      hydrateFromCanonical,
       resetToUsecaseDefault,
       length: () => timeline.length
     };
@@ -2188,6 +2438,178 @@
     // Initial render
     renderPool();
     resetToUsecaseDefault();
+  })();
+
+  // ============================================================
+  // Capability-language lint (banned-products in narration)
+  // ------------------------------------------------------------
+  // Loads narration_banned_products from /audit/rules.json on init.
+  // Exposes window.__lint with renderChips(text, container) and
+  // recomputeAuditCount() for the audit-mode banner. The lint is
+  // visual-only — clicking a chip copies a suggested capability
+  // phrase to the clipboard. No auto-replace.
+  // ============================================================
+  (function initLint() {
+    const HTML_TAG = /<[^>]+>/g;
+    let replacements = {};   // { Maestro: ['the orchestration', ...], ... }
+    let productRe = null;
+
+    function buildRegex() {
+      const products = Object.keys(replacements).sort((a, b) => b.length - a.length);
+      if (!products.length) { productRe = null; return; }
+      const escaped = products.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      productRe = new RegExp('\\b(?:' + escaped.join('|') + ')\\b', 'gi');
+    }
+
+    function findHits(text) {
+      if (!productRe || !text) return [];
+      const stripped = String(text).replace(HTML_TAG, ' ');
+      const hits = [];
+      const seen = new Set();
+      let m;
+      productRe.lastIndex = 0;
+      while ((m = productRe.exec(stripped)) !== null) {
+        const product = m[0];
+        const key = product.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        // Find canonical case from replacements map
+        const canonical = Object.keys(replacements).find(k => k.toLowerCase() === key) || product;
+        hits.push({ product: canonical, suggestions: replacements[canonical] || [] });
+      }
+      return hits;
+    }
+
+    function renderChips(text, container) {
+      if (!container) return;
+      const hits = findHits(text);
+      if (!hits.length) {
+        container.hidden = true;
+        container.innerHTML = '';
+        return;
+      }
+      container.hidden = false;
+      container.innerHTML = hits.map(h => {
+        const suggest = (h.suggestions && h.suggestions[0]) || 'rewrite as capability';
+        return `<span class="lint-chip" data-product="${h.product}" data-suggest="${suggest}" title="Click to copy &quot;${suggest}&quot; to clipboard">
+          <span class="chip-product">${h.product}</span>
+          <span class="chip-arrow">→</span>
+          <span class="chip-suggest">${suggest}</span>
+        </span>`;
+      }).join('');
+    }
+
+    function recomputeAuditCount() {
+      const banner = document.getElementById('auditBanner');
+      const countEl = document.getElementById('auditCount');
+      if (!banner || !banner.classList.contains('is-active') || !countEl) return;
+      const tl = window.__timeline;
+      if (!tl) return;
+      const strings = tl.getAllNarrationStrings();
+      let total = 0;
+      for (const s of strings) total += findHits(s).length;
+      countEl.textContent = total === 1 ? '1 hit' : `${total} hits`;
+    }
+
+    // Click-to-copy on lint chips
+    document.addEventListener('click', (e) => {
+      const chip = e.target.closest('.lint-chip');
+      if (!chip) return;
+      const phrase = chip.dataset.suggest || '';
+      if (!phrase) return;
+      try {
+        navigator.clipboard.writeText(phrase);
+        const orig = chip.style.background;
+        chip.style.background = 'rgba(63, 218, 153, 0.18)';
+        setTimeout(() => { chip.style.background = orig; }, 600);
+      } catch (_) {}
+    });
+
+    // Load rules from /audit/rules.json (served as a static asset by Express).
+    // If it fails (e.g. not deployed yet), the lint stays inert — it's a
+    // progressive enhancement, not a blocker for the existing builder flow.
+    fetch('/audit/rules.json', { cache: 'no-cache' })
+      .then(r => r.ok ? r.json() : null)
+      .then(rules => {
+        if (rules && rules.narration_banned_products && rules.narration_banned_products.replacements) {
+          replacements = rules.narration_banned_products.replacements;
+          buildRegex();
+          recomputeAuditCount();
+          // Refresh inspector if a scene is selected, so chips appear
+          if (window.__timeline && document.getElementById('inspector') && !document.getElementById('inspector').hidden) {
+            // Trigger a re-render by toggling selection (cheap)
+            const tl = document.querySelector('.film-tile.is-selected');
+            if (tl) tl.click();
+          }
+        }
+      })
+      .catch(() => {});
+
+    window.__lint = { renderChips, findHits, recomputeAuditCount };
+  })();
+
+  // ============================================================
+  // Audit mode — hydrate the wizard from a canonical vertical
+  // ------------------------------------------------------------
+  // URL: /builder.html?vertical=<key>&usecase=<key>
+  // Pulls /api/verticals/<key>?usecase=<key> and seeds the form +
+  // timeline with the canonical scenes (head, lede, beats). Lets
+  // the rep sweep the existing demos for capability-language
+  // violations without touching the canonical source directly.
+  // ============================================================
+  (function initAuditMode() {
+    const params = new URLSearchParams(location.search);
+    const verticalKey = params.get('vertical');
+    if (!verticalKey) return;
+    const usecase = params.get('usecase') || 'default';
+
+    const banner = document.getElementById('auditBanner');
+    const bannerText = document.getElementById('auditBannerText');
+    const countEl = document.getElementById('auditCount');
+    if (banner) {
+      banner.classList.add('is-active');
+      bannerText.textContent = `Auditing ${verticalKey} · ${usecase} — capability-language lint runs on every narration field.`;
+    }
+
+    fetch(`/api/verticals/${encodeURIComponent(verticalKey)}?usecase=${encodeURIComponent(usecase)}`, { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        // Seed Step 1 + Step 2 fields. We force-set even when "touched"
+        // because audit mode is explicitly populating from canonical.
+        const meta = data.meta || {};
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el && v != null) { el.value = v; el.dataset.touched = '1'; } };
+        // Industry: try matching the vertical key directly, else fall back
+        const indEl = document.getElementById('f-industry');
+        if (indEl) {
+          const opt = Array.from(indEl.options).find(o => o.value === verticalKey);
+          if (opt) { indEl.value = verticalKey; }
+        }
+        setVal('f-tenant',   meta.tenant);
+        // Customer: derive from subtitle, e.g. "× Aster Capital — New Client Onboarding"
+        if (meta.subtitle) setVal('f-customer', meta.subtitle.replace(/^×\s*/, ''));
+        if (meta.tenantColor && /^#[0-9A-Fa-f]{6}$/.test(meta.tenantColor)) {
+          setVal('f-color', meta.tenantColor);
+          const sw = document.getElementById('swatchPreview');
+          if (sw) sw.style.background = meta.tenantColor;
+        }
+        // Hydrate the timeline
+        if (window.__timeline && typeof window.__timeline.hydrateFromCanonical === 'function') {
+          window.__timeline.hydrateFromCanonical(data.scenes);
+        }
+        // Jump to Step 3 — that's where the lint lives
+        if (window.__wizard && typeof window.__wizard.showStep === 'function') {
+          window.__wizard.showStep(3);
+        }
+        if (window.__lint) window.__lint.recomputeAuditCount();
+      })
+      .catch(err => {
+        if (bannerText) {
+          bannerText.textContent = `Audit hydrate failed: ${err.message}. Falling back to a clean wizard.`;
+        }
+      });
   })();
 </script>
 </body>
