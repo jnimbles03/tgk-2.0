@@ -380,11 +380,19 @@
 
     // Sidebar elements — present on shell-layout pages (left rail narrative).
     // When these exist they get painted alongside (or instead of) the callout.
-    var sbStepEl     = document.getElementById("ds-step-label");
-    var sbHeadlineEl = document.getElementById("ds-headline");
-    var sbLedeEl     = document.getElementById("ds-lede");
-    var sbPersonaEl  = document.getElementById("ds-persona");
-    var hasSidebar   = !!(sbStepEl || sbHeadlineEl || sbLedeEl);
+    var sbStepEl       = document.getElementById("ds-step-label");
+    var sbHeadlineEl   = document.getElementById("ds-headline");
+    var sbLedeEl       = document.getElementById("ds-lede");
+    var sbPersonaEl    = document.getElementById("ds-persona");
+    var sbBeatPipsEl   = document.getElementById("ds-beat-pips");
+    var sbProgressEl   = document.getElementById("ds-progress-fill");
+    var sbCounterEl    = document.getElementById("ds-beat-counter");
+    var sbTimerEl      = document.getElementById("ds-timer");
+    var sbLeadHintEl   = document.getElementById("ds-lead-hint");
+    var sbSpeedPicker  = document.getElementById("ds-speed-picker");
+    var sbPlayToggle   = document.getElementById("ds-play-toggle");
+    var shellEl        = root.closest && root.closest(".ds-shell");
+    var hasSidebar     = !!(sbStepEl || sbHeadlineEl || sbLedeEl);
 
     // Callout / sidebar — prefer cursor-anchored `say` field; fall back to beat copy.
     // The cursor is the protagonist; cursorTrack[i].say drives narration.
@@ -482,6 +490,132 @@
       }
     }
 
+    // ──────────────────────────────────────────────────────────────────
+    //  Shell-sidebar painters — persona, pips, progress, lead-mode
+    // ──────────────────────────────────────────────────────────────────
+    function buildPips() {
+      if (!sbBeatPipsEl) return;
+      sbBeatPipsEl.innerHTML = "";
+      beats.forEach(function () {
+        var p = document.createElement("span");
+        p.className = "pip";
+        sbBeatPipsEl.appendChild(p);
+      });
+    }
+    function paintPips() {
+      if (!sbBeatPipsEl) return;
+      var idx = currentBeatIndex();
+      var nodes = sbBeatPipsEl.querySelectorAll(".pip");
+      nodes.forEach(function (n, i) {
+        n.classList.remove("on", "done");
+        if (i < idx) n.classList.add("done");
+        else if (i === idx) n.classList.add("on");
+      });
+    }
+    function paintProgress() {
+      var t = video.currentTime, d = video.duration || 1;
+      if (sbProgressEl) sbProgressEl.style.width = ((t / d) * 100).toFixed(1) + "%";
+      var idx = currentBeatIndex();
+      if (sbCounterEl && idx >= 0) {
+        sbCounterEl.textContent = "Beat " + (idx + 1) + " of " + beats.length;
+      }
+      if (sbTimerEl) {
+        sbTimerEl.textContent = fmt(t) + " / " + fmt(d);
+      }
+    }
+    function paintPersona() {
+      if (!sbPersonaEl) return;
+      var ci = currentCursorIndex();
+      var p = null;
+      // Walk back to find a persona on current or earlier cursor keyframe
+      for (var i = ci; i >= 0; i--) {
+        if (cursorTrack[i].say && cursorTrack[i].say.persona) {
+          p = cursorTrack[i].say.persona; break;
+        }
+      }
+      // Fall back to default persona if defined on init config
+      if (!p && cfg.defaultPersona) p = cfg.defaultPersona;
+      if (!p) return;
+      sbPersonaEl.dataset.side = p.side || "advisor";
+      var initials = (p.name || "·").split(/\s+/).slice(0, 2)
+        .map(function (x) { return (x[0] || ""); }).join("").toUpperCase() || "·";
+      var avEl = sbPersonaEl.querySelector(".avatar");
+      if (avEl) avEl.textContent = initials;
+      var nmEl = sbPersonaEl.querySelector(".name");
+      if (nmEl) nmEl.textContent = p.name || "";
+      var roleEl = sbPersonaEl.querySelector(".role");
+      if (roleEl) roleEl.textContent = p.role || "";
+    }
+    // Lead-mode trigger: when sceneId changes, expand the sidebar to the
+    // editorial state for ~2.6s, then retract. Sidebar replays the pop on
+    // every scene change so the headline swap reads as an editorial moment.
+    var lastSceneIdLead = null;
+    var leadModeTimer = null;
+    function maybeEnterLeadMode() {
+      if (!shellEl) return;
+      var idx = currentBeatIndex();
+      var sid = idx >= 0 ? beats[idx].sceneId : null;
+      if (!sid || sid === lastSceneIdLead) return;
+      lastSceneIdLead = sid;
+      shellEl.classList.add("lead-mode");
+      var sb = shellEl.querySelector(".ds-shell-sidebar");
+      if (sb) {
+        sb.classList.remove("is-popping");
+        void sb.offsetWidth; // restart animation
+        sb.classList.add("is-popping");
+      }
+      if (leadModeTimer) clearTimeout(leadModeTimer);
+      leadModeTimer = setTimeout(function () {
+        shellEl.classList.remove("lead-mode", "lead-mode-hinted");
+        if (sb) sb.classList.remove("is-popping");
+      }, 2600);
+      // Show lead-hint after short dwell
+      setTimeout(function () {
+        if (shellEl.classList.contains("lead-mode")) {
+          shellEl.classList.add("lead-mode-hinted");
+        }
+      }, 800);
+    }
+
+    // Speed picker (.sp pills) — single source of truth for playbackRate
+    if (sbSpeedPicker) {
+      var spBtns = sbSpeedPicker.querySelectorAll(".sp");
+      spBtns.forEach(function (b) {
+        b.addEventListener("click", function () {
+          var rate = parseFloat(b.dataset.rate || "1");
+          video.playbackRate = rate;
+          spBtns.forEach(function (o) { o.classList.toggle("on", o === b); });
+        });
+      });
+      var def = sbSpeedPicker.querySelector('.sp[data-rate="1"]');
+      if (def) def.classList.add("on");
+    }
+
+    // Autoplay toggle in the hint row — mirrors the play button
+    if (sbPlayToggle) {
+      sbPlayToggle.addEventListener("click", function () {
+        if (video.paused) video.play().catch(function () {}); else video.pause();
+      });
+      function syncToggle() { sbPlayToggle.classList.toggle("on", !video.paused); }
+      video.addEventListener("play", syncToggle);
+      video.addEventListener("pause", syncToggle);
+    }
+
+    // Click anywhere on the stage area exits lead-mode immediately
+    if (shellEl) {
+      var stageArea = shellEl.querySelector(".ds-shell-stage-area");
+      if (stageArea) {
+        stageArea.addEventListener("click", function () {
+          if (shellEl.classList.contains("lead-mode")) {
+            shellEl.classList.remove("lead-mode", "lead-mode-hinted");
+            if (leadModeTimer) clearTimeout(leadModeTimer);
+            var sb = shellEl.querySelector(".ds-shell-sidebar");
+            if (sb) sb.classList.remove("is-popping");
+          }
+        });
+      }
+    }
+
     // Active-scene paint (scenes-mode only)
     function paintActiveScene() {
       if (!useScenes) return;
@@ -504,10 +638,15 @@
       paintActiveChip();
       paintActiveScene();
       paintCursor();
+      paintPips();
+      paintProgress();
+      paintPersona();
+      maybeEnterLeadMode();
     });
     video.addEventListener("loadedmetadata", function () {
       if (scrub) { scrub.min = "0"; scrub.max = "1000"; scrub.step = "1"; }
       buildTicks();
+      buildPips();
       paintTime();
       paintScrub();
       paintCallout();
@@ -515,6 +654,11 @@
       paintActiveChip();
       paintActiveScene();
       paintCursor();
+      paintPips();
+      paintProgress();
+      paintPersona();
+      // Initial lead-mode pop on first paint
+      maybeEnterLeadMode();
       // Honor ?start / ?beat
       if (startBeat > 0 && beats[startBeat - 1]) {
         video.currentTime = beats[startBeat - 1].t;

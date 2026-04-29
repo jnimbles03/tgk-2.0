@@ -9,67 +9,85 @@
 
 /* =================================================================
    SHELL LAYOUT — narrative left, demo right.
-   Mirrors /stories/_shared/story-shell.html so the stage pages feel
-   uniform with the rest of the vertical story demos.
-   Use class="ds-shell" on the outer wrapper to opt in.
+   Faithful port of /stories/_shared/story-shell.html so the stage
+   pages feel identical to the vertical story demos. Use class="ds-shell"
+   on the outer wrapper. Apply class="lead-mode" to .ds-shell to expand
+   the sidebar into the editorial state on each scene change.
    ================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&display=swap');
 
 .ds-shell {
+  --ds-purple:#4B00E9;
+  --citi-blue:#1565D8; --citi-blue-dark:#0F4FB0;
+  --step-blue:#3B82F6;
+  --navy-edge:#132240;
+  --ink:#18181B; --ink-mid:#3F3F46; --ink-soft:#71717A; --ink-faint:#A1A1AA;
+  --hair:#E4E4E7; --hair-strong:#D4D4D8;
+  --tenant-accent:#3FDA99;
+  --editorial:"Fraunces", Georgia, serif;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  border: 4px solid #132240;
+  border: 4px solid var(--navy-edge);
   position: relative;
   overflow: hidden;
   font-family: var(--brand, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif);
+  color: var(--ink);
+  background: #fff;
 }
 
 .ds-shell-topbar {
   flex-shrink: 0;
   height: 54px;
   background: #fff;
-  border-bottom: 1px solid #E4E4E7;
+  border-bottom: 1px solid var(--hair);
   display: flex;
   align-items: center;
   padding: 0 28px;
   gap: 22px;
 }
-.ds-shell-topbar .tenant-mark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.ds-shell-topbar .tenant-mark { display: flex; align-items: center; gap: 10px; }
 .ds-shell-topbar .tenant-mark .m {
   width: 24px; height: 24px;
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--ds-cobalt, #4C00FF);
+  color: var(--tenant-accent);
 }
 .ds-shell-topbar .tenant-mark .m svg { width: 100%; height: 100%; }
 .ds-shell-topbar .tenant-mark .wm {
-  font-family: Fraunces, Georgia, serif;
+  font-family: var(--editorial);
   font-style: italic; font-weight: 500;
-  font-size: 22px; color: #18181B;
+  font-size: 22px; color: var(--ink);
   letter-spacing: 0.005em;
 }
 .ds-shell-topbar .tenant-mark .story {
-  font-size: 13px; color: #71717A; margin-left: 14px;
+  font-size: 13px; color: var(--ink-soft); margin-left: 14px;
 }
 .ds-shell-topbar .sp { flex: 1; }
+.ds-shell-topbar .scene-tabs {
+  display: flex; gap: 14px;
+  font-size: 13px; color: var(--ink-mid); font-weight: 500;
+}
+.ds-shell-topbar .scene-tabs .t {
+  cursor: default; padding: 4px 0; position: relative;
+  transition: color 0.15s;
+  text-transform: lowercase;
+}
+.ds-shell-topbar .scene-tabs .t.on {
+  color: var(--ink); font-weight: 600;
+}
+.ds-shell-topbar .scene-tabs .t.on::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -19px;
+  height: 2.5px; background: var(--ink); border-radius: 2px;
+}
 .ds-shell-topbar .vertical-chip {
   margin-left: 14px;
   padding: 4px 10px;
-  border: 1px solid #E4E4E7;
+  border: 1px solid var(--hair);
   border-radius: 12px;
-  font-size: 11px; font-weight: 600; color: #3F3F46;
+  font-size: 11px; font-weight: 600; color: var(--ink-mid);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.ds-shell-topbar a.back {
-  color: #3F3F46; text-decoration: none; font-size: 13px; font-weight: 500;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 10px; border-radius: 6px; border: 1px solid #E4E4E7;
-}
-.ds-shell-topbar a.back:hover { background: var(--ds-ecru, #F8F3F0); color: #18181B; }
 
 .ds-shell-body {
   flex: 1;
@@ -78,132 +96,294 @@
   min-height: 0;
 }
 
+/* Sidebar default = collapsed rail (24%). Lead-mode expands to 48%
+   editorial column on scene change. */
 .ds-shell-sidebar {
   flex-shrink: 0;
-  width: 32%;
-  max-width: 460px;
-  min-width: 340px;
+  width: 24%;
+  max-width: 420px;
+  min-width: 320px;
   background: #fff;
   display: flex;
   flex-direction: column;
-  padding: 28px 32px 22px;
+  padding: 28px 32px 24px;
   position: relative;
-  overflow: hidden;
+  transition:
+    width 0.42s cubic-bezier(.4,0,.2,1),
+    max-width 0.42s cubic-bezier(.4,0,.2,1),
+    min-width 0.42s cubic-bezier(.4,0,.2,1),
+    padding 0.36s ease-out,
+    background 0.36s ease-out;
 }
+@keyframes dsLeadPop {
+  0%   { transform: scale(0.985); }
+  55%  { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+.ds-shell-sidebar.is-popping {
+  animation: dsLeadPop 0.42s cubic-bezier(.34, 1.56, .64, 1);
+  will-change: transform;
+}
+
+/* Brand slot — top of sidebar with Docusign + optional cobrand */
 .ds-shell-sidebar .brand-slot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 19px;
+  margin-bottom: 28px;
+  display: flex; align-items: center; gap: 10px;
+}
+.ds-shell-sidebar .brand-slot .ds {
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 700; font-size: 20px;
   color: var(--ds-inkwell, #130032);
   letter-spacing: -0.01em;
-  margin-bottom: 28px;
+  text-decoration: none;
 }
-.ds-shell-sidebar .brand-slot svg { width: 22px; height: 22px; }
+.ds-shell-sidebar .brand-slot .ds svg { width: 24px; height: 24px; }
+.ds-shell-sidebar .brand-slot .cobrand-x {
+  font-size: 17px; font-weight: 300;
+  color: var(--ink-soft); user-select: none; line-height: 1; margin-top: 2px;
+}
+.ds-shell-sidebar .brand-slot .cobrand-tgk {
+  height: 22px; width: auto; filter: brightness(0); opacity: 0.85; display: block;
+}
 
+/* Persona block — caption identifying who acts in the next beat */
+.ds-shell-sidebar .persona {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  transition: gap 0.6s ease, margin-bottom 0.6s ease, opacity 0.4s ease;
+}
+.ds-shell-sidebar .persona .avatar {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--tenant-accent);
+  color: #fff; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+  transition: background 0.5s ease, width 0.6s ease, height 0.6s ease, font-size 0.6s ease;
+}
+.ds-shell-sidebar .persona[data-side="client"] .avatar { background: var(--ds-purple); }
+.ds-shell-sidebar .persona[data-side="system"] .avatar { background: var(--ink-soft); }
+.ds-shell-sidebar .persona[data-side="advisor"] .avatar { background: var(--tenant-accent); }
+.ds-shell-sidebar .persona[data-side="handoff"] .avatar {
+  background: linear-gradient(135deg, var(--tenant-accent) 0%, var(--tenant-accent) 50%, var(--ds-purple) 50%, var(--ds-purple) 100%);
+}
+.ds-shell-sidebar .persona .meta {
+  display: flex; flex-direction: column; line-height: 1.2; min-width: 0;
+}
+.ds-shell-sidebar .persona .name {
+  font-size: 12.5px; font-weight: 600; color: var(--ink);
+  letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ds-shell-sidebar .persona .role {
+  font-size: 10.5px; color: var(--ink-soft); font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Lead-mode persona swells slightly */
+.ds-shell.lead-mode .ds-shell-sidebar .persona { margin-bottom: 22px; gap: 12px; }
+.ds-shell.lead-mode .ds-shell-sidebar .persona .avatar { width: 34px; height: 34px; font-size: 12px; }
+.ds-shell.lead-mode .ds-shell-sidebar .persona .name { font-size: 14px; }
+.ds-shell.lead-mode .ds-shell-sidebar .persona .role { font-size: 11.5px; }
+
+/* Step label / headline / lede — default (rail) state */
 .ds-shell-sidebar .step-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #3B82F6;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--step-blue);
+  letter-spacing: 0.2em; text-transform: uppercase;
   margin-bottom: 14px;
-  font-variant-numeric: tabular-nums;
+  transition: opacity 0.25s ease, font-size 0.7s ease, letter-spacing 0.7s ease, margin-bottom 0.7s ease;
 }
 .ds-shell-sidebar .headline {
-  font-size: 24px;
-  font-weight: 700;
-  color: #18181B;
-  letter-spacing: -0.018em;
-  line-height: 1.22;
+  font-family: var(--brand, "Inter", sans-serif);
+  font-size: 22px; font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.015em; line-height: 1.22;
   margin-bottom: 18px;
+  transition:
+    opacity 0.25s ease,
+    font-size 0.75s cubic-bezier(.2,.8,.2,1),
+    font-weight 0.6s ease,
+    font-style 0.6s ease,
+    font-family 0.6s ease,
+    letter-spacing 0.7s ease,
+    line-height 0.7s ease,
+    margin-bottom 0.7s ease;
 }
 .ds-shell-sidebar .lede {
-  font-size: 13.5px;
-  color: #52525B;
-  line-height: 1.6;
-  max-width: 96%;
-  opacity: 0.92;
+  font-size: 13.5px; color: var(--ink-soft); line-height: 1.6;
+  margin-bottom: 20px; max-width: 92%; opacity: 0.85;
+  transition: opacity 0.6s ease, font-size 0.7s ease, color 0.7s ease;
 }
 .ds-shell-sidebar .lede p { margin: 0 0 10px; }
 .ds-shell-sidebar .lede p:last-child { margin-bottom: 0; }
-.ds-shell-sidebar .lede em { font-style: normal; font-weight: 600; color: #3F3F46; }
+.ds-shell-sidebar .lede .em { font-weight: 600; color: var(--ink-mid); }
 
-/* Sidebar foot — controls + scrubber pinned to bottom */
-.ds-shell-sidebar .ds-shell-foot {
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid #E4E4E7;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Lead-hint pulsing dot — shown on first scene before user advances */
+.ds-shell-sidebar .lead-hint {
+  display: none;
+  margin-top: 14px;
+  font-size: 12.5px; color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
 }
-.ds-shell-sidebar .ds-shell-foot .ctrls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.ds-shell.lead-mode .ds-shell-sidebar .lead-hint { display: block; }
+.ds-shell.lead-mode-hinted .ds-shell-sidebar .lead-hint { opacity: 0.75; }
+.ds-shell-sidebar .lead-hint::before {
+  content: ""; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ds-purple);
+  margin-right: 8px; vertical-align: middle;
+  animation: dsHintPulse 1.6s ease-in-out infinite;
 }
-.ds-shell-sidebar .ds-shell-foot button {
-  font-family: inherit;
-  font-size: 12px; font-weight: 500;
-  background: #fff; color: #18181B;
-  border: 1px solid #E4E4E7;
-  border-radius: 6px;
-  padding: 7px 11px;
-  cursor: pointer;
-  display: inline-flex; align-items: center; gap: 5px;
-  transition: background 140ms, border-color 140ms;
+@keyframes dsHintPulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.4); }
 }
-.ds-shell-sidebar .ds-shell-foot button:hover {
-  background: var(--ds-ecru, #F8F3F0);
-  border-color: var(--ds-cobalt, #4C00FF);
+
+/* Lead-mode — sidebar expands to 48% editorial column.
+   Headline swells into Fraunces italic 42px; cream wash background. */
+.ds-shell.lead-mode .ds-shell-sidebar {
+  width: 48%;
+  max-width: none;
+  min-width: 480px;
+  padding: 48px 56px 32px;
+  background: #FBF8F2;
 }
-.ds-shell-sidebar .ds-shell-foot button.primary {
-  background: var(--ds-cobalt, #4C00FF);
-  color: #fff;
-  border-color: var(--ds-cobalt, #4C00FF);
+.ds-shell.lead-mode .ds-shell-sidebar .step-label {
+  font-size: 13px; letter-spacing: 0.22em; margin-bottom: 28px;
 }
-.ds-shell-sidebar .ds-shell-foot button.primary:hover {
-  background: var(--ds-deep-violet, #26065D);
-  border-color: var(--ds-deep-violet, #26065D);
+.ds-shell.lead-mode .ds-shell-sidebar .headline {
+  font-family: var(--editorial);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 42px;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  margin-bottom: 26px;
 }
-.ds-shell-sidebar .ds-shell-foot button svg { width: 12px; height: 12px; }
-.ds-shell-sidebar .ds-shell-foot .scrub-row {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 11px; color: #71717A;
+.ds-shell.lead-mode .ds-shell-sidebar .lede {
+  font-size: 15.5px;
+  color: var(--ink-mid);
+  opacity: 1;
+}
+
+/* Foot spacer pushes the controls block to the bottom of the sidebar */
+.ds-shell-sidebar .foot-spacer { flex: 1; }
+
+/* Beat pips — segmented progress */
+.ds-shell-sidebar .beat-pips {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+.ds-shell-sidebar .beat-pips .pip {
+  width: 22px; height: 5px; border-radius: 3px;
+  background: var(--hair);
+  transition: background 0.2s;
+}
+.ds-shell-sidebar .beat-pips .pip.on   { background: var(--ds-purple); }
+.ds-shell-sidebar .beat-pips .pip.done { background: #3B00BA; }
+
+/* Progress bar + meta row */
+.ds-shell-sidebar .progress { margin-bottom: 22px; }
+.ds-shell-sidebar .progress .track {
+  height: 2px; background: var(--hair); border-radius: 1px; overflow: hidden;
+}
+.ds-shell-sidebar .progress .track .fill {
+  height: 100%; background: var(--ds-purple);
+  transition: width 0.5s ease; width: 0%;
+}
+.ds-shell-sidebar .progress .meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px; color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
-.ds-shell-sidebar .ds-shell-foot .scrub-row .ds-time { min-width: 88px; text-align: right; }
-.ds-shell-sidebar .ds-shell-foot .ds-scrub { flex: 1; }
-.ds-shell-sidebar .ds-shell-foot .help-row {
-  font-size: 10.5px;
-  color: #A1A1AA;
-  letter-spacing: 0.04em;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+
+/* Big Previous / Next buttons */
+.ds-shell-sidebar .button-row { display: flex; gap: 12px; }
+.ds-shell-sidebar .btn {
+  padding: 12px 28px; border-radius: 6px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all 0.15s ease;
+  min-width: 120px; text-align: center;
 }
-.ds-shell-sidebar .ds-shell-foot .help-row kbd {
+.ds-shell-sidebar .btn.ghost {
+  background: #fff; color: var(--ink); border-color: var(--hair-strong);
+}
+.ds-shell-sidebar .btn.ghost:hover { border-color: var(--ink-mid); }
+.ds-shell-sidebar .btn.ghost:disabled { color: var(--ink-faint); cursor: not-allowed; }
+.ds-shell-sidebar .btn.primary {
+  background: var(--citi-blue); color: #fff;
+}
+.ds-shell-sidebar .btn.primary:hover { background: var(--citi-blue-dark); }
+
+/* Hint row — keyboard hint, speed picker, autoplay toggle */
+.ds-shell-sidebar .hint-row {
+  margin-top: 14px;
+  font-size: 11px; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; row-gap: 8px;
+}
+.ds-shell-sidebar .hint-row .kb-hint {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--ink-soft); flex-shrink: 0;
+}
+.ds-shell-sidebar .hint-row kbd {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 9.5px;
-  padding: 1px 5px;
-  border-radius: 3px;
-  border: 1px solid #E4E4E7;
-  background: #fff;
-  color: #3F3F46;
+  font-size: 10.5px; padding: 2px 6px;
+  background: #fff; border: 1px solid var(--hair); border-radius: 4px;
+  color: var(--ink-mid); font-weight: 600; line-height: 1;
+  min-width: 18px; text-align: center;
 }
+.ds-shell-sidebar .hint-row .speed-picker {
+  display: inline-flex; align-items: center; gap: 0;
+  border: 1px solid var(--hair); border-radius: 6px;
+  background: #fff; padding: 1px;
+  flex-shrink: 0;
+}
+.ds-shell-sidebar .hint-row .speed-picker .sp {
+  padding: 3px 9px;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  color: var(--ink-mid);
+  cursor: pointer;
+  border: none; background: transparent;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  border-radius: 4px;
+}
+.ds-shell-sidebar .hint-row .speed-picker .sp:hover { background: #F3F1EC; color: var(--ink); }
+.ds-shell-sidebar .hint-row .speed-picker .sp.on { background: var(--ds-purple); color: #fff; }
+.ds-shell-sidebar .hint-row .play-toggle {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink-mid);
+  cursor: pointer; font-weight: 500;
+  padding: 3px 9px; border-radius: 6px;
+  border: 1px solid transparent;
+}
+.ds-shell-sidebar .hint-row .play-toggle:hover { background: #F3F1EC; }
+.ds-shell-sidebar .hint-row .play-toggle.on {
+  color: var(--ds-purple);
+  background: rgba(75, 0, 233, 0.06);
+  border-color: rgba(75, 0, 233, 0.18);
+}
+.ds-shell-sidebar .hint-row .play-toggle svg { width: 12px; height: 12px; fill: currentColor; }
 
 .ds-shell-stage-area {
   flex: 1;
-  background: var(--ds-ecru, #F8F3F0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 22px 28px;
+  background: #EAE4DA;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
   position: relative;
   min-width: 0;
   overflow: hidden;
+  border-left: 1px solid var(--hair);
 }
 
 /* When the stage lives inside a shell, hide the floating callout overlay
@@ -212,20 +392,39 @@
 .ds-shell-stage-area .ds-stage {
   max-width: 100%;
   margin: 0;
-  border-radius: 10px;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
-/* Mobile — stack: sidebar on top, demo below */
-@media (max-width: 920px) {
+/* Tablet / small laptop */
+@media (max-width: 980px) {
+  .ds-shell-sidebar { width: 40%; min-width: 320px; padding: 24px 28px; }
+  .ds-shell-sidebar .headline { font-size: 22px; }
+  .ds-shell-topbar .scene-tabs { display: none; }
+}
+
+/* Phone — stack vertically */
+@media (max-width: 720px) {
+  .ds-shell { height: auto; min-height: 100vh; border-width: 0; }
+  .ds-shell-topbar { padding: 0 14px; height: 48px; gap: 10px; }
+  .ds-shell-topbar .vertical-chip,
+  .ds-shell-topbar .tenant-mark .story { display: none; }
   .ds-shell-body { flex-direction: column; }
   .ds-shell-sidebar {
     width: 100%; max-width: none; min-width: 0;
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid #E4E4E7;
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--hair);
   }
-  .ds-shell-sidebar .headline { font-size: 19px; }
-  .ds-shell-sidebar .lede { font-size: 13px; }
-  .ds-shell-stage-area { padding: 12px 14px; }
+  .ds-shell-sidebar .headline { font-size: 21px; margin-bottom: 12px; line-height: 1.2; }
+  .ds-shell-sidebar .lede { font-size: 13.5px; margin-bottom: 14px; max-width: none; }
+  .ds-shell-sidebar .foot-spacer { display: none; }
+  .ds-shell-sidebar .button-row { gap: 8px; }
+  .ds-shell-sidebar .btn { padding: 9px 14px; min-width: 0; flex: 1; font-size: 13px; }
+  .ds-shell-sidebar .hint-row { display: none; }
+  .ds-shell.lead-mode .ds-shell-sidebar { width: 100%; min-width: 0; padding: 18px 18px 14px; }
+  .ds-shell.lead-mode .ds-shell-sidebar .headline { font-size: 22px; margin-bottom: 10px; }
+  .ds-shell.lead-mode .ds-shell-sidebar .lede { font-size: 13.5px; }
 }
 
 /* -----------------------------------------------------------------
