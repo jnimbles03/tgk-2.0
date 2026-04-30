@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Persona × Fiction Audit — TGK 2.0</title>
+<style>
+  :root {
+    --ink: #0b0b14;
+    --ink-mid: #4a4a5e;
+    --ink-soft: #6b6b80;
+    --ink-faint: #9a9aae;
+    --hair: #e6e6ee;
+    --hair-soft: #f0f0f6;
+    --cream: #faf6ee;
+    --bg: #ffffff;
+    --row-hover: #fafafd;
+    --ds-purple: #4b00e9;
+    --step-blue: #1e60ff;
+    --ok: #2f7d5b;
+    --warn: #c89236;
+    --err: #c84c1f;
+    --ui-font: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", sans-serif;
+    --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--ui-font); }
+  body { font-size: 14px; line-height: 1.5; }
+
+  /* ---- Header ---- */
+  header {
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--hair);
+    display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap;
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+  }
+  header h1 { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 28px; margin: 0; letter-spacing: -0.012em; }
+  header .meta { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+  header .stats { display: flex; gap: 16px; margin-left: auto; font-size: 12px; }
+  header .stat { display: flex; align-items: center; gap: 6px; }
+  header .stat .pill {
+    display: inline-block; min-width: 26px; padding: 2px 8px; text-align: center;
+    border-radius: 11px; font-weight: 700; font-size: 11.5px;
+  }
+  .pill.OK    { background: rgba(47,125,91,0.12); color: var(--ok); }
+  .pill.AMB   { background: rgba(200,146,54,0.14); color: var(--warn); }
+  .pill.MIS   { background: rgba(200,76,31,0.14); color: var(--err); }
+  .pill.VER   { background: var(--ink); color: #fff; }
+  .pill.NEED  { background: rgba(75,0,233,0.12); color: var(--ds-purple); }
+  .pill.BLOCK { background: rgba(0,0,0,0.08); color: var(--ink-mid); }
+  .pill.DISM  { background: var(--hair-soft); color: var(--ink-faint); }
+
+  /* ---- Filter bar ---- */
+  .filter-bar {
+    padding: 14px 36px;
+    border-bottom: 1px solid var(--hair);
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    background: #fff;
+    position: sticky; top: 90px; z-index: 9;
+  }
+  .filter-bar input[type="text"] {
+    border: 1px solid var(--hair); border-radius: 5px;
+    padding: 6px 10px; font-size: 13px; width: 280px;
+    font-family: inherit;
+  }
+  .filter-bar button {
+    border: 1px solid var(--hair); background: #fff; cursor: pointer;
+    padding: 5px 12px; border-radius: 5px;
+    font-size: 12px; font-weight: 600;
+    color: var(--ink-mid);
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .filter-bar button.on { border-color: var(--ds-purple); color: var(--ds-purple); background: rgba(75,0,233,0.05); }
+  .filter-bar button:hover { color: var(--ink); }
+  .filter-bar .sep { width: 1px; height: 22px; background: var(--hair); margin: 0 4px; }
+  .filter-bar .group-label { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-right: 4px; }
+
+  /* ---- Table ---- */
+  table.audit {
+    width: 100%; border-collapse: collapse; margin: 0;
+  }
+  table.audit thead th {
+    text-align: left; padding: 12px 14px; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 700;
+    background: #fafafa; border-bottom: 2px solid var(--hair);
+    position: sticky; top: 142px; z-index: 8;
+  }
+  table.audit tbody tr.row {
+    border-bottom: 1px solid var(--hair);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  table.audit tbody tr.row:hover { background: var(--row-hover); }
+  table.audit tbody tr.row td { padding: 14px 14px; vertical-align: top; }
+  table.audit tbody tr.row td.demo { font-family: var(--mono); font-size: 11.5px; color: var(--ink); width: 14%; }
+  table.audit tbody tr.row td.demo .vk { font-weight: 700; color: var(--ink); display: block; }
+  table.audit tbody tr.row td.demo .uc { color: var(--ink-soft); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+  table.audit tbody tr.row td.tenant { width: 12%; font-weight: 600; }
+  table.audit tbody tr.row td.tenant small { display: block; font-weight: 400; color: var(--ink-faint); font-size: 10.5px; margin-top: 2px; }
+  table.audit tbody tr.row td.sender { width: 16%; }
+  table.audit tbody tr.row td.sender .nm { font-weight: 600; }
+  table.audit tbody tr.row td.sender .rl { display: block; color: var(--ink-soft); font-size: 11.5px; margin-top: 2px; }
+  table.audit tbody tr.row td.sender .side {
+    display: inline-block; font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint); margin-top: 4px;
+    padding: 1px 6px; border: 1px solid var(--hair); border-radius: 9px;
+  }
+  table.audit tbody tr.row td.cp { width: 10%; }
+  table.audit tbody tr.row td.docs { width: 14%; font-size: 12px; color: var(--ink-mid); }
+  table.audit tbody tr.row td.head { width: 22%; font-size: 12.5px; color: var(--ink-mid); line-height: 1.45; }
+  table.audit tbody tr.row td.verdict { width: 6%; }
+  table.audit tbody tr.row td.status { width: 6%; }
+
+  /* ---- Detail panel ---- */
+  tr.detail td {
+    padding: 0 !important;
+    background: var(--cream);
+    border-bottom: 1px solid var(--hair);
+  }
+  tr.detail .panel {
+    padding: 24px 36px 26px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  tr.detail .panel h4 {
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 700; margin: 0 0 8px;
+  }
+  tr.detail .panel .head-text {
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: 18px; line-height: 1.28; color: var(--ink);
+    margin-bottom: 12px;
+  }
+  tr.detail .panel .lede-text {
+    font-size: 13px; color: var(--ink-mid); line-height: 1.55;
+    max-width: 56ch;
+  }
+  tr.detail .panel .lede-text p { margin: 0 0 10px; }
+  tr.detail .panel .lede-text p:last-child { margin-bottom: 0; }
+  tr.detail .panel dl { margin: 0; font-size: 12.5px; }
+  tr.detail .panel dt { color: var(--ink-faint); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; margin: 8px 0 2px; }
+  tr.detail .panel dd { margin: 0 0 6px; color: var(--ink); }
+  tr.detail .panel .notes { background: #fff; border: 1px solid var(--hair); border-radius: 6px; padding: 12px 14px; margin-top: 8px; font-size: 12px; color: var(--ink-mid); }
+  tr.detail .panel .notes b { color: var(--err); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+  tr.detail .panel .notes ul { margin: 6px 0 0; padding-left: 18px; }
+  tr.detail .panel .actions { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  tr.detail .panel .actions button {
+    border: 1px solid var(--hair); background: #fff; cursor: pointer;
+    padding: 7px 14px; border-radius: 5px;
+    font-size: 12px; font-weight: 600; font-family: inherit;
+    color: var(--ink-mid);
+  }
+  tr.detail .panel .actions button.verified.on { border-color: var(--ok); color: var(--ok); background: rgba(47,125,91,0.07); }
+  tr.detail .panel .actions button.needs-rewrite.on { border-color: var(--ds-purple); color: var(--ds-purple); background: rgba(75,0,233,0.05); }
+  tr.detail .panel .actions button.blocked.on { border-color: var(--ink); color: var(--ink); background: rgba(0,0,0,0.05); }
+  tr.detail .panel .actions button.dismiss.on { border-color: var(--ink-faint); color: var(--ink-faint); background: var(--hair-soft); }
+  tr.detail .panel .actions textarea {
+    flex: 1; min-height: 36px; max-height: 120px;
+    border: 1px solid var(--hair); border-radius: 5px;
+    padding: 7px 10px; font-size: 12.5px; font-family: inherit;
+    resize: vertical; line-height: 1.5;
+  }
+  tr.detail .panel .actions textarea:focus { outline: none; border-color: var(--ds-purple); }
+
+  /* ---- Verdict cell pill ---- */
+  .v-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 11px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .v-pill.OK { background: rgba(47,125,91,0.12); color: var(--ok); }
+  .v-pill.AMBIGUOUS { background: rgba(200,146,54,0.14); color: var(--warn); }
+  .v-pill.MISMATCH { background: rgba(200,76,31,0.14); color: var(--err); }
+
+  /* Status pill on the row */
+  .s-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 11px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .s-pill.unset { background: var(--hair-soft); color: var(--ink-faint); }
+  .s-pill.verified { background: rgba(47,125,91,0.16); color: var(--ok); }
+  .s-pill.needs-rewrite { background: rgba(75,0,233,0.12); color: var(--ds-purple); }
+  .s-pill.blocked { background: rgba(0,0,0,0.1); color: var(--ink-mid); }
+  .s-pill.dismissed { background: var(--hair-soft); color: var(--ink-faint); text-decoration: line-through; }
+
+  .footer { padding: 22px 36px 36px; color: var(--ink-faint); font-size: 11px; border-top: 1px solid var(--hair); }
+  .footer code { font-family: var(--mono); font-size: 10.5px; background: var(--hair-soft); padding: 1px 5px; border-radius: 3px; color: var(--ink-soft); }
+
+  .empty { padding: 40px; text-align: center; color: var(--ink-faint); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="meta">TGK 2.0 · Persona × Fiction Audit</div>
+    <h1>Persona &amp; firm coherence audit</h1>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="filter-bar">
+  <input type="text" id="search" placeholder="Search vertical, tenant, sender, head…" />
+  <span class="sep"></span>
+  <span class="group-label">Verdict</span>
+  <button data-verdict="MISMATCH" class="filter on">Mismatch</button>
+  <button data-verdict="AMBIGUOUS" class="filter on">Ambiguous</button>
+  <button data-verdict="OK" class="filter on">OK</button>
+  <span class="sep"></span>
+  <span class="group-label">Status</span>
+  <button data-status="unset" class="filter-status on">Unreviewed</button>
+  <button data-status="verified" class="filter-status on">Verified</button>
+  <button data-status="needs-rewrite" class="filter-status on">Needs rewrite</button>
+  <button data-status="blocked" class="filter-status on">Blocked</button>
+  <button data-status="dismissed" class="filter-status">Dismissed</button>
+  <span class="sep"></span>
+  <button id="reset" title="Clear all status marks (localStorage)">Reset marks</button>
+  <button id="export-csv" title="Export current view as CSV">Export CSV</button>
+</div>
+
+<table class="audit" id="tbl">
+  <thead>
+    <tr>
+      <th>Demo</th>
+      <th>Tenant</th>
+      <th>Sender</th>
+      <th>Counterparty</th>
+      <th>Documents</th>
+      <th>S1 head</th>
+      <th>Verdict</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<div class="footer">
+  Generated from <code>_audits/persona-fiction-data.json</code>. Source data lives in
+  <code>stories/_shared/story-shell.html</code> (inline VERTICALS) and
+  <code>_audits/usecase-narrations-2026-04-27.json</code>. Re-run
+  <code>_audits/_persona_fiction_extract.py</code> to refresh.
+  Status marks persist in <code>localStorage</code> under <code>tgk.persona-audit.v1</code>.
+</div>
+
+<script id="audit-data" type="application/json">__INLINE_JSON__</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('audit-data').textContent);
+  const STORAGE_KEY = 'tgk.persona-audit.v1';
+  let stateMap = {};
+  try { stateMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch(e){}
+
+  const verdictFilters = new Set(['MISMATCH','AMBIGUOUS','OK']);
+  const statusFilters  = new Set(['unset','verified','needs-rewrite','blocked']);
+  let searchQ = '';
+  let openRowKey = null;
+
+  function rowKey(r){ return (r.vertical_key||'') + '|' + (r.usecase||''); }
+  function getStatus(r){ return (stateMap[rowKey(r)] && stateMap[rowKey(r)].status) || 'unset'; }
+  function getNotes(r){ return (stateMap[rowKey(r)] && stateMap[rowKey(r)].notes) || ''; }
+  function setStatus(r, status){
+    const k = rowKey(r);
+    stateMap[k] = stateMap[k] || {};
+    if (stateMap[k].status === status) {
+      delete stateMap[k].status; // toggle off
+    } else {
+      stateMap[k].status = status;
+    }
+    saveState();
+  }
+  function setNotes(r, notes){
+    const k = rowKey(r);
+    stateMap[k] = stateMap[k] || {};
+    stateMap[k].notes = notes;
+    saveState();
+  }
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stateMap)); } catch(e){}
+    renderStats();
+  }
+
+  function renderStats(){
+    const counts = { OK:0, AMBIGUOUS:0, MISMATCH:0 };
+    const statusCounts = { unset:0, verified:0, 'needs-rewrite':0, blocked:0, dismissed:0 };
+    DATA.rows.forEach(r => {
+      counts[r._verdict] = (counts[r._verdict]||0) + 1;
+      statusCounts[getStatus(r)] = (statusCounts[getStatus(r)]||0) + 1;
+    });
+    document.getElementById('stats').innerHTML = `
+      <div class="stat">Total <span class="pill VER">${DATA.rows.length}</span></div>
+      <div class="stat">Mismatch <span class="pill MIS">${counts.MISMATCH}</span></div>
+      <div class="stat">Ambiguous <span class="pill AMB">${counts.AMBIGUOUS}</span></div>
+      <div class="stat">OK <span class="pill OK">${counts.OK}</span></div>
+      <div class="stat" style="margin-left:24px">Verified <span class="pill OK">${statusCounts.verified}</span></div>
+      <div class="stat">Needs rewrite <span class="pill NEED">${statusCounts['needs-rewrite']}</span></div>
+      <div class="stat">Blocked <span class="pill BLOCK">${statusCounts.blocked}</span></div>
+    `;
+  }
+
+  function passesFilter(r){
+    if (!verdictFilters.has(r._verdict)) return false;
+    if (!statusFilters.has(getStatus(r))) return false;
+    if (searchQ) {
+      const hay = [
+        r.vertical_key, r.usecase, r.tenant, r.label,
+        r.s1_persona_name, r.s1_persona_role,
+        r.s1_head, r.s1_lede, r.b1_head,
+        r._counterparty, (r._documents||[]).join(' ')
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(searchQ)) return false;
+    }
+    return true;
+  }
+
+  function escapeHTML(s){
+    return (s||'').replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    })[c]);
+  }
+
+  function render(){
+    const tb = document.getElementById('tbody');
+    tb.innerHTML = '';
+    let shown = 0;
+    DATA.rows.forEach(r => {
+      if (!passesFilter(r)) return;
+      shown++;
+      const key = rowKey(r);
+      const status = getStatus(r);
+      const tr = document.createElement('tr');
+      tr.className = 'row';
+      tr.dataset.key = key;
+      tr.innerHTML = `
+        <td class="demo"><span class="vk">${escapeHTML(r.vertical_key||'?')}</span><span class="uc">${escapeHTML(r.usecase||'default')}</span></td>
+        <td class="tenant">${escapeHTML(r.tenant||'—')}<small>${escapeHTML(r._tenant_type||'unknown type')}</small></td>
+        <td class="sender">
+          <span class="nm">${escapeHTML(r.s1_persona_name||'—')}</span>
+          <span class="rl">${escapeHTML(r.s1_persona_role||'')}</span>
+          ${r.s1_persona_side ? `<span class="side">${escapeHTML(r.s1_persona_side)}</span>` : ''}
+        </td>
+        <td class="cp">${escapeHTML(r._counterparty||'—')}</td>
+        <td class="docs">${(r._documents||[]).map(d => escapeHTML(d)).join('<br>') || '—'}</td>
+        <td class="head">${escapeHTML((r.s1_head||'').slice(0,180))}</td>
+        <td class="verdict"><span class="v-pill ${r._verdict}">${r._verdict}</span></td>
+        <td class="status"><span class="s-pill ${status}">${status === 'unset' ? '—' : status.replace('-',' ')}</span></td>
+      `;
+      tr.addEventListener('click', () => toggleDetail(r, tr));
+      tb.appendChild(tr);
+      if (key === openRowKey) {
+        tb.appendChild(buildDetail(r));
+      }
+    });
+    if (shown === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="8" class="empty">No rows match the current filters.</td>`;
+      tb.appendChild(tr);
+    }
+  }
+
+  function toggleDetail(r, tr){
+    const key = rowKey(r);
+    if (openRowKey === key) {
+      openRowKey = null;
+    } else {
+      openRowKey = key;
+    }
+    render();
+  }
+
+  function buildDetail(r){
+    const tr = document.createElement('tr');
+    tr.className = 'detail';
+    const status = getStatus(r);
+    const notes = getNotes(r);
+    const td = document.createElement('td');
+    td.colSpan = 8;
+    td.innerHTML = `
+      <div class="panel">
+        <div>
+          <h4>Scene 1 — Orientation copy as written</h4>
+          <div class="head-text">${escapeHTML(r.s1_head||'(no scene-level head)')}</div>
+          <div class="lede-text">${r.s1_lede || '<i>(no scene-level lede)</i>'}</div>
+          <h4 style="margin-top:18px">Beat 1 — first action head (legacy)</h4>
+          <div class="lede-text">${escapeHTML(r.b1_head || '—')}</div>
+        </div>
+        <div>
+          <h4>Inferred fiction</h4>
+          <dl>
+            <dt>Tenant</dt><dd>${escapeHTML(r.tenant||'—')} <span style="color:var(--ink-faint)">(${escapeHTML(r._tenant_type||'unknown')})</span></dd>
+            <dt>Workflow type</dt><dd>${escapeHTML(r._workflow||'—')}</dd>
+            <dt>Sender persona</dt><dd>${escapeHTML(r.s1_persona_name||'—')} · ${escapeHTML(r.s1_persona_role||'(no role)')} · <i>${escapeHTML(r.s1_persona_side||'?')}</i></dd>
+            <dt>Counterparty</dt><dd>${escapeHTML(r._counterparty||'—')}</dd>
+            <dt>Documents detected</dt><dd>${(r._documents||[]).join(', ') || '—'}</dd>
+            <dt>Source</dt><dd style="font-family:var(--mono);font-size:11px">${escapeHTML(r.source||'—')}</dd>
+          </dl>
+          ${(r._notes||[]).length ? `
+            <div class="notes">
+              <b>Coherence notes</b>
+              <ul>${(r._notes||[]).map(n => `<li>${escapeHTML(n)}</li>`).join('')}</ul>
+            </div>` : ''}
+        </div>
+        <div class="actions">
+          <button class="verified ${status==='verified'?'on':''}" data-act="verified">Verified</button>
+          <button class="needs-rewrite ${status==='needs-rewrite'?'on':''}" data-act="needs-rewrite">Needs rewrite</button>
+          <button class="blocked ${status==='blocked'?'on':''}" data-act="blocked">Blocked</button>
+          <button class="dismiss ${status==='dismissed'?'on':''}" data-act="dismissed">Dismiss</button>
+          <textarea placeholder="Reviewer notes — your call on intent vs. data, fixes to apply, etc.">${escapeHTML(notes)}</textarea>
+        </div>
+      </div>
+    `;
+    td.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        setStatus(r, b.dataset.act);
+        render();
+      });
+    });
+    td.querySelector('textarea').addEventListener('input', e => {
+      e.stopPropagation();
+      setNotes(r, e.target.value);
+    });
+    td.querySelector('textarea').addEventListener('click', e => e.stopPropagation());
+    tr.appendChild(td);
+    return tr;
+  }
+
+  // ---- Filter bar wiring ----
+  document.querySelectorAll('button.filter').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('on');
+      if (b.classList.contains('on')) verdictFilters.add(b.dataset.verdict);
+      else verdictFilters.delete(b.dataset.verdict);
+      render();
+    });
+  });
+  document.querySelectorAll('button.filter-status').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('on');
+      if (b.classList.contains('on')) statusFilters.add(b.dataset.status);
+      else statusFilters.delete(b.dataset.status);
+      render();
+    });
+  });
+  document.getElementById('search').addEventListener('input', e => {
+    searchQ = e.target.value.trim().toLowerCase();
+    render();
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!confirm('Clear ALL status marks and notes? This affects only your localStorage.')) return;
+    stateMap = {};
+    saveState();
+    render();
+  });
+  document.getElementById('export-csv').addEventListener('click', () => {
+    const rows = DATA.rows.filter(passesFilter);
+    const cols = ['vertical_key','usecase','tenant','_tenant_type','_workflow',
+                  's1_persona_name','s1_persona_role','s1_persona_side',
+                  '_counterparty','_documents','s1_head','b1_head',
+                  '_verdict','_notes'];
+    const escape = v => `"${String(v==null?'':v).replace(/"/g,'""').replace(/\n/g,' ')}"`;
+    const lines = [cols.map(c=>'"'+c+'"').join(',')];
+    rows.forEach(r => {
+      lines.push(cols.map(c => {
+        let v = r[c];
+        if (Array.isArray(v)) v = v.join('; ');
+        if (c === '_notes') v = (r._notes||[]).join(' | ');
+        // append review state
+        return escape(v);
+      }).join(','));
+    });
+    // Append review state cols
+    const lines2 = [lines[0].replace(/"$/, '","status","reviewer_notes"')];
+    rows.forEach((r,i) => {
+      lines2.push(lines[i+1].replace(/"$/, `","${getStatus(r)}","${(getNotes(r)||'').replace(/"/g,'""').replace(/\n/g,' ')}"`));
+    });
+    const blob = new Blob([lines2.join('\n')], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'persona-fiction-audit.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  renderStats();
+  render();
+})();
+</script>
+
+</body>
+</html>

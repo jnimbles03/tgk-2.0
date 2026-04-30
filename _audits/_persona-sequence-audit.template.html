@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Persona Sequence &amp; Role Audit — TGK 2.0</title>
+<style>
+  :root {
+    --ink:#0b0b14; --ink-mid:#4a4a5e; --ink-soft:#6b6b80; --ink-faint:#9a9aae;
+    --hair:#e6e6ee; --hair-soft:#f0f0f6; --cream:#faf6ee; --bg:#ffffff;
+    --row-hover:#fafafd;
+    --ds-purple:#4b00e9; --step-blue:#1e60ff;
+    --ok:#2f7d5b; --warn:#c89236; --err:#c84c1f;
+    --advisor:#2f7d5b; --client:#4b00e9; --system:#6b6b80; --handoff:#c89236;
+    --ui-font:-apple-system,BlinkMacSystemFont,"Inter","Helvetica Neue",sans-serif;
+    --serif:"Fraunces","Iowan Old Style",Georgia,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--ui-font);font-size:14px;line-height:1.5;}
+
+  header{padding:28px 36px 20px;border-bottom:1px solid var(--hair);display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:10;}
+  header h1{font-family:var(--serif);font-style:italic;font-weight:500;font-size:28px;margin:0;letter-spacing:-0.012em;}
+  header .meta{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);}
+  header .stats{display:flex;gap:14px;margin-left:auto;font-size:12px;}
+  header .stat{display:flex;align-items:center;gap:6px;}
+  .pill{display:inline-block;min-width:26px;padding:2px 8px;text-align:center;border-radius:11px;font-weight:700;font-size:11.5px;}
+  .pill.OK{background:rgba(47,125,91,0.12);color:var(--ok);}
+  .pill.AMB{background:rgba(200,146,54,0.14);color:var(--warn);}
+  .pill.MIS{background:rgba(200,76,31,0.14);color:var(--err);}
+  .pill.VER{background:var(--ink);color:#fff;}
+  .pill.NEED{background:rgba(75,0,233,0.12);color:var(--ds-purple);}
+
+  .filter-bar{padding:14px 36px;border-bottom:1px solid var(--hair);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;position:sticky;top:90px;z-index:9;}
+  .filter-bar input[type="text"]{border:1px solid var(--hair);border-radius:5px;padding:6px 10px;font-size:13px;width:280px;font-family:inherit;}
+  .filter-bar button{border:1px solid var(--hair);background:#fff;cursor:pointer;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;color:var(--ink-mid);transition:all 0.12s;}
+  .filter-bar button.on{border-color:var(--ds-purple);color:var(--ds-purple);background:rgba(75,0,233,0.05);}
+  .filter-bar .sep{width:1px;height:22px;background:var(--hair);margin:0 4px;}
+  .filter-bar .group-label{font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-right:4px;}
+
+  table.audit{width:100%;border-collapse:collapse;}
+  table.audit thead th{text-align:left;padding:12px 14px;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;background:#fafafa;border-bottom:2px solid var(--hair);position:sticky;top:142px;z-index:8;}
+  table.audit tbody tr.row{border-bottom:1px solid var(--hair);transition:background 0.12s;cursor:pointer;}
+  table.audit tbody tr.row:hover{background:var(--row-hover);}
+  table.audit tbody tr.row td{padding:14px 14px;vertical-align:top;}
+  table.audit tbody tr.row td.demo{font-family:var(--mono);font-size:11.5px;color:var(--ink);width:14%;}
+  table.audit tbody tr.row td.demo .vk{font-weight:700;color:var(--ink);display:block;}
+  table.audit tbody tr.row td.demo .uc{color:var(--ink-soft);font-size:10.5px;letter-spacing:0.04em;text-transform:uppercase;}
+  table.audit tbody tr.row td.tenant{width:13%;font-weight:600;font-size:13px;}
+
+  /* Actor strip — one chip per scene, color-coded by side */
+  td.strip-cell{width:48%;}
+  .strip{display:flex;gap:6px;flex-wrap:wrap;}
+  .strip .scn{
+    display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+    padding:6px 9px;border-radius:6px;border:1px solid var(--hair);
+    background:#fff;font-size:11px;min-width:0;max-width:18%;
+  }
+  .strip .scn.advisor{border-color:rgba(47,125,91,0.4);background:rgba(47,125,91,0.04);}
+  .strip .scn.client {border-color:rgba(75,0,233,0.4); background:rgba(75,0,233,0.04);}
+  .strip .scn.system {border-color:rgba(107,107,128,0.4);background:rgba(107,107,128,0.04);}
+  .strip .scn.handoff{border-color:rgba(200,146,54,0.45);background:rgba(200,146,54,0.06);}
+  .strip .scn.bad    {border-color:rgba(200,76,31,0.55);background:rgba(200,76,31,0.06);}
+  .strip .scn.inferred{opacity:0.55;border-style:dashed;}
+  .strip .scn .hd{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+  .strip .scn .nm{font-weight:600;color:var(--ink);font-size:11.5px;line-height:1.25;}
+  .strip .scn .rl{color:var(--ink-soft);font-size:10.5px;line-height:1.2;}
+  .strip .scn .badge-sd{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:1px 5px;border-radius:7px;margin-top:2px;}
+  .strip .scn.advisor .badge-sd{background:rgba(47,125,91,0.14);color:var(--advisor);}
+  .strip .scn.client  .badge-sd{background:rgba(75,0,233,0.14); color:var(--client);}
+  .strip .scn.system  .badge-sd{background:rgba(107,107,128,0.18);color:var(--system);}
+  .strip .scn.handoff .badge-sd{background:rgba(200,146,54,0.16);color:var(--handoff);}
+  .strip .scn.bad     .badge-sd{background:rgba(200,76,31,0.18);color:var(--err);}
+
+  .v-pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10.5px;font-weight:700;letter-spacing:0.04em;}
+  .v-pill.OK{background:rgba(47,125,91,0.12);color:var(--ok);}
+  .v-pill.AMBIGUOUS{background:rgba(200,146,54,0.14);color:var(--warn);}
+  .v-pill.MISMATCH{background:rgba(200,76,31,0.14);color:var(--err);}
+  .s-pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;}
+  .s-pill.unset{background:var(--hair-soft);color:var(--ink-faint);}
+  .s-pill.verified{background:rgba(47,125,91,0.16);color:var(--ok);}
+  .s-pill.needs-rewrite{background:rgba(75,0,233,0.12);color:var(--ds-purple);}
+  .s-pill.blocked{background:rgba(0,0,0,0.1);color:var(--ink-mid);}
+  .s-pill.dismissed{background:var(--hair-soft);color:var(--ink-faint);text-decoration:line-through;}
+
+  tr.detail td{padding:0!important;background:var(--cream);border-bottom:1px solid var(--hair);}
+  tr.detail .panel{padding:24px 36px 26px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  tr.detail h4{font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin:0 0 8px;}
+  tr.detail .head-text{font-family:var(--serif);font-style:italic;font-weight:500;font-size:18px;line-height:1.28;color:var(--ink);margin-bottom:12px;}
+  tr.detail .scenes-table{width:100%;font-size:12.5px;border-collapse:collapse;}
+  tr.detail .scenes-table th, tr.detail .scenes-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  tr.detail .scenes-table th{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+  tr.detail .scenes-table td.head-col{color:var(--ink-mid);max-width:38ch;}
+  tr.detail .notes{background:#fff;border:1px solid var(--hair);border-radius:6px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--ink-mid);}
+  tr.detail .notes b{color:var(--err);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;}
+  tr.detail .notes ul{margin:6px 0 0;padding-left:18px;}
+  tr.detail .actions{grid-column:1/-1;display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+  tr.detail .actions button{border:1px solid var(--hair);background:#fff;cursor:pointer;padding:7px 14px;border-radius:5px;font-size:12px;font-weight:600;font-family:inherit;color:var(--ink-mid);}
+  tr.detail .actions button.verified.on{border-color:var(--ok);color:var(--ok);background:rgba(47,125,91,0.07);}
+  tr.detail .actions button.needs-rewrite.on{border-color:var(--ds-purple);color:var(--ds-purple);background:rgba(75,0,233,0.05);}
+  tr.detail .actions button.blocked.on{border-color:var(--ink);color:var(--ink);background:rgba(0,0,0,0.05);}
+  tr.detail .actions button.dismiss.on{border-color:var(--ink-faint);color:var(--ink-faint);background:var(--hair-soft);}
+  tr.detail .actions textarea{flex:1;min-height:36px;max-height:120px;border:1px solid var(--hair);border-radius:5px;padding:7px 10px;font-size:12.5px;font-family:inherit;resize:vertical;line-height:1.5;}
+
+  .footer{padding:22px 36px 36px;color:var(--ink-faint);font-size:11px;border-top:1px solid var(--hair);}
+  .footer code{font-family:var(--mono);font-size:10.5px;background:var(--hair-soft);padding:1px 5px;border-radius:3px;color:var(--ink-soft);}
+  .empty{padding:40px;text-align:center;color:var(--ink-faint);font-size:13px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="meta">TGK 2.0 · Persona Sequence &amp; Role Audit</div>
+    <h1>Are the personas in the right scenes, in the right order?</h1>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="filter-bar">
+  <input type="text" id="search" placeholder="Search vertical, tenant, persona name…" />
+  <span class="sep"></span>
+  <span class="group-label">Verdict</span>
+  <button data-verdict="MISMATCH" class="filter on">Mismatch</button>
+  <button data-verdict="AMBIGUOUS" class="filter on">Ambiguous</button>
+  <button data-verdict="OK" class="filter on">OK</button>
+  <span class="sep"></span>
+  <span class="group-label">Status</span>
+  <button data-status="unset" class="filter-status on">Unreviewed</button>
+  <button data-status="verified" class="filter-status on">Verified</button>
+  <button data-status="needs-rewrite" class="filter-status on">Needs rewrite</button>
+  <button data-status="blocked" class="filter-status on">Blocked</button>
+  <button data-status="dismissed" class="filter-status">Dismissed</button>
+  <span class="sep"></span>
+  <button id="reset" title="Clear all status marks (localStorage)">Reset marks</button>
+</div>
+
+<table class="audit" id="tbl">
+  <thead>
+    <tr>
+      <th>Demo</th>
+      <th>Tenant</th>
+      <th>Per-scene actor strip</th>
+      <th>Verdict</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<div class="footer">
+  Generated from <code>_audits/persona-sequence-data.json</code> via
+  <code>_audits/_persona_sequence_extract.py</code>. Status marks persist in
+  <code>localStorage</code> under <code>tgk.persona-sequence-audit.v1</code>.
+  Each row's strip shows the actor in S1..Sn color-coded by side
+  (<span style="color:var(--advisor)">advisor</span> /
+  <span style="color:var(--client)">client</span> /
+  <span style="color:var(--system)">system</span> /
+  <span style="color:var(--handoff)">handoff</span>);
+  cells flagged red break a canonical-spine rule.
+</div>
+
+<script id="audit-data" type="application/json">__INLINE_JSON__</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('audit-data').textContent);
+  const STORAGE_KEY = 'tgk.persona-sequence-audit.v1';
+  let stateMap = {};
+  try { stateMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch(e){}
+
+  const verdictFilters = new Set(['MISMATCH','AMBIGUOUS','OK']);
+  const statusFilters = new Set(['unset','verified','needs-rewrite','blocked']);
+  let searchQ = '';
+  let openRowKey = null;
+
+  function rowKey(r){ return (r.vertical_key||'') + '|' + (r.usecase||''); }
+  function getStatus(r){ return (stateMap[rowKey(r)] && stateMap[rowKey(r)].status) || 'unset'; }
+  function getNotes(r){ return (stateMap[rowKey(r)] && stateMap[rowKey(r)].notes) || ''; }
+  function setStatus(r, status){
+    const k = rowKey(r);
+    stateMap[k] = stateMap[k] || {};
+    if (stateMap[k].status === status) delete stateMap[k].status;
+    else stateMap[k].status = status;
+    saveState();
+  }
+  function setNotes(r, notes){
+    const k = rowKey(r);
+    stateMap[k] = stateMap[k] || {};
+    stateMap[k].notes = notes;
+    saveState();
+  }
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stateMap)); } catch(e){}
+    renderStats();
+  }
+  function escapeHTML(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderStats(){
+    const counts = { OK:0, AMBIGUOUS:0, MISMATCH:0 };
+    const statusCounts = { unset:0, verified:0, 'needs-rewrite':0, blocked:0, dismissed:0 };
+    DATA.rows.forEach(r => {
+      counts[r.verdict] = (counts[r.verdict]||0) + 1;
+      statusCounts[getStatus(r)] = (statusCounts[getStatus(r)]||0) + 1;
+    });
+    document.getElementById('stats').innerHTML = `
+      <div class="stat">Total <span class="pill VER">${DATA.rows.length}</span></div>
+      <div class="stat">Mismatch <span class="pill MIS">${counts.MISMATCH}</span></div>
+      <div class="stat">Ambiguous <span class="pill AMB">${counts.AMBIGUOUS}</span></div>
+      <div class="stat">OK <span class="pill OK">${counts.OK}</span></div>
+      <div class="stat" style="margin-left:18px">Verified <span class="pill OK">${statusCounts.verified}</span></div>
+      <div class="stat">Needs rewrite <span class="pill NEED">${statusCounts['needs-rewrite']}</span></div>`;
+  }
+
+  function passesFilter(r){
+    if (!verdictFilters.has(r.verdict)) return false;
+    if (!statusFilters.has(getStatus(r))) return false;
+    if (searchQ) {
+      const hay = [r.vertical_key, r.usecase, (r.meta||{}).tenant,
+                   ...(r.strip||[]).map(s => `${s.persona_name} ${s.persona_role} ${s.persona_side}`)
+                  ].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(searchQ)) return false;
+    }
+    return true;
+  }
+
+  function renderStrip(strip, notes){
+    // Identify which scene indices are flagged in notes
+    const flagged = new Set();
+    (notes||[]).forEach(n => {
+      const m = n.match(/^S(\d+)/);
+      if (m) flagged.add(parseInt(m[1],10) - 1);
+    });
+    return `<div class="strip">${(strip||[]).map((s, i) => {
+      const side = s.persona_side || '';
+      const allowedSides = (s.expected_side||'').split('|');
+      const sideOK = allowedSides.includes(side);
+      const klass = flagged.has(i) ? 'bad' : (side || 'system');
+      const inferred = !s.persona_name && !s.persona_role;
+      return `<div class="scn ${klass}${inferred?' inferred':''}" title="Expected: ${escapeHTML(s.expected_side||'')}">
+        <span class="hd">S${i+1} · ${escapeHTML(s.expected_label||'')}</span>
+        <span class="nm">${escapeHTML(s.persona_name||'—')}</span>
+        <span class="rl">${escapeHTML((s.persona_role||'').slice(0,40))}</span>
+        <span class="badge-sd">${escapeHTML(side||'—')}</span>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function render(){
+    const tb = document.getElementById('tbody');
+    tb.innerHTML = '';
+    let shown = 0;
+    DATA.rows.forEach(r => {
+      if (!passesFilter(r)) return;
+      shown++;
+      const key = rowKey(r);
+      const status = getStatus(r);
+      const tr = document.createElement('tr');
+      tr.className = 'row';
+      tr.dataset.key = key;
+      tr.innerHTML = `
+        <td class="demo"><span class="vk">${escapeHTML(r.vertical_key||'?')}</span><span class="uc">${escapeHTML(r.usecase||'default')}</span></td>
+        <td class="tenant">${escapeHTML((r.meta||{}).tenant||'—')}</td>
+        <td class="strip-cell">${renderStrip(r.strip, r.notes)}</td>
+        <td><span class="v-pill ${r.verdict}">${r.verdict}</span></td>
+        <td><span class="s-pill ${status}">${status === 'unset' ? '—' : status.replace('-',' ')}</span></td>`;
+      tr.addEventListener('click', () => toggleDetail(r));
+      tb.appendChild(tr);
+      if (key === openRowKey) tb.appendChild(buildDetail(r));
+    });
+    if (shown === 0) {
+      tb.innerHTML = `<tr><td colspan="5" class="empty">No rows match the current filters.</td></tr>`;
+    }
+  }
+
+  function toggleDetail(r){
+    openRowKey = (openRowKey === rowKey(r)) ? null : rowKey(r);
+    render();
+  }
+
+  function buildDetail(r){
+    const tr = document.createElement('tr');
+    tr.className = 'detail';
+    const status = getStatus(r);
+    const notes = getNotes(r);
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    const sceneRows = (r.strip||[]).map((s, i) => `
+      <tr>
+        <td><b>S${i+1}</b> ${escapeHTML(s.expected_label||'')}</td>
+        <td>${escapeHTML(s.persona_side||'—')} ${s.expected_side && (s.expected_side||'').split('|').includes(s.persona_side) ? '' : `<span style="color:var(--err);font-weight:700;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;"> ≠ ${escapeHTML(s.expected_side||'')}</span>`}</td>
+        <td>${escapeHTML(s.persona_name||'—')}</td>
+        <td>${escapeHTML(s.persona_role||'—')}</td>
+        <td class="head-col">${escapeHTML((s.head||'').slice(0,180))}</td>
+      </tr>`).join('');
+    td.innerHTML = `
+      <div class="panel">
+        <div>
+          <h4>Per-scene actors</h4>
+          <table class="scenes-table">
+            <thead><tr><th>Scene</th><th>Side</th><th>Name</th><th>Role</th><th>Head</th></tr></thead>
+            <tbody>${sceneRows}</tbody>
+          </table>
+        </div>
+        <div>
+          <h4>Canonical spine</h4>
+          <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mid);">
+            ${escapeHTML((r.spine||{}).scenes ? r.spine.scenes.join(' → ') : '')}<br>
+            <span style="color:var(--ink-faint);">expected sides:</span> ${escapeHTML((r.spine||{}).expected_sides ? r.spine.expected_sides.join(' → ') : '')}
+          </div>
+          ${(r.notes||[]).length ? `
+            <div class="notes">
+              <b>Coherence notes</b>
+              <ul>${(r.notes||[]).map(n => `<li>${escapeHTML(n)}</li>`).join('')}</ul>
+            </div>` : ''}
+        </div>
+        <div class="actions">
+          <button class="verified ${status==='verified'?'on':''}" data-act="verified">Verified</button>
+          <button class="needs-rewrite ${status==='needs-rewrite'?'on':''}" data-act="needs-rewrite">Needs rewrite</button>
+          <button class="blocked ${status==='blocked'?'on':''}" data-act="blocked">Blocked</button>
+          <button class="dismiss ${status==='dismissed'?'on':''}" data-act="dismissed">Dismiss</button>
+          <textarea placeholder="Reviewer notes — your call on intent vs. data, fixes to apply">${escapeHTML(notes)}</textarea>
+        </div>
+      </div>`;
+    td.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', e => { e.stopPropagation(); setStatus(r, b.dataset.act); render(); });
+    });
+    const ta = td.querySelector('textarea');
+    ta.addEventListener('input', e => { e.stopPropagation(); setNotes(r, e.target.value); });
+    ta.addEventListener('click', e => e.stopPropagation());
+    tr.appendChild(td);
+    return tr;
+  }
+
+  document.querySelectorAll('button.filter').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('on');
+      if (b.classList.contains('on')) verdictFilters.add(b.dataset.verdict);
+      else verdictFilters.delete(b.dataset.verdict);
+      render();
+    });
+  });
+  document.querySelectorAll('button.filter-status').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('on');
+      if (b.classList.contains('on')) statusFilters.add(b.dataset.status);
+      else statusFilters.delete(b.dataset.status);
+      render();
+    });
+  });
+  document.getElementById('search').addEventListener('input', e => { searchQ = e.target.value.trim().toLowerCase(); render(); });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!confirm('Clear ALL status marks and notes?')) return;
+    stateMap = {}; saveState(); render();
+  });
+
+  renderStats();
+  render();
+})();
+</script>
+</body>
+</html>

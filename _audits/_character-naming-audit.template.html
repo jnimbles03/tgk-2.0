@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Character &amp; Tenant Naming Directory — TGK 2.0</title>
+<style>
+  :root {
+    --ink:#0b0b14; --ink-mid:#4a4a5e; --ink-soft:#6b6b80; --ink-faint:#9a9aae;
+    --hair:#e6e6ee; --hair-soft:#f0f0f6; --cream:#faf6ee; --bg:#ffffff;
+    --row-hover:#fafafd;
+    --ds-purple:#4b00e9; --step-blue:#1e60ff;
+    --ok:#2f7d5b; --warn:#c89236; --err:#c84c1f;
+    --ui-font:-apple-system,BlinkMacSystemFont,"Inter","Helvetica Neue",sans-serif;
+    --serif:"Fraunces","Iowan Old Style",Georgia,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--ui-font);font-size:14px;line-height:1.5;}
+
+  header{padding:28px 36px 20px;border-bottom:1px solid var(--hair);display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:10;}
+  header h1{font-family:var(--serif);font-style:italic;font-weight:500;font-size:28px;margin:0;letter-spacing:-0.012em;}
+  header .meta{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);}
+  header .stats{display:flex;gap:14px;margin-left:auto;font-size:12px;}
+  header .stat{display:flex;align-items:center;gap:6px;}
+  .pill{display:inline-block;min-width:26px;padding:2px 8px;text-align:center;border-radius:11px;font-weight:700;font-size:11.5px;}
+  .pill.OK{background:rgba(47,125,91,0.12);color:var(--ok);}
+  .pill.AMB{background:rgba(200,146,54,0.14);color:var(--warn);}
+  .pill.MIS{background:rgba(200,76,31,0.14);color:var(--err);}
+  .pill.VER{background:var(--ink);color:#fff;}
+  .pill.NEED{background:rgba(75,0,233,0.12);color:var(--ds-purple);}
+
+  .tabs{padding:14px 36px 0;border-bottom:1px solid var(--hair);background:#fff;position:sticky;top:90px;z-index:9;}
+  .tabs button{border:none;background:none;cursor:pointer;padding:8px 18px 12px;font-size:13px;font-weight:600;color:var(--ink-soft);border-bottom:2px solid transparent;font-family:inherit;}
+  .tabs button.on{color:var(--ds-purple);border-bottom-color:var(--ds-purple);}
+
+  .filter-bar{padding:12px 36px;border-bottom:1px solid var(--hair);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;position:sticky;top:140px;z-index:8;}
+  .filter-bar input[type="text"]{border:1px solid var(--hair);border-radius:5px;padding:6px 10px;font-size:13px;width:280px;font-family:inherit;}
+  .filter-bar button{border:1px solid var(--hair);background:#fff;cursor:pointer;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;color:var(--ink-mid);}
+  .filter-bar button.on{border-color:var(--ds-purple);color:var(--ds-purple);background:rgba(75,0,233,0.05);}
+  .filter-bar .group-label{font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-right:4px;}
+  .filter-bar .sep{width:1px;height:22px;background:var(--hair);margin:0 4px;}
+
+  table.dir{width:100%;border-collapse:collapse;}
+  table.dir thead th{text-align:left;padding:12px 14px;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;background:#fafafa;border-bottom:2px solid var(--hair);position:sticky;top:194px;z-index:7;}
+  table.dir tbody tr{border-bottom:1px solid var(--hair);transition:background 0.12s;cursor:pointer;}
+  table.dir tbody tr:hover{background:var(--row-hover);}
+  table.dir tbody td{padding:14px 14px;vertical-align:top;}
+  td.name{font-weight:600;font-size:14.5px;width:18%;}
+  td.role{color:var(--ink-mid);font-size:12.5px;width:24%;}
+  td.role .role-line{margin-bottom:2px;}
+  td.sides{width:14%;}
+  .side-pill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:1px 6px;border-radius:7px;margin-right:4px;margin-bottom:2px;}
+  .side-pill.advisor{background:rgba(47,125,91,0.14);color:var(--ok);}
+  .side-pill.client{background:rgba(75,0,233,0.14);color:var(--ds-purple);}
+  .side-pill.system{background:rgba(107,107,128,0.18);color:var(--ink-mid);}
+  .side-pill.handoff{background:rgba(200,146,54,0.16);color:var(--warn);}
+  td.flows{width:24%;font-size:11px;color:var(--ink-soft);font-family:var(--mono);}
+  td.flows .flow-tag{display:inline-block;background:var(--hair-soft);padding:1px 6px;border-radius:3px;margin-right:3px;margin-bottom:3px;font-size:10.5px;}
+  td.flag-cell{width:14%;}
+  .flag-pill{display:block;font-size:10.5px;color:var(--err);background:rgba(200,76,31,0.07);padding:4px 8px;border-radius:4px;margin-bottom:3px;line-height:1.35;}
+  .flag-pill.placeholder{color:var(--ink-faint);background:var(--hair-soft);}
+  .flag-pill.real-firm,.flag-pill.real-person{color:var(--err);}
+  .flag-pill.trademark{color:var(--warn);background:rgba(200,146,54,0.08);}
+  .flag-pill.inconsistent-side{color:var(--ds-purple);background:rgba(75,0,233,0.06);}
+  td.status-cell{width:6%;}
+  .s-pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;}
+  .s-pill.unset{background:var(--hair-soft);color:var(--ink-faint);}
+  .s-pill.approved{background:rgba(47,125,91,0.16);color:var(--ok);}
+  .s-pill.rename{background:rgba(75,0,233,0.12);color:var(--ds-purple);}
+  .s-pill.needs-work{background:rgba(200,76,31,0.14);color:var(--err);}
+
+  tr.detail-row td{padding:0!important;background:var(--cream);}
+  tr.detail-row .panel{padding:20px 36px 22px;display:grid;grid-template-columns:1fr;gap:14px;}
+  tr.detail-row .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  tr.detail-row .actions button{border:1px solid var(--hair);background:#fff;cursor:pointer;padding:7px 14px;border-radius:5px;font-size:12px;font-weight:600;font-family:inherit;color:var(--ink-mid);}
+  tr.detail-row .actions button.approved.on{border-color:var(--ok);color:var(--ok);background:rgba(47,125,91,0.07);}
+  tr.detail-row .actions button.rename.on{border-color:var(--ds-purple);color:var(--ds-purple);background:rgba(75,0,233,0.05);}
+  tr.detail-row .actions button.needs-work.on{border-color:var(--err);color:var(--err);background:rgba(200,76,31,0.06);}
+  tr.detail-row .actions textarea{flex:1;min-height:36px;max-height:120px;border:1px solid var(--hair);border-radius:5px;padding:7px 10px;font-size:12.5px;font-family:inherit;resize:vertical;line-height:1.5;}
+
+  .footer{padding:22px 36px 36px;color:var(--ink-faint);font-size:11px;border-top:1px solid var(--hair);}
+  .footer code{font-family:var(--mono);font-size:10.5px;background:var(--hair-soft);padding:1px 5px;border-radius:3px;color:var(--ink-soft);}
+  .empty{padding:40px;text-align:center;color:var(--ink-faint);font-size:13px;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="meta">TGK 2.0 · Character &amp; Tenant Naming Directory</div>
+    <h1>Every name in the demo, in one place.</h1>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="tabs">
+  <button class="on" data-tab="characters">Characters</button>
+  <button data-tab="tenants">Tenant firms</button>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="search" placeholder="Search names, roles, flows…" />
+  <span class="sep"></span>
+  <span class="group-label">Show</span>
+  <button data-show="flagged" class="filter-show on">Flagged only</button>
+  <button data-show="all" class="filter-show on">All</button>
+  <span class="sep"></span>
+  <button id="reset">Reset marks</button>
+</div>
+
+<table class="dir" id="characters-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Role(s)</th>
+      <th>Side(s)</th>
+      <th>Flows</th>
+      <th>Flags</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="characters-tbody"></tbody>
+</table>
+
+<table class="dir hidden" id="tenants-table">
+  <thead>
+    <tr>
+      <th>Tenant firm</th>
+      <th>Verticals</th>
+      <th>Use cases</th>
+      <th>Flow count</th>
+      <th>Flags</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tenants-tbody"></tbody>
+</table>
+
+<div class="footer">
+  Generated from <code>_audits/character-naming-data.json</code>. Status persists in
+  <code>localStorage</code> under <code>tgk.character-naming-audit.v1</code>.
+  Flag categories: <b>real-person</b> (impersonation risk),
+  <b>real-firm</b> / <b>trademark</b> (TM risk), <b>placeholder</b> (no real name),
+  <b>inconsistent-side</b> (same name appearing on multiple sides).
+</div>
+
+<script id="audit-data" type="application/json">__INLINE_JSON__</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('audit-data').textContent);
+  const STORAGE_KEY = 'tgk.character-naming-audit.v1';
+  let stateMap = {};
+  try { stateMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch(e){}
+
+  let activeTab = 'characters';
+  const showFilters = new Set(['flagged','all']);
+  let searchQ = '';
+  let openKey = null;
+
+  function rowKey(scope, name){ return `${scope}|${name}`; }
+  function getStatus(scope, name){ return (stateMap[rowKey(scope,name)] && stateMap[rowKey(scope,name)].status) || 'unset'; }
+  function getNotes(scope, name){ return (stateMap[rowKey(scope,name)] && stateMap[rowKey(scope,name)].notes) || ''; }
+  function setStatus(scope, name, status){
+    const k = rowKey(scope,name);
+    stateMap[k] = stateMap[k] || {};
+    if (stateMap[k].status === status) delete stateMap[k].status;
+    else stateMap[k].status = status;
+    saveState();
+  }
+  function setNotes(scope, name, notes){
+    const k = rowKey(scope,name);
+    stateMap[k] = stateMap[k] || {};
+    stateMap[k].notes = notes;
+    saveState();
+  }
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stateMap)); } catch(e){}
+    renderStats();
+  }
+  function escapeHTML(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderStats(){
+    const c = DATA.characters || [];
+    const t = DATA.tenants || [];
+    const flaggedC = c.filter(r => (r._flags||[]).length).length;
+    const flaggedT = t.filter(r => (r._flags||[]).length).length;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat">Characters <span class="pill VER">${c.length}</span></div>
+      <div class="stat">Flagged <span class="pill MIS">${flaggedC}</span></div>
+      <div class="stat" style="margin-left:14px">Tenants <span class="pill VER">${t.length}</span></div>
+      <div class="stat">Flagged <span class="pill MIS">${flaggedT}</span></div>`;
+  }
+
+  function passesFilter(r, scope){
+    const flagged = (r._flags||[]).length > 0;
+    const wantFlagged = showFilters.has('flagged');
+    const wantAll = showFilters.has('all');
+    if (wantFlagged && !wantAll && !flagged) return false;
+    if (!wantFlagged && wantAll) { /* show all */ }
+    if (!wantFlagged && !wantAll) return false;
+    if (searchQ) {
+      const fields = scope === 'characters'
+        ? [r.name, ...(r.roles||[]), ...(r.sides||[]), ...(r.flows||[])]
+        : [r.tenant, ...(r.verticals||[]), ...(r.usecases||[]), ...(r.flows||[])];
+      const hay = fields.join(' ').toLowerCase();
+      if (!hay.includes(searchQ)) return false;
+    }
+    return true;
+  }
+
+  function renderCharacters(){
+    const tb = document.getElementById('characters-tbody');
+    tb.innerHTML = '';
+    let shown = 0;
+    (DATA.characters||[]).forEach(r => {
+      if (!passesFilter(r, 'characters')) return;
+      shown++;
+      const status = getStatus('characters', r.name);
+      const tr = document.createElement('tr');
+      tr.dataset.key = rowKey('characters', r.name);
+      tr.innerHTML = `
+        <td class="name">${escapeHTML(r.name)}</td>
+        <td class="role">${(r.roles||[]).map(rl => `<div class="role-line">${escapeHTML(rl)}</div>`).join('') || '<span style="color:var(--ink-faint)">—</span>'}</td>
+        <td class="sides">${(r.sides||[]).map(sd => `<span class="side-pill ${sd}">${escapeHTML(sd)}</span>`).join('')}</td>
+        <td class="flows">${(r.flows||[]).slice(0,8).map(f => `<span class="flow-tag">${escapeHTML(f)}</span>`).join('')}${(r.flows||[]).length > 8 ? `<span style="color:var(--ink-faint);"> +${(r.flows||[]).length-8}</span>` : ''}</td>
+        <td class="flag-cell">${(r._flags||[]).map(f => `<span class="flag-pill ${f.type}">${escapeHTML(f.note)}</span>`).join('') || '<span style="color:var(--ink-faint)">—</span>'}</td>
+        <td class="status-cell"><span class="s-pill ${status}">${status === 'unset' ? '—' : status.replace('-',' ')}</span></td>`;
+      tr.addEventListener('click', () => toggleDetail('characters', r));
+      tb.appendChild(tr);
+      if (openKey === rowKey('characters', r.name)) tb.appendChild(buildDetail('characters', r));
+    });
+    if (shown === 0) tb.innerHTML = `<tr><td colspan="6" class="empty">No characters match.</td></tr>`;
+  }
+
+  function renderTenants(){
+    const tb = document.getElementById('tenants-tbody');
+    tb.innerHTML = '';
+    let shown = 0;
+    (DATA.tenants||[]).forEach(r => {
+      if (!passesFilter(r, 'tenants')) return;
+      shown++;
+      const status = getStatus('tenants', r.tenant);
+      const tr = document.createElement('tr');
+      tr.dataset.key = rowKey('tenants', r.tenant);
+      tr.innerHTML = `
+        <td class="name">${escapeHTML(r.tenant)}</td>
+        <td class="role">${(r.verticals||[]).map(v => `<span class="flow-tag">${escapeHTML(v)}</span>`).join(' ')}</td>
+        <td class="sides">${(r.usecases||[]).map(u => `<span class="flow-tag">${escapeHTML(u)}</span>`).join(' ')}</td>
+        <td class="flows">${r.flow_count}</td>
+        <td class="flag-cell">${(r._flags||[]).map(f => `<span class="flag-pill ${f.type}">${escapeHTML(f.note)}</span>`).join('') || '<span style="color:var(--ink-faint)">—</span>'}</td>
+        <td class="status-cell"><span class="s-pill ${status}">${status === 'unset' ? '—' : status.replace('-',' ')}</span></td>`;
+      tr.addEventListener('click', () => toggleDetail('tenants', r));
+      tb.appendChild(tr);
+      if (openKey === rowKey('tenants', r.tenant)) tb.appendChild(buildDetail('tenants', r));
+    });
+    if (shown === 0) tb.innerHTML = `<tr><td colspan="6" class="empty">No tenants match.</td></tr>`;
+  }
+
+  function toggleDetail(scope, r){
+    const name = scope === 'characters' ? r.name : r.tenant;
+    const k = rowKey(scope, name);
+    openKey = (openKey === k) ? null : k;
+    render();
+  }
+
+  function buildDetail(scope, r){
+    const name = scope === 'characters' ? r.name : r.tenant;
+    const tr = document.createElement('tr');
+    tr.className = 'detail-row';
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    const status = getStatus(scope, name);
+    const notes = getNotes(scope, name);
+    const flowsHtml = (r.flows||[]).map(f => `<span class="flow-tag">${escapeHTML(f)}</span>`).join(' ');
+    td.innerHTML = `
+      <div class="panel">
+        <div><b>All flows where this ${scope === 'characters' ? 'character' : 'tenant'} appears:</b><br>
+        <div style="margin-top:8px;font-family:var(--mono);font-size:11px;line-height:1.7;">${flowsHtml}</div></div>
+        ${(r._flags||[]).length ? `<div><b style="font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--err);">Risk flags</b><ul style="margin-top:4px">${r._flags.map(f => `<li>${escapeHTML(f.note)}</li>`).join('')}</ul></div>` : ''}
+        <div class="actions">
+          <button class="approved ${status==='approved'?'on':''}" data-act="approved">Approved</button>
+          <button class="rename ${status==='rename'?'on':''}" data-act="rename">Rename</button>
+          <button class="needs-work ${status==='needs-work'?'on':''}" data-act="needs-work">Needs work</button>
+          <textarea placeholder="Reviewer notes — proposed replacement, why it's fine, etc.">${escapeHTML(notes)}</textarea>
+        </div>
+      </div>`;
+    td.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', e => { e.stopPropagation(); setStatus(scope, name, b.dataset.act); render(); });
+    });
+    const ta = td.querySelector('textarea');
+    ta.addEventListener('input', e => { e.stopPropagation(); setNotes(scope, name, e.target.value); });
+    ta.addEventListener('click', e => e.stopPropagation());
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function render(){
+    if (activeTab === 'characters') {
+      document.getElementById('characters-table').classList.remove('hidden');
+      document.getElementById('tenants-table').classList.add('hidden');
+      renderCharacters();
+    } else {
+      document.getElementById('characters-table').classList.add('hidden');
+      document.getElementById('tenants-table').classList.remove('hidden');
+      renderTenants();
+    }
+  }
+
+  document.querySelectorAll('.tabs button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      activeTab = b.dataset.tab;
+      openKey = null;
+      render();
+    });
+  });
+  document.querySelectorAll('button.filter-show').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('on');
+      if (b.classList.contains('on')) showFilters.add(b.dataset.show);
+      else showFilters.delete(b.dataset.show);
+      render();
+    });
+  });
+  document.getElementById('search').addEventListener('input', e => { searchQ = e.target.value.trim().toLowerCase(); render(); });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!confirm('Clear ALL status marks and notes?')) return;
+    stateMap = {}; saveState(); render();
+  });
+
+  renderStats();
+  render();
+})();
+</script>
+</body>
+</html>
