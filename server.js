@@ -321,6 +321,23 @@ app.delete('/admin/feedback/:id', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'store error' }); }
 });
 
+// --------- Clear all feedback (archives first) ---------
+app.post('/admin/feedback/clear', requireAdmin, async (req, res) => {
+  try {
+    const current = await readStore();
+    if (current.length === 0) {
+      return res.json({ ok: true, archived: 0, message: 'Nothing to clear.' });
+    }
+    // Persist archive to Replit DB under a timestamped key so nothing is truly lost
+    const archiveKey = `feedback:archive:${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    await db.set(archiveKey, current);
+    // Wipe the live store
+    await db.set(KV_KEY, []);
+    console.log(`Feedback cleared: ${current.length} items archived to "${archiveKey}"`);
+    res.json({ ok: true, archived: current.length, archiveKey });
+  } catch (e) { res.status(500).json({ error: 'clear error', detail: e?.message }); }
+});
+
 app.post('/admin/feedback/:id/analyze', requireAdmin, async (req, res) => {
   if (!llm) return res.status(503).json({ error: 'LLM not configured' });
   const exists = (await readStore()).some(x => x.id === req.params.id);
@@ -446,7 +463,10 @@ function adminHtml() {
     <h1>TGK Feedback — Admin</h1>
     <div class="meta">Submissions land here in real time.</div>
   </div>
-  <a href="/admin/feedback.json" style="color:#fff;font-size:12px;text-decoration:underline;opacity:.8;">Export JSON</a>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <a href="/admin/feedback.json" style="color:#fff;font-size:12px;text-decoration:underline;opacity:.8;">Export JSON</a>
+    <button id="clearBtn" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-family:inherit;">Clear log</button>
+  </div>
 </header>
 <main>
   <div class="toolbar">
@@ -661,6 +681,32 @@ function adminHtml() {
     });
     es.onerror = () => { setLive('off'); load(); };
   }
+  // ---- Clear log ----
+  document.getElementById('clearBtn').addEventListener('click', async () => {
+    if (data.length === 0) { alert('Nothing to clear.'); return; }
+    if (!confirm(\`Download an archive of all \${data.length} item(s) and then clear the log?\`)) return;
+    // Step 1: download the current JSON as a local file before wiping
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tgk-feedback-archive-' + new Date().toISOString().slice(0,19).replace(/[T:]/g,'-') + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    // Step 2: server-side clear (also archives to Replit DB)
+    const r = await fetch('/admin/feedback/clear', { method: 'POST' });
+    const result = await r.json();
+    if (result.ok) {
+      data = [];
+      render();
+      alert(\`Cleared. \${result.archived} item(s) archived in Replit DB (key: \${result.archiveKey}). Your download is saved locally.\`);
+    } else {
+      alert('Clear failed: ' + (result.error || 'unknown error'));
+    }
+  });
+
   connect();
   setInterval(load, 120000); // safety-net resync every 2 min in case any events were missed
 </script>
