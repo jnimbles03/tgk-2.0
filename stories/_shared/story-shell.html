@@ -2660,6 +2660,27 @@ function postBeatToFrame(){
       sceneId: sceneId,
       target: currentTarget,  // template responds with tgk:rect when ready
     }, "*");
+    /* Companion message — gives templates the timing budget for this
+       beat so internal animations (typing effects, progress sweeps,
+       sequenced reveals) can fit inside the shell's clock instead of
+       running their own loop and oscillating against it. Templates that
+       don't listen are unaffected; templates that do can sync.
+         beatDuration: wall-clock ms this beat will be on screen
+                       (in autoplay; null when manual)
+         playing:      whether autoplay is driving the cadence
+         playbackRate: 1, 1.5, 2  */
+    const persona = resolvePersona(idx, hotIdx);
+    frame.contentWindow.postMessage({
+      type: "tgk:beatPlay",
+      sceneId: sceneId,
+      sceneKey: sceneKey,
+      sceneIndex: idx,
+      beatIndex: hotIdx,
+      beatDuration: playing ? currentBeatWallclockMs() : null,
+      playing: !!playing,
+      playbackRate: playbackRate,
+      personaSide: persona ? (persona.side || "system") : "system"
+    }, "*");
   } catch (e) { /* iframe not ready — will be retried on iframe load */ }
 }
 
@@ -2690,11 +2711,24 @@ function positionHotspotFromRect(msg){
   syncShellCursor(leftPx, topPx);
 }
 
-/* Listen for rect responses from the iframe. */
+/* Listen for messages back from the iframe. Two channels today:
+   - tgk:rect — element rect for hotspot positioning
+   - tgk:beatDone — template signals it's finished its internal animation
+     for this beat. If autoplay is on, advance immediately instead of
+     waiting for the beat duration to elapse. Ignored in manual mode. */
 window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object") return;
   if (msg.type === "tgk:rect") positionHotspotFromRect(msg);
+  if (msg.type === "tgk:beatDone") {
+    // Verify the message belongs to the current beat — stale messages
+    // from a previous beat that finished after we already advanced
+    // would otherwise cause a double-advance.
+    if (typeof msg.sceneIndex === "number" && typeof msg.beatIndex === "number") {
+      if (msg.sceneIndex !== idx || msg.beatIndex !== hotIdx) return;
+    }
+    if (playing) advance();
+  }
 });
 
 /* On viewport resize, request a fresh rect for the current target so the
@@ -3001,25 +3035,61 @@ function goTo(i, opts = {}){
    yielding the room back to the demo.
    ========================================================= */
 const LEAD_HINT_DELAY_MS = 1200;
+/* Autoplay: short window so lead-mode pops, reads, and yields to the
+   demo within a fraction of the beat. */
 const LEAD_AUTO_EXIT_MIN = 3000;     // floor — even one-word beats hold this long
 const LEAD_AUTO_EXIT_MAX = 6500;     // ceiling — long beats still don't camp on screen
+/* Manual mode: the viewer is reading at their own pace and explicitly
+   asked for the demo to wait. Use a much longer window so the panel
+   doesn't collapse out from under them. */
+const LEAD_MANUAL_EXIT_MIN = 8000;
+const LEAD_MANUAL_EXIT_MAX = 12000;
 const LEAD_AUTO_EXIT_BUFFER_MS = 500;// settle time after the words are "read"
 const LEAD_AUTO_EXIT_WPS = 4.2;      // ~250 wpm — slightly above average for snap
+/* When autoplay is on, never let the read window exceed this fraction of
+   the per-beat slice — otherwise lead-mode is still expanded when the
+   next beat fires and the two end up oscillating against each other. */
+const LEAD_AUTO_BEAT_FRACTION = 0.85;
 let hintTimer = null;
 let autoExitTimer = null;
 
+/* Returns the per-beat duration the autoplay tick will use, AFTER
+   playbackRate scaling (i.e. the wall-clock time the beat will be on
+   screen). Used to clamp the lead-mode read window so it never outruns
+   the beat itself. */
+function currentBeatWallclockMs(){
+  const scene = SCENES[idx];
+  if (!scene) return 0;
+  const beatDur = scene.duration / Math.max(1, scene.hotspots.length);
+  return beatDur / Math.max(0.1, playbackRate);
+}
+
 /* Word count for the current beat's headline + lede, used to size the
    auto-collapse window. Falls back to a reasonable default if the DOM
-   isn't fully populated yet (e.g. very first render). */
+   isn't fully populated yet (e.g. very first render).
+   - In manual mode (playing=false), use a longer 8-12s window — the
+     viewer is clicking through and wants reading time.
+   - In autoplay mode, use the short 3-6.5s window scaled by playbackRate
+     so 1.5x and 2x autoplay get proportionally shorter pops. Then clamp
+     against beat duration so lead-mode never lasts longer than the beat
+     itself (prevents oscillation against the beat tick). */
 function currentBeatReadMs(){
   const headline = document.querySelector('.headline');
   const lede = document.querySelector('.lede');
   const text = ((headline && headline.textContent) || '') + ' ' +
                ((lede && lede.textContent) || '');
   const words = text.trim().split(/\s+/).filter(Boolean).length;
-  if (!words) return 4000;
-  const ms = (words / LEAD_AUTO_EXIT_WPS) * 1000 + LEAD_AUTO_EXIT_BUFFER_MS;
-  return Math.max(LEAD_AUTO_EXIT_MIN, Math.min(LEAD_AUTO_EXIT_MAX, ms));
+  const baseMs = words ? (words / LEAD_AUTO_EXIT_WPS) * 1000 + LEAD_AUTO_EXIT_BUFFER_MS : 4000;
+  if (!playing) {
+    // Manual mode — longer window, no playbackRate scaling, no beat clamp.
+    return Math.max(LEAD_MANUAL_EXIT_MIN, Math.min(LEAD_MANUAL_EXIT_MAX, baseMs * 1.6));
+  }
+  // Autoplay — scale by playbackRate, clamp to a fraction of the beat.
+  const scaled = baseMs / Math.max(0.1, playbackRate);
+  const clamped = Math.max(LEAD_AUTO_EXIT_MIN / Math.max(1, playbackRate),
+                           Math.min(LEAD_AUTO_EXIT_MAX / Math.max(1, playbackRate), scaled));
+  const beatCap = currentBeatWallclockMs() * LEAD_AUTO_BEAT_FRACTION;
+  return Math.min(clamped, beatCap || clamped);
 }
 
 function enterLeadMode(){
