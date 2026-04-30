@@ -580,8 +580,9 @@
     <a href="#sd-08"><span class="toc-num">08</span><span class="toc-name">Result · worked example</span></a>
     <a href="#sd-09"><span class="toc-num">09</span><span class="toc-name">Data contracts</span></a>
     <a href="#sd-10"><span class="toc-num">10</span><span class="toc-name">Runtime &amp; hosting</span></a>
-    <a href="#sd-11"><span class="toc-num">11</span><span class="toc-name">Extension model</span></a>
-    <a href="#sd-12"><span class="toc-num">12</span><span class="toc-name">Glossary</span></a>
+    <a href="#sd-11"><span class="toc-num">11</span><span class="toc-name">Builder · /builder</span></a>
+    <a href="#sd-12"><span class="toc-num">12</span><span class="toc-name">Extension model</span></a>
+    <a href="#sd-13"><span class="toc-num">13</span><span class="toc-name">Glossary</span></a>
   </nav>
 
   <!-- ═══════════════ 01 — EXECUTIVE SUMMARY ═══════════════ -->
@@ -1092,13 +1093,144 @@
     </div>
   </details>
 
-  <!-- ═══════════════ 11 — EXTENSION MODEL ═══════════════ -->
+  <!-- ═══════════════ 11 — BUILDER · /builder ═══════════════ -->
   <details class="section" id="sd-11">
     <summary>
       <span class="s-num">11</span>
       <div class="s-title-block">
-        <span class="s-title">Extension model</span>
-        <span class="s-deck">How a new demo is authored on the fly without rebuilding anything.</span>
+        <span class="s-title">Builder — <code style="font-family: var(--ds-mono); font-size: 0.875rem; background: var(--ds-mist-soft); padding: 1px 6px; color: var(--ds-cobalt); border-radius: 2px;">/builder</span></span>
+        <span class="s-deck">The live, server-backed authoring tool that turns a picker into a shareable demo URL.</span>
+      </div>
+      <div class="s-count"><strong>30-day</strong>token TTL</div>
+      <span class="s-toggle">+</span>
+    </summary>
+    <div class="s-body">
+      <div class="prose">
+        <p><strong><code>/builder</code></strong> is the live implementation of the extension model described in §12. It runs at <code>builder.html</code> (aliased as <code>/builder</code>, <code>/builder/</code>, <code>/build</code>, <code>/build/</code> via <code>server.js</code>), and produces a shareable custom-demo URL backed by Replit DB.</p>
+      </div>
+
+      <div class="subsection-head" style="margin-top: 22px;">
+        <h3 class="subsection-h">Two modes</h3>
+        <span class="subsection-meta">Selected at load time</span>
+      </div>
+      <table class="kv-table">
+        <thead><tr><th>Mode</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="kv-key">Build mode</td><td class="kv-val">Default. Pick industry → tenant → customer → use case → scenes. Mints a token, persists config, returns a custom URL.</td></tr>
+          <tr><td class="kv-key">Audit mode</td><td class="kv-val"><code>?mode=audit</code>. Hydrates the canonical <code>VERTICALS</code> block from <code>story-shell.html</code> and lets an editor patch narration fields. Commits go to GitHub via the <code>/api/audit/*</code> routes.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subsection-head" style="margin-top: 24px;">
+        <h3 class="subsection-h">Build mode flow</h3>
+        <span class="subsection-meta">Picker → token → custom URL</span>
+      </div>
+      <ol class="num-list">
+        <li>
+          <div>
+            <p class="nl-h">Stage 1 · Tenant &amp; brand</p>
+            <p class="nl-d">Pick an industry preset (auto-fills tenant name, brand color, SoR, customer, moment) or override any field. Validation enforces tenant + customer + valid hex color.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Stage 2 · Use case &amp; scaffold</p>
+            <p class="nl-d">Pick one of the 4 patterns from §06. The scaffold seeds default scene narration that Stage 3 can override per scene.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Stage 3 · Timeline editor</p>
+            <p class="nl-d">Drag scene blocks from the library into a timeline. Click any block to edit narration. Minimum 3 scenes. Reorder is free.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Save → mint token</p>
+            <p class="nl-d">Picker POSTs the assembled config to <code>/api/builder/save</code>. Server validates <code>tenant</code>, <code>customer</code>, and <code>scenes[]</code>; mints an 8-char readable token (no <code>0/o/1/l</code>); persists under <code>builder:&lt;token&gt;</code> in Replit DB.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Custom URL served</p>
+            <p class="nl-d">Returns <code>/stories/custom-&lt;token&gt;/</code>. The route looks up the cached config, injects it inline as JSON into the shell, and serves the demo. Same six locked files do the rendering.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="subsection-head" style="margin-top: 24px;">
+        <h3 class="subsection-h">API surface</h3>
+        <span class="subsection-meta">All routes registered in <code>server.js</code></span>
+      </div>
+      <table class="kv-table">
+        <thead><tr><th>Route</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td class="kv-key">POST /api/builder/save</td><td class="kv-val">Accepts config JSON (≤1mb to fit tenant logo dataURL + scenes). Returns <code>{ token, url, expiresInDays }</code>.</td></tr>
+          <tr><td class="kv-key">GET /api/builder/:token</td><td class="kv-val">Fetch a saved config (used by async shell paths and inspection). 404 if expired.</td></tr>
+          <tr><td class="kv-key">GET /stories/custom-:token/</td><td class="kv-val">Serves the shell with the cached config injected. Expired tokens return a friendly "build a new one" page.</td></tr>
+          <tr><td class="kv-key">GET /api/me</td><td class="kv-val">Lightweight session probe builder uses to decide whether to render the audit-mode Save button. Never prompts; never redirects.</td></tr>
+          <tr><td class="kv-key">PATCH (audit-mode)</td><td class="kv-val">Audit-mode commits patch narration via the <code>/api/audit/*</code> routes — opens a GitHub commit on behalf of the editor.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subsection-head" style="margin-top: 24px;">
+        <h3 class="subsection-h">Persistence &amp; expiry</h3>
+        <span class="subsection-meta">Replit DB, token-keyed</span>
+      </div>
+      <table class="kv-table">
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td class="kv-key">Storage</td><td class="kv-val">Replit DB. Key prefix <code>builder:</code>.</td></tr>
+          <tr><td class="kv-key">Token shape</td><td class="kv-val">8 chars, alphabet <code>abcdefghjkmnpqrstuvwxyz23456789</code> (no ambiguous glyphs).</td></tr>
+          <tr><td class="kv-key">TTL</td><td class="kv-val">30 days from creation (<code>BUILDER_TTL_DAYS = 30</code>).</td></tr>
+          <tr><td class="kv-key">Record shape</td><td class="kv-val">User config + <code>_meta: { createdAt, expiresAt, version }</code>.</td></tr>
+          <tr><td class="kv-key">Versioning</td><td class="kv-val"><code>_meta.version: 1</code>. Bump on schema changes; the serve route should reject unknown versions.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subsection-head" style="margin-top: 24px;">
+        <h3 class="subsection-h">Audit mode — VERTICALS editor</h3>
+        <span class="subsection-meta"><code>?mode=audit</code></span>
+      </div>
+      <div class="prose">
+        <p>Audit mode hydrates from the canonical <code>VERTICALS</code> block inlined in <code>stories/_shared/story-shell.html</code>. The server slices the JS literal out of the source, evaluates it in an isolated VM context, and serves it as JSON to the picker.</p>
+        <p>Editors can patch narration fields per-vertical; saving opens a GitHub commit through the audit pipeline (<code>/api/audit/*</code>). The Save button only renders if <code>/api/me</code> returns a valid editor session — there's no client-trust path to writes.</p>
+      </div>
+
+      <div class="subsection-head" style="margin-top: 24px;">
+        <h3 class="subsection-h">Why this is the right boundary</h3>
+        <span class="subsection-meta">Design rationale</span>
+      </div>
+      <ol class="num-list">
+        <li>
+          <div>
+            <p class="nl-h">Custom configs are ephemeral; verticals are permanent</p>
+            <p class="nl-d">Build-mode tokens expire in 30 days because they exist for one prospect engagement. The 21 canonical verticals live in source and survive.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Server validates the contract, not the content</p>
+            <p class="nl-d">The save route only checks <code>tenant</code>, <code>customer</code>, and <code>scenes[]</code> are present. Whatever else the picker sends rides through to the shell — same data shape §09 already documents.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="nl-h">Audit-mode is a different blast radius</p>
+            <p class="nl-d">Edits to the canonical VERTICALS table commit code; gated by session and routed through GitHub. Build-mode is sandboxed in Replit DB with a TTL.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </details>
+
+  <!-- ═══════════════ 12 — EXTENSION MODEL ═══════════════ -->
+  <details class="section" id="sd-12">
+    <summary>
+      <span class="s-num">12</span>
+      <div class="s-title-block">
+        <span class="s-title">Extension model — picker mock</span>
+        <span class="s-deck">A static mock of how a sales rep authors a demo without engineering involvement.</span>
       </div>
       <div class="s-count"><strong>0</strong>code changes</div>
       <span class="s-toggle">+</span>
@@ -1150,10 +1282,10 @@
     </div>
   </details>
 
-  <!-- ═══════════════ 12 — GLOSSARY ═══════════════ -->
-  <details class="section" id="sd-12">
+  <!-- ═══════════════ 13 — GLOSSARY ═══════════════ -->
+  <details class="section" id="sd-13">
     <summary>
-      <span class="s-num">12</span>
+      <span class="s-num">13</span>
       <div class="s-title-block">
         <span class="s-title">Glossary</span>
         <span class="s-deck">Terms-of-art used throughout this document.</span>
