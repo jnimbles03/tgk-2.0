@@ -136,6 +136,23 @@
     100% { transform: translateX(0); }
   }
   .persona.bounce { animation: personaBounceIn 0.5s cubic-bezier(.22,.68,0,1.2) both; }
+  /* D3 — short purple pulse on the avatar whenever persona identity
+     changes, including manual Next/Prev advances (the .is-handoff-pending
+     glow on the sidebar is reserved for autoplay-pause gates). Scoped to
+     the avatar only so it stacks cleanly with the .bounce that runs on
+     the parent .persona. */
+  @keyframes personaIdPulse {
+    0%   { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0px rgba(75,0,233,0.0); }
+    35%  { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 6px rgba(75,0,233,0.32); }
+    100% { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0px rgba(75,0,233,0.0); }
+  }
+  .persona.id-pulse .avatar {
+    animation: personaIdPulse 0.95s cubic-bezier(.4,0,.2,1) both;
+  }
+  /* When the autoplay-pause gate is up, .is-handoff-pending on the
+     sidebar takes over for the sustained glow — suppress id-pulse so
+     the two effects don't fight. */
+  .sidebar.is-handoff-pending .persona.id-pulse .avatar { animation: none; }
   .persona .avatar{
     flex-shrink:0;width:28px;height:28px;border-radius:50%;
     display:inline-flex;align-items:center;justify-content:center;
@@ -312,6 +329,19 @@
     letter-spacing:-0.015em;
     line-height:1.08;
     margin-bottom:26px;
+  }
+  /* D4 — system-driven beats ("AI assistant runs CLEAR", "the agreement
+     repository extracts terms") read awkwardly in editorial italic. Drop
+     to non-italic Inter so the editorial voice stays reserved for human
+     actors and system beats read as instrumentation. The shell mirrors
+     #persona[data-side] onto itself via setShellPersonaSide() in JS. */
+  .shell.lead-mode[data-persona-side="system"] .headline{
+    font-family:var(--ui-font);
+    font-style:normal;
+    font-weight:700;
+    font-size:34px;
+    letter-spacing:-0.012em;
+    line-height:1.14;
   }
   .shell.lead-mode .lede{
     font-size:15.5px;
@@ -2746,7 +2776,8 @@ function renderPersona(persona){
   // Key on the full identity tuple so a side change with the same name
   // (e.g. "Priya Das" advisor → handoff) still triggers the bounce.
   const nextKey = [side, name, role].join('|').toLowerCase();
-  if (nextKey !== prevKey) {
+  const identityChanged = nextKey !== prevKey;
+  if (identityChanged) {
     pel.dataset.personaKey = nextKey;
     pel.classList.remove('bounce');
     void pel.offsetWidth;
@@ -2756,6 +2787,25 @@ function renderPersona(persona){
     // listeners after N persona changes.
     pel.addEventListener('animationend', function onBounceEnd(){
       pel.classList.remove('bounce');
+    }, {once:true});
+  }
+  // D4 — mirror the persona side onto the shell so the headline CSS can
+  // drop italic for system-driven beats. Cheap; runs on every paint.
+  const shellEl = document.querySelector('.shell');
+  if (shellEl) shellEl.setAttribute('data-persona-side', side);
+  // D3 — pulse the avatar with a brief glow whenever persona identity
+  // changes (manual advance included), so the actor switch is visible
+  // even outside the autoplay-pause gate. The autoplay-pause gate uses
+  // .is-handoff-pending on the sidebar for a sustained glow; this is the
+  // shorter "actor changed" pulse, scoped to the chip itself.
+  if (identityChanged) {
+    pel.classList.remove('id-pulse');
+    void pel.offsetWidth;
+    pel.classList.add('id-pulse');
+    pel.addEventListener('animationend', function onPulseEnd(e){
+      // Strict filter — only react to the id-pulse animation, not the
+      // bounce that fires alongside it.
+      if (e.animationName === 'personaIdPulse') pel.classList.remove('id-pulse');
     }, {once:true});
   }
 }
@@ -2898,6 +2948,7 @@ function goTo(i, opts = {}){
   // pending pause doesn't survive the jump and re-pop on the next beat.
   pausedForPersona = false;
   resumeOnManualAdvance = false;
+  pendingHandoffCue = false;
   hideHandoffCue();
   // Always tear down lead-mode before re-entering — prevents the "stuck
   // expanded" symptom when goTo lands while a previous lead-mode is still
@@ -3004,11 +3055,20 @@ function enterLeadMode(){
   }, LEAD_HINT_DELAY_MS);
 
   // Auto-collapse after a read-window proportional to the beat's text.
-  // If the persona-handoff gate engages, we postpone the exit — it'll be
-  // re-armed by the cue's click handler via onManualAdvance → advance →
-  // enterLeadMode on the next beat.
+  // Three exit paths from this timer:
+  //   1. D1 — if a handoff cue is pending (autoplay paused at a persona
+  //      switch), reveal it now instead of collapsing. The panel was
+  //      already up reading; now we hand the wheel to the viewer.
+  //   2. Gate is up but no pending cue (already shown earlier) — leave
+  //      the panel up and let the user's click resume.
+  //   3. Normal beat — collapse.
   autoExitTimer = setTimeout(() => {
-    if (pausedForPersona) return; // gate is showing; let the user act
+    if (pendingHandoffCue) {
+      pendingHandoffCue = false;
+      showHandoffCue();
+      return; // panel stays up; click on cue / Next / arrow advances
+    }
+    if (pausedForPersona) return;
     if (shell.classList.contains('lead-mode')) exitLeadMode();
   }, currentBeatReadMs());
 }
@@ -3094,6 +3154,11 @@ function fmt(ms){
    ========================================================= */
 let pausedForPersona = false;
 let resumeOnManualAdvance = false;
+// D1 — when autoplay pauses at a handoff, the cue is deferred until the
+// auto-collapse read window elapses. This flag carries the intent across
+// the gap between gate engagement (in tickTimer) and reveal (in the
+// autoExitTimer in enterLeadMode).
+let pendingHandoffCue = false;
 
 /* Resolve a beat's persona using the same precedence as renderSidebar:
    per-beat override → scene-level → canonical 5-act fallback. */
@@ -3148,6 +3213,11 @@ function hideHandoffCue(){
 /* Called from every manual-advance path. If we were paused at a persona
    seam, clear the gate and re-enter autoplay if it was running before. */
 function onManualAdvance(){
+  // Clear D1's deferred-cue intent unconditionally — a manual gesture
+  // here means the viewer doesn't need the cue at all (they've already
+  // advanced themselves). Without this, a fast Next during the read
+  // window would leave the cue armed and pop it on the next beat.
+  pendingHandoffCue = false;
   if (!pausedForPersona) return;
   pausedForPersona = false;
   hideHandoffCue();
@@ -3177,7 +3247,11 @@ function tickTimer(){
       pausedForPersona = true;
       resumeOnManualAdvance = playing; // remember to re-arm autoplay after the gesture
       togglePlay(); // sets playing=false, swaps the icon, stops the rAF loop
-      showHandoffCue();
+      // D1 — defer the cue until the auto-collapse window would have
+      // fired, so the lead-mode panel reads on its own before the
+      // call-to-action lands. The autoExitTimer in enterLeadMode handles
+      // the cue reveal; we just mark the intent here.
+      pendingHandoffCue = true;
       return; // tickTimer won't be re-scheduled because togglePlay paused
     }
     advance(); // advance() resets beatStart (and sceneStart on scene swap)
