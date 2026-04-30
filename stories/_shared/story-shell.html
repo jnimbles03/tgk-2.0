@@ -2738,15 +2738,25 @@ function renderPersona(persona){
   $('persona-name').textContent = name;
   $('persona-role').textContent = role;
   $('persona-side-badge').textContent = SIDE_LABEL[side] || 'Actor';
-  // Bounce only when the persona identity actually changes.
+  // Bounce only when the persona identity actually changes. The class is
+  // removed on animationend so it can't accumulate or re-fire when an
+  // unrelated reflow (window resize, parent class toggle) hits the chip.
   const pel = $('persona');
   const prevKey = pel.dataset.personaKey || '';
-  const nextKey = name || side;
+  // Key on the full identity tuple so a side change with the same name
+  // (e.g. "Priya Das" advisor → handoff) still triggers the bounce.
+  const nextKey = [side, name, role].join('|').toLowerCase();
   if (nextKey !== prevKey) {
     pel.dataset.personaKey = nextKey;
     pel.classList.remove('bounce');
     void pel.offsetWidth;
     pel.classList.add('bounce');
+    // One-shot cleanup. {once:true} guarantees the listener is detached
+    // after the first animationend, so we never end up with N stacked
+    // listeners after N persona changes.
+    pel.addEventListener('animationend', function onBounceEnd(){
+      pel.classList.remove('bounce');
+    }, {once:true});
   }
 }
 function renderHotspot(){
@@ -2884,6 +2894,15 @@ function goTo(i, opts = {}){
   idx = i;
   hotIdx = 0;
   const scene = SCENES[i];
+  // Any scene change unconditionally voids the persona-handoff gate so a
+  // pending pause doesn't survive the jump and re-pop on the next beat.
+  pausedForPersona = false;
+  resumeOnManualAdvance = false;
+  hideHandoffCue();
+  // Always tear down lead-mode before re-entering — prevents the "stuck
+  // expanded" symptom when goTo lands while a previous lead-mode is still
+  // running its auto-exit timer.
+  exitLeadMode();
   if (swappedScene) {
     frame.classList.add('fading');
     setTimeout(() => {
@@ -2899,14 +2918,19 @@ function goTo(i, opts = {}){
     }, 180);
     layer.innerHTML = "";
     setTimeout(renderHotspot, 700);
-    // Lead state: sidebar widens into the editorial column on every scene
-    // change and lingers until the user interacts; a "Click to begin" hint
-    // appears after LEAD_HINT_DELAY_MS so a still viewer knows it's their move.
-    enterLeadMode();
   } else {
     renderHotspot();
   }
   renderSidebar(scene, i);
+  // Lead state: sidebar widens into the editorial column on every scene
+  // change and lingers until the user interacts. Suppressed via opts.silent
+  // for cold boot, IDB-override re-render, and async usecase reload — those
+  // paths re-render but aren't user-driven scene transitions.
+  // Deferred via rAF so renderSidebar's 180ms fade has had a chance to swap
+  // in the new headline/lede text before currentBeatReadMs() reads the DOM.
+  if (swappedScene && !opts.silent) {
+    requestAnimationFrame(() => requestAnimationFrame(enterLeadMode));
+  }
   sceneStart = performance.now();
   beatStart = performance.now();
 }
@@ -2951,19 +2975,28 @@ function enterLeadMode(){
   const shell = document.querySelector('.shell');
   const sidebarEl = document.getElementById('sidebar');
   if (!shell) return;
+  // Always clear timers first so a back-to-back enterLeadMode call (e.g.,
+  // user mashes Next) can't leave a zombie auto-exit closure pointing at a
+  // previous beat.
+  if (hintTimer)     { clearTimeout(hintTimer);     hintTimer = null; }
+  if (autoExitTimer) { clearTimeout(autoExitTimer); autoExitTimer = null; }
+
   shell.classList.add('lead-mode');
   shell.classList.remove('lead-mode-hinted');
 
   // Replay the pop animation on every entry. CSS animations don't re-fire
   // when the same class is re-added, so we remove .is-popping, force a
-  // reflow, and re-add it. animationend cleans it up.
+  // reflow, and re-add it. {once:true} cleanup so the class drops on
+  // animationend and we never accumulate listeners.
   if (sidebarEl) {
     sidebarEl.classList.remove('is-popping');
     void sidebarEl.offsetWidth; // reflow
     sidebarEl.classList.add('is-popping');
+    sidebarEl.addEventListener('animationend', function onPopEnd(){
+      sidebarEl.classList.remove('is-popping');
+    }, {once:true});
   }
 
-  if (hintTimer) clearTimeout(hintTimer);
   hintTimer = setTimeout(() => {
     if (shell.classList.contains('lead-mode')) {
       shell.classList.add('lead-mode-hinted');
@@ -2971,8 +3004,11 @@ function enterLeadMode(){
   }, LEAD_HINT_DELAY_MS);
 
   // Auto-collapse after a read-window proportional to the beat's text.
-  if (autoExitTimer) clearTimeout(autoExitTimer);
+  // If the persona-handoff gate engages, we postpone the exit — it'll be
+  // re-armed by the cue's click handler via onManualAdvance → advance →
+  // enterLeadMode on the next beat.
   autoExitTimer = setTimeout(() => {
+    if (pausedForPersona) return; // gate is showing; let the user act
     if (shell.classList.contains('lead-mode')) exitLeadMode();
   }, currentBeatReadMs());
 }
@@ -2984,7 +3020,13 @@ function exitLeadMode(){
   if (autoExitTimer) { clearTimeout(autoExitTimer); autoExitTimer = null; }
   shell.classList.remove('lead-mode');
   shell.classList.remove('lead-mode-hinted');
-  if (sidebarEl) sidebarEl.classList.remove('is-popping');
+  if (sidebarEl) {
+    sidebarEl.classList.remove('is-popping');
+    // Defensive: never leave the handoff-pending glow stuck on the avatar
+    // when lead-mode exits. The gate logic owns this class but a race in
+    // togglePlay/goTo could otherwise strand it.
+    if (!pausedForPersona) sidebarEl.classList.remove('is-handoff-pending');
+  }
 }
 // Stage interaction (mouseenter, click) and navigation keys exit the
 // lead beat early — the user's already engaged with the demo.
@@ -3013,8 +3055,11 @@ function advance(){
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
     // Beat change → re-pop the sidebar so the new narration grabs the
-    // eye, then auto-retreats. Same cycle as scene change.
-    enterLeadMode();
+    // eye, then auto-retreats. Deferred two rAFs so renderSidebar's 180ms
+    // fade has had a chance to swap in the new headline/lede before
+    // currentBeatReadMs() reads the DOM.
+    exitLeadMode(); // clean slate so timers don't pile up
+    requestAnimationFrame(() => requestAnimationFrame(enterLeadMode));
   }
   else if (idx < SCENES.length - 1) { goTo(idx + 1); }
   else { goTo(0, {force:true}); }
@@ -3026,7 +3071,8 @@ function rewind(){
     hotIdx--;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
-    enterLeadMode();
+    exitLeadMode();
+    requestAnimationFrame(() => requestAnimationFrame(enterLeadMode));
   }
   else if (idx > 0) {
     goTo(idx - 1);
@@ -3230,7 +3276,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-goTo(0, {force:true});
+goTo(0, {force:true, silent:true});
 $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
 
 /* Pull any admin-uploaded template overrides out of IndexedDB, then re-render
@@ -3238,7 +3284,7 @@ $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
 loadIDBTemplateOverrides().then((count) => {
   if (count > 0) {
     showOverrideBanner(Object.keys(TEMPLATE_BLOB_URLS));
-    goTo(idx, {force:true});
+    goTo(idx, {force:true, silent:true});
   }
 });
 
@@ -3290,9 +3336,11 @@ loadIDBTemplateOverrides().then((count) => {
           get src(){ return srcForUsecaseScene(i, v, newSceneKey, splashOn); }
         });
       });
-      /* Reset to scene 0 of the new usecase and force re-render. */
+      /* Reset to scene 0 of the new usecase and force re-render. Silent
+         so the late-arriving usecase bundle doesn't pop lead-mode on top
+         of whatever the user is currently looking at. */
       idx = 0; hotIdx = 0;
-      goTo(0, {force:true});
+      goTo(0, {force:true, silent:true});
     })
     .catch(e => console.warn("[tgk] usecase async load failed:", e));
 })();
