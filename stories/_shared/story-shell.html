@@ -2738,11 +2738,16 @@ function renderPersona(persona){
   $('persona-name').textContent = name;
   $('persona-role').textContent = role;
   $('persona-side-badge').textContent = SIDE_LABEL[side] || 'Actor';
-  // Bounce the persona chip in from the left on every scene change.
+  // Bounce only when the persona identity actually changes.
   const pel = $('persona');
-  pel.classList.remove('bounce');
-  void pel.offsetWidth; // force reflow so re-adding the class restarts the animation
-  pel.classList.add('bounce');
+  const prevKey = pel.dataset.personaKey || '';
+  const nextKey = name || side;
+  if (nextKey !== prevKey) {
+    pel.dataset.personaKey = nextKey;
+    pel.classList.remove('bounce');
+    void pel.offsetWidth;
+    pel.classList.add('bounce');
+  }
 }
 function renderHotspot(){
   const scene = SCENES[idx];
