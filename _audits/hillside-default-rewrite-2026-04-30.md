@@ -1,7 +1,7 @@
 # Hillside · default — proposed rewrite
 
 **Status**: Draft for review · 2026-04-30
-**Source of change**: User flagged Priya's role + TGK's framing as incoherent. Resolved as: Priya = Director of Advisor Onboarding; TGK Capital = an RIA joining Hillside's network as a sub-advisor; document = Sub-Advisory Agreement.
+**Source of change**: User flagged Priya Das's role + TGK's framing as incoherent. Resolved as: Cathie = Director of Advisor Onboarding; TGK Capital = an RIA joining Hillside's network as a sub-advisor; document = Sub-Advisory Agreement.
 
 ---
 
@@ -22,29 +22,29 @@
 > Priya Das · Head of Compliance · Hillside · advisor
 
 **Persona — now**:
-> Priya Das · Director of Advisor Onboarding · Hillside · advisor
+> Cathie Woods · Director of Advisor Onboarding · Hillside · advisor
 
 **Scene head — was**:
 > Priya kicks off TGK Capital's onboarding from a Hillside intake webform.
 
 **Scene head — now**:
-> Priya Das at Hillside is bringing TGK Capital onboard as a sub-advisor.
+> Cathie Woods at Hillside is bringing TGK Capital onboard as a sub-advisor.
 
 **Scene lede — was**:
 > Priya Das, Head of Compliance at Hillside Advisors, fills out the new-engagement webform for TGK Capital — entity type, AUM, mandate, custodian. The moment she submits, the workflow assembles the IMA package dynamically from those selections. The rest of this story runs on its own.
 
 **Scene lede — now**:
-> Priya Das, Director of Advisor Onboarding at Hillside, opens a new sub-advisor engagement for *TGK Capital* — a boutique RIA joining Hillside's network to manage a sleeve of Hillside client assets. The intake form configures the sub-advisor package: firm profile, fee-share schedule, regulatory disclosures, and the signers on both sides. The moment Priya submits, the workflow assembles the package dynamically and the rest of this story runs on its own.
+> Cathie Woods, Director of Advisor Onboarding at Hillside, opens a new sub-advisor engagement for *TGK Capital* — a boutique RIA joining Hillside's network to manage a sleeve of Hillside client assets. The intake form configures the sub-advisor package: firm profile, fee-share schedule, regulatory disclosures, and the signers on both sides. The moment Cathie submits, the workflow assembles the package dynamically and the rest of this story runs on its own.
 
 ### Beats
 
 | # | Was (head) | Now (head) | Now (lede) |
 |---|---|---|---|
-| B1 | Priya selects "New Engagement" from Hillside's intake menu. | Priya selects "New Sub-Advisor" from Hillside's onboarding menu. | The dynamic webform opens. |
+| B1 | Priya selects "New Engagement" from Hillside's intake menu. | Cathie selects "New Sub-Advisor" from Hillside's onboarding menu. | The dynamic webform opens. |
 | B2 | She fills entity type, mandate, AUM tier. | She fills firm profile — TGK's RIA registration, AUM under management, mandate scope. | Each selection branches what disclosures and exhibits attach. |
-| B3 | She selects custodian = Pershing. | She sets the fee-share schedule and asset-mapping rules. | A standard sub-advisor fee-share schedule auto-attaches; Priya tunes the bps split. |
+| B3 | She selects custodian = Charlton Schwab. | She sets the fee-share schedule and asset-mapping rules. | A standard sub-advisor fee-share schedule auto-attaches; Cathie tunes the bps split. |
 | B4 | Reg BI disclosure auto-attaches. | Form ADV Part 2 exchange and sub-advisor disclosures auto-attach. | Based on TGK's registration profile — no manual lookup. |
-| B5 | Priya reviews the configured package summary. | Priya reviews the configured sub-advisor package summary. | 4 documents, 2 signers (Hillside + TGK), sequenced routing. |
+| B5 | Priya reviews the configured package summary. | Cathie reviews the configured sub-advisor package summary. | 4 documents, 2 signers (Hillside + TGK), sequenced routing. |
 
 ---
 
@@ -125,7 +125,7 @@ Beat ledes carry "IMA" → "Sub-Advisory Agreement" / "the package" swaps.
 > Priya Das · Head of Compliance · Hillside · advisor
 
 **Persona — now**:
-> Priya Das · Director of Advisor Onboarding · Hillside · advisor *(consistent with Scene 1)*
+> Cathie Woods · Director of Advisor Onboarding · Hillside · advisor *(consistent with Scene 1)*
 
 **Scene head — was**:
 > The agreement repository extracts the IMA and lands it back in Hillside.
@@ -146,7 +146,7 @@ Beat ledes carry "IMA" → "Sub-Advisory Agreement" / "the package" swaps.
 | B1 | The agreement repository surfaces the executed IMA. | The agreement repository surfaces the executed Sub-Advisory Agreement. |
 | B2 | 14 fields extracted from the IMA. | 14 fields extracted from the sub-advisory package. |
 | B3 | Key terms ready for downstream systems. | (unchanged — still applies) |
-| B4 | Priya asks the AI assistant about the fee structure. | Priya asks the AI assistant about the fee-share split. |
+| B4 | Priya asks the AI assistant about the fee structure. | Cathie asks the AI assistant about the fee-share split. |
 | B5 | The AI assistant answers with inline citations. | (unchanged) |
 
 Beat ledes: "client" → "sub-advisor / counterparty firm", "fee structure" → "fee-share split", "IMA" → "sub-advisory package".
@@ -161,7 +161,7 @@ Beat ledes: "client" → "sub-advisor / counterparty firm", "fee structure" → 
 > Priya Das · Head of Compliance · Hillside · advisor
 
 **Persona — now**:
-> Priya Das · Director of Advisor Onboarding · Hillside · advisor
+> Cathie Woods · Director of Advisor Onboarding · Hillside · advisor
 
 **Scene head — was**:
 > Hillside, TGK, and the custodian continue in one Workspace.
