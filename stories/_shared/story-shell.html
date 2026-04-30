@@ -2748,17 +2748,32 @@ window.addEventListener("resize", () => {
 
 function renderSidebar(scene, i){
   const beat = scene.hotspots && scene.hotspots[hotIdx];
-  const head = (beat && beat.beatHead) || scene.headline;
-  const lede = (beat && beat.beatLede) || scene.lede;
+  // S1/B1 is the orientation beat — establishes who, what, why before
+  // any action fires. Use the scene-level head/lede there instead of the
+  // first beat's action-level head, so the viewer lands on context.
+  // Other beats keep the existing per-beat-then-scene fallback.
+  const isOrientation = (i === 0 && hotIdx === 0);
+  const head = isOrientation
+    ? (scene.headline || (beat && beat.beatHead) || '')
+    : ((beat && beat.beatHead) || scene.headline);
+  const lede = isOrientation
+    ? (scene.lede || (beat && beat.beatLede) || '')
+    : ((beat && beat.beatLede) || scene.lede);
   // Per-beat persona (carried as beat.beatPersona via the build) overrides
   // the scene-level persona; fall back to canonical 5-act side defaults.
-  const persona = (beat && beat.beatPersona) || scene.persona || personaFallback(i);
+  // On the orientation beat, prefer scene.persona over beat.beatPersona —
+  // the orientation introduces the "main" actor of the scene, not the
+  // per-beat actor (which on B1 is often the same anyway, but this
+  // protects against scenes where B1 starts with a system handoff).
+  const persona = isOrientation
+    ? (scene.persona || (beat && beat.beatPersona) || personaFallback(i))
+    : ((beat && beat.beatPersona) || scene.persona || personaFallback(i));
   sidebar.classList.add('fade');
   setTimeout(() => {
     $('step-label').textContent = scene.tag;
     $('headline').textContent = head;
     $('lede').innerHTML = lede;
-    renderPersona(persona);
+    renderPersona(persona, { orientation: isOrientation });
     sidebar.classList.remove('fade');
   }, 180);
   document.querySelectorAll('#scene-tabs .t').forEach((t, k) => t.classList.toggle('on', k === i));
@@ -2786,14 +2801,36 @@ function personaFallback(sceneIndex){
   const map = ["advisor","client","client","advisor","advisor"];
   return { side: map[sceneIndex] || "system" };
 }
-function renderPersona(persona){
+/* Suffix appended to the persona role line on the orientation beat
+   (S1/B1) so the viewer immediately knows whose POV they're sitting in
+   for the rest of the demo. Side-specific so it reads naturally for
+   each actor type. */
+const ORIENTATION_ROLE_SUFFIX = {
+  advisor: " · your sender",
+  client:  " · your signer",
+  system:  " · automated",
+  handoff: " · routing"
+};
+function renderPersona(persona, opts){
   if (!persona) persona = { side:"system" };
+  opts = opts || {};
   const side = persona.side || "system";
   const name = (persona.name || "").trim();
-  const role = (persona.role || "").trim();
+  let role = (persona.role || "").trim();
+  // Orientation beat — append a side-specific suffix to the role so the
+  // viewer reads "Head of Compliance · Hillside · your sender" instead
+  // of just the role. Only applied when the suffix isn't already present
+  // (defensive: covers the case where data already includes it).
+  if (opts.orientation) {
+    const suffix = ORIENTATION_ROLE_SUFFIX[side] || "";
+    if (suffix && !role.toLowerCase().endsWith(suffix.toLowerCase())) {
+      role = role + suffix;
+    }
+  }
   const el = $('persona');
   el.setAttribute('data-side', side);
   el.setAttribute('data-anonymous', name ? 'false' : 'true');
+  el.setAttribute('data-orientation', opts.orientation ? 'true' : 'false');
   // Avatar: initials if name; first letter of side-label otherwise.
   const initials = name
     ? name.split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase()
@@ -3064,15 +3101,22 @@ function currentBeatWallclockMs(){
   return beatDur / Math.max(0.1, playbackRate);
 }
 
+/* Orientation beat (S1/B1) gets a much longer read window — it's the
+   establishing shot for the whole demo, with three jobs (who, what, why)
+   that need real time to land. Autoplay still scales by playbackRate
+   and clamps against the beat duration; manual mode just holds. */
+const LEAD_ORIENT_AUTO_MIN = 12000;
+const LEAD_ORIENT_AUTO_MAX = 18000;
+const LEAD_ORIENT_MANUAL_MIN = 16000;
+const LEAD_ORIENT_MANUAL_MAX = 24000;
+
 /* Word count for the current beat's headline + lede, used to size the
    auto-collapse window. Falls back to a reasonable default if the DOM
    isn't fully populated yet (e.g. very first render).
-   - In manual mode (playing=false), use a longer 8-12s window — the
-     viewer is clicking through and wants reading time.
-   - In autoplay mode, use the short 3-6.5s window scaled by playbackRate
-     so 1.5x and 2x autoplay get proportionally shorter pops. Then clamp
-     against beat duration so lead-mode never lasts longer than the beat
-     itself (prevents oscillation against the beat tick). */
+   - S1/B1 (orientation): 12-18s autoplay, 16-24s manual. Long window.
+   - Other beats, manual mode: 8-12s window for reading time.
+   - Other beats, autoplay: 3-6.5s window scaled by playbackRate, clamped
+     against beat duration so lead-mode never outlasts the beat itself. */
 function currentBeatReadMs(){
   const headline = document.querySelector('.headline');
   const lede = document.querySelector('.lede');
@@ -3080,6 +3124,19 @@ function currentBeatReadMs(){
                ((lede && lede.textContent) || '');
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const baseMs = words ? (words / LEAD_AUTO_EXIT_WPS) * 1000 + LEAD_AUTO_EXIT_BUFFER_MS : 4000;
+  const isOrientation = (idx === 0 && hotIdx === 0);
+  if (isOrientation) {
+    if (!playing) {
+      return Math.max(LEAD_ORIENT_MANUAL_MIN, Math.min(LEAD_ORIENT_MANUAL_MAX, baseMs * 2.2));
+    }
+    // Autoplay orientation: scale by playbackRate, clamp to beat duration
+    // (orientation beats are usually long enough that the cap never bites).
+    const scaled = baseMs * 1.6 / Math.max(0.1, playbackRate);
+    const clamped = Math.max(LEAD_ORIENT_AUTO_MIN / Math.max(1, playbackRate),
+                             Math.min(LEAD_ORIENT_AUTO_MAX / Math.max(1, playbackRate), scaled));
+    const beatCap = currentBeatWallclockMs() * LEAD_AUTO_BEAT_FRACTION;
+    return Math.min(clamped, beatCap || clamped);
+  }
   if (!playing) {
     // Manual mode — longer window, no playbackRate scaling, no beat clamp.
     return Math.max(LEAD_MANUAL_EXIT_MIN, Math.min(LEAD_MANUAL_EXIT_MAX, baseMs * 1.6));
