@@ -73,7 +73,7 @@ function broadcast(event, payload) {
 }
 
 // --------- Default landing ---------
-app.get('/', (req, res) => res.redirect('/index-unified.html'));
+app.get('/', (req, res) => res.redirect('/picker.html'));
 
 // --------- Feedback store helpers (Replit KV-backed) ---------
 async function readStore() {

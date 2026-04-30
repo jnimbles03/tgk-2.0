@@ -341,10 +341,9 @@ and per-stage CSS show/hide rules.
   doesn't add `wizard-mode` to body today (still uses `.locked` section
   unlocking), so zero behavior change; assets are pre-positioned for the
   consolidated file.
-- ☐ Build the consolidated picker file consuming the primitive.
-- ☐ Flip `server.js` `/` route + Pages-deploy redirect from
-  `index-unified.html` to the new file.
-- ☐ Convert `geos.html` and `index-unified.html` to redirects.
+- ✓ Built `picker.html` — function-first (Procurement / Sales / CX) with CX expanding inline to the full vertical wizard (no navigate-away).
+- ✓ `server.js` `/` route + Pages deploy redirect flipped to `picker.html`.
+- ✓ `geos.html` and `index-unified.html` converted to thin JS redirects (forward `?cluster=` / `?mode=` intact).
 
 ### Visual + structural state of the two pages
 

@@ -80,7 +80,7 @@ function rewrite(content) {
   //    arbitrary strings like regex patterns or unrelated content.
   const TOP_LEVEL = [
     'api', 'admin', 'assets', 'components', 'stories', 'story-templates',
-    'CANONICAL.md', 'index-unified.html', 'index-playbook.html', 'landing.html',
+    'CANONICAL.md', 'picker.html', 'index-unified.html', 'index-playbook.html', 'landing.html',
     'feedback-widget.js', 'auto.html', '_template.html',
     'banking-deposits.html', 'hls-discovery-process-map.html', 'hls-roi.html',
     'insurance-life.html', 'insurance-pc.html',
@@ -132,9 +132,9 @@ const REDIRECT_HTML = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>TGK 2.0 — IAM Storylines</title>
 <meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="0; url=./index-unified.html">
-<link rel="canonical" href="./index-unified.html">
-<script>window.location.replace('./index-unified.html' + window.location.search + window.location.hash);</script>
+<meta http-equiv="refresh" content="0; url=./picker.html">
+<link rel="canonical" href="./picker.html">
+<script>window.location.replace('./picker.html' + window.location.search + window.location.hash);</script>
 <style>body{font-family:system-ui,sans-serif;color:#26065D;padding:2rem;}</style>
 </head>
 <body>
@@ -143,7 +143,7 @@ const REDIRECT_HTML = `<!DOCTYPE html>
 </html>
 `;
 writeFileSync(indexPath, REDIRECT_HTML);
-console.log(`[rewrite-paths] Wrote redirect index.html → index-unified.html`);
+console.log(`[rewrite-paths] Wrote redirect index.html → picker.html`);
 
 // Patch landing.html's one legacy reference to index.html so the rename above
 // doesn't dead-end. Idempotent — only changes if the literal href is present.

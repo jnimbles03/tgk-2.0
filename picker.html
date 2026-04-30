@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGK 2.0 — IAM Demo Experience</title>
+<link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
+<link rel="stylesheet" href="/assets/wizard/wizard.css">
+<style>
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap');
+
+  /* ─── TOKENS ─── */
+  :root {
+    --ds-deep-violet: #26065D;
+    --ds-inkwell: #130032;
+    --ds-ecru: #F8F3F0;
+    --ds-white: #FFFFFF;
+    --ds-mist: #CBC2FF;
+    --ds-poppy: #FF5252;
+    --ds-cobalt: #4C00FF;
+    --ds-mint: #3FDA99;
+    --bg: #F3EEE9;
+    --text: #130032;
+    --muted: rgba(19,0,50,.55);
+    --rule: rgba(19,0,50,.10);
+    --rule-strong: rgba(19,0,50,.18);
+    --ease: cubic-bezier(.4,0,.2,1);
+    --font: "DSIndigo", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --shell-step-blue: #3B82F6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+  img { display: block; max-width: 100%; }
+
+  /* ─── HERO ─── */
+  .hero { background: var(--ds-inkwell); padding: 52px 48px 48px; }
+  .hero-inner { max-width: 1200px; margin: 0 auto; }
+  .masthead { display: inline-flex; margin-bottom: 24px; }
+  .masthead img { height: 28px; width: auto; }
+  .badge { display: inline-block; font-size: .6875rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--ds-mist); margin-bottom: 14px; }
+  .hero h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 700; color: white; line-height: 1.1; letter-spacing: -.03em; margin-bottom: 18px; }
+  .hero-cta-row { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,.85); }
+  .headline-chevron { height: 28px; width: auto; }
+
+  /* ─── MODE WRAP (geos-style, sits below hero) ─── */
+  .mode-wrap { background: var(--ds-inkwell); border-bottom: 1px solid rgba(255,255,255,.08); padding: 0 48px; }
+  .mode-wrap-inner { max-width: 1200px; margin: 0 auto; display: flex; }
+  .mode-pill { display: inline-flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.45); border-bottom: 2px solid transparent; transition: all .15s; }
+  .mode-pill:hover { color: rgba(255,255,255,.75); }
+  .mode-pill.active { color: white; border-bottom-color: var(--ds-cobalt); }
+  .mode-pill svg { flex-shrink: 0; }
+
+  /* ─── BODY ─── */
+  .body { max-width: 1200px; margin: 0 auto; padding: 48px 48px 120px; }
+
+  /* ─── CRUMB ─── */
+  .crumb { font-size: .8125rem; color: var(--muted); margin-bottom: 40px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 22px; }
+  .crumb b { color: var(--ds-inkwell); font-weight: 500; }
+  .crumb .sep { color: rgba(19,0,50,.25); padding: 0 4px; }
+  .restart { display: none; align-items: center; gap: 5px; margin-left: 8px; font-size: .75rem; font-weight: 600; color: var(--ds-cobalt); border: 1px solid var(--ds-cobalt); border-radius: 99px; padding: 2px 10px; transition: all .15s; }
+  .restart:hover { background: var(--ds-cobalt); color: white; }
+  body.flow-started .restart { display: inline-flex; }
+
+  /* ─── SECTION ─── */
+  .sect { margin-bottom: 56px; }
+  .sect-label { display: flex; align-items: center; gap: 10px; font-size: .875rem; font-weight: 600; color: var(--muted); margin-bottom: 20px; cursor: pointer; user-select: none; transition: color .15s; }
+  .sect-label:hover { color: var(--ds-inkwell); }
+  .sect-label .step { font-size: .6875rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,.08); border-radius: 4px; padding: 2px 7px; flex-shrink: 0; }
+  .sect-label .chev { margin-left: auto; color: var(--rule-strong); transition: transform .2s; }
+  .sect.collapsed .sect-label .chev { transform: rotate(-90deg); }
+  .sect-label + * { transition: opacity .2s, max-height .35s var(--ease); max-height: 2000px; overflow: hidden; }
+  .sect.collapsed .sect-label { margin-bottom: 0; }
+  .sect.collapsed .sect-label + * { max-height: 0; opacity: 0; pointer-events: none; }
+  .sect.locked { display: none; }
+  .sect:not(.locked) { animation: revealUp .45s var(--ease) backwards; }
+  @keyframes revealUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+  /* picked-val chip */
+  .picked-val { display: none; font-size: .6875rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: rgba(76,0,255,.1); color: var(--ds-cobalt); margin-left: 4px; }
+  .sect.done .picked-val { display: inline-block; }
+
+  /* ─── CARDS ─── */
+  .grid { display: grid; gap: 14px; }
+  .grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card { background: white; border: 1px solid var(--rule-strong); border-radius: 12px; padding: 22px 20px; transition: all .15s; cursor: default; }
+  .card .ic { width: 28px; height: 28px; color: var(--ds-cobalt); margin-bottom: 12px; }
+  .card .ttl { font-size: .9375rem; font-weight: 600; margin-bottom: 6px; }
+  .card .sub { font-size: .8125rem; color: var(--muted); line-height: 1.45; }
+  .card[data-pick], .card.unified-link { cursor: pointer; }
+  .card[data-pick]:hover, .card.unified-link:hover { border-color: var(--ds-cobalt); box-shadow: 0 2px 16px rgba(76,0,255,.12); transform: translateY(-1px); }
+  .card[data-pick]:not([data-pick]):hover { cursor: default; }
+  .card.fn-card:not([data-pick]) { opacity: .55; cursor: not-allowed; }
+  .card.sel, .card.sel:hover { border-color: var(--ds-cobalt); background: rgba(76,0,255,.04); }
+
+  /* ─── UNIFIED-LINK cards (cluster handoff) ─── */
+  .unified-link .meta { font-size: .6875rem; font-weight: 600; color: var(--ds-cobalt); margin-top: 10px; text-transform: uppercase; letter-spacing: .08em; }
+  .unified-link:hover .meta { color: var(--ds-deep-violet); }
+
+  /* ─── USE CASE ROWS ─── */
+  .uc-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--rule-strong); border-radius: 12px; overflow: hidden; background: white; }
+  .uc-row { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--rule); transition: background .12s; }
+  .uc-row:last-child { border-bottom: none; }
+  .uc-row.uc-link { cursor: pointer; }
+  .uc-row.uc-link:hover { background: rgba(76,0,255,.03); }
+  .uc-row:not(.uc-link) { opacity: .55; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ds-cobalt); flex-shrink: 0; }
+  .uc-meta { flex: 1; }
+  .uc-ttl { font-size: .9rem; font-weight: 600; margin-bottom: 3px; }
+  .uc-sub { font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+  .ready-pill { font-size: .625rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+  .ready-pill.muted { background: var(--rule); color: var(--muted); }
+
+  /* ─── CX SECTION — inline vertical wizard ─── */
+  #cx-wizard { display: none; }
+  #cx-wizard.visible { display: block; }
+
+  /* wizard header — mode toggle lives here, not in the hero */
+  .cx-mode-bar { display: flex; align-items: center; gap: 0; background: white; border: 1px solid var(--rule-strong); border-radius: 10px; overflow: hidden; margin-bottom: 28px; width: fit-content; }
+  .cx-mode-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: .8125rem; font-weight: 600; color: var(--muted); border-right: 1px solid var(--rule); transition: all .15s; }
+  .cx-mode-pill:last-child { border-right: none; }
+  .cx-mode-pill:hover { color: var(--ds-inkwell); background: rgba(19,0,50,.03); }
+  .cx-mode-pill.active { color: var(--ds-cobalt); background: rgba(76,0,255,.06); }
+
+  /* wizard sections */
+  .wiz-section { margin-bottom: 32px; }
+  .wiz-label { font-size: .6875rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .wiz-label .step-pill { font-size: .625rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,.08); border-radius: 4px; padding: 2px 6px; }
+  .option-grid { display: grid; gap: 12px; }
+  .option-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .option-card { background: white; border: 1px solid var(--rule-strong); border-radius: 10px; padding: 18px 16px; cursor: pointer; transition: all .15s; }
+  .option-card:hover { border-color: var(--ds-cobalt); box-shadow: 0 2px 12px rgba(76,0,255,.10); }
+  .option-card.selected { border-color: var(--ds-cobalt); background: rgba(76,0,255,.04); }
+  .option-card.empty { opacity: .45; cursor: not-allowed; }
+  .option-card .oc-title { font-size: .9rem; font-weight: 600; margin-bottom: 4px; }
+  .option-card .oc-sub { font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+  .option-card .oc-count { display: inline-block; margin-top: 8px; font-size: .6875rem; font-weight: 600; color: var(--ds-cobalt); background: rgba(76,0,255,.08); border-radius: 99px; padding: 1px 8px; }
+  .option-card .oc-soon { display: inline-block; margin-top: 6px; font-size: .625rem; font-weight: 600; color: var(--muted); background: var(--rule); border-radius: 99px; padding: 1px 7px; }
+
+  /* wiz back button */
+  .wiz-back-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .wiz-back { display: none; align-items: center; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--muted); border: 1px solid var(--rule-strong); border-radius: 7px; padding: 6px 12px; transition: all .15s; }
+  .wiz-back:hover { color: var(--ds-inkwell); border-color: var(--rule-strong); background: white; }
+  .wiz-back.visible { display: inline-flex; }
+  .wiz-crumb { font-size: .8125rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .wiz-crumb .sep { color: rgba(19,0,50,.25); padding: 0 2px; }
+  .wiz-crumb .crumb-part { color: var(--ds-inkwell); font-weight: 500; }
+
+  /* use-case cards in wizard */
+  .usecase-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  .usecase-card { background: white; border: 1px solid var(--rule-strong); border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: all .15s; }
+  .usecase-card:hover { border-color: var(--ds-cobalt); background: rgba(76,0,255,.02); }
+  .usecase-card.selected { border-color: var(--ds-cobalt); background: rgba(76,0,255,.04); }
+  .usecase-card.unavailable { opacity: .5; cursor: not-allowed; }
+  .uc-title { font-size: .9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .uc-sub { font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+  .uc-availability { font-size: .6875rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: var(--rule); color: var(--muted); }
+
+  /* wizard launch bar */
+  .wiz-launch-bar { display: flex; align-items: center; gap: 14px; margin-top: 24px; padding: 18px 20px; background: white; border: 1px solid var(--rule-strong); border-radius: 12px; }
+  .wiz-launch-crumb { flex: 1; font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+  .wiz-launch-crumb strong { color: var(--ds-inkwell); }
+  .wiz-launch-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--ds-poppy); color: white; font-size: .875rem; font-weight: 700; border-radius: 8px; padding: 10px 22px; transition: all .15s; white-space: nowrap; }
+  .wiz-launch-btn:hover { background: #e03a3a; }
+  .wiz-launch-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .wiz-launch-bar { display: none; }
+  .wiz-launch-bar.visible { display: flex; }
+
+  /* coming-soon modal (shared) */
+  .cs-modal-overlay { display:none; position:fixed; inset:0; background:rgba(19,0,50,.55); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+  .cs-modal-overlay.active { display:flex; }
+  .cs-modal { background:white; border-radius:16px; padding:32px; max-width:440px; width:90%; box-shadow:0 16px 48px rgba(19,0,50,.18); }
+  .cs-modal h3 { font-size:1.125rem; font-weight:700; margin-bottom:8px; }
+  .cs-modal p { font-size:.875rem; color:var(--muted); line-height:1.55; margin-bottom:12px; }
+  .cs-modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .cs-btn { flex:1; padding:10px; border-radius:8px; font-size:.875rem; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+  .cs-btn.primary { background:var(--ds-cobalt); color:white; }
+  .cs-btn.primary:hover { background:var(--ds-deep-violet); }
+  .cs-btn.secondary { background:var(--rule); color:var(--text); }
+  .cs-btn.secondary:hover { background:var(--rule-strong); }
+
+  /* ─── B2B FUNCTION CARD ─── */
+  .fn-card .platforms { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+  .fn-card .plat-tag { font-size: .625rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; background: var(--rule); color: var(--muted); }
+
+  /* ─── STORY BAND ─── */
+  .story-band { background: var(--ds-deep-violet); border-radius: 16px; padding: 48px; margin-top: 56px; }
+  .story-band.locked { display: none; }
+  .story-band:not(.locked) { animation: revealUp .55s var(--ease) backwards; }
+  .story-eyebrow { font-size: .6875rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ds-mist); margin-bottom: 10px; }
+  .story-head { font-size: clamp(18px, 2.5vw, 26px); font-weight: 700; color: white; line-height: 1.3; letter-spacing: -.02em; margin-bottom: 28px; max-width: 72ch; }
+
+  .cust-ribbon { display: flex; align-items: flex-start; gap: 16px; background: rgba(255,255,255,.06); border-radius: 10px; padding: 16px 20px; margin-bottom: 32px; }
+  .c-mark { width: 36px; height: 36px; border-radius: 8px; background: var(--ds-cobalt); color: white; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+  .c-meta { flex: 1; }
+  .c-ttl { font-size: .9rem; font-weight: 600; color: white; margin-bottom: 3px; }
+  .c-sub { font-size: .8125rem; color: rgba(255,255,255,.6); line-height: 1.45; }
+  .c-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .c-tag { font-size: .625rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ds-mist); border: 1px solid rgba(203,194,255,.3); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+
+  /* ─── STORY SHELL WINDOW (geos demo player) ─── */
+  .shell-window { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; overflow: hidden; }
+  .shell-topbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.08); flex-wrap: wrap; gap: 8px; }
+  .shell-tenant { display: flex; align-items: center; gap: 8px; }
+  .mark { width: 24px; height: 24px; border-radius: 5px; background: var(--ds-cobalt); color: white; display: flex; align-items: center; justify-content: center; font-size: .6rem; }
+  .mark svg { width: 14px; height: 14px; }
+  .wm { font-size: .8125rem; font-weight: 600; color: white; }
+  .shell-tenant .sub { font-size: .75rem; color: rgba(255,255,255,.5); }
+  .sp { flex: 1; }
+  .shell-tabs { display: flex; gap: 2px; }
+  .tab { font-size: .6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 4px 10px; border-radius: 5px; color: rgba(255,255,255,.45); cursor: pointer; transition: all .15s; }
+  .tab.on, .tab:hover { background: rgba(76,0,255,.35); color: white; }
+  .shell-vchip { font-size: .625rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); border-radius: 99px; padding: 2px 9px; }
+
+  .shell-body { display: grid; grid-template-columns: 260px 1fr; min-height: 460px; }
+  .shell-side { background: rgba(19,0,50,.4); border-right: 1px solid rgba(255,255,255,.07); padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .shell-brand { display: flex; align-items: center; justify-content: center; padding: 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; margin-bottom: 4px; }
+  .shell-brand svg { width: 36px; height: 36px; }
+  .shell-step-label { font-size: .6rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--shell-step-blue); margin-bottom: 2px; }
+  .shell-beat-h { font-size: .875rem; font-weight: 700; color: white; margin-bottom: 4px; }
+  .shell-beat-p { font-size: .8125rem; color: rgba(255,255,255,.6); line-height: 1.5; }
+  .shell-nav { display: flex; gap: 8px; margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.07); }
+  .shell-nav-btn { flex: 1; padding: 7px; border-radius: 7px; border: 1px solid rgba(255,255,255,.15); background: transparent; color: rgba(255,255,255,.6); font-size: .75rem; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .shell-nav-btn:hover { background: rgba(76,0,255,.35); color: white; border-color: transparent; }
+  .shell-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .shell-main { position: relative; display: flex; flex-direction: column; }
+  .scene-pane { flex: 1; padding: 20px; }
+
+  /* Scene panels */
+  .scene-pane { display: none; }
+  .scene-pane.active { display: block; }
+  .clm-header { font-size: .6875rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 12px; }
+  .clm-doc { background: rgba(255,255,255,.06); border-radius: 8px; padding: 16px; }
+  .clm-title { font-size: .875rem; font-weight: 600; color: white; margin-bottom: 10px; }
+  .clm-line { font-size: .8125rem; color: rgba(255,255,255,.6); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); display: flex; align-items: center; gap: 8px; }
+  .clm-line:last-child { border-bottom: none; }
+  .clm-line .badge-sm { font-size: .5625rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; }
+  .clm-line .badge-sm.green { background: rgba(63,218,153,.2); color: var(--ds-mint); }
+  .clm-line .badge-sm.blue { background: rgba(59,130,246,.2); color: #93C5FD; }
+  .clm-line .badge-sm.amber { background: rgba(245,158,11,.2); color: #FCD34D; }
+  .clm-line.field { border-left: 2px solid var(--ds-cobalt); padding-left: 8px; }
+  .clm-template { border-left: 2px solid var(--ds-mint); padding-left: 8px; }
+  .coupa-frame { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25); border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: .8125rem; color: rgba(255,255,255,.7); }
+  .coupa-frame .coupa-lbl { font-size: .5625rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #93C5FD; margin-bottom: 4px; }
+
+  .recip { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; background: rgba(255,255,255,.05); margin-bottom: 6px; font-size: .8125rem; color: rgba(255,255,255,.75); }
+  .recip .r-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--ds-cobalt); display: flex; align-items: center; justify-content: center; font-size: .625rem; font-weight: 700; color: white; flex-shrink: 0; }
+  .recip .r-name { flex: 1; font-weight: 500; }
+  .recip .r-role { font-size: .6875rem; color: rgba(255,255,255,.4); }
+  .recip .r-status { font-size: .625rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; }
+  .r-status.pending { background: rgba(245,158,11,.2); color: #FCD34D; }
+  .r-status.done { background: rgba(63,218,153,.2); color: var(--ds-mint); }
+  .r-status.review { background: rgba(255,82,82,.2); color: #FCA5A5; }
+  .ad-route { background: rgba(76,0,255,.15); border: 1px solid rgba(76,0,255,.25); border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: .8125rem; color: rgba(255,255,255,.75); }
+
+  .nav-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .ns { background: rgba(255,255,255,.06); border-radius: 7px; padding: 10px 8px; text-align: center; }
+  .ns-val { font-size: 1.125rem; font-weight: 700; color: white; }
+  .ns-lbl { font-size: .5625rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 2px; }
+  .obl { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: .8125rem; color: rgba(255,255,255,.7); }
+  .obl:last-child { border-bottom: none; }
+  .obl .obl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ─── FOOTER NAV ─── */
+  .foot { padding: 0 48px 48px; max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .foot a { display: inline-flex; align-items: center; gap: 5px; font-size: .8125rem; color: var(--muted); text-decoration: underline; text-decoration-color: var(--rule-strong); transition: color .15s; }
+  .foot a:hover { color: var(--ds-inkwell); }
+  .foot svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    .hero { padding: 40px 28px 36px; }
+    .mode-wrap { padding: 0 28px; }
+    .body { padding: 36px 28px 100px; }
+    .grid.c3 { grid-template-columns: repeat(2, 1fr); }
+    .option-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    .shell-body { grid-template-columns: 1fr; }
+    .shell-side { display: none; }
+    .foot { padding: 0 28px 36px; }
+  }
+  @media (max-width: 640px) {
+    .grid.c3, .grid.c4 { grid-template-columns: 1fr; }
+    .option-grid.cols-3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+    .wiz-launch-bar { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <a class="masthead" href="/">
+      <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
+    </a>
+    <div class="badge">TGK 2.0 — IAM Storylines</div>
+    <h1>Pick a business function. Pick a vertical.</h1>
+    <div class="hero-cta-row">
+      <img class="headline-chevron" src="/assets/iris/iris-logo-sting.gif" alt="" aria-hidden="true">
+      <span>Launch Demo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODE TABS ═══════════════════════ -->
+<div class="mode-wrap">
+  <div class="mode-wrap-inner">
+    <button class="mode-pill" id="geosModeDiscovery">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      Discovery
+    </button>
+    <button class="mode-pill active" id="geosModeStory">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+      Demo Story
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ BODY ═══════════════════════ -->
+<div class="body">
+
+  <!-- Crumb -->
+  <div class="crumb" id="crumb">
+    <span>Demo Story</span>
+    <button class="restart" id="restart" type="button">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M2 5.5 A3.5 3.5 0 1 0 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M2 1 V3 H4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Restart
+    </button>
+  </div>
+
+  <!-- ═══ STEP 1 — Function ═══ -->
+  <section class="sect" id="step1">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 1</span>
+      <span>Pick a business function</span>
+      <span class="picked-val" id="picked-1"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="grid c3">
+
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Procurement" data-mode="procurement">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7 L12 3 L20 7 L20 17 L12 21 L4 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 7 L12 11 L20 7 M12 11 V21" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div class="ttl">Procurement</div>
+        <div class="sub">Intake, orchestration, supplier &amp; contract lifecycle</div>
+      </div>
+
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Sales" data-mode="sales">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18 L9 13 L13 16 L20 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8 H20 V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="ttl">Sales</div>
+        <div class="sub">Lead-to-cash, CPQ, CRM-driven contracting</div>
+      </div>
+
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Customer Experience" data-mode="b2c">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6 C4 5 5 4 6 4 H18 C19 4 20 5 20 6 V14 C20 15 19 16 18 16 H10 L6 20 V16 H6 C5 16 4 15 4 14 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><circle cx="9" cy="10" r=".9" fill="currentColor"/><circle cx="12" cy="10" r=".9" fill="currentColor"/><circle cx="15" cy="10" r=".9" fill="currentColor"/></svg>
+        <div class="ttl">Customer Experience</div>
+        <div class="sub">Onboarding, maintenance, complex B2C flows</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ STEP 2 — Use case (B2B functions) or inline wizard (CX) ═══ -->
+  <section class="sect locked" id="step2">
+    <div class="sect-label" data-toggle>
+      <span class="step">STEP 2</span>
+      <span id="step2Label">Pick a use case</span>
+      <span class="picked-val" id="picked-2"></span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Procurement use cases -->
+    <div class="uc-list step2-procurement">
+      <a class="uc-row uc-link" href="/flipbooks/DocuSign_CLM_Procurement_Demo_Video_stage.html" data-crumb="Drilling Services MSA">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Drilling Services Master Service Agreement</div>
+          <div class="uc-sub">Black Mesa Energy × Tritan Drilling — five-rig MSA, Permian Basin · CLM-generated, multi-party signed, obligations in the agreement repository</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="uc-row uc-link" href="/flipbooks/Vendor_Agreement_Management_Renewals_Demo.html" data-crumb="Vendor Renewal at Scale">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Vendor Renewal at Scale</div>
+          <div class="uc-sub">Renewal alerts surface 60 days out · the workflow fans out renewal package · AI-Assisted Review flags drift from playbook · obligations + new term land in the agreement repository</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">New Supplier Onboarding (Intake &amp; Orchestration)</div>
+          <div class="uc-sub">Web Form captures supplier docs · Workflow Builder routes review · AI-Assisted Review checks playbook · sign · onboarding complete</div>
+        </div>
+        <span class="ready-pill muted">Sketched</span>
+      </div>
+    </div>
+
+    <!-- Sales use cases -->
+    <div class="uc-list step2-sales hidden" style="display:none">
+      <a class="uc-row uc-link" href="/flipbooks/IAM_for_Sales_and_Agentforce_Demo_stage.html" data-crumb="Agentforce-Driven Close">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Agentforce-Driven Close (NDA → MSA → Renewal)</div>
+          <div class="uc-sub">Mary at Ventura × Stellar Logical — Agentforce auto-sends pre-filled NDA · CRM-launched MSA · AI-Assisted Review on customer redlines · renewal surfaces 11 months later</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">CPQ-to-Sign with Playbook Guardrails</div>
+          <div class="uc-sub">Quote configures in CPQ · CLM generates from approved template · AI flags non-standard terms · deal desk approves · agreement repository captures committed terms</div>
+        </div>
+        <span class="ready-pill muted">Future</span>
+      </div>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Channel Partner Agreement</div>
+          <div class="uc-sub">Reseller/distributor terms generate from template · multi-party signing · partner portal access · Workspaces for ongoing collab</div>
+        </div>
+        <span class="ready-pill muted">Future</span>
+      </div>
+    </div>
+
+    <!-- CX — inline vertical wizard (replaces handoff to index-unified) -->
+    <div class="step2-b2c" id="cx-wizard" style="display:none">
+
+      <!-- Mode toggle for the wizard half -->
+      <div class="cx-mode-bar" style="margin-bottom:24px">
+        <button class="cx-mode-pill active" id="wizPillStory">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          Demo Story
+        </button>
+        <button class="cx-mode-pill" id="wizPillDiscovery">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Discovery
+        </button>
+      </div>
+
+      <!-- Wiz back + breadcrumb -->
+      <div class="wiz-back-row">
+        <button class="wiz-back" id="wizBack" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <div class="wiz-crumb" id="wizCrumb"></div>
+      </div>
+
+      <!-- Stage 1: Cluster/Vertical -->
+      <div class="wiz-section" id="wizStage1">
+        <div class="wiz-label"><span class="step-pill">01</span> Vertical</div>
+        <div class="option-grid cols-3" id="verticalGrid"></div>
+      </div>
+
+      <!-- Stage 2: Subvertical -->
+      <div class="wiz-section" id="wizStage2" style="display:none">
+        <div class="wiz-label"><span class="step-pill">02</span> Subvertical</div>
+        <div class="option-grid cols-3" id="subverticalGrid"></div>
+      </div>
+
+      <!-- Stage 3: Category -->
+      <div class="wiz-section" id="wizStage3" style="display:none">
+        <div class="wiz-label"><span class="step-pill">03</span> Category</div>
+        <div class="option-grid cols-3" id="categoryGrid"></div>
+      </div>
+
+      <!-- Stage 4: Use case -->
+      <div class="wiz-section" id="wizStage4" style="display:none">
+        <div class="wiz-label"><span class="step-pill">04</span> Use case</div>
+        <div id="useCaseGrid"></div>
+      </div>
+
+      <!-- Launch bar -->
+      <div class="wiz-launch-bar" id="wizLaunchBar">
+        <div class="wiz-launch-crumb" id="wizLaunchCrumb">Select a use case above</div>
+        <button class="wiz-launch-btn" id="wizLaunchBtn" disabled onclick="wizLaunch()">Launch Demo &rarr;</button>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ═══ STORY BAND — Oil & Gas ═══ -->
+  <section class="story-band locked" id="story">
+    <div class="story-eyebrow">Oil &amp; Gas × Procurement</div>
+    <h2 class="story-head">From contract authored in CLM to obligations live in the agreement repository — one MSA, three Docusign moments.</h2>
+
+    <div class="cust-ribbon">
+      <div class="c-mark">BM</div>
+      <div class="c-meta">
+        <div class="c-ttl">Black Mesa Energy &nbsp;×&nbsp; Tritan Drilling Services</div>
+        <div class="c-sub">Five-rig Master Service Agreement · Permian Basin (Wolfcamp / Bone Spring) · 36-month term, day-rate + footage, $84M ceiling</div>
+      </div>
+      <div class="c-tags">
+        <span class="c-tag">SoR · Coupa</span>
+        <span class="c-tag">Function · Procurement</span>
+        <span class="c-tag">Industry · Oil &amp; Gas</span>
+      </div>
+    </div>
+
+    <div class="shell-window" id="storyStage">
+      <div class="shell-topbar">
+        <div class="shell-tenant">
+          <span class="mark"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/></svg></span>
+          <span class="wm">Black Mesa Energy</span>
+          <span class="sub">Drilling Services MSA · Procurement</span>
+        </div>
+        <div class="sp"></div>
+        <div class="shell-tabs" id="sceneRail">
+          <span class="tab on" data-jump="1">clm</span>
+          <span class="tab" data-jump="2">agreement desk</span>
+          <span class="tab" data-jump="3">navigator</span>
+        </div>
+        <div class="shell-vchip">Oil &amp; Gas</div>
+      </div>
+      <div class="shell-body">
+        <aside class="shell-side" id="shellSide">
+          <a class="shell-brand" href="/" title="Back to picker" aria-label="Back to picker">
+            <svg viewBox="0 0 96 96" fill="none" aria-hidden="true"><path d="M69.15 69.15V93.6c0 1.35-1.05 2.4-2.4 2.4H2.4C1.05 96 0 94.95 0 93.6V29.25c0-1.35 1.05-2.4 2.4-2.4h24.45V66.6c0 1.35 1.05 2.4 2.4 2.4l39.9.15Z" fill="#4C00FF"/><path d="M96 34.5C96 55.2 84 69 69.15 69.15V43.2c0-.75-.3-1.5-.9-1.95L54.75 27.75c-.45-.45-1.2-.9-1.95-.9H26.85V2.4C26.85 1.05 27.9 0 29.25 0h36.3C82.8 0 96 13.95 96 34.5Z" fill="#FF5252"/><path d="M68.25 41.1c.45.45.9 1.2.9 1.95V69.15L29.25 69c-1.35 0-2.4-1.05-2.4-2.4V26.85h25.95c.75 0 1.5.3 1.95.9L68.25 41.1Z" fill="black"/></svg>
+          </a>
+          <div class="shell-step-label" id="sceneSideNum">SCENE 1 OF 3</div>
+          <div style="font-size:.7rem;font-weight:600;color:rgba(255,255,255,.35);margin-bottom:2px" id="sceneSideProduct">contract management</div>
+          <div class="shell-beat-h" id="beatHeadline">Pre-approved playbook.</div>
+          <div class="shell-beat-p" id="beatBody">MSA assembles from clauses owned by Legal — no off-template language, no surprises in redline.</div>
+          <div class="shell-nav">
+            <button class="shell-nav-btn" id="prevBtn">&#8592; Prev</button>
+            <button class="shell-nav-btn" id="nextBtn">Next &#8594;</button>
+          </div>
+        </aside>
+        <div class="shell-main">
+          <!-- Scene 1: CLM -->
+          <div class="scene-pane active" id="pane-1">
+            <div class="clm-header">Contract Management · Template Library</div>
+            <div class="clm-doc">
+              <div class="clm-title">Drilling Services Master Service Agreement — Permian Basin (Wolfcamp / Bone Spring)</div>
+              <div class="clm-line clm-template"><span class="badge-sm green">Playbook</span> Governing Law &amp; Jurisdiction — Texas, Harris County</div>
+              <div class="clm-line"><span class="badge-sm blue">Standard</span> Indemnification — mutual, capped at contract value</div>
+              <div class="clm-line field"><span class="badge-sm amber">Conditional</span> Sour-Gas Operations — H₂S monitoring, SCBA protocol (Permian only)</div>
+              <div class="clm-line field"><span class="badge-sm amber">Conditional</span> Flowback Management — pit liner spec, produced-water disposal (Permian only)</div>
+              <div class="clm-line"><span class="badge-sm blue">Standard</span> Insurance — $10M GL, $5M auto, workers comp statutory</div>
+              <div class="coupa-frame"><div class="coupa-lbl">Coupa Supplier Record</div>Tritan Drilling Services · Tier 2 · W-9 ✓ · COI ✓ · HSE Rating: 94/100</div>
+            </div>
+          </div>
+          <!-- Scene 2: Agreement Desk -->
+          <div class="scene-pane" id="pane-2">
+            <div class="clm-header">Agreement Desk · Routing &amp; Execution</div>
+            <div style="padding:0 4px">
+              <div class="recip"><div class="r-avatar">SM</div><div class="r-name">Sarah Mitchell <span class="r-role">· VP Legal, Black Mesa</span></div><div class="r-status done">Signed</div></div>
+              <div class="recip"><div class="r-avatar">RP</div><div class="r-name">Raj Patel <span class="r-role">· Procurement Manager, BM</span></div><div class="r-status done">Approved</div></div>
+              <div class="recip"><div class="r-avatar">JC</div><div class="r-name">Jess Crowley <span class="r-role">· VP Operations, Tritan</span></div><div class="r-status review">Redlines</div></div>
+              <div class="recip"><div class="r-avatar">TW</div><div class="r-name">Tom Walsh <span class="r-role">· Legal, Tritan</span></div><div class="r-status pending">Pending</div></div>
+              <div class="recip"><div class="r-avatar">KD</div><div class="r-name">Karen Davis <span class="r-role">· VP D&amp;C, Black Mesa</span></div><div class="r-status pending">Pending</div></div>
+              <div class="ad-route">On final signature → Agreement Repository · Auto-tagged: MSA · Permian · Day-Rate · $84M ceiling</div>
+            </div>
+          </div>
+          <!-- Scene 3: Navigator -->
+          <div class="scene-pane" id="pane-3">
+            <div class="clm-header">Agreement Repository · Obligation Management</div>
+            <div class="nav-stats">
+              <div class="ns"><div class="ns-val">42</div><div class="ns-lbl">Obligations</div></div>
+              <div class="ns"><div class="ns-val">8</div><div class="ns-lbl">Renewals</div></div>
+              <div class="ns"><div class="ns-val">3</div><div class="ns-lbl">Risk Flags</div></div>
+              <div class="ns"><div class="ns-val">36mo</div><div class="ns-lbl">Term</div></div>
+            </div>
+            <div class="obl"><div class="obl-dot" style="background:var(--ds-mint)"></div>COI Renewal — Tritan · Due 2026-07-01 → Task in Coupa</div>
+            <div class="obl"><div class="obl-dot" style="background:var(--ds-mint)"></div>Day-Rate Index Review — WTI quarterly · Auto-alert on 5% drift</div>
+            <div class="obl"><div class="obl-dot" style="background:#FCD34D"></div>HSE Attestation — Annual · Next due 2026-09-15</div>
+            <div class="obl"><div class="obl-dot" style="background:#FCA5A5"></div>Sour-Gas Force Majeure Carve-out — Annual review · Risk flag</div>
+            <div class="obl"><div class="obl-dot" style="background:var(--ds-mint)"></div>Performance Bond — Auto-release on Milestone-3 acceptance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /body -->
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<div class="foot">
+  <a href="/architecture.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h12M3 6h10M4 9h8M5 12h6"/></svg>Architecture</a>
+  <a href="/builder.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M8 3v10"/><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>Builder</a>
+  <a href="/audit.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l3 3v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M5 8h6M5 11h4"/></svg>Audit</a>
+  <a href="/admin/"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="8" r="3"/><path d="M9 8h6M13 8v3M11 8v2"/></svg>Admin</a>
+</div>
+
+<!-- Coming-soon modal -->
+<div class="cs-modal-overlay" id="csModalOverlay" role="dialog" aria-modal="true">
+  <div class="cs-modal">
+    <h3>Coming soon</h3>
+    <p id="csModalCrumb" style="color:var(--ds-cobalt);font-weight:600;margin-bottom:8px"></p>
+    <p>This Demo Story flow isn't wired up yet. Switch to Discovery mode to explore the current-state vs. future-state process map.</p>
+    <div class="cs-modal-actions">
+      <button class="cs-btn secondary" id="csModalClose">Close</button>
+      <button class="cs-btn primary" id="csModalSwitch">Switch to Discovery</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════ CATALOG ═══════════════════════ -->
+<script id="catalog-data" type="application/json">
+{
+  "financial-services": {
+    "title": "Financial Services",
+    "subtitle": "Banking, wealth, insurance",
+    "subverticals": {
+      "wealth": {
+        "title": "Wealth Management",
+        "subtitle": "Advisors & investors",
+        "useCases": [
+          {
+            "title": "Wealth Management Onboarding",
+            "subtitle": "Hillside \u00d7 Aster Capital \u2014 institutional new-client onboarding",
+            "discoveryUrl": "wealth-onboarding.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth",
+            "storyMap": {
+              "vertical": "wealth",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Wealth Management",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth",
+            "storyMap": {
+              "vertical": "wealth"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for wealth"
+          },
+          {
+            "title": "Advisor-Led Discovery Onboarding",
+            "subtitle": "Cypress Wealth \u00d7 Holcomb Family \u2014 IRA rollover + family trust + CLM",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery",
+            "storyMap": {
+              "vertical": "wealth-discovery",
+              "workflow": "discovery"
+            },
+            "category": "onboarding",
+            "archetype": "advisor-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Advisor-Led Discovery",
+            "archetype": "advisor-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery",
+            "storyMap": {
+              "vertical": "wealth-discovery"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for wealth-discovery"
+          },
+          {
+            "title": "Account Maintenance",
+            "subtitle": "Hillside \u00d7 Aster Capital \u2014 authorized-signer roster update",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth&usecase=maintenance",
+            "storyMap": {
+              "vertical": "wealth",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Advisor-Led Account Maintenance",
+            "subtitle": "Cypress Wealth \u00d7 Holcomb Family \u2014 IRA beneficiary update",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery&usecase=maintenance",
+            "storyMap": {
+              "vertical": "wealth-discovery",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "advisor-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Fraud / Risk Management",
+            "subtitle": "Hillside \u00d7 Aster Capital \u2014 high-value wire \u00b7 identity verification at entry + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "wealth",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Advisor-Led Fraud / Risk Management",
+            "subtitle": "Cypress Wealth \u00d7 Holcomb Family \u2014 high-value IRA rollover \u00b7 identity verification at entry + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=wealth-discovery&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "wealth-discovery",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "advisor-led",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "banking": {
+        "title": "Banking / CU",
+        "subtitle": "Retail & commercial",
+        "useCases": [
+          {
+            "title": "Commercial Lending \u2014 Working Capital Facility",
+            "subtitle": "Meridian \u00d7 Atlas Manufacturing \u2014 $2.5M facility origination",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking",
+            "storyMap": {
+              "vertical": "banking",
+              "workflow": "lending"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Commercial Lending \u2014 Working Capital Facility",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking",
+            "storyMap": {
+              "vertical": "banking"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for banking"
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Retail Deposit Account Opening",
+            "archetype": "triggered",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits",
+            "storyMap": {
+              "vertical": "banking-deposits"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for banking-deposits"
+          },
+          {
+            "title": "Retail Deposit Account Opening",
+            "subtitle": "Cedar Federal \u00d7 Williams household \u2014 joint checking + high-yield savings",
+            "discoveryUrl": "banking-deposits.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits",
+            "storyMap": {
+              "vertical": "banking-deposits",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "triggered",
+            "storyImplemented": true
+          },
+          {
+            "title": "Account Maintenance",
+            "subtitle": "Cedar Federal \u00d7 Williams Household \u2014 joint-account beneficiary update",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits&usecase=maintenance",
+            "storyMap": {
+              "vertical": "banking-deposits",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Fraud / Risk Management",
+            "subtitle": "Cedar Federal \u00d7 Williams Household \u2014 high-value wire \u00b7 identity verification at entry + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking-deposits&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "banking-deposits",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Commercial Fraud / Risk Management",
+            "subtitle": "Meridian \u00d7 Atlas Manufacturing \u2014 $850k working-capital draw \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "banking",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Commercial Account Maintenance",
+            "subtitle": "Meridian \u00d7 Atlas Manufacturing \u2014 authorized-signer roster update (add COO)",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=banking&usecase=maintenance",
+            "storyMap": {
+              "vertical": "banking",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "insurance": {
+        "title": "Insurance",
+        "subtitle": "Carriers & agents \u2014 HO, P&C, Life",
+        "useCases": [
+          {
+            "title": "Homeowners Insurance Policy Binding",
+            "subtitle": "Sentinel \u00d7 Ramirez Family \u2014 HO3 binder",
+            "discoveryUrl": "insurance-pc.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance",
+            "storyMap": {
+              "vertical": "insurance",
+              "workflow": "binding"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Homeowners Insurance Policy Binding",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance",
+            "storyMap": {
+              "vertical": "insurance"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for insurance"
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Life Insurance \u2014 Death Claim",
+            "archetype": "inbound",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-life",
+            "storyMap": {
+              "vertical": "insurance-life"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for insurance-life"
+          },
+          {
+            "title": "Life Insurance \u2014 Death Claim",
+            "subtitle": "Beacon Mutual \u00d7 Whitfield Family \u2014 $750k whole-life death claim",
+            "discoveryUrl": "insurance-life.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-life",
+            "storyMap": {
+              "vertical": "insurance-life",
+              "workflow": "claims"
+            },
+            "category": "onboarding",
+            "archetype": "inbound",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 P&C Commercial Auto FNOL",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-pc",
+            "storyMap": {
+              "vertical": "insurance-pc"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for insurance-pc"
+          },
+          {
+            "title": "P&C Commercial Auto FNOL",
+            "subtitle": "Northgate Mutual \u00d7 Patel Logistics \u2014 Class-7 box truck FNOL",
+            "discoveryUrl": "insurance-pc.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-pc",
+            "storyMap": {
+              "vertical": "insurance-pc",
+              "workflow": "fnol"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "HO3 Account Maintenance",
+            "subtitle": "Sentinel \u00d7 Ramirez Family \u2014 address update + mortgagee refresh after move",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance&usecase=maintenance",
+            "storyMap": {
+              "vertical": "insurance",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Life Claims Account Maintenance",
+            "subtitle": "Beacon Mutual \u00d7 Whitfield Family \u2014 contingent beneficiary update",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-life&usecase=maintenance",
+            "storyMap": {
+              "vertical": "insurance-life",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "P&C Account Maintenance",
+            "subtitle": "Northgate Mutual \u00d7 Patel Logistics \u2014 fleet vehicle replacement",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-pc&usecase=maintenance",
+            "storyMap": {
+              "vertical": "insurance-pc",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "HO3 Fraud / Risk Management",
+            "subtitle": "Sentinel \u00d7 Ramirez Family \u2014 mid-policy deductible change \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "insurance",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Life Claims Fraud / Risk Management",
+            "subtitle": "Beacon Mutual \u00d7 Whitfield Family \u2014 post-claim payment redirect \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-life&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "insurance-life",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "P&C Fraud / Risk Management",
+            "subtitle": "Northgate Mutual \u00d7 Patel Logistics \u2014 supplemental damage evidence upload \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=insurance-pc&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "insurance-pc",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      }
+    }
+  },
+  "hls": {
+    "title": "Healthcare & Life Sciences",
+    "subtitle": "Pharma, payer, provider",
+    "subverticals": {
+      "life-sciences": {
+        "title": "Life Sciences",
+        "subtitle": "Pharma, biotech, medical devices",
+        "useCases": [
+          {
+            "title": "Clinical Trial Site Activation",
+            "subtitle": "Helix \u00d7 Austin Research Clinic \u2014 site activation for HX-2104",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=lifesciences",
+            "storyMap": {
+              "vertical": "lifesciences",
+              "workflow": "site-activation"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Clinical Trial Site Activation",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=lifesciences",
+            "storyMap": {
+              "vertical": "lifesciences"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for lifesciences"
+          },
+          {
+            "title": "Patient Support Program Enrollment",
+            "subtitle": "PSP design through nurse educator support & adherence",
+            "discoveryUrl": "hls-discovery-process-map.html",
+            "category": "onboarding",
+            "archetype": "self-service"
+          },
+          {
+            "title": "Clinical Trial Site Activation (component-level demo)",
+            "subtitle": "Site selection through activation with the shared workspace",
+            "storyUrl": "components/future-state/docusign-hls-clinical-trial-site-activation-demo.html",
+            "category": "onboarding",
+            "archetype": "advisor-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Fraud / Risk Management",
+            "subtitle": "Helix \u00d7 Austin Research Clinic \u2014 mid-trial Serious Adverse Event report \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=lifesciences&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "lifesciences",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Site Account Maintenance",
+            "subtitle": "Helix \u00d7 Austin Research Clinic \u2014 sub-investigator addition mid-trial",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=lifesciences&usecase=maintenance",
+            "storyMap": {
+              "vertical": "lifesciences",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "providers": {
+        "title": "Providers",
+        "subtitle": "Hospitals, health systems, physician groups",
+        "useCases": [
+          {
+            "title": "New Patient Onboarding",
+            "subtitle": "Riverside \u00d7 Jordan Kim \u2014 new patient intake",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider",
+            "storyMap": {
+              "vertical": "provider",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 New Patient",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider",
+            "storyMap": {
+              "vertical": "provider"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for provider"
+          },
+          {
+            "title": "Release of Information",
+            "subtitle": "Catalina Medical \u00d7 Eric Tan \u2014 records release to Silver Mountain Disability",
+            "discoveryUrl": "hls-roi.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider-roi",
+            "storyMap": {
+              "vertical": "provider-roi",
+              "workflow": "roi"
+            },
+            "category": "maintenance",
+            "archetype": "inbound",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Release of Information",
+            "archetype": "inbound",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider-roi",
+            "storyMap": {
+              "vertical": "provider-roi"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for provider-roi"
+          },
+          {
+            "title": "Provider Credentialing (component-level demo)",
+            "subtitle": "Credentialing, privileging, and re-credentialing with the shared workspace",
+            "storyUrl": "components/future-state/docusign-hls-provider-credentialing-demo.html",
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Patient Fraud / Risk Management",
+            "subtitle": "Riverside \u00d7 Jordan Kim \u2014 Schedule II refill request \u00b7 DEA-grade identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "provider",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Records Release Fraud / Risk",
+            "subtitle": "Catalina \u00d7 Eric Tan \u2014 revoke or modify ROI scope mid-release \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider-roi&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "provider-roi",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Patient Account Maintenance",
+            "subtitle": "Riverside \u00d7 Jordan Kim \u2014 insurance card update after plan change",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=provider&usecase=maintenance",
+            "storyMap": {
+              "vertical": "provider",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "payers": {
+        "title": "Payers",
+        "subtitle": "Health plans & administrators",
+        "useCases": [
+          {
+            "title": "Member Enrollment",
+            "subtitle": "Unity \u00d7 Marcus Chen \u2014 Silver HMO enrollment",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=payor",
+            "storyMap": {
+              "vertical": "payor",
+              "workflow": "enrollment"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Member",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=payor",
+            "storyMap": {
+              "vertical": "payor"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for payor"
+          },
+          {
+            "title": "Member Fraud / Risk Management",
+            "subtitle": "Unity \u00d7 Marcus Chen \u2014 prior-auth request for specialty drug \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=payor&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "payor",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Member Account Maintenance",
+            "subtitle": "Unity \u00d7 Marcus Chen \u2014 PCP change request after move",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=payor&usecase=maintenance",
+            "storyMap": {
+              "vertical": "payor",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      }
+    }
+  },
+  "public-sector": {
+    "title": "Public Sector",
+    "subtitle": "Federal, state & local, education, nonprofit",
+    "subverticals": {
+      "federal": {
+        "title": "Federal",
+        "subtitle": "Federal agencies & programs",
+        "useCases": [
+          {
+            "title": "Unemployment Insurance Claim",
+            "subtitle": "DOL \u00d7 Taylor Nguyen \u2014 UI claim adjudication",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=fedgov",
+            "storyMap": {
+              "vertical": "fedgov",
+              "workflow": "claim"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Unemployment Insurance Claim",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=fedgov",
+            "storyMap": {
+              "vertical": "fedgov"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for fedgov"
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 for Benefits",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits",
+            "storyMap": {
+              "vertical": "slgov-benefits"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-benefits"
+          },
+          {
+            "title": "Application for Benefits",
+            "subtitle": "VA, Medicare, federal benefit program intake",
+            "discoveryUrl": "public-sector-benefits.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits",
+            "storyMap": {
+              "vertical": "slgov-benefits",
+              "workflow": "benefits"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Government Employee Onboarding",
+            "subtitle": "Federal HR hire-to-badge flow",
+            "discoveryUrl": "public-sector-employee-onboarding.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding",
+            "storyMap": {
+              "vertical": "slgov-employee-onboarding",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Government Employee",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding",
+            "storyMap": {
+              "vertical": "slgov-employee-onboarding"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-employee-onboarding"
+          },
+          {
+            "title": "Vendor Compliance Intake",
+            "subtitle": "Federal procurement, FedRAMP, certifications",
+            "discoveryUrl": "public-sector-vendor-compliance.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance",
+            "storyMap": {
+              "vertical": "slgov-vendor-compliance",
+              "workflow": "vendor"
+            },
+            "category": "maintenance",
+            "archetype": "triggered",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Vendor Compliance Intake",
+            "archetype": "triggered",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance",
+            "storyMap": {
+              "vertical": "slgov-vendor-compliance"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-vendor-compliance"
+          },
+          {
+            "title": "Application for Benefits (component-level demo)",
+            "subtitle": "Citizen-side benefits demo with the shared workspace",
+            "storyUrl": "components/future-state/docusign-pubsec-citizen-benefits-demo.html",
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Government Employee Onboarding (component-level demo)",
+            "subtitle": "Federal HR onboarding demo with the shared workspace",
+            "storyUrl": "components/future-state/docusign-pubsec-federal-onboarding-demo.html",
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "UI Claim Fraud / Risk Management",
+            "subtitle": "DOL \u00d7 Taylor Nguyen \u2014 weekly availability certification \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=fedgov&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "fedgov",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "UI Claim Account Maintenance",
+            "subtitle": "DOL \u00d7 Taylor Nguyen \u2014 direct-deposit account change mid-claim",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=fedgov&usecase=maintenance",
+            "storyMap": {
+              "vertical": "fedgov",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "state-local": {
+        "title": "State & Local",
+        "subtitle": "States, counties, cities",
+        "useCases": [
+          {
+            "title": "Residential Building Permit",
+            "subtitle": "Springfield \u00d7 1420 Oak Street \u2014 residential building permit",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov",
+            "storyMap": {
+              "vertical": "slgov",
+              "workflow": "permit"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Residential Building Permit",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov",
+            "storyMap": {
+              "vertical": "slgov"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov"
+          },
+          {
+            "title": "Application for Benefits",
+            "subtitle": "Eastside HHS \u00d7 Rivera Family \u2014 SNAP application",
+            "discoveryUrl": "public-sector-benefits.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits",
+            "storyMap": {
+              "vertical": "slgov-benefits",
+              "workflow": "benefits"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Annual Eligibility Recertification",
+            "subtitle": "Cascade Medicaid \u00d7 Diane Park \u2014 annual recert",
+            "discoveryUrl": "public-sector-recertification.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-recertification",
+            "storyMap": {
+              "vertical": "slgov-recertification",
+              "workflow": "recert"
+            },
+            "category": "maintenance",
+            "archetype": "triggered",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Annual Eligibility Recertification",
+            "archetype": "triggered",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-recertification",
+            "storyMap": {
+              "vertical": "slgov-recertification"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-recertification"
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Commercial License & Permit",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-licensing",
+            "storyMap": {
+              "vertical": "slgov-licensing"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-licensing"
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 311 Citizen Reporting & Field Inspection",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-311",
+            "storyMap": {
+              "vertical": "slgov-311"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for slgov-311"
+          },
+          {
+            "title": "Commercial License & Permit",
+            "subtitle": "Northbrook Licensing \u00d7 Avalon Caf\u00e9 \u2014 restaurant license",
+            "discoveryUrl": "public-sector-licensing.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-licensing",
+            "storyMap": {
+              "vertical": "slgov-licensing",
+              "workflow": "licensing"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "311 Citizen Reporting & Field Inspection",
+            "subtitle": "Greenhaven Public Works \u00d7 1124 Cedar Ave \u2014 pothole report",
+            "discoveryUrl": "public-sector-311.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-311",
+            "storyMap": {
+              "vertical": "slgov-311",
+              "workflow": "311"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Government Employee Onboarding",
+            "subtitle": "Cascade County HR \u00d7 Marcus Lee \u2014 new caseworker",
+            "discoveryUrl": "public-sector-employee-onboarding.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding",
+            "storyMap": {
+              "vertical": "slgov-employee-onboarding",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Vendor Compliance Intake",
+            "subtitle": "Ridgeview Procurement \u00d7 Apex Logistics \u2014 annual COI recert",
+            "discoveryUrl": "public-sector-vendor-compliance.html",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance",
+            "storyMap": {
+              "vertical": "slgov-vendor-compliance",
+              "workflow": "vendor"
+            },
+            "category": "maintenance",
+            "archetype": "triggered",
+            "storyImplemented": true
+          },
+          {
+            "title": "Permit Account Maintenance",
+            "subtitle": "Springfield \u00d7 1420 Oak \u2014 permit modification request mid-construction (dormer add)",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov&usecase=maintenance",
+            "storyMap": {
+              "vertical": "slgov",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Licensing Account Maintenance",
+            "subtitle": "Northbrook \u00d7 Avalon Caf\u00e9 \u2014 outdoor seating amendment to existing license",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-licensing&usecase=maintenance",
+            "storyMap": {
+              "vertical": "slgov-licensing",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Permit Fraud / Risk Management",
+            "subtitle": "Springfield \u00d7 Marissa Rivera \u2014 permit modification request \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "311 Fraud / Risk Management",
+            "subtitle": "Greenhaven \u00d7 Maria Cortez \u2014 citizen follow-up + light-touch step-up \u00b7 chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-311&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-311",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Benefits Fraud / Risk Management",
+            "subtitle": "Eastside HHS \u00d7 Yolanda Rivera \u2014 household composition change \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-benefits",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Recertification Fraud / Risk Management",
+            "subtitle": "Cascade Medicaid \u00d7 Diane Park \u2014 mid-year change of circumstance \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-recertification&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-recertification",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Vendor Fraud / Risk Management",
+            "subtitle": "Ridgeview \u00d7 Apex Logistics \u2014 mid-year compliance certificate upload \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-vendor-compliance&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-vendor-compliance",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Employee Onboarding Fraud / Risk Management",
+            "subtitle": "Cascade County \u00d7 Marcus Lee \u2014 pre-Day-1 I-9 document upload \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-employee-onboarding",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Licensing Fraud / Risk Management",
+            "subtitle": "Northbrook \u00d7 Avalon Caf\u00e9 \u2014 annual renewal + outdoor seating amendment \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-licensing&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "slgov-licensing",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "311 Account Maintenance",
+            "subtitle": "Greenhaven \u00d7 Maria Cortez \u2014 edit-in-progress on existing service request",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-311&usecase=maintenance",
+            "storyMap": {
+              "vertical": "slgov-311",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Benefits Account Maintenance",
+            "subtitle": "Eastside HHS \u00d7 Yolanda Rivera \u2014 EBT card replacement after loss (virtual + physical)",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-benefits&usecase=maintenance",
+            "storyMap": {
+              "vertical": "slgov-benefits",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Employee Account Maintenance",
+            "subtitle": "Cascade County \u00d7 Marcus Lee \u2014 life-event benefits change (birth of child)",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=slgov-employee-onboarding&usecase=maintenance",
+            "storyMap": {
+              "vertical": "slgov-employee-onboarding",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "education": {
+        "title": "Education",
+        "subtitle": "K-12, higher-ed, research institutions",
+        "useCases": [
+          {
+            "title": "Student Onboarding",
+            "subtitle": "Maple Ridge University \u00d7 Priya Shah \u2014 Fall 2026 onboarding",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=education",
+            "storyMap": {
+              "vertical": "education",
+              "workflow": "onboarding"
+            },
+            "category": "onboarding",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Student",
+            "archetype": "self-service",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=education",
+            "storyMap": {
+              "vertical": "education"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for education"
+          },
+          {
+            "title": "Student Records Fraud / Risk Management",
+            "subtitle": "Maple Ridge \u00d7 Priya Shah \u2014 official transcript release authorization (FERPA) \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=education&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "education",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Student Account Maintenance",
+            "subtitle": "Maple Ridge \u00d7 Priya Shah \u2014 address + emergency contact update after move",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=education&usecase=maintenance",
+            "storyMap": {
+              "vertical": "education",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "self-service",
+            "storyImplemented": true
+          }
+        ]
+      },
+      "nonprofit": {
+        "title": "Nonprofit",
+        "subtitle": "Foundations, grantees, advocacy organizations",
+        "useCases": [
+          {
+            "title": "Grantee Onboarding",
+            "subtitle": "Harbor Foundation \u00d7 Safe Streets Initiative \u2014 $120k operating grant",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=nonprofit",
+            "storyMap": {
+              "vertical": "nonprofit",
+              "workflow": "grantee"
+            },
+            "category": "onboarding",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "category": "workspaces",
+            "title": "Workspaces \u2014 Grantee",
+            "archetype": "sender-led",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=nonprofit",
+            "storyMap": {
+              "vertical": "nonprofit"
+            },
+            "thumbnail": "",
+            "description": "Workspace collaboration for nonprofit"
+          },
+          {
+            "title": "Grantee Fraud / Risk Management",
+            "subtitle": "Harbor \u00d7 Safe Streets \u2014 quarterly grant drawdown request \u00b7 identity verification step-up + chain of custody",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=nonprofit&usecase=auth-fabric",
+            "storyMap": {
+              "vertical": "nonprofit",
+              "workflow": "fraud"
+            },
+            "category": "auth",
+            "archetype": "self-service",
+            "storyImplemented": true
+          },
+          {
+            "title": "Grantee Account Maintenance",
+            "subtitle": "Harbor \u00d7 Safe Streets \u2014 mid-grant budget reallocation ($8k personnel \u2192 programs)",
+            "storyUrl": "/stories/_shared/story-shell.html?vertical=nonprofit&usecase=maintenance",
+            "storyMap": {
+              "vertical": "nonprofit",
+              "workflow": "maintenance"
+            },
+            "category": "maintenance",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          }
+        ]
+      }
+    }
+  }
+}
+</script>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="/assets/wizard/wizard.js"></script>
+<script>
+(function () {
+'use strict';
+
+// ─── CATALOG ───
+const CATALOG = JSON.parse(document.getElementById('catalog-data').textContent);
+
+// ─── HEADLESS PORTALS ───
+const HEADLESS_PORTALS = {
+  'financial-services': { slug: 'fins', tenant: 'TGK Capital — Advisor Portal',        role: 'Patrick Meyer, CFA · Wealth Manager' },
+  'hls':                { slug: 'hls',  tenant: 'Riverside Health Network — Epic',     role: 'Dr. Marcus Chen · Clinical Operations' },
+  'public-sector':      { slug: 'ps',   tenant: 'Cascade County — Caseworker Desktop', role: 'Marcus Lee · Sr. Caseworker' }
+};
+
+const CLUSTER_TO_VERTICAL = { fins: 'financial-services', hls: 'hls', ps: 'public-sector', pubsec: 'public-sector' };
+
+const CATEGORY_LABELS    = { onboarding:'Onboarding', maintenance:'Maintenance', auth:'Fraud Fabric', workspaces:'Workspaces', headless:'Headless IAM', other:'Other' };
+const CATEGORY_SUBTITLES = { onboarding:'New customer / new relationship onboarding', maintenance:'Customer-initiated change in the authenticated portal', auth:'Identity verification-at-the-door + chain-of-custody binding', workspaces:'Multi-party persistent collaboration surface', headless:'Tenant-branded employee desktop with embedded IAM moments', other:'Adjacent flows' };
+const CATEGORY_ORDER     = ['onboarding','maintenance','auth','workspaces','other','headless'];
+
+// ─── STATE ───
+const wiz = { mode: 'story', vertical: null, subvertical: null, category: null, useCase: null, stage: 1 };
+
+// ─── DOM REFS ───
+const verticalGrid   = document.getElementById('verticalGrid');
+const subvertGrid    = document.getElementById('subverticalGrid');
+const categoryGrid   = document.getElementById('categoryGrid');
+const useCaseGrid    = document.getElementById('useCaseGrid');
+const wizBack        = document.getElementById('wizBack');
+const wizCrumb       = document.getElementById('wizCrumb');
+const wizLaunchBar   = document.getElementById('wizLaunchBar');
+const wizLaunchBtn   = document.getElementById('wizLaunchBtn');
+const wizLaunchCrumb = document.getElementById('wizLaunchCrumb');
+const wizPillStory   = document.getElementById('wizPillStory');
+const wizPillDisc    = document.getElementById('wizPillDiscovery');
+const csModal        = document.getElementById('csModalOverlay');
+const csModalCrumb   = document.getElementById('csModalCrumb');
+const csModalClose   = document.getElementById('csModalClose');
+const csModalSwitch  = document.getElementById('csModalSwitch');
+
+// Wizard stage divs
+const stageEls = {
+  1: document.getElementById('wizStage1'),
+  2: document.getElementById('wizStage2'),
+  3: document.getElementById('wizStage3'),
+  4: document.getElementById('wizStage4'),
+};
+
+// ─── WIZARD STAGE MANAGEMENT ───
+function setWizStage(n) {
+  wiz.stage = n;
+  Object.entries(stageEls).forEach(([k, el]) => {
+    el.style.display = Number(k) <= n ? 'block' : 'none';
+  });
+  wizBack.classList.toggle('visible', n > 1);
+  updateWizCrumb();
+  updateLaunchBar();
+}
+
+// ─── MODE ───
+function setWizMode(mode) {
+  wiz.mode = mode;
+  wizPillStory.classList.toggle('active', mode === 'story');
+  wizPillDisc.classList.toggle('active', mode === 'discovery');
+  // Re-render use cases if we're at stage 4
+  if (wiz.stage === 4 && wiz.vertical && wiz.subvertical && wiz.category) {
+    renderUseCases(wiz.vertical, wiz.subvertical, wiz.category);
+    if (wiz.useCase !== null) {
+      const card = useCaseGrid.querySelector(`.usecase-card[data-index="${wiz.useCase}"]`);
+      if (card) card.classList.add('selected');
+    }
+  }
+  updateLaunchBar();
+}
+wizPillStory.addEventListener('click', () => setWizMode('story'));
+wizPillDisc.addEventListener('click',  () => setWizMode('discovery'));
+
+// ─── RENDER VERTICAL CARDS ───
+Object.entries(CATALOG).forEach(([key, v]) => {
+  const card = document.createElement('div');
+  card.className = 'option-card';
+  card.dataset.value = key;
+  card.innerHTML = `<div class="oc-title">${v.title}</div><div class="oc-sub">${v.subtitle}</div>`;
+  card.addEventListener('click', () => selectVertical(key));
+  verticalGrid.appendChild(card);
+});
+
+function selectVertical(key) {
+  wiz.vertical = key; wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+  verticalGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === key));
+  renderSubverticals(key);
+  setWizStage(2);
+}
+
+function renderSubverticals(vKey) {
+  subvertGrid.innerHTML = '';
+  Object.entries(CATALOG[vKey].subverticals).forEach(([key, sv]) => {
+    const empty = !sv.useCases || sv.useCases.length === 0;
+    const card = document.createElement('div');
+    card.className = 'option-card' + (empty ? ' empty' : '');
+    card.dataset.value = key;
+    card.innerHTML = `<div class="oc-title">${sv.title}</div><div class="oc-sub">${sv.subtitle}</div>${empty ? '<span class="oc-soon">Coming soon</span>' : ''}`;
+    card.addEventListener('click', () => { if (!empty) selectSubvertical(key); });
+    subvertGrid.appendChild(card);
+  });
+}
+
+function selectSubvertical(key) {
+  wiz.subvertical = key; wiz.category = null; wiz.useCase = null;
+  subvertGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === key));
+  renderCategories(wiz.vertical, key);
+  setWizStage(3);
+}
+
+function renderCategories(vKey, svKey) {
+  categoryGrid.innerHTML = '';
+  const sv = CATALOG[vKey].subverticals[svKey];
+  if (!sv.useCases || sv.useCases.length === 0) { categoryGrid.innerHTML = '<div style="color:var(--muted);font-size:.875rem">No use cases authored yet.</div>'; return; }
+  const counts = { onboarding:0, maintenance:0, auth:0, workspaces:0, other:0 };
+  sv.useCases.forEach(uc => { const c = (uc.category && counts.hasOwnProperty(uc.category)) ? uc.category : 'other'; counts[c]++; });
+  const hasPortal = !!HEADLESS_PORTALS[vKey];
+  CATEGORY_ORDER.forEach(catKey => {
+    const count = catKey === 'headless' ? (hasPortal ? 1 : 0) : (counts[catKey] || 0);
+    if (!count) return;
+    const card = document.createElement('div');
+    card.className = 'option-card category-card';
+    card.dataset.value = catKey;
+    card.innerHTML = `<div class="oc-title">${CATEGORY_LABELS[catKey]}</div><div class="oc-sub">${CATEGORY_SUBTITLES[catKey]}</div><span class="oc-count">${count} ${count===1?'use case':'use cases'}</span>`;
+    card.addEventListener('click', () => selectCategory(catKey));
+    categoryGrid.appendChild(card);
+  });
+}
+
+function selectCategory(catKey) {
+  wiz.category = catKey; wiz.useCase = null;
+  categoryGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === catKey));
+  renderUseCases(wiz.vertical, wiz.subvertical, catKey);
+  setWizStage(4);
+}
+
+function ucSupported(uc) { return wiz.mode === 'discovery' ? !!uc.discoveryUrl : true; }
+function ucReady(uc)     { return !!uc.storyImplemented; }
+
+function renderUseCases(vKey, svKey, catFilter) {
+  useCaseGrid.innerHTML = '';
+  const sv = CATALOG[vKey].subverticals[svKey];
+  const portal = HEADLESS_PORTALS[vKey];
+  const grid = document.createElement('div');
+  grid.className = 'usecase-grid';
+
+  if (catFilter === 'headless') {
+    if (portal) {
+      const card = document.createElement('div');
+      card.className = 'usecase-card';
+      card.dataset.index = 'headless';
+      card.innerHTML = `<div class="uc-title"><span>Step into the employee desktop</span></div><div class="uc-sub">${portal.tenant} &middot; ${portal.role}</div>`;
+      card.addEventListener('click', () => selectUseCase('headless'));
+      grid.appendChild(card);
+    }
+  } else {
+    (sv.useCases || []).forEach((uc, i) => {
+      const knownCats = ['onboarding','maintenance','auth','workspaces'];
+      const cat = (uc.category && knownCats.includes(uc.category)) ? uc.category : 'other';
+      if (catFilter && cat !== catFilter) return;
+      const supported = ucSupported(uc);
+      const ready = ucReady(uc);
+      let pill = '';
+      if (wiz.mode === 'discovery' && !supported) pill = '<span class="uc-availability">Demo only</span>';
+      else if (wiz.mode === 'story' && !ready) pill = '<span class="uc-availability">Coming soon</span>';
+      const card = document.createElement('div');
+      card.className = 'usecase-card' + (supported ? '' : ' unavailable');
+      card.dataset.index = i;
+      card.innerHTML = `<div class="uc-title"><span>${uc.title}</span>${pill}</div><div class="uc-sub">${uc.subtitle}</div>`;
+      if (supported) {
+        card.addEventListener('click', () => selectUseCase(i));
+        card.addEventListener('dblclick', () => { selectUseCase(i); wizLaunch(); });
+      }
+      grid.appendChild(card);
+    });
+  }
+  useCaseGrid.appendChild(grid);
+}
+
+function selectUseCase(index) {
+  wiz.useCase = index;
+  useCaseGrid.querySelectorAll('.usecase-card').forEach(c => c.classList.toggle('selected', c.dataset.index === String(index)));
+  updateLaunchBar();
+}
+
+function updateLaunchBar() {
+  const ready = wiz.vertical && wiz.subvertical && wiz.category && wiz.useCase !== null;
+  wizLaunchBar.classList.toggle('visible', ready);
+  wizLaunchBtn.disabled = !ready;
+  if (!ready) { wizLaunchCrumb.textContent = 'Select a use case above'; return; }
+  const vTitle  = CATALOG[wiz.vertical].title;
+  const svTitle = CATALOG[wiz.vertical].subverticals[wiz.subvertical].title;
+  const verb = wiz.mode === 'discovery' ? 'Open Discovery' : 'Launch Demo';
+  if (wiz.useCase === 'headless') {
+    const p = HEADLESS_PORTALS[wiz.vertical];
+    wizLaunchCrumb.innerHTML = `<strong>${vTitle}</strong> › ${svTitle} › ${p.tenant}`;
+    wizLaunchBtn.textContent = 'Open Desktop →';
+  } else {
+    const uc = CATALOG[wiz.vertical].subverticals[wiz.subvertical].useCases[wiz.useCase];
+    wizLaunchCrumb.innerHTML = `<strong>${vTitle}</strong> › ${svTitle} › "${uc.title}"`;
+    wizLaunchBtn.textContent = verb + ' →';
+  }
+}
+
+function updateWizCrumb() {
+  const parts = [];
+  if (wiz.vertical)    parts.push(CATALOG[wiz.vertical].title);
+  if (wiz.subvertical) parts.push(CATALOG[wiz.vertical].subverticals[wiz.subvertical].title);
+  if (wiz.category)    parts.push(CATEGORY_LABELS[wiz.category] || wiz.category);
+  wizCrumb.innerHTML = parts.map((p,i) => `<span class="crumb-part">${p}</span>${i<parts.length-1?'<span class="sep">›</span>':''}`).join('');
+}
+
+// ─── LAUNCH ───
+window.wizLaunch = function () {
+  if (wizLaunchBtn.disabled) return;
+  if (wiz.useCase === 'headless') {
+    const p = HEADLESS_PORTALS[wiz.vertical];
+    if (p) window.location.href = `/headless-iam/${p.slug}.html`;
+    return;
+  }
+  const uc = CATALOG[wiz.vertical].subverticals[wiz.subvertical].useCases[wiz.useCase];
+  if (wiz.mode === 'discovery') {
+    if (uc.discoveryUrl) window.location.href = uc.discoveryUrl;
+    return;
+  }
+  if (!ucReady(uc)) {
+    const vTitle  = CATALOG[wiz.vertical].title;
+    const svTitle = CATALOG[wiz.vertical].subverticals[wiz.subvertical].title;
+    csModalCrumb.innerHTML = `${vTitle} › ${svTitle} › ${uc.title}`;
+    csModal.classList.add('active');
+    return;
+  }
+  if (uc.storyUrl)  { window.location.href = uc.storyUrl; return; }
+  if (uc.storyMap)  { window.location.href = `/stories/_shared/story-shell.html?vertical=${uc.storyMap.vertical}${uc.storyMap.workflow ? '&usecase='+uc.storyMap.workflow : ''}`; }
+};
+
+// ─── WIZARD BACK ───
+function wizGoBack() {
+  if (wiz.stage === 4) {
+    wiz.category = null; wiz.useCase = null;
+    useCaseGrid.innerHTML = '';
+    categoryGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(3);
+  } else if (wiz.stage === 3) {
+    wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+    categoryGrid.innerHTML = '';
+    subvertGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(2);
+  } else if (wiz.stage === 2) {
+    wiz.vertical = null; wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+    subvertGrid.innerHTML = '';
+    verticalGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(1);
+  }
+}
+wizBack.addEventListener('click', wizGoBack);
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Escape' || e.key === 'Backspace') && document.getElementById('cx-wizard').style.display !== 'none' && wiz.stage > 1 && !csModal.classList.contains('active')) {
+    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault(); wizGoBack();
+    }
+  }
+  if (e.key === 'Enter' && !wizLaunchBtn.disabled) wizLaunch();
+});
+
+// ─── COMING SOON MODAL ───
+csModalClose.addEventListener('click', () => csModal.classList.remove('active'));
+csModal.addEventListener('click', e => { if (e.target === csModal) csModal.classList.remove('active'); });
+csModalSwitch.addEventListener('click', () => { csModal.classList.remove('active'); setWizMode('discovery'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && csModal.classList.contains('active')) csModal.classList.remove('active'); });
+
+// ─── ?cluster= DEEP LINK ───
+(function handleCluster() {
+  const params = new URLSearchParams(window.location.search);
+  const cluster = params.get('cluster');
+  const vKey = cluster && CLUSTER_TO_VERTICAL[cluster.toLowerCase()];
+  if (!vKey || !CATALOG[vKey]) return;
+  // Reveal CX section, then pre-select the vertical
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const cxWiz = document.getElementById('cx-wizard');
+  step2.classList.remove('locked');
+  cxWiz.style.display = 'block';
+  // Set crumb and mode state
+  document.body.classList.add('flow-started');
+  requestAnimationFrame(() => selectVertical(vKey));
+})();
+
+})(); // end unified wizard IIFE
+
+// ═══════════════════════════════════════════════════════
+//  GEOS FLOW — B2B step unlock + story player
+// ═══════════════════════════════════════════════════════
+(function () {
+'use strict';
+
+const crumbEl  = document.getElementById('crumb');
+const restart  = document.getElementById('restart');
+const initial  = crumbEl.innerHTML;
+const picks    = [];
+
+function esc(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderCrumb() {
+  let html = '<span>Demo Story</span>';
+  picks.forEach(p => { html += '<span class="sep">/</span><b>' + esc(p) + '</b>'; });
+  html += restart.outerHTML;
+  crumbEl.innerHTML = html;
+  document.getElementById('restart').addEventListener('click', resetFlow);
+}
+
+function resetFlow() {
+  picks.length = 0;
+  crumbEl.innerHTML = initial;
+  document.getElementById('restart').addEventListener('click', resetFlow);
+  document.body.classList.remove('flow-started');
+  ['step1','step2','step3'].forEach((id, i) => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    s.classList.remove('collapsed','done');
+    if (i === 0) s.classList.remove('locked');
+    else s.classList.add('locked');
+    const pv = s.querySelector('.picked-val');
+    if (pv) pv.textContent = '';
+  });
+  document.querySelectorAll('[data-pick]').forEach(el => el.classList.remove('sel'));
+  const story = document.getElementById('story');
+  if (story) story.classList.add('locked');
+  // Hide CX wizard
+  const cxWiz = document.getElementById('cx-wizard');
+  if (cxWiz) cxWiz.style.display = 'none';
+  setStep2Mode('procurement');
+  resetStory();
+  bindPickHandlers();
+  const s1 = document.getElementById('step1');
+  if (s1) s1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function bindPickHandlers() {
+  document.querySelectorAll('[data-pick]').forEach(el => {
+    const fresh = el.cloneNode(true);
+    el.parentNode.replaceChild(fresh, el);
+  });
+  document.querySelectorAll('[data-pick]').forEach(el => el.addEventListener('click', onPick, { once: true }));
+}
+
+function onPick(e) {
+  const el = e.currentTarget;
+  el.classList.add('sel');
+  document.body.classList.add('flow-started');
+  picks.push(el.dataset.crumb);
+  renderCrumb();
+  const sect = el.closest('.sect');
+  if (sect) {
+    const pv = sect.querySelector('.picked-val');
+    const txt = el.dataset.crumb.replace(/&amp;/g, '&');
+    if (pv) pv.textContent = txt;
+    sect.classList.add('done','collapsed');
+  }
+  if (el.dataset.mode) setStep2Mode(el.dataset.mode);
+  const next = document.getElementById(el.dataset.next);
+  if (next) {
+    next.classList.remove('locked');
+    setTimeout(() => next.scrollIntoView({ behavior: 'smooth', block: 'start' }), 220);
+    if (next.id === 'story') setTimeout(() => { try { renderStory(); } catch(e){} }, 600);
+  }
+}
+
+function setStep2Mode(mode) {
+  const procEl = document.querySelector('.step2-procurement');
+  const salesEl = document.querySelector('.step2-sales');
+  const b2cEl   = document.getElementById('cx-wizard');
+  const label   = document.getElementById('step2Label');
+  [procEl, salesEl].forEach(el => el && (el.style.display = 'none'));
+  if (b2cEl) b2cEl.style.display = 'none';
+  if (mode === 'sales')  { if (salesEl) salesEl.style.display = ''; if (label) label.textContent = 'Pick a sales use case'; return; }
+  if (mode === 'b2c')    { if (b2cEl)   b2cEl.style.display   = ''; if (label) label.textContent = 'Pick a vertical'; return; }
+  if (procEl) procEl.style.display = '';
+  if (label) label.textContent = 'Pick a procurement use case';
+}
+
+// Collapse/expand toggle for sect-labels
+document.querySelectorAll('[data-toggle]').forEach(lbl => {
+  lbl.addEventListener('click', () => lbl.parentElement.classList.toggle('collapsed'));
+});
+
+// init
+setStep2Mode('procurement');
+bindPickHandlers();
+
+// ─── STORY PLAYER ───
+const SCENES = [
+  { eyebrow:'SCENE 1  ·  CONTRACT GENERATION', product:'contract management', role:'Procurement Manager — Black Mesa Energy', flow:'1',
+    beats:[
+      { h:'Pre-approved playbook.',  p:'MSA assembles from clauses owned by Legal — no off-template language, no surprises in redline.', target:'.clm-template' },
+      { h:'Coupa supplier sync.',    p:"Tritan's W-9, COI, and HSE record pull live from Coupa; tier auto-resolves the day rate.",        target:'.coupa-frame' },
+      { h:'Conditional clauses.',    p:'Permian-only clauses (sour-gas, flowback) inject from the basin field — no manual paste-in.',     target:'.clm-line.field' }
+    ]},
+  { eyebrow:'SCENE 2  ·  EXECUTION', product:'Agreement Desk', role:'Legal Ops — Black Mesa & Tritan', flow:'2',
+    beats:[
+      { h:'Multi-party, multi-org routing.',  p:"Both companies' approvers sequenced on one envelope. Five signers; redlines re-route, they don't restart.", target:'.recip:nth-of-type(1)' },
+      { h:'Conditional countersign.',         p:"Jess Crowley's redline at Tritan kicks the envelope back to Black Mesa Legal first; only then does VP D&C countersign.", target:'.recip:nth-of-type(3)' },
+      { h:'Hand-off to the agreement repository.', p:'On final signature the executed MSA lands in the agreement repository as a tracked agreement — no manual upload, no re-keying.', target:'.ad-route' }
+    ]},
+  { eyebrow:'SCENE 3  ·  OBLIGATION MANAGEMENT', product:'the agreement repository', role:'Contract Lifecycle — Black Mesa Procurement', flow:'3',
+    beats:[
+      { h:'Obligations extracted, not retyped.', p:'42 obligations surfaced from the executed PDF — insurance, indemnity, rate, HSE — with dates already attached.', target:'.nav-stats' },
+      { h:'Reminders into Coupa.',               p:'COI renewal, day-rate index review, HSE attestation — each renewal triggers a task back into Coupa, so procurement keeps one queue.', target:'.coupa-frame' },
+      { h:'Risk flags.',                         p:'Sour-gas force-majeure carve-out tracked annually; performance bond auto-releases on milestone-3 acceptance. Risk stays visible through the term.', target:'.obl:nth-of-type(4)' }
+    ]}
+];
+
+let sceneIdx = 0, beatIdx = 0;
+
+const $sceneNum  = document.getElementById('sceneSideNum');
+const $product   = document.getElementById('sceneSideProduct');
+const $beatH     = document.getElementById('beatHeadline');
+const $beatP     = document.getElementById('beatBody');
+const $prevBtn   = document.getElementById('prevBtn');
+const $nextBtn   = document.getElementById('nextBtn');
+const $sceneRail = document.getElementById('sceneRail');
+
+function renderStory() {
+  const scene = SCENES[sceneIdx];
+  const beat  = scene.beats[beatIdx];
+  if ($sceneNum)  $sceneNum.textContent  = `SCENE ${sceneIdx+1} OF ${SCENES.length}`;
+  if ($product)   $product.textContent   = scene.product;
+  if ($beatH)     $beatH.textContent     = beat.h;
+  if ($beatP)     $beatP.textContent     = beat.p;
+  // scene panes
+  document.querySelectorAll('.scene-pane').forEach((p,i) => p.classList.toggle('active', i === sceneIdx));
+  // rail tabs
+  document.querySelectorAll('#sceneRail .tab').forEach((t,i) => t.classList.toggle('on', i === sceneIdx));
+  // nav state
+  if ($prevBtn) $prevBtn.disabled = (sceneIdx === 0 && beatIdx === 0);
+  if ($nextBtn) {
+    const isLast = sceneIdx === SCENES.length - 1 && beatIdx === SCENES[sceneIdx].beats.length - 1;
+    $nextBtn.textContent = isLast ? 'Done ✓' : 'Next →';
+    $nextBtn.disabled = false;
+  }
+}
+
+function resetStory() { sceneIdx = 0; beatIdx = 0; }
+
+if ($nextBtn) $nextBtn.addEventListener('click', () => {
+  const scene = SCENES[sceneIdx];
+  if (beatIdx < scene.beats.length - 1) { beatIdx++; }
+  else if (sceneIdx < SCENES.length - 1) { sceneIdx++; beatIdx = 0; }
+  renderStory();
+});
+if ($prevBtn) $prevBtn.addEventListener('click', () => {
+  if (beatIdx > 0) { beatIdx--; }
+  else if (sceneIdx > 0) { sceneIdx--; beatIdx = SCENES[sceneIdx].beats.length - 1; }
+  renderStory();
+});
+if ($sceneRail) {
+  $sceneRail.querySelectorAll('.tab').forEach((t,i) => {
+    t.addEventListener('click', () => { sceneIdx = i; beatIdx = 0; renderStory(); });
+  });
+}
+
+renderStory();
+
+})(); // end geos IIFE
+</script>
+</body>
+</html>
