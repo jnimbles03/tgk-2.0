@@ -1795,10 +1795,21 @@ function setWizStage(n) {
 }
 
 // ─── MODE ───
+const geosModeDisc  = document.getElementById('geosModeDiscovery');
+const geosModeStory = document.getElementById('geosModeStory');
 function setWizMode(mode) {
   wiz.mode = mode;
   wizPillStory.classList.toggle('active', mode === 'story');
   wizPillDisc.classList.toggle('active', mode === 'discovery');
+  // Keep the top-level hero mode tabs in sync with the inline wizard pills
+  if (geosModeStory) {
+    geosModeStory.classList.toggle('active', mode === 'story');
+    geosModeStory.setAttribute('aria-selected', mode === 'story' ? 'true' : 'false');
+  }
+  if (geosModeDisc) {
+    geosModeDisc.classList.toggle('active', mode === 'discovery');
+    geosModeDisc.setAttribute('aria-selected', mode === 'discovery' ? 'true' : 'false');
+  }
   // Re-render use cases if we're at stage 4
   if (wiz.stage === 4 && wiz.vertical && wiz.subvertical && wiz.category) {
     renderUseCases(wiz.vertical, wiz.subvertical, wiz.category);
@@ -1811,6 +1822,8 @@ function setWizMode(mode) {
 }
 wizPillStory.addEventListener('click', () => setWizMode('story'));
 wizPillDisc.addEventListener('click',  () => setWizMode('discovery'));
+if (geosModeStory) geosModeStory.addEventListener('click', () => setWizMode('story'));
+if (geosModeDisc)  geosModeDisc.addEventListener('click',  () => setWizMode('discovery'));
 
 // ─── RENDER VERTICAL CARDS ───
 Object.entries(CATALOG).forEach(([key, v]) => {
