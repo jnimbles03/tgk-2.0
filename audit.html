@@ -1639,15 +1639,18 @@ function openColFilter(e, col) {
   const uniques = getColUniques(col);
   const active = state.colFilters[col] || new Set();
 
+  const ddItems = uniques.map(v => {
+    const valAttr  = v.replace(/"/g, '&quot;');
+    const idSuffix = v.replace(/\s/g, '_');
+    const checked  = active.has(v) ? 'checked' : '';
+    return `<div class="col-dd-item" data-val="${valAttr}">` +
+      `<input type="checkbox" id="ddchk-${col}-${idSuffix}" ${checked} onchange="toggleColFilterVal(this)">` +
+      `<label for="ddchk-${col}-${idSuffix}">${v}</label>` +
+      `</div>`;
+  }).join('');
   dd.innerHTML = `
     <input class="col-dropdown-search" placeholder="Search values…" oninput="filterDdList(this,'${col}')" id="dds-${col}">
-    <div class="col-dropdown-list" id="ddl-${col}">
-      ${uniques.map(v => `
-        <div class="col-dd-item" data-val="${v.replace(/"/g,'&quot;')}">
-          <input type="checkbox" id="ddchk-${col}-${v.replace(/\s/g,'_')}" ${active.has(v)?'checked':''} onchange="toggleColFilterVal('${col}','${v.replace(/'/g,'\\'')}',this.checked)">
-          <label for="ddchk-${col}-${v.replace(/\s/g,'_')}">${v}</label>
-        </div>`).join('')}
-    </div>
+    <div class="col-dropdown-list" id="ddl-${col}">${ddItems}</div>
     <div class="col-dd-actions">
       <button class="col-dd-act" onclick="clearColFilter('${col}')">Clear</button>
       <button class="col-dd-act" onclick="selectAllColFilter('${col}')">All</button>
@@ -1667,9 +1670,15 @@ function filterDdList(input, col) {
   });
 }
 
-function toggleColFilterVal(col, val, checked) {
+function toggleColFilterVal(chk) {
+  const item = chk.closest('.col-dd-item');
+  if (!item) return;
+  const val = item.dataset.val;
+  const dd  = chk.closest('[id^="cfd-"]');
+  if (!dd) return;
+  const col = dd.id.replace('cfd-', '');
   if (!state.colFilters[col]) state.colFilters[col] = new Set();
-  if (checked) state.colFilters[col].add(val);
+  if (chk.checked) state.colFilters[col].add(val);
   else state.colFilters[col].delete(val);
 }
 
