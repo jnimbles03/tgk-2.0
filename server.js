@@ -44,6 +44,27 @@ const KV_KEY = 'feedback:list';
 // Override via FEEDBACK_PUBLIC_SLUG secret when rotating.
 const FEEDBACK_PUBLIC_SLUG = process.env.FEEDBACK_PUBLIC_SLUG || 'a7k9-mpx2-4wnz-r3dh';
 
+// --------- Site-wide feedback widget toggle ----------------------------------
+// Stored in Replit DB so the kill switch survives restarts. Flip from /admin
+// (Settings → Feedback widget). The HTML-rewrite middleware below injects the
+// widget script into every served HTML response when this flag is on.
+// Soft-gated by the same client token the admin page uses — this is a UI
+// presentation toggle, not a privileged operation.
+const WIDGET_FLAG_KEY = 'widget:feedback:enabled';
+const ADMIN_SOFT_TOKEN = process.env.ADMIN_SOFT_TOKEN || 'tgk-admin-2026';
+let widgetEnabled = true; // optimistic default; rehydrated from KV at boot
+(async () => {
+  try {
+    const v = await db.get(WIDGET_FLAG_KEY);
+    // Treat missing key (first boot) as ON; anything explicitly === false flips off.
+    const unwrapped = (v && typeof v === 'object' && 'value' in v) ? v.value : v;
+    if (unwrapped === false || unwrapped === 'false' || unwrapped === 0) widgetEnabled = false;
+    else widgetEnabled = true;
+  } catch (e) {
+    console.warn('widget flag rehydrate skipped:', e?.message || e);
+  }
+})();
+
 const db = new Database();
 
 // --------- LLM client (Replit AI Integrations: no key needed) ---------
@@ -1450,7 +1471,7 @@ app.get(['/stories/custom-:token', '/stories/custom-:token/'], async (req, res) 
       `})();</script>\n`;
 
     html = html.replace(/<head>/i, '<head>\n' + injection);
-    res.type('html').send(html);
+    res.type('html').send(applyWidgetInjection(html));
   } catch (e) {
     console.error('[builder] custom-path serve failed:', e);
     res.status(500).type('text').send('builder serve failed');
@@ -1459,7 +1480,12 @@ app.get(['/stories/custom-:token', '/stories/custom-:token/'], async (req, res) 
 
 // Gate the audit page itself before the static handler can serve it.
 app.get('/audit.html', requireAudit, (req, res) => {
-  res.sendFile(path.join(__dirname, 'audit.html'));
+  fs.readFile(path.join(__dirname, 'audit.html'), 'utf8', (err, html) => {
+    if (err) return res.status(500).send('Failed to load audit page.');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(applyWidgetInjection(html));
+  });
 });
 
 // ---- Login page (no auth required) ----
@@ -1847,6 +1873,225 @@ app.get('/admin/audit/:id/payload.json', requireAdmin, async (req, res) => {
   const it = items.find(x => x.id === req.params.id);
   if (!it) return res.status(404).json({ error: 'not found' });
   res.json(it);
+});
+
+// --------- Flipbook builder (server-side video → flipbook pipeline) ---------
+//   POST /api/flipbook/build  (multipart: video + slug + title + tag + blurb + scene)
+//   - Saves the MP4 to flipbooks/vids/<slug>.MP4
+//   - Runs flipbooks/_extract_frames.py to populate zips/<slug>/frame_NNN.jpg
+//   - Runs flipbooks/_new_flipbook.py to print the DEMOS snippet
+//   - Patches flipbooks/_build_vignettes.py with the new DEMOS entry (idempotent)
+//   - Runs flipbooks/_build_vignettes.py to emit <slug>.html + refresh manifest
+//   Returns { url, embedUrl, log }
+let _multer = null;
+try { _multer = require('multer'); } catch (e) { /* missing dep — endpoint will return 503 */ }
+
+const { spawn } = require('child_process');
+const FLIPBOOKS_DIR = path.join(__dirname, 'flipbooks');
+const FLIPBOOKS_VIDS_DIR = path.join(FLIPBOOKS_DIR, 'vids');
+
+function ensureDir(p) { try { fs.mkdirSync(p, { recursive: true }); } catch {} }
+
+function runPython(args, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('python3', args, { cwd: __dirname, ...opts });
+    let stdout = '', stderr = '';
+    proc.stdout.on('data', d => { stdout += d.toString(); });
+    proc.stderr.on('data', d => { stderr += d.toString(); });
+    proc.on('error', reject);
+    proc.on('close', code => {
+      if (code === 0) resolve({ stdout, stderr });
+      else reject(new Error(`python3 ${args.join(' ')} exited ${code}\n${stderr || stdout}`));
+    });
+  });
+}
+
+// Insert a DEMOS entry (a list-of-dicts in _build_vignettes.py) idempotently.
+// `snippet` is the dict literal printed by _new_flipbook.py — already correctly
+// formatted ("    {\n        \"slug\": ..., ...\n    },"). We just splice it
+// into the DEMOS list right before the closing "]".
+function insertDemosSnippet(slug, snippet) {
+  const buildPy = path.join(FLIPBOOKS_DIR, '_build_vignettes.py');
+  if (!fs.existsSync(buildPy)) throw new Error('_build_vignettes.py not found');
+  let src = fs.readFileSync(buildPy, 'utf8');
+  // Idempotency: if a "slug": "<slug>" line already exists, do nothing.
+  const existsRx = new RegExp(`["']slug["']\\s*:\\s*["']${slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`);
+  if (existsRx.test(src)) return false;
+  // Find DEMOS = [ ... ]
+  const demosOpen = src.search(/\bDEMOS\s*=\s*\[/);
+  if (demosOpen < 0) throw new Error('DEMOS list not found in _build_vignettes.py');
+  let depth = 0, i = src.indexOf('[', demosOpen), end = -1;
+  for (; i < src.length; i++) {
+    const c = src[i];
+    if (c === '[') depth++;
+    else if (c === ']') { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end < 0) throw new Error('Could not find end of DEMOS list');
+  // Ensure snippet ends with a newline so the closing "]" lands on its own line.
+  const block = (snippet.endsWith('\n') ? snippet : snippet + '\n');
+  const patched = src.slice(0, end) + block + src.slice(end);
+  fs.writeFileSync(buildPy, patched);
+  return true;
+}
+
+if (_multer) {
+  ensureDir(FLIPBOOKS_VIDS_DIR);
+  const fbStorage = _multer.diskStorage({
+    destination: (req, file, cb) => cb(null, FLIPBOOKS_VIDS_DIR),
+    filename: (req, file, cb) => {
+      const slug = (req.body.slug || '').replace(/[^A-Za-z0-9_]/g, '');
+      if (!slug) return cb(new Error('Invalid slug'));
+      const ext = path.extname(file.originalname).toUpperCase() || '.MP4';
+      cb(null, `${slug}${ext}`);
+    },
+  });
+  const fbUpload = _multer({
+    storage: fbStorage,
+    limits: { fileSize: 1024 * 1024 * 800 }, // 800 MB cap
+    fileFilter: (req, file, cb) => {
+      if (/^video\//.test(file.mimetype) || /\.(mp4|mov|m4v)$/i.test(file.originalname)) cb(null, true);
+      else cb(new Error('Only video uploads accepted'));
+    },
+  });
+
+  app.post('/api/flipbook/build', (req, res, next) => {
+    fbUpload.single('video')(req, res, async (err) => {
+      if (err) return res.status(400).json({ error: String(err.message || err) });
+      const slug = (req.body.slug || '').trim();
+      const title = (req.body.title || '').trim();
+      const tag = (req.body.tag || '').trim();
+      const blurb = (req.body.blurb || '').trim();
+      if (!/^[A-Za-z0-9_]+$/.test(slug)) return res.status(400).json({ error: 'Invalid slug' });
+      if (!title || !tag || !blurb) return res.status(400).json({ error: 'title, tag, blurb required' });
+      if (!req.file) return res.status(400).json({ error: 'video upload required' });
+
+      let log = '';
+      const append = (s) => { log += s; };
+      try {
+        append(`Saved upload: ${path.relative(__dirname, req.file.path)}\n`);
+
+        // Step 1: scaffold (extracts frames AND prints the DEMOS snippet on stdout)
+        append(`\n[1/3] Running _new_flipbook.py (extract + scaffold)…\n`);
+        const newArgs = [
+          'flipbooks/_new_flipbook.py', slug,
+          '--title', title,
+          '--tag',   tag,
+          '--blurb', blurb,
+          '--force',
+        ];
+        const scene = (req.body.scene || '').trim();
+        if (scene) newArgs.push('--scene', scene);
+        const ns = await runPython(newArgs);
+        if (ns.stderr) append('progress:\n' + ns.stderr + '\n');
+        const snippet = ns.stdout || '';
+        if (!snippet.trim()) throw new Error('_new_flipbook.py produced no DEMOS snippet on stdout');
+
+        // Step 2: splice snippet into DEMOS list in _build_vignettes.py
+        append(`\n[2/3] Inserting DEMOS entry into _build_vignettes.py…\n`);
+        const inserted = insertDemosSnippet(slug, snippet);
+        append(inserted ? `Inserted "${slug}" entry.\n` : `"${slug}" already present — skipping insert.\n`);
+
+        // Step 3: build
+        append(`\n[3/3] Building vignettes…\n`);
+        const bv = await runPython(['flipbooks/_build_vignettes.py']);
+        append(bv.stdout); if (bv.stderr) append('STDERR:\n' + bv.stderr + '\n');
+
+        const url = `/flipbooks/${slug}.html`;
+        const embedUrl = `/flipbooks/${slug}.html?embed=1&autoplay=1`;
+        res.json({ ok: true, url, embedUrl, slug, log });
+      } catch (e) {
+        append(`\nERROR: ${e.message || e}\n`);
+        res.status(500).json({ error: String(e.message || e), log });
+      }
+    });
+  });
+} else {
+  app.post('/api/flipbook/build', (req, res) => {
+    res.status(503).json({ error: 'multer not installed on server. Run `npm install` to enable the flipbook builder.' });
+  });
+}
+
+// --------- Site-wide widget toggle: API + HTML-rewrite middleware -----------
+// Soft-gate identical to the one in /admin/index.html — knowing the token is
+// the bar, since this only flips a presentation flag on a public demo site.
+function softAdminGate(req, res, next) {
+  const supplied = (req.headers['x-admin-token'] || req.query.key || '').toString();
+  if (supplied === ADMIN_SOFT_TOKEN) return next();
+  res.status(401).json({ error: 'admin token required' });
+}
+
+app.get('/admin/widget', (req, res) => {
+  // Read is unauthenticated — the admin page polls this on load to set the
+  // toggle's initial state. The flag itself is not sensitive.
+  res.json({ feedback: widgetEnabled });
+});
+
+app.post('/admin/widget', softAdminGate, async (req, res) => {
+  try {
+    const { feedback } = req.body || {};
+    if (typeof feedback !== 'boolean') {
+      return res.status(400).json({ error: 'feedback boolean required' });
+    }
+    widgetEnabled = feedback;
+    await db.set(WIDGET_FLAG_KEY, feedback);
+    res.json({ ok: true, feedback: widgetEnabled });
+  } catch (e) {
+    console.error('widget toggle error:', e?.message || e);
+    res.status(500).json({ error: 'persist error' });
+  }
+});
+
+// HTML-rewrite middleware. Runs BEFORE express.static. For any GET request
+// whose URL plausibly resolves to an HTML file on disk, we read the file,
+// inject the widget script before </body> when the flag is on, and serve
+// the rewritten HTML. Everything else falls through to express.static.
+const FEEDBACK_TAG = '<script src="/feedback-widget.js" defer></script>';
+function applyWidgetInjection(html) {
+  if (widgetEnabled) {
+    if (html.includes('feedback-widget.js')) return html; // idempotent
+    const idx = html.lastIndexOf('</body>');
+    if (idx >= 0) return html.slice(0, idx) + '  ' + FEEDBACK_TAG + '\n' + html.slice(idx);
+    return html + '\n' + FEEDBACK_TAG + '\n';
+  }
+  return html.replace(/\s*<script[^>]*feedback-widget\.js[^>]*><\/script>\s*/gi, '\n');
+}
+function resolveHtmlPath(urlPath) {
+  // Strip query/hash; reject path traversal.
+  let p = urlPath.split('?')[0].split('#')[0];
+  if (p.includes('\0') || p.includes('..')) return null;
+  // Trailing slash → index.html in that dir
+  if (p.endsWith('/')) p = p + 'index.html';
+  const candidates = [];
+  if (/\.html?$/i.test(p)) candidates.push(p);
+  else {
+    // express.static({extensions:['html']}) lets /foo resolve to /foo.html
+    candidates.push(p + '.html');
+    candidates.push(p.replace(/\/?$/, '/') + 'index.html');
+  }
+  for (const cand of candidates) {
+    const abs = path.join(__dirname, cand);
+    // Make sure we never escape the project root.
+    if (!abs.startsWith(__dirname)) continue;
+    try {
+      const stat = fs.statSync(abs);
+      if (stat.isFile()) return abs;
+    } catch {}
+  }
+  return null;
+}
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  // Skip obvious non-HTML asset extensions to avoid statSync on every request.
+  if (/\.(?:js|css|png|jpe?g|gif|svg|webp|ico|map|json|woff2?|ttf|otf|mp4|webm|mp3|wav|pdf|zip)(?:$|\?)/i.test(req.path)) return next();
+  const abs = resolveHtmlPath(req.path);
+  if (!abs) return next();
+  fs.readFile(abs, 'utf8', (err, html) => {
+    if (err) return next();
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(applyWidgetInjection(html));
+  });
 });
 
 // --------- Static (HTML/JS/assets) ---------

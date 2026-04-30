@@ -245,6 +245,11 @@
   .reset-zone h4{font-size:13px;font-weight:600;color:#9A3412;margin-bottom:4px;}
   .reset-zone p{font-size:12px;color:#7C2D12;margin-bottom:10px;line-height:1.55;}
 
+  /* Settings toggle */
+  .toggle.is-on .toggle-track{background:var(--ds-purple);}
+  .toggle.is-on .toggle-knob{left:18px;}
+  .toggle.is-disabled{opacity:0.55;cursor:wait;}
+
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ds-inkwell);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(19,0,50,0.25);opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:100;}
   .toast.on{opacity:1;}
   .toast.err{background:var(--err);}
@@ -306,6 +311,10 @@
     <button class="nav-link" data-section="inventory">
       <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 1.5"/></svg>
       Inventory &amp; feedback
+    </button>
+    <button class="nav-link" data-section="settings">
+      <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.6v1.6M8 12.8v1.6M3.5 3.5l1.13 1.13M11.37 11.37l1.13 1.13M1.6 8h1.6M12.8 8h1.6M3.5 12.5l1.13-1.13M11.37 4.63l1.13-1.13"/></svg>
+      Settings
     </button>
     <div class="nav-foot">
       <p style="margin-bottom:6px;">Client-side only. Uploads stay in this browser; re-deploy via the Mac repo.</p>
@@ -548,6 +557,35 @@
         <h4>Reset all admin state</h4>
         <p>Clears every uploaded HTML override (IndexedDB) and every saved narration / hotspot edit (localStorage). Does not touch the deployed files. Use when you want a clean slate before previewing what visitors will see.</p>
         <button class="btn danger" id="nuke">Clear browser overrides</button>
+      </div>
+    </section>
+
+    <!-- ============== Settings ============== -->
+    <section class="section" data-section="settings">
+      <div class="page-head">
+        <div class="eyebrow">Section 05 · settings</div>
+        <h1>Site-wide toggles.</h1>
+        <p>Server-side flags persisted in Replit DB. A change here flips the experience for every visitor on the next page load — no redeploy, no per-file edit.</p>
+      </div>
+
+      <div class="card">
+        <h3>Feedback widget</h3>
+        <div class="desc">When on, the floating feedback button (top-right purple bubble) appears on every HTML page the server renders. When off, it's stripped from every page — including the ones with hand-rolled <code style="font-family:var(--mono);font-size:11.5px;background:#F4F4F5;padding:1px 5px;border-radius:3px;">&lt;script src="feedback-widget.js"&gt;</code> tags. No file changes; the toggle is consulted on every request.</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <label class="toggle" for="widget-feedback-toggle" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <span class="toggle-track" aria-hidden="true" style="position:relative;width:38px;height:22px;background:var(--hair-strong);border-radius:11px;transition:background 0.18s;flex-shrink:0;">
+              <span class="toggle-knob" style="position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(19,0,50,0.25);transition:left 0.18s;"></span>
+            </span>
+            <input type="checkbox" id="widget-feedback-toggle" style="position:absolute;opacity:0;pointer-events:none;">
+            <span class="toggle-label" style="font-size:13px;font-weight:500;color:var(--ink);">Loading…</span>
+          </label>
+          <span id="widget-feedback-status" style="font-size:12px;color:var(--ink-soft);"></span>
+        </div>
+        <div class="btn-row" style="margin-top:14px;">
+          <a class="btn tiny" href="/picker.html" target="_blank">Open picker (verify) ↗</a>
+          <a class="btn tiny" href="/index-unified.html" target="_blank">Open index-unified ↗</a>
+          <a class="btn tiny" href="/architecture.html" target="_blank">Open architecture ↗</a>
+        </div>
       </div>
     </section>
 
@@ -1909,6 +1947,75 @@ $('nuke').addEventListener('click', async () => {
 });
 
 /* =========================================================
+   Settings — site-wide widget toggle
+   ---------------------------------------------------------
+   Reads /admin/widget on load and POSTs back when flipped.
+   The POST carries the same ADMIN_TOKEN the soft-gate uses,
+   matching the server's softAdminGate() expectation.
+   ========================================================= */
+async function loadWidgetToggle(){
+  const wrap   = document.querySelector('label[for="widget-feedback-toggle"]');
+  const input  = $('widget-feedback-toggle');
+  const lbl    = wrap?.querySelector('.toggle-label');
+  const status = $('widget-feedback-status');
+  if (!wrap || !input || !lbl) return;
+  try {
+    const res = await fetch('/admin/widget', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const on = !!data.feedback;
+    input.checked = on;
+    wrap.classList.toggle('is-on', on);
+    lbl.textContent = on ? 'On — visible on every page' : 'Off — hidden site-wide';
+    status.textContent = '';
+  } catch (e) {
+    lbl.textContent = 'Toggle unavailable';
+    status.textContent = "Couldn't read /admin/widget — server may be old build.";
+  }
+}
+async function saveWidgetToggle(next){
+  const wrap   = document.querySelector('label[for="widget-feedback-toggle"]');
+  const input  = $('widget-feedback-toggle');
+  const lbl    = wrap?.querySelector('.toggle-label');
+  const status = $('widget-feedback-status');
+  if (!wrap || !input || !lbl) return;
+  wrap.classList.add('is-disabled');
+  status.textContent = 'Saving…';
+  try {
+    const res = await fetch('/admin/widget', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Token': ADMIN_TOKEN
+      },
+      body: JSON.stringify({ feedback: next })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const on = !!data.feedback;
+    input.checked = on;
+    wrap.classList.toggle('is-on', on);
+    lbl.textContent = on ? 'On — visible on every page' : 'Off — hidden site-wide';
+    status.textContent = 'Saved. Reload any tab to see the change.';
+    setTimeout(() => { status.textContent = ''; }, 3500);
+    toast(on ? 'Feedback widget enabled site-wide' : 'Feedback widget disabled site-wide');
+  } catch (e) {
+    // Revert visual state
+    input.checked = !next;
+    wrap.classList.toggle('is-on', !next);
+    status.textContent = 'Save failed — toggle reverted.';
+    toast("Couldn't save toggle", true);
+  } finally {
+    wrap.classList.remove('is-disabled');
+  }
+}
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'widget-feedback-toggle') {
+    saveWidgetToggle(e.target.checked);
+  }
+});
+
+/* =========================================================
    Init
    ========================================================= */
 async function init(){
@@ -1918,6 +2025,7 @@ async function init(){
   await renderStoryList();
   await renderStats();
   renderFeedback();
+  loadWidgetToggle();
 }
 tryGate();
 </script>
