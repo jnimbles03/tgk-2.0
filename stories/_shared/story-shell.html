@@ -129,6 +129,13 @@
        on the same frame the column finishes resizing. */
     transition:gap 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1), opacity 0.22s ease;
   }
+  @keyframes personaBounceIn {
+    0%   { opacity: 0; transform: translateX(-40px); }
+    60%  { opacity: 1; transform: translateX(8px); }
+    80%  { transform: translateX(-4px); }
+    100% { transform: translateX(0); }
+  }
+  .persona.bounce { animation: personaBounceIn 0.5s cubic-bezier(.22,.68,0,1.2) both; }
   .persona .avatar{
     flex-shrink:0;width:28px;height:28px;border-radius:50%;
     display:inline-flex;align-items:center;justify-content:center;
@@ -2731,6 +2738,11 @@ function renderPersona(persona){
   $('persona-name').textContent = name;
   $('persona-role').textContent = role;
   $('persona-side-badge').textContent = SIDE_LABEL[side] || 'Actor';
+  // Bounce the persona chip in from the left on every scene change.
+  const pel = $('persona');
+  pel.classList.remove('bounce');
+  void pel.offsetWidth; // force reflow so re-adding the class restarts the animation
+  pel.classList.add('bounce');
 }
 function renderHotspot(){
   const scene = SCENES[idx];
