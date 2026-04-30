@@ -497,54 +497,146 @@
   .pool-role { font-size: 10px; font-style: italic; color: var(--muted); margin-top: 2px; line-height: 1.3; }
   .pool-hint { margin-top: 10px; font-size: 12px; font-style: italic; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 
-  /* filmstrip */
+  /* ── iMovie-style filmstrip ── */
   .filmstrip-wrap {
-    background: var(--ds-mist-soft);
-    border: 1px solid var(--rule);
+    background: #111827;
     border-radius: 8px;
-    padding: 12px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    min-height: 148px;
+    padding: 18px 0;
+    position: relative;
+    min-height: 116px;
+    border: none;
   }
-  .filmstrip-wrap::-webkit-scrollbar { height: 6px; }
-  .filmstrip-wrap::-webkit-scrollbar-thumb { background: rgba(19,0,50,.18); border-radius: 3px; }
-  .filmstrip-track { display: flex; gap: 8px; align-items: stretch; min-height: 124px; }
+  /* sprocket rails — repeating hole pattern using radial-gradient trick */
+  .filmstrip-wrap::before,
+  .filmstrip-wrap::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 18px;
+    z-index: 2;
+    pointer-events: none;
+    /* Dark rail with evenly spaced punched holes (white rectangles) */
+    background-color: #0c111d;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 10px,
+      #111827 10px,
+      #111827 16px,
+      transparent 16px,
+      transparent 32px
+    );
+    background-size: 32px 100%;
+  }
+  .filmstrip-wrap::before { top: 0; border-radius: 8px 8px 0 0; }
+  .filmstrip-wrap::after  { bottom: 0; border-radius: 0 0 8px 8px; }
+  .filmstrip-wrap::-webkit-scrollbar { height: 4px; }
+  .filmstrip-wrap::-webkit-scrollbar-track { background: #111827; }
+  .filmstrip-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+  .filmstrip-track {
+    display: flex;
+    gap: 2px;
+    align-items: stretch;
+    min-height: 80px;
+    padding: 0 8px;
+    position: relative;
+    z-index: 1;
+  }
   .filmstrip-empty {
-    font-size: 14px; font-style: italic; color: var(--muted);
-    text-align: center; padding: 32px 16px;
-    border: 1.5px dashed var(--rule-strong); border-radius: 8px;
-    background: var(--ds-mist-soft);
+    font-size: 13px; font-style: italic; color: rgba(255,255,255,.3);
+    text-align: center; padding: 20px 16px;
+    position: absolute;
+    inset: 18px 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
+    pointer-events: none;
   }
-  .filmstrip-wrap.is-dragging-over { background: color-mix(in srgb, var(--ds-mist) 50%, var(--ds-white)); border-color: var(--ds-cobalt); }
+  .filmstrip-wrap.is-dragging-over { background: #1a2235; }
   .film-tile {
-    position: relative; flex: 0 0 172px;
-    background: white;
-    border: 1.5px solid var(--rule); border-radius: 6px;
-    overflow: hidden; cursor: grab;
-    transition: border-color .15s, box-shadow .15s;
+    position: relative;
+    flex: 0 0 160px;
+    height: 80px;
+    background: var(--ds-deep-violet);
+    border: none;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: grab;
+    transition: filter .15s, outline .1s;
     user-select: none;
+    outline: 2px solid transparent;
+    outline-offset: 1px;
   }
-  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 60%, var(--rule)); }
-  .film-tile.is-selected { border-color: var(--ds-cobalt); box-shadow: 0 0 0 3px rgba(76,0,255,.15); }
+  .film-tile:hover { filter: brightness(1.15); }
+  .film-tile.is-selected { outline-color: var(--ds-cobalt); filter: brightness(1.1); }
+  /* selected: yellow top accent bar like iMovie */
+  .film-tile.is-selected::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--ds-cobalt);
+    z-index: 10;
+    border-radius: 2px 2px 0 0;
+  }
   .film-tile.is-dragging { opacity: .4; cursor: grabbing; }
   .film-tile.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt); }
   .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt); }
-  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px rgba(76,0,255,.15); }
-  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px rgba(76,0,255,.15); }
-  .film-poster { position: relative; height: 72px; background: var(--ds-deep-violet); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .film-poster::before, .film-poster::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 11px); opacity: .6; }
-  .film-poster::before { top: 0; }
-  .film-poster::after  { bottom: 0; }
-  .film-step { position: absolute; top: 8px; left: 7px; font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ds-ecru); background: rgba(19,0,50,.5); padding: 2px 5px; border-radius: 3px; letter-spacing: .08em; backdrop-filter: blur(2px); }
-  .film-glyph { font-family: var(--mono); font-size: 1.25rem; font-weight: 700; color: var(--ds-ecru); letter-spacing: .06em; }
-  .film-remove { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(19,0,50,.5); color: var(--ds-ecru); font-size: 13px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); transition: background .15s; opacity: 0; }
+  /* film-poster fills entire tile */
+  .film-poster {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  /* no sprocket holes on poster — the wrap handles those */
+  .film-poster::before, .film-poster::after { display: none; }
+  .film-step {
+    position: absolute;
+    top: 6px; left: 6px;
+    font-family: var(--mono); font-size: 8px; font-weight: 700;
+    color: rgba(255,255,255,.7);
+    background: rgba(0,0,0,.55);
+    padding: 1px 4px; border-radius: 2px; letter-spacing: .08em;
+    backdrop-filter: blur(2px);
+    z-index: 5;
+  }
+  .film-glyph {
+    font-family: var(--mono); font-size: 1.5rem; font-weight: 700;
+    color: rgba(255,255,255,.55); letter-spacing: .06em;
+  }
+  .film-remove {
+    position: absolute; top: 5px; right: 5px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(0,0,0,.6); color: rgba(255,255,255,.85);
+    font-size: 12px; font-weight: 600; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px); transition: background .15s; opacity: 0;
+    z-index: 5;
+  }
   .film-tile:hover .film-remove, .film-tile.is-selected .film-remove { opacity: 1; }
   .film-remove:hover { background: var(--ds-poppy); }
-  .film-meta { padding: 7px 9px 9px; }
-  .film-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .film-tag  { font-size: 10px; font-style: italic; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* name + tag overlaid at bottom of frame */
+  .film-meta {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 18px 7px 5px;
+    background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 100%);
+    z-index: 4;
+  }
+  .film-name {
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.92);
+    line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: .01em;
+  }
+  .film-tag {
+    font-size: 9px; font-style: italic; color: rgba(255,255,255,.5);
+    margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .timeline-foot { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .timeline-foot-note { font-size: 12px; color: var(--muted); }
   .timeline-foot-note .scene-count-txt { font-weight: 600; color: var(--text); }
