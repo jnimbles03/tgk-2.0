@@ -3,39 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TGK 2.0 — Demo builder</title>
-<link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon-32.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+<title>TGK 2.0 — Demo Builder</title>
+<link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
 <style>
-  /* ============================================================
-     DSIndigo — Docusign's custom typeface, loaded from Akamai CDN
-     ============================================================ */
-  @font-face {
-    font-family: "DSIndigo";
-    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");
-    font-weight: 400; font-style: normal; font-display: swap;
-  }
-  @font-face {
-    font-family: "DSIndigo";
-    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");
-    font-weight: 500; font-style: normal; font-display: swap;
-  }
-  @font-face {
-    font-family: "DSIndigo";
-    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");
-    font-weight: 600; font-style: normal; font-display: swap;
-  }
-  @font-face {
-    font-family: "DSIndigo";
-    src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");
-    font-weight: 700; font-style: normal; font-display: swap;
-  }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+  @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
-  /* ============================================================
-     Docusign FY27 tokens — same system as architecture page
-     ============================================================ */
   :root {
     --ds-deep-violet: #26065D;
     --ds-inkwell:     #130032;
@@ -44,1407 +19,934 @@
     --ds-mist:        #CBC2FF;
     --ds-poppy:       #FF5252;
     --ds-cobalt:      #4C00FF;
-
-    --ds-bg:           var(--ds-ecru);
-    --ds-surface:      var(--ds-white);
-    --ds-text:         var(--ds-inkwell);
-    --ds-text-muted:   color-mix(in srgb, var(--ds-inkwell) 60%, transparent);
-    --ds-text-soft:    color-mix(in srgb, var(--ds-inkwell) 40%, transparent);
-    --ds-rule:         color-mix(in srgb, var(--ds-inkwell) 12%, transparent);
-    --ds-rule-strong:  color-mix(in srgb, var(--ds-inkwell) 22%, transparent);
-    --ds-mist-soft:    color-mix(in srgb, var(--ds-mist) 35%, var(--ds-white));
-    --ds-glow:         linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
-
-    /* Spacing rhythm (Gebbia scale) */
-    --ds-space-xs:  8px;
-    --ds-space-sm:  14px;
-    --ds-space-md:  24px;
-    --ds-space-lg:  40px;
-    --ds-space-xl:  64px;
-    --ds-space-2xl: 96px;
-
-    --ds-font:         "DSIndigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --ds-mono:         "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --ds-mint:        #3FDA99;
+    --bg:             #F3EEE9;
+    --text:           #130032;
+    --muted:          rgba(19,0,50,.55);
+    --rule:           rgba(19,0,50,.10);
+    --rule-strong:    rgba(19,0,50,.18);
+    --ease:           cubic-bezier(.4,0,.2,1);
+    --font:           "DSIndigo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono:           "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ds-glow:        linear-gradient(135deg, var(--ds-poppy) 0%, var(--ds-cobalt) 100%);
+    --ds-mist-soft:   color-mix(in srgb, var(--ds-mist) 35%, var(--ds-white));
+    --sidebar-w:      228px;
   }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
 
-  * { box-sizing: border-box; }
-  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-  html, body { margin: 0; padding: 0; }
+  /* ── APP SHELL (fixed height, no page scroll) ── */
   body {
-    font-family: var(--ds-font);
-    color: var(--ds-text);
-    background: var(--ds-bg);
-    line-height: 1.55;
-  }
-  ::selection { background: var(--ds-mist); color: var(--ds-inkwell); }
-  :focus-visible { outline: 2px solid var(--ds-cobalt); outline-offset: 3px; border-radius: 2px; }
-
-  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 48px 96px; }
-  @media (max-width: 640px) {
-    .wrap { padding: 40px 22px 72px; }
-  }
-
-  /* Top mark — small Docusign wordmark above the kicker */
-  .topmark {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 36px;
-    color: var(--ds-inkwell);
-  }
-  .topmark .mark-dot {
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--ds-glow);
-    flex-shrink: 0;
-  }
-  .topmark .mark-text {
-    font-family: var(--ds-font);
-    font-weight: 600;
-    font-size: 1rem;
-    letter-spacing: -0.01em;
-    color: var(--ds-inkwell);
-  }
-  .topmark .mark-divider {
-    width: 1px; height: 16px;
-    background: var(--ds-rule-strong);
-    margin: 0 4px;
-  }
-  .topmark .mark-context {
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-text-soft);
-  }
-
-  .kicker {
-    font-family: var(--ds-font);
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ds-cobalt);
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-  h1 {
-    font-family: var(--ds-font);
-    font-weight: 700;
-    font-size: clamp(1.875rem, 3vw + 1rem, 2.5rem);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin: 0 0 18px;
-  }
-  /* H1 italic accent — cobalt, not glow.
-     The Glow gradient is reserved for the result panel (the page's one hero moment). */
-  h1 em {
-    font-style: italic;
-    font-weight: 500;
-    color: var(--ds-cobalt);
-  }
-  .deck {
-    font-family: var(--ds-font);
-    font-size: 1.0625rem;
-    color: var(--ds-text-muted);
-    max-width: 60ch;
-    margin: 0 0 44px;
-    line-height: 1.55;
-  }
-
-  /* ===== Form ===== */
-  .form-card {
-    background: var(--ds-surface);
-    border: 1px solid var(--ds-rule);
-    border-left: 3px solid var(--ds-cobalt);
-    border-radius: 12px;
-    padding: 36px 40px;
-    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
-  }
-  @media (max-width: 640px) {
-    .form-card { padding: 24px 20px; border-left-width: 2px; }
-  }
-  .form-row {
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--bg);
+    height: 100dvh;
+    overflow: hidden;
     display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 20px;
-    align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--ds-rule);
+    grid-template-rows: 52px 1fr 60px;
   }
-  @media (max-width: 640px) {
-    .form-row {
-      grid-template-columns: 1fr;
-      gap: 8px;
-      padding: 14px 0;
-    }
-  }
-  .form-row:last-of-type { border-bottom: none; padding-bottom: 0; }
-  .form-row > label {
-    font-family: var(--ds-font);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-  }
-  .form-row select,
-  .form-row input[type="text"] {
-    background: var(--ds-bg);
-    border: 1px solid var(--ds-rule-strong);
-    border-radius: 6px;
-    padding: 11px 14px;
-    font-family: var(--ds-font);
-    font-size: 1rem;
-    color: var(--ds-text);
-    width: 100%;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease;
-  }
-  .form-row select:focus,
-  .form-row input[type="text"]:focus {
-    outline: none;
-    border-color: var(--ds-cobalt);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 14%, transparent);
-  }
-  .form-row .swatch-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .form-row .swatch {
-    width: 26px; height: 26px;
-    border-radius: 4px;
-    border: 1px solid var(--ds-rule-strong);
-    flex-shrink: 0;
-  }
-  .form-row .help {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.875rem;
-    color: var(--ds-text-soft);
-    margin-top: 6px;
-    grid-column: 2;
-    line-height: 1.5;
-  }
-  @media (max-width: 640px) {
-    .form-row .help { grid-column: 1; }
-  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+  ::selection { background: var(--ds-mist); color: var(--ds-inkwell); }
 
-  /* ===== Submit + result ===== */
-  .submit-row {
-    margin-top: 36px;
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--ds-inkwell);
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     gap: 14px;
-    flex-wrap: wrap;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    flex-shrink: 0;
+    z-index: 20;
   }
-  @media (max-width: 640px) {
-    .submit-row { justify-content: stretch; }
-    .submit-row .btn { flex: 1; justify-content: center; min-height: 44px; }
-  }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--ds-poppy);
-    color: var(--ds-ecru);
-    border: 1px solid var(--ds-poppy);
-    border-radius: 6px;
-    font-family: var(--ds-font);
-    font-size: 1rem;
+  .topbar-logo { display: flex; align-items: center; }
+  .topbar-logo img { height: 22px; width: auto; }
+  .topbar-sep { width: 1px; height: 18px; background: rgba(255,255,255,.15); }
+  .topbar-badge {
+    font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-  }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(19, 0, 50, 0.16); }
-  .btn:active { transform: translateY(0); }
-  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--ds-inkwell);
-    border-color: var(--ds-rule-strong);
-  }
-  .btn-secondary:hover { background: var(--ds-inkwell); color: var(--ds-ecru); border-color: var(--ds-inkwell); box-shadow: none; }
-
-  .submit-status {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.875rem;
-    color: var(--ds-text-soft);
-  }
-
-  /* Result panel — Deep Violet hero, the page's single Glow moment */
-  .result-panel {
-    margin-top: 36px;
-    background: var(--ds-deep-violet);
-    color: var(--ds-ecru);
-    border-radius: 12px;
-    padding: 32px 36px;
-    box-shadow: 0 16px 40px rgba(38, 6, 93, 0.22);
-    position: relative;
-    display: none;
-  }
-  @media (max-width: 640px) {
-    .result-panel { padding: 24px 22px; }
-  }
-  .result-panel.active { display: block; }
-  .result-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    padding: 1.5px;
-    background: var(--ds-glow);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-  }
-  .result-tag {
-    font-family: var(--ds-mono);
-    font-size: 0.75rem;
     color: var(--ds-mist);
-    letter-spacing: 0.16em;
-    margin-bottom: 10px;
+    letter-spacing: .04em;
   }
-  .result-h {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 1.375rem;
-    font-weight: 500;
-    line-height: 1.25;
-    margin: 0 0 16px;
-    color: var(--ds-ecru);
-    letter-spacing: -0.01em;
-  }
-  .result-url-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .result-url {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(203, 194, 255, 0.3);
-    border-radius: 6px;
-    padding: 11px 14px;
-    font-family: var(--ds-mono);
-    font-size: 0.9375rem;
-    color: var(--ds-ecru);
-    word-break: break-all;
-    line-height: 1.4;
-  }
-  .result-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .result-action {
-    padding: 10px 18px;
-    background: var(--ds-mist);
-    color: var(--ds-deep-violet);
-    border: none;
-    border-radius: 6px;
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    min-height: 40px;
-  }
-  .result-action:hover { background: var(--ds-ecru); }
-  .result-action.ghost {
-    background: transparent;
-    color: var(--ds-mist);
-    border: 1px solid rgba(203, 194, 255, 0.4);
-  }
-  .result-action.ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--ds-ecru); }
-  .result-meta {
-    margin-top: 14px;
-    font-family: var(--ds-font);
-    font-size: 0.8125rem;
-    color: var(--ds-mist);
-    font-style: italic;
-    line-height: 1.5;
-  }
-
-  /* Error panel */
-  .error-panel {
-    margin-top: 20px;
-    padding: 14px 18px;
-    background: rgba(255, 82, 82, 0.06);
-    border: 1px solid color-mix(in srgb, var(--ds-poppy) 50%, transparent);
-    border-left: 3px solid var(--ds-poppy);
-    border-radius: 6px;
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    color: var(--ds-inkwell);
-    display: none;
-    line-height: 1.5;
-  }
-  .error-panel.active { display: block; }
-
-  .foot {
-    margin-top: 56px;
-    padding-top: 18px;
-    border-top: 1px solid var(--ds-rule);
-    font-family: var(--ds-mono);
-    font-size: 0.75rem;
-    color: var(--ds-text-soft);
-    text-align: right;
-    letter-spacing: 0.02em;
-  }
-
-  /* ===== Wizard stepper ===== */
-  .stepper {
+  .topbar-spacer { flex: 1; }
+  .topbar-link {
+    font-size: 12px;
+    color: rgba(203,194,255,.6);
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: color .15s, background .15s;
     display: flex;
     align-items: center;
-    gap: 0;
-    margin: 32px 0 44px;
-    padding: 0;
+    gap: 5px;
   }
-  .step-node {
+  .topbar-link:hover { color: var(--ds-mist); background: rgba(255,255,255,.06); }
+
+  /* ── MIDDLE: SIDEBAR + PANEL ── */
+  .mid {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    overflow: hidden;
+  }
+
+  /* ── LEFT SIDEBAR ── */
+  .sidebar {
+    background: var(--ds-inkwell);
+    border-right: 1px solid rgba(255,255,255,.07);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-    cursor: pointer;
-    user-select: none;
+    padding: 24px 0 16px;
+    overflow: hidden;
   }
-  .step-node .node-circle {
-    width: 36px; height: 36px;
+  .sidebar-heading {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(203,194,255,.45);
+    padding: 0 20px 14px;
+  }
+  .stage-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+  .stage-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    color: rgba(203,194,255,.5);
+  }
+  .stage-btn:hover { background: rgba(255,255,255,.05); color: rgba(203,194,255,.8); }
+  .stage-btn.is-active { background: rgba(76,0,255,.25); color: var(--ds-mist); }
+  .stage-btn.is-done { color: rgba(63,218,153,.75); }
+  .stage-btn.is-done:hover { background: rgba(63,218,153,.08); }
+  .stage-num {
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: var(--ds-bg);
-    border: 1.5px solid var(--ds-rule-strong);
+    border: 1.5px solid currentColor;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--ds-text-soft);
-    transition: all 0.2s ease;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: var(--mono);
   }
-  .step-node .node-label {
-    font-family: var(--ds-font);
-    font-size: 0.8125rem;
-    color: var(--ds-text-soft);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    transition: color 0.2s ease;
-  }
-  .step-node.is-active .node-circle {
+  .stage-btn.is-active .stage-num {
     background: var(--ds-cobalt);
     border-color: var(--ds-cobalt);
-    color: var(--ds-ecru);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-cobalt) 14%, transparent);
+    color: white;
   }
-  .step-node.is-active .node-label {
-    color: var(--ds-text);
-    font-weight: 600;
+  .stage-btn.is-done .stage-num {
+    background: rgba(63,218,153,.18);
+    border-color: rgba(63,218,153,.5);
   }
-  .step-node.is-complete .node-circle {
-    background: var(--ds-deep-violet);
-    border-color: var(--ds-deep-violet);
-    color: var(--ds-ecru);
-  }
-  .step-node.is-complete .node-label {
-    color: var(--ds-text-muted);
-  }
-  .step-node.is-complete .node-circle::after {
-    content: "✓";
-    font-size: 1rem;
-    line-height: 1;
-  }
-  .step-node.is-complete .node-circle .node-num { display: none; }
-  .step-line {
-    flex: 1;
-    height: 1.5px;
-    background: var(--ds-rule-strong);
-    margin: 0 12px;
-    margin-bottom: 28px;
-    transition: background 0.2s ease;
-  }
-  .step-line.is-complete {
-    background: var(--ds-deep-violet);
-  }
-  @media (max-width: 640px) {
-    .stepper { gap: 0; }
-    .step-node .node-label { font-size: 0.75rem; text-align: center; }
-    .step-line { margin: 0 8px 28px; }
-  }
+  .stage-label { font-size: 13px; font-weight: 500; line-height: 1.2; }
+  .stage-sub { font-size: 11px; color: rgba(203,194,255,.35); margin-top: 1px; font-style: italic; }
+  .stage-btn.is-active .stage-sub { color: rgba(203,194,255,.5); }
+  .stage-btn.is-done .stage-sub { color: rgba(63,218,153,.5); }
 
-  /* ===== Wizard step container ===== */
-  .wizard-step {
-    display: none;
-    animation: stepFade 0.28s ease;
-  }
-  .wizard-step.is-active { display: block; }
-  .wizard-step.is-hidden-by-result { display: none !important; }
-  @keyframes stepFade {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .step-title {
-    font-family: var(--ds-font);
-    font-size: clamp(1.375rem, 1.5vw + 1rem, 1.75rem);
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin: 0 0 10px;
-    color: var(--ds-text);
-  }
-  .step-title em {
-    font-style: italic;
-    font-weight: 500;
-    color: var(--ds-cobalt);
-  }
-  .step-deck {
-    font-family: var(--ds-font);
-    font-size: 1rem;
-    color: var(--ds-text-muted);
-    max-width: 60ch;
-    margin: 0 0 28px;
-    line-height: 1.55;
-  }
-  .wizard-nav {
-    margin-top: 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-  .wizard-nav .wizard-nav-right {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-left: auto;
-    flex-wrap: wrap;
-  }
-  @media (max-width: 640px) {
-    .wizard-nav { justify-content: stretch; }
-    .wizard-nav .btn { flex: 1; justify-content: center; min-height: 44px; }
-    .wizard-nav .wizard-nav-right { width: 100%; }
-  }
+  .sidebar-divider { height: 1px; background: rgba(255,255,255,.06); margin: 16px 10px; }
 
-  /* ===== Playlist card ===== */
-  .playlist-card {
-    background: var(--ds-surface);
-    border: 1px solid var(--ds-rule);
-    border-left: 3px solid var(--ds-cobalt);
-    border-radius: 12px;
-    padding: 36px 40px;
-    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
-  }
-  @media (max-width: 640px) {
-    .playlist-card { padding: 24px 20px; border-left-width: 2px; }
-  }
-
-  .playlist-grid {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 32px;
-    align-items: start;
-  }
-  @media (max-width: 760px) {
-    .playlist-grid { grid-template-columns: 1fr; gap: 24px; }
-  }
-
-  .palette-zone .zone-label,
-  .playlist-zone .zone-label {
-    font-family: var(--ds-font);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
-  .palette-zone .zone-sub {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.8125rem;
-    color: var(--ds-text-soft);
-    margin: -8px 0 14px;
-    line-height: 1.5;
-  }
-
-  /* Palette chips */
-  .palette {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .palette-chip {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--ds-bg);
-    border: 1px solid var(--ds-rule);
-    border-radius: 6px;
-    cursor: grab;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-  }
-  .palette-chip:hover {
-    background: var(--ds-mist-soft);
-    border-color: var(--ds-cobalt);
-    transform: translateX(2px);
-  }
-  .palette-chip .chip-glyph {
-    width: 22px; height: 22px;
-    border-radius: 4px;
-    background: var(--ds-mist);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--ds-deep-violet);
-    font-family: var(--ds-mono);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .palette-chip .chip-body { min-width: 0; flex: 1; }
-  .palette-chip .chip-name {
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--ds-text);
-    line-height: 1.25;
-  }
-  .palette-chip .chip-role {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.75rem;
-    color: var(--ds-text-soft);
-    margin-top: 2px;
-    line-height: 1.3;
-  }
-  .palette-chip .chip-add {
-    font-family: var(--ds-mono);
-    font-size: 0.875rem;
-    color: var(--ds-cobalt);
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-
-  /* Playlist column */
-  .playlist {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .playlist-scene {
-    background: var(--ds-bg);
-    border: 1px solid var(--ds-rule);
-    border-left: 2px solid var(--ds-cobalt);
-    border-radius: 8px;
-    padding: 18px 20px;
-    position: relative;
-  }
-  .scene-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  .scene-handle {
-    cursor: grab;
-    color: var(--ds-text-soft);
-    flex-shrink: 0;
-    line-height: 0;
-  }
-  .scene-step {
-    font-family: var(--ds-mono);
-    font-size: 0.6875rem;
-    color: var(--ds-cobalt);
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    background: color-mix(in srgb, var(--ds-cobalt) 10%, transparent);
-    padding: 3px 8px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-  .scene-name {
-    font-family: var(--ds-font);
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--ds-text);
-    flex: 1;
-    letter-spacing: -0.01em;
-  }
-  .scene-remove {
-    background: transparent;
-    border: none;
-    color: var(--ds-text-soft);
-    cursor: pointer;
-    font-size: 1.125rem;
-    line-height: 1;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .scene-remove:hover { background: rgba(255, 82, 82, 0.08); color: var(--ds-poppy); }
-
-  .scene-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .scene-field-row {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 12px;
-    align-items: start;
-  }
-  .scene-field-row > .scene-field-label {
-    font-family: var(--ds-font);
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-    padding-top: 9px;
-  }
-  .scene-field-row input[type="text"],
-  .scene-field-row textarea {
-    background: var(--ds-white);
-    border: 1px solid var(--ds-rule);
-    border-radius: 5px;
-    padding: 8px 11px;
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    color: var(--ds-text);
-    width: 100%;
-    transition: border-color 0.18s ease;
-    line-height: 1.5;
-    resize: vertical;
-  }
-  .scene-field-row input[type="text"]:focus,
-  .scene-field-row textarea:focus {
-    outline: none;
-    border-color: var(--ds-cobalt);
-  }
-
-  .playlist-foot {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--ds-rule);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-text-soft);
-  }
-  .playlist-foot .scene-count {
-    font-weight: 600;
-    color: var(--ds-text);
-  }
-  .playlist-foot .reset-link {
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-cobalt);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-    margin-left: auto;
-  }
-  .playlist-foot .reset-link:hover { color: var(--ds-deep-violet); }
-
-  /* ============================================================
-     Audit-mode banner + capability-language lint pills.
-     Shown only when builder.html is opened with ?vertical=<key>.
-     ============================================================ */
-  .audit-banner {
-    display: none;
-    margin: 0 0 28px;
-    padding: 14px 18px;
-    background: color-mix(in srgb, var(--ds-cobalt) 6%, var(--ds-surface));
-    border: 1px solid var(--ds-rule);
-    border-left: 3px solid var(--ds-cobalt);
-    border-radius: 8px;
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    color: var(--ds-text);
-    line-height: 1.5;
-  }
-  .audit-banner.is-active { display: block; }
-  .audit-banner strong { color: var(--ds-deep-violet); }
-  .audit-banner .audit-count {
-    display: inline-block;
-    margin-left: 10px;
-    padding: 2px 10px;
-    background: var(--ds-deep-violet);
-    color: var(--ds-ecru);
-    border-radius: 999px;
-    font-family: var(--ds-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-  }
-  .lint-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 6px;
-    grid-column: 2;
-  }
-  @media (max-width: 640px) { .lint-chips { grid-column: 1; } }
-  .lint-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: rgba(255, 82, 82, 0.06);
-    border: 1px solid color-mix(in srgb, var(--ds-poppy) 40%, transparent);
-    border-radius: 999px;
-    font-family: var(--ds-mono);
-    font-size: 0.75rem;
-    color: var(--ds-text);
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .lint-chip:hover { background: rgba(255, 82, 82, 0.12); }
-  .lint-chip .chip-product {
-    font-weight: 700;
-    color: var(--ds-poppy);
-  }
-  .lint-chip .chip-arrow { color: var(--ds-text-soft); }
-  .lint-chip .chip-suggest {
-    font-style: italic;
-    color: var(--ds-deep-violet);
-  }
-  .beats-list {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px dashed var(--ds-rule);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .beats-list .beats-label {
-    font-family: var(--ds-font);
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-  }
-  .beat-row {
-    background: var(--ds-bg);
-    border: 1px solid var(--ds-rule);
-    border-radius: 6px;
-    padding: 10px 12px;
+  .sidebar-foot {
+    margin-top: auto;
+    padding: 0 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  .beat-row .beat-num {
-    font-family: var(--ds-mono);
-    font-size: 0.6875rem;
-    color: var(--ds-cobalt);
-    letter-spacing: 0.1em;
+  .sidebar-audit {
+    display: none;
+    font-size: 12px;
+    color: var(--ds-mist);
+    background: rgba(76,0,255,.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    line-height: 1.45;
+  }
+  .sidebar-audit.is-active { display: block; }
+  .audit-count-badge {
+    display: inline-block;
+    background: var(--ds-cobalt);
+    color: white;
+    border-radius: 99px;
+    font-size: 10px;
     font-weight: 700;
-  }
-  .beat-row textarea {
-    background: var(--ds-white);
-    border: 1px solid var(--ds-rule);
-    border-radius: 5px;
-    padding: 7px 10px;
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-text);
-    width: 100%;
-    line-height: 1.5;
-    resize: vertical;
-  }
-  .beat-row textarea:focus {
-    outline: none;
-    border-color: var(--ds-cobalt);
+    font-family: var(--mono);
+    padding: 1px 7px;
+    margin-left: 6px;
+    letter-spacing: .06em;
   }
 
-  /* ============================================================
-     Save-canonical button + result panel — admin-only edit flow.
-     The button is rendered only when /api/me reports the user is
-     on EDIT_ALLOWLIST AND the URL has ?vertical=<key>. The result
-     panel renders after a successful PUT, with the GitHub commit
-     URL the admin can verify against.
-     ============================================================ */
-  .btn-save-canonical {
-    background: var(--ds-deep-violet);
-    color: var(--ds-ecru);
-    border-color: var(--ds-deep-violet);
+  /* ── MAIN PANEL (right of sidebar) ── */
+  .main {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
   }
-  .btn-save-canonical:hover {
-    background: var(--ds-cobalt);
+
+  /* Each stage panel fills the main area */
+  .stage-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .stage-panel.is-active { display: flex; }
+  .stage-panel::-webkit-scrollbar { width: 6px; }
+  .stage-panel::-webkit-scrollbar-thumb { background: rgba(19,0,50,.18); border-radius: 3px; }
+
+  /* ── STAGE PANEL HEADERS ── */
+  .stage-header {
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .stage-header-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ds-cobalt);
+    margin-bottom: 6px;
+  }
+  .stage-header h2 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ds-inkwell);
+    letter-spacing: -.02em;
+    line-height: 1.15;
+  }
+  .stage-header-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .stage-body { padding: 28px 36px; flex: 1; }
+
+  /* ── STAGE 1: SEQUENCE CARDS ── */
+  .seq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .seq-card {
+    background: white;
+    border: 2px solid var(--rule);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    width: 100%;
+  }
+  .seq-card:hover {
+    border-color: rgba(76,0,255,.4);
+    box-shadow: 0 6px 20px rgba(19,0,50,.08);
+    transform: translateY(-2px);
+  }
+  .seq-card.is-selected {
     border-color: var(--ds-cobalt);
+    box-shadow: 0 0 0 3px rgba(76,0,255,.12);
   }
-  .btn-save-canonical:disabled {
-    background: color-mix(in srgb, var(--ds-deep-violet) 40%, transparent);
-    border-color: transparent;
-    color: var(--ds-ecru);
-    cursor: progress;
-  }
-  .save-result {
-    margin-top: 28px;
-    padding: 22px 26px;
-    background: var(--ds-surface);
-    border: 1px solid var(--ds-rule);
-    border-left: 3px solid var(--ds-deep-violet);
-    border-radius: 10px;
-    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
-  }
-  .save-result.is-error { border-left-color: var(--ds-poppy); }
-  .save-result-head {
+  .seq-card-head {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-  }
-  .save-result-tag {
-    font-family: var(--ds-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: var(--ds-deep-violet);
-    padding: 3px 9px;
-    background: color-mix(in srgb, var(--ds-deep-violet) 8%, transparent);
-    border-radius: 999px;
-  }
-  .save-result.is-error .save-result-tag {
-    color: var(--ds-poppy);
-    background: color-mix(in srgb, var(--ds-poppy) 8%, transparent);
-  }
-  .save-result-dismiss {
-    margin-left: auto;
-    background: transparent;
-    border: none;
-    color: var(--ds-text-soft);
-    font-size: 1.25rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-  .save-result-dismiss:hover { background: var(--ds-bg); color: var(--ds-text); }
-  .save-result-msg {
-    font-family: var(--ds-font);
-    font-size: 0.9375rem;
-    color: var(--ds-text);
-    line-height: 1.55;
-    margin: 0 0 12px;
-    white-space: pre-wrap;
-  }
-  .save-result-link {
-    font-family: var(--ds-font);
-    font-size: 0.875rem;
-    color: var(--ds-cobalt);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-    font-weight: 600;
-  }
-  .save-result-link:hover { color: var(--ds-deep-violet); }
-  .save-result.is-error .save-result-link { display: none; }
-
-  /* ============================================================
-     iMovie filmstrip — pool of scene tiles + horizontal timeline
-     + inspector. Replaces the old palette-zone / playlist-zone
-     2-column layout for Step 3.
-     ============================================================ */
-
-  .imovie-card {
-    background: var(--ds-surface);
-    border: 1px solid var(--ds-rule);
-    border-left: 3px solid var(--ds-cobalt);
-    border-radius: 12px;
-    padding: 28px 32px;
-    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.04);
-  }
-  @media (max-width: 640px) {
-    .imovie-card { padding: 22px 18px; border-left-width: 2px; }
-  }
-
-  .imovie-zone + .imovie-zone {
-    margin-top: 28px;
-    padding-top: 24px;
-    border-top: 1px solid var(--ds-rule);
-  }
-
-  .zone-label {
-    font-family: var(--ds-font);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .zone-sub {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.8125rem;
-    color: var(--ds-text-soft);
-    margin: 0 0 14px;
-    line-height: 1.5;
-  }
-  .zone-label-row {
-    display: flex;
-    align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 10px;
-    gap: 12px;
-  }
-  .zone-meta {
-    font-family: var(--ds-mono);
-    font-size: 0.75rem;
-    color: var(--ds-text-soft);
-    letter-spacing: 0.04em;
-  }
-
-  /* ===== Pool of scenes (top) ===== */
-  .pool-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
   }
-  @media (max-width: 480px) {
-    .pool-row { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .seq-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ds-inkwell);
+    letter-spacing: -.01em;
+  }
+  .seq-card-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(76,0,255,.08);
+    color: var(--ds-cobalt);
+    border-radius: 99px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+  .seq-card.is-selected .seq-card-badge { background: var(--ds-cobalt); color: white; }
+  .seq-card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .seq-card-scenes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .seq-scene-pill {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--mono);
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--rule-strong);
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .seq-card.is-selected .seq-scene-pill {
+    background: rgba(76,0,255,.06);
+    border-color: rgba(76,0,255,.2);
+    color: var(--ds-cobalt);
+  }
+  .seq-blank-card {
+    background: transparent;
+    border: 2px dashed var(--rule-strong);
+    color: var(--muted);
+  }
+  .seq-blank-card:hover {
+    border-color: var(--ds-cobalt);
+    color: var(--ds-cobalt);
+    background: rgba(76,0,255,.02);
+  }
+  .seq-blank-card.is-selected {
+    border-color: var(--ds-cobalt);
+    border-style: solid;
+    background: rgba(76,0,255,.03);
+  }
+  .seq-blank-card .seq-card-name { color: inherit; }
+
+  /* ── STAGE 2: BRAND FORM ── */
+  .brand-form {
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field-input, .field-select {
+    background: white;
+    border: 1px solid var(--rule-strong);
+    border-radius: 7px;
+    padding: 10px 13px;
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+    width: 100%;
+    transition: border-color .15s;
+  }
+  .field-input:focus, .field-select:focus {
+    outline: none;
+    border-color: var(--ds-cobalt);
+    box-shadow: 0 0 0 3px rgba(76,0,255,.1);
+  }
+  .field-help { font-size: 12px; font-style: italic; color: var(--muted); line-height: 1.5; }
+  .swatch-row { display: flex; gap: 8px; align-items: center; }
+  .swatch { width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--rule-strong); flex-shrink: 0; }
+  .swatch-row .field-input { flex: 1; min-width: 0; }
+  .logo-row { display: flex; gap: 8px; align-items: center; }
+  .logo-preview-box {
+    width: 44px; height: 44px;
+    border: 1px dashed var(--rule-strong);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); flex-shrink: 0; overflow: hidden;
+  }
+  .logo-row input[type="file"] { flex: 1; font-size: 12px; color: var(--muted); min-width: 0; }
+  .btn-xs {
+    padding: 6px 10px; font-size: 12px; font-weight: 600;
+    border-radius: 5px; border: 1px solid var(--rule-strong); color: var(--muted); white-space: nowrap; transition: all .15s;
+  }
+  .btn-xs:hover { border-color: var(--ds-inkwell); color: var(--ds-inkwell); }
+  .form-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 2px;
+  }
+  .defaults-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ds-cobalt);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: .2em;
+    align-self: flex-start;
+  }
+  .defaults-link:hover { color: var(--ds-deep-violet); }
+
+  /* ── STAGE 3: SCENE COMPOSER ── */
+  .composer-wrap { display: flex; flex-direction: column; gap: 24px; }
+
+  .panel-section {
+    background: white;
+    border: 1px solid var(--rule-strong);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .panel-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .scene-count-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(76,0,255,.08);
+    color: var(--ds-cobalt);
+    border-radius: 99px;
+    padding: 1px 8px;
+  }
+  .panel-section-meta { font-size: 12px; color: var(--muted); }
+  .panel-section-body { padding: 16px 18px; }
+
+  /* pool */
+  .pool-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+    gap: 10px;
   }
   .pool-tile {
     position: relative;
-    background: var(--ds-bg);
-    border: 1px solid var(--ds-rule);
+    background: var(--bg);
+    border: 1px solid var(--rule);
     border-radius: 8px;
     overflow: hidden;
     cursor: grab;
-    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color .15s, transform .15s, box-shadow .15s;
     user-select: none;
   }
-  .pool-tile:hover {
-    border-color: var(--ds-cobalt);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(19, 0, 50, 0.08);
-  }
-  .pool-tile.is-dragging { opacity: 0.45; cursor: grabbing; }
-  .pool-tile:active { cursor: grabbing; }
+  .pool-tile:hover { border-color: var(--ds-cobalt); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(19,0,50,.08); }
+  .pool-tile.is-dragging { opacity: .45; cursor: grabbing; }
   .pool-poster {
     position: relative;
-    height: 72px;
+    height: 64px;
     background: var(--ds-deep-violet);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
   }
-  .pool-poster::before,
-  .pool-poster::after {
+  .pool-poster::before, .pool-poster::after {
     content: "";
-    position: absolute;
-    left: 0; right: 0;
-    height: 6px;
-    background:
-      repeating-linear-gradient(90deg,
-        rgba(255, 255, 255, 0.85) 0 4px,
-        transparent 4px 10px);
-    opacity: 0.55;
+    position: absolute; left: 0; right: 0; height: 6px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 10px);
+    opacity: .5;
   }
   .pool-poster::before { top: 0; }
   .pool-poster::after  { bottom: 0; }
-  .pool-glyph {
-    font-family: var(--ds-mono);
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--ds-ecru);
-    letter-spacing: 0.06em;
-  }
-  .pool-meta {
-    padding: 8px 10px 10px;
-  }
-  .pool-name {
-    font-family: var(--ds-font);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--ds-text);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-  }
-  .pool-role {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.6875rem;
-    color: var(--ds-text-soft);
-    line-height: 1.3;
-    margin-top: 2px;
-  }
+  .pool-glyph { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--ds-ecru); letter-spacing: .06em; }
   .pool-add {
     position: absolute;
-    top: 6px; right: 6px;
-    width: 22px; height: 22px;
+    top: 5px; right: 5px;
+    width: 20px; height: 20px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255,255,255,.9);
     color: var(--ds-cobalt);
-    border: none;
-    font-family: var(--ds-mono);
-    font-size: 0.875rem;
+    font-family: var(--mono);
+    font-size: 14px;
     font-weight: 700;
     line-height: 1;
-    cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 2px rgba(19, 0, 50, 0.15);
-    transition: background 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 1px 2px rgba(19,0,50,.15);
+    transition: transform .15s;
   }
-  .pool-add:hover { background: var(--ds-ecru); transform: scale(1.08); }
+  .pool-add:hover { transform: scale(1.1); }
+  .pool-meta { padding: 7px 9px 9px; }
+  .pool-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.25; letter-spacing: -.01em; }
+  .pool-role { font-size: 10px; font-style: italic; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+  .pool-hint { margin-top: 10px; font-size: 12px; font-style: italic; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 
-  /* ===== Filmstrip timeline (middle) ===== */
+  /* filmstrip */
   .filmstrip-wrap {
     background: var(--ds-mist-soft);
-    border: 1px solid var(--ds-rule);
+    border: 1px solid var(--rule);
     border-radius: 8px;
-    padding: 14px;
+    padding: 12px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    min-height: 152px;
+    min-height: 148px;
   }
-  .filmstrip-wrap::-webkit-scrollbar { height: 8px; }
-  .filmstrip-wrap::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--ds-inkwell) 18%, transparent);
-    border-radius: 4px;
-  }
-  .filmstrip-track {
-    display: flex;
-    gap: 8px;
-    align-items: stretch;
-    min-height: 124px;
-  }
+  .filmstrip-wrap::-webkit-scrollbar { height: 6px; }
+  .filmstrip-wrap::-webkit-scrollbar-thumb { background: rgba(19,0,50,.18); border-radius: 3px; }
+  .filmstrip-track { display: flex; gap: 8px; align-items: stretch; min-height: 124px; }
   .filmstrip-empty {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.875rem;
-    color: var(--ds-text-soft);
-    text-align: center;
-    padding: 36px 16px;
-    border: 1.5px dashed var(--ds-rule-strong);
-    border-radius: 8px;
+    font-size: 14px; font-style: italic; color: var(--muted);
+    text-align: center; padding: 32px 16px;
+    border: 1.5px dashed var(--rule-strong); border-radius: 8px;
     background: var(--ds-mist-soft);
   }
-  .filmstrip-wrap.is-dragging-over {
-    background: color-mix(in srgb, var(--ds-mist) 50%, var(--ds-white));
-    border-color: var(--ds-cobalt);
-  }
-
+  .filmstrip-wrap.is-dragging-over { background: color-mix(in srgb, var(--ds-mist) 50%, var(--ds-white)); border-color: var(--ds-cobalt); }
   .film-tile {
-    position: relative;
-    flex: 0 0 184px;
-    background: var(--ds-white);
-    border: 1.5px solid var(--ds-rule);
-    border-radius: 6px;
-    overflow: hidden;
-    cursor: grab;
-    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    position: relative; flex: 0 0 172px;
+    background: white;
+    border: 1.5px solid var(--rule); border-radius: 6px;
+    overflow: hidden; cursor: grab;
+    transition: border-color .15s, box-shadow .15s;
     user-select: none;
   }
-  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 60%, var(--ds-rule)); }
-  .film-tile.is-selected {
-    border-color: var(--ds-cobalt);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent);
-  }
-  .film-tile.is-dragging { opacity: 0.4; cursor: grabbing; }
+  .film-tile:hover { border-color: color-mix(in srgb, var(--ds-cobalt) 60%, var(--rule)); }
+  .film-tile.is-selected { border-color: var(--ds-cobalt); box-shadow: 0 0 0 3px rgba(76,0,255,.15); }
+  .film-tile.is-dragging { opacity: .4; cursor: grabbing; }
   .film-tile.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt); }
   .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt); }
-  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
-  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px color-mix(in srgb, var(--ds-cobalt) 18%, transparent); }
-
-  .film-poster {
-    position: relative;
-    height: 78px;
-    background: var(--ds-deep-violet);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .film-poster::before,
-  .film-poster::after {
-    content: "";
-    position: absolute;
-    left: 0; right: 0;
-    height: 7px;
-    background:
-      repeating-linear-gradient(90deg,
-        rgba(255, 255, 255, 0.85) 0 4px,
-        transparent 4px 11px);
-    opacity: 0.6;
-  }
+  .film-tile.is-selected.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt), 0 0 0 3px rgba(76,0,255,.15); }
+  .film-tile.is-selected.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt), 0 0 0 3px rgba(76,0,255,.15); }
+  .film-poster { position: relative; height: 72px; background: var(--ds-deep-violet); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .film-poster::before, .film-poster::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 11px); opacity: .6; }
   .film-poster::before { top: 0; }
   .film-poster::after  { bottom: 0; }
-  .film-step {
-    position: absolute;
-    top: 10px; left: 8px;
-    font-family: var(--ds-mono);
-    font-size: 0.625rem;
-    font-weight: 700;
-    color: var(--ds-ecru);
-    background: rgba(19, 0, 50, 0.5);
-    padding: 2px 6px;
-    border-radius: 3px;
-    letter-spacing: 0.08em;
-    backdrop-filter: blur(2px);
-  }
-  .film-glyph {
-    font-family: var(--ds-mono);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--ds-ecru);
-    letter-spacing: 0.06em;
-  }
-  .film-remove {
-    position: absolute;
-    top: 8px; right: 8px;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: rgba(19, 0, 50, 0.5);
-    color: var(--ds-ecru);
-    border: none;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(2px);
-    transition: background 0.15s ease;
-    opacity: 0;
-  }
-  .film-tile:hover .film-remove,
-  .film-tile.is-selected .film-remove { opacity: 1; }
+  .film-step { position: absolute; top: 8px; left: 7px; font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ds-ecru); background: rgba(19,0,50,.5); padding: 2px 5px; border-radius: 3px; letter-spacing: .08em; backdrop-filter: blur(2px); }
+  .film-glyph { font-family: var(--mono); font-size: 1.25rem; font-weight: 700; color: var(--ds-ecru); letter-spacing: .06em; }
+  .film-remove { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(19,0,50,.5); color: var(--ds-ecru); font-size: 13px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); transition: background .15s; opacity: 0; }
+  .film-tile:hover .film-remove, .film-tile.is-selected .film-remove { opacity: 1; }
   .film-remove:hover { background: var(--ds-poppy); }
-  .film-meta { padding: 8px 10px 10px; }
-  .film-name {
-    font-family: var(--ds-font);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--ds-text);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .film-tag {
-    font-family: var(--ds-font);
-    font-style: italic;
-    font-size: 0.6875rem;
-    color: var(--ds-text-soft);
-    line-height: 1.3;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .film-meta { padding: 7px 9px 9px; }
+  .film-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .film-tag  { font-size: 10px; font-style: italic; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .timeline-foot { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .timeline-foot-note { font-size: 12px; color: var(--muted); }
+  .timeline-foot-note .scene-count-txt { font-weight: 600; color: var(--text); }
+  .reset-link { font-size: 12px; font-weight: 600; color: var(--ds-cobalt); padding: 0; text-decoration: underline; text-underline-offset: .2em; margin-left: auto; cursor: pointer; }
+  .reset-link:hover { color: var(--ds-deep-violet); }
 
-  /* Poster gradient palette (shared by .pool-poster + .film-poster) */
-  [data-poster="violet"]       { background: linear-gradient(135deg, var(--ds-deep-violet) 0%, color-mix(in srgb, var(--ds-deep-violet) 60%, var(--ds-cobalt)) 100%); }
-  [data-poster="cobalt"]       { background: linear-gradient(135deg, var(--ds-cobalt) 0%, color-mix(in srgb, var(--ds-cobalt) 55%, var(--ds-inkwell)) 100%); }
-  [data-poster="cobalt-deep"]  { background: linear-gradient(135deg, var(--ds-cobalt) 0%, var(--ds-inkwell) 100%); }
-  [data-poster="poppy"]        { background: linear-gradient(135deg, var(--ds-poppy) 0%, color-mix(in srgb, var(--ds-poppy) 55%, var(--ds-deep-violet)) 100%); }
-  [data-poster="mist"]         { background: linear-gradient(135deg, var(--ds-mist) 0%, color-mix(in srgb, var(--ds-mist) 60%, var(--ds-cobalt)) 100%); }
+  /* inspector */
+  .inspector { background: var(--ds-mist-soft); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px; margin-top: 12px; animation: fadeUp .2s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .inspector-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .inspector-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .inspector-label strong { font-style: italic; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ds-cobalt); font-size: 14px; }
+  .inspector-close { font-size: 18px; color: var(--muted); padding: 2px 6px; border-radius: 4px; transition: all .15s; }
+  .inspector-close:hover { background: rgba(19,0,50,.06); color: var(--text); }
+  .inspector-fields { display: flex; flex-direction: column; gap: 10px; }
+  .inspector-field-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: start; }
+  .inspector-field-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 9px; }
+  .inspector-field-input, .inspector-field-textarea { background: white; border: 1px solid var(--rule); border-radius: 5px; padding: 8px 10px; font-family: var(--font); font-size: 14px; color: var(--text); width: 100%; line-height: 1.5; resize: vertical; transition: border-color .15s; }
+  .inspector-field-input:focus, .inspector-field-textarea:focus { outline: none; border-color: var(--ds-cobalt); }
+
+  /* lint */
+  .lint-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; grid-column: 2; }
+  .lint-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: rgba(255,82,82,.06); border: 1px solid rgba(255,82,82,.35); border-radius: 999px; font-family: var(--mono); font-size: 11px; color: var(--text); cursor: pointer; transition: background .15s; }
+  .lint-chip:hover { background: rgba(255,82,82,.12); }
+  .lint-chip .chip-product { font-weight: 700; color: var(--ds-poppy); }
+  .lint-chip .chip-arrow   { color: var(--muted); }
+  .lint-chip .chip-suggest { font-style: italic; color: var(--ds-deep-violet); }
+
+  /* beats */
+  .beats-list { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--rule); display: flex; flex-direction: column; gap: 10px; }
+  .beats-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .beat-row { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .beat-num { font-family: var(--mono); font-size: 10px; color: var(--ds-cobalt); letter-spacing: .1em; font-weight: 700; }
+  .beat-row textarea { background: white; border: 1px solid var(--rule); border-radius: 4px; padding: 6px 9px; font-family: var(--font); font-size: 13px; color: var(--text); width: 100%; line-height: 1.5; resize: vertical; }
+  .beat-row textarea:focus { outline: none; border-color: var(--ds-cobalt); }
+
+  /* poster palette */
+  [data-poster="violet"]       { background: linear-gradient(135deg, #26065D 0%, color-mix(in srgb, #26065D 60%, #4C00FF) 100%); }
+  [data-poster="cobalt"]       { background: linear-gradient(135deg, #4C00FF 0%, color-mix(in srgb, #4C00FF 55%, #130032) 100%); }
+  [data-poster="cobalt-deep"]  { background: linear-gradient(135deg, #4C00FF 0%, #130032 100%); }
+  [data-poster="poppy"]        { background: linear-gradient(135deg, #FF5252 0%, color-mix(in srgb, #FF5252 55%, #26065D) 100%); }
+  [data-poster="mist"]         { background: linear-gradient(135deg, #CBC2FF 0%, color-mix(in srgb, #CBC2FF 60%, #4C00FF) 100%); }
   [data-poster="mint"]         { background: linear-gradient(135deg, #5BCDB8 0%, #2D8A8A 100%); }
   [data-poster="slate"]        { background: linear-gradient(135deg, #6B7A8C 0%, #94A3B8 100%); }
-  [data-poster="glow"]         { background: var(--ds-glow); }
+  [data-poster="glow"]         { background: linear-gradient(135deg, #FF5252 0%, #4C00FF 100%); }
   [data-poster="teal"]         { background: linear-gradient(135deg, #6FD6C8 0%, #2D8A8A 100%); }
   [data-poster="amber"]        { background: linear-gradient(135deg, #E8A438 0%, #C77B1F 100%); }
-  [data-poster="violet-poppy"] { background: linear-gradient(135deg, var(--ds-deep-violet) 0%, var(--ds-poppy) 100%); }
-
-  /* Mist is light enough that ecru text disappears — flip to deep violet. */
+  [data-poster="violet-poppy"] { background: linear-gradient(135deg, #26065D 0%, #FF5252 100%); }
   [data-poster="mist"] .pool-glyph,
-  [data-poster="mist"] .film-glyph { color: var(--ds-deep-violet); }
-  [data-poster="mist"] .film-step  { background: rgba(38, 6, 93, 0.55); }
-  [data-poster="mist"] .film-remove { background: rgba(38, 6, 93, 0.45); }
+  [data-poster="mist"] .film-glyph { color: #26065D; }
+  [data-poster="mist"] .film-step  { background: rgba(38,6,93,.55); }
+  [data-poster="mist"] .film-remove { background: rgba(38,6,93,.45); }
 
-  /* ===== Inspector (bottom) ===== */
-  .inspector {
-    margin-top: 18px;
-    background: var(--ds-mist-soft);
-    border: 1px solid var(--ds-rule);
-    border-radius: 8px;
-    padding: 18px 22px;
-    animation: stepFade 0.22s ease;
+  /* ── RESULT PANEL (shown after generate) ── */
+  .result-panel {
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-radius: 12px;
+    padding: 24px 28px;
+    box-shadow: 0 16px 40px rgba(38,6,93,.22);
+    position: relative;
+    display: none;
+    margin-top: 4px;
   }
-  .inspector-head {
+  .result-panel.active { display: block; animation: fadeUp .3s ease; }
+  .result-panel::before { content: ""; position: absolute; inset: 0; border-radius: 12px; padding: 1.5px; background: var(--ds-glow); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+  .result-tag { font-family: var(--mono); font-size: 11px; color: var(--ds-mist); letter-spacing: .16em; margin-bottom: 8px; }
+  .result-h { font-style: italic; font-size: 1.15rem; font-weight: 500; line-height: 1.25; margin: 0 0 14px; color: var(--ds-ecru); letter-spacing: -.01em; }
+  .result-url-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .result-url { flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(203,194,255,.3); border-radius: 6px; padding: 9px 12px; font-family: var(--mono); font-size: 13px; color: var(--ds-ecru); word-break: break-all; line-height: 1.4; min-width: 0; }
+  .result-action { padding: 8px 14px; background: var(--ds-mist); color: var(--ds-deep-violet); border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+  .result-action:hover { background: var(--ds-ecru); }
+  .result-action.ghost { background: transparent; color: var(--ds-mist); border: 1px solid rgba(203,194,255,.4); }
+  .result-action.ghost:hover { background: rgba(255,255,255,.08); color: var(--ds-ecru); }
+  .result-meta { font-size: 11px; color: var(--ds-mist); font-style: italic; line-height: 1.5; }
+
+  /* error + save result */
+  .error-panel { margin-top: 0; padding: 12px 16px; background: rgba(255,82,82,.06); border: 1px solid rgba(255,82,82,.45); border-left: 3px solid var(--ds-poppy); border-radius: 6px; font-size: 14px; color: var(--text); display: none; line-height: 1.5; }
+  .error-panel.active { display: block; }
+  .save-result { margin-top: 12px; padding: 16px 18px; background: white; border: 1px solid var(--rule); border-left: 3px solid var(--ds-deep-violet); border-radius: 8px; font-size: 14px; line-height: 1.55; }
+  .save-result.is-error { border-left-color: var(--ds-poppy); }
+  .save-result-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .save-result-tag { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ds-deep-violet); }
+  .save-result.is-error .save-result-tag { color: var(--ds-poppy); }
+  .save-result-dismiss { font-size: 18px; color: var(--muted); padding: 0 4px; border-radius: 3px; }
+  .save-result-dismiss:hover { color: var(--text); }
+  .save-result-msg { color: var(--text); white-space: pre-line; }
+  .save-result-actions { margin-top: 10px; }
+  .save-result-link { font-size: 13px; font-weight: 600; color: var(--ds-cobalt); text-decoration: underline; text-underline-offset: .2em; }
+
+  /* ── BOTTOM BAR ── */
+  .bottombar {
+    background: white;
+    border-top: 1px solid var(--rule-strong);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
+    padding: 0 24px;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 20;
   }
-  .inspector-label {
-    font-family: var(--ds-font);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ds-text-soft);
-    font-weight: 600;
-  }
-  .inspector-label strong {
-    font-style: italic;
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--ds-cobalt);
-    font-size: 0.9375rem;
-  }
-  .inspector-close {
-    background: transparent;
-    border: none;
-    color: var(--ds-text-soft);
-    cursor: pointer;
-    font-size: 1.25rem;
-    line-height: 1;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .inspector-close:hover { background: rgba(19, 0, 50, 0.06); color: var(--ds-text); }
-
-  .inspector-fields {
+  .bottombar-progress {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
   }
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .progress-step.is-done { color: rgba(63,218,153,.8); }
+  .progress-step.is-active { color: var(--ds-cobalt); font-weight: 600; }
+  .progress-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .5;
+    flex-shrink: 0;
+  }
+  .progress-step.is-done .progress-dot { opacity: 1; }
+  .progress-step.is-active .progress-dot { opacity: 1; width: 8px; height: 8px; }
+  .progress-connector { width: 20px; height: 1px; background: var(--rule-strong); flex-shrink: 0; }
+  .bottombar-actions { display: flex; align-items: center; gap: 8px; }
+  .btn-next {
+    padding: 9px 20px;
+    background: var(--ds-cobalt);
+    color: white;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+  .btn-next:hover { background: color-mix(in srgb, var(--ds-cobalt) 85%, black); }
+  .btn-back {
+    padding: 9px 16px;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--rule-strong);
+    border-radius: 7px;
+    font-size: 14px;
+    transition: all .15s;
+  }
+  .btn-back:hover { color: var(--text); border-color: var(--rule-strong); background: rgba(19,0,50,.03); }
+  .btn-generate {
+    padding: 9px 20px;
+    background: var(--ds-poppy);
+    color: white;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+  .btn-generate:hover { background: #e03a3a; }
+  .btn-generate:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-save-canonical {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--ds-deep-violet);
+    color: var(--ds-ecru);
+    border-radius: 6px;
+    transition: all .15s;
+  }
+  .btn-save-canonical:hover { background: var(--ds-cobalt); }
+  .btn-save-canonical:disabled { opacity: .45; cursor: progress; }
+  .submit-status { font-size: 12px; font-style: italic; color: var(--muted); }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="topmark">
-    <span class="mark-dot" aria-hidden="true"></span>
-    <span class="mark-text">Docusign</span>
-    <span class="mark-divider" aria-hidden="true"></span>
-    <span class="mark-context">TGK 2.0 internal</span>
-  </div>
+<!-- hidden form fields for JS compatibility -->
+<input type="hidden" id="f-shell" value="default">
 
-  <div class="kicker">Demo builder · 2026-04-28</div>
-  <h1>Spin up a custom <em>demo URL</em>.</h1>
-  <p class="deck">Three steps: pick a scaffold, brand the demo, assemble the scenes. Get back a clean shareable URL that lives for 30 days.</p>
+<!-- ══════════════════ TOP BAR ══════════════════ -->
+<header class="topbar">
+  <a class="topbar-logo" href="/">
+    <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
+  </a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-badge">Demo Builder</span>
+  <div class="topbar-spacer"></div>
+  <a class="topbar-link" href="/">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Picker
+  </a>
+  <a class="topbar-link" href="/audit.html">Audit</a>
+  <a class="topbar-link" href="/admin/audit" target="_blank">Admin</a>
+</header>
 
-  <!-- Audit-mode banner — only renders when ?vertical=<key> is present in the URL. -->
-  <div class="audit-banner" id="auditBanner" role="status">
-    <span id="auditBannerText">Auditing canonical demo</span>
-    <span class="audit-count" id="auditCount">0 hits</span>
-  </div>
+<!-- ══════════════════ MIDDLE ══════════════════ -->
+<div class="mid">
 
-  <!-- ===== Wizard stepper ===== -->
-  <div class="stepper" id="stepper">
-    <div class="step-node is-active" data-step="1">
-      <span class="node-circle"><span class="node-num">1</span></span>
-      <span class="node-label">Scaffold</span>
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-heading">Build steps</div>
+    <nav class="stage-nav" id="stageNav">
+      <button class="stage-btn is-active" type="button" data-stage="1" id="stageBtn1">
+        <span class="stage-num">1</span>
+        <span>
+          <div class="stage-label">Sequence</div>
+          <div class="stage-sub">Pick a starting point</div>
+        </span>
+      </button>
+      <button class="stage-btn" type="button" data-stage="2" id="stageBtn2">
+        <span class="stage-num">2</span>
+        <span>
+          <div class="stage-label">Brand</div>
+          <div class="stage-sub">Name it, color it</div>
+        </span>
+      </button>
+      <button class="stage-btn" type="button" data-stage="3" id="stageBtn3">
+        <span class="stage-num">3</span>
+        <span>
+          <div class="stage-label">Scenes</div>
+          <div class="stage-sub">Arrange &amp; narrate</div>
+        </span>
+      </button>
+    </nav>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-foot">
+      <div class="sidebar-audit" id="auditBanner" role="status">
+        <span id="auditBannerText">Auditing canonical demo</span>
+        <span class="audit-count-badge" id="auditCount">0 hits</span>
+      </div>
     </div>
-    <div class="step-line" data-line="1-2"></div>
-    <div class="step-node" data-step="2">
-      <span class="node-circle"><span class="node-num">2</span></span>
-      <span class="node-label">Brand</span>
-    </div>
-    <div class="step-line" data-line="2-3"></div>
-    <div class="step-node" data-step="3">
-      <span class="node-circle"><span class="node-num">3</span></span>
-      <span class="node-label">Scenes</span>
-    </div>
-  </div>
+  </aside>
 
-  <form id="builderForm">
+  <!-- ── MAIN PANEL ── -->
+  <main class="main">
 
-  <!-- ===== Step 1 — Scaffold ===== -->
-  <div class="wizard-step is-active" data-step="1">
-    <h2 class="step-title">Pick the <em>scaffold</em>.</h2>
-    <p class="step-deck">This sets the narration baseline and the starting playlist. You'll override anything you want in the next two steps.</p>
+    <!-- ══ STAGE 1: SEQUENCE ══ -->
+    <div class="stage-panel is-active" id="stage1">
+      <div class="stage-header">
+        <div class="stage-header-eyebrow">Step 1 of 3</div>
+        <h2>Choose a starting sequence</h2>
+        <p class="stage-header-sub">Select a pre-canned flow or start blank and build scene-by-scene in step 3.</p>
+      </div>
+      <div class="stage-body">
+        <div class="seq-grid" id="seqGrid">
 
-    <div class="form-card">
+          <button class="seq-card is-selected" type="button" data-seq="default">
+            <div class="seq-card-head">
+              <span class="seq-card-name">5-Scene Canonical</span>
+              <span class="seq-card-badge">5 scenes</span>
+            </div>
+            <p class="seq-card-desc">The full Docusign story arc — identity, agreement, signing, data, workspace. Best for new-logo discovery.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">AD</span>
+              <span class="seq-scene-pill">ID</span>
+              <span class="seq-scene-pill">SG</span>
+              <span class="seq-scene-pill">NV</span>
+              <span class="seq-scene-pill">WS</span>
+            </div>
+          </button>
 
-      <div class="form-row">
-        <label for="f-industry">Industry</label>
-        <div>
-          <select id="f-industry" required>
-            <option value="wealth">Wealth Management — Hillside × Aster Capital</option>
-            <option value="wealth-discovery">Wealth Discovery — Cypress × Holcomb</option>
-            <option value="banking">Commercial Banking — Meridian × Atlas</option>
-            <option value="banking-deposits">Banking Deposits — Cedar × Williams</option>
-            <option value="insurance">Insurance — Sentinel × Ramirez</option>
-            <option value="insurance-life">Life Insurance — Beacon × Whitfield</option>
-            <option value="insurance-pc">P&amp;C Insurance — Northgate × Patel</option>
-            <option value="provider">Healthcare Provider — Riverside × Kim</option>
-            <option value="provider-roi">Provider ROI — Catalina × Tan</option>
-            <option value="lifesciences">Life Sciences — Helix × Austin</option>
-            <option value="payor">Payor — Unity × Chen</option>
-            <option value="fedgov">Federal Gov — DOL × Nguyen</option>
-            <option value="slgov">State &amp; Local — Springfield × 1420 Oak</option>
-            <option value="slgov-311">SLGov 311 — Greenhaven × Cedar</option>
-            <option value="slgov-benefits">SLGov Benefits — Eastside × Rivera</option>
-            <option value="slgov-licensing">SLGov Licensing — Northbrook × Avalon</option>
-            <option value="education">Education — Maple Ridge × Shah</option>
-            <option value="nonprofit">Nonprofit — Harbor × Safe Streets</option>
-          </select>
-          <div class="help">Used as the narration scaffold — your overrides below replace the tenant-specific bits.</div>
+          <button class="seq-card" type="button" data-seq="intake">
+            <div class="seq-card-head">
+              <span class="seq-card-name">Intake</span>
+              <span class="seq-card-badge">4 scenes</span>
+            </div>
+            <p class="seq-card-desc">Public webform → triaged queue → Agreement Desk → Navigator. Inbound-first journey.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">WF</span>
+              <span class="seq-scene-pill">WI</span>
+              <span class="seq-scene-pill">AD</span>
+              <span class="seq-scene-pill">NV</span>
+            </div>
+          </button>
+
+          <button class="seq-card" type="button" data-seq="fraud-fabric">
+            <div class="seq-card-head">
+              <span class="seq-card-name">Fraud Fabric</span>
+              <span class="seq-card-badge">3 scenes</span>
+            </div>
+            <p class="seq-card-desc">Chain-of-custody binding + CLEAR at the door + signing. High-value or high-risk transactions.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">CC</span>
+              <span class="seq-scene-pill">ID</span>
+              <span class="seq-scene-pill">SG</span>
+            </div>
+          </button>
+
+          <button class="seq-card" type="button" data-seq="maintenance">
+            <div class="seq-card-head">
+              <span class="seq-card-name">Maintenance</span>
+              <span class="seq-card-badge">3 scenes</span>
+            </div>
+            <p class="seq-card-desc">Post-onboarding change event — beneficiary update, address change, advisor reassignment.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">AD</span>
+              <span class="seq-scene-pill">ID</span>
+              <span class="seq-scene-pill">SG</span>
+            </div>
+          </button>
+
+          <button class="seq-card" type="button" data-seq="workspaces">
+            <div class="seq-card-head">
+              <span class="seq-card-name">Workspaces</span>
+              <span class="seq-card-badge">1 scene</span>
+            </div>
+            <p class="seq-card-desc">Single-scene spotlight on the Workspace collaboration room. Ideal as a synthesis closer.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">WS</span>
+            </div>
+          </button>
+
+          <button class="seq-card" type="button" data-seq="clm">
+            <div class="seq-card-head">
+              <span class="seq-card-name">CLM</span>
+              <span class="seq-card-badge">4 scenes</span>
+            </div>
+            <p class="seq-card-desc">Contract lifecycle — webform intake, Agreement Desk review, signing, Navigator extract.</p>
+            <div class="seq-card-scenes">
+              <span class="seq-scene-pill">WF</span>
+              <span class="seq-scene-pill">AD</span>
+              <span class="seq-scene-pill">SG</span>
+              <span class="seq-scene-pill">NV</span>
+            </div>
+          </button>
+
+          <button class="seq-card seq-blank-card" type="button" data-seq="blank">
+            <div class="seq-card-head">
+              <span class="seq-card-name">Start blank</span>
+              <span class="seq-card-badge" style="background:transparent;border:1px dashed var(--rule-strong);color:var(--muted);">0 scenes</span>
+            </div>
+            <p class="seq-card-desc">Empty timeline. Drag any scene block from the library in step 3.</p>
+          </button>
+
         </div>
       </div>
-
-      <div class="form-row">
-        <label for="f-shell">Story shell</label>
-        <div>
-          <select id="f-shell" required>
-            <option value="default">5-scene canonical · Agreement Desk · identity verification · Signing · the agreement repository · Workspace</option>
-            <option value="fraud-fabric">3-scene Fraud Fabric · chain-of-custody · identity verification · Signing</option>
-            <option value="intake">3–4 scene Intake · Webform → Triage → Desk → the agreement repository</option>
-            <option value="maintenance">3-scene Maintenance · Agreement Desk · identity verification · Signing</option>
-            <option value="workspaces">1-scene Workspaces · Workspace synthesis</option>
-            <option value="blank">Blank · start in the iMovie pool</option>
-          </select>
-          <div class="help">Picks the narrative spine — agnostic of which existing demo it maps to. Drag scenes in or out in Step 3.</div>
-        </div>
-      </div>
-
     </div>
-    <!-- /form-card -->
 
-    <div class="wizard-nav">
-      <span></span>
-      <div class="wizard-nav-right">
-        <button class="btn" type="button" data-wizard-next>Next: Brand the demo →</button>
+    <!-- ══ STAGE 2: BRAND ══ -->
+    <div class="stage-panel" id="stage2">
+      <div class="stage-header">
+        <div class="stage-header-eyebrow">Step 2 of 3</div>
+        <h2>Brand the demo</h2>
+        <p class="stage-header-sub">Set the tenant name, customer context, and visual identity. Defaults auto-fill from the narration scaffold.</p>
       </div>
-    </div>
-  </div>
-  <!-- /Step 1 -->
+      <div class="stage-body">
+        <div class="brand-form">
 
-  <!-- ===== Step 2 — Brand ===== -->
-  <div class="wizard-step" data-step="2">
-    <h2 class="step-title">Brand the <em>demo</em>.</h2>
-    <p class="step-deck">Override what the scaffold prefilled. Every field is editable — change as much or as little as you want.</p>
+          <div class="field-group">
+            <label class="field-label" for="f-industry">Narration scaffold</label>
+            <select class="field-select" id="f-industry" required>
+              <option value="wealth">Wealth — Hillside × Aster Capital</option>
+              <option value="wealth-discovery">Wealth Discovery — Cypress × Holcomb</option>
+              <option value="banking">Commercial Banking — Meridian × Atlas</option>
+              <option value="banking-deposits">Banking Deposits — Cedar × Williams</option>
+              <option value="insurance">Insurance — Sentinel × Ramirez</option>
+              <option value="insurance-life">Life Insurance — Beacon × Whitfield</option>
+              <option value="insurance-pc">P&amp;C Insurance — Northgate × Patel</option>
+              <option value="provider">Healthcare Provider — Riverside × Kim</option>
+              <option value="provider-roi">Provider ROI — Catalina × Tan</option>
+              <option value="lifesciences">Life Sciences — Helix × Austin</option>
+              <option value="payor">Payor — Unity × Chen</option>
+              <option value="fedgov">Federal Gov — DOL × Nguyen</option>
+              <option value="slgov">State &amp; Local — Springfield × 1420 Oak</option>
+              <option value="slgov-311">SLGov 311 — Greenhaven × Cedar</option>
+              <option value="slgov-benefits">SLGov Benefits — Eastside × Rivera</option>
+              <option value="slgov-licensing">SLGov Licensing — Northbrook × Avalon</option>
+              <option value="education">Education — Maple Ridge × Shah</option>
+              <option value="nonprofit">Nonprofit — Harbor × Safe Streets</option>
+            </select>
+            <span class="field-help">Sets narration defaults — override per-scene in step 3.</span>
+          </div>
 
-    <div class="form-card">
+          <button type="button" class="defaults-link" id="btnApplyDefaults">Apply scaffold defaults to fields below</button>
 
-      <div class="form-row">
-        <label for="f-tenant">Tenant</label>
-        <div><input type="text" id="f-tenant" placeholder="e.g. Highland Bank" required maxlength="60"></div>
-      </div>
+          <div style="height:1px;background:var(--rule);"></div>
 
-      <div class="form-row">
-        <label for="f-customer">Customer</label>
-        <div><input type="text" id="f-customer" placeholder="e.g. Atlas Manufacturing — $2.5M working capital" required maxlength="120"></div>
-      </div>
+          <div class="field-group">
+            <label class="field-label" for="f-tenant">Tenant name <span style="color:var(--ds-poppy)">*</span></label>
+            <input class="field-input" type="text" id="f-tenant" placeholder="e.g. Highland Bank" maxlength="60" required>
+          </div>
 
-      <div class="form-row">
-        <label for="f-color">Brand color</label>
-        <div>
-          <div class="swatch-row">
-            <span class="swatch" id="swatchPreview" style="background:#4C00FF"></span>
-            <input type="text" id="f-color" placeholder="#RRGGBB" value="#4C00FF" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$">
-            <select id="f-color-preset" style="max-width: 200px;">
+          <div class="field-group">
+            <label class="field-label" for="f-customer">Customer / deal <span style="color:var(--ds-poppy)">*</span></label>
+            <input class="field-input" type="text" id="f-customer" placeholder="e.g. Atlas Mfg — $2.5M facility" maxlength="120" required>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-color">Brand color <span style="color:var(--ds-poppy)">*</span></label>
+            <div class="swatch-row">
+              <span class="swatch" id="swatchPreview" style="background:#4C00FF"></span>
+              <input class="field-input" type="text" id="f-color" placeholder="#RRGGBB" value="#4C00FF" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$">
+            </div>
+            <select class="field-select" id="f-color-preset" style="margin-top:6px;">
               <option value="">— or pick a preset —</option>
               <option value="#3FDA99">Mint</option>
               <option value="#2D8EFF">Cobalt blue</option>
@@ -1457,299 +959,286 @@
               <option value="#94A3B8">Slate</option>
             </select>
           </div>
-        </div>
-      </div>
 
-      <div class="form-row">
-        <label for="f-logo">Customer logo</label>
-        <div>
-          <div class="swatch-row" style="gap: 14px;">
-            <span id="logoPreview" aria-hidden="true" style="
-              width: 56px; height: 56px;
-              border: 1px dashed var(--ds-rule-strong);
-              border-radius: 6px;
-              display: flex; align-items: center; justify-content: center;
-              background: var(--ds-bg);
-              flex-shrink: 0;
-              overflow: hidden;
-            ">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--ds-text-soft);">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="9" cy="9" r="1.5"/>
-                <path d="M3 16l5-5 4 4 3-3 6 6"/>
-              </svg>
-            </span>
-            <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="
-              flex: 1;
-              font-family: var(--ds-font);
-              font-size: 0.9375rem;
-              color: var(--ds-text);
-              min-width: 200px;
-            ">
-            <button type="button" id="btnLogoClear" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.875rem;">Clear</button>
+          <div class="field-group">
+            <label class="field-label" for="f-logo">Customer logo</label>
+            <div class="logo-row">
+              <span class="logo-preview-box" id="logoPreview" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+              </span>
+              <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="flex:1;font-family:var(--font);font-size:12px;color:var(--muted);min-width:0;">
+              <button type="button" id="btnLogoClear" class="btn-xs">Clear</button>
+            </div>
+            <span class="field-help">PNG, JPG, SVG, WebP · max 500 KB</span>
           </div>
-          <div class="help">PNG, JPG, SVG, or WebP. Max 500 KB. Optional.</div>
-        </div>
-      </div>
 
-      <div class="form-row">
-        <label for="f-sor">System of record</label>
-        <div>
-          <input type="text" id="f-sor" placeholder="e.g. nCino on Salesforce" maxlength="80" list="sor-list" autocomplete="off">
-          <datalist id="sor-list">
-            <option value="Salesforce FSC"></option>
-            <option value="Salesforce CRM"></option>
-            <option value="Salesforce Public Sector Solutions"></option>
-            <option value="Salesforce Health Cloud"></option>
-            <option value="Salesforce Nonprofit Cloud"></option>
-            <option value="nCino on Salesforce"></option>
-            <option value="Guidewire PolicyCenter"></option>
-            <option value="Guidewire ClaimCenter"></option>
-            <option value="Guidewire BillingCenter"></option>
-            <option value="Duck Creek Policy"></option>
-            <option value="Epic"></option>
-            <option value="Epic / Veeva"></option>
-            <option value="Cerner / Oracle Health"></option>
-            <option value="Veeva Vault"></option>
-            <option value="Workday HCM"></option>
-            <option value="Workday Student"></option>
-            <option value="Workday Financials"></option>
-            <option value="ServiceNow"></option>
-            <option value="ServiceNow Public Sector"></option>
-            <option value="Oracle Public Sector"></option>
-            <option value="Microsoft Dynamics 365"></option>
-            <option value="SAP"></option>
-            <option value="HubSpot"></option>
-            <option value="Tyler Technologies"></option>
-            <option value="Accela"></option>
-            <option value="Other / custom"></option>
-          </datalist>
-          <div class="help">Pick from the list or type a custom value.</div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label for="f-moment">Signature moment</label>
-        <div>
-          <input type="text" id="f-moment" placeholder='e.g. "$5M household opened in 15 minutes, fully paperless."' maxlength="160">
-          <div class="help">A short headline the prospect remembers. Quotes optional.</div>
-        </div>
-      </div>
-
-    </div>
-    <!-- /form-card -->
-
-    <div class="wizard-nav">
-      <button class="btn btn-secondary" type="button" data-wizard-back>← Back</button>
-      <div class="wizard-nav-right">
-        <button class="btn" type="button" data-wizard-next>Next: Assemble scenes →</button>
-      </div>
-    </div>
-  </div>
-  <!-- /Step 2 -->
-
-  <!-- ===== Step 3 — Scenes (iMovie pool + filmstrip + inspector) ===== -->
-  <div class="wizard-step" data-step="3">
-    <h2 class="step-title">Assemble the <em>scenes</em>.</h2>
-    <p class="step-deck">Drag a tile from the pool down into the timeline. Click any tile in the timeline to edit its narration.</p>
-
-    <div class="imovie-card">
-
-      <!-- ===== Pool of scenes (top) ===== -->
-      <div class="imovie-zone pool-zone">
-        <div class="zone-label">Scene pool · 13 templates</div>
-        <p class="zone-sub">Drag onto the timeline, or tap <span style="font-family:var(--ds-mono);font-weight:700;color:var(--ds-cobalt);">+</span> to append.</p>
-        <div class="pool-row" id="pool" aria-label="Scene pool"></div>
-      </div>
-
-      <!-- ===== Horizontal timeline ===== -->
-      <div class="imovie-zone timeline-zone">
-        <div class="zone-label-row">
-          <span class="zone-label">Timeline</span>
-          <span class="zone-meta" id="sceneCount">0 scenes</span>
-        </div>
-        <div class="filmstrip-wrap" id="filmstripWrap" aria-label="Demo timeline">
-          <div class="filmstrip-track" id="timeline"></div>
-        </div>
-        <div class="filmstrip-empty" id="timelineEmpty" hidden>Drop scenes here, or tap + on a tile in the pool above.</div>
-      </div>
-
-      <!-- ===== Inspector (bottom) ===== -->
-      <div class="inspector" id="inspector" hidden aria-live="polite">
-        <div class="inspector-head">
-          <span class="inspector-label">Inspector · <strong id="inspectorTitle">—</strong></span>
-          <button type="button" class="inspector-close" id="inspectorClose" aria-label="Close inspector">×</button>
-        </div>
-        <div class="inspector-fields">
-          <div class="scene-field-row">
-            <label class="scene-field-label" for="inspTag">Tag</label>
-            <input type="text" id="inspTag" maxlength="40" placeholder="Sender · the workflow proxy">
+          <div class="field-group">
+            <label class="field-label" for="f-sor">System of record</label>
+            <input class="field-input" type="text" id="f-sor" placeholder="e.g. nCino on Salesforce" maxlength="80" list="sor-list" autocomplete="off">
+            <datalist id="sor-list">
+              <option value="Salesforce FSC"></option>
+              <option value="Salesforce CRM"></option>
+              <option value="Salesforce Public Sector Solutions"></option>
+              <option value="Salesforce Health Cloud"></option>
+              <option value="Salesforce Nonprofit Cloud"></option>
+              <option value="nCino on Salesforce"></option>
+              <option value="Guidewire PolicyCenter"></option>
+              <option value="Guidewire ClaimCenter"></option>
+              <option value="Guidewire BillingCenter"></option>
+              <option value="Duck Creek Policy"></option>
+              <option value="Epic"></option>
+              <option value="Epic / Veeva"></option>
+              <option value="Cerner / Oracle Health"></option>
+              <option value="Veeva Vault"></option>
+              <option value="Workday HCM"></option>
+              <option value="Workday Student"></option>
+              <option value="Workday Financials"></option>
+              <option value="ServiceNow"></option>
+              <option value="ServiceNow Public Sector"></option>
+              <option value="Oracle Public Sector"></option>
+              <option value="Microsoft Dynamics 365"></option>
+              <option value="SAP"></option>
+              <option value="HubSpot"></option>
+              <option value="Tyler Technologies"></option>
+              <option value="Accela"></option>
+              <option value="Other / custom"></option>
+            </datalist>
           </div>
-          <div class="scene-field-row">
-            <label class="scene-field-label" for="inspHeadline">Headline</label>
-            <input type="text" id="inspHeadline" placeholder="$5M household, one envelope.">
-            <div class="lint-chips" id="lintHead" hidden></div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-moment">Signature moment</label>
+            <input class="field-input" type="text" id="f-moment" placeholder='"$5M household opened in 15 minutes."' maxlength="160">
           </div>
-          <div class="scene-field-row">
-            <label class="scene-field-label" for="inspLede">Lede</label>
-            <textarea id="inspLede" rows="3" placeholder="One short sentence the prospect will remember."></textarea>
-            <div class="lint-chips" id="lintLede" hidden></div>
-          </div>
-          <div class="beats-list" id="inspBeats" hidden>
-            <span class="beats-label">Beats — capability-language lint runs on each</span>
-            <div id="inspBeatsList"></div>
-          </div>
+
         </div>
       </div>
+    </div>
 
-      <div class="playlist-foot">
-        <span>3-scene minimum, no hard max.</span>
-        <button type="button" class="reset-link" id="btnResetPlaylist">Reset timeline to industry default</button>
+    <!-- ══ STAGE 3: SCENES ══ -->
+    <div class="stage-panel" id="stage3">
+      <div class="stage-header">
+        <div class="stage-header-eyebrow">Step 3 of 3</div>
+        <h2>Arrange scenes &amp; narrate</h2>
+        <p class="stage-header-sub">Drag blocks from the library into the timeline, then click any scene to edit its narration. Need 3+ scenes to generate.</p>
       </div>
+      <div class="stage-body">
+        <div class="composer-wrap">
 
-    </div>
-    <!-- /imovie-card -->
+          <!-- Scene pool -->
+          <div class="panel-section">
+            <div class="panel-section-head">
+              <span class="panel-section-title">
+                Scene library
+                <span class="scene-count-pill" id="poolCount">13</span>
+              </span>
+              <span class="panel-section-meta">Drag or tap + to add to timeline</span>
+            </div>
+            <div class="panel-section-body">
+              <div class="pool-row" id="pool" aria-label="Scene pool"></div>
+              <p class="pool-hint">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Tap any block to append · drag to place at a specific position
+              </p>
+            </div>
+          </div>
 
+          <!-- Timeline -->
+          <div class="panel-section">
+            <div class="panel-section-head">
+              <span class="panel-section-title">
+                Timeline
+                <span class="scene-count-pill" id="sceneCount">0</span>
+              </span>
+              <span class="panel-section-meta">Click a scene to edit narration</span>
+            </div>
+            <div class="panel-section-body">
+              <div class="filmstrip-wrap" id="filmstripWrap" aria-label="Demo timeline">
+                <div class="filmstrip-track" id="timeline"></div>
+              </div>
+              <div class="filmstrip-empty" id="timelineEmpty" hidden>Tap + on any scene block above, or drag blocks here to build your demo.</div>
 
-    <div class="wizard-nav">
-      <button class="btn btn-secondary" type="button" data-wizard-back>← Back</button>
-      <div class="wizard-nav-right">
-        <span class="submit-status" id="submitStatus"></span>
-        <button class="btn btn-secondary" type="button" id="btnReset">Start over</button>
-        <!-- Save canonical — admin-only; only rendered when /api/me reports
-             the user is on EDIT_ALLOWLIST AND ?vertical= is in the URL. -->
-        <button class="btn btn-save-canonical" type="button" id="btnSaveCanonical" hidden>Save to canonical →</button>
-        <button class="btn" type="button" id="btnGenerate">Generate URL →</button>
+              <!-- Inspector -->
+              <div class="inspector" id="inspector" hidden aria-live="polite">
+                <div class="inspector-head">
+                  <span class="inspector-label">Scene inspector · <strong id="inspectorTitle">—</strong></span>
+                  <button type="button" class="inspector-close" id="inspectorClose" aria-label="Close inspector">×</button>
+                </div>
+                <div class="inspector-fields">
+                  <div class="inspector-field-row">
+                    <label class="inspector-field-label" for="inspTag">Tag</label>
+                    <input class="inspector-field-input" type="text" id="inspTag" maxlength="40" placeholder="Sender · workflow proxy">
+                  </div>
+                  <div class="inspector-field-row">
+                    <label class="inspector-field-label" for="inspHeadline">Headline</label>
+                    <input class="inspector-field-input" type="text" id="inspHeadline" placeholder="$5M household, one envelope.">
+                    <div class="lint-chips" id="lintHead" hidden></div>
+                  </div>
+                  <div class="inspector-field-row">
+                    <label class="inspector-field-label" for="inspLede">Lede</label>
+                    <textarea class="inspector-field-textarea" id="inspLede" rows="3" placeholder="One line the prospect will remember."></textarea>
+                    <div class="lint-chips" id="lintLede" hidden></div>
+                  </div>
+                  <div class="beats-list" id="inspBeats" hidden>
+                    <span class="beats-label">Beats</span>
+                    <div id="inspBeatsList"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-foot">
+                <span class="timeline-foot-note">3-scene minimum · <span class="scene-count-txt" id="sceneCountFoot">0 scenes</span></span>
+                <button type="button" class="reset-link" id="btnResetPlaylist">Reset to sequence default</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result panel -->
+          <div class="result-panel" id="resultPanel">
+            <div class="result-tag">DEMO URL · LIVE NOW</div>
+            <h3 class="result-h" id="resultHeadline"></h3>
+            <div class="result-url-row">
+              <span class="result-url" id="resultUrl"></span>
+              <button class="result-action" id="btnCopy">Copy</button>
+              <button class="result-action ghost" id="btnOpen">Open</button>
+            </div>
+            <div class="result-meta" id="resultMeta"></div>
+          </div>
+
+          <!-- Error / save-result -->
+          <div class="error-panel" id="errorPanel"></div>
+          <div class="save-result" id="saveResult" hidden>
+            <div class="save-result-head">
+              <span class="save-result-tag" id="saveResultTag">Saved</span>
+              <button type="button" class="save-result-dismiss" id="saveResultDismiss" aria-label="Dismiss">×</button>
+            </div>
+            <p class="save-result-msg" id="saveResultMsg"></p>
+            <div class="save-result-actions">
+              <a class="save-result-link" id="saveResultLink" target="_blank" rel="noopener">View commit on GitHub</a>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
-    <!-- Save result panel — appears under the wizard nav after a successful
-         POST /api/verticals/:key. Shows the GitHub commit URL + a quick
-         dismiss. Hidden by default. -->
-    <div class="save-result" id="saveResult" hidden>
-      <div class="save-result-head">
-        <span class="save-result-tag" id="saveResultTag">Saved</span>
-        <button type="button" class="save-result-dismiss" id="saveResultDismiss" aria-label="Dismiss">×</button>
-      </div>
-      <p class="save-result-msg" id="saveResultMsg"></p>
-      <div class="save-result-actions">
-        <a class="save-result-link" id="saveResultLink" target="_blank" rel="noopener">View commit on GitHub ↗</a>
-      </div>
-    </div>
-  </div>
-  <!-- /Step 3 -->
-
-  </form>
-  <!-- /builderForm -->
-
-  <div class="error-panel" id="errorPanel"></div>
-
-  <div class="result-panel" id="resultPanel">
-    <div class="result-tag">DEMO URL · LIVE NOW</div>
-    <h3 class="result-h" id="resultHeadline"></h3>
-    <div class="result-url-row">
-      <span class="result-url" id="resultUrl"></span>
-      <button class="result-action" id="btnCopy">Copy</button>
-      <button class="result-action ghost" id="btnOpen">Open ↗</button>
-    </div>
-    <div class="result-actions">
-      <span class="result-meta" id="resultMeta"></span>
-    </div>
-  </div>
-
-  <div class="foot">/api/builder/save · /stories/custom-:token/ · 2026-04-28</div>
-
+  </main>
 </div>
 
+<!-- ══════════════════ BOTTOM BAR ══════════════════ -->
+<footer class="bottombar">
+  <div class="bottombar-progress" id="progressBar">
+    <span class="progress-step is-active" id="prog1">
+      <span class="progress-dot"></span>Sequence
+    </span>
+    <span class="progress-connector"></span>
+    <span class="progress-step" id="prog2">
+      <span class="progress-dot"></span>Brand
+    </span>
+    <span class="progress-connector"></span>
+    <span class="progress-step" id="prog3">
+      <span class="progress-dot"></span>Scenes
+    </span>
+  </div>
+  <div class="bottombar-actions">
+    <span class="submit-status" id="submitStatus"></span>
+    <button class="btn-save-canonical" type="button" id="btnSaveCanonical" hidden>Save to canonical</button>
+    <button class="btn-back" type="button" id="btnBack" hidden>Back</button>
+    <button class="btn-next" type="button" id="btnNext">
+      Next
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M3 6.5h7M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="btn-generate" type="button" id="btnGenerate" style="display:none;">
+      Generate URL
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M3 6.5h7M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</footer>
+
 <script>
-  // ============== Wizard navigation ==============
-  // Three-step guided flow. Only one .wizard-step is .is-active at a time.
-  // The stepper at the top reflects current + completed steps.
-  (function initWizard() {
-    const TOTAL_STEPS = 3;
-    let currentStep = 1;
+  // ============================================================
+  // Stage navigation
+  // ============================================================
+  let currentStage = 1;
+  const TOTAL_STAGES = 3;
 
-    const $$ = sel => document.querySelectorAll(sel);
-    const $1 = sel => document.querySelector(sel);
-
-    function showStep(n, opts = {}) {
-      n = Math.max(1, Math.min(TOTAL_STEPS, n));
-      currentStep = n;
-
-      // Toggle .is-active on step containers
-      $$('.wizard-step').forEach(el => {
-        el.classList.toggle('is-active', Number(el.dataset.step) === n);
-      });
-
-      // Update stepper nodes (active / complete states)
-      $$('.step-node').forEach(el => {
-        const s = Number(el.dataset.step);
-        el.classList.toggle('is-active', s === n);
-        el.classList.toggle('is-complete', s < n);
-      });
-
-      // Update connecting lines
-      $$('.step-line').forEach(el => {
-        const fromStep = Number(el.dataset.line.split('-')[0]);
-        el.classList.toggle('is-complete', fromStep < n);
-      });
-
-      // Scroll to top of page on step change (unless suppressed)
-      if (!opts.skipScroll) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+  function goToStage(n, skipValidation) {
+    if (n < 1 || n > TOTAL_STAGES) return;
+    // Validate going forward from stage 2
+    if (!skipValidation && n > currentStage && currentStage === 2) {
+      const tenant = $('f-tenant').value.trim();
+      const customer = $('f-customer').value.trim();
+      const color = $('f-color').value.trim();
+      if (!tenant || !customer || !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        $('f-tenant').focus();
+        return;
       }
     }
-
-    // Next / Back buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.matches('[data-wizard-next]')) {
-        e.preventDefault();
-        showStep(currentStep + 1);
-      } else if (e.target.matches('[data-wizard-back]')) {
-        e.preventDefault();
-        showStep(currentStep - 1);
-      }
-    });
-
-    // Click a stepper node to jump (only allowed for completed or current steps)
-    $$('.step-node').forEach(el => {
-      el.addEventListener('click', () => {
-        const s = Number(el.dataset.step);
-        if (s <= currentStep || el.classList.contains('is-complete')) {
-          showStep(s);
-        }
-      });
-    });
-
-    // Expose for other handlers (e.g. Generate success → mark step 3 complete)
-    window.__wizard = { showStep, getStep: () => currentStep };
-
-    // Observe the result panel — when it becomes .active, hide the wizard steps
-    // so the result is the only thing on screen. When it goes inactive (Start
-    // over), restore Step 1.
-    const resultPanel = document.getElementById('resultPanel');
-    if (resultPanel) {
-      const obs = new MutationObserver(() => {
-        const isActive = resultPanel.classList.contains('active');
-        $$('.wizard-step').forEach(el => el.classList.toggle('is-hidden-by-result', isActive));
-        $$('.step-node').forEach(el => {
-          if (isActive) { el.classList.add('is-complete'); el.classList.remove('is-active'); }
-        });
-        $$('.step-line').forEach(el => {
-          if (isActive) el.classList.add('is-complete');
-        });
-        if (!isActive) {
-          // Coming back from result → go to Step 1
-          showStep(1, { skipScroll: true });
-        }
-      });
-      obs.observe(resultPanel, { attributes: true, attributeFilter: ['class'] });
+    currentStage = n;
+    // Update stage panels
+    for (let i = 1; i <= TOTAL_STAGES; i++) {
+      document.getElementById('stage' + i).classList.toggle('is-active', i === n);
     }
-  })();
+    // Update sidebar buttons
+    for (let i = 1; i <= TOTAL_STAGES; i++) {
+      const btn = document.getElementById('stageBtn' + i);
+      btn.classList.toggle('is-active', i === n);
+      btn.classList.toggle('is-done', i < n);
+    }
+    // Update progress bar
+    for (let i = 1; i <= TOTAL_STAGES; i++) {
+      const p = document.getElementById('prog' + i);
+      p.classList.toggle('is-active', i === n);
+      p.classList.toggle('is-done', i < n);
+    }
+    // Back button
+    $('btnBack').hidden = (n === 1);
+    // Next vs Generate
+    const isLast = (n === TOTAL_STAGES);
+    $('btnNext').style.display = isLast ? 'none' : '';
+    $('btnGenerate').style.display = isLast ? '' : 'none';
+    // Scroll stage panel to top
+    document.getElementById('stage' + n).scrollTop = 0;
+  }
 
-  // ============== Industry → defaults map ==============
-  // Keeps the form pre-fillable when you change industry. Brand colors and
-  // SoRs come from CANONICAL.md / the shell's VERTICALS map.
+  $('btnNext').addEventListener('click', () => goToStage(currentStage + 1));
+  $('btnBack').addEventListener('click', () => goToStage(currentStage - 1));
+
+  // Sidebar stage buttons
+  document.getElementById('stageNav').addEventListener('click', (e) => {
+    const btn = e.target.closest('.stage-btn');
+    if (!btn) return;
+    const target = Number(btn.dataset.stage);
+    // Allow jumping back freely; jumping forward only if stages are done
+    if (target <= currentStage) {
+      goToStage(target, true);
+    } else if (target === currentStage + 1) {
+      goToStage(target);
+    }
+  });
+
+  // ============================================================
+  // Sequence card selection (Stage 1)
+  // ============================================================
+  let _pendingSeq = null;
+
+  document.getElementById('seqGrid').addEventListener('click', (e) => {
+    const card = e.target.closest('.seq-card');
+    if (!card) return;
+    const seq = card.dataset.seq;
+    document.querySelectorAll('.seq-card').forEach(c => c.classList.remove('is-selected'));
+    card.classList.add('is-selected');
+    // Sync hidden f-shell
+    $('f-shell').value = (seq === 'clm') ? 'default' : seq;
+    if (window.__timeline && typeof window.__timeline.resetToShell === 'function') {
+      window.__timeline.resetToShell(seq);
+    } else {
+      _pendingSeq = seq;
+    }
+  });
+
+  // ============================================================
+  // Industry → defaults
+  // ============================================================
   const INDUSTRY_DEFAULTS = {
     'wealth':              { tenant: 'Hillside',    color: '#3FDA99', sor: 'Salesforce FSC',                      moment: '"$5M household opened in 15 minutes, fully paperless."', customer: 'Aster Capital — IRA rollover, $5M household' },
     'wealth-discovery':    { tenant: 'Cypress',     color: '#5BA1B8', sor: 'Salesforce FSC',                      moment: '"Family trust + IRA rollover + joint taxable, all in one onboarding."', customer: 'Holcomb Family — multi-account onboarding' },
@@ -1772,31 +1261,32 @@
   };
 
   const $ = id => document.getElementById(id);
-  const form = $('builderForm');
 
   function applyIndustryDefaults() {
     const v = $('f-industry').value;
     const d = INDUSTRY_DEFAULTS[v];
     if (!d) return;
-    if (!$('f-tenant').dataset.touched)  $('f-tenant').value  = d.tenant;
+    if (!$('f-tenant').dataset.touched)   $('f-tenant').value   = d.tenant;
     if (!$('f-customer').dataset.touched) $('f-customer').value = d.customer;
-    if (!$('f-sor').dataset.touched)     $('f-sor').value     = d.sor;
-    if (!$('f-moment').dataset.touched)  $('f-moment').value  = d.moment;
+    if (!$('f-sor').dataset.touched)      $('f-sor').value      = d.sor;
+    if (!$('f-moment').dataset.touched)   $('f-moment').value   = d.moment;
     if (!$('f-color').dataset.touched) {
       $('f-color').value = d.color;
       $('swatchPreview').style.background = d.color;
     }
   }
 
-  // Mark fields as user-touched so industry change doesn't clobber edits
   ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => {
     const el = $(id);
     el.addEventListener('input', () => { el.dataset.touched = '1'; });
   });
 
   $('f-industry').addEventListener('change', applyIndustryDefaults);
+  $('btnApplyDefaults').addEventListener('click', () => {
+    ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => delete $(id).dataset.touched);
+    applyIndustryDefaults();
+  });
 
-  // Color swatch preview + preset
   $('f-color').addEventListener('input', e => {
     const v = e.target.value.trim();
     if (/^#[0-9A-Fa-f]{6}$/.test(v)) $('swatchPreview').style.background = v;
@@ -1809,37 +1299,27 @@
     $('swatchPreview').style.background = v;
   });
 
-  // ============== Logo upload ==============
-  const LOGO_MAX_BYTES = 500 * 1024;   // 500 KB raw cap
+  // ============================================================
+  // Logo upload
+  // ============================================================
+  const LOGO_MAX_BYTES = 500 * 1024;
   let logoDataUrl = null;
 
   function renderLogoPreview() {
     const box = $('logoPreview');
     if (logoDataUrl) {
-      box.innerHTML = `<img src="${logoDataUrl}" alt="" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;">`;
+      box.innerHTML = `<img src="${logoDataUrl}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;">`;
       box.style.borderStyle = 'solid';
-      box.style.background = 'var(--ds-white)';
+      box.style.background = 'white';
     } else {
-      box.innerHTML = `
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--ds-text-soft);">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="9" cy="9" r="1.5"/>
-          <path d="M3 16l5-5 4 4 3-3 6 6"/>
-        </svg>`;
+      box.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>`;
       box.style.borderStyle = 'dashed';
-      box.style.background = 'var(--ds-bg)';
+      box.style.background = 'var(--bg)';
     }
   }
 
-  // Downscale a raster image dataURL through a canvas so the payload going
-  // to /api/builder/save stays well under the server's body limit. A 500KB
-  // PNG becomes ~666KB base64, which used to trip the global 64kb cap with
-  // HTTP 413. We resize the longest edge to 480px and re-encode as JPEG
-  // q=0.85 (typical drop: ~95%). SVG is left untouched — it's already small
-  // and rasterizing would lose its scalable nature.
   function shrinkDataUrl(dataUrl, maxEdge, mime, quality) {
     return new Promise((resolve, reject) => {
-      // SVG stays vector-pure — pass through.
       if (/^data:image\/svg\+xml/i.test(dataUrl)) return resolve(dataUrl);
       const img = new Image();
       img.onload = () => {
@@ -1851,16 +1331,11 @@
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
-        // Crisp, alpha-respecting resize.
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, w, h);
-        try {
-          resolve(canvas.toDataURL(mime || 'image/jpeg', quality ?? 0.85));
-        } catch (e) {
-          // toDataURL can throw on tainted canvases; fall back to original.
-          resolve(dataUrl);
-        }
+        try { resolve(canvas.toDataURL(mime || 'image/jpeg', quality ?? 0.85)); }
+        catch (e) { resolve(dataUrl); }
       };
       img.onerror = reject;
       img.src = dataUrl;
@@ -1871,37 +1346,25 @@
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     if (!/^image\/(png|jpe?g|svg\+xml|webp)$/i.test(file.type)) {
-      $('errorPanel').textContent = 'Logo must be PNG, JPG, SVG, or WebP.';
-      $('errorPanel').classList.add('active');
+      showError('Logo must be PNG, JPG, SVG, or WebP.');
       $('f-logo').value = '';
       return;
     }
     if (file.size > LOGO_MAX_BYTES) {
-      $('errorPanel').textContent = `Logo too large (${Math.round(file.size/1024)} KB). Max is 500 KB.`;
-      $('errorPanel').classList.add('active');
+      showError(`Logo too large (${Math.round(file.size/1024)} KB). Max is 500 KB.`);
       $('f-logo').value = '';
       return;
     }
-    $('errorPanel').classList.remove('active');
     const reader = new FileReader();
     reader.onload = async () => {
       const raw = reader.result;
-      // PNG with alpha → keep PNG. JPEG/WebP → JPEG. SVG is passed through
-      // by shrinkDataUrl. The size guard above already rejected anything
-      // over 500KB raw, but the canvas resize buys another order of magnitude.
-      const isPng  = /^data:image\/png/i.test(raw);
+      const isPng = /^data:image\/png/i.test(raw);
       const outMime = isPng ? 'image/png' : 'image/jpeg';
-      try {
-        logoDataUrl = await shrinkDataUrl(raw, 480, outMime, 0.85);
-      } catch (_) {
-        logoDataUrl = raw;
-      }
+      try { logoDataUrl = await shrinkDataUrl(raw, 480, outMime, 0.85); }
+      catch (_) { logoDataUrl = raw; }
       renderLogoPreview();
     };
-    reader.onerror = () => {
-      $('errorPanel').textContent = 'Could not read that file. Try another.';
-      $('errorPanel').classList.add('active');
-    };
+    reader.onerror = () => showError('Could not read that file. Try another.');
     reader.readAsDataURL(file);
   });
 
@@ -1911,77 +1374,61 @@
     renderLogoPreview();
   });
 
-  // Reset
-  $('btnReset').addEventListener('click', () => {
-    form.reset();
-    ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => delete $(id).dataset.touched);
-    logoDataUrl = null;
-    renderLogoPreview();
-    applyIndustryDefaults();
-    $('resultPanel').classList.remove('active');
-    $('errorPanel').classList.remove('active');
-    $('submitStatus').textContent = '';
-  });
+  // ============================================================
+  // Error helper
+  // ============================================================
+  function showError(msg) {
+    const ep = $('errorPanel');
+    ep.textContent = msg;
+    ep.classList.add('active');
+    // Make sure we're on stage 3 if error is timeline-related
+  }
+  function clearError() { $('errorPanel').classList.remove('active'); }
 
-  // Generate
+  // ============================================================
+  // Generate URL
+  // ============================================================
   $('btnGenerate').addEventListener('click', async () => {
     const industry = $('f-industry').value;
-    // Step 1's "Story shell" picker — agnostic spine pattern. The cfg we
-    // ship the shell still expects a `usecase` key (the live story-shell
-    // recognizes default/fraud-fabric/intake/maintenance/workspaces), so
-    // we map blank → default since blank just means "no preset, the rep
-    // built the timeline from scratch in the iMovie pool".
-    const shell = $('f-shell').value;
-    const usecase = (shell === 'blank') ? 'default' : shell;
+    const shell    = $('f-shell').value;
+    const usecase  = (shell === 'blank' || shell === 'clm') ? 'default' : shell;
     const tenant   = $('f-tenant').value.trim();
     const customer = $('f-customer').value.trim();
     const color    = $('f-color').value.trim();
     const sor      = $('f-sor').value.trim();
     const moment   = $('f-moment').value.trim();
 
-    $('errorPanel').classList.remove('active');
+    clearError();
 
     if (!tenant || !customer || !/^#[0-9A-Fa-f]{6}$/.test(color)) {
-      $('errorPanel').textContent = 'Tenant, customer, and a valid #RRGGBB brand color are required.';
-      $('errorPanel').classList.add('active');
+      showError('Tenant, customer, and a valid #RRGGBB brand color are required. Go back to step 2 to fill them in.');
       return;
     }
 
-    // Pull the assembled timeline. 3-scene minimum is advertised in the foot.
     const scenes = (window.__timeline && window.__timeline.getScenes()) || [];
     if (scenes.length < 3) {
-      $('errorPanel').textContent = `Timeline needs at least 3 scenes (currently ${scenes.length}). Drag tiles from the pool, or hit "Reset timeline to industry default".`;
-      $('errorPanel').classList.add('active');
-      if (window.__wizard) window.__wizard.showStep(3);
+      showError(`Timeline needs at least 3 scenes (currently ${scenes.length}). Add more scene blocks above.`);
       return;
     }
 
     $('btnGenerate').disabled = true;
     $('submitStatus').textContent = 'Saving config…';
 
-    // Build the config the shell expects. We use the industry as the narration
-    // scaffold — server stores it as `sourceVertical` so the shell can pull
-    // the matching scenes/usecases from the live VERTICALS map at render time
-    // (or we'll inline a stripped copy if we go that direction next).
     const cfg = {
       tenant,
       customer: customer.startsWith('×') ? customer : '× ' + customer,
       tenantColor: color,
-      tenantLogo: logoDataUrl || null,    // base64 dataURL or null
+      tenantLogo: logoDataUrl || null,
       preset: 'custom',
       sor,
       signatureMoment: moment,
       usecase,
       sourceVertical: industry,
-      // Scenes payload — assembled from the iMovie timeline in Step 3.
-      // Each entry: { template, name, tag, headline, lede }.
-      // Empty narration (tag/headline/lede) means "fall back to the source
-      // vertical's narration via the shell's merge bundle".
       scenes,
       _builderMeta: {
         builtAt: new Date().toISOString(),
         sourceVertical: industry,
-        shell,                       // the picker's raw choice ("blank", "workspaces", etc)
+        shell,
         sceneCount: scenes.length,
         hasLogo: !!logoDataUrl
       }
@@ -1998,144 +1445,115 @@
         throw new Error(j.error || `HTTP ${r.status}`);
       }
       const { token, url, expiresInDays } = await r.json();
-
       const fullUrl = location.origin + url;
       $('resultHeadline').textContent = `${tenant} × ${customer.replace(/^×\s*/, '')}`;
       $('resultUrl').textContent = fullUrl;
       $('resultUrl').dataset.url = fullUrl;
       const logoSize = logoDataUrl ? Math.round(logoDataUrl.length * 0.75 / 1024) : 0;
       $('resultMeta').textContent =
-        `Token ${token} · expires in ${expiresInDays} days · shell:${shell} · scaffolded from ${industry}` +
-        (logoDataUrl ? ` · logo embedded (~${logoSize} KB)` : '');
+        `Token ${token} · expires in ${expiresInDays} days · ${shell} · scaffolded from ${industry}` +
+        (logoDataUrl ? ` · logo ~${logoSize} KB` : '');
       $('resultPanel').classList.add('active');
       $('submitStatus').textContent = 'Saved.';
-      // Scroll the result into view smoothly
-      setTimeout(() => $('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+      setTimeout(() => $('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
     } catch (e) {
-      $('errorPanel').textContent = 'Save failed: ' + (e.message || e);
-      $('errorPanel').classList.add('active');
+      showError('Save failed: ' + (e.message || e));
       $('submitStatus').textContent = '';
     } finally {
       $('btnGenerate').disabled = false;
     }
   });
 
-  // Copy / Open buttons
   $('btnCopy').addEventListener('click', async () => {
     const url = $('resultUrl').dataset.url;
     try {
       await navigator.clipboard.writeText(url);
       const orig = $('btnCopy').textContent;
-      $('btnCopy').textContent = 'Copied ✓';
+      $('btnCopy').textContent = 'Copied';
       setTimeout(() => { $('btnCopy').textContent = orig; }, 1600);
-    } catch (e) {
-      // Fallback — select-all
+    } catch (_) {
       const r = document.createRange();
       r.selectNode($('resultUrl'));
       window.getSelection().removeAllRanges();
       window.getSelection().addRange(r);
     }
   });
-  $('btnOpen').addEventListener('click', () => {
-    window.open($('resultUrl').dataset.url, '_blank');
-  });
+  $('btnOpen').addEventListener('click', () => { window.open($('resultUrl').dataset.url, '_blank'); });
 
   // Initial defaults
   applyIndustryDefaults();
 
-  // Wizard hook on Start over: ensure we always land on Step 1 even if no
-  // result was generated (the MutationObserver in initWizard only fires when
-  // the result panel actually had .active to remove).
-  $('btnReset').addEventListener('click', () => {
-    if (window.__wizard) window.__wizard.showStep(1);
-    if (window.__timeline) window.__timeline.resetToUsecaseDefault();
-  });
-
   // ============================================================
-  // iMovie pool + horizontal timeline + inspector
-  // ------------------------------------------------------------
-  // The single source of truth for scene templates is SCENE_LIBRARY.
-  // The poster gradient palette lives in CSS ([data-poster="..."]).
-  // Future: when assets/clips/index.json exists, render a real
-  // poster image inside the .pool-poster / .film-poster instead
-  // of the gradient-only placeholder. Tiles without a clip keep
-  // the gradient, so heterogeneous pools work cleanly.
+  // iMovie pool + filmstrip timeline + inspector
   // ============================================================
   (function initTimeline() {
     const SCENE_LIBRARY = [
       { id: 'agreement-desk',     glyph: 'AD', name: 'Agreement Desk',         role: 'Sender · the workflow proxy',        poster: 'violet' },
-      { id: 'clear-idv',          glyph: 'ID', name: 'identity verification',              role: 'Identity at the door',          poster: 'cobalt' },
-      { id: 'signing-ceremony',   glyph: 'SG', name: 'Signing Ceremony',       role: 'Capture the signature',         poster: 'poppy' },
-      { id: 'navigator',          glyph: 'NV', name: 'the agreement repository',              role: 'Post-signing data view',        poster: 'mist' },
-      { id: 'workspace',          glyph: 'WS', name: 'Workspace',              role: 'Collaboration room',            poster: 'mint' },
-      { id: 'webform',            glyph: 'WF', name: 'Webform',                role: 'Public-facing intake',          poster: 'slate' },
-      { id: 'webform-intake',     glyph: 'WI', name: 'Webform Intake',         role: 'Triaged inbound queue',         poster: 'slate' },
-      { id: 'maestro-loop',       glyph: 'ML', name: 'the workflow Loop',           role: 'Orchestration close-up',        poster: 'cobalt-deep' },
-      { id: 'maestro-package',    glyph: 'MP', name: 'the workflow Package',        role: 'Multi-doc fan-out',             poster: 'violet' },
-      { id: 'agents',             glyph: 'AG', name: 'Agents',                 role: 'Agentic actions panel',         poster: 'glow' },
-      { id: 'ehr-desktop',        glyph: 'EH', name: 'EHR Desktop',            role: 'Clinician embed',               poster: 'teal' },
-      { id: 'portal-shell',       glyph: 'PS', name: 'Portal Shell',           role: 'Tenant portal frame',           poster: 'amber' },
-      { id: 'agreement-desk-coc', glyph: 'CC', name: 'AD · Chain-of-custody',  role: 'Variant for fraud-fabric',      poster: 'violet-poppy' }
+      { id: 'clear-idv',          glyph: 'ID', name: 'Identity Verification',   role: 'Identity at the door',               poster: 'cobalt' },
+      { id: 'signing-ceremony',   glyph: 'SG', name: 'Signing Ceremony',        role: 'Capture the signature',              poster: 'poppy' },
+      { id: 'navigator',          glyph: 'NV', name: 'Agreement Repository',    role: 'Post-signing data view',             poster: 'mist' },
+      { id: 'workspace',          glyph: 'WS', name: 'Workspace',               role: 'Collaboration room',                 poster: 'mint' },
+      { id: 'webform',            glyph: 'WF', name: 'Webform',                 role: 'Public-facing intake',               poster: 'slate' },
+      { id: 'webform-intake',     glyph: 'WI', name: 'Webform Intake',          role: 'Triaged inbound queue',              poster: 'slate' },
+      { id: 'maestro-loop',       glyph: 'ML', name: 'Maestro Loop',            role: 'Orchestration close-up',             poster: 'cobalt-deep' },
+      { id: 'maestro-package',    glyph: 'MP', name: 'Maestro Package',         role: 'Multi-doc fan-out',                  poster: 'violet' },
+      { id: 'agents',             glyph: 'AG', name: 'Agents',                  role: 'Agentic actions panel',              poster: 'glow' },
+      { id: 'ehr-desktop',        glyph: 'EH', name: 'EHR Desktop',             role: 'Clinician embed',                    poster: 'teal' },
+      { id: 'portal-shell',       glyph: 'PS', name: 'Portal Shell',            role: 'Tenant portal frame',                poster: 'amber' },
+      { id: 'agreement-desk-coc', glyph: 'CC', name: 'AD · Chain-of-Custody',   role: 'Variant for fraud-fabric',           poster: 'violet-poppy' }
     ];
     const SCENE_BY_ID = Object.fromEntries(SCENE_LIBRARY.map(s => [s.id, s]));
 
-    // Default playlists per shell pattern. The keys map to the live shell's
-    // usecase keys 1:1 except for 'blank', which is a builder-only escape
-    // hatch (start in the iMovie pool with nothing). On Generate, blank
-    // gets normalized to 'default' for the cfg.usecase the shell consumes.
     const SHELL_DEFAULTS = {
       'default':      ['agreement-desk', 'clear-idv', 'signing-ceremony', 'navigator', 'workspace'],
       'fraud-fabric': ['agreement-desk-coc', 'clear-idv', 'signing-ceremony'],
       'intake':       ['webform', 'webform-intake', 'agreement-desk', 'navigator'],
       'maintenance':  ['agreement-desk', 'clear-idv', 'signing-ceremony'],
       'workspaces':   ['workspace'],
+      'clm':          ['webform', 'agreement-desk', 'signing-ceremony', 'navigator'],
       'blank':        []
     };
 
-    // Placeholder narration — used when a tile is added with no industry
-    // context. The shell still renders proper narration from CANONICAL.md
-    // when scenes[].narration is empty, so these are first-pass affordances.
     const NARRATION_FALLBACK = {
       'agreement-desk':     { tag: 'Sender',    headline: '$5M household, one envelope.',                lede: 'Aster Capital sends the IRA rollover packet — the workflow fans the pieces out invisibly behind the desk.' },
-      'clear-idv':          { tag: 'Identity',  headline: 'Verified once, trusted everywhere.',          lede: 'Hillside hands identity to identity verification — one IAL2 verification binds to every downstream document.' },
+      'clear-idv':          { tag: 'Identity',  headline: 'Verified once, trusted everywhere.',          lede: 'Hillside hands identity to CLEAR — one IAL2 verification binds to every downstream document.' },
       'signing-ceremony':   { tag: 'Signing',   headline: 'Signed at the kitchen table.',                lede: 'Aster signs the rollover docs from a phone — no PDF print, no overnight courier, no advisor handoff.' },
       'navigator':          { tag: 'Data',      headline: 'Every clause, every counterparty, queryable.',lede: 'The signed packet lands in the agreement repository — beneficiaries, fee schedule, and rollover terms are extracted and indexed.' },
       'workspace':          { tag: 'Workspace', headline: 'Where the household lives, post-signing.',    lede: 'Aster, the advisor, and the trust attorney share one room — every future document anchored to the household.' },
-      'webform':            { tag: 'Intake',    headline: 'One link, fully triaged.',                    lede: 'A public webform captures the customer’s ask, then the workflow routes it to the right queue with chain-of-custody intact.' },
-      'webform-intake':     { tag: 'Queue',     headline: 'Inbound, sorted, picked up.',                 lede: 'Triaged requests stack into a the workflow-fed queue — humans focus on the calls that need a human.' },
-      'maestro-loop':       { tag: 'the workflow',   headline: 'Orchestration, in the open.',                 lede: 'The the workflow graph fans out, waits, retries — every step auditable.' },
-      'maestro-package':    { tag: 'the workflow',   headline: 'One packet, many parts.',                     lede: 'the workflow assembles the binder — disclosures, KYC, signature card — and ships it as one Agreement.' },
+      'webform':            { tag: 'Intake',    headline: 'One link, fully triaged.',                    lede: 'A public webform captures the customer\'s ask, then the workflow routes it to the right queue with chain-of-custody intact.' },
+      'webform-intake':     { tag: 'Queue',     headline: 'Inbound, sorted, picked up.',                 lede: 'Triaged requests stack into a Maestro-fed queue — humans focus on the calls that need a human.' },
+      'maestro-loop':       { tag: 'Maestro',   headline: 'Orchestration, in the open.',                 lede: 'The Maestro graph fans out, waits, retries — every step auditable.' },
+      'maestro-package':    { tag: 'Maestro',   headline: 'One packet, many parts.',                     lede: 'Maestro assembles the binder — disclosures, KYC, signature card — and ships it as one Agreement.' },
       'agents':             { tag: 'Agents',    headline: 'The work, picked up.',                        lede: 'IAM agents take the next action without waiting on a human gate.' },
       'ehr-desktop':        { tag: 'Clinical',  headline: 'Embedded in Epic.',                           lede: 'The clinician never leaves the chart — consent, intake, and signature stay in-context.' },
-      'portal-shell':       { tag: 'Portal',    headline: 'A room of one’s own.',                   lede: 'The tenant’s branded portal hosts every artifact post-signing.' },
+      'portal-shell':       { tag: 'Portal',    headline: 'A room of one\'s own.',                       lede: 'The tenant\'s branded portal hosts every artifact post-signing.' },
       'agreement-desk-coc': { tag: 'Custody',   headline: 'Bound at the door.',                          lede: 'Identity binds to the agreement at the desk — every downstream signature carries the chain.' }
     };
 
-    const $$ = sel => document.querySelectorAll(sel);
-    const elPool       = document.getElementById('pool');
-    const elTimeline   = document.getElementById('timeline');
-    const elTimelineWrap = document.getElementById('filmstripWrap');
-    const elEmpty      = document.getElementById('timelineEmpty');
-    const elCount      = document.getElementById('sceneCount');
-    const elInspector  = document.getElementById('inspector');
-    const elInspTitle  = document.getElementById('inspectorTitle');
-    const elInspTag    = document.getElementById('inspTag');
-    const elInspHead   = document.getElementById('inspHeadline');
-    const elInspLede   = document.getElementById('inspLede');
-    const elInspClose  = document.getElementById('inspectorClose');
-    const elReset      = document.getElementById('btnResetPlaylist');
+    const elPool         = $('pool');
+    const elTimeline     = $('timeline');
+    const elTimelineWrap = $('filmstripWrap');
+    const elEmpty        = $('timelineEmpty');
+    const elCount        = $('sceneCount');
+    const elCountFoot    = $('sceneCountFoot');
+    const elInspector    = $('inspector');
+    const elInspTitle    = $('inspectorTitle');
+    const elInspTag      = $('inspTag');
+    const elInspHead     = $('inspHeadline');
+    const elInspLede     = $('inspLede');
+    const elInspClose    = $('inspectorClose');
+    const elReset        = $('btnResetPlaylist');
+    const elPoolCount    = $('poolCount');
 
-    let timeline = [];   // [{ uid, templateId, tag, headline, lede }]
+    let timeline    = [];
     let selectedUid = null;
-    let nextUid = 1;
-    let dragSource = null;  // { type: 'pool'|'timeline', templateId?, uid? }
+    let nextUid     = 1;
+    let dragSource  = null;
     const newUid = () => 'tl-' + (nextUid++);
 
-    const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => (
-      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
-    ));
+    const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    // ---------- render ----------
     function renderPool() {
       elPool.innerHTML = SCENE_LIBRARY.map(s => `
         <div class="pool-tile" draggable="true" data-template="${s.id}" title="${escapeHtml(s.name)} — ${escapeHtml(s.role)}">
@@ -2149,6 +1567,14 @@
           </div>
         </div>
       `).join('');
+      if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
+    }
+
+    function updateCounts() {
+      const n = timeline.length;
+      const label = n === 1 ? '1 scene' : `${n} scenes`;
+      if (elCount)     elCount.textContent = label;
+      if (elCountFoot) elCountFoot.textContent = label;
     }
 
     function renderTimeline() {
@@ -2172,7 +1598,7 @@
         `;
       }).join('');
       elEmpty.hidden = timeline.length > 0;
-      elCount.textContent = timeline.length === 1 ? '1 scene' : `${timeline.length} scenes`;
+      updateCounts();
       renderInspector();
     }
 
@@ -2184,12 +1610,11 @@
       const s = SCENE_BY_ID[item.templateId];
       elInspector.hidden = false;
       elInspTitle.textContent = `Scene ${idx + 1} · ${s.name}`;
-      elInspTag.value      = item.tag || '';
-      elInspHead.value     = item.headline || '';
-      elInspLede.value     = item.lede || '';
+      elInspTag.value  = item.tag || '';
+      elInspHead.value = item.headline || '';
+      elInspLede.value = item.lede || '';
     }
 
-    // ---------- mutations ----------
     function newItem(templateId) {
       const s = SCENE_BY_ID[templateId];
       if (!s) return null;
@@ -2202,7 +1627,6 @@
       timeline.push(item);
       selectedUid = item.uid;
       renderTimeline();
-      // Scroll the new tile into view
       requestAnimationFrame(() => {
         const tile = elTimeline.querySelector(`.film-tile[data-uid="${item.uid}"]`);
         tile?.scrollIntoView({ behavior: 'smooth', inline: 'end', block: 'nearest' });
@@ -2217,15 +1641,18 @@
       }
       renderTimeline();
     }
-    function resetToUsecaseDefault() {
-      const shell = (document.getElementById('f-shell') || {}).value || 'default';
-      const ids = SHELL_DEFAULTS[shell] || SHELL_DEFAULTS.default;
+    function resetToShell(shellKey) {
+      const ids = SHELL_DEFAULTS[shellKey] || SHELL_DEFAULTS['default'];
       timeline = ids.map(id => newItem(id)).filter(Boolean);
       selectedUid = timeline[0]?.uid || null;
       renderTimeline();
     }
+    function resetToUsecaseDefault() {
+      const shellKey = $('f-shell').value || 'default';
+      resetToShell(shellKey);
+    }
 
-    // ---------- pool drag + click ----------
+    // Pool drag + click
     elPool.addEventListener('dragstart', (e) => {
       const tile = e.target.closest('.pool-tile');
       if (!tile) return;
@@ -2246,12 +1673,10 @@
     elPool.addEventListener('click', (e) => {
       const tile = e.target.closest('.pool-tile');
       if (!tile) return;
-      // Both the + button and the tile body append. The + just lives there
-      // for affordance; the whole tile is also clickable.
       appendTemplate(tile.dataset.template);
     });
 
-    // ---------- timeline drag + click ----------
+    // Timeline drag + click
     elTimeline.addEventListener('dragstart', (e) => {
       const tile = e.target.closest('.film-tile');
       if (!tile) return;
@@ -2269,9 +1694,6 @@
         el.classList.remove('is-drop-before', 'is-drop-after');
       });
     });
-
-    // The whole filmstrip-wrap is the drop target. We compute insertion
-    // index against the tiles inside.
     elTimelineWrap.addEventListener('dragenter', (e) => {
       if (!dragSource) return;
       e.preventDefault();
@@ -2282,9 +1704,8 @@
       e.preventDefault();
       e.dataTransfer.dropEffect = dragSource.type === 'pool' ? 'copy' : 'move';
       const tile = e.target.closest('.film-tile');
-      elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
-        el.classList.remove('is-drop-before', 'is-drop-after');
-      });
+      elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el =>
+        el.classList.remove('is-drop-before', 'is-drop-after'));
       if (tile) {
         const r = tile.getBoundingClientRect();
         const before = (e.clientX - r.left) < r.width / 2;
@@ -2292,20 +1713,16 @@
       }
     });
     elTimelineWrap.addEventListener('dragleave', (e) => {
-      // Only clear if we left the wrap entirely
       if (!elTimelineWrap.contains(e.relatedTarget)) {
         elTimelineWrap.classList.remove('is-dragging-over');
-        elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el => {
-          el.classList.remove('is-drop-before', 'is-drop-after');
-        });
+        elTimeline.querySelectorAll('.is-drop-before, .is-drop-after').forEach(el =>
+          el.classList.remove('is-drop-before', 'is-drop-after'));
       }
     });
     elTimelineWrap.addEventListener('drop', (e) => {
       e.preventDefault();
       elTimelineWrap.classList.remove('is-dragging-over');
       if (!dragSource) return;
-
-      // Resolve target index
       let targetIdx = timeline.length;
       const tile = e.target.closest('.film-tile');
       if (tile) {
@@ -2314,13 +1731,9 @@
         const idx = timeline.findIndex(t => t.uid === tile.dataset.uid);
         if (idx !== -1) targetIdx = before ? idx : idx + 1;
       }
-
       if (dragSource.type === 'pool') {
         const item = newItem(dragSource.templateId);
-        if (item) {
-          timeline.splice(targetIdx, 0, item);
-          selectedUid = item.uid;
-        }
+        if (item) { timeline.splice(targetIdx, 0, item); selectedUid = item.uid; }
       } else if (dragSource.type === 'timeline') {
         const fromIdx = timeline.findIndex(t => t.uid === dragSource.uid);
         if (fromIdx !== -1) {
@@ -2333,7 +1746,6 @@
       renderTimeline();
     });
 
-    // Click select & remove
     elTimeline.addEventListener('click', (e) => {
       const removeBtn = e.target.closest('[data-action="remove"]');
       if (removeBtn) {
@@ -2348,14 +1760,12 @@
       renderTimeline();
     });
 
-    // ---------- inspector edits sync back ----------
     function bindInspectorField(input, key, lintTargetId) {
       input.addEventListener('input', () => {
         if (!selectedUid) return;
         const item = timeline.find(t => t.uid === selectedUid);
         if (!item) return;
         item[key] = input.value;
-        // Live-update the visible tag on the timeline tile without a full re-render
         if (key === 'tag') {
           const tagEl = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"] [data-role="tag"]`);
           if (tagEl) tagEl.textContent = input.value || (SCENE_BY_ID[item.templateId]?.role ?? '');
@@ -2369,129 +1779,75 @@
     bindInspectorField(elInspTag,  'tag');
     bindInspectorField(elInspHead, 'headline', 'lintHead');
     bindInspectorField(elInspLede, 'lede',     'lintLede');
-    elInspClose.addEventListener('click', () => {
-      selectedUid = null;
-      renderTimeline();
-    });
+    elInspClose.addEventListener('click', () => { selectedUid = null; renderTimeline(); });
 
-    // ---------- audit-mode hydration: load canonical scenes from /api/verticals ----------
-    // Templated tiles in the iMovie pool aren't load-bearing here — we infer
-    // the closest tile from the canonical scene's `tag` so the visual filmstrip
-    // still reads. The narration (head/lede/beats) is the actual content.
+    // Audit-mode hydration
     function inferTemplate(tag) {
       const t = String(tag || '').toUpperCase();
       if (/WORKSPACE|DEAL ROOM/.test(t)) return 'workspace';
-      if (/IDENTITY|IDV|identity verification/.test(t)) return 'clear-idv';
-      if (/SIGNING|SIGN/.test(t))      return 'signing-ceremony';
+      if (/IDENTITY|IDV|CLEAR/.test(t))  return 'clear-idv';
+      if (/SIGNING|SIGN/.test(t))        return 'signing-ceremony';
       if (/DATA|NAVIGATOR|EXTRACT/.test(t)) return 'navigator';
       if (/WEBFORM|TRIAGE|QUEUE/.test(t)) return 'webform';
       if (/CHAIN[\s-]?OF[\s-]?CUSTODY|CUSTODY/.test(t)) return 'agreement-desk-coc';
-      if (/MAESTRO/.test(t))           return 'maestro-loop';
-      if (/AGENT/.test(t))             return 'agents';
-      if (/PORTAL/.test(t))            return 'portal-shell';
-      if (/EHR|CLINICAL/.test(t))      return 'ehr-desktop';
+      if (/MAESTRO/.test(t))             return 'maestro-loop';
+      if (/AGENT/.test(t))               return 'agents';
+      if (/PORTAL/.test(t))              return 'portal-shell';
+      if (/EHR|CLINICAL/.test(t))        return 'ehr-desktop';
       return 'agreement-desk';
     }
-
     function hydrateFromCanonical(scenes) {
       if (!Array.isArray(scenes) || !scenes.length) return;
       timeline = scenes.map(s => {
         const templateId = inferTemplate(s.tag);
-        // Stash originals (head, lede, beats[].head, beats[].lede) so the
-        // Save button can build {oldValue, newValue} pairs by diffing the
-        // current state against what the server sent. The originals never
-        // mutate; the live `headline`/`lede`/`beats[].head`/`beats[].lede`
-        // do, via the inspector textarea handlers.
-        const origBeats = Array.isArray(s.beats) ? s.beats.map(b => ({
-          head: b.head || '',
-          lede: b.lede || ''
-        })) : [];
+        const origBeats = Array.isArray(s.beats) ? s.beats.map(b => ({ head: b.head || '', lede: b.lede || '' })) : [];
         return {
-          uid: newUid(),
-          templateId,
-          tag: s.tag || '',
-          headline: s.head || '',
-          lede: s.lede || '',
+          uid: newUid(), templateId,
+          tag: s.tag || '', headline: s.head || '', lede: s.lede || '',
           beats: origBeats.map(b => ({ head: b.head, lede: b.lede })),
-          // Originals — read-only once hydrated.
-          _origHeadline: s.head || '',
-          _origLede:     s.lede || '',
-          _origBeats:    origBeats
+          _origHeadline: s.head || '', _origLede: s.lede || '', _origBeats: origBeats
         };
       });
       selectedUid = timeline[0]?.uid || null;
       renderTimeline();
       if (window.__lint) window.__lint.recomputeAuditCount();
     }
-
-    // Build the diff-edits array the POST endpoint expects. Walks the live
-    // timeline, compares each editable field against its stashed original,
-    // emits one edit per changed field with the matching path.
     function buildEditsFromTimeline() {
       const edits = [];
       timeline.forEach((t, sceneIdx) => {
-        if (typeof t._origHeadline === 'string' && t.headline !== t._origHeadline) {
-          edits.push({
-            path: `scenes[${sceneIdx}].head`,
-            oldValue: t._origHeadline,
-            newValue: t.headline
-          });
-        }
-        if (typeof t._origLede === 'string' && t.lede !== t._origLede) {
-          edits.push({
-            path: `scenes[${sceneIdx}].lede`,
-            oldValue: t._origLede,
-            newValue: t.lede
-          });
-        }
+        if (typeof t._origHeadline === 'string' && t.headline !== t._origHeadline)
+          edits.push({ path: `scenes[${sceneIdx}].head`, oldValue: t._origHeadline, newValue: t.headline });
+        if (typeof t._origLede === 'string' && t.lede !== t._origLede)
+          edits.push({ path: `scenes[${sceneIdx}].lede`, oldValue: t._origLede, newValue: t.lede });
         const orig = Array.isArray(t._origBeats) ? t._origBeats : [];
         const cur  = Array.isArray(t.beats) ? t.beats : [];
         for (let i = 0; i < Math.min(orig.length, cur.length); i++) {
-          if (cur[i].head !== orig[i].head) {
-            edits.push({
-              path: `scenes[${sceneIdx}].beats[${i}].head`,
-              oldValue: orig[i].head,
-              newValue: cur[i].head
-            });
-          }
-          if (cur[i].lede !== orig[i].lede) {
-            edits.push({
-              path: `scenes[${sceneIdx}].beats[${i}].lede`,
-              oldValue: orig[i].lede,
-              newValue: cur[i].lede
-            });
-          }
+          if (cur[i].head !== orig[i].head)
+            edits.push({ path: `scenes[${sceneIdx}].beats[${i}].head`, oldValue: orig[i].head, newValue: cur[i].head });
+          if (cur[i].lede !== orig[i].lede)
+            edits.push({ path: `scenes[${sceneIdx}].beats[${i}].lede`, oldValue: orig[i].lede, newValue: cur[i].lede });
         }
       });
       return edits;
     }
 
-    // ---------- inspector renderer: include beats list + lint chips ----------
-    const elInspBeats = document.getElementById('inspBeats');
-    const elInspBeatsList = document.getElementById('inspBeatsList');
-    const elLintHead = document.getElementById('lintHead');
-    const elLintLede = document.getElementById('lintLede');
-
+    // Extended inspector with beats + lint
+    const elInspBeats     = $('inspBeats');
+    const elInspBeatsList = $('inspBeatsList');
+    const elLintHead      = $('lintHead');
+    const elLintLede      = $('lintLede');
     const _origRenderInspector = renderInspector;
     renderInspector = function () {
       _origRenderInspector();
-      if (!selectedUid) {
-        if (elInspBeats) elInspBeats.hidden = true;
-        return;
-      }
+      if (!selectedUid) { if (elInspBeats) elInspBeats.hidden = true; return; }
       const item = timeline.find(t => t.uid === selectedUid);
       if (!item) return;
-      // Lint pills for headline + lede
       if (window.__lint) {
         window.__lint.renderChips(item.headline || '', elLintHead);
         window.__lint.renderChips(item.lede || '', elLintLede);
       }
-      // Beats — only show when present (audit-mode only)
       const beats = Array.isArray(item.beats) ? item.beats : [];
-      if (beats.length === 0) {
-        if (elInspBeats) elInspBeats.hidden = true;
-        return;
-      }
+      if (!beats.length) { if (elInspBeats) elInspBeats.hidden = true; return; }
       elInspBeats.hidden = false;
       elInspBeatsList.innerHTML = beats.map((_, i) => `
         <div class="beat-row" data-beat="${i}">
@@ -2502,7 +1858,6 @@
           <div class="lint-chips" data-lint="lede" hidden></div>
         </div>
       `).join('');
-      // Populate values + wire input handlers + initial lint
       elInspBeatsList.querySelectorAll('.beat-row').forEach(row => {
         const i = Number(row.dataset.beat);
         const beat = beats[i];
@@ -2518,31 +1873,18 @@
         }
         headTa.addEventListener('input', () => {
           beat.head = headTa.value;
-          if (window.__lint) {
-            window.__lint.renderChips(headTa.value, lintH);
-            window.__lint.recomputeAuditCount();
-          }
+          if (window.__lint) { window.__lint.renderChips(headTa.value, lintH); window.__lint.recomputeAuditCount(); }
         });
         ledeTa.addEventListener('input', () => {
           beat.lede = ledeTa.value;
-          if (window.__lint) {
-            window.__lint.renderChips(ledeTa.value, lintL);
-            window.__lint.recomputeAuditCount();
-          }
+          if (window.__lint) { window.__lint.renderChips(ledeTa.value, lintL); window.__lint.recomputeAuditCount(); }
         });
       });
     };
 
-    // Reset link
     elReset.addEventListener('click', resetToUsecaseDefault);
 
-    // When the shell changes upstream (Step 1) and the timeline is still
-    // pristine, swap defaults silently. Otherwise leave user edits alone.
-    document.getElementById('f-shell').addEventListener('change', () => {
-      // Heuristic: "pristine" = current timeline matches one of the shell
-      // defaults exactly (same templateIds, same fallback narration). If
-      // the rep edited anything, leave it and rely on the explicit Reset
-      // link. The 'blank' shell counts as pristine when timeline is empty.
+    $('f-shell') && $('f-shell').addEventListener('change', () => {
       if (timeline.length === 0) { resetToUsecaseDefault(); return; }
       const allFallback = timeline.every(item => {
         const fb = NARRATION_FALLBACK[item.templateId];
@@ -2556,56 +1898,42 @@
       if (allFallback && idsMatch) resetToUsecaseDefault();
     });
 
-    // Expose for the Generate handler + Start over
     window.__timeline = {
       getScenes: () => timeline.map(t => {
         const s = SCENE_BY_ID[t.templateId];
-        return {
-          template: t.templateId,
-          name: s?.name || t.templateId,
-          tag: t.tag || '',
-          headline: t.headline || '',
-          lede: t.lede || '',
-          beats: Array.isArray(t.beats) ? t.beats.map(b => ({ head: b.head, lede: b.lede })) : []
-        };
+        return { template: t.templateId, name: s?.name || t.templateId, tag: t.tag || '', headline: t.headline || '', lede: t.lede || '', beats: Array.isArray(t.beats) ? t.beats.map(b => ({ head: b.head, lede: b.lede })) : [] };
       }),
       getAllNarrationStrings: () => {
         const out = [];
         for (const t of timeline) {
           if (t.headline) out.push(t.headline);
-          if (t.lede)     out.push(t.lede);
-          if (Array.isArray(t.beats)) {
-            for (const b of t.beats) {
-              if (b.head) out.push(b.head);
-              if (b.lede) out.push(b.lede);
-            }
-          }
+          if (t.lede) out.push(t.lede);
+          if (Array.isArray(t.beats)) for (const b of t.beats) { if (b.head) out.push(b.head); if (b.lede) out.push(b.lede); }
         }
         return out;
       },
       hydrateFromCanonical,
       buildEditsFromTimeline,
       resetToUsecaseDefault,
+      resetToShell,
       length: () => timeline.length
     };
 
-    // Initial render
     renderPool();
     resetToUsecaseDefault();
+
+    if (_pendingSeq) {
+      resetToShell(_pendingSeq);
+      _pendingSeq = null;
+    }
   })();
 
   // ============================================================
-  // Capability-language lint (banned-products in narration)
-  // ------------------------------------------------------------
-  // Loads narration_banned_products from /audit/rules.json on init.
-  // Exposes window.__lint with renderChips(text, container) and
-  // recomputeAuditCount() for the audit-mode banner. The lint is
-  // visual-only — clicking a chip copies a suggested capability
-  // phrase to the clipboard. No auto-replace.
+  // Capability-language lint
   // ============================================================
   (function initLint() {
     const HTML_TAG = /<[^>]+>/g;
-    let replacements = {};   // { the workflow: ['the orchestration', ...], ... }
+    let replacements = {};
     let productRe = null;
 
     function buildRegex() {
@@ -2614,58 +1942,38 @@
       const escaped = products.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
       productRe = new RegExp('\\b(?:' + escaped.join('|') + ')\\b', 'gi');
     }
-
     function findHits(text) {
       if (!productRe || !text) return [];
       const stripped = String(text).replace(HTML_TAG, ' ');
-      const hits = [];
-      const seen = new Set();
-      let m;
+      const hits = []; const seen = new Set(); let m;
       productRe.lastIndex = 0;
       while ((m = productRe.exec(stripped)) !== null) {
-        const product = m[0];
-        const key = product.toLowerCase();
+        const key = m[0].toLowerCase();
         if (seen.has(key)) continue;
         seen.add(key);
-        // Find canonical case from replacements map
-        const canonical = Object.keys(replacements).find(k => k.toLowerCase() === key) || product;
+        const canonical = Object.keys(replacements).find(k => k.toLowerCase() === key) || m[0];
         hits.push({ product: canonical, suggestions: replacements[canonical] || [] });
       }
       return hits;
     }
-
     function renderChips(text, container) {
       if (!container) return;
       const hits = findHits(text);
-      if (!hits.length) {
-        container.hidden = true;
-        container.innerHTML = '';
-        return;
-      }
+      if (!hits.length) { container.hidden = true; container.innerHTML = ''; return; }
       container.hidden = false;
       container.innerHTML = hits.map(h => {
         const suggest = (h.suggestions && h.suggestions[0]) || 'rewrite as capability';
-        return `<span class="lint-chip" data-product="${h.product}" data-suggest="${suggest}" title="Click to copy &quot;${suggest}&quot; to clipboard">
-          <span class="chip-product">${h.product}</span>
-          <span class="chip-arrow">→</span>
-          <span class="chip-suggest">${suggest}</span>
-        </span>`;
+        return `<span class="lint-chip" data-product="${h.product}" data-suggest="${suggest}" title="Click to copy suggestion"><span class="chip-product">${h.product}</span><span class="chip-arrow">→</span><span class="chip-suggest">${suggest}</span></span>`;
       }).join('');
     }
-
     function recomputeAuditCount() {
-      const banner = document.getElementById('auditBanner');
-      const countEl = document.getElementById('auditCount');
+      const banner = $('auditBanner'); const countEl = $('auditCount');
       if (!banner || !banner.classList.contains('is-active') || !countEl) return;
-      const tl = window.__timeline;
-      if (!tl) return;
-      const strings = tl.getAllNarrationStrings();
+      const tl = window.__timeline; if (!tl) return;
       let total = 0;
-      for (const s of strings) total += findHits(s).length;
+      for (const s of tl.getAllNarrationStrings()) total += findHits(s).length;
       countEl.textContent = total === 1 ? '1 hit' : `${total} hits`;
     }
-
-    // Click-to-copy on lint chips
     document.addEventListener('click', (e) => {
       const chip = e.target.closest('.lint-chip');
       if (!chip) return;
@@ -2674,232 +1982,127 @@
       try {
         navigator.clipboard.writeText(phrase);
         const orig = chip.style.background;
-        chip.style.background = 'rgba(63, 218, 153, 0.18)';
+        chip.style.background = 'rgba(63,218,153,.18)';
         setTimeout(() => { chip.style.background = orig; }, 600);
       } catch (_) {}
     });
-
-    // Load rules from /audit/rules.json (served as a static asset by Express).
-    // If it fails (e.g. not deployed yet), the lint stays inert — it's a
-    // progressive enhancement, not a blocker for the existing builder flow.
     fetch('/audit/rules.json', { cache: 'no-cache' })
       .then(r => r.ok ? r.json() : null)
       .then(rules => {
         if (rules && rules.narration_banned_products && rules.narration_banned_products.replacements) {
           replacements = rules.narration_banned_products.replacements;
-          buildRegex();
-          recomputeAuditCount();
-          // Refresh inspector if a scene is selected, so chips appear
-          if (window.__timeline && document.getElementById('inspector') && !document.getElementById('inspector').hidden) {
-            // Trigger a re-render by toggling selection (cheap)
-            const tl = document.querySelector('.film-tile.is-selected');
-            if (tl) tl.click();
-          }
+          buildRegex(); recomputeAuditCount();
+          const tl = document.querySelector('.film-tile.is-selected');
+          if (tl) tl.click();
         }
       })
       .catch(() => {});
-
     window.__lint = { renderChips, findHits, recomputeAuditCount };
   })();
 
   // ============================================================
-  // Audit mode — hydrate the wizard from a canonical vertical
-  // ------------------------------------------------------------
-  // URL: /builder.html?vertical=<key>&usecase=<key>
-  // Pulls /api/verticals/<key>?usecase=<key> and seeds the form +
-  // timeline with the canonical scenes (head, lede, beats). Lets
-  // the rep sweep the existing demos for capability-language
-  // violations without touching the canonical source directly.
+  // Audit mode
   // ============================================================
   (function initAuditMode() {
     const params = new URLSearchParams(location.search);
     const verticalKey = params.get('vertical');
     if (!verticalKey) return;
     const usecase = params.get('usecase') || 'default';
-
-    const banner = document.getElementById('auditBanner');
-    const bannerText = document.getElementById('auditBannerText');
-    const countEl = document.getElementById('auditCount');
+    const banner = $('auditBanner'), bannerText = $('auditBannerText');
     if (banner) {
       banner.classList.add('is-active');
-      bannerText.textContent = `Auditing ${verticalKey} · ${usecase} — capability-language lint runs on every narration field.`;
+      bannerText.textContent = `Auditing ${verticalKey} · ${usecase}`;
     }
-
+    // Jump to stage 3 in audit mode
+    goToStage(3, true);
     fetch(`/api/verticals/${encodeURIComponent(verticalKey)}?usecase=${encodeURIComponent(usecase)}`, { cache: 'no-cache' })
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
-        // Seed Step 1 + Step 2 fields. We force-set even when "touched"
-        // because audit mode is explicitly populating from canonical.
         const meta = data.meta || {};
-        const setVal = (id, v) => { const el = document.getElementById(id); if (el && v != null) { el.value = v; el.dataset.touched = '1'; } };
-        // Industry: try matching the vertical key directly, else fall back
-        const indEl = document.getElementById('f-industry');
-        if (indEl) {
-          const opt = Array.from(indEl.options).find(o => o.value === verticalKey);
-          if (opt) { indEl.value = verticalKey; }
-        }
-        setVal('f-tenant',   meta.tenant);
-        // Customer: derive from subtitle, e.g. "× Aster Capital — New Client Onboarding"
+        const setVal = (id, v) => { const el = $(id); if (el && v != null) { el.value = v; el.dataset.touched = '1'; } };
+        const indEl = $('f-industry');
+        if (indEl) { const opt = Array.from(indEl.options).find(o => o.value === verticalKey); if (opt) indEl.value = verticalKey; }
+        setVal('f-tenant', meta.tenant);
         if (meta.subtitle) setVal('f-customer', meta.subtitle.replace(/^×\s*/, ''));
         if (meta.tenantColor && /^#[0-9A-Fa-f]{6}$/.test(meta.tenantColor)) {
           setVal('f-color', meta.tenantColor);
-          const sw = document.getElementById('swatchPreview');
-          if (sw) sw.style.background = meta.tenantColor;
+          const sw = $('swatchPreview'); if (sw) sw.style.background = meta.tenantColor;
         }
-        // Hydrate the timeline
         if (window.__timeline && typeof window.__timeline.hydrateFromCanonical === 'function') {
           window.__timeline.hydrateFromCanonical(data.scenes);
         }
-        // Jump to Step 3 — that's where the lint lives
-        if (window.__wizard && typeof window.__wizard.showStep === 'function') {
-          window.__wizard.showStep(3);
-        }
         if (window.__lint) window.__lint.recomputeAuditCount();
-        // Stash the vertical key + usecase on window so the save IIFE can
-        // build the POST URL without re-reading URL params.
         window.__auditContext = { verticalKey, usecase };
-        // After hydration succeeds, kick the save IIFE — by this point
-        // /api/me has likely resolved, but we re-evaluate here to make sure
-        // the Save button shows even if the probe finished before hydrate.
         if (typeof window.__refreshSaveButton === 'function') window.__refreshSaveButton();
       })
       .catch(err => {
-        if (bannerText) {
-          bannerText.textContent = `Audit hydrate failed: ${err.message}. Falling back to a clean wizard.`;
-        }
+        if (bannerText) bannerText.textContent = `Audit hydrate failed: ${err.message}.`;
       });
   })();
 
   // ============================================================
-  // Save canonical — admin-only edit-and-commit flow
-  // ------------------------------------------------------------
-  // 1. Probe /api/me on load. If authenticated AND on EDIT_ALLOWLIST,
-  //    set window.__isEditor = true.
-  // 2. When audit-mode hydration completes (window.__auditContext is
-  //    set) AND the user is an editor, reveal the Save button.
-  // 3. On Save click: window.__timeline.buildEditsFromTimeline()
-  //    builds the diff, we POST it to /api/verticals/<key>, surface
-  //    the GitHub commit URL on success or a clear error on failure.
+  // Save canonical (admin-only)
   // ============================================================
   (function initSaveCanonical() {
-    const btn       = document.getElementById('btnSaveCanonical');
-    const result    = document.getElementById('saveResult');
-    const resultTag = document.getElementById('saveResultTag');
-    const resultMsg = document.getElementById('saveResultMsg');
-    const resultLink = document.getElementById('saveResultLink');
-    const resultDismiss = document.getElementById('saveResultDismiss');
+    const btn = $('btnSaveCanonical'), result = $('saveResult');
+    const resultTag = $('saveResultTag'), resultMsg = $('saveResultMsg');
+    const resultLink = $('saveResultLink'), resultDismiss = $('saveResultDismiss');
     if (!btn || !result) return;
 
-    let isEditor = false;
-    let editorEmail = null;
-
-    function refresh() {
-      const inAuditMode = !!window.__auditContext;
-      btn.hidden = !(inAuditMode && isEditor);
-    }
+    let isEditor = false, editorEmail = null;
+    function refresh() { const inAuditMode = !!window.__auditContext; btn.hidden = !(inAuditMode && isEditor); }
     window.__refreshSaveButton = refresh;
 
-    // Probe /api/me — never blocks the page, never logs the user out.
     fetch('/api/me', { cache: 'no-cache', credentials: 'same-origin' })
       .then(r => r.ok ? r.json() : null)
       .then(me => {
-        if (me && me.authenticated && me.isEditor) {
-          isEditor = true;
-          editorEmail = me.email || null;
-        }
+        if (me && me.authenticated && me.isEditor) { isEditor = true; editorEmail = me.email || null; }
         refresh();
       })
-      .catch(() => { /* silent — non-editors just won't see the button */ });
+      .catch(() => {});
 
     function showResult({ ok, message, commitUrl }) {
       result.classList.toggle('is-error', !ok);
       resultTag.textContent = ok ? 'Saved' : 'Save failed';
       resultMsg.textContent = message || '';
-      if (ok && commitUrl) {
-        resultLink.href = commitUrl;
-        resultLink.style.display = '';
-      } else {
-        resultLink.style.display = 'none';
-      }
+      if (ok && commitUrl) { resultLink.href = commitUrl; resultLink.style.display = ''; }
+      else resultLink.style.display = 'none';
       result.hidden = false;
       result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    resultDismiss && resultDismiss.addEventListener('click', () => {
-      result.hidden = true;
-    });
+    resultDismiss && resultDismiss.addEventListener('click', () => { result.hidden = true; });
 
     btn.addEventListener('click', async () => {
-      const ctx = window.__auditContext;
-      if (!ctx) return;
+      const ctx = window.__auditContext; if (!ctx) return;
       const tl = window.__timeline;
       if (!tl || typeof tl.buildEditsFromTimeline !== 'function') {
-        showResult({ ok: false, message: 'Timeline not initialised. Reload and try again.' });
-        return;
+        showResult({ ok: false, message: 'Timeline not initialised. Reload and try again.' }); return;
       }
       const edits = tl.buildEditsFromTimeline();
-      if (!edits.length) {
-        showResult({ ok: false, message: 'No changes to save — every field still matches the canonical source.' });
-        return;
-      }
-      // Lightweight confirm if you're about to commit a large rewrite —
-      // sanity check, no enterprise modal.
-      if (edits.length > 12 && !confirm(`Commit ${edits.length} narration changes to canonical?`)) {
-        return;
-      }
+      if (!edits.length) { showResult({ ok: false, message: 'No changes to save — every field still matches the canonical source.' }); return; }
+      if (edits.length > 12 && !confirm(`Commit ${edits.length} narration changes to canonical?`)) return;
       btn.disabled = true;
       const origText = btn.textContent;
       btn.textContent = `Saving ${edits.length} change${edits.length === 1 ? '' : 's'}…`;
       try {
         const r = await fetch(`/api/verticals/${encodeURIComponent(ctx.verticalKey)}`, {
-          method: 'POST',
-          credentials: 'same-origin',
+          method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            usecase: ctx.usecase || 'default',
-            edits,
-            commitMessage: `edit(${ctx.verticalKey}): ${edits.length} narration field${edits.length === 1 ? '' : 's'} via builder${editorEmail ? ' · ' + editorEmail : ''}`
-          })
+          body: JSON.stringify({ usecase: ctx.usecase || 'default', edits, commitMessage: `edit(${ctx.verticalKey}): ${edits.length} narration field${edits.length === 1 ? '' : 's'} via builder${editorEmail ? ' · ' + editorEmail : ''}` })
         });
         const data = await r.json().catch(() => ({}));
         if (r.ok) {
           const commitUrl = (data.commit && data.commit.html_url) || null;
           const sha = (data.commit && data.commit.sha) || '';
-          showResult({
-            ok: true,
-            message: `${edits.length} change${edits.length === 1 ? '' : 's'} committed to canonical${sha ? ' (' + sha.slice(0, 7) + ')' : ''}.\nReplit will pick this up on next pull/redeploy.`,
-            commitUrl
-          });
-        } else if (r.status === 401) {
-          showResult({ ok: false, message: 'Your session expired. Sign in again at /audit/login and reload.' });
-        } else if (r.status === 403) {
-          showResult({ ok: false, message: data.message || 'Your email is not on the editor allowlist.' });
-        } else if (r.status === 503) {
-          showResult({ ok: false, message: data.message || 'GITHUB_PAT not configured on the server.' });
-        } else if (r.status === 409) {
-          showResult({
-            ok: false,
-            message: (data.message || 'Conflict — canonical has changed since you hydrated.') +
-              (data.path ? `\nPath: ${data.path}` : '') +
-              '\nReload to refresh, then re-apply your edits.'
-          });
-        } else if (r.status === 422) {
-          showResult({
-            ok: false,
-            message: (data.message || 'Edits applied but the result no longer parses — nothing was committed.') +
-              (data.detail ? `\nDetail: ${data.detail}` : '')
-          });
-        } else {
-          showResult({ ok: false, message: data.message || data.error || `Save failed (HTTP ${r.status}).` });
-        }
-      } catch (e) {
-        showResult({ ok: false, message: `Network error: ${e.message}` });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
+          showResult({ ok: true, message: `${edits.length} change${edits.length === 1 ? '' : 's'} committed${sha ? ' (' + sha.slice(0,7) + ')' : ''}.\nReplit will pick this up on next pull/redeploy.`, commitUrl });
+        } else if (r.status === 401) { showResult({ ok: false, message: 'Session expired. Sign in again at /audit/login and reload.' });
+        } else if (r.status === 403) { showResult({ ok: false, message: data.message || 'Your email is not on the editor allowlist.' });
+        } else if (r.status === 503) { showResult({ ok: false, message: data.message || 'GITHUB_PAT not configured on the server.' });
+        } else if (r.status === 409) { showResult({ ok: false, message: (data.message || 'Conflict — canonical has changed since you hydrated.') + '\nReload to refresh, then re-apply your edits.' });
+        } else if (r.status === 422) { showResult({ ok: false, message: data.message || 'Edits applied but the result no longer parses — nothing was committed.' });
+        } else { showResult({ ok: false, message: data.message || data.error || `Save failed (HTTP ${r.status}).` }); }
+      } catch (e) { showResult({ ok: false, message: `Network error: ${e.message}` }); }
+      finally { btn.disabled = false; btn.textContent = origText; }
     });
   })();
 </script>
