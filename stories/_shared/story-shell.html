@@ -2951,17 +2951,27 @@ function renderSidebar(scene, i){
   const persona = isOrientation
     ? (scene.persona || (beat && beat.beatPersona) || personaFallback(i))
     : ((beat && beat.beatPersona) || scene.persona || personaFallback(i));
-  sidebar.classList.add('fade');
-  setTimeout(() => {
+  // During autoplay, swap text instantly so the sidebar narration moves
+  // in lockstep with the iframe (which updates synchronously). The 180ms
+  // editorial fade is reserved for manual navigation where the user is
+  // pacing themselves and the cross-dissolve reads as polish, not lag.
+  // Persona has its own fade track inside renderPersona — handles its
+  // own choreography on actual identity changes.
+  if (playing) {
     $('step-label').textContent = scene.tag;
     $('headline').textContent = head;
     $('lede').innerHTML = lede;
-    // Persona has its own fade track (see .persona.persona-fading). Pass
-    // it through unconditionally — renderPersona itself short-circuits if
-    // the identity key hasn't actually changed, so this is cheap.
     renderPersona(persona, { orientation: isOrientation });
-    sidebar.classList.remove('fade');
-  }, 180);
+  } else {
+    sidebar.classList.add('fade');
+    setTimeout(() => {
+      $('step-label').textContent = scene.tag;
+      $('headline').textContent = head;
+      $('lede').innerHTML = lede;
+      renderPersona(persona, { orientation: isOrientation });
+      sidebar.classList.remove('fade');
+    }, 180);
+  }
   document.querySelectorAll('#scene-tabs .t').forEach((t, k) => t.classList.toggle('on', k === i));
   const pipsEl = $('beat-pips');
   pipsEl.innerHTML = scene.hotspots.map((_, k) => `<div class="pip ${k === hotIdx ? 'on' : (k < hotIdx ? 'done' : '')}"></div>`).join('');
@@ -3447,14 +3457,16 @@ let _navGuardUntil = 0;
 function _navGuardActive(){ return performance.now() < _navGuardUntil; }
 function _armNavGuard(){ _navGuardUntil = performance.now() + NAV_GUARD_MS; }
 
-function advance(){
+function advance(opts){
   if (_navGuardActive()) return;
   _armNavGuard();
+  opts = opts || {};
   // If we're holding for a forward gesture (cold open or persona
-  // handoff), this click/key IS that gesture — release and resume,
-  // and don't double-advance. The hold was already sitting on the
-  // beat we wanted; the gesture's job is to start playing.
-  if (holdingForGesture) { releaseHoldAndResume(); return; }
+  // handoff) AND this isn't an internal autoplay-tick call (which
+  // already set holdingForGesture itself), this click/key IS the
+  // release gesture. tickTimer's autoplay-driven advance bypasses
+  // this check via opts.fromTick.
+  if (holdingForGesture && !opts.fromTick) { releaseHoldAndResume(); return; }
   const scene = SCENES[idx];
   if (hotIdx < scene.hotspots.length - 1) {
     hotIdx++;
@@ -3465,8 +3477,20 @@ function advance(){
     // for the cold open and forward persona handoffs (engageHold).
     exitLeadMode();
   }
-  else if (idx < SCENES.length - 1) { goTo(idx + 1); }
-  else { goTo(0, {force:true}); }
+  else if (idx < SCENES.length - 1) {
+    // Scene boundary. Use silent flag during autoplay-driven advances
+    // so the editorial pop doesn't fire when nothing's actually changing
+    // about the persona — autoplay should glide across scene boundaries.
+    goTo(idx + 1, { silent: !!opts.suppressScenePop });
+  }
+  else {
+    // Wraparound to S1/B1. Always treat as a fresh cold open — engage
+    // the hold so the orientation beat reads on its own before autoplay
+    // resumes, exactly like the very first visit.
+    goTo(0, { force:true, silent: true });
+    // Defer hold engagement until after goTo's renderSidebar settles.
+    setTimeout(engageHold, 210);
+  }
 }
 function rewind(){
   if (_navGuardActive()) return;
@@ -3607,16 +3631,28 @@ function tickTimer(){
   const beatElapsed  = (performance.now() - beatStart)  * playbackRate;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
-    // Advance first, then check for a persona handoff. We want the new
-    // persona card on screen WHEN we pause — landing on Cathie means
-    // showing Cathie, not "Cathie is next" while still on Patrick.
+    // Capture handoff intent against CURRENT cursor BEFORE advance
+    // mutates idx/hotIdx. On a real handoff: pause autoplay IMMEDIATELY
+    // so tickTimer doesn't re-fire, do the navigation, then defer the
+    // visual hold (lead-mode expansion + pulse) until the 180ms persona
+    // swap has landed — otherwise the expanded card briefly shows the
+    // stale persona while renderPersona's fade-swap is still mid-flight.
     const willHandoff = isPersonaSwitchAhead();
-    advance(); // advance() resets beatStart (and sceneStart on scene swap)
     if (willHandoff) {
-      // We've now landed on the new persona. Pause + expand + pulse.
-      engageHold();
-      return; // raf loop stops via togglePlay's cancelAnimationFrame
+      // Stop the autoplay loop now; the visual transition follows.
+      holdingForGesture = true;
+      if (playing) togglePlay(); // pauses raf, flips icon
+      advance({ suppressScenePop: true, fromTick: true }); // navigate to new persona beat
+      // Defer the lead-mode pop until renderSidebar's persona swap completes.
+      setTimeout(() => {
+        // engageHold short-circuits if already true; we set holdingForGesture
+        // above to prevent re-entry, so manually do the visual half here.
+        enterLeadMode();
+        setHoldVisuals(true);
+      }, 210);
+      return;
     }
+    advance({ suppressScenePop: true, fromTick: true }); // same-persona beats stay flat
   }
   raf = requestAnimationFrame(tickTimer);
 }
