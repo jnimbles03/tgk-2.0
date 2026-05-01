@@ -36,20 +36,28 @@ OUT_NAMES = ROOT / "_audits" / "character-naming-data.json"
 CANONICAL_SPINES = {
     "default": {
         "scenes": ["Sender", "Identity", "Signing", "Data", "Workspace"],
+        # Two default variants:
+        #   Advisor-led: advisor sends → client identity → client signs → advisor data → advisor workspace
+        #     (wealth, banking commercial, insurance with named underwriter/agent)
+        #   Self-service: client opens themselves → system identity → client signs → system/advisor data → advisor workspace
+        #     (education student portal, fedgov UI claim, slgov self-service)
         # Identity at S2 is performed by the client (the recipient verifies)
-        "expected_sides": ["advisor", "client", "client", "advisor", "advisor"],
+        # OR system orchestrates (Maestro/CLEAR for self-service flows).
+        "expected_sides": ["advisor|client", "client|system", "client", "advisor|system", "advisor"],
     },
     "intake": {
         "scenes": ["Sender", "Identity", "Signing", "Data"],
-        # Two intake variants, both valid:
-        #   Advisor-led: advisor sends, client identity-verifies, client signs,
+        # Three intake variants, all valid:
+        #   Advisor-led 4-scene: advisor sends, client identity, client signs,
         #     advisor sees data extracted. (Wealth, banking commercial.)
-        #   Self-service: client opens an account themselves via portal/mobile,
-        #     identity is system-orchestrated, client signs, then either advisor
-        #     or system handles data. (Banking-deposits, retail HLS.)
-        # Identity in self-service: client OR system (Maestro orchestrates).
-        # Data on self-service can be system (Iris extraction) or advisor.
+        #   Self-service 4-scene: client opens via portal, system identity,
+        #     client signs, system/advisor handles data. (Banking-deposits.)
+        #   Self-service 3-scene: client opens via portal, client signs in
+        #     same scene as identity, no separate Data scene (data extraction
+        #     is implicit). (Provider-ROI, slgov-311.)
+        # The audit accepts both 3- and 4-scene intake via the variant_lengths.
         "expected_sides": ["advisor|client", "client|system", "client", "advisor|system"],
+        "variant_lengths": [3, 4],
     },
     "fraud-fabric": {
         "scenes": ["Portal Entry", "In-Session Action", "Chain of Custody"],
@@ -110,16 +118,26 @@ ADVISOR_ROLE_KEYWORDS = [
     "admissions", "registrar", "enrollment", "intake",
     "medical assistant", "nurse", "physician", "dr.", "doctor",
     "care coordinator", "social worker",
+    # Health-payor / health-plan ops
+    "network operations", "network ops", "member services",
+    "enrollment counselor", "medical director",
+    # Lifesciences / clinical research roles
+    "clinical coordinator", "clinical study", "study coordinator",
+    "regulatory affairs", "principal investigator", "site coordinator",
+    "study manager", "clinical account",
     # Public sector / state-local-gov
     "officer", "permit", "licensing", "permits", "license",
     "fleet manager", "head of compliance and onboarding",
 ]
 # Roles that scream "back office" — flagged if shown on the advisor side
 # (compliance and legal don't ORIGINATE workflows; they review/gate them).
+# Note: must be specific. Plain "operations" used to be here but it false-
+# positives on legitimate advisor roles like "Network Operations Manager",
+# "Operations Director", etc. Use the more specific compounds instead.
 BACK_OFFICE_ROLE_KEYWORDS = [
     "head of compliance", "compliance officer", "chief compliance",
-    "general counsel", "operations", "back office",
-    "legal", "ops",
+    "general counsel", "back office",
+    "legal counsel", "legal review",
 ]
 
 
@@ -521,12 +539,15 @@ def audit_sequence(flow):
             "expected_label": spine["scenes"][i] if i < len(spine["scenes"]) else None,
         })
 
-    # Rule A: scene count must match the spine
-    if len(strip) != len(spine["scenes"]):
+    # Rule A: scene count must match the spine. Some spines accept multiple
+    # variant_lengths (e.g. intake can be either 3-scene self-service or
+    # 4-scene full-pipeline) — accept any of the variants.
+    accepted_lengths = spine.get("variant_lengths") or [len(spine["scenes"])]
+    if len(strip) not in accepted_lengths:
         severity = "MISMATCH"
         notes.append(
-            f'Scene count {len(strip)} ≠ canonical {len(spine["scenes"])} for usecase '
-            f'"{spine_key}" (expected {spine["scenes"]}).'
+            f'Scene count {len(strip)} ≠ canonical {accepted_lengths} for usecase '
+            f'"{spine_key}" (expected scenes {spine["scenes"]}).'
         )
 
     # Rule B: per-scene side must match expected (only for scenes that exist,
@@ -565,20 +586,21 @@ def audit_sequence(flow):
                     f'read as advisor/origination — back-office role on the front-office side.'
                 )
 
-    # Rule H: the SENDER scene should always have a named persona — that's
-    # the orientation actor for the demo. Missing it is a content gap, not
-    # a structural mismatch, so flag as AMBIGUOUS rather than MISMATCH.
+    # Rule H: the SENDER scene should have either a named persona OR a
+    # role-only persona (intentional for unnamed agency staff in slgov).
+    # Missing BOTH name and role is a content gap — flag as AMBIGUOUS.
     for i, lbl in enumerate(spine["scenes"]):
         if lbl == "Sender" and i < len(strip):
             scene = (flow.get("scenes") or [])[i]
             scene_persona = scene.get("persona") or {}
             beat0_persona = ((scene.get("beats") or [{}])[0] or {}).get("persona") or {}
-            named = scene_persona.get("name") or beat0_persona.get("name")
+            named = (scene_persona.get("name") or beat0_persona.get("name") or
+                     scene_persona.get("role") or beat0_persona.get("role"))
             if not named:
                 if severity == "OK":
                     severity = "AMBIGUOUS"
                 notes.append(
-                    f'S{i+1} (Sender): no named persona — orientation actor is unclear. '
+                    f'S{i+1} (Sender): no named persona or role — orientation actor is unclear. '
                     f'Add a sender persona definition for clarity.'
                 )
 
