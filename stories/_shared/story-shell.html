@@ -172,7 +172,13 @@
   /* Show the role-class badge when there's no individual name to lead with. */
   .persona[data-anonymous="true"] .name{display:none;}
   .persona[data-anonymous="true"] .side-badge{display:inline-block;}
-  .sidebar.fade .persona{opacity:0;}
+  /* Persona is decoupled from the sidebar's per-beat fade. The headline
+     and lede can swap underneath, but the persona chip only animates when
+     identity actually changes (driven by .persona-fading in JS). This
+     stops the per-click flicker that came from .sidebar.fade dimming the
+     whole rail every 180ms even when the same actor was still on stage. */
+  .persona{transition:opacity 0.18s ease;}
+  .persona.persona-fading{opacity:0;}
 
   /* In lead state the persona chip swells slightly so it reads alongside
      the editorial headline rather than getting visually buried. */
@@ -2931,6 +2937,9 @@ function renderSidebar(scene, i){
     $('step-label').textContent = scene.tag;
     $('headline').textContent = head;
     $('lede').innerHTML = lede;
+    // Persona has its own fade track (see .persona.persona-fading). Pass
+    // it through unconditionally — renderPersona itself short-circuits if
+    // the identity key hasn't actually changed, so this is cheap.
     renderPersona(persona, { orientation: isOrientation });
     sidebar.classList.remove('fade');
   }, 180);
@@ -2969,27 +2978,22 @@ const ORIENTATION_ROLE_SUFFIX = {
   system:  " · automated",
   handoff: " · routing"
 };
-function renderPersona(persona, opts){
-  if (!persona) persona = { side:"system" };
-  opts = opts || {};
-  const side = persona.side || "system";
-  const name = (persona.name || "").trim();
-  let role = (persona.role || "").trim();
-  // Orientation beat — append a side-specific suffix to the role so the
-  // viewer reads "Head of Compliance · Hillside · your sender" instead
-  // of just the role. Only applied when the suffix isn't already present
-  // (defensive: covers the case where data already includes it).
-  if (opts.orientation) {
-    const suffix = ORIENTATION_ROLE_SUFFIX[side] || "";
-    if (suffix && !role.toLowerCase().endsWith(suffix.toLowerCase())) {
-      role = role + suffix;
-    }
-  }
-  const el = $('persona');
-  el.setAttribute('data-side', side);
-  el.setAttribute('data-anonymous', name ? 'false' : 'true');
-  el.setAttribute('data-orientation', opts.orientation ? 'true' : 'false');
-  // Avatar: initials if name; first letter of side-label otherwise.
+/* renderPersona is idempotent: it short-circuits when the identity key
+   hasn't changed, so per-beat re-renders that happen to land on the same
+   actor cause zero DOM mutation, zero animation re-trigger, and no fade.
+   Only orientation can flip without an identity change (S1/B1 reuses the
+   same actor with a role suffix), so we track it as part of the key.
+
+   When identity DOES change, the chip fades out, swaps text, fades back
+   in, and runs the bounce + id-pulse on the new content. Old animations
+   are cancelled cleanly so a fast click during a previous transition
+   can't strand a half-finished animation on screen. */
+let _personaTransitionTimer = null;
+function _personaApplyDOM(side, name, role, orientation){
+  const pel = $('persona');
+  pel.setAttribute('data-side', side);
+  pel.setAttribute('data-anonymous', name ? 'false' : 'true');
+  pel.setAttribute('data-orientation', orientation ? 'true' : 'false');
   const initials = name
     ? name.split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase()
     : (SIDE_LABEL[side] || '·').slice(0,1);
@@ -2997,46 +3001,70 @@ function renderPersona(persona, opts){
   $('persona-name').textContent = name;
   $('persona-role').textContent = role;
   $('persona-side-badge').textContent = SIDE_LABEL[side] || 'Actor';
-  // Bounce only when the persona identity actually changes. The class is
-  // removed on animationend so it can't accumulate or re-fire when an
-  // unrelated reflow (window resize, parent class toggle) hits the chip.
-  const pel = $('persona');
-  const prevKey = pel.dataset.personaKey || '';
-  // Key on the full identity tuple so a side change with the same name
-  // (e.g. "Cathie Woods" advisor → handoff) still triggers the bounce.
-  const nextKey = [side, name, role].join('|').toLowerCase();
-  const identityChanged = nextKey !== prevKey;
-  if (identityChanged) {
-    pel.dataset.personaKey = nextKey;
-    pel.classList.remove('bounce');
-    void pel.offsetWidth;
-    pel.classList.add('bounce');
-    // One-shot cleanup. {once:true} guarantees the listener is detached
-    // after the first animationend, so we never end up with N stacked
-    // listeners after N persona changes.
-    pel.addEventListener('animationend', function onBounceEnd(){
-      pel.classList.remove('bounce');
-    }, {once:true});
-  }
-  // D4 — mirror the persona side onto the shell so the headline CSS can
-  // drop italic for system-driven beats. Cheap; runs on every paint.
   const shellEl = document.querySelector('.shell');
   if (shellEl) shellEl.setAttribute('data-persona-side', side);
-  // D3 — pulse the avatar with a brief glow whenever persona identity
-  // changes (manual advance included), so the actor switch is visible
-  // even outside the autoplay-pause gate. The autoplay-pause gate uses
-  // .is-handoff-pending on the sidebar for a sustained glow; this is the
-  // shorter "actor changed" pulse, scoped to the chip itself.
-  if (identityChanged) {
-    pel.classList.remove('id-pulse');
-    void pel.offsetWidth;
-    pel.classList.add('id-pulse');
-    pel.addEventListener('animationend', function onPulseEnd(e){
-      // Strict filter — only react to the id-pulse animation, not the
-      // bounce that fires alongside it.
-      if (e.animationName === 'personaIdPulse') pel.classList.remove('id-pulse');
-    }, {once:true});
+}
+function renderPersona(persona, opts){
+  if (!persona) persona = { side:"system" };
+  opts = opts || {};
+  const side = persona.side || "system";
+  const name = (persona.name || "").trim();
+  let role = (persona.role || "").trim();
+  if (opts.orientation) {
+    const suffix = ORIENTATION_ROLE_SUFFIX[side] || "";
+    if (suffix && !role.toLowerCase().endsWith(suffix.toLowerCase())) {
+      role = role + suffix;
+    }
   }
+  const pel = $('persona');
+  const prevKey = pel.dataset.personaKey || '';
+  // Orientation flag participates in the key so the suffix change still
+  // counts as an identity change worth re-rendering.
+  const nextKey = [side, name, role, opts.orientation ? 'O' : ''].join('|').toLowerCase();
+  if (nextKey === prevKey) {
+    // No-op short-circuit. Mirror the side attribute to the shell in case
+    // a previous render was interrupted before this line ran, but skip
+    // every other DOM mutation and animation trigger.
+    const shellEl = document.querySelector('.shell');
+    if (shellEl && shellEl.getAttribute('data-persona-side') !== side) {
+      shellEl.setAttribute('data-persona-side', side);
+    }
+    return;
+  }
+  pel.dataset.personaKey = nextKey;
+  // Cancel any in-flight transition cleanly. This prevents a fast Next
+  // during a previous fade from leaving the chip stranded mid-fade or
+  // stacking two animations on top of each other.
+  if (_personaTransitionTimer) {
+    clearTimeout(_personaTransitionTimer);
+    _personaTransitionTimer = null;
+  }
+  pel.classList.remove('bounce', 'id-pulse');
+  // Fade-out → swap → fade-in. The 180ms timing matches the sidebar's
+  // headline/lede swap so the whole rail moves in lockstep on a real
+  // identity change.
+  pel.classList.add('persona-fading');
+  _personaTransitionTimer = setTimeout(() => {
+    _personaApplyDOM(side, name, role, !!opts.orientation);
+    pel.classList.remove('persona-fading');
+    // Fire bounce + id-pulse together on the new content. Reflow between
+    // class removal and re-add so CSS animations retrigger reliably.
+    void pel.offsetWidth;
+    pel.classList.add('bounce', 'id-pulse');
+    // Single animationend handler scoped to the bounce — when bounce
+    // ends, both classes drop. id-pulse is longer (0.95s vs 0.5s) so we
+    // wait for the longer one before clearing both. {once:true} prevents
+    // listener accumulation across N persona changes.
+    pel.addEventListener('animationend', function onPersonaAnim(e){
+      if (e.animationName === 'personaIdPulse') {
+        pel.classList.remove('bounce', 'id-pulse');
+      } else {
+        // Bounce ended first — keep listening for id-pulse.
+        pel.addEventListener('animationend', onPersonaAnim, {once:true});
+      }
+    }, {once:true});
+    _personaTransitionTimer = null;
+  }, 180);
 }
 function renderHotspot(){
   const scene = SCENES[idx];
@@ -3390,7 +3418,21 @@ function exitLeadMode(){
     }
   });
 })();
+/* Beat-advance guard. A user click, an iframe tgk:beatDone, and the
+   autoplay tick can all reach advance()/rewind() within a few ms of each
+   other. Without a guard, the second caller increments hotIdx again
+   while the sidebar fade from the first caller is still mid-swap — the
+   net effect is a stutter where headline/lede/persona all flicker
+   between two states. The guard window matches renderSidebar's 180ms
+   fade so within one fade cycle, only the first navigation wins. */
+const NAV_GUARD_MS = 200;
+let _navGuardUntil = 0;
+function _navGuardActive(){ return performance.now() < _navGuardUntil; }
+function _armNavGuard(){ _navGuardUntil = performance.now() + NAV_GUARD_MS; }
+
 function advance(){
+  if (_navGuardActive()) return;
+  _armNavGuard();
   // Clear the persona-handoff gate first — a click/arrow/Next that lands
   // here is the user's manual gesture across the seam.
   onManualAdvance();
@@ -3410,6 +3452,8 @@ function advance(){
   else { goTo(0, {force:true}); }
 }
 function rewind(){
+  if (_navGuardActive()) return;
+  _armNavGuard();
   onManualAdvance();
   const scene = SCENES[idx];
   if (hotIdx > 0) {
