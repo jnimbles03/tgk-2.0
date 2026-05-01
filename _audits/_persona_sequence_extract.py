@@ -76,8 +76,15 @@ CANONICAL_SPINES = {
     },
     "maintenance": {
         "scenes": ["Portal Entry", "Form", "Confirmation"],
-        # Form scene: the client fills it OR the system orchestrates
-        "expected_sides": ["client", "client|system", "advisor"],
+        # Two maintenance variants:
+        #   Customer-driven: client logs in, Maestro serves form, advisor reviews
+        #     and confirms. (Banking-deposits beneficiary update, wealth signer
+        #     change, etc.)
+        #   Maestro-triggered: a renewal/recertification window fires; the
+        #     workflow assembles a package; the customer signs; the advisor
+        #     confirms. S1 actor here is the system (Maestro), not the client.
+        #     (Procurement vendor renewal, slgov-recertification, etc.)
+        "expected_sides": ["client|system", "client|system", "advisor"],
     },
     "workspaces": {
         "scenes": ["Workspace"],
