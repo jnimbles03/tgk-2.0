@@ -19,6 +19,14 @@
 (function () {
   'use strict';
 
+  // Bail out inside iframes — story-shell.html embeds Docusign template
+  // pages (agreement-desk, signing-ceremony, workspace, etc.) via iframe.
+  // The server injects this widget into every HTML response, so without
+  // this guard a second floating bubble renders inside each iframe and
+  // overlaps the parent's top-right corner. Only the top window gets the
+  // widget; iframed templates stay clean.
+  try { if (window.top !== window.self) return; } catch (e) { return; }
+
   // Avoid double-install
   if (window.__TGK_FEEDBACK_WIDGET__) return;
   window.__TGK_FEEDBACK_WIDGET__ = true;
