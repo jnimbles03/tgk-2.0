@@ -109,6 +109,15 @@ ADVISOR_ROLE_KEYWORDS = [
     "account executive", "account manager", "branch", "client services",
     "service rep", "csr", "intake specialist", "case manager",
     "investigator", "case worker", "caseworker",
+    # Sales / customer-facing commercial roles (parallel to the
+    # banking/wealth advisors — they originate workflows and own customer
+    # relationships).
+    "sales rep", "sales representative", "sales executive",
+    "sales engineer", "solution consultant",
+    "customer success", "account director",
+    # Procurement-side: officers who originate vendor onboarding workflows
+    "procurement officer", "procurement manager", "buyer",
+    "sourcing manager", "vendor onboarding", "supplier manager",
     # Network / firm onboarding
     "onboarding", "recruiting", "growth", "partnerships",
     "managing director", "senior associate", "associate",
