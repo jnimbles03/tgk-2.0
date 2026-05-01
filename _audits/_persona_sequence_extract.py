@@ -41,15 +41,30 @@ CANONICAL_SPINES = {
     },
     "intake": {
         "scenes": ["Sender", "Identity", "Signing", "Data"],
-        # Identity in self-service intake: client OR system (Maestro/CLEAR
-        # orchestrates verification on the client) — accept either via
-        # special-case in audit_sequence below.
-        "expected_sides": ["advisor", "client|system", "client", "advisor"],
+        # Two intake variants, both valid:
+        #   Advisor-led: advisor sends, client identity-verifies, client signs,
+        #     advisor sees data extracted. (Wealth, banking commercial.)
+        #   Self-service: client opens an account themselves via portal/mobile,
+        #     identity is system-orchestrated, client signs, then either advisor
+        #     or system handles data. (Banking-deposits, retail HLS.)
+        # Identity in self-service: client OR system (Maestro orchestrates).
+        # Data on self-service can be system (Iris extraction) or advisor.
+        "expected_sides": ["advisor|client", "client|system", "client", "advisor|system"],
     },
     "fraud-fabric": {
-        "scenes": ["Portal Entry", "Identity", "Action"],
-        # Portal entry is the client logging in; identity is system; action is advisor
-        "expected_sides": ["client", "system", "advisor"],
+        "scenes": ["Portal Entry", "In-Session Action", "Chain of Custody"],
+        # Portal Entry: the user (often client; sometimes an internal actor
+        #   like a bank RM) logs in; CLEAR runs in background.
+        # In-Session Action: the user initiates a sensitive action (transfer,
+        #   roster change, draw request). Maestro serves infrastructure but
+        #   the ACTOR is the user from S1.
+        # Chain of Custody: a reviewer (advisor-side) sees the unified
+        #   binding record in Agreement Desk.
+        # Customer-facing variants: client → client|system → advisor
+        # Bank-internal variants  : advisor → advisor → advisor
+        # We accept either reading per scene; the "OR" semantics are
+        # honored by the audit's `expected_side` parser via the | separator.
+        "expected_sides": ["client|advisor", "client|advisor|system", "advisor|system"],
     },
     "maintenance": {
         "scenes": ["Portal Entry", "Form", "Confirmation"],
@@ -75,9 +90,9 @@ ADVISOR_ROLE_KEYWORDS = [
     # Wealth
     "advisor", "advis", "wealth manager", "portfolio manager",
     "private banker", "private wealth",
-    # Banking / lending
-    "relationship manager", "rm", "originator", "loan officer",
-    "commercial relationship", "commercial banker", "credit officer",
+    "relationship banker", "relationship manager", "rm", "originator",
+    "loan officer", "commercial relationship", "commercial banker", "credit officer",
+    "personal banker", "retail banker",
     # Insurance — the user-confirmed rule: Agent = Advisor for insurance
     "agent", "insurance agent", "producer", "broker", "captive agent",
     "underwriter", "underwriting", "claims adjuster", "field adjuster",

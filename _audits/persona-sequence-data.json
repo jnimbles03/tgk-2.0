@@ -25,22 +25,22 @@
         "Data"
       ],
       "expected_sides": [
-        "advisor",
+        "advisor|client",
         "client|system",
         "client",
-        "advisor"
+        "advisor|system"
       ]
     },
     "fraud-fabric": {
       "scenes": [
         "Portal Entry",
-        "Identity",
-        "Action"
+        "In-Session Action",
+        "Chain of Custody"
       ],
       "expected_sides": [
-        "client",
-        "system",
-        "advisor"
+        "client|advisor",
+        "client|advisor|system",
+        "advisor|system"
       ]
     },
     "maintenance": {
@@ -65,416 +65,6 @@
     }
   },
   "rows": [
-    {
-      "vertical_key": "banking-deposits",
-      "usecase": "intake",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Cedar Federal",
-        "label": "banking-deposits",
-        "subtitle": "× Williams Household — Joint Checking + HYSA Account Opening"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE",
-          "head": "Marcus and Adaeze open new joint accounts via the Cedar Federal mobile app.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Marcus and Adaeze start the joint account application on mobile.",
-              "persona": null
-            },
-            {
-              "head": "Product selection and fund transfer setup.",
-              "persona": null
-            },
-            {
-              "head": "Form walks through Reg DD and E-Sign consent.",
-              "persona": null
-            },
-            {
-              "head": "Account details are confirmed and submitted.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Maestro submission routes to account setup and identity verification.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro generates account-opening documents and queues identity verification for both signers in parallel.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Maestro pulls the joint account-opening template.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Maestro generates account numbers and routes identity proofing.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Maestro pre-fills E-Sign consent and disclosure documents.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Maestro stages signature card and initial deposit.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Account documents ready for dual signature and settlement.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Marcus and Adaeze sign the joint account documents in one ceremony on mobile.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Adaeze completes CLEAR identity verification.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Both signers receive the account-opening envelope.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Marcus and Adaeze review the account details.",
-              "persona": null
-            },
-            {
-              "head": "Both signers adopt one signature for all four documents.",
-              "persona": null
-            },
-            {
-              "head": "Accounts open and initial deposit settles same day.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Cedar Federal and the Williams household continue in one shared Workspace.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Marcus and Adaeze access their household Workspace.",
-              "persona": null
-            },
-            {
-              "head": "Account status and tasks in one shared view.",
-              "persona": null
-            },
-            {
-              "head": "Iris tracks the household in the agent rail.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Annual Reg DD disclosure refresh task open.",
-              "persona": null
-            },
-            {
-              "head": "Account relationship in motion.",
-              "persona": null
-            }
-          ]
-        }
-      ],
-      "spine_key": "intake",
-      "spine": {
-        "scenes": [
-          "Sender",
-          "Identity",
-          "Signing",
-          "Data"
-        ],
-        "expected_sides": [
-          "advisor",
-          "client|system",
-          "client",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE",
-          "head": "Marcus and Adaeze open new joint accounts via the Cedar Federal mobile app.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Sender"
-        },
-        {
-          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro generates account-opening documents and queues identity verification for both signers in parallel.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "client|system",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Marcus and Adaeze sign the joint account documents in one ceremony on mobile.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Signing"
-        },
-        {
-          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Cedar Federal and the Williams household continue in one shared Workspace.",
-          "persona_side": "system",
-          "persona_name": "Iris",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Data"
-        }
-      ],
-      "verdict": "MISMATCH",
-      "notes": [
-        "S3: persona side \"system\" ≠ canonical \"client\" (scene = Signing)",
-        "S1 (Sender): no named persona — orientation actor is unclear. Add a sender persona definition for clarity.",
-        "S3 (Signing): persona side is \"system\" — signing should be done by the client (the side that received the package), not the sender."
-      ]
-    },
-    {
-      "vertical_key": "education",
-      "usecase": "fraud-fabric",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Maple Ridge",
-        "label": "education",
-        "subtitle": "× Priya Shah — Official Transcript Release Authorization (FERPA)"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Priya logs into Maple Ridge's student portal; Maestro orchestrates CLEAR at login.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Priya hits Maple Ridge's student portal login.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Shah"
-              }
-            },
-            {
-              "head": "Maestro intercepts and invokes CLEAR.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "CLEAR session opens on Priya's phone.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "ID + selfie + biometric match.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Authenticated session opens.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Priya requests an official transcript release to a graduate program; Maestro serves the authorization webform — bound to the F1 proof.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Priya selects 'Release Official Transcript'.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Shah"
-              }
-            },
-            {
-              "head": "Maestro renders the FERPA-authorization webform inline.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Priya enters recipient details: graduate program, department.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Shah"
-              }
-            },
-            {
-              "head": "Iris pre-screens for scope compliance.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Submit fires — bound to the established biometric proof.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Shah"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
-          "head": "Maple Ridge's Registrar sees the auth and the transcript request as one continuous FERPA-defensible record.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Agreement Desk opens to Priya's session activity.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Shah"
-              }
-            },
-            {
-              "head": "The link is explicit: 'Verified by CLEAR · Priya Shah · CA ID ***9271 · Student ID 287461 · 10:42 EST' → 'Transcript Release Request · Columbia University · Philosophy · 10:47 EST'.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Iris confirms student identity and institutional authorization.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Registrar approves and queues the release.",
-              "persona": null
-            },
-            {
-              "head": "Defensible record.",
-              "persona": null
-            }
-          ]
-        }
-      ],
-      "spine_key": "fraud-fabric",
-      "spine": {
-        "scenes": [
-          "Portal Entry",
-          "Identity",
-          "Action"
-        ],
-        "expected_sides": [
-          "client",
-          "system",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Priya logs into Maple Ridge's student portal; Maestro orchestrates CLEAR at login.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Shah",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Portal Entry"
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Priya requests an official transcript release to a graduate program; Maestro serves the authorization webform — bound to the F1 proof.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Shah",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "system",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
-          "head": "Maple Ridge's Registrar sees the auth and the transcript request as one continuous FERPA-defensible record.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Shah",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
-        }
-      ],
-      "verdict": "MISMATCH",
-      "notes": [
-        "S1: persona side \"advisor\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S2: persona side \"advisor\" ≠ canonical \"system\" (scene = Identity)",
-        "S2 (Identity): sender (advisor) is the verifying actor — should be client or system. The package recipient verifies, not the sender."
-      ]
-    },
     {
       "vertical_key": "education",
       "usecase": "intake",
@@ -639,10 +229,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -655,7 +245,7 @@
           "sides_in_scene": [
             "advisor"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -694,7 +284,7 @@
             "advisor",
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -1020,13 +610,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -1039,7 +629,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -1051,8 +641,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -1063,209 +653,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S3: persona side \"system\" ≠ canonical \"advisor\" (scene = Action)"
-      ]
-    },
-    {
-      "vertical_key": "insurance-pc",
-      "usecase": "fraud-fabric",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Northgate Mutual",
-        "label": "insurance-pc",
-        "subtitle": "× Patel Logistics — Post-FNOL Supplemental Damage Evidence Upload"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Priya Patel logs into the Northgate carrier portal to upload supplemental claim evidence.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Priya enters her username and password at the carrier portal.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Maestro intercepts the login and invokes CLEAR.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Mobile handoff to Priya's phone.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Biometric and authority-on-policy match both return clean.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Authenticated session opens; Priya sees her claim dashboard.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Priya initiates the supplemental evidence upload inside the authenticated session.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Priya clicks \"Submit Evidence Update\" on her claim dashboard.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Maestro serves the evidence-upload webform inline.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Priya uploads repair-estimate photos and writes a status note.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Iris pre-screens the evidence for completeness and fraud signals.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Priya submits the evidence update.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
-          "head": "Agreement Desk surfaces the auth event and the evidence-submission event linked as one continuous identity thread.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Andre opens the Patel evidence submission in Agreement Desk.",
-              "persona": {
-                "side": "advisor",
-                "name": "Priya Patel"
-              }
-            },
-            {
-              "head": "Agreement Desk shows the identity thread.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Iris confirms the evidence is complete and clean.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Andre approves the evidence and updates the claim.",
-              "persona": null
-            },
-            {
-              "head": "Evidence logged; claim moves to repair phase with full audit trail.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            }
-          ]
-        }
-      ],
-      "spine_key": "fraud-fabric",
-      "spine": {
-        "scenes": [
-          "Portal Entry",
-          "Identity",
-          "Action"
-        ],
-        "expected_sides": [
-          "client",
-          "system",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Priya Patel logs into the Northgate carrier portal to upload supplemental claim evidence.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Patel",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Portal Entry"
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Priya initiates the supplemental evidence upload inside the authenticated session.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Patel",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "system",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
-          "head": "Agreement Desk surfaces the auth event and the evidence-submission event linked as one continuous identity thread.",
-          "persona_side": "advisor",
-          "persona_name": "Priya Patel",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
-        }
-      ],
-      "verdict": "MISMATCH",
-      "notes": [
-        "S1: persona side \"advisor\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S2: persona side \"advisor\" ≠ canonical \"system\" (scene = Identity)",
-        "S2 (Identity): sender (advisor) is the verifying actor — should be client or system. The package recipient verifies, not the sender."
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -1456,10 +850,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -1473,7 +867,7 @@
             "advisor",
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -1512,7 +906,7 @@
             "advisor",
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -1850,13 +1244,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -1869,7 +1263,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -1882,8 +1276,8 @@
             "advisor",
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -1895,15 +1289,13 @@
             "advisor",
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S2: persona side \"advisor\" ≠ canonical \"system\" (scene = Identity)",
-        "S2 (Identity): sender (advisor) is the verifying actor — should be client or system. The package recipient verifies, not the sender."
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -2085,10 +1477,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -2101,7 +1493,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -2140,7 +1532,7 @@
             "advisor",
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -2454,10 +1846,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -2470,7 +1862,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -2618,13 +2010,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -2637,7 +2029,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -2649,8 +2041,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -2661,14 +2053,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S3: persona side \"system\" ≠ canonical \"advisor\" (scene = Action)"
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -2788,13 +2179,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -2807,7 +2198,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -2819,8 +2210,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · GREENHAVEN'S OPERATIONS DESK LINKS THE EVENTS",
@@ -2831,14 +2222,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S3: persona side \"system\" ≠ canonical \"advisor\" (scene = Action)"
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -2954,10 +2344,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -2970,7 +2360,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -3119,13 +2509,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -3138,7 +2528,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -3150,8 +2540,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · EASTSIDE'S CASE WORKSPACE LINKS THE EVENTS",
@@ -3162,14 +2552,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S3: persona side \"system\" ≠ canonical \"advisor\" (scene = Action)"
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -3307,13 +2696,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -3326,7 +2715,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -3338,8 +2727,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -3350,13 +2739,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)"
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -3491,13 +2880,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -3510,7 +2899,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -3522,8 +2911,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -3534,13 +2923,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)"
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -3675,13 +3064,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -3694,7 +3083,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -3706,8 +3095,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -3718,827 +3107,13 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "MISMATCH",
       "notes": [
-        "S1: persona side \"system\" ≠ canonical \"client\" (scene = Portal Entry)"
-      ]
-    },
-    {
-      "vertical_key": "wealth",
-      "usecase": "fraud-fabric",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Hillside",
-        "label": "wealth",
-        "subtitle": "× Aster Capital — High-Value Wire Authorization"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Mira logs into Hillside's client portal; Maestro orchestrates CLEAR at login.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Mira hits Hillside's portal login.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Maestro intercepts and invokes CLEAR.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "CLEAR session opens on Mira's phone.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "ID + selfie + biometric match.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Authenticated session opens.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Mira initiates a $4M intra-account transfer; Maestro serves the authorization webform — bound to the F1 proof.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Mira opens \"New Transfer\" in the portal.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Maestro renders the authorization webform inline.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "She adds the policy-required memo.",
-              "persona": null
-            },
-            {
-              "head": "Iris pre-screens.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Submit fires — bound to the established biometric proof.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
-          "head": "Agreement Desk surfaces the CLEAR auth event and the transfer submission as one continuous identity thread.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Agreement Desk opens to Mira's session activity.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "The link is explicit.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Iris confirms pattern match.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "The transfer queues for execution.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Defensible record.",
-              "persona": null
-            }
-          ]
-        }
-      ],
-      "spine_key": "fraud-fabric",
-      "spine": {
-        "scenes": [
-          "Portal Entry",
-          "Identity",
-          "Action"
-        ],
-        "expected_sides": [
-          "client",
-          "system",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Mira logs into Hillside's client portal; Maestro orchestrates CLEAR at login.",
-          "persona_side": "advisor",
-          "persona_name": "Mira Sundar",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Portal Entry"
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Mira initiates a $4M intra-account transfer; Maestro serves the authorization webform — bound to the F1 proof.",
-          "persona_side": "advisor",
-          "persona_name": "Mira Sundar",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "system",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
-          "head": "Agreement Desk surfaces the CLEAR auth event and the transfer submission as one continuous identity thread.",
-          "persona_side": "advisor",
-          "persona_name": "Mira Sundar",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
-        }
-      ],
-      "verdict": "MISMATCH",
-      "notes": [
-        "S1: persona side \"advisor\" ≠ canonical \"client\" (scene = Portal Entry)",
-        "S2: persona side \"advisor\" ≠ canonical \"system\" (scene = Identity)",
-        "S2 (Identity): sender (advisor) is the verifying actor — should be client or system. The package recipient verifies, not the sender."
-      ]
-    },
-    {
-      "vertical_key": "wealth",
-      "usecase": "maintenance",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Hillside",
-        "label": "wealth",
-        "subtitle": "× Aster Capital — Account Maintenance · Update Authorized Signer Roster"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Mira logs into Hillside's client portal to update Aster's authorized-signer roster.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Mira opens the Hillside client portal.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Maestro recognizes the intent and invokes CLEAR.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Biometric verification on Mira's phone.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Biometric match returns clean.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Authenticated session opens with the change form ready.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
-          "head": "Maestro reads Hillside's signer-change policy and serves a form with dual-authorization controls.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Form opens with current authorized-signer roster pre-filled.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Mira enters Jamie Chen's information and signing authority.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Dual authorization required — Aster CEO Daniel receives an in-portal prompt.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Daniel authenticates and consents.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Change submitted; Maestro routes for Hillside compliance review.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 3 · COMPLIANCE REVIEW & CONFIRMATION · PRIYA CONFIRMS, CUSTODIAN UPDATES",
-          "head": "Cathie reviews the signer change in the compliance queue, confirms, and Charlton Schwab's record updates.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "The change lands in Cathie's compliance queue.",
-              "persona": {
-                "side": "advisor",
-                "name": "Cathie Woods"
-              }
-            },
-            {
-              "head": "Iris pre-screens Jamie's KYC and OFAC.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Both authorizers' authentication context is inline with the request.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Cathie confirms; Charlton Schwab's authorized-signer roster updates.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            },
-            {
-              "head": "Mira and Daniel see the change reflected in the portal.",
-              "persona": {
-                "side": "advisor",
-                "name": "Mira Sundar"
-              }
-            }
-          ]
-        }
-      ],
-      "spine_key": "maintenance",
-      "spine": {
-        "scenes": [
-          "Portal Entry",
-          "Form",
-          "Confirmation"
-        ],
-        "expected_sides": [
-          "client",
-          "client|system",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Mira logs into Hillside's client portal to update Aster's authorized-signer roster.",
-          "persona_side": "advisor",
-          "persona_name": "Mira Sundar",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Portal Entry"
-        },
-        {
-          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
-          "head": "Maestro reads Hillside's signer-change policy and serves a form with dual-authorization controls.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "client|system",
-          "expected_label": "Form"
-        },
-        {
-          "tag": "SCENE 3 OF 3 · COMPLIANCE REVIEW & CONFIRMATION · PRIYA CONFIRMS, CUSTODIAN UPDATES",
-          "head": "Cathie reviews the signer change in the compliance queue, confirms, and Charlton Schwab's record updates.",
-          "persona_side": "advisor",
-          "persona_name": "Cathie Woods",
-          "persona_role": null,
-          "sides_in_scene": [
-            "advisor",
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Confirmation"
-        }
-      ],
-      "verdict": "MISMATCH",
-      "notes": [
-        "S1: persona side \"advisor\" ≠ canonical \"client\" (scene = Portal Entry)"
-      ]
-    },
-    {
-      "vertical_key": "banking",
-      "usecase": "default",
-      "source": "inline VERTICALS",
-      "meta": {
-        "label": "Banking",
-        "tenant": "Meridian",
-        "subtitle": "× Atlas Manufacturing — $2.5M Working Capital Facility",
-        "category": "onboarding",
-        "preset": "banking"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 5 · WORKSPACE · DEAL ROOM",
-          "head": "Raj opens a deal room for the Atlas Manufacturing facility.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Raj opens the credit facility intake webform.",
-              "persona": null
-            },
-            {
-              "head": "Facility details and structure selections drive the package.",
-              "persona": null
-            },
-            {
-              "head": "Pre-fill from Meridian's CRM and the facility template library.",
-              "persona": null
-            },
-            {
-              "head": "Raj selects the document package configuration.",
-              "persona": null
-            },
-            {
-              "head": "The workflow submission routes to document generation and approval queue.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 5 · IDENTITY",
-          "head": "Atlas's guarantor completes identity verification.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Diana is prompted to verify before signing.",
-              "persona": null
-            },
-            {
-              "head": "Identity verification selected — PEP and OFAC screens run.",
-              "persona": null
-            },
-            {
-              "head": "Mobile handoff to Diana's phone.",
-              "persona": null
-            },
-            {
-              "head": "ID and biometric captured on mobile.",
-              "persona": null
-            },
-            {
-              "head": "Diana verified — loan package unlocked.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 5 · SIGNING",
-          "head": "Diana signs the loan package — four documents, one ceremony.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Diana reviews the loan package.",
-              "persona": null
-            },
-            {
-              "head": "First field highlighted across the package.",
-              "persona": null
-            },
-            {
-              "head": "Diana adopts her signature.",
-              "persona": null
-            },
-            {
-              "head": "Package routes to credit officer and closing attorney.",
-              "persona": null
-            },
-            {
-              "head": "Loan documents fully executed.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 4 OF 5 · DATA",
-          "head": "The agreement repository extracts facility terms into the credit system.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "The agreement repository surfaces the executed loan agreement.",
-              "persona": null
-            },
-            {
-              "head": "22 fields extracted from the loan agreement.",
-              "persona": null
-            },
-            {
-              "head": "Covenant data ready for the credit committee.",
-              "persona": null
-            },
-            {
-              "head": "Raj asks the AI assistant about the DSCR covenant.",
-              "persona": null
-            },
-            {
-              "head": "The AI assistant answers with the covenant clause verbatim.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 5 OF 5 · WORKSPACE",
-          "head": "Meridian, Atlas, and credit ops continue in one Workspace.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Atlas receives access to the facility Workspace.",
-              "persona": null
-            },
-            {
-              "head": "Tasks and documents in one shared view.",
-              "persona": null
-            },
-            {
-              "head": "The AI assistant tracks the facility in the agent rail.",
-              "persona": null
-            },
-            {
-              "head": "Quarterly covenant cert task open.",
-              "persona": null
-            },
-            {
-              "head": "Facility live — relationship ongoing.",
-              "persona": null
-            }
-          ]
-        }
-      ],
-      "spine_key": "default",
-      "spine": {
-        "scenes": [
-          "Sender",
-          "Identity",
-          "Signing",
-          "Data",
-          "Workspace"
-        ],
-        "expected_sides": [
-          "advisor",
-          "client",
-          "client",
-          "advisor",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 5 · WORKSPACE · DEAL ROOM",
-          "head": "Raj opens a deal room for the Atlas Manufacturing facility.",
-          "persona_side": "advisor",
-          "persona_name": null,
-          "persona_role": null,
-          "sides_in_scene": [],
-          "expected_side": "advisor",
-          "expected_label": "Sender"
-        },
-        {
-          "tag": "SCENE 2 OF 5 · IDENTITY",
-          "head": "Atlas's guarantor completes identity verification.",
-          "persona_side": "client",
-          "persona_name": null,
-          "persona_role": null,
-          "sides_in_scene": [],
-          "expected_side": "client",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 5 · SIGNING",
-          "head": "Diana signs the loan package — four documents, one ceremony.",
-          "persona_side": "client",
-          "persona_name": null,
-          "persona_role": null,
-          "sides_in_scene": [],
-          "expected_side": "client",
-          "expected_label": "Signing"
-        },
-        {
-          "tag": "SCENE 4 OF 5 · DATA",
-          "head": "The agreement repository extracts facility terms into the credit system.",
-          "persona_side": "advisor",
-          "persona_name": null,
-          "persona_role": null,
-          "sides_in_scene": [],
-          "expected_side": "advisor",
-          "expected_label": "Data"
-        },
-        {
-          "tag": "SCENE 5 OF 5 · WORKSPACE",
-          "head": "Meridian, Atlas, and credit ops continue in one Workspace.",
-          "persona_side": "advisor",
-          "persona_name": null,
-          "persona_role": null,
-          "sides_in_scene": [],
-          "expected_side": "advisor",
-          "expected_label": "Workspace"
-        }
-      ],
-      "verdict": "AMBIGUOUS",
-      "notes": [
-        "S1 (Sender): no named persona — orientation actor is unclear. Add a sender persona definition for clarity."
-      ]
-    },
-    {
-      "vertical_key": "banking",
-      "usecase": "intake",
-      "source": "usecase-narrations-2026-04-27.json",
-      "meta": {
-        "tenant": "Meridian",
-        "label": "banking",
-        "subtitle": "× Atlas Manufacturing — Credit Facility Origination from Intake Webform"
-      },
-      "scenes": [
-        {
-          "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
-          "head": "Raj submits the new $2.5M working-capital facility request from Meridian's intake webform.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Raj opens the credit facility intake webform.",
-              "persona": null
-            },
-            {
-              "head": "Facility details and structure selections drive the package.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Pre-fill from Meridian's CRM and the facility template library.",
-              "persona": null
-            },
-            {
-              "head": "Raj selects the document package configuration.",
-              "persona": null
-            },
-            {
-              "head": "Maestro submission routes to document generation and approval queue.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro generates and pre-fills the five-document loan package in parallel.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Maestro pulls the loan agreement template.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Maestro pulls the security agreement and UCC-1.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Maestro generates the personal guaranty.",
-              "persona": {
-                "side": "system",
-                "name": "Maestro"
-              }
-            },
-            {
-              "head": "Pre-fill from SoR and collateral verification.",
-              "persona": null
-            },
-            {
-              "head": "Package ready for approval and execution.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Diana Holbrook receives the five-document loan package and signs in one ceremony.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Meridian-branded email routes the loan package to Diana.",
-              "persona": null
-            },
-            {
-              "head": "CLEAR routes before signing for identity verification.",
-              "persona": {
-                "side": "system",
-                "name": "CLEAR"
-              }
-            },
-            {
-              "head": "Diana reviews the loan package.",
-              "persona": null
-            },
-            {
-              "head": "Diana adopts one signature for all five documents.",
-              "persona": null
-            },
-            {
-              "head": "Closing counsel and treasury receive the executed package.",
-              "persona": null
-            }
-          ]
-        },
-        {
-          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Meridian, Atlas, and credit ops continue in one shared Workspace.",
-          "persona": null,
-          "beats": [
-            {
-              "head": "Atlas Manufacturing receives a Workspace invite.",
-              "persona": null
-            },
-            {
-              "head": "Deal documents and tasks in one shared view.",
-              "persona": null
-            },
-            {
-              "head": "Iris tracks the facility in the agent rail.",
-              "persona": {
-                "side": "system",
-                "name": "Iris"
-              }
-            },
-            {
-              "head": "Quarterly covenant certificate task open.",
-              "persona": null
-            },
-            {
-              "head": "Facility live; relationship in motion.",
-              "persona": null
-            }
-          ]
-        }
-      ],
-      "spine_key": "intake",
-      "spine": {
-        "scenes": [
-          "Sender",
-          "Identity",
-          "Signing",
-          "Data"
-        ],
-        "expected_sides": [
-          "advisor",
-          "client|system",
-          "client",
-          "advisor"
-        ]
-      },
-      "strip": [
-        {
-          "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
-          "head": "Raj submits the new $2.5M working-capital facility request from Meridian's intake webform.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Sender"
-        },
-        {
-          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro generates and pre-fills the five-document loan package in parallel.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "client|system",
-          "expected_label": "Identity"
-        },
-        {
-          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Diana Holbrook receives the five-document loan package and signs in one ceremony.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "client",
-          "expected_label": "Signing"
-        },
-        {
-          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Meridian, Atlas, and credit ops continue in one shared Workspace.",
-          "persona_side": "system",
-          "persona_name": "Iris",
-          "persona_role": null,
-          "sides_in_scene": [
-            "system"
-          ],
-          "expected_side": "advisor",
-          "expected_label": "Data"
-        }
-      ],
-      "verdict": "AMBIGUOUS",
-      "notes": [
-        "S1 (Sender): no named persona — orientation actor is unclear. Add a sender persona definition for clarity."
+        "S1: persona side \"system\" ≠ canonical \"client|advisor\" (scene = Portal Entry)"
       ]
     },
     {
@@ -5131,10 +3706,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -5147,7 +3722,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -5183,7 +3758,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -5563,10 +4138,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -5579,7 +4154,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -5615,7 +4190,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -5773,10 +4348,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -5789,7 +4364,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -5825,7 +4400,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -6193,21 +4768,21 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
           "head": "Ethan configures the site activation for ARC via Helix's internal site-config webform.",
-          "persona_side": "advisor",
+          "persona_side": "advisor|client",
           "persona_name": null,
           "persona_role": null,
           "sides_in_scene": [],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -6243,7 +4818,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -6833,21 +5408,21 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE PORTAL",
           "head": "Marcus completes his Silver HMO enrollment on Unity's member portal.",
-          "persona_side": "advisor",
+          "persona_side": "advisor|client",
           "persona_name": null,
           "persona_role": null,
           "sides_in_scene": [],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -6883,7 +5458,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -7251,10 +5826,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -7267,7 +5842,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -7301,7 +5876,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -7672,21 +6247,21 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE WEBFORM",
           "head": "Marissa files the permit application via Springfield's portal — self-service from home.",
-          "persona_side": "advisor",
+          "persona_side": "advisor|client",
           "persona_name": null,
           "persona_role": null,
           "sides_in_scene": [],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -7722,7 +6297,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -7868,21 +6443,21 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE MOBILE WEBFORM",
           "head": "Yolanda files the SNAP application via mobile portal — self-service from home.",
-          "persona_side": "advisor",
+          "persona_side": "advisor|client",
           "persona_name": null,
           "persona_role": null,
           "sides_in_scene": [],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -7918,7 +6493,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -8085,10 +6660,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -8101,7 +6676,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -8137,7 +6712,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -8307,10 +6882,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -8323,7 +6898,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -8359,7 +6934,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -8508,10 +7083,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -8524,7 +7099,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -8558,7 +7133,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -8722,10 +7297,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -8738,7 +7313,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -8774,7 +7349,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -8945,10 +7520,10 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
@@ -8961,7 +7536,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
@@ -8997,7 +7572,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
         }
       ],
@@ -9008,21 +7583,275 @@
     },
     {
       "vertical_key": "banking",
+      "usecase": "default",
+      "source": "inline VERTICALS",
+      "meta": {
+        "label": "Banking",
+        "tenant": "Meridian",
+        "subtitle": "× TGK Holdings — $2.5M Working Capital Facility",
+        "category": "onboarding",
+        "preset": "banking"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 5 · WORKSPACE · DEAL ROOM",
+          "head": "Lloyd opens a deal room for the TGK Holdings facility.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
+          "beats": [
+            {
+              "head": "Lloyd opens the credit facility intake webform.",
+              "persona": null
+            },
+            {
+              "head": "Facility details and structure selections drive the package.",
+              "persona": null
+            },
+            {
+              "head": "Pre-fill from Meridian's CRM and the facility template library.",
+              "persona": null
+            },
+            {
+              "head": "Lloyd selects the document package configuration.",
+              "persona": null
+            },
+            {
+              "head": "The workflow submission routes to document generation and approval queue.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 5 · IDENTITY",
+          "head": "TGK's guarantor completes identity verification.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "CEO · TGK Holdings"
+          },
+          "beats": [
+            {
+              "head": "Patrick is prompted to verify before signing.",
+              "persona": null
+            },
+            {
+              "head": "Identity verification selected — PEP and OFAC screens run.",
+              "persona": null
+            },
+            {
+              "head": "Mobile handoff to Patrick's phone.",
+              "persona": null
+            },
+            {
+              "head": "ID and biometric captured on mobile.",
+              "persona": null
+            },
+            {
+              "head": "Patrick verified — loan package unlocked.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 5 · SIGNING",
+          "head": "Patrick signs the loan package — four documents, one ceremony.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "CEO · TGK Holdings"
+          },
+          "beats": [
+            {
+              "head": "Patrick reviews the loan package.",
+              "persona": null
+            },
+            {
+              "head": "First field highlighted across the package.",
+              "persona": null
+            },
+            {
+              "head": "Patrick adopts his signature.",
+              "persona": null
+            },
+            {
+              "head": "Package routes to credit officer and closing attorney.",
+              "persona": null
+            },
+            {
+              "head": "Loan documents fully executed.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 4 OF 5 · DATA",
+          "head": "The agreement repository extracts facility terms into the credit system.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
+          "beats": [
+            {
+              "head": "The agreement repository surfaces the executed loan agreement.",
+              "persona": null
+            },
+            {
+              "head": "22 fields extracted from the loan agreement.",
+              "persona": null
+            },
+            {
+              "head": "Covenant data ready for the credit committee.",
+              "persona": null
+            },
+            {
+              "head": "Lloyd asks the AI assistant about the DSCR covenant.",
+              "persona": null
+            },
+            {
+              "head": "The AI assistant answers with the covenant clause verbatim.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 5 OF 5 · WORKSPACE",
+          "head": "Meridian, TGK, and credit ops continue in one Workspace.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
+          "beats": [
+            {
+              "head": "TGK receives access to the facility Workspace.",
+              "persona": null
+            },
+            {
+              "head": "Tasks and documents in one shared view.",
+              "persona": null
+            },
+            {
+              "head": "The AI assistant tracks the facility in the agent rail.",
+              "persona": null
+            },
+            {
+              "head": "Quarterly covenant cert task open.",
+              "persona": null
+            },
+            {
+              "head": "Facility live — relationship ongoing.",
+              "persona": null
+            }
+          ]
+        }
+      ],
+      "spine_key": "default",
+      "spine": {
+        "scenes": [
+          "Sender",
+          "Identity",
+          "Signing",
+          "Data",
+          "Workspace"
+        ],
+        "expected_sides": [
+          "advisor",
+          "client",
+          "client",
+          "advisor",
+          "advisor"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 5 · WORKSPACE · DEAL ROOM",
+          "head": "Lloyd opens a deal room for the TGK Holdings facility.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
+          "sides_in_scene": [
+            "advisor"
+          ],
+          "expected_side": "advisor",
+          "expected_label": "Sender"
+        },
+        {
+          "tag": "SCENE 2 OF 5 · IDENTITY",
+          "head": "TGK's guarantor completes identity verification.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "CEO · TGK Holdings",
+          "sides_in_scene": [
+            "client"
+          ],
+          "expected_side": "client",
+          "expected_label": "Identity"
+        },
+        {
+          "tag": "SCENE 3 OF 5 · SIGNING",
+          "head": "Patrick signs the loan package — four documents, one ceremony.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "CEO · TGK Holdings",
+          "sides_in_scene": [
+            "client"
+          ],
+          "expected_side": "client",
+          "expected_label": "Signing"
+        },
+        {
+          "tag": "SCENE 4 OF 5 · DATA",
+          "head": "The agreement repository extracts facility terms into the credit system.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
+          "sides_in_scene": [
+            "advisor"
+          ],
+          "expected_side": "advisor",
+          "expected_label": "Data"
+        },
+        {
+          "tag": "SCENE 5 OF 5 · WORKSPACE",
+          "head": "Meridian, TGK, and credit ops continue in one Workspace.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
+          "sides_in_scene": [
+            "advisor"
+          ],
+          "expected_side": "advisor",
+          "expected_label": "Workspace"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "banking",
       "usecase": "fraud-fabric",
       "source": "usecase-narrations-2026-04-27.json",
       "meta": {
         "tenant": "Meridian",
         "label": "banking",
-        "subtitle": "× Atlas Manufacturing — $850k Working-Capital Draw Authorization"
+        "subtitle": "× TGK Holdings — $850k Working-Capital Draw Authorization"
       },
       "scenes": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Raj logs into Meridian's commercial portal for an urgent facility draw.",
-          "persona": null,
+          "head": "Lloyd logs into Meridian's commercial portal for an urgent facility draw.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
           "beats": [
             {
-              "head": "Raj enters his username and password at the portal login.",
+              "head": "Lloyd enters his username and password at the portal login.",
               "persona": null
             },
             {
@@ -9033,7 +7862,7 @@
               }
             },
             {
-              "head": "Mobile handoff to Raj's phone.",
+              "head": "Mobile handoff to Lloyd's phone.",
               "persona": null
             },
             {
@@ -9044,18 +7873,22 @@
               }
             },
             {
-              "head": "Authenticated session opens; Raj sees the facility dashboard.",
+              "head": "Authenticated session opens; Lloyd sees the facility dashboard.",
               "persona": null
             }
           ]
         },
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Raj initiates the $850k draw request inside the authenticated session.",
-          "persona": null,
+          "head": "Lloyd initiates the $850k draw request inside the authenticated session.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
           "beats": [
             {
-              "head": "Raj clicks \"Request Draw\" on the facility dashboard.",
+              "head": "Lloyd clicks \"Request Draw\" on the facility dashboard.",
               "persona": null
             },
             {
@@ -9066,7 +7899,7 @@
               }
             },
             {
-              "head": "Raj confirms the draw amount and wire instructions.",
+              "head": "Lloyd confirms the draw amount and wire instructions.",
               "persona": null
             },
             {
@@ -9077,7 +7910,7 @@
               }
             },
             {
-              "head": "Raj submits the draw request.",
+              "head": "Lloyd submits the draw request.",
               "persona": null
             }
           ]
@@ -9085,10 +7918,14 @@
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
           "head": "Agreement Desk surfaces the auth event and the draw event linked as one continuous identity thread.",
-          "persona": null,
+          "persona": {
+            "side": "advisor",
+            "name": "Abby Cohan",
+            "role": "Credit Officer · Meridian"
+          },
           "beats": [
             {
-              "head": "Sofia opens the Atlas Manufacturing draw in Agreement Desk.",
+              "head": "Abby opens the TGK Holdings draw in Agreement Desk.",
               "persona": null
             },
             {
@@ -9106,7 +7943,7 @@
               }
             },
             {
-              "head": "Sofia releases the draw for settlement.",
+              "head": "Abby releases the draw for settlement.",
               "persona": null
             },
             {
@@ -9123,51 +7960,280 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Raj logs into Meridian's commercial portal for an urgent facility draw.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "head": "Lloyd logs into Meridian's commercial portal for an urgent facility draw.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
           "sides_in_scene": [
+            "advisor",
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Raj initiates the $850k draw request inside the authenticated session.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
+          "head": "Lloyd initiates the $850k draw request inside the authenticated session.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
           "sides_in_scene": [
+            "advisor",
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
           "head": "Agreement Desk surfaces the auth event and the draw event linked as one continuous identity thread.",
+          "persona_side": "advisor",
+          "persona_name": "Abby Cohan",
+          "persona_role": "Credit Officer · Meridian",
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "banking",
+      "usecase": "intake",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Meridian",
+        "label": "banking",
+        "subtitle": "× TGK Holdings — Credit Facility Origination from Intake Webform"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
+          "head": "Lloyd submits the new $2.5M working-capital facility request from Meridian's intake webform.",
+          "persona": {
+            "side": "advisor",
+            "name": "Lloyd Blankfine",
+            "role": "Commercial Relationship Manager · Meridian"
+          },
+          "beats": [
+            {
+              "head": "Lloyd opens the credit facility intake webform.",
+              "persona": null
+            },
+            {
+              "head": "Facility details and structure selections drive the package.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Pre-fill from Meridian's CRM and the facility template library.",
+              "persona": null
+            },
+            {
+              "head": "Lloyd selects the document package configuration.",
+              "persona": null
+            },
+            {
+              "head": "Maestro submission routes to document generation and approval queue.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
+          "head": "Maestro generates and pre-fills the five-document loan package in parallel.",
+          "persona": {
+            "side": "system",
+            "name": "Maestro",
+            "role": "Workflow Orchestration"
+          },
+          "beats": [
+            {
+              "head": "Maestro pulls the loan agreement template.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Maestro pulls the security agreement and UCC-1.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Maestro generates the personal guaranty.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Pre-fill from SoR and collateral verification.",
+              "persona": null
+            },
+            {
+              "head": "Package ready for approval and execution.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
+          "head": "Patrick Meyer receives the five-document loan package and signs in one ceremony.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "CEO · TGK Holdings"
+          },
+          "beats": [
+            {
+              "head": "Meridian-branded email routes the loan package to Patrick.",
+              "persona": null
+            },
+            {
+              "head": "CLEAR routes before signing for identity verification.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Patrick reviews the loan package.",
+              "persona": null
+            },
+            {
+              "head": "Patrick adopts one signature for all five documents.",
+              "persona": null
+            },
+            {
+              "head": "Closing counsel and treasury receive the executed package.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
+          "head": "Meridian, TGK, and credit ops continue in one shared Workspace.",
+          "persona": {
+            "side": "system",
+            "name": "Iris",
+            "role": "AI · Agreement Repository"
+          },
+          "beats": [
+            {
+              "head": "TGK Holdings receives a Workspace invite.",
+              "persona": null
+            },
+            {
+              "head": "Deal documents and tasks in one shared view.",
+              "persona": null
+            },
+            {
+              "head": "Iris tracks the facility in the agent rail.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Quarterly covenant certificate task open.",
+              "persona": null
+            },
+            {
+              "head": "Facility live; relationship in motion.",
+              "persona": null
+            }
+          ]
+        }
+      ],
+      "spine_key": "intake",
+      "spine": {
+        "scenes": [
+          "Sender",
+          "Identity",
+          "Signing",
+          "Data"
+        ],
+        "expected_sides": [
+          "advisor|client",
+          "client|system",
+          "client",
+          "advisor|system"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
+          "head": "Lloyd submits the new $2.5M working-capital facility request from Meridian's intake webform.",
+          "persona_side": "advisor",
+          "persona_name": "Lloyd Blankfine",
+          "persona_role": "Commercial Relationship Manager · Meridian",
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|client",
+          "expected_label": "Sender"
+        },
+        {
+          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
+          "head": "Maestro generates and pre-fills the five-document loan package in parallel.",
           "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "persona_name": "Maestro",
+          "persona_role": "Workflow Orchestration",
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "client|system",
+          "expected_label": "Identity"
+        },
+        {
+          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
+          "head": "Patrick Meyer receives the five-document loan package and signs in one ceremony.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "CEO · TGK Holdings",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client",
+          "expected_label": "Signing"
+        },
+        {
+          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
+          "head": "Meridian, TGK, and credit ops continue in one shared Workspace.",
+          "persona_side": "system",
+          "persona_name": "Iris",
+          "persona_role": "AI · Agreement Repository",
+          "sides_in_scene": [
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Data"
         }
       ],
       "verdict": "OK",
@@ -9180,16 +8246,20 @@
       "meta": {
         "tenant": "Meridian",
         "label": "banking",
-        "subtitle": "× Atlas Manufacturing — Account Maintenance · Authorized Signer Roster Update"
+        "subtitle": "× TGK Holdings — Account Maintenance · Authorized Signer Roster Update"
       },
       "scenes": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Diana logs into Meridian's commercial portal to add a signer to the facility.",
-          "persona": null,
+          "head": "Patrick logs into Meridian's commercial portal to add a signer to the facility.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "CEO · TGK Holdings"
+          },
           "beats": [
             {
-              "head": "Diana opens Meridian's commercial portal.",
+              "head": "Patrick opens Meridian's commercial portal.",
               "persona": null
             },
             {
@@ -9200,7 +8270,7 @@
               }
             },
             {
-              "head": "Biometric verification on Diana's phone.",
+              "head": "Biometric verification on Patrick's phone.",
               "persona": null
             },
             {
@@ -9219,7 +8289,11 @@
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
           "head": "Maestro reads Meridian's signer-change policy and serves a pre-filled form.",
-          "persona": null,
+          "persona": {
+            "side": "system",
+            "name": "Maestro",
+            "role": "Workflow Orchestration"
+          },
           "beats": [
             {
               "head": "Form opens with current authorized-signer roster pre-filled.",
@@ -9229,7 +8303,7 @@
               }
             },
             {
-              "head": "Diana enters Mark Holbrook's information and authority.",
+              "head": "Patrick enters Mark Meyer's information and authority.",
               "persona": null
             },
             {
@@ -9257,11 +8331,15 @@
         },
         {
           "tag": "SCENE 3 OF 3 · CREDIT OPS REVIEW & CONFIRMATION · SOFIA CONFIRMS, CORE UPDATES",
-          "head": "Sofia in credit ops reviews the signer change, confirms, and the core record updates.",
-          "persona": null,
+          "head": "Abby in credit ops reviews the signer change, confirms, and the core record updates.",
+          "persona": {
+            "side": "advisor",
+            "name": "Abby Cohan",
+            "role": "Credit Officer · Meridian"
+          },
           "beats": [
             {
-              "head": "The change lands in Sofia's credit-ops queue.",
+              "head": "The change lands in Abby's credit-ops queue.",
               "persona": null
             },
             {
@@ -9276,11 +8354,11 @@
               "persona": null
             },
             {
-              "head": "Sofia confirms; the core record updates.",
+              "head": "Abby confirms; the core record updates.",
               "persona": null
             },
             {
-              "head": "Diana sees the change reflected in the portal.",
+              "head": "Patrick sees the change reflected in the portal.",
               "persona": null
             }
           ]
@@ -9302,11 +8380,12 @@
       "strip": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Diana logs into Meridian's commercial portal to add a signer to the facility.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "head": "Patrick logs into Meridian's commercial portal to add a signer to the facility.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "CEO · TGK Holdings",
           "sides_in_scene": [
+            "client",
             "system"
           ],
           "expected_side": "client",
@@ -9317,7 +8396,7 @@
           "head": "Maestro reads Meridian's signer-change policy and serves a pre-filled form.",
           "persona_side": "system",
           "persona_name": "Maestro",
-          "persona_role": null,
+          "persona_role": "Workflow Orchestration",
           "sides_in_scene": [
             "system"
           ],
@@ -9326,11 +8405,12 @@
         },
         {
           "tag": "SCENE 3 OF 3 · CREDIT OPS REVIEW & CONFIRMATION · SOFIA CONFIRMS, CORE UPDATES",
-          "head": "Sofia in credit ops reviews the signer change, confirms, and the core record updates.",
-          "persona_side": "system",
-          "persona_name": "Iris",
-          "persona_role": null,
+          "head": "Abby in credit ops reviews the signer change, confirms, and the core record updates.",
+          "persona_side": "advisor",
+          "persona_name": "Abby Cohan",
+          "persona_role": "Credit Officer · Meridian",
           "sides_in_scene": [
+            "advisor",
             "system"
           ],
           "expected_side": "advisor",
@@ -9347,16 +8427,20 @@
       "meta": {
         "tenant": "Cedar Federal",
         "label": "banking-deposits",
-        "subtitle": "× Williams Household — High-Value Wire · CLEAR at the Door"
+        "subtitle": "× Meyer Household — High-Value Wire · CLEAR at the Door"
       },
       "scenes": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Marcus logs into Cedar's mobile banking app to send a $50k wire.",
-          "persona": null,
+          "head": "Patrick logs into Cedar's mobile banking app to send a $50k wire.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "Account Holder · Meyer Household"
+          },
           "beats": [
             {
-              "head": "Marcus opens Cedar Federal's mobile banking app.",
+              "head": "Patrick opens Cedar Federal's mobile banking app.",
               "persona": null
             },
             {
@@ -9367,7 +8451,7 @@
               }
             },
             {
-              "head": "Biometric verification on Marcus's phone.",
+              "head": "Biometric verification on Patrick's phone.",
               "persona": null
             },
             {
@@ -9375,18 +8459,22 @@
               "persona": null
             },
             {
-              "head": "Authenticated session opens; Marcus sees his account dashboard.",
+              "head": "Authenticated session opens; Patrick sees his account dashboard.",
               "persona": null
             }
           ]
         },
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Marcus initiates the $50k transfer; the form inherits the biometric proof from Scene 1.",
-          "persona": null,
+          "head": "Patrick initiates the $50k transfer; the form inherits the biometric proof from Scene 1.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "Account Holder · Meyer Household"
+          },
           "beats": [
             {
-              "head": "Marcus clicks \"Transfer Money\" on his account dashboard.",
+              "head": "Patrick clicks \"Transfer Money\" on his account dashboard.",
               "persona": null
             },
             {
@@ -9397,7 +8485,7 @@
               }
             },
             {
-              "head": "Marcus confirms the payee and transfer details.",
+              "head": "Patrick confirms the payee and transfer details.",
               "persona": null
             },
             {
@@ -9408,7 +8496,7 @@
               }
             },
             {
-              "head": "Marcus submits the transfer request.",
+              "head": "Patrick submits the transfer request.",
               "persona": null
             }
           ]
@@ -9416,10 +8504,14 @@
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
           "head": "Agreement Desk surfaces the auth event and the transfer event as one continuous identity thread.",
-          "persona": null,
+          "persona": {
+            "side": "advisor",
+            "name": null,
+            "role": "Relationship Banker · Cedar Federal"
+          },
           "beats": [
             {
-              "head": "Treasury opens the Williams transfer request in Agreement Desk.",
+              "head": "Treasury opens the Meyer transfer request in Agreement Desk.",
               "persona": null
             },
             {
@@ -9454,51 +8546,290 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Marcus logs into Cedar's mobile banking app to send a $50k wire.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "head": "Patrick logs into Cedar's mobile banking app to send a $50k wire.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "Account Holder · Meyer Household",
           "sides_in_scene": [
+            "client",
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-          "head": "Marcus initiates the $50k transfer; the form inherits the biometric proof from Scene 1.",
-          "persona_side": "system",
-          "persona_name": "Maestro",
-          "persona_role": null,
+          "head": "Patrick initiates the $50k transfer; the form inherits the biometric proof from Scene 1.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "Account Holder · Meyer Household",
           "sides_in_scene": [
+            "client",
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
           "head": "Agreement Desk surfaces the auth event and the transfer event as one continuous identity thread.",
+          "persona_side": "advisor",
+          "persona_name": null,
+          "persona_role": "Relationship Banker · Cedar Federal",
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "banking-deposits",
+      "usecase": "intake",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Cedar Federal",
+        "label": "banking-deposits",
+        "subtitle": "× Meyer Household — Joint Checking + HYSA Account Opening"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE",
+          "head": "Patrick and Sarah open new joint accounts via the Cedar Federal mobile app.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "Account Holder · Meyer Household"
+          },
+          "beats": [
+            {
+              "head": "Patrick and Sarah start the joint account application on mobile.",
+              "persona": null
+            },
+            {
+              "head": "Product selection and fund transfer setup.",
+              "persona": null
+            },
+            {
+              "head": "Form walks through Reg DD and E-Sign consent.",
+              "persona": null
+            },
+            {
+              "head": "Account details are confirmed and submitted.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Maestro submission routes to account setup and identity verification.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
+          "head": "Maestro generates account-opening documents and queues identity verification for both signers in parallel.",
+          "persona": {
+            "side": "system",
+            "name": "Maestro",
+            "role": "Workflow Orchestration"
+          },
+          "beats": [
+            {
+              "head": "Maestro pulls the joint account-opening template.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Maestro generates account numbers and routes identity proofing.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Maestro pre-fills E-Sign consent and disclosure documents.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Maestro stages signature card and initial deposit.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Account documents ready for dual signature and settlement.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
+          "head": "Patrick and Sarah sign the joint account documents in one ceremony on mobile.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "Account Holder · Meyer Household"
+          },
+          "beats": [
+            {
+              "head": "Sarah completes CLEAR identity verification.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Both signers receive the account-opening envelope.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Patrick and Sarah review the account details.",
+              "persona": null
+            },
+            {
+              "head": "Both signers adopt one signature for all four documents.",
+              "persona": null
+            },
+            {
+              "head": "Accounts open and initial deposit settles same day.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
+          "head": "Cedar Federal and the Meyer household continue in one shared Workspace.",
+          "persona": {
+            "side": "advisor",
+            "name": null,
+            "role": "Relationship Banker · Cedar Federal"
+          },
+          "beats": [
+            {
+              "head": "Patrick and Sarah access their household Workspace.",
+              "persona": null
+            },
+            {
+              "head": "Account status and tasks in one shared view.",
+              "persona": null
+            },
+            {
+              "head": "Iris tracks the household in the agent rail.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Annual Reg DD disclosure refresh task open.",
+              "persona": null
+            },
+            {
+              "head": "Account relationship in motion.",
+              "persona": null
+            }
+          ]
+        }
+      ],
+      "spine_key": "intake",
+      "spine": {
+        "scenes": [
+          "Sender",
+          "Identity",
+          "Signing",
+          "Data"
+        ],
+        "expected_sides": [
+          "advisor|client",
+          "client|system",
+          "client",
+          "advisor|system"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 4 · INTAKE · SELF-SERVICE",
+          "head": "Patrick and Sarah open new joint accounts via the Cedar Federal mobile app.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "Account Holder · Meyer Household",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "advisor|client",
+          "expected_label": "Sender"
+        },
+        {
+          "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
+          "head": "Maestro generates account-opening documents and queues identity verification for both signers in parallel.",
           "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "persona_name": "Maestro",
+          "persona_role": "Workflow Orchestration",
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "client|system",
+          "expected_label": "Identity"
+        },
+        {
+          "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
+          "head": "Patrick and Sarah sign the joint account documents in one ceremony on mobile.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "Account Holder · Meyer Household",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client",
+          "expected_label": "Signing"
+        },
+        {
+          "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
+          "head": "Cedar Federal and the Meyer household continue in one shared Workspace.",
+          "persona_side": "advisor",
+          "persona_name": null,
+          "persona_role": "Relationship Banker · Cedar Federal",
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Data"
         }
       ],
       "verdict": "OK",
@@ -9511,16 +8842,20 @@
       "meta": {
         "tenant": "Cedar Federal",
         "label": "banking-deposits",
-        "subtitle": "× Williams Household — Account Maintenance · Update Joint-Account Beneficiary"
+        "subtitle": "× Meyer Household — Account Maintenance · Update Joint-Account Beneficiary"
       },
       "scenes": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Marcus opens Cedar's app to update the household's primary beneficiary after a life event.",
-          "persona": null,
+          "head": "Patrick opens Cedar's app to update the household's primary beneficiary after a life event.",
+          "persona": {
+            "side": "client",
+            "name": "Patrick Meyer",
+            "role": "Account Holder · Meyer Household"
+          },
           "beats": [
             {
-              "head": "Marcus opens Cedar Federal's mobile banking app.",
+              "head": "Patrick opens Cedar Federal's mobile banking app.",
               "persona": null
             },
             {
@@ -9531,7 +8866,7 @@
               }
             },
             {
-              "head": "Biometric verification on Marcus's phone.",
+              "head": "Biometric verification on Patrick's phone.",
               "persona": null
             },
             {
@@ -9550,7 +8885,11 @@
         {
           "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
           "head": "Maestro reads Cedar's beneficiary-change policy and serves a pre-filled form with the right controls.",
-          "persona": null,
+          "persona": {
+            "side": "system",
+            "name": "Maestro",
+            "role": "Workflow Orchestration"
+          },
           "beats": [
             {
               "head": "Form opens with current beneficiary records pre-filled.",
@@ -9560,18 +8899,18 @@
               }
             },
             {
-              "head": "Marcus enters the new designations.",
+              "head": "Patrick enters the new designations.",
               "persona": null
             },
             {
-              "head": "Adaeze receives an in-app prompt to acknowledge.",
+              "head": "Sarah receives an in-app prompt to acknowledge.",
               "persona": {
                 "side": "system",
                 "name": "Maestro"
               }
             },
             {
-              "head": "Adaeze authenticates and acknowledges.",
+              "head": "Sarah authenticates and acknowledges.",
               "persona": {
                 "side": "system",
                 "name": "CLEAR"
@@ -9589,7 +8928,11 @@
         {
           "tag": "SCENE 3 OF 3 · APPROVAL & CONFIRMATION · RELATIONSHIP BANKER REVIEWS, HOUSEHOLD CONFIRMS",
           "head": "The relationship banker sees the change in the queue, confirms, and the new designation takes effect.",
-          "persona": null,
+          "persona": {
+            "side": "advisor",
+            "name": null,
+            "role": "Relationship Banker · Cedar Federal"
+          },
           "beats": [
             {
               "head": "The change lands in the relationship banker's queue.",
@@ -9611,7 +8954,7 @@
               "persona": null
             },
             {
-              "head": "Marcus and Adaeze see the change reflected in the app.",
+              "head": "Patrick and Sarah see the change reflected in the app.",
               "persona": null
             }
           ]
@@ -9633,11 +8976,12 @@
       "strip": [
         {
           "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
-          "head": "Marcus opens Cedar's app to update the household's primary beneficiary after a life event.",
-          "persona_side": "system",
-          "persona_name": "CLEAR",
-          "persona_role": null,
+          "head": "Patrick opens Cedar's app to update the household's primary beneficiary after a life event.",
+          "persona_side": "client",
+          "persona_name": "Patrick Meyer",
+          "persona_role": "Account Holder · Meyer Household",
           "sides_in_scene": [
+            "client",
             "system"
           ],
           "expected_side": "client",
@@ -9648,7 +8992,7 @@
           "head": "Maestro reads Cedar's beneficiary-change policy and serves a pre-filled form with the right controls.",
           "persona_side": "system",
           "persona_name": "Maestro",
-          "persona_role": null,
+          "persona_role": "Workflow Orchestration",
           "sides_in_scene": [
             "system"
           ],
@@ -9658,14 +9002,200 @@
         {
           "tag": "SCENE 3 OF 3 · APPROVAL & CONFIRMATION · RELATIONSHIP BANKER REVIEWS, HOUSEHOLD CONFIRMS",
           "head": "The relationship banker sees the change in the queue, confirms, and the new designation takes effect.",
-          "persona_side": "system",
-          "persona_name": "Iris",
-          "persona_role": null,
+          "persona_side": "advisor",
+          "persona_name": null,
+          "persona_role": "Relationship Banker · Cedar Federal",
           "sides_in_scene": [
+            "advisor",
             "system"
           ],
           "expected_side": "advisor",
           "expected_label": "Confirmation"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "education",
+      "usecase": "fraud-fabric",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Maple Ridge",
+        "label": "education",
+        "subtitle": "× Priya Shah — Official Transcript Release Authorization (FERPA)"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Priya logs into Maple Ridge's student portal; Maestro orchestrates CLEAR at login.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Priya hits Maple Ridge's student portal login.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Shah"
+              }
+            },
+            {
+              "head": "Maestro intercepts and invokes CLEAR.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "CLEAR session opens on Priya's phone.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "ID + selfie + biometric match.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Authenticated session opens.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Priya requests an official transcript release to a graduate program; Maestro serves the authorization webform — bound to the F1 proof.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Priya selects 'Release Official Transcript'.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Shah"
+              }
+            },
+            {
+              "head": "Maestro renders the FERPA-authorization webform inline.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Priya enters recipient details: graduate program, department.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Shah"
+              }
+            },
+            {
+              "head": "Iris pre-screens for scope compliance.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Submit fires — bound to the established biometric proof.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Shah"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
+          "head": "Maple Ridge's Registrar sees the auth and the transcript request as one continuous FERPA-defensible record.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Agreement Desk opens to Priya's session activity.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Shah"
+              }
+            },
+            {
+              "head": "The link is explicit: 'Verified by CLEAR · Priya Shah · CA ID ***9271 · Student ID 287461 · 10:42 EST' → 'Transcript Release Request · Columbia University · Philosophy · 10:47 EST'.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Iris confirms student identity and institutional authorization.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Registrar approves and queues the release.",
+              "persona": null
+            },
+            {
+              "head": "Defensible record.",
+              "persona": null
+            }
+          ]
+        }
+      ],
+      "spine_key": "fraud-fabric",
+      "spine": {
+        "scenes": [
+          "Portal Entry",
+          "In-Session Action",
+          "Chain of Custody"
+        ],
+        "expected_sides": [
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Priya logs into Maple Ridge's student portal; Maestro orchestrates CLEAR at login.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Shah",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "client|advisor",
+          "expected_label": "Portal Entry"
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Priya requests an official transcript release to a graduate program; Maestro serves the authorization webform — bound to the F1 proof.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Shah",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
+          "head": "Maple Ridge's Registrar sees the auth and the transcript request as one continuous FERPA-defensible record.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Shah",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -9949,13 +9479,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -9968,7 +9498,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -9980,8 +9510,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -9992,8 +9522,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -10283,13 +9813,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -10302,7 +9832,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -10314,8 +9844,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -10326,8 +9856,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -10498,6 +10028,197 @@
       "notes": []
     },
     {
+      "vertical_key": "insurance-pc",
+      "usecase": "fraud-fabric",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Northgate Mutual",
+        "label": "insurance-pc",
+        "subtitle": "× Patel Logistics — Post-FNOL Supplemental Damage Evidence Upload"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Priya Patel logs into the Northgate carrier portal to upload supplemental claim evidence.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Priya enters her username and password at the carrier portal.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Maestro intercepts the login and invokes CLEAR.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Mobile handoff to Priya's phone.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Biometric and authority-on-policy match both return clean.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Authenticated session opens; Priya sees her claim dashboard.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Priya initiates the supplemental evidence upload inside the authenticated session.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Priya clicks \"Submit Evidence Update\" on her claim dashboard.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Maestro serves the evidence-upload webform inline.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Priya uploads repair-estimate photos and writes a status note.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Iris pre-screens the evidence for completeness and fraud signals.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Priya submits the evidence update.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
+          "head": "Agreement Desk surfaces the auth event and the evidence-submission event linked as one continuous identity thread.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Andre opens the Patel evidence submission in Agreement Desk.",
+              "persona": {
+                "side": "advisor",
+                "name": "Priya Patel"
+              }
+            },
+            {
+              "head": "Agreement Desk shows the identity thread.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Iris confirms the evidence is complete and clean.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Andre approves the evidence and updates the claim.",
+              "persona": null
+            },
+            {
+              "head": "Evidence logged; claim moves to repair phase with full audit trail.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            }
+          ]
+        }
+      ],
+      "spine_key": "fraud-fabric",
+      "spine": {
+        "scenes": [
+          "Portal Entry",
+          "In-Session Action",
+          "Chain of Custody"
+        ],
+        "expected_sides": [
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Priya Patel logs into the Northgate carrier portal to upload supplemental claim evidence.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Patel",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "client|advisor",
+          "expected_label": "Portal Entry"
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Priya initiates the supplemental evidence upload inside the authenticated session.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Patel",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
+          "head": "Agreement Desk surfaces the auth event and the evidence-submission event linked as one continuous identity thread.",
+          "persona_side": "advisor",
+          "persona_name": "Priya Patel",
+          "persona_role": null,
+          "sides_in_scene": [
+            "advisor",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
       "vertical_key": "lifesciences",
       "usecase": "fraud-fabric",
       "source": "usecase-narrations-2026-04-27.json",
@@ -10614,13 +10335,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -10633,7 +10354,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -10645,8 +10366,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
@@ -10657,8 +10378,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -10948,13 +10669,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -10967,7 +10688,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -10979,8 +10700,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
@@ -10991,8 +10712,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -11273,13 +10994,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -11292,7 +11013,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -11304,8 +11025,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -11316,8 +11037,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -11610,13 +11331,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -11629,7 +11350,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -11641,8 +11362,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK LINKS THE TWO EVENTS",
@@ -11653,8 +11374,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -12586,13 +12307,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -12605,7 +12326,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -12617,8 +12338,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · CASCADE'S AGREEMENT DESK LINKS THE TWO EVENTS",
@@ -12629,8 +12350,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -13255,24 +12976,224 @@
     },
     {
       "vertical_key": "wealth",
+      "usecase": "fraud-fabric",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Hillside",
+        "label": "wealth",
+        "subtitle": "× TGK Capital — High-Value Wire Authorization"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Mira logs into Hillside's client portal; Maestro orchestrates CLEAR at login.",
+          "persona": {
+            "side": "client",
+            "name": "Mira Sundar",
+            "role": "CFO · TGK Capital"
+          },
+          "beats": [
+            {
+              "head": "Mira hits Hillside's portal login.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Maestro intercepts and invokes CLEAR.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "CLEAR session opens on Mira's phone.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "ID + selfie + biometric match.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Authenticated session opens.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Mira initiates a $4M intra-account transfer; Maestro serves the authorization webform — bound to the F1 proof.",
+          "persona": {
+            "side": "client",
+            "name": "Mira Sundar",
+            "role": "CFO · TGK Capital"
+          },
+          "beats": [
+            {
+              "head": "Mira opens \"New Transfer\" in the portal.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Maestro renders the authorization webform inline.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "She adds the policy-required memo.",
+              "persona": null
+            },
+            {
+              "head": "Iris pre-screens.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Submit fires — bound to the established biometric proof.",
+              "persona": null
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
+          "head": "Agreement Desk surfaces the CLEAR auth event and the transfer submission as one continuous identity thread.",
+          "persona": {
+            "side": "advisor",
+            "name": "Cathie Woods",
+            "role": "Director of Advisor Onboarding · Hillside"
+          },
+          "beats": [
+            {
+              "head": "Agreement Desk opens to Mira's session activity.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "The link is explicit.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Iris confirms pattern match.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "The transfer queues for execution.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Defensible record.",
+              "persona": null
+            }
+          ]
+        }
+      ],
+      "spine_key": "fraud-fabric",
+      "spine": {
+        "scenes": [
+          "Portal Entry",
+          "In-Session Action",
+          "Chain of Custody"
+        ],
+        "expected_sides": [
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Mira logs into Hillside's client portal; Maestro orchestrates CLEAR at login.",
+          "persona_side": "client",
+          "persona_name": "Mira Sundar",
+          "persona_role": "CFO · TGK Capital",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client|advisor",
+          "expected_label": "Portal Entry"
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "head": "Mira initiates a $4M intra-account transfer; Maestro serves the authorization webform — bound to the F1 proof.",
+          "persona_side": "client",
+          "persona_name": "Mira Sundar",
+          "persona_role": "CFO · TGK Capital",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
+        },
+        {
+          "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
+          "head": "Agreement Desk surfaces the CLEAR auth event and the transfer submission as one continuous identity thread.",
+          "persona_side": "advisor",
+          "persona_name": "Cathie Woods",
+          "persona_role": "Director of Advisor Onboarding · Hillside",
+          "sides_in_scene": [
+            "advisor",
+            "client",
+            "system"
+          ],
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "wealth",
       "usecase": "intake",
       "source": "usecase-narrations-2026-04-27.json",
       "meta": {
         "tenant": "Hillside",
         "label": "wealth",
-        "subtitle": "× Aster Capital — IMA Webform Intake"
+        "subtitle": "× TGK Capital — IMA Webform Intake"
       },
       "scenes": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
-          "head": "Cathie fills Hillside's new-engagement webform for Aster Capital.",
+          "head": "Cathie fills Hillside's new-engagement webform for TGK Capital.",
           "persona": null,
           "beats": [
             {
               "head": "Cathie selects \"New Engagement\" from Hillside's intake menu.",
               "persona": {
                 "side": "advisor",
-                "name": "Cathie Woods"
+                "name": "Cathie Woods",
+                "role": "Director of Advisor Onboarding · Hillside"
               }
             },
             {
@@ -13284,21 +13205,22 @@
               "persona": null
             },
             {
-              "head": "Reg BI disclosure auto-attaches.",
+              "head": "Form ADV exchange + sub-advisor disclosures auto-attach.",
               "persona": null
             },
             {
               "head": "Cathie reviews the configured package summary.",
               "persona": {
                 "side": "advisor",
-                "name": "Cathie Woods"
+                "name": "Cathie Woods",
+                "role": "Director of Advisor Onboarding · Hillside"
               }
             }
           ]
         },
         {
           "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro fans out IMA + custodial agreement + Reg BI from Cathie's selections.",
+          "head": "Maestro fans out IMA + custodial agreement + Form ADV exchange + sub-advisor disclosures from Cathie's selections.",
           "persona": null,
           "beats": [
             {
@@ -13313,11 +13235,11 @@
               "persona": null
             },
             {
-              "head": "Reg BI disclosure auto-includes.",
+              "head": "Form ADV exchange + sub-advisor disclosures auto-include.",
               "persona": null
             },
             {
-              "head": "Aster's KYB record pre-fills 14 fields across the docs.",
+              "head": "TGK's KYB record pre-fills 14 fields across the docs.",
               "persona": null
             },
             {
@@ -13328,11 +13250,11 @@
         },
         {
           "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Aster's signatory reviews and signs in a Hillside-branded ceremony.",
+          "head": "TGK's signatory reviews and signs in a Hillside-branded ceremony.",
           "persona": null,
           "beats": [
             {
-              "head": "Hillside-branded email lands in Aster's signatory's inbox.",
+              "head": "Hillside-branded email lands in TGK's signatory's inbox.",
               "persona": null
             },
             {
@@ -13347,7 +13269,8 @@
               "head": "Multi-recipient routing: Hillside compliance reviewer next.",
               "persona": {
                 "side": "advisor",
-                "name": "Cathie Woods"
+                "name": "Cathie Woods",
+                "role": "Director of Advisor Onboarding · Hillside"
               }
             },
             {
@@ -13358,11 +13281,11 @@
         },
         {
           "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Hillside, Aster, and the custodian continue in one Workspace.",
+          "head": "Hillside, TGK, and the custodian continue in one Workspace.",
           "persona": null,
           "beats": [
             {
-              "head": "Aster's signatory gets a Workspace invite.",
+              "head": "TGK's signatory gets a Workspace invite.",
               "persona": null
             },
             {
@@ -13396,28 +13319,28 @@
           "Data"
         ],
         "expected_sides": [
-          "advisor",
+          "advisor|client",
           "client|system",
           "client",
-          "advisor"
+          "advisor|system"
         ]
       },
       "strip": [
         {
           "tag": "SCENE 1 OF 4 · INTAKE · SENDER WEBFORM",
-          "head": "Cathie fills Hillside's new-engagement webform for Aster Capital.",
+          "head": "Cathie fills Hillside's new-engagement webform for TGK Capital.",
           "persona_side": "advisor",
           "persona_name": "Cathie Woods",
-          "persona_role": null,
+          "persona_role": "Director of Advisor Onboarding · Hillside",
           "sides_in_scene": [
             "advisor"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|client",
           "expected_label": "Sender"
         },
         {
           "tag": "SCENE 2 OF 4 · MAESTRO PACKAGES",
-          "head": "Maestro fans out IMA + custodial agreement + Reg BI from Cathie's selections.",
+          "head": "Maestro fans out IMA + custodial agreement + Form ADV exchange + sub-advisor disclosures from Cathie's selections.",
           "persona_side": "system",
           "persona_name": "Maestro",
           "persona_role": null,
@@ -13429,10 +13352,10 @@
         },
         {
           "tag": "SCENE 3 OF 4 · ENVELOPE DELIVERED",
-          "head": "Aster's signatory reviews and signs in a Hillside-branded ceremony.",
+          "head": "TGK's signatory reviews and signs in a Hillside-branded ceremony.",
           "persona_side": "advisor",
           "persona_name": "Cathie Woods",
-          "persona_role": null,
+          "persona_role": "Director of Advisor Onboarding · Hillside",
           "sides_in_scene": [
             "advisor"
           ],
@@ -13441,15 +13364,218 @@
         },
         {
           "tag": "SCENE 4 OF 4 · WORKSPACE TAIL · ONGOING RELATIONSHIP",
-          "head": "Hillside, Aster, and the custodian continue in one Workspace.",
+          "head": "Hillside, TGK, and the custodian continue in one Workspace.",
           "persona_side": "system",
           "persona_name": "Iris",
           "persona_role": null,
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
+          "expected_side": "advisor|system",
           "expected_label": "Data"
+        }
+      ],
+      "verdict": "OK",
+      "notes": []
+    },
+    {
+      "vertical_key": "wealth",
+      "usecase": "maintenance",
+      "source": "usecase-narrations-2026-04-27.json",
+      "meta": {
+        "tenant": "Hillside",
+        "label": "wealth",
+        "subtitle": "× TGK Capital — Account Maintenance · Update Authorized Signer Roster"
+      },
+      "scenes": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Mira logs into Hillside's client portal to update TGK's authorized-signer roster.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Mira opens the Hillside client portal.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Maestro recognizes the intent and invokes CLEAR.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Biometric verification on Mira's phone.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Biometric match returns clean.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Authenticated session opens with the change form ready.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
+          "head": "Maestro reads Hillside's signer-change policy and serves a form with dual-authorization controls.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "Form opens with current authorized-signer roster pre-filled.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Mira enters Jeff Gundlach's information and signing authority.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Dual authorization required — TGK CEO Josh receives an in-portal prompt.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            },
+            {
+              "head": "Josh authenticates and consents.",
+              "persona": {
+                "side": "system",
+                "name": "CLEAR"
+              }
+            },
+            {
+              "head": "Change submitted; Maestro routes for Hillside compliance review.",
+              "persona": {
+                "side": "system",
+                "name": "Maestro"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "SCENE 3 OF 3 · COMPLIANCE REVIEW & CONFIRMATION · CATHIE CONFIRMS, CUSTODIAN UPDATES",
+          "head": "Cathie reviews the signer change in the compliance queue, confirms, and Charlton Schwab's record updates.",
+          "persona": null,
+          "beats": [
+            {
+              "head": "The change lands in Cathie's compliance queue.",
+              "persona": {
+                "side": "advisor",
+                "name": "Cathie Woods",
+                "role": "Director of Advisor Onboarding · Hillside"
+              }
+            },
+            {
+              "head": "Iris pre-screens Jeff's KYC and OFAC.",
+              "persona": {
+                "side": "system",
+                "name": "Iris"
+              }
+            },
+            {
+              "head": "Both authorizers' authentication context is inline with the request.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Cathie confirms; Charlton Schwab's authorized-signer roster updates.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            },
+            {
+              "head": "Mira and Josh see the change reflected in the portal.",
+              "persona": {
+                "side": "client",
+                "name": "Mira Sundar",
+                "role": "CFO · TGK Capital"
+              }
+            }
+          ]
+        }
+      ],
+      "spine_key": "maintenance",
+      "spine": {
+        "scenes": [
+          "Portal Entry",
+          "Form",
+          "Confirmation"
+        ],
+        "expected_sides": [
+          "client",
+          "client|system",
+          "advisor"
+        ]
+      },
+      "strip": [
+        {
+          "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · CLEAR AT THE DOOR",
+          "head": "Mira logs into Hillside's client portal to update TGK's authorized-signer roster.",
+          "persona_side": "client",
+          "persona_name": "Mira Sundar",
+          "persona_role": "CFO · TGK Capital",
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client",
+          "expected_label": "Portal Entry"
+        },
+        {
+          "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO READS POLICY, SERVES THE FORM",
+          "head": "Maestro reads Hillside's signer-change policy and serves a form with dual-authorization controls.",
+          "persona_side": "system",
+          "persona_name": "Maestro",
+          "persona_role": null,
+          "sides_in_scene": [
+            "client",
+            "system"
+          ],
+          "expected_side": "client|system",
+          "expected_label": "Form"
+        },
+        {
+          "tag": "SCENE 3 OF 3 · COMPLIANCE REVIEW & CONFIRMATION · CATHIE CONFIRMS, CUSTODIAN UPDATES",
+          "head": "Cathie reviews the signer change in the compliance queue, confirms, and Charlton Schwab's record updates.",
+          "persona_side": "advisor",
+          "persona_name": "Cathie Woods",
+          "persona_role": "Director of Advisor Onboarding · Hillside",
+          "sides_in_scene": [
+            "advisor",
+            "client",
+            "system"
+          ],
+          "expected_side": "advisor",
+          "expected_label": "Confirmation"
         }
       ],
       "verdict": "OK",
@@ -13569,13 +13695,13 @@
       "spine": {
         "scenes": [
           "Portal Entry",
-          "Identity",
-          "Action"
+          "In-Session Action",
+          "Chain of Custody"
         ],
         "expected_sides": [
-          "client",
-          "system",
-          "advisor"
+          "client|advisor",
+          "client|advisor|system",
+          "advisor|system"
         ]
       },
       "strip": [
@@ -13588,7 +13714,7 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "client",
+          "expected_side": "client|advisor",
           "expected_label": "Portal Entry"
         },
         {
@@ -13600,8 +13726,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "system",
-          "expected_label": "Identity"
+          "expected_side": "client|advisor|system",
+          "expected_label": "In-Session Action"
         },
         {
           "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
@@ -13612,8 +13738,8 @@
           "sides_in_scene": [
             "system"
           ],
-          "expected_side": "advisor",
-          "expected_label": "Action"
+          "expected_side": "advisor|system",
+          "expected_label": "Chain of Custody"
         }
       ],
       "verdict": "OK",
@@ -13788,9 +13914,9 @@
     }
   ],
   "counts": {
-    "OK": 28,
-    "AMBIGUOUS": 23,
-    "MISMATCH": 21,
+    "OK": 35,
+    "AMBIGUOUS": 21,
+    "MISMATCH": 16,
     "total": 72
   }
 }
