@@ -392,6 +392,19 @@
   .hint-row .play-toggle:hover{background:#F3F1EC;}
   .hint-row .play-toggle svg{width:12px;height:12px;fill:currentColor;}
   .hint-row .play-toggle.on{color:var(--ds-purple);background:rgba(75,0,233,0.06);border-color:rgba(75,0,233,0.18);}
+  /* When autoplay is paused at a persona handoff, the toggle pulses to
+     signal "needs action — click or press Space/→/Enter to continue."
+     Keyframe is purple-glow to match the brand accent. */
+  @keyframes playToggleNeedsAction {
+    0%,100% { box-shadow: 0 0 0 0 rgba(75,0,233,0.45); border-color: rgba(75,0,233,0.55); }
+    50%     { box-shadow: 0 0 0 6px rgba(75,0,233,0.00); border-color: rgba(75,0,233,0.18); }
+  }
+  .hint-row .play-toggle.needs-action {
+    color: var(--ds-purple);
+    background: rgba(75,0,233,0.08);
+    border-color: rgba(75,0,233,0.55);
+    animation: playToggleNeedsAction 1.4s cubic-bezier(.4,0,.2,1) infinite;
+  }
   .hint-row .speed-picker{display:inline-flex;align-items:center;gap:0;border:1px solid var(--hair);border-radius:6px;background:#fff;flex-shrink:0;padding:1px;}
   .hint-row .speed-picker .sp{padding:3px 9px;font-size:11px;font-weight:600;color:var(--ink-mid);cursor:pointer;border:none;background:transparent;font-family:inherit;font-variant-numeric:tabular-nums;line-height:1.3;border-radius:4px;flex-shrink:0;}
   .hint-row .speed-picker .sp:hover{background:#F3F1EC;color:var(--ink);}
@@ -2792,11 +2805,19 @@ let raf = null;
    (Reduced from 4 options to 3 — the 1.25 increment was redundant with 1.5;
    adding 2x gives a meaningful "skip ahead" option for long demos.) */
 const ALLOWED_RATES = [1, 1.5, 2];
+/* Cold-open default is 1.5× so the first-gesture handoff into autoplay
+   feels brisk. If the user has previously chosen a rate this session/
+   browser, honor that instead — once they pick, we don't override.
+   The localStorage key was previously seeded to '1' even on cold opens
+   that never touched the picker, so we treat a missing key (not just an
+   invalid value) as "user has not chosen yet." */
 let playbackRate = (() => {
   try {
-    const v = parseFloat(localStorage.getItem('tgkShell.playbackRate') || '1');
-    return ALLOWED_RATES.includes(v) ? v : 1;
-  } catch (e) { return 1; }
+    const stored = localStorage.getItem('tgkShell.playbackRate');
+    if (stored === null) return 1.5; // cold-open default
+    const v = parseFloat(stored);
+    return ALLOWED_RATES.includes(v) ? v : 1.5;
+  } catch (e) { return 1.5; }
 })();
 
 /* Tracks the currently-rendered hotspot element + which iframe target it
@@ -2884,15 +2905,13 @@ window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object") return;
   if (msg.type === "tgk:rect") positionHotspotFromRect(msg);
-  if (msg.type === "tgk:beatDone") {
-    // Verify the message belongs to the current beat — stale messages
-    // from a previous beat that finished after we already advanced
-    // would otherwise cause a double-advance.
-    if (typeof msg.sceneIndex === "number" && typeof msg.beatIndex === "number") {
-      if (msg.sceneIndex !== idx || msg.beatIndex !== hotIdx) return;
-    }
-    if (playing) advance();
-  }
+  // tgk:beatDone is intentionally NOT wired to advance() under the
+  // persona-locked model. The shell's autoplay tick is the single
+  // authoritative clock — letting the iframe advance independently
+  // is what caused sidebar/demo drift. Templates still receive
+  // beatDuration + playbackRate via tgk:beatPlay so their internal
+  // animations can fit the shell's budget instead of running free.
+  // (Message left in place for backward compat; payload is ignored.)
 });
 
 /* On viewport resize, request a fresh rect for the current target so the
@@ -3201,12 +3220,12 @@ function goTo(i, opts = {}){
   idx = i;
   hotIdx = 0;
   const scene = SCENES[i];
-  // Any scene change unconditionally voids the persona-handoff gate so a
-  // pending pause doesn't survive the jump and re-pop on the next beat.
-  pausedForPersona = false;
-  resumeOnManualAdvance = false;
-  pendingHandoffCue = false;
-  hideHandoffCue();
+  // Any scene change voids the persona-handoff hold so a pending pause
+  // doesn't survive a tab-jump and re-pop on the new scene's first beat.
+  // The hold will re-engage on its own if the new scene's first persona
+  // doesn't match what we're carrying — but starting fresh is correct.
+  holdingForGesture = false;
+  setHoldVisuals(false);
   // Always tear down lead-mode before re-entering — prevents the "stuck
   // expanded" symptom when goTo lands while a previous lead-mode is still
   // running its auto-exit timer.
@@ -3375,13 +3394,12 @@ function enterLeadMode(){
   //   2. Gate is up but no pending cue (already shown earlier) — leave
   //      the panel up and let the user's click resume.
   //   3. Normal beat — collapse.
+  // While holdingForGesture is true (cold open S1/B1 or a forward
+  // persona handoff), the panel stays up indefinitely. The user's
+  // gesture (click / Space / Enter / →) is the only thing that
+  // collapses it via releaseHoldAndResume().
   autoExitTimer = setTimeout(() => {
-    if (pendingHandoffCue) {
-      pendingHandoffCue = false;
-      showHandoffCue();
-      return; // panel stays up; click on cue / Next / arrow advances
-    }
-    if (pausedForPersona) return;
+    if (holdingForGesture) return;
     if (shell.classList.contains('lead-mode')) exitLeadMode();
   }, currentBeatReadMs());
 }
@@ -3398,25 +3416,24 @@ function exitLeadMode(){
     // Defensive: never leave the handoff-pending glow stuck on the avatar
     // when lead-mode exits. The gate logic owns this class but a race in
     // togglePlay/goTo could otherwise strand it.
-    if (!pausedForPersona) sidebarEl.classList.remove('is-handoff-pending');
+    if (!holdingForGesture) sidebarEl.classList.remove('is-handoff-pending');
   }
 }
-// Stage interaction (mouseenter, click) and navigation keys exit the
-// lead beat early — the user's already engaged with the demo.
+// Stage click is the canonical "release" gesture for the cold-open
+// hold and any forward persona handoff. Falls through to a plain
+// exitLeadMode if we're not holding (defensive — covers any leftover
+// editorial pop the user wants to dismiss).
 (function wireLeadDismiss(){
   const stage = document.getElementById('stage');
   if (!stage) return;
-  const exitNow = () => {
+  const onStageClick = () => {
+    if (holdingForGesture) { releaseHoldAndResume(); return; }
     const shell = document.querySelector('.shell');
     if (shell && shell.classList.contains('lead-mode')) exitLeadMode();
   };
-  stage.addEventListener('mouseenter', exitNow);
-  stage.addEventListener('click', exitNow);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Escape') {
-      exitNow();
-    }
-  });
+  stage.addEventListener('click', onStageClick);
+  // No mouseenter dismiss — would accidentally trip the cold-open
+  // hold the moment the user moves the cursor onto the stage.
 })();
 /* Beat-advance guard. A user click, an iframe tgk:beatDone, and the
    autoplay tick can all reach advance()/rewind() within a few ms of each
@@ -3433,20 +3450,20 @@ function _armNavGuard(){ _navGuardUntil = performance.now() + NAV_GUARD_MS; }
 function advance(){
   if (_navGuardActive()) return;
   _armNavGuard();
-  // Clear the persona-handoff gate first — a click/arrow/Next that lands
-  // here is the user's manual gesture across the seam.
-  onManualAdvance();
+  // If we're holding for a forward gesture (cold open or persona
+  // handoff), this click/key IS that gesture — release and resume,
+  // and don't double-advance. The hold was already sitting on the
+  // beat we wanted; the gesture's job is to start playing.
+  if (holdingForGesture) { releaseHoldAndResume(); return; }
   const scene = SCENES[idx];
   if (hotIdx < scene.hotspots.length - 1) {
     hotIdx++;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
-    // Beat change → re-pop the sidebar so the new narration grabs the
-    // eye, then auto-retreats. Deferred two rAFs so renderSidebar's 180ms
-    // fade has had a chance to swap in the new headline/lede before
-    // currentBeatReadMs() reads the DOM.
-    exitLeadMode(); // clean slate so timers don't pile up
-    requestAnimationFrame(() => requestAnimationFrame(enterLeadMode));
+    // Beat change during autoplay: stay collapsed. Story + iframe move
+    // in lockstep; no editorial pop on every beat. Lead-mode only fires
+    // for the cold open and forward persona handoffs (engageHold).
+    exitLeadMode();
   }
   else if (idx < SCENES.length - 1) { goTo(idx + 1); }
   else { goTo(0, {force:true}); }
@@ -3454,14 +3471,21 @@ function advance(){
 function rewind(){
   if (_navGuardActive()) return;
   _armNavGuard();
-  onManualAdvance();
+  // Backward navigation never engages the hold — the user is driving.
+  // If we happened to be holding (e.g. user backed up at a handoff),
+  // clear the hold visuals but DO NOT auto-resume autoplay. Let them
+  // stay paused so they can rewind freely.
+  if (holdingForGesture) {
+    holdingForGesture = false;
+    setHoldVisuals(false);
+    exitLeadMode();
+  }
   const scene = SCENES[idx];
   if (hotIdx > 0) {
     hotIdx--;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(scene, idx);
     exitLeadMode();
-    requestAnimationFrame(() => requestAnimationFrame(enterLeadMode));
   }
   else if (idx > 0) {
     goTo(idx - 1);
@@ -3476,18 +3500,28 @@ function fmt(ms){
   return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
 }
 /* =========================================================
-   Persona-handoff gate — autoplay pauses when the next beat
-   hands off to a different actor. The user must click, hit
-   →, or press Next/Space before the story crosses the seam.
-   On manual advance, autoplay resumes if it was on.
+   Persona-locked autoplay (locked 2026-05-01)
+
+   The model:
+     - Cold open: lead-mode expanded on S1/B1, autoplay OFF, no
+       auto-collapse. Wait indefinitely for a click / Space / Enter / →.
+     - First gesture: collapse, turn autoplay ON, story + iframe move
+       in lockstep at the chosen playbackRate (default 1.5×).
+     - Forward beat advance that lands on a NEW persona: pause
+       autoplay, expand lead-mode, pulse the play toggle. Same gesture
+       resumes autoplay.
+     - Backward navigation (rewind / ←): never expands. The user is
+       driving; don't get in their way.
+     - Manual Next / → during autoplay: works normally; doesn't skip
+       the handoff hold if it lands on a new persona.
+
+   `holdingForGesture` is the single source of truth. While true:
+     - autoplay is off
+     - lead-mode is on
+     - auto-collapse timer is suppressed
+     - play toggle pulses with .needs-action
    ========================================================= */
-let pausedForPersona = false;
-let resumeOnManualAdvance = false;
-// D1 — when autoplay pauses at a handoff, the cue is deferred until the
-// auto-collapse read window elapses. This flag carries the intent across
-// the gap between gate engagement (in tickTimer) and reveal (in the
-// autoExitTimer in enterLeadMode).
-let pendingHandoffCue = false;
+let holdingForGesture = false;
 
 /* Resolve a beat's persona using the same precedence as renderSidebar:
    per-beat override → scene-level → canonical 5-act fallback. */
@@ -3521,39 +3555,43 @@ function isPersonaSwitchAhead(){
   return personaKey(cur) !== personaKey(nxt);
 }
 
-function showHandoffCue(){
-  const next = peekNextPosition();
-  const nxt  = next ? resolvePersona(next.i, next.h) : null;
-  const label = (nxt && (nxt.name || (SIDE_LABEL[nxt.side] || 'the next actor'))) || 'the next actor';
-  const cue = $('persona-handoff');
-  const actorEl = $('handoff-actor');
-  if (actorEl) actorEl.textContent = label;
-  if (cue) cue.hidden = false;
+/* Visual signal that we're holding for a gesture — pulses the play
+   toggle and glows the persona avatar so the viewer knows where to
+   click. No more separate handoff-cue text DOM; the expanded persona
+   card IS the cue. */
+function setHoldVisuals(on){
   const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.add('is-handoff-pending');
-}
-function hideHandoffCue(){
-  const cue = $('persona-handoff');
-  if (cue) cue.hidden = true;
-  const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.remove('is-handoff-pending');
+  if (sb) sb.classList.toggle('is-handoff-pending', !!on);
+  const tog = $('play-toggle');
+  if (tog) tog.classList.toggle('needs-action', !!on);
 }
 
-/* Called from every manual-advance path. If we were paused at a persona
-   seam, clear the gate and re-enter autoplay if it was running before. */
-function onManualAdvance(){
-  // Clear D1's deferred-cue intent unconditionally — a manual gesture
-  // here means the viewer doesn't need the cue at all (they've already
-  // advanced themselves). Without this, a fast Next during the read
-  // window would leave the cue armed and pop it on the next beat.
-  pendingHandoffCue = false;
-  if (!pausedForPersona) return;
-  pausedForPersona = false;
-  hideHandoffCue();
-  if (resumeOnManualAdvance) {
-    resumeOnManualAdvance = false;
-    if (!playing) togglePlay(); // resume autoplay
-  }
+/* Engage the hold. Pauses autoplay if it was running, expands lead-mode
+   so the persona card is at full size, and pulses the play toggle. */
+function engageHold(){
+  if (holdingForGesture) return;
+  holdingForGesture = true;
+  if (playing) togglePlay(); // pause; togglePlay flips icon + label + clears raf
+  // Re-enter lead-mode so the new persona card is at full size. enterLeadMode
+  // is idempotent (clears its own timers); auto-collapse is suppressed
+  // internally while holdingForGesture is true.
+  enterLeadMode();
+  setHoldVisuals(true);
+}
+
+/* Release the hold and resume autoplay. Single function used by:
+   - Cold-open first gesture (S1/B1, autoplay was never on)
+   - Forward persona-handoff resume (autoplay was on, now restart it)
+   No-op when not holding, so it's safe to call from every input path. */
+function releaseHoldAndResume(){
+  if (!holdingForGesture) return;
+  holdingForGesture = false;
+  setHoldVisuals(false);
+  // Collapse the editorial panel so the demo gets the room back.
+  exitLeadMode();
+  // Resume autoplay at whatever rate the user last picked (defaults to
+  // 1.5× on cold open). togglePlay resets sceneStart/beatStart cleanly.
+  if (!playing) togglePlay();
 }
 
 function tickTimer(){
@@ -3569,21 +3607,16 @@ function tickTimer(){
   const beatElapsed  = (performance.now() - beatStart)  * playbackRate;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
-    // Persona-switch gate: pause autoplay at every actor handoff and
-    // require a manual click/arrow to cross. Lets the viewer absorb
-    // who's stepping in before the next beat plays.
-    if (isPersonaSwitchAhead()) {
-      pausedForPersona = true;
-      resumeOnManualAdvance = playing; // remember to re-arm autoplay after the gesture
-      togglePlay(); // sets playing=false, swaps the icon, stops the rAF loop
-      // D1 — defer the cue until the auto-collapse window would have
-      // fired, so the lead-mode panel reads on its own before the
-      // call-to-action lands. The autoExitTimer in enterLeadMode handles
-      // the cue reveal; we just mark the intent here.
-      pendingHandoffCue = true;
-      return; // tickTimer won't be re-scheduled because togglePlay paused
-    }
+    // Advance first, then check for a persona handoff. We want the new
+    // persona card on screen WHEN we pause — landing on Cathie means
+    // showing Cathie, not "Cathie is next" while still on Patrick.
+    const willHandoff = isPersonaSwitchAhead();
     advance(); // advance() resets beatStart (and sceneStart on scene swap)
+    if (willHandoff) {
+      // We've now landed on the new persona. Pause + expand + pulse.
+      engageHold();
+      return; // raf loop stops via togglePlay's cancelAnimationFrame
+    }
   }
   raf = requestAnimationFrame(tickTimer);
 }
@@ -3605,18 +3638,19 @@ function togglePlay(){
 }
 
 $('prev-btn').addEventListener('click', rewind);
-$('next-btn').addEventListener('click', advance);
-$('play-toggle').addEventListener('click', togglePlay);
-// The persona-handoff cue is itself a click target — clicking it
-// satisfies the "arrow or click" gate and advances. Cursor:pointer is
-// applied dynamically when the cue becomes visible (see CSS hover state
-// would also work but we want it explicit).
-(function wireHandoffCueClick(){
-  const cue = document.getElementById('persona-handoff');
-  if (!cue) return;
-  cue.style.cursor = 'pointer';
-  cue.addEventListener('click', advance);
-})();
+$('next-btn').addEventListener('click', () => {
+  // Next button: if we're holding for a gesture, this IS the gesture.
+  // Otherwise advance normally (which is what advance() does anyway —
+  // but routing through advance() keeps the nav guard active).
+  advance();
+});
+$('play-toggle').addEventListener('click', () => {
+  // Clicking the pulsing toggle while holding releases the hold and
+  // resumes — semantically the same as any other gesture. When not
+  // holding, falls through to a plain togglePlay (manual pause/play).
+  if (holdingForGesture) { releaseHoldAndResume(); return; }
+  togglePlay();
+});
 document.querySelectorAll('#scene-tabs .t').forEach(t => t.addEventListener('click', () => {
   const k = parseInt(t.dataset.i, 10);
   if (Number.isFinite(k) && k >= 0 && k < SCENES.length) goTo(k);
@@ -3663,8 +3697,17 @@ document.getElementById('calib-copy').addEventListener('click', exportHotspots);
 
 window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  // While holding for a gesture, ANY of the canonical "go" keys
+  // (Space / Enter / →) release the hold and resume autoplay. ← still
+  // rewinds (forward-only hold release per spec).
+  if (holdingForGesture && (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight')) {
+    releaseHoldAndResume();
+    e.preventDefault();
+    return;
+  }
   if (e.key === 'ArrowLeft') { rewind(); e.preventDefault(); }
   else if (e.key === 'ArrowRight') { advance(); e.preventDefault(); }
+  else if (e.key === 'Enter') { advance(); e.preventDefault(); }
   else if (e.key === ' ') { togglePlay(); e.preventDefault(); }
   else if (e.key === '[') { rewind(); e.preventDefault(); }
   else if (e.key === ']') { advance(); e.preventDefault(); }
@@ -3679,12 +3722,18 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-/* Cold-boot — fire lead-mode so the viewer lands on the editorial intro
-   beat with the panel expanded. The IDB-override and async-usecase paths
-   below stay silent because they're mid-flow re-renders, not the
-   viewer's first contact with the demo. */
+/* Cold-boot — land on S1/B1 with the persona card expanded and
+   autoplay off. The hold waits indefinitely for the viewer's first
+   gesture (click on stage / Space / Enter / →), at which point
+   releaseHoldAndResume collapses the panel and starts autoplay at
+   the chosen playbackRate (defaults to 1.5×). */
 goTo(0, {force:true});
 $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
+// Engage the cold-open hold AFTER the initial render. goTo cleared the
+// hold flag, so we re-arm it here. Lead-mode is already up from goTo's
+// scene-change pop; engageHold idempotently keeps it up and adds the
+// pulse to the play toggle.
+engageHold();
 
 /* Pull any admin-uploaded template overrides out of IndexedDB, then re-render
    the current scene so the iframe swaps to the override Blob URL. */
