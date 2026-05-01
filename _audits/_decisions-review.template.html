@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Decisions to make — TGK 2.0</title>
+<style>
+  :root {
+    --ink:#0b0b14; --ink-mid:#4a4a5e; --ink-soft:#6b6b80; --ink-faint:#9a9aae;
+    --hair:#e6e6ee; --hair-soft:#f0f0f6; --cream:#faf6ee; --bg:#ffffff;
+    --ds-purple:#4b00e9; --step-blue:#1e60ff;
+    --ok:#2f7d5b; --warn:#c89236; --err:#c84c1f;
+    --tier1:#2f7d5b; --tier2:#c89236; --tier3:#4b00e9;
+    --ui-font:-apple-system,BlinkMacSystemFont,"Inter","Helvetica Neue",sans-serif;
+    --serif:"Fraunces","Iowan Old Style",Georgia,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--ui-font);font-size:14.5px;line-height:1.55;}
+
+  /* ===== Header ===== */
+  header {
+    padding: 22px 36px 18px;
+    border-bottom: 1px solid var(--hair);
+    display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap;
+    position: sticky; top: 0; background: #fff; z-index: 10;
+  }
+  header .meta { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+  header h1 {
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: 26px; margin: 0; letter-spacing: -0.012em;
+  }
+  header .progress {
+    margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 12.5px;
+  }
+  header .progress .stat { display: flex; align-items: center; gap: 6px; }
+  .pill {
+    display: inline-block; min-width: 26px; padding: 2px 9px; text-align: center;
+    border-radius: 11px; font-weight: 700; font-size: 11.5px;
+  }
+  .pill.total{background:var(--ink);color:#fff;}
+  .pill.appr{background:rgba(47,125,91,0.16);color:var(--ok);}
+  .pill.edit{background:rgba(75,0,233,0.14);color:var(--ds-purple);}
+  .pill.rej{background:rgba(200,76,31,0.14);color:var(--err);}
+  .pill.skip{background:var(--hair-soft);color:var(--ink-faint);}
+
+  /* ===== Progress bar ===== */
+  .progress-bar {
+    height: 4px; background: var(--hair-soft);
+    position: sticky; top: 78px; z-index: 9;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--tier1) 0%, var(--tier2) 50%, var(--tier3) 100%);
+    transition: width 0.3s ease;
+  }
+
+  /* ===== Card ===== */
+  .stage { padding: 36px 48px 80px; max-width: 1100px; margin: 0 auto; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .card .top-strip {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--hair);
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .card .index {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-faint); letter-spacing: 0.06em;
+  }
+  .card .tier-badge {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 11px;
+  }
+  .tier-badge.tier-1 { background: rgba(47,125,91,0.12); color: var(--tier1); }
+  .tier-badge.tier-2 { background: rgba(200,146,54,0.14); color: var(--tier2); }
+  .tier-badge.tier-3 { background: rgba(75,0,233,0.10); color: var(--tier3); }
+  .card .flow-id {
+    font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+  }
+  .card .flow-id .vk { color: var(--ink); }
+  .card .flow-id .uc { color: var(--ink-soft); margin-left: 6px; }
+  .card .source {
+    margin-left: auto; font-size: 11px; color: var(--ink-faint);
+  }
+  .card .source code {
+    font-family: var(--mono); font-size: 10.5px;
+    background: var(--hair-soft); padding: 2px 6px; border-radius: 3px;
+    color: var(--ink-soft);
+  }
+
+  .card .body { padding: 24px 28px 8px; }
+  .card .heading {
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: 22px; margin: 0 0 18px; line-height: 1.25; color: var(--ink);
+  }
+
+  /* ===== Persona changes summary table ===== */
+  .changes-strip {
+    background: var(--cream);
+    border: 1px solid #f0e7d4;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+  }
+  .changes-strip h4 {
+    margin: 0 0 10px;
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--warn); font-weight: 700;
+  }
+  .changes-strip table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .changes-strip td { padding: 5px 10px; vertical-align: top; }
+  .changes-strip td.scene { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); width: 4ch; }
+  .changes-strip td.was { color: var(--err); width: 38%; }
+  .changes-strip td.arrow { color: var(--ink-faint); width: 18px; text-align: center; }
+  .changes-strip td.now { color: var(--ok); }
+
+  /* ===== Markdown body ===== */
+  .md {
+    font-size: 13.5px; line-height: 1.6; color: var(--ink-mid);
+    max-height: 360px; overflow-y: auto;
+    padding-right: 8px;
+    border: 1px solid var(--hair);
+    border-radius: 6px;
+    padding: 16px 20px;
+    background: #fcfcfd;
+  }
+  .md h2,.md h3,.md h4 {
+    font-family: var(--ui-font); font-style: normal;
+    font-size: 12.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink); margin: 18px 0 8px;
+  }
+  .md h2:first-child,.md h3:first-child { margin-top: 0; }
+  .md p { margin: 0 0 10px; }
+  .md ul, .md ol { margin: 6px 0 12px; padding-left: 22px; }
+  .md li { margin-bottom: 3px; }
+  .md code {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--hair-soft); padding: 1px 5px; border-radius: 3px;
+    color: var(--ink);
+  }
+  .md blockquote {
+    margin: 6px 0 10px; padding: 8px 14px;
+    border-left: 3px solid var(--ds-purple);
+    background: rgba(75,0,233,0.04);
+    color: var(--ink-mid);
+  }
+  .md strong { color: var(--ink); font-weight: 600; }
+  .md table { border-collapse: collapse; margin: 8px 0; font-size: 12.5px; }
+  .md th, .md td { padding: 6px 10px; border: 1px solid var(--hair); text-align: left; }
+  .md th { background: #fafafa; font-weight: 700; }
+
+  /* ===== Action area ===== */
+  .actions {
+    border-top: 1px solid var(--hair);
+    padding: 22px 28px 24px;
+    background: #fafafa;
+    border-radius: 0 0 12px 12px;
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch;
+  }
+  .actions .btn-group { display: flex; gap: 8px; }
+  .actions button {
+    border: 1px solid var(--hair); background: #fff; cursor: pointer;
+    padding: 9px 18px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    color: var(--ink-mid);
+    transition: all 0.12s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .actions button:hover {
+    border-color: var(--ink-soft); color: var(--ink);
+  }
+  .actions button kbd {
+    font-family: var(--mono); font-size: 9.5px;
+    padding: 1px 5px; border: 1px solid var(--hair);
+    border-radius: 3px; background: #fff; color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .actions button.approve.on    { border-color: var(--ok);        color: var(--ok);        background: rgba(47,125,91,0.07); }
+  .actions button.edits.on      { border-color: var(--ds-purple); color: var(--ds-purple); background: rgba(75,0,233,0.05); }
+  .actions button.reject.on     { border-color: var(--err);       color: var(--err);       background: rgba(200,76,31,0.06); }
+  .actions button.skip.on       { border-color: var(--ink-faint); color: var(--ink-faint); background: var(--hair-soft); }
+
+  .nav-group { margin-left: auto; display: flex; gap: 8px; }
+
+  .edits-area { margin-top: 16px; }
+  .edits-area textarea {
+    width: 100%; min-height: 90px;
+    border: 1px solid var(--hair); border-radius: 6px;
+    padding: 10px 14px; font-size: 13px; font-family: inherit;
+    line-height: 1.55; resize: vertical;
+  }
+  .edits-area textarea:focus { outline: none; border-color: var(--ds-purple); }
+  .edits-area .lbl {
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 700; margin-bottom: 6px;
+  }
+
+  /* ===== Done state ===== */
+  .done {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--ink-mid);
+  }
+  .done h2 {
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: 32px; color: var(--ink); margin: 0 0 12px;
+  }
+  .done .summary {
+    margin: 28px auto; max-width: 540px;
+    border: 1px solid var(--hair); border-radius: 10px;
+    padding: 24px; background: #fff;
+    text-align: left;
+  }
+  .done .summary .row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--hair);
+    font-size: 13px;
+  }
+  .done .summary .row:last-child { border-bottom: none; }
+  .done button {
+    margin: 8px; padding: 11px 24px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer;
+  }
+  .done button.secondary { background: #fff; color: var(--ink); }
+
+  /* Mini index strip on top */
+  .quick-jump {
+    padding: 10px 36px;
+    border-bottom: 1px solid var(--hair);
+    background: #fafafa;
+    font-size: 11px;
+    display: flex; gap: 4px; flex-wrap: wrap;
+    overflow-x: auto;
+    position: sticky; top: 82px; z-index: 8;
+  }
+  .quick-jump .dot {
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; cursor: pointer;
+    font-size: 10px; font-weight: 700;
+    color: #fff;
+    border: 1px solid var(--hair-soft);
+  }
+  .quick-jump .dot.unset { background: #ddd; color: var(--ink-faint); border-color: #ccc; }
+  .quick-jump .dot.approve { background: var(--ok); }
+  .quick-jump .dot.edits { background: var(--ds-purple); }
+  .quick-jump .dot.reject { background: var(--err); }
+  .quick-jump .dot.skip { background: var(--ink-faint); }
+  .quick-jump .dot.current {
+    outline: 2px solid var(--ds-purple); outline-offset: 1px;
+  }
+
+  .keyboard-hint {
+    position: fixed; bottom: 24px; right: 32px;
+    font-size: 11px; color: var(--ink-faint);
+    background: rgba(255,255,255,0.95);
+    border: 1px solid var(--hair);
+    border-radius: 6px;
+    padding: 10px 14px; line-height: 1.7;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .keyboard-hint kbd {
+    font-family: var(--mono); font-size: 10.5px;
+    padding: 1px 5px; border: 1px solid var(--hair);
+    border-radius: 3px; background: var(--hair-soft); color: var(--ink-mid);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="meta">TGK 2.0 · Decisions to make</div>
+    <h1>Walk through 38 flow rewrites, one at a time</h1>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<div class="progress-bar"><div class="fill" id="progress-fill" style="width:0%"></div></div>
+
+<div class="quick-jump" id="quick-jump"></div>
+
+<div class="stage" id="stage"></div>
+
+<div class="keyboard-hint">
+  <kbd>A</kbd> Approve · <kbd>E</kbd> Edits · <kbd>R</kbd> Reject · <kbd>S</kbd> Skip<br>
+  <kbd>←</kbd>/<kbd>→</kbd> Navigate · <kbd>?</kbd> Hide hint
+</div>
+
+<script id="audit-data" type="application/json">__INLINE_JSON__</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('audit-data').textContent);
+  const STORAGE_KEY = 'tgk.decisions-review.v1';
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch(e){}
+  let cursor = 0;
+
+  function decisionKey(d){ return d.id; }
+  function getDecision(d){ return state[decisionKey(d)] || {}; }
+  function setDecision(d, action, edits){
+    const k = decisionKey(d);
+    state[k] = { action, edits: edits || (state[k]?.edits || ''), at: new Date().toISOString() };
+    save();
+  }
+  function setEdits(d, edits){
+    const k = decisionKey(d);
+    state[k] = state[k] || {};
+    state[k].edits = edits;
+    save();
+  }
+  function save(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+    renderProgress();
+    renderQuickJump();
+  }
+
+  function escapeHTML(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Minimal markdown renderer (good enough for our proposal docs)
+  function renderMarkdown(md){
+    let html = escapeHTML(md);
+    // Headings
+    html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    // Blockquotes
+    html = html.replace(/((?:^&gt;\s+.+\n?)+)/gm, m => {
+      const lines = m.split(/\n/).map(l => l.replace(/^&gt;\s?/, '')).filter(Boolean);
+      return '<blockquote>' + lines.join('<br>') + '</blockquote>\n';
+    });
+    // Bold + code
+    html = html.replace(/\*\*([^\*]+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/`([^`]+?)`/g, '<code>$1</code>');
+    // Lists (simple unordered)
+    html = html.replace(/((?:^[-*]\s+.+\n?)+)/gm, m => {
+      const items = m.split(/\n/).filter(l => /^[-*]\s/.test(l)).map(l => '<li>' + l.replace(/^[-*]\s+/, '') + '</li>');
+      return '<ul>' + items.join('') + '</ul>\n';
+    });
+    // Tables (very basic — convert pipe-separated rows)
+    html = html.replace(/((?:\|[^\n]+\|\n)+)/g, m => {
+      const rows = m.trim().split(/\n/).filter(l => l.includes('|'));
+      if (rows.length < 2) return m;
+      const isSeparator = r => /^\|[\s:-]+\|/.test(r);
+      const out = ['<table>'];
+      let inHeader = true;
+      for (const r of rows) {
+        if (isSeparator(r)) { inHeader = false; continue; }
+        const cells = r.split('|').slice(1, -1).map(c => c.trim());
+        const tag = inHeader ? 'th' : 'td';
+        out.push('<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>');
+        inHeader = false;
+      }
+      out.push('</table>');
+      return out.join('');
+    });
+    // Paragraphs
+    html = html.split(/\n\n+/).map(p => {
+      if (/^<(h[1-6]|ul|ol|table|blockquote)/.test(p.trim())) return p;
+      if (!p.trim()) return '';
+      return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+    }).join('\n');
+    return html;
+  }
+
+  function renderProgress(){
+    const total = DATA.decisions.length;
+    let appr=0, edit=0, rej=0, skip=0, unset=0;
+    DATA.decisions.forEach(d => {
+      const a = (state[decisionKey(d)]||{}).action;
+      if (a==='approve') appr++;
+      else if (a==='edits') edit++;
+      else if (a==='reject') rej++;
+      else if (a==='skip') skip++;
+      else unset++;
+    });
+    document.getElementById('progress').innerHTML = `
+      <div class="stat">Approved <span class="pill appr">${appr}</span></div>
+      <div class="stat">Edits <span class="pill edit">${edit}</span></div>
+      <div class="stat">Rejected <span class="pill rej">${rej}</span></div>
+      <div class="stat">Skipped <span class="pill skip">${skip}</span></div>
+      <div class="stat" style="opacity:0.6">Remaining <span class="pill total">${unset}</span></div>`;
+    const done = total - unset;
+    document.getElementById('progress-fill').style.width = (done/total*100) + '%';
+  }
+
+  function renderQuickJump(){
+    const wrap = document.getElementById('quick-jump');
+    wrap.innerHTML = '';
+    DATA.decisions.forEach((d, i) => {
+      const a = (state[decisionKey(d)]||{}).action || 'unset';
+      const dot = document.createElement('div');
+      dot.className = 'dot ' + a + (i === cursor ? ' current' : '');
+      dot.title = `${i+1}. ${d.vertical_key} · ${d.usecase} (${a})`;
+      dot.textContent = i+1;
+      dot.addEventListener('click', () => { cursor = i; render(); });
+      wrap.appendChild(dot);
+    });
+  }
+
+  function renderCard(d){
+    const i = cursor;
+    const total = DATA.decisions.length;
+    const dec = getDecision(d);
+    const action = dec.action || '';
+    const edits = dec.edits || '';
+
+    const personaChangesHtml = (d.persona_changes||[]).length ? `
+      <div class="changes-strip">
+        <h4>Persona side changes proposed</h4>
+        <table>
+          ${d.persona_changes.map(c => `
+            <tr>
+              <td class="scene">${escapeHTML(c.scene)}</td>
+              <td class="was">${escapeHTML(c.was || '—')}</td>
+              <td class="arrow">→</td>
+              <td class="now">${escapeHTML(c.now || '—')}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>` : '';
+
+    const stage = document.getElementById('stage');
+    stage.innerHTML = `
+      <div class="card">
+        <div class="top-strip">
+          <span class="index">${i+1} / ${total}</span>
+          <span class="tier-badge tier-${d.tier}">${escapeHTML(d.tier_label)}</span>
+          <span class="flow-id"><span class="vk">${escapeHTML(d.vertical_key)}</span> <span class="uc">· ${escapeHTML(d.usecase)}</span></span>
+          <span class="source">from <code>${escapeHTML(d.source_file)}</code></span>
+        </div>
+        <div class="body">
+          <div class="heading">${escapeHTML(d.heading)}</div>
+          ${personaChangesHtml}
+          <div class="md">${renderMarkdown(d.body_md)}</div>
+        </div>
+        <div class="actions">
+          <div class="btn-group">
+            <button class="approve ${action==='approve'?'on':''}" data-act="approve">Approve <kbd>A</kbd></button>
+            <button class="edits ${action==='edits'?'on':''}" data-act="edits">Approve with edits <kbd>E</kbd></button>
+            <button class="reject ${action==='reject'?'on':''}" data-act="reject">Reject <kbd>R</kbd></button>
+            <button class="skip ${action==='skip'?'on':''}" data-act="skip">Skip <kbd>S</kbd></button>
+          </div>
+          <div class="nav-group">
+            <button data-nav="prev" ${i===0?'disabled':''}>← Prev</button>
+            <button data-nav="next">${i===total-1?'Done':'Next →'}</button>
+          </div>
+        </div>
+        <div class="edits-area" style="padding:0 28px 24px; ${action==='edits'?'':'display:none'}" id="edits-area">
+          <div class="lbl">Override notes — what to change</div>
+          <textarea placeholder="e.g., 'rename Marisol Vega → Maria Reyes' or 'use Dr. Patel for sender role instead'">${escapeHTML(edits)}</textarea>
+        </div>
+      </div>`;
+
+    // Wire actions
+    stage.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', () => {
+        setDecision(d, b.dataset.act);
+        if (b.dataset.act === 'edits') {
+          document.getElementById('edits-area').style.display = '';
+          stage.querySelector('textarea').focus();
+        } else {
+          // Auto-advance on approve/reject/skip if there's a next
+          if (cursor < DATA.decisions.length - 1) {
+            setTimeout(() => { cursor++; render(); }, 200);
+          } else {
+            render();
+          }
+        }
+      });
+    });
+    stage.querySelectorAll('button[data-nav]').forEach(b => {
+      b.addEventListener('click', () => {
+        if (b.dataset.nav === 'prev' && cursor > 0) { cursor--; render(); }
+        else if (b.dataset.nav === 'next' && cursor < DATA.decisions.length - 1) { cursor++; render(); }
+        else if (b.dataset.nav === 'next' && cursor === DATA.decisions.length - 1) { renderDone(); }
+      });
+    });
+    const ta = stage.querySelector('textarea');
+    if (ta) {
+      ta.addEventListener('input', e => setEdits(d, e.target.value));
+      ta.addEventListener('click', e => e.stopPropagation());
+    }
+  }
+
+  function renderDone(){
+    const total = DATA.decisions.length;
+    let appr=0, edit=0, rej=0, skip=0, unset=0;
+    DATA.decisions.forEach(d => {
+      const a = (state[decisionKey(d)]||{}).action;
+      if (a==='approve') appr++;
+      else if (a==='edits') edit++;
+      else if (a==='reject') rej++;
+      else if (a==='skip') skip++;
+      else unset++;
+    });
+    document.getElementById('stage').innerHTML = `
+      <div class="done">
+        <h2>${unset > 0 ? "You've walked all " + total + " decisions." : "All " + total + " decisions reviewed."}</h2>
+        <p style="font-size:14px;">${unset > 0 ? unset + ' still unmarked. You can go back to revisit them, or finish here.' : 'Time to apply the approved ones.'}</p>
+        <div class="summary">
+          <div class="row"><span>Approved (apply as proposed)</span><span class="pill appr">${appr}</span></div>
+          <div class="row"><span>Approved with edits (apply per your notes)</span><span class="pill edit">${edit}</span></div>
+          <div class="row"><span>Rejected (skip these flows)</span><span class="pill rej">${rej}</span></div>
+          <div class="row"><span>Skipped (decide later)</span><span class="pill skip">${skip}</span></div>
+          <div class="row"><span>Unmarked</span><span class="pill total">${unset}</span></div>
+        </div>
+        <button id="export-btn">Export decisions JSON</button>
+        <button class="secondary" id="back-btn">← Go back to review</button>
+      </div>`;
+    document.getElementById('export-btn').addEventListener('click', exportDecisions);
+    document.getElementById('back-btn').addEventListener('click', () => {
+      cursor = 0; render();
+    });
+  }
+
+  function exportDecisions(){
+    const out = {
+      generated: new Date().toISOString(),
+      decisions: DATA.decisions.map(d => {
+        const dec = state[decisionKey(d)] || {};
+        return {
+          id: d.id,
+          vertical_key: d.vertical_key,
+          usecase: d.usecase,
+          tier: d.tier,
+          source_file: d.source_file,
+          action: dec.action || 'unset',
+          edits: dec.edits || '',
+          decided_at: dec.at || null,
+        };
+      }),
+    };
+    const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'decisions-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function render(){
+    if (cursor >= DATA.decisions.length) { renderDone(); return; }
+    renderCard(DATA.decisions[cursor]);
+    renderProgress();
+    renderQuickJump();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  // Keyboard shortcuts
+  let hintHidden = false;
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (cursor >= DATA.decisions.length) return;
+    const d = DATA.decisions[cursor];
+    if (e.key === 'a' || e.key === 'A') { setDecision(d, 'approve'); if (cursor < DATA.decisions.length - 1) { cursor++; render(); } else render(); }
+    else if (e.key === 'e' || e.key === 'E') { setDecision(d, 'edits'); render(); }
+    else if (e.key === 'r' || e.key === 'R') { setDecision(d, 'reject'); if (cursor < DATA.decisions.length - 1) { cursor++; render(); } else render(); }
+    else if (e.key === 's' || e.key === 'S') { setDecision(d, 'skip'); if (cursor < DATA.decisions.length - 1) { cursor++; render(); } else render(); }
+    else if (e.key === 'ArrowLeft' && cursor > 0) { cursor--; render(); }
+    else if (e.key === 'ArrowRight' && cursor < DATA.decisions.length - 1) { cursor++; render(); }
+    else if (e.key === '?') {
+      hintHidden = !hintHidden;
+      document.querySelector('.keyboard-hint').style.display = hintHidden ? 'none' : 'block';
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

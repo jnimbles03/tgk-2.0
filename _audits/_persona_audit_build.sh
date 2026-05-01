@@ -10,6 +10,11 @@ python3 _audits/_persona_fiction_extract.py
 # Pass 2 + 3 — sequence-and-role audit + naming directory
 python3 _audits/_persona_sequence_extract.py
 
+# Pass 4 — decisions review (extracts from rewrite proposal docs)
+if [ -f _audits/_extract_decisions.py ]; then
+  python3 _audits/_extract_decisions.py
+fi
+
 # Bake the JSON inline into each template
 python3 - << 'PY'
 import json
@@ -32,6 +37,12 @@ bake('_audits/_persona-sequence-audit.template.html',
 bake('_audits/_character-naming-audit.template.html',
      '_audits/character-naming-data.json',
      '_audits/character-naming-audit.html')
+
+import os
+if os.path.exists('_audits/decisions-2026-04-30.json'):
+    bake('_audits/_decisions-review.template.html',
+         '_audits/decisions-2026-04-30.json',
+         '_audits/decisions-review.html')
 PY
 
 echo ""
@@ -39,3 +50,4 @@ echo "Open one of:"
 echo "  _audits/persona-fiction-audit.html       (firm/document/workflow coherence)"
 echo "  _audits/persona-sequence-audit.html      (sequence + role coherence)"
 echo "  _audits/character-naming-audit.html      (every name in one place)"
+echo "  _audits/decisions-review.html            (walk decisions one at a time)"
