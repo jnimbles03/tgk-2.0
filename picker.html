@@ -1830,6 +1830,7 @@ const stageEls = {
 
 // ─── WIZARD STAGE MANAGEMENT ───
 function setWizStage(n) {
+  const prev = wiz.stage;
   wiz.stage = n;
   Object.entries(stageEls).forEach(([k, el]) => {
     el.style.display = Number(k) <= n ? 'block' : 'none';
@@ -1837,6 +1838,13 @@ function setWizStage(n) {
   wizBack.classList.toggle('visible', n > 1);
   updateWizCrumb();
   updateLaunchBar();
+  // Mirror step 1 → step 2 reveal feel: when a new stage is unlocked,
+  // smooth-scroll it to viewport center so the user's eye follows the
+  // newly revealed content rather than jamming to the top.
+  if (n > prev) {
+    const el = stageEls[n];
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 40);
+  }
 }
 
 // ─── MODE ───
