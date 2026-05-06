@@ -122,37 +122,61 @@
      Side determines color: advisor (tenant accent), client (Docusign
      purple), system (neutral). Shows name + role; if name absent,
      falls back to side label. */
+  /* PERSONA CHIP — locked size + position throughout the demo (2026-05-06).
+     The chip itself never animates on routine beat advances; the only
+     persona-related motion is the .is-persona-break sweep + headline flash
+     below, and that fires only on actual actor flips (sender → signer,
+     signer → approver, etc.). Within a single persona's workflow the chip
+     stays still — only the headline + lede swap underneath. */
   .persona{
     display:flex;align-items:center;gap:10px;
     margin-bottom:16px;
-    /* Locked to the sidebar's 0.28s rhythm so the persona swell lands
-       on the same frame the column finishes resizing. */
-    transition:gap 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1), opacity 0.22s ease;
+    transition:opacity 0.22s ease;
   }
-  @keyframes personaBounceIn {
-    0%   { opacity: 0; transform: translateX(-40px); }
-    60%  { opacity: 1; transform: translateX(8px); }
-    80%  { transform: translateX(-4px); }
-    100% { transform: translateX(0); }
+  /* .bounce class is no-op now — JS may still toggle it; CSS just ignores. */
+  /* PERSONA BREAK — hard-cut transition between actors during autoplay.
+     When the next beat hands off to a different persona, the sidebar runs
+     a 360ms sweep + headline flash to make the actor switch unambiguous.
+     Triggered by .is-persona-break on .sidebar (set in JS at the moment
+     of handoff). The sweep is a violet bar that wipes left→right behind
+     the persona chip; the headline + lede dim briefly so the new actor
+     reads as a fresh frame. Replaces the old gesture-required pause.   */
+  @keyframes personaBreakSweep {
+    0%   { transform: translateX(-100%); opacity: 0; }
+    25%  { opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
   }
-  .persona.bounce { animation: personaBounceIn 0.5s cubic-bezier(.22,.68,0,1.2) both; }
-  /* D3 — short purple pulse on the avatar whenever persona identity
-     changes, including manual Next/Prev advances (the .is-handoff-pending
-     glow on the sidebar is reserved for autoplay-pause gates). Scoped to
-     the avatar only so it stacks cleanly with the .bounce that runs on
-     the parent .persona. */
-  @keyframes personaIdPulse {
-    0%   { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0px rgba(75,0,233,0.0); }
-    35%  { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 6px rgba(75,0,233,0.32); }
-    100% { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0px rgba(75,0,233,0.0); }
+  .sidebar { position: relative; }
+  .sidebar::before {
+    content: "";
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      transparent 35%,
+      rgba(75,0,233,0.10) 50%,
+      transparent 65%,
+      transparent 100%);
+    pointer-events: none;
+    transform: translateX(-100%);
+    opacity: 0;
+    z-index: 5;
   }
-  .persona.id-pulse .avatar {
-    animation: personaIdPulse 0.95s cubic-bezier(.4,0,.2,1) both;
+  .sidebar.is-persona-break::before {
+    animation: personaBreakSweep 360ms cubic-bezier(.4,0,.2,1) both;
   }
-  /* When the autoplay-pause gate is up, .is-handoff-pending on the
-     sidebar takes over for the sustained glow — suppress id-pulse so
-     the two effects don't fight. */
-  .sidebar.is-handoff-pending .persona.id-pulse .avatar { animation: none; }
+  @keyframes personaBreakHeadlineFlash {
+    0%   { opacity: 1; transform: translateY(0); }
+    35%  { opacity: 0.15; transform: translateY(-3px); filter: blur(2px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  .sidebar.is-persona-break .headline,
+  .sidebar.is-persona-break .lede {
+    animation: personaBreakHeadlineFlash 360ms cubic-bezier(.4,0,.2,1) both;
+  }
+  /* .id-pulse class retired (2026-05-06). The avatar no longer pulses on
+     identity changes — the .is-persona-break sweep above carries the
+     emphasis on actor flips, and there's no visual on routine workflow
+     advances. JS may still toggle .id-pulse; CSS ignores it.            */
   .persona .avatar{
     flex-shrink:0;width:28px;height:28px;border-radius:50%;
     display:inline-flex;align-items:center;justify-content:center;
@@ -180,17 +204,12 @@
   .persona{transition:opacity 0.18s ease;}
   .persona.persona-fading{opacity:0;}
 
-  /* In lead state the persona chip swells slightly so it reads alongside
-     the editorial headline rather than getting visually buried. */
-  .shell.lead-mode .persona{margin-bottom:22px;gap:12px;}
-  .shell.lead-mode .persona .avatar{width:34px;height:34px;font-size:12px;}
-  .shell.lead-mode .persona .name{font-size:14px;}
-  .shell.lead-mode .persona .role{font-size:11.5px;}
-
-  body.calibrate .shell.lead-mode .persona{margin-bottom:16px;gap:10px;}
-  body.calibrate .shell.lead-mode .persona .avatar{width:28px;height:28px;font-size:10.5px;}
-  body.calibrate .shell.lead-mode .persona .name{font-size:12.5px;}
-  body.calibrate .shell.lead-mode .persona .role{font-size:10.5px;}
+  /* SIDEBAR SIZE LOCKED (2026-05-06) — the persona chip stays the same
+     size whether we're in lead-mode (cold open) or routine playback. The
+     prior swell made the sidebar pulse on every state change; with the
+     autoplay-only model the sidebar should feel like a fixed caption rail
+     and the headline/lede swap underneath. The .is-persona-break sweep
+     is the only persona-related motion.                                  */
 
   .step-label{
     font-size:11.5px;font-weight:600;color:var(--step-blue);
@@ -308,59 +327,13 @@
   }
   body.calibrate .persona-handoff{display:none !important;}
 
-  /* ===================== Lead state — sidebar collapse =====================
-     On every scene change the shell enters .lead-mode for ~2.6s. The
-     sidebar widens from a 24% rail to a 48% editorial column, the
-     headline swells into Fraunces italic 42px, the cream wash comes on,
-     and the demo gives ground (from ~76% to ~52%). After the hold —
-     or on the first stage interaction — the sidebar collapses back to
-     its narrow rail and the demo takes the room.
-
-     The story is full, then literally retreats to the side. */
-  .shell.lead-mode .sidebar{
-    width:48%;
-    max-width:none;
-    min-width:480px;
-    padding:48px 56px 32px;
-    background:#FBF8F2;
-  }
-  .shell.lead-mode .step-label{
-    font-size:13px;letter-spacing:0.22em;margin-bottom:28px;
-  }
-  .shell.lead-mode .headline{
-    font-family:var(--editorial);
-    font-style:italic;
-    font-weight:500;
-    font-size:42px;
-    letter-spacing:-0.015em;
-    line-height:1.08;
-    margin-bottom:26px;
-  }
-  /* D4 — system-driven beats ("AI assistant runs CLEAR", "the agreement
-     repository extracts terms") read awkwardly in editorial italic. Drop
-     to non-italic Inter so the editorial voice stays reserved for human
-     actors and system beats read as instrumentation. The shell mirrors
-     #persona[data-side] onto itself via setShellPersonaSide() in JS. */
-  .shell.lead-mode[data-persona-side="system"] .headline{
-    font-family:var(--ui-font);
-    font-style:normal;
-    font-weight:700;
-    font-size:34px;
-    letter-spacing:-0.012em;
-    line-height:1.14;
-  }
-  .shell.lead-mode .lede{
-    font-size:15.5px;
-    color:var(--ink-mid);
-    opacity:1;
-  }
-
-  /* Calibrate mode: lead-mode just gets in the way while dragging
-     hotspots — keep the sidebar at its rail width and skip the
-     editorial typography swap. */
-  body.calibrate .shell.lead-mode .sidebar{width:24%;max-width:420px;min-width:320px;padding:28px 32px 24px;background:#fff;}
-  body.calibrate .shell.lead-mode .headline{font-family:var(--ui-font);font-style:normal;font-weight:700;font-size:22px;line-height:1.22;margin-bottom:18px;}
-  body.calibrate .shell.lead-mode .lede{font-size:13.5px;color:var(--ink-soft);opacity:0.85;}
+  /* ===================== Lead state — RETIRED (2026-05-06) ================
+     Previously the sidebar widened from 24% to 48%, the headline swelled
+     into Fraunces italic 42px, and the cream wash came on for ~2.6s on
+     every scene change. With the autoplay-only model + same-sized
+     sidebar policy, all of that is gone — lead-mode now only controls
+     whether the cold-open hint ("Press Space to begin") is visible. No
+     size, color, or font changes apply.                                  */
 
   .foot-spacer{flex:1;}
   .beat-pips{display:flex;gap:6px;margin-bottom:12px;}
@@ -373,7 +346,14 @@
   .progress .track .fill{height:100%;background:var(--ds-purple);transition:width 0.5s ease;width:20%;}
   .progress .meta{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
 
-  .button-row{display:flex;gap:12px;}
+  /* KEYBOARD-ONLY SIDEBAR (locked 2026-05-06): every clickable control on
+     the left sidebar is hidden. Only kb hints remain. Their original
+     click handlers stay wired so the keyboard logic can re-use them.
+     Stage clicks still release the cold-open hold so the demo can be
+     started without touching the keyboard.                              */
+  .button-row{display:none !important;}
+  .hint-row .play-toggle{display:none !important;}
+  .hint-row .speed-picker{display:none !important;}
   .btn{padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all 0.15s ease;min-width:120px;text-align:center;}
   .btn.ghost{background:#fff;color:var(--ink);border-color:var(--hair-strong);}
   .btn.ghost:hover{border-color:var(--ink-mid);}
@@ -505,19 +485,17 @@
     .foot-spacer{display:none;}
     .beat-pips{margin-bottom:10px;}
     .progress{margin-bottom:12px;}
-    .button-row{gap:8px;}
+    .button-row{gap:8px;display:none !important;}
     .btn{padding:9px 14px;min-width:0;flex:1;font-size:13px;}
-    .hint-row{display:none;}
+    /* Keep hint row visible on mobile too — it's the only control surface. */
+    .hint-row{display:flex !important;}
 
     .stage{flex:none;width:100vw;height:calc(100vw * 0.625);border-left:none;border-top:1px solid var(--hair);overflow:hidden;position:relative;}
     .stage iframe{position:absolute;left:0;top:0;width:1280px;height:800px;transform-origin:top left;transform:scale(calc(100vw / 1280));}
 
-    /* Mobile: sidebar is already stacked above the demo, so .lead-mode's
-       width swap is moot. Keep the editorial typography swap so the lead
-       beat still feels like an editorial moment on phone. */
-    .shell.lead-mode .sidebar{width:100%;min-width:0;padding:18px 18px 14px;}
-    .shell.lead-mode .headline{font-size:22px;margin-bottom:10px;}
-    .shell.lead-mode .lede{font-size:13.5px;}
+    /* Mobile lead-mode is now a no-op (2026-05-06) — sidebar size locked
+       across both desktop and mobile; the cold-open hint is the only
+       lead-mode behavior that remains. */
 
     /* Hotspot dot stays small but tappable; tip clamps so it never overflows the screen. */
     .hotspot .ring{width:16px;height:16px;}
@@ -564,6 +542,13 @@
   .calib-hud .kbtn.primary:hover{background:var(--ds-purple-dark);}
   .calib-hud .toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);background:#16A34A;color:#fff;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:600;opacity:0;transition:opacity 0.25s ease;pointer-events:none;z-index:60;}
   .calib-hud .toast.on{opacity:1;}
+
+  /* Viewer-facing toast (ported 2026-05-06 from _persona-keyboard-demo.html
+     spec). Used for ephemeral state messages: "Speed → 2×", "Already at first
+     beat", and "End of demo. Press Space to restart." Distinct from the green
+     calib-toast above (developer-only) by ink fill + center-bottom placement. */
+  .shell-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink,#130032);color:#fff;padding:9px 18px;border-radius:999px;font-size:12.5px;font-weight:500;letter-spacing:0.02em;opacity:0;transition:opacity 0.2s ease, transform 0.2s ease;pointer-events:none;z-index:55;box-shadow:0 6px 20px rgba(19,0,50,0.25);}
+  .shell-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
   .calib-hud .hint{font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;line-height:1.6;}
   .calib-hud .hint kbd{font-family:ui-monospace,monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.12);border-radius:3px;color:#fff;}
 
@@ -613,7 +598,7 @@
       <div class="step-label" id="step-label">SCENE 1 OF 5</div>
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
-      <div class="lead-hint" id="lead-hint" aria-hidden="true">Click anywhere to begin</div>
+      <div class="lead-hint" id="lead-hint" aria-hidden="true">Press <kbd>Space</kbd> to begin</div>
       <!-- Persona-switch handoff cue. Shown only when autoplay is paused
            because the next beat hands off to a different actor. Cleared
            the moment the user manually advances. -->
@@ -632,8 +617,9 @@
         <button class="btn primary" id="next-btn">Next</button>
       </div>
       <div class="hint-row">
-        <span class="kb-hint"><kbd>←</kbd><kbd>→</kbd> beats</span>
-        <span class="speed-picker" id="speed-picker" role="group" aria-label="Autoplay speed" title="Autoplay speed">
+        <span class="kb-hint"><kbd>Space</kbd> play/pause</span>
+        <span class="kb-hint" id="kb-hint-arrows"><kbd>←</kbd><kbd>→</kbd> <span id="kb-hint-arrows-mode">scrub beats</span></span>
+        <span class="speed-picker" id="speed-picker" role="group" aria-label="Autoplay speed" title="Autoplay speed (↑↓)">
           <button type="button" class="sp" data-rate="1">1×</button>
           <button type="button" class="sp" data-rate="1.5">1.5×</button>
           <button type="button" class="sp" data-rate="2">2×</button>
@@ -675,6 +661,10 @@
   </div>
   <div class="toast" id="calib-toast">Copied!</div>
 </div>
+
+<!-- Viewer-facing toast (Space/arrow key feedback, end-of-demo prompt).
+     Lives outside the calib HUD so it appears in normal demo mode. -->
+<div class="shell-toast" id="shell-toast" aria-live="polite"></div>
 
 <script>
 /* =========================================================
@@ -2930,6 +2920,13 @@ window.addEventListener("resize", () => {
 });
 
 function renderSidebar(scene, i){
+  // Clear the end-of-story flag whenever the cursor lands anywhere
+  // other than the last beat. Otherwise navigating away from the end
+  // (via beat-pip click, Previous, etc.) would leave the flag set, and
+  // the next Space press would teleport back to S1 instead of resuming.
+  if (i !== SCENES.length - 1 || hotIdx !== scene.hotspots.length - 1) {
+    _atEndOfStory = false;
+  }
   const beat = scene.hotspots && scene.hotspots[hotIdx];
   // S1/B1 is the orientation beat — establishes who, what, why before
   // any action fires. Use the scene-level head/lede there instead of the
@@ -3484,7 +3481,20 @@ function advance(opts){
     goTo(idx + 1, { silent: !!opts.suppressScenePop });
   }
   else {
-    // Wraparound to S1/B1. Always treat as a fresh cold open — engage
+    // End-of-story (ported 2026-05-06 from _persona-keyboard-demo.html spec).
+    // If the autoplay tick brought us here, pause cleanly and prompt the
+    // viewer rather than silently wrapping back to S1/B1 — they should
+    // know they reached the end. Manual advance (Next-button click or
+    // → keypress at the last beat) still wraps with a fresh cold-open
+    // hold for users who explicitly want to keep going.
+    if (opts.fromTick) {
+      if (playing) togglePlay(); // pause autoplay
+      _atEndOfStory = true;
+      showToast('End of demo. Press Space to restart.', 2400);
+      $('progress-fill').style.width = '100%';
+      return;
+    }
+    // Manual wraparound to S1/B1. Always treat as a fresh cold open — engage
     // the hold so the orientation beat reads on its own before autoplay
     // resumes, exactly like the very first visit.
     goTo(0, { force:true, silent: true });
@@ -3516,6 +3526,11 @@ function rewind(){
     hotIdx = SCENES[idx].hotspots.length - 1;
     beatStart = performance.now();
     renderHotspot(); renderSidebar(SCENES[idx], idx);
+  }
+  else {
+    // Already at the very first beat — give keyboard users the same
+    // bounds feedback as the prototype's `Already at first beat` toast.
+    showToast('Already at first beat');
   }
 }
 function fmt(ms){
@@ -3618,6 +3633,19 @@ function releaseHoldAndResume(){
   if (!playing) togglePlay();
 }
 
+/* Viewer-facing toast — ported 2026-05-06 from _persona-keyboard-demo.html.
+   Used for keyboard-driven state messages (speed cycle, end-of-story restart,
+   "already at last beat"). 1100ms default, debounced via a single timer. */
+let _atEndOfStory = false;
+function showToast(msg, ms){
+  const t = document.getElementById('shell-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(() => t.classList.remove('on'), ms || 1100);
+}
+
 function tickTimer(){
   if (!playing) return;
   const scene = SCENES[idx];
@@ -3639,24 +3667,57 @@ function tickTimer(){
     // stale persona while renderPersona's fade-swap is still mid-flight.
     const willHandoff = isPersonaSwitchAhead();
     if (willHandoff) {
-      // Stop the autoplay loop now; the visual transition follows.
-      holdingForGesture = true;
-      if (playing) togglePlay(); // pauses raf, flips icon
-      advance({ suppressScenePop: true, fromTick: true }); // navigate to new persona beat
-      // Defer the lead-mode pop until renderSidebar's persona swap completes.
-      setTimeout(() => {
-        // engageHold short-circuits if already true; we set holdingForGesture
-        // above to prevent re-entry, so manually do the visual half here.
-        enterLeadMode();
-        setHoldVisuals(true);
-      }, 210);
+      // AUTOPLAY-ONLY MODEL (2026-05-06): instead of holding for a gesture
+      // at persona handoffs, play a strong visual break and continue. The
+      // sidebar gets `.is-persona-break` for ~360ms, which sweeps a violet
+      // bar across and flashes the headline. The advance still suppresses
+      // the routine scene-pop because the persona-break visual is the
+      // big-deal moment.
+      const sb = document.querySelector('.sidebar');
+      if (sb) {
+        sb.classList.remove('is-persona-break'); // re-trigger if back-to-back
+        // force reflow so the animation re-fires
+        // eslint-disable-next-line no-unused-expressions
+        sb.offsetWidth;
+        sb.classList.add('is-persona-break');
+        setTimeout(() => sb.classList.remove('is-persona-break'), 400);
+      }
+      advance({ suppressScenePop: true, fromTick: true });
       return;
     }
     advance({ suppressScenePop: true, fromTick: true }); // same-persona beats stay flat
   }
   raf = requestAnimationFrame(tickTimer);
 }
+function updateArrowsHint(){
+  const el = document.getElementById('kb-hint-arrows-mode');
+  if (!el) return;
+  // While playing the arrows control speed (slower/faster); paused they scrub.
+  el.textContent = playing
+    ? `speed (${playbackRate}×)`
+    : 'scrub beats';
+}
 function togglePlay(){
+  // End-of-story restart (ported 2026-05-06): if we paused at the last
+  // beat via the end-of-demo prompt and the viewer hits Space, jump back
+  // to S1/B1 with skipBreak semantics (no persona sweep on the wraparound)
+  // and resume autoplay. Mirrors the prototype's restart hook exactly.
+  if (_atEndOfStory && !playing) {
+    _atEndOfStory = false;
+    goTo(0, { force:true, silent:true });
+    // Resume autoplay immediately rather than re-engaging cold-open hold —
+    // the viewer already saw S1/B1 once, this is a re-watch gesture.
+    playing = true;
+    sceneStart = performance.now();
+    beatStart = performance.now();
+    const toggle = $('play-toggle');
+    toggle.classList.add('on');
+    toggle.querySelector('svg').innerHTML = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+    toggle.childNodes[toggle.childNodes.length - 1].textContent = ' Pause';
+    updateArrowsHint();
+    tickTimer();
+    return;
+  }
   playing = !playing;
   const toggle = $('play-toggle');
   toggle.classList.toggle('on', playing);
@@ -3664,6 +3725,7 @@ function togglePlay(){
     ? '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>'
     : '<polygon points="6 4 20 12 6 20 6 4"/>';
   toggle.childNodes[toggle.childNodes.length - 1].textContent = playing ? ' Pause' : ' Autoplay';
+  updateArrowsHint();
   if (playing) {
     // Reset both clocks so autoplay starts cleanly on the current beat.
     sceneStart = performance.now();
@@ -3712,17 +3774,38 @@ function renderSpeedPicker(){
     b.classList.toggle('on', parseFloat(b.dataset.rate) === playbackRate);
   });
 }
+function setPlaybackRate(r){
+  if (!ALLOWED_RATES.includes(r) || r === playbackRate) return;
+  playbackRate = r;
+  try { localStorage.setItem('tgkShell.playbackRate', String(r)); } catch (e) {}
+  renderSpeedPicker();
+  updateArrowsHint();
+  if (playing) { sceneStart = performance.now(); beatStart = performance.now(); }
+}
+/* Cycle through ALLOWED_RATES by ±1 step. Used by ←/→ keyboard handlers
+   when autoplay is running — turns the arrow keys into speed control. At
+   the bounds we surface a toast ("Already at 2× (max)") so the keyboard
+   user gets feedback that the gesture was received but had nowhere to go.
+   Ported 2026-05-06 from _persona-keyboard-demo.html spec. */
+function cycleSpeed(direction){
+  const i = ALLOWED_RATES.indexOf(playbackRate);
+  if (i < 0) return;
+  const next = Math.max(0, Math.min(ALLOWED_RATES.length - 1, i + direction));
+  if (ALLOWED_RATES[next] === playbackRate) {
+    showToast(direction > 0 ? `Already at ${playbackRate}× (max)` : `Already at ${playbackRate}× (min)`);
+    return;
+  }
+  setPlaybackRate(ALLOWED_RATES[next]);
+  showToast(`Speed → ${playbackRate}×`);
+}
 document.querySelectorAll('#speed-picker .sp').forEach(b => {
   b.addEventListener('click', () => {
     const r = parseFloat(b.dataset.rate);
-    if (!ALLOWED_RATES.includes(r) || r === playbackRate) return;
-    playbackRate = r;
-    try { localStorage.setItem('tgkShell.playbackRate', String(r)); } catch (e) {}
-    renderSpeedPicker();
-    if (playing) { sceneStart = performance.now(); beatStart = performance.now(); }
+    setPlaybackRate(r);
   });
 });
 renderSpeedPicker();
+updateArrowsHint();
 
 /* Calibrate HUD wiring */
 document.getElementById('calib-prev-beat').addEventListener('click', rewind);
@@ -3741,8 +3824,13 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     return;
   }
-  if (e.key === 'ArrowLeft') { rewind(); e.preventDefault(); }
-  else if (e.key === 'ArrowRight') { advance(); e.preventDefault(); }
+  /* ARROW SEMANTICS (locked 2026-05-06):
+       - While PLAYING: → speeds up, ← slows down (cycle through ALLOWED_RATES).
+       - While STOPPED: → advances one beat, ← rewinds one beat.
+     Spacebar always toggles play/pause regardless of state. The hint row's
+     text label updates from togglePlay() so the meaning is always visible. */
+  if (e.key === 'ArrowLeft')  { if (playing) cycleSpeed(-1); else rewind();  e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { if (playing) cycleSpeed(+1); else advance(); e.preventDefault(); }
   else if (e.key === 'Enter') { advance(); e.preventDefault(); }
   else if (e.key === ' ') { togglePlay(); e.preventDefault(); }
   else if (e.key === '[') { rewind(); e.preventDefault(); }

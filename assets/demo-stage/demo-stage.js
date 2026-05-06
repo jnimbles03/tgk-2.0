@@ -91,8 +91,12 @@
       if (nt >= state.duration) {
         state.currentTime = state.duration;
         state.paused = true;
+        state.ended = true;
         emit("timeupdate");
         emit("pause");
+        // ported 2026-05-06: emit `ended` so the end-of-demo prompt
+        // fires for scene-mode demos the same way it does for video-mode.
+        emit("ended");
         return;
       }
       state.currentTime = nt;
@@ -121,6 +125,9 @@
       get currentTime() { return state.currentTime; },
       set currentTime(v) {
         state.currentTime = Math.max(0, Math.min(state.duration - 0.001, +v || 0));
+        // Seeking off the end clears the `ended` flag so a subsequent play
+        // doesn't immediately re-emit `ended`. Mirrors HTMLMediaElement.
+        if (state.currentTime < state.duration) state.ended = false;
         if (!state.paused) lastTick = 0;
         emit("timeupdate");
       },
@@ -803,22 +810,94 @@
       });
     }
 
+    // ----------------------------------------------------------------
+    // Toast + end-of-demo + keyboard speed cycling — ported 2026-05-06
+    // from _persona-keyboard-demo.html spec. Mirrors the equivalent
+    // wiring in stories/_shared/story-shell.html so Sales + Procurement
+    // demo-stages share keyboard semantics with the main story shell.
+    // ----------------------------------------------------------------
+    var toastEl = document.createElement("div");
+    toastEl.className = "ds-toast";
+    toastEl.setAttribute("aria-live", "polite");
+    document.body.appendChild(toastEl);
+    var toastTimer = null;
+    function showToast(msg, ms) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.remove("on"); }, ms || 1100);
+    }
+
+    var ALLOWED_RATES = [1, 1.5, 2];
+    function cycleSpeed(direction) {
+      var current = video.playbackRate;
+      var i = ALLOWED_RATES.indexOf(current);
+      // If we're on a non-canonical rate (e.g. user nudged via comma/period),
+      // snap to the nearest allowed rate before cycling.
+      if (i < 0) {
+        var nearest = ALLOWED_RATES.reduce(function (best, r) {
+          return Math.abs(r - current) < Math.abs(best - current) ? r : best;
+        }, ALLOWED_RATES[0]);
+        i = ALLOWED_RATES.indexOf(nearest);
+      }
+      var next = Math.max(0, Math.min(ALLOWED_RATES.length - 1, i + direction));
+      if (ALLOWED_RATES[next] === current) {
+        showToast(direction > 0 ? "Already at " + current + "× (max)" : "Already at " + current + "× (min)");
+        return;
+      }
+      video.playbackRate = ALLOWED_RATES[next];
+      // Sync the speed picker / select if present.
+      if (speedSel) { try { speedSel.value = String(video.playbackRate); } catch (_) {} }
+      var pills = root.querySelectorAll(".ds-speed-picker .sp, .speed-picker .sp");
+      pills.forEach(function (p) {
+        p.classList.toggle("on", parseFloat(p.dataset.rate) === video.playbackRate);
+      });
+      showToast("Speed → " + video.playbackRate + "×");
+    }
+
+    // End-of-demo prompt. Real <video> emits `ended`; the virtual clock
+    // also emits `ended` (patched above) when it caps at duration.
+    var atEndOfStory = false;
+    video.addEventListener("ended", function () {
+      atEndOfStory = true;
+      showToast("End of demo. Press Space to restart.", 2400);
+    });
+
     // Keyboard
     document.addEventListener("keydown", function (e) {
       var tag = (e.target && e.target.tagName) || "";
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-      if (e.key === " " || e.key === "Spacebar") { toggle(); e.preventDefault(); return; }
+      if (e.key === " " || e.key === "Spacebar") {
+        // Space at end-of-story restarts from the beginning (mirrors the
+        // prototype's skipBreak restart). Otherwise: standard play/pause.
+        if (atEndOfStory) {
+          atEndOfStory = false;
+          video.currentTime = 0;
+          video.play().catch(function () {});
+        } else {
+          toggle();
+        }
+        e.preventDefault(); return;
+      }
       if (e.key === "ArrowLeft")  {
-        if (e.shiftKey) nudge(-5); else jumpToCursor(-1);
+        // Shift+arrow always scrubs ±5s regardless of play state.
+        if (e.shiftKey) { nudge(-5); e.preventDefault(); return; }
+        // Arrow semantics (ported 2026-05-06):
+        //   playing → cycle speed down
+        //   paused  → step one cursor keyframe back
+        if (!video.paused) { cycleSpeed(-1); e.preventDefault(); return; }
+        jumpToCursor(-1);
         e.preventDefault(); return;
       }
       if (e.key === "ArrowRight") {
+        if (e.shiftKey) { nudge(5); e.preventDefault(); return; }
+        if (!video.paused) { cycleSpeed(+1); e.preventDefault(); return; }
         if (shellEl && shellEl.classList.contains("lead-mode")) {
           // Snap card back first, then advance on retreat completion
           retreatLeadMode(function () { jumpToCursor(1); });
           e.preventDefault(); return;
         }
-        if (e.shiftKey) nudge(5); else jumpToCursor(1);
+        jumpToCursor(1);
         e.preventDefault(); return;
       }
       if (e.key === ",") { video.playbackRate = Math.max(0.25, video.playbackRate - 0.1); return; }
