@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGK 2.0 Solution Design</title>
+  <style>
+    :root {
+      --ds-cobalt: #4C00FF;
+      --ds-deep-violet: #26065D;
+      --ds-ecru: #F8F3F0;
+      --ds-mist: #CBC2FF;
+      --ds-inkwell: #130032;
+      --ds-poppy: #FF5252;
+      --ds-gray-light: #E0E0E0;
+      --ds-gray-medium: #999999;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--ds-ecru);
+      color: var(--ds-inkwell);
+      line-height: 1.6;
+    }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--ds-gray-light);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ds-inkwell);
+    }
+
+    .topbar-links {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+    }
+
+    .topbar-links a {
+      color: var(--ds-cobalt);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .topbar-links a:hover {
+      color: var(--ds-deep-violet);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--ds-inkwell);
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--ds-gray-light);
+    }
+
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      color: var(--ds-deep-violet);
+    }
+
+    .intro-text {
+      font-size: 15px;
+      color: var(--ds-gray-medium);
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+
+    /* Schema diagram */
+    .schema-diagram {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 32px;
+      border: 1px solid var(--ds-gray-light);
+    }
+
+    .tier {
+      margin-bottom: 28px;
+    }
+
+    .tier-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--ds-gray-medium);
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .tier-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .tier-item {
+      background: var(--ds-ecru);
+      border: 1px solid var(--ds-mist);
+      border-radius: 6px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .tier-item:hover {
+      background: white;
+      border-color: var(--ds-cobalt);
+      box-shadow: 0 2px 8px rgba(76, 0, 255, 0.1);
+    }
+
+    .tier-item.active {
+      background: var(--ds-cobalt);
+      color: white;
+      border-color: var(--ds-cobalt);
+    }
+
+    .details-panel {
+      background: var(--ds-mist);
+      border-left: 3px solid var(--ds-cobalt);
+      border-radius: 4px;
+      padding: 16px;
+      margin-top: 24px;
+      display: none;
+    }
+
+    .details-panel.show {
+      display: block;
+    }
+
+    .details-panel h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ds-deep-violet);
+    }
+
+    .details-panel p {
+      font-size: 13px;
+      margin: 6px 0;
+      line-height: 1.5;
+    }
+
+    /* Grid visualization */
+    .grid-container {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      border: 1px solid var(--ds-gray-light);
+      overflow-x: auto;
+      margin-bottom: 32px;
+    }
+
+    .grid-label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--ds-inkwell);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid var(--ds-gray-light);
+    }
+
+    th {
+      background: var(--ds-ecru);
+      font-weight: 600;
+      color: var(--ds-inkwell);
+    }
+
+    td {
+      background: white;
+    }
+
+    .cell-built {
+      background: #f0f8f0;
+      color: #2d5016;
+    }
+
+    .cell-pending {
+      background: #fff8f0;
+      color: #5d3a1a;
+      font-style: italic;
+    }
+
+    .cell-todo {
+      background: #fef0f0;
+      color: #5d1a1a;
+    }
+
+    /* Archetype cards */
+    .archetype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .archetype-card {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .archetype-card:hover {
+      border-color: var(--ds-cobalt);
+      box-shadow: 0 2px 8px rgba(76, 0, 255, 0.1);
+    }
+
+    .archetype-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ds-cobalt);
+      margin-bottom: 8px;
+    }
+
+    .archetype-card p {
+      font-size: 13px;
+      color: var(--ds-gray-medium);
+      line-height: 1.5;
+    }
+
+    /* Surfaces table */
+    .surfaces-grid {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .surface-card {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .surface-path {
+      font-family: 'Monaco', monospace;
+      font-size: 12px;
+      color: var(--ds-cobalt);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .surface-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ds-inkwell);
+      margin-bottom: 6px;
+    }
+
+    .surface-desc {
+      font-size: 13px;
+      color: var(--ds-gray-medium);
+      margin-bottom: 8px;
+    }
+
+    .surface-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+    }
+
+    .meta-item {
+      display: flex;
+      gap: 4px;
+    }
+
+    .meta-label {
+      font-weight: 600;
+      color: var(--ds-deep-violet);
+    }
+
+    .meta-value {
+      color: var(--ds-gray-medium);
+    }
+
+    /* Decision log */
+    .decision-list {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .decision-item {
+      background: white;
+      border-left: 3px solid var(--ds-cobalt);
+      border-radius: 4px;
+      padding: 14px;
+    }
+
+    .decision-item h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ds-inkwell);
+      margin-bottom: 6px;
+    }
+
+    .decision-item p {
+      font-size: 13px;
+      color: var(--ds-gray-medium);
+      line-height: 1.5;
+    }
+
+    /* Roadmap */
+    .roadmap-section {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .roadmap-section h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ds-cobalt);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .roadmap-items {
+      display: grid;
+      gap: 8px;
+      margin-left: 0;
+    }
+
+    .roadmap-items li {
+      font-size: 13px;
+      color: var(--ds-gray-medium);
+      list-style: none;
+      display: flex;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .roadmap-items li:before {
+      content: "▪";
+      color: var(--ds-cobalt);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* SVG icons */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .icon-link {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    /* Utilities */
+    .tag {
+      display: inline-block;
+      background: var(--ds-mist);
+      color: var(--ds-deep-violet);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .tag.admin {
+      background: var(--ds-poppy);
+      color: white;
+    }
+
+    .tag.optional {
+      background: var(--ds-gray-light);
+      color: var(--ds-gray-medium);
+    }
+
+    .code {
+      font-family: 'Monaco', monospace;
+      background: var(--ds-ecru);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+      color: var(--ds-cobalt);
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--ds-gray-light);
+      margin: 48px 0;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 32px 16px; }
+      .section { margin-bottom: 48px; }
+      .topbar { flex-direction: column; gap: 12px; }
+      .topbar-links { gap: 12px; font-size: 12px; }
+      .tier-content { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+      .archetype-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>TGK 2.0 Solution Design</h1>
+  <div class="topbar-links">
+    <a href="/">Home</a>
+    <a href="/picker.html">Picker</a>
+    <a href="/studio.html">Studio</a>
+    <a href="/HANDOFF.md">Handoff</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">1. Interactive Schema</h2>
+    <p class="intro-text">
+      The lego framework — four tiers of building blocks that compose every demo. Click any node to expand details.
+    </p>
+
+    <div class="schema-diagram">
+      <div class="tier">
+        <div class="tier-label">Tier 1: Components</div>
+        <div class="tier-content">
+          <div class="tier-item" onclick="showDetails(this, 'comp-forms')">Web Forms</div>
+          <div class="tier-item" onclick="showDetails(this, 'comp-idv')">IDV</div>
+          <div class="tier-item" onclick="showDetails(this, 'comp-maestro')">Maestro</div>
+          <div class="tier-item" onclick="showDetails(this, 'comp-workspace')">Workspaces</div>
+          <div class="tier-item" onclick="showDetails(this, 'comp-nav')">Navigator</div>
+          <div class="tier-item" onclick="showDetails(this, 'comp-headless')">Headless IAM</div>
+        </div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-label">Tier 2: Scenes (Visual UI Moments)</div>
+        <div class="tier-content">
+          <div class="tier-item" onclick="showDetails(this, 'scene-ad')">Agreement Desk</div>
+          <div class="tier-item" onclick="showDetails(this, 'scene-clear')">CLEAR IDV</div>
+          <div class="tier-item" onclick="showDetails(this, 'scene-signing')">Signing Ceremony</div>
+          <div class="tier-item" onclick="showDetails(this, 'scene-nav')">Navigator</div>
+          <div class="tier-item" onclick="showDetails(this, 'scene-ws')">Workspace</div>
+        </div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-label">Tier 3: Stories (5-Scene Arcs)</div>
+        <div class="tier-content">
+          <div class="tier-item" onclick="showDetails(this, 'story-onboard')">Onboarding</div>
+          <div class="tier-item" onclick="showDetails(this, 'story-maint')">Maintenance</div>
+          <div class="tier-item" onclick="showDetails(this, 'story-fraud')">Fraud Fabric</div>
+          <div class="tier-item" onclick="showDetails(this, 'story-intake')">Intake</div>
+          <div class="tier-item" onclick="showDetails(this, 'story-ws')">Workspaces</div>
+        </div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-label">Tier 4: Studio Pipeline (MP4 → HTML)</div>
+        <div class="tier-content">
+          <div class="tier-item" onclick="showDetails(this, 'stage-decode')">Decode</div>
+          <div class="tier-item" onclick="showDetails(this, 'stage-classify')">Classify</div>
+          <div class="tier-item" onclick="showDetails(this, 'stage-extract')">Extract</div>
+          <div class="tier-item" onclick="showDetails(this, 'stage-render')">Render</div>
+        </div>
+      </div>
+
+      <div class="details-panel" id="comp-forms">
+        <h4>Web Forms</h4>
+        <p><strong>Count:</strong> 5+ templates (intake, maintenance, fraud intake)</p>
+        <p><strong>Files:</strong> story-templates/webform-*.html</p>
+        <p><strong>Reads:</strong> ?preset= to load vertical data</p>
+        <p><strong>Writes:</strong> formData to Maestro orchestration</p>
+      </div>
+
+      <div class="details-panel" id="comp-idv">
+        <h4>IDV (CLEAR)</h4>
+        <p><strong>Count:</strong> 1 template (shared across all demos)</p>
+        <p><strong>Files:</strong> story-templates/docusign-clear-idv.html</p>
+        <p><strong>Reads:</strong> ?preset= for tenant branding</p>
+        <p><strong>Choreography:</strong> consent → identity → phone → mobile selfie → verified</p>
+      </div>
+
+      <div class="details-panel" id="comp-maestro">
+        <h4>Maestro</h4>
+        <p><strong>Role:</strong> Invisible orchestration layer. Agreement Desk visualizes it.</p>
+        <p><strong>In demo:</strong> Takes form input, routes, performs risk/identity checks</p>
+        <p><strong>Agreement Desk proxy:</strong> Shows Maestro work made visible to audience</p>
+      </div>
+
+      <div class="details-panel" id="comp-workspace">
+        <h4>Workspaces</h4>
+        <p><strong>Count:</strong> 1 template (scene 5, all demos)</p>
+        <p><strong>Files:</strong> story-templates/docusign-workspace.html</p>
+        <p><strong>Variables per vertical:</strong> tenant, sections, activity, agent rail, splash</p>
+        <p><strong>Splash:</strong> Optional MasterCard-style intro (?splash=1)</p>
+      </div>
+
+      <div class="details-panel" id="comp-nav">
+        <h4>Navigator</h4>
+        <p><strong>Count:</strong> 1 template (scene 4, all demos)</p>
+        <p><strong>Files:</strong> story-templates/docusign-navigator.html</p>
+        <p><strong>Shows:</strong> Agreement extraction, AI Q&A with citations, metadata</p>
+      </div>
+
+      <div class="details-panel" id="comp-headless">
+        <h4>Headless IAM</h4>
+        <p><strong>Count:</strong> 3 cluster-level portals</p>
+        <p><strong>Files:</strong> /headless-iam/{fins,hls,ps}.html</p>
+        <p><strong>Reads:</strong> ?vertical= to filter content</p>
+        <p><strong>Shows:</strong> Tenant-branded authentication flow</p>
+      </div>
+
+      <div class="details-panel" id="scene-ad">
+        <h4>Agreement Desk (Scene 1)</h4>
+        <p><strong>Role:</strong> Maestro proxy. Visualizes invisible orchestration.</p>
+        <p><strong>Archetypes:</strong> A (sender webform), A-trig (triggered), B (self-service), C (inbound), D (workspace-led)</p>
+        <p><strong>Files:</strong> story-templates/docusign-agreement-desk.html</p>
+      </div>
+
+      <div class="details-panel" id="scene-clear">
+        <h4>CLEAR IDV (Scene 2)</h4>
+        <p><strong>Flow:</strong> Consent → Identity → Phone → Mobile Selfie → Verified</p>
+        <p><strong>Shared:</strong> All verticals use same template</p>
+        <p><strong>Beats:</strong> 5 hotspots, each advances internal scene</p>
+      </div>
+
+      <div class="details-panel" id="scene-signing">
+        <h4>Signing Ceremony (Scene 3)</h4>
+        <p><strong>Shows:</strong> Email, START tab, signature adoption, routing, certificate</p>
+        <p><strong>Shared:</strong> Same template, preseted per vertical</p>
+        <p><strong>Persona:</strong> Signer enters scene 2, signer + witness by scene 5</p>
+      </div>
+
+      <div class="details-panel" id="scene-nav">
+        <h4>Navigator (Scene 4)</h4>
+        <p><strong>Shows:</strong> Agreement extraction, AI search, citations</p>
+        <p><strong>Data:</strong> Each preset carries docTitle, docHeading, docBody, docFields</p>
+        <p><strong>No fallback:</strong> Every vertical authors its own document</p>
+      </div>
+
+      <div class="details-panel" id="scene-ws">
+        <h4>Workspace (Scene 5)</h4>
+        <p><strong>Shows:</strong> Multi-party room, tasks, activity, agent rail</p>
+        <p><strong>Optional:</strong> ?splash=1 adds MasterCard intro before workspace</p>
+        <p><strong>Persona:</strong> Internal ops/compliance team perspective</p>
+      </div>
+
+      <div class="details-panel" id="story-onboard">
+        <h4>Onboarding (Default)</h4>
+        <p><strong>Scenes:</strong> 5 (all scenes)</p>
+        <p><strong>URL:</strong> ?vertical=&lt;key&gt; (no usecase param)</p>
+        <p><strong>Narrative:</strong> New party joins; full intake → verify → sign → extract → collaborate</p>
+      </div>
+
+      <div class="details-panel" id="story-maint">
+        <h4>Maintenance</h4>
+        <p><strong>Scenes:</strong> 3 (portal login → intake → approval)</p>
+        <p><strong>URL:</strong> ?vertical=&lt;key&gt;&usecase=maintenance</p>
+        <p><strong>Narrative:</strong> Existing party updates info (address, contact, documents)</p>
+      </div>
+
+      <div class="details-panel" id="story-fraud">
+        <h4>Fraud Fabric</h4>
+        <p><strong>Scenes:</strong> 3 (portal login → intake → chain-of-custody)</p>
+        <p><strong>URL:</strong> ?vertical=&lt;key&gt;&usecase=fraud-fabric</p>
+        <p><strong>Narrative:</strong> High-risk transaction; custody binding, dual auth, audit trail</p>
+      </div>
+
+      <div class="details-panel" id="story-intake">
+        <h4>Intake</h4>
+        <p><strong>Scenes:</strong> 3–4 (webform → maestro package → signing [→ workspace])</p>
+        <p><strong>URL:</strong> ?vertical=&lt;key&gt;&usecase=intake-3 or intake-4</p>
+        <p><strong>Narrative:</strong> Simple submission flow (fast-path for high-volume use cases)</p>
+      </div>
+
+      <div class="details-panel" id="story-ws">
+        <h4>Workspaces</h4>
+        <p><strong>Scenes:</strong> 1 (workspace only)</p>
+        <p><strong>URL:</strong> ?vertical=&lt;key&gt;&usecase=workspaces</p>
+        <p><strong>Narrative:</strong> Multi-party deal room (no onboarding, straight to workspace)</p>
+      </div>
+
+      <div class="details-panel" id="stage-decode">
+        <h4>Stage 1: Decode</h4>
+        <p><strong>Input:</strong> MP4 file</p>
+        <p><strong>Tool:</strong> ffmpeg</p>
+        <p><strong>Output:</strong> frame PNG sequence (user-specified fps)</p>
+        <p><strong>Gating:</strong> Max 600s, max 2GB</p>
+      </div>
+
+      <div class="details-panel" id="stage-classify">
+        <h4>Stage 2: Classify</h4>
+        <p><strong>Input:</strong> Frame sequence</p>
+        <p><strong>Decision:</strong> REPLAY (≥8s kept), SYNTHESIZE (&lt;8s), or HYBRID</p>
+        <p><strong>Output:</strong> segments.json, timeline.json (8 primitives)</p>
+        <p><strong>Model:</strong> Gemini 2.5 (stubbed)</p>
+      </div>
+
+      <div class="details-panel" id="stage-extract">
+        <h4>Stage 3: Extract</h4>
+        <p><strong>Input:</strong> Segments, timeline</p>
+        <p><strong>Output:</strong> structure.json, content.json, theme.json</p>
+        <p><strong>Key rule:</strong> No vendor-specific data in structure — forces verticalization reusability</p>
+      </div>
+
+      <div class="details-panel" id="stage-render">
+        <h4>Stage 4: Render</h4>
+        <p><strong>Input:</strong> Structure, content, theme</p>
+        <p><strong>Output:</strong> Self-contained build/index.html (≤5MB)</p>
+        <p><strong>Optional:</strong> Inline or file-ref assets</p>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Canonical 4x3x5 Grid</h3>
+    <p class="intro-text">
+      60 cells total. 4 clusters (FINS, HLS, PubSec, Cross-org) × 3 sub-verticals × 5 demos (Onboarding, Maintenance, Fraud Fabric, Headless IAM, Workspaces). Green = built, orange = ready to use, red = needs content.
+    </p>
+
+    <div class="grid-container">
+      <div class="grid-label">FINS Cluster (Wealth, Banking, Insurance)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sub-Vertical</th>
+            <th>Onboarding</th>
+            <th>Maintenance</th>
+            <th>Fraud Fabric</th>
+            <th>Headless IAM</th>
+            <th>Workspaces</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Wealth</strong></td>
+            <td class="cell-built">wealth</td>
+            <td class="cell-built">wealth-discovery</td>
+            <td class="cell-built">wealth (fraud)</td>
+            <td class="cell-built">/headless-iam/fins</td>
+            <td class="cell-built">wealth (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Banking</strong></td>
+            <td class="cell-built">banking</td>
+            <td class="cell-built">banking-deposits</td>
+            <td class="cell-built">banking (fraud)</td>
+            <td class="cell-built">/headless-iam/fins</td>
+            <td class="cell-built">banking (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Insurance</strong></td>
+            <td class="cell-built">insurance</td>
+            <td class="cell-built">insurance-life</td>
+            <td class="cell-built">insurance-pc</td>
+            <td class="cell-built">/headless-iam/fins</td>
+            <td class="cell-built">insurance (ws)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-container">
+      <div class="grid-label">HLS Cluster (Provider, Life Sciences, Payor)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sub-Vertical</th>
+            <th>Onboarding</th>
+            <th>Maintenance</th>
+            <th>Fraud Fabric</th>
+            <th>Headless IAM</th>
+            <th>Workspaces</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Provider</strong></td>
+            <td class="cell-built">provider</td>
+            <td class="cell-built">provider-roi</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">/headless-iam/hls</td>
+            <td class="cell-built">provider (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Life Sciences</strong></td>
+            <td class="cell-built">lifesciences</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">/headless-iam/hls</td>
+            <td class="cell-built">lifesciences (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Payor</strong></td>
+            <td class="cell-built">payor</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">/headless-iam/hls</td>
+            <td class="cell-built">payor (ws)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-container">
+      <div class="grid-label">PubSec Cluster (FedGov, SLGov, Education)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sub-Vertical</th>
+            <th>Onboarding</th>
+            <th>Maintenance</th>
+            <th>Fraud Fabric</th>
+            <th>Headless IAM</th>
+            <th>Workspaces</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>FedGov</strong></td>
+            <td class="cell-built">fedgov</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">/headless-iam/ps</td>
+            <td class="cell-built">fedgov (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>SLGov</strong></td>
+            <td class="cell-built">slgov</td>
+            <td class="cell-built">slgov-recertification</td>
+            <td class="cell-built">slgov-311</td>
+            <td class="cell-built">/headless-iam/ps</td>
+            <td class="cell-built">slgov (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Education</strong></td>
+            <td class="cell-built">education</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">/headless-iam/ps</td>
+            <td class="cell-built">education (ws)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-container">
+      <div class="grid-label">Cross-org (Nonprofit, Sales, Procurement)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sub-Vertical</th>
+            <th>Onboarding</th>
+            <th>Maintenance</th>
+            <th>Fraud Fabric</th>
+            <th>Headless IAM</th>
+            <th>Workspaces</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Nonprofit</strong></td>
+            <td class="cell-built">nonprofit</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-todo">TBD</td>
+            <td class="cell-built">nonprofit (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Sales</strong></td>
+            <td class="cell-built">sales</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="cell-built">sales (ws)</td>
+          </tr>
+          <tr>
+            <td><strong>Procurement</strong></td>
+            <td class="cell-built">procurement</td>
+            <td class="cell-built">procurement (maint)</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="cell-built">procurement (ws)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsection-title">Scene 1 Archetype Framework</h3>
+    <p class="intro-text">
+      Scene 1 intake takes one of four shapes per vertical. The rest of the 5-scene spine holds constant.
+    </p>
+
+    <div class="archetype-grid">
+      <div class="archetype-card">
+        <h4>A: Sender Webform</h4>
+        <p>Employee at tenant fills an internal webform. Maestro packages and routes. Example: wealth (Cathie at Hillside onboards TGK). Tag: SENDER WEBFORM</p>
+      </div>
+      <div class="archetype-card">
+        <h4>A-Trig: Maestro-Triggered</h4>
+        <p>System event (renewal date, cert expiry, check clear). Maestro auto-triggers workflow. Example: slgov-recertification (annual Medicaid). Tag: MAESTRO-TRIGGERED</p>
+      </div>
+      <div class="archetype-card">
+        <h4>B: Self-Service</h4>
+        <p>Customer/applicant fills public/embedded webform. Maestro routes back to sender. Example: insurance-pc (claimant reports loss). Tag: SELF-SERVICE</p>
+      </div>
+      <div class="archetype-card">
+        <h4>C: Inbound</h4>
+        <p>Genuine inbound submission (death notice, external request). Agreement Desk visualizes mailroom. Example: insurance-life (beneficiary claim). Tag: INBOUND</p>
+      </div>
+      <div class="archetype-card">
+        <h4>D: Workspace-Led</h4>
+        <p>Non-linear engagement (commercial loan, family wealth). Workspace deal room opens first; webforms fire inside. Example: banking (Atlas loan). Tag: DEAL ROOM</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="section">
+    <h2 class="section-title">2. User-Facing Surfaces Map</h2>
+    <p class="intro-text">
+      Every entry point and public-facing URL in the system.
+    </p>
+
+    <div class="surface-card">
+      <div class="surface-path">/ (landing)</div>
+      <div class="surface-title">Home / Redirect</div>
+      <div class="surface-desc">Redirects to picker.html</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value">open</span></div>
+        <div class="meta-item"><span class="meta-label">Entry file:</span> <span class="meta-value">picker.html</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/picker.html</div>
+      <div class="surface-title">Canonical Grid Navigator</div>
+      <div class="surface-desc">4×3×5 grid: Cluster (4) → Sub-vertical (3) → Demo (5). Backbone of all discovery.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value">open</span></div>
+        <div class="meta-item"><span class="meta-label">Params:</span> <span class="meta-value">?cluster=fins (deep-link)</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/builder.html</div>
+      <div class="surface-title">Demo iMovie (4 Stages)</div>
+      <div class="surface-desc">Build custom-branded demos. Stage 1: sequence. Stage 2: brand. Stage 3: compose scenes. Stage 4 (admin): vignettes + overrides.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value">open (stage 1-3), <span class="tag admin">admin</span> (stage 4)</span></div>
+        <div class="meta-item"><span class="meta-label">Admin password:</span> <span class="meta-value">Welcome01!</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/studio.html</div>
+      <div class="surface-title">MP4 → HTML Pipeline</div>
+      <div class="surface-desc">5-stage studio: upload MP4, decode frames, classify segments, extract structure, render HTML. Admin-gated.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value"><span class="tag admin">admin</span> (Welcome01!)</span></div>
+        <div class="meta-item"><span class="meta-label">Gemini:</span> <span class="meta-value">stubbed (fake mode if no GEMINI_API_KEY)</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/audit.html</div>
+      <div class="surface-title">Classic Audit Dashboard</div>
+      <div class="surface-desc">Browse all verticals + beats. Inspector view. Legacy surface; replaced by audit-grid.html.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value">open</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/audit-grid.html</div>
+      <div class="surface-title">Sortable Beats Grid</div>
+      <div class="surface-desc">~575 rows (vertical × scene × beat). Sortable, filterable, inline-edit. Writes to vertical-overrides.json.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value"><span class="tag admin">admin</span> to edit</span></div>
+        <div class="meta-item"><span class="meta-label">Endpoint:</span> <span class="meta-value">/api/builder/save-beat</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/admin/audit</div>
+      <div class="surface-title">Audit Submission Queue</div>
+      <div class="surface-desc">Review + apply inbound beat edits. Replit DB backed.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value"><span class="tag admin">admin</span></span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/admin/feedback</div>
+      <div class="surface-title">Feedback Submissions</div>
+      <div class="surface-desc">Review feedback widget submissions from live demos.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Auth:</span> <span class="meta-value"><span class="tag admin">admin</span></span></div>
+        <div class="meta-item"><span class="meta-label">Replit only:</span> <span class="meta-value">GitHub Pages has no backend</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/stories/_shared/story-shell.html?vertical=&lt;key&gt;</div>
+      <div class="surface-title">Canonical 5-Scene Shell</div>
+      <div class="surface-desc">The heart of the system. Reads VERTICALS map, renders 5-scene narration, iframes scene templates.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Params:</span> <span class="meta-value">?vertical, ?usecase, ?splash, ?preset</span></div>
+        <div class="meta-item"><span class="meta-label">Holds:</span> <span class="meta-value">VERTICALS, PRESETS (workspace), BEAT_TO_INTERNAL maps</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/story-templates/docusign-*.html</div>
+      <div class="surface-title">5 Scene Templates</div>
+      <div class="surface-desc">Visual furniture (Agreement Desk, CLEAR, Signing, Navigator, Workspace). Shared across all verticals.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Files:</span> <span class="meta-value">agreement-desk, clear-idv, signing-ceremony, navigator, workspace</span></div>
+        <div class="meta-item"><span class="meta-label">Each reads:</span> <span class="meta-value">?preset= to look up PRESETS[vertical]</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/headless-iam/{fins,hls,ps}.html</div>
+      <div class="surface-title">Tenant-Branded Portals</div>
+      <div class="surface-desc">Cluster-level headless authentication. Reads ?vertical= to filter content.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Entry point:</span> <span class="meta-value">Grid cell "Headless IAM"</span></div>
+        <div class="meta-item"><span class="meta-label">Covers:</span> <span class="meta-value">All subs in cluster with same portal</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/components/{current-state,future-state}/</div>
+      <div class="surface-title">Component Mocks</div>
+      <div class="surface-desc">~200 individual component HTML files for drill-down reference. Future-state (~100) not yet wired into Navigator.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Status:</span> <span class="meta-value">current-state live, future-state draft</span></div>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-path">/flipbooks/*.html</div>
+      <div class="surface-title">MP4 → HTML Vignettes</div>
+      <div class="surface-desc">13+ product demo flipbooks + stage pages. Built by builder/ pipeline or manually authored.</div>
+      <div class="surface-meta">
+        <div class="meta-item"><span class="meta-label">Catalog:</span> <span class="meta-value">flipbooks/manifest.json</span></div>
+        <div class="meta-item"><span class="meta-label">Source:</span> <span class="meta-value">flipbooks/vids/ (gitignored MP4s)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="section">
+    <h2 class="section-title">3. Decision Log</h2>
+    <p class="intro-text">
+      Key architectural and content decisions that define the system. All are in active use as of 2026-05-07.
+    </p>
+
+    <div class="decision-list">
+      <div class="decision-item">
+        <h4>60-cell canonical grid (4×3×5 locked)</h4>
+        <p>Every sub-vertical exposes exactly 5 demos (Onboarding, Maintenance, Fraud Fabric, Headless IAM, Workspaces). 4 clusters × 3 subs = 60 cells. The 11 split-out vertical keys live as cell content, not top-level picker entries. URLs as deep-links still work.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>HTML-first, no runtime JSON or DB</h4>
+        <p>All demo data (VERTICALS, PRESETS, narration, hotspots) live as inline JavaScript objects in HTML files. Python runs at build-time only (frame extraction, flipbook scaffolding). No config server, no runtime DB queries.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Variables injected per preset (ad-lib model)</h4>
+        <p>Tenant name, customer name, color, tenantLogo, customerLogo, SoR badge, signature moment all injected via ?preset= parameter. Same shell renders any vertical by swapping variables. Enables rapid re-skinning.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Hotspots scene-keyed, not vertical-keyed</h4>
+        <p>Tooltip coordinates are shared across all verticals because they target Docusign template UI that doesn't move per preset. Only narration varies by vertical. Reduces coordinate maintenance burden from 23×5 to 5 unique hotspot maps.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Shell is the only place narration lives</h4>
+        <p>VERTICALS map in story-shell.html is the single source of truth for all beat headlines, ledes, persona chips. Scene templates are visual furniture; they don't author narrative. Edits flow through story-shell only — no scattered narrative fragments.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>4 + 1 Scene 1 archetypes (A, A-trig, B, C, D)</h4>
+        <p>Scene 1 entry takes one of five shapes: sender webform, Maestro-triggered, self-service webform, inbound Agreement Desk, or Workspace-led. Scenes 2–5 hold constant. Allows one shell to express vastly different intake patterns across domains.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Agreement Desk = Maestro proxy, not literal actor</h4>
+        <p>Agreement Desk visualizes invisible Maestro orchestration. When authoring narration, frame Maestro as the actor ("Maestro receives and routes…") and Agreement Desk as the visualizer ("…made visible on screen here."). This keeps the same template valid across intake archetypes.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Workspace splash via ?splash=1 (MasterCard-style intro)</h4>
+        <p>Optional 360ms violet sweep + headline on Scene 5 entry. MasterCard-style voiceover pause (now indefinite, press Space to dismiss). Can be enabled per-vertical via splashOk: true or forced via URL param.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>SoR badge sweep: Guidewire (FINS insurance) + nCino (banking-deposits)</h4>
+        <p>Persistent "System of record: {vendor}" pill in scene chrome. Reads as "Docusign wraps around these core platforms." Scope: FINS insurance + banking-deposits only. Other domains out of scope.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>TGK Capital is a character, not a co-brand</h4>
+        <p>TGK Capital appears inside wealth + banking demo narrations as the customer firm being onboarded. No co-brand chrome anywhere. Patrick Meyer is the TGK signer. Topology: Docusign chrome only; TGK lives in the fiction.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>No emoji anywhere. Inline SVG or brand icons only.</h4>
+        <p>TGK 2.0 maintains a Docusign-themed premium aesthetic. Emoji undermine brand polish. All UI icons are inline SVG (feather-style, 1.5px stroke) or Docusign iconography.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Cowork-on-Mac is the only edit surface</h4>
+        <p>Source of truth lives at /Users/patrickmeyer/Documents/Claude/Projects/TGK 2.0 on Patrick's Mac. GitHub is the commit source. Replit deploys. Never edit in the Repl — changes are lost on restart.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Cowork sandbox can't push to GitHub. Manual handoff required.</h4>
+        <p>Commits happen in Cowork, but the sandbox has no GitHub credentials. Final git push happens from Mac terminal. Watch for orphaned .git/*.lock files after failed pushes.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Admin auth via single password (Welcome01!) + cookie</h4>
+        <p>All /admin/* routes + builder Stage 4 + audit-grid edits gated by /assets/admin-auth/ primitive. Prompt stores x-tgk-admin cookie in sessionStorage. Single key currently; role-based gating deferred.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>5-scene spine: Agreement Desk → CLEAR → Signing → Navigator → Workspace</h4>
+        <p>Canonical ordering across all onboarding demos. Only Scene 1 archetype varies. Other flows (maintenance, fraud, intake, workspaces) pick different scene-keys arrays but when all 5 scenes are needed, this is the order.</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Persona handoff via autoplay-only with 360ms violet sweep</h4>
+        <p>At persona transitions, shell fires a violet flash + headline emphasis. No click-to-handoff pause. Autoplay continues. Same-persona beats stay flat (no sweep).</p>
+      </div>
+
+      <div class="decision-item">
+        <h4>Speed baseline retuned: SPEED_MULTIPLIER = 1.75</h4>
+        <p>Effective playback rates are 1.75× / 2.625× / 3.5× (vs. displayed 1× / 1.5× / 2×). Cold-open default dropped from 1.5 to 1.0 since baseline is now faster.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="section">
+    <h2 class="section-title">4. Roadmap</h2>
+    <p class="intro-text">
+      Implied next work from recent commits and stubbed features. Organized by status as of 2026-05-07 handoff.
+    </p>
+
+    <div class="roadmap-section">
+      <h4>In-Flight: Studio Pipeline (MP4 → HTML)</h4>
+      <ul class="roadmap-items">
+        <li>Real Gemini 2.5 integration (currently stubbed behind GEMINI_API_KEY env var)</li>
+        <li>Per-stage output validators (every @@key@@ resolves, primitives in allowed set)</li>
+        <li>Frame-verdict edit endpoints (/api/builder/jobs/:id/triage/edit)</li>
+        <li>Segment-technique override endpoints (/api/builder/jobs/:id/segments/edit)</li>
+        <li>Hot-swap live preview via postMessage for verticalization edits</li>
+        <li>Job queue migration to BullMQ + Redis (for production traffic)</li>
+        <li>Regression CI hook (builder/regression/ format documented)</li>
+        <li>Role-based prompt-edit gating (separate from admin cookie)</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-section">
+      <h4>Build Queue: 17 Cells Need Content</h4>
+      <ul class="roadmap-items">
+        <li>HLS Maintenance: lifesciences, payor (2 cells)</li>
+        <li>HLS Fraud Fabric: provider, lifesciences, payor (3 cells)</li>
+        <li>PubSec Maintenance: fedgov, education (2 cells)</li>
+        <li>PubSec Fraud Fabric: fedgov, slgov, education (3 cells)</li>
+        <li>Nonprofit: maintenance, fraud, headless IAM (3 cells)</li>
+        <li>Cross-org Headless: verify /headless-iam/{fins,hls,ps}.html filters work per ?vertical= (bonus: full coverage = 9 subs tested)</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-section">
+      <h4>Pending Verifications (Patrick's Outstanding)</h4>
+      <ul class="roadmap-items">
+        <li>Replit walkthrough of shell keyboard model (beat scrubbing, playback speed cycles)</li>
+        <li>Sales/Procurement demo-stage wiring confirmation (both flipbooks + shell integration)</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-section">
+      <h4>Deferred: Future-State + Vignette Widgets</h4>
+      <ul class="roadmap-items">
+        <li>Future-state component wiring into Navigator surfaces (100 mocks drafted, not yet live)</li>
+        <li>Video-to-vignette widget polish (separate from studio pipeline; Patrick has a "big prompt" in flight)</li>
+        <li>Component redundancy harvest and CSS standardization (first longer-term improvement after MVP)</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-section">
+      <h4>Implicit Stretch: Story Asset Expansion</h4>
+      <ul class="roadmap-items">
+        <li>Cross-org (Sales/Procurement) wiring into first-week IAM handoff target</li>
+        <li>Nonprofit storyline completion (currently singletons across cells)</li>
+        <li>Headless IAM tenant portal polish for all 9+ sub-verticals</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showDetails(element, panelId) {
+  const panel = document.getElementById(panelId);
+  const allPanels = document.querySelectorAll('.details-panel');
+  const allItems = document.querySelectorAll('.tier-item.active');
+
+  if (panel.classList.contains('show')) {
+    panel.classList.remove('show');
+    element.classList.remove('active');
+  } else {
+    allPanels.forEach(p => p.classList.remove('show'));
+    allItems.forEach(item => item.classList.remove('active'));
+    panel.classList.add('show');
+    element.classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>

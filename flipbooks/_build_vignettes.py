@@ -161,6 +161,26 @@ DEMOS = [
             "CRM data. Reps stop assembling packets; Agentforce does."
         ),
     },
+    {
+        "slug": "Search_Agent",
+        "title": "Search Agent — natural-language discovery in Navigator",
+        "tag": "Navigator",
+        "blurb": (
+            "An agentic search experience over an organization's agreement "
+            "repository. Ask in natural language; the agent retrieves the "
+            "right contracts, surfaces the obligations, and explains the "
+            "answer."
+        ),
+    },
+    {
+        "slug": "Search_Demo",
+        "title": "Search — query the agreement repository",
+        "tag": "Navigator",
+        "blurb": (
+            "Searching across executed agreements to surface obligations, "
+            "dates, and counter-parties on demand."
+        ),
+    },
 ]
 
 
