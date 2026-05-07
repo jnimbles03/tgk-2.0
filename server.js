@@ -2245,6 +2245,160 @@ app.use((req, res, next) => {
   });
 });
 
+// =========================================================================
+//  /builder STUDIO — five-stage MP4-to-HTML demo pipeline
+//  -------------------------------------------------------------------------
+//  Spec: builder/README.md. All stages persist to builder/jobs/{id}/.
+//  Routes are admin-gated via requireBuilderAdmin (x-tgk-admin cookie).
+//  Stage 1 (DECODE) runs ffmpeg synchronously; remaining stages call the
+//  Gemini stub at builder/lib/model-invoke.js (fake mode if no API key).
+// =========================================================================
+let _studioJobStore = null, _studioPipeline = null, _studioPrompts = null, _studioModel = null;
+try {
+  _studioJobStore = require('./builder/lib/job-store');
+  _studioPipeline = require('./builder/lib/pipeline');
+  _studioPrompts  = require('./builder/lib/prompts');
+  _studioModel    = require('./builder/lib/model-invoke');
+} catch (e) {
+  console.warn('[/builder studio] lib not loaded:', e.message);
+}
+
+if (_studioJobStore && _multer) {
+  // Reusable upload — 200MB ceiling on a single MP4 + reference screenshots.
+  const studioUpload = _multer({
+    dest: '/tmp',
+    limits: { fileSize: 250 * 1024 * 1024 }
+  });
+
+  // Create a new job (uploads MP4 + optional reference screens).
+  app.post('/api/builder/jobs', requireBuilderAdmin,
+    studioUpload.fields([{ name: 'mp4', maxCount: 1 }, { name: 'reference', maxCount: 10 }]),
+    async (req, res) => {
+      try {
+        const { vertical, vendor, fps, classify_mode } = req.body || {};
+        const mp4File = (req.files?.mp4 || [])[0];
+        if (!mp4File) return res.status(400).json({ error: 'no_mp4' });
+
+        const { jobId, dir } = _studioJobStore.createJob({
+          vertical, vendor,
+          fps: parseFloat(fps) || 1,
+          classifyMode: classify_mode || 'auto',
+          originalFilename: mp4File.originalname
+        });
+
+        // Move uploaded files into the job's raw/ + reference-screens/ dirs.
+        fs.renameSync(mp4File.path, path.join(dir, 'raw', 'upload.mp4'));
+        for (const ref of (req.files?.reference || [])) {
+          fs.renameSync(ref.path, path.join(dir, 'reference-screens', ref.originalname));
+        }
+        res.json({ job_id: jobId });
+      } catch (err) {
+        console.error('[studio] job create failed:', err);
+        res.status(500).json({ error: String(err?.message || err) });
+      }
+    });
+
+  // List jobs (recent first).
+  app.get('/api/builder/jobs', requireBuilderAdmin, (req, res) => {
+    res.json({ jobs: _studioJobStore.listJobs() });
+  });
+
+  // Get job status.
+  app.get('/api/builder/jobs/:id', requireBuilderAdmin, (req, res) => {
+    try { res.json(_studioJobStore.readMeta(req.params.id)); }
+    catch (e) { res.status(404).json({ error: String(e.message || e) }); }
+  });
+
+  // Run a specific stage. Stages are independently re-runnable.
+  app.post('/api/builder/jobs/:id/stages/:stage', requireBuilderAdmin, async (req, res) => {
+    const { id, stage } = req.params;
+    const valid = ['decode', 'triage', 'classify', 'extract', 'render'];
+    if (!valid.includes(stage)) return res.status(400).json({ error: 'unknown_stage' });
+    try {
+      const result = await _studioPipeline.runStage(id, stage);
+      res.json(result);
+    } catch (err) {
+      console.error(`[studio] stage ${stage} failed:`, err);
+      res.status(500).json({ error: String(err?.message || err) });
+    }
+  });
+
+  // Run all stages in sequence (the autopilot path). Stops on the first
+  // failure or user_review_required gate. Used by the "Run all" button.
+  app.post('/api/builder/jobs/:id/run-all', requireBuilderAdmin, async (req, res) => {
+    const id = req.params.id;
+    const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+    const results = {};
+    try {
+      for (const s of stages) {
+        results[s] = await _studioPipeline.runStage(id, s);
+        if (results[s].ok === false) break;
+        const meta = _studioJobStore.readMeta(id);
+        if (meta.overall === 'awaiting_user') break;
+      }
+      res.json({ stages: results, meta: _studioJobStore.readMeta(id) });
+    } catch (err) {
+      res.status(500).json({ error: String(err?.message || err), partial: results });
+    }
+  });
+
+  // Verticalize: re-run only RENDER against edited content.json + theme.json.
+  app.post('/api/builder/jobs/:id/verticalize', requireBuilderAdmin, express.json({ limit: '5mb' }), async (req, res) => {
+    try {
+      const { content, theme } = req.body || {};
+      const result = await _studioPipeline.runVerticalize(req.params.id, content, theme);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: String(err?.message || err) });
+    }
+  });
+
+  // Serve job artifacts (frames, build/, blobs) read-only.
+  app.get('/api/builder/jobs/:id/artifact/*', requireBuilderAdmin, (req, res) => {
+    const rel = req.params[0];
+    if (rel.includes('..')) return res.status(400).send('bad path');
+    const abs = path.join(_studioJobStore.jobDir(req.params.id), rel);
+    if (!fs.existsSync(abs)) return res.status(404).send('not found');
+    res.sendFile(abs);
+  });
+
+  // Admin: list prompt versions.
+  app.get('/api/builder/admin/prompts', requireBuilderAdmin, (req, res) => {
+    res.json({
+      active_version: _studioPrompts.ACTIVE_VERSION(),
+      versions: _studioPrompts.listVersions(),
+      version: _studioPrompts.readVersion(req.query.version || _studioPrompts.ACTIVE_VERSION())
+    });
+  });
+
+  // Admin: save a prompt edit as a draft. Promotion happens via env flip.
+  app.post('/api/builder/admin/prompts/:stage', requireBuilderAdmin, express.json({ limit: '1mb' }), (req, res) => {
+    try {
+      const { content, fromVersion } = req.body || {};
+      const draft = _studioPrompts.saveDraft(fromVersion || _studioPrompts.ACTIVE_VERSION(), req.params.stage, content);
+      res.json({ ok: true, draft });
+    } catch (err) {
+      res.status(400).json({ error: String(err?.message || err) });
+    }
+  });
+
+  // Health check — model client + ffmpeg availability for the studio sidebar.
+  app.get('/api/builder/studio/health', requireBuilderAdmin, async (req, res) => {
+    const ff = await _studioPipeline.ffmpegAvailable();
+    const model = await _studioModel.modelHealth();
+    res.json({
+      ffmpeg: ff,
+      model,
+      prompts: { active_version: _studioPrompts.ACTIVE_VERSION(), versions: _studioPrompts.listVersions() },
+      config: _studioModel.config
+    });
+  });
+} else {
+  app.get('/api/builder/studio/health', (req, res) => {
+    res.status(503).json({ error: 'studio lib not loaded — check builder/lib/* installation and `npm install multer`' });
+  });
+}
+
 // --------- Static (HTML/JS/assets) ---------
 app.use(express.static(__dirname, {
   extensions: ['html'],
