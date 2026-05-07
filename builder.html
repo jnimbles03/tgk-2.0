@@ -1466,13 +1466,16 @@
                 Scene library
                 <span class="scene-count-pill" id="poolCount">13</span>
               </span>
-              <span class="panel-section-meta">Drag or tap + to add to timeline</span>
+              <span class="panel-section-meta" id="poolMeta">Scene templates · loading flipbook vignettes…</span>
             </div>
             <div class="panel-section-body">
               <div class="pool-row" id="pool" aria-label="Scene pool"></div>
               <p class="pool-hint">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 Tap any block to append · drag to place at a specific position
+                <span style="margin-left:auto;font-size:10.5px;color:var(--muted);">
+                  Need a new vignette? <a href="#" id="poolMp4Link" style="color:var(--ds-cobalt);text-decoration:none;">Upload an MP4 →</a>
+                </span>
               </p>
             </div>
           </div>
@@ -2071,6 +2074,27 @@
     if (n >= 1 && n <= 3) exitAdminMode();
     return _origGoToStage(n, allowBack);
   };
+
+  /* "Upload an MP4 →" affordance in the scene library — points authors
+     at Stage 4 Admin tools' Card A (the canonical MP4→vignette location).
+     Prompts for AdminAuth if locked; on unlock enters Stage 4 and scrolls
+     the MP4 card into view. */
+  const _poolMp4Link = document.getElementById('poolMp4Link');
+  if (_poolMp4Link) {
+    _poolMp4Link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const goAdmin = () => {
+        document.body.classList.add('is-admin-unlocked');
+        enterAdminMode();
+        setTimeout(() => {
+          const card = document.getElementById('admin-A');
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      };
+      if (window.AdminAuth && window.AdminAuth.isUnlocked()) { goAdmin(); return; }
+      if (window.AdminAuth) window.AdminAuth.prompt().then(ok => { if (ok) goAdmin(); });
+    });
+  }
 
   // Topbar Admin button: prompt for password, on unlock enter admin mode
   document.getElementById('adminBtn').addEventListener('click', () => {
@@ -2758,9 +2782,13 @@
        Pages mirror, and we don't want to spam the console. The pool
        just stays at 13 canonical scene templates. */
     async function loadFlipbookManifest() {
+      const meta = document.getElementById('poolMeta');
       try {
         const r = await fetch('/flipbooks/manifest.json', { cache: 'no-store' });
-        if (!r.ok) return;
+        if (!r.ok) {
+          if (meta) meta.textContent = 'Scene templates · flipbook manifest unavailable on this deploy';
+          return;
+        }
         const m = await r.json();
         const fbs = (m && m.flipbooks) || [];
         // Drop any existing flipbook entries so re-fetch is idempotent.
@@ -2786,7 +2814,14 @@
           SCENE_BY_ID['flipbook:' + slug] = SCENE_LIBRARY[SCENE_LIBRARY.length - 1];
         }
         renderPool();
-      } catch (_) { /* manifest unavailable — quiet */ }
+        if (meta) {
+          meta.textContent = fbs.length === 0
+            ? 'Scene templates · no flipbook vignettes in manifest'
+            : 'Scene templates + ' + fbs.length + ' flipbook vignette' + (fbs.length === 1 ? '' : 's');
+        }
+      } catch (_) {
+        if (meta) meta.textContent = 'Scene templates · flipbook manifest fetch failed';
+      }
     }
 
     function updateCounts() {
