@@ -812,7 +812,7 @@
 
     // ----------------------------------------------------------------
     // Toast + end-of-demo + keyboard speed cycling — ported 2026-05-06
-    // from _persona-keyboard-demo.html spec. Mirrors the equivalent
+    // from docs/experiments/_persona-keyboard-demo.html spec. Mirrors the equivalent
     // wiring in stories/_shared/story-shell.html so Sales + Procurement
     // demo-stages share keyboard semantics with the main story shell.
     // ----------------------------------------------------------------

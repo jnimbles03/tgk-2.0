@@ -61,15 +61,37 @@ Add a new vertical                     → 3 edits: VERTICALS block, PRESETS blo
 │                                          Navigator, Workspace) + callable vignettes
 ├── components/{current-state,future-state}/   ← ~200 component mocks for drill-downs
 ├── headless-iam/{fins,hls,ps}.html     ← tenant-branded portals (cluster-level)
-├── flipbooks/                          ← MP4 → stills → HTML pipeline output (~13 vignettes)
+├── flipbooks/                          ← MP4 → stills → HTML pipeline output (~17 vignettes)
+├── builder/                            ← NEW. 5-stage MP4→animated-HTML studio pipeline.
+│   ├── README.md                          architecture + wired-vs-stubbed map
+│   ├── prompts/v1/                        verbatim Gemini prompts (versioned)
+│   ├── lib/                               prompts loader, model client, job store, runner
+│   ├── jobs/                              gitignored per-job storage
+│   └── regression/                        CI manifest format
+├── docs/                               ← reference docs + experimental surfaces
+│   ├── solution-design.html              one-page architecture reference
+│   ├── STORYLINES.md, _docusign-template-spec.md, _cleanup_candidates.md
+│   ├── HLS Discovery Playbook…, Public Sector.md, TGK-2.0-Imagery-Spec.xlsx
+│   └── experiments/                      HANDOFF.html, _persona-keyboard-demo.html
 ├── assets/{wizard,demo-stage,admin-auth,sor-badge}/   ← reusable JS+CSS primitives
 ├── picker.html                         ← canonical 4×3×5 grid nav
 ├── builder.html                        ← Demo iMovie (Stage 1-4)
+├── studio.html                         ← NEW. 5-stage MP4→HTML pipeline UI
 ├── audit.html + audit-grid.html        ← classic dashboard + simplified grid
 ├── admin/index.html                    ← /admin/audit
 ├── server.js                           ← Express backend (Replit only)
 └── _audits/                            ← planning docs + audit toolkit
 ```
+
+### Reorg state (2026-05-07)
+
+The above is the post-handoff target. As of today, **moved**: the doc files
+listed under `docs/` and `docs/experiments/`. **Still at root** (deferred —
+each has runtime references that need careful inbound-ref updates):
+`architecture.html`, `audit-dashboard.html`, `dashboard.html`, `landing.html`,
+`index-playbook.html`, `auto.html`, `composition-stack.html`, `geos.html`,
+`index-unified.html`. Owners can proceed file-by-file; check
+`grep -rn "<filename>"` before each move and update picker.html / server.js / scripts.
 
 ## Conventions
 
