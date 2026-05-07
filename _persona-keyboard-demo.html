@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo of the demo — keyboard model + persona break</title>
+<style>
+:root {
+  --ink: #130032;
+  --ink-mid: #4a3a6f;
+  --ink-soft: #6b5a8a;
+  --hair: rgba(19,0,50,.10);
+  --hair-strong: rgba(19,0,50,.18);
+  --bg: #F3EEE9;
+  --paper: #FFFFFF;
+  --tenant-accent: #3FDA99;
+  --ds-purple: #4C00FF;
+  --step-blue: #4C00FF;
+  --ui-font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--ui-font);
+  color: var(--ink);
+  background: #E8E2DA;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background: var(--bg);
+}
+
+/* ========= SIDEBAR (locked size, no animations) ========= */
+.sidebar {
+  position: relative;
+  width: 24%;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 28px 32px 20px;
+  background: var(--paper);
+  border-right: 1px solid var(--hair);
+  display: flex;
+  flex-direction: column;
+}
+
+/* persona-break sweep — only this fires on persona flips */
+.sidebar::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(75,0,233,0.10) 50%,
+    transparent 65%,
+    transparent 100%);
+  pointer-events: none;
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 5;
+}
+@keyframes personaBreakSweep {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.sidebar.is-persona-break::before {
+  animation: personaBreakSweep 360ms cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes personaBreakHeadlineFlash {
+  0%   { opacity: 1; transform: translateY(0); filter: blur(0); }
+  35%  { opacity: 0.15; transform: translateY(-3px); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.sidebar.is-persona-break .headline,
+.sidebar.is-persona-break .lede {
+  animation: personaBreakHeadlineFlash 360ms cubic-bezier(.4,0,.2,1) both;
+}
+
+.brand {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-bottom: 22px;
+}
+
+/* persona chip — no bounce, no pulse, no resize */
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  transition: opacity 0.22s ease;
+}
+.persona.persona-fading { opacity: 0; }
+.persona .avatar {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tenant-accent);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+  transition: background 0.32s ease;
+}
+.persona[data-side="client"] .avatar { background: var(--ds-purple); }
+.persona[data-side="system"] .avatar { background: var(--ink-soft); }
+.persona[data-side="handoff"] .avatar {
+  background: linear-gradient(135deg,
+    var(--tenant-accent) 0%, var(--tenant-accent) 50%,
+    var(--ds-purple) 50%, var(--ds-purple) 100%);
+}
+.persona .meta {
+  display: flex; flex-direction: column;
+  line-height: 1.2; min-width: 0;
+}
+.persona .name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.persona .role {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--step-blue);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.headline {
+  font-family: var(--ui-font);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  line-height: 1.22;
+  margin-bottom: 18px;
+}
+.lede {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  opacity: 0.85;
+}
+
+.foot-spacer { flex: 1; }
+
+.beat-pips {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.beat-pips .p {
+  width: 16px; height: 3px;
+  background: var(--hair);
+  border-radius: 2px;
+  transition: background 0.18s ease;
+}
+.beat-pips .p.on { background: var(--ds-purple); }
+.beat-pips .p.done { background: rgba(75,0,233,.35); }
+
+.progress {
+  margin-bottom: 12px;
+}
+.progress .track {
+  height: 3px;
+  background: var(--hair);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress .fill {
+  height: 100%;
+  background: var(--ds-purple);
+  width: 0;
+  transition: width 0.1s linear;
+}
+.progress .meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint-row {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hint-row .kb-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.hint-row kbd {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  padding: 2px 6px;
+  background: #fff;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  color: var(--ink-mid);
+  font-weight: 600;
+  line-height: 1;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ========= STAGE (mock iframe) ========= */
+.stage {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, #ECE7DF 0%, #DCD4C8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.stage-mock {
+  width: 86%;
+  height: 78%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(19,0,50,0.14);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.stage-chrome {
+  height: 38px;
+  background: #F8F6F2;
+  border-bottom: 1px solid var(--hair);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 6px;
+}
+.stage-chrome .dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+}
+.stage-chrome .dot.r { background: #ff5f57; }
+.stage-chrome .dot.y { background: #ffbd2e; }
+.stage-chrome .dot.g { background: #28c840; }
+.stage-chrome .scene-name {
+  margin-left: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.stage-body {
+  flex: 1;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.stage-body .placeholder {
+  border: 1px dashed var(--hair-strong);
+  border-radius: 6px;
+  padding: 20px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.stage-body .placeholder.row {
+  display: flex; gap: 14px;
+}
+.stage-body .placeholder.row > div { flex: 1; }
+.stage-body .scene-headline {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.stage-body .scene-sub {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+/* small toast for state changes */
+.toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: white;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(19,0,50,0.25);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* meta banner explaining the demo */
+.meta-banner {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  background: rgba(19,0,50,0.92);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 280px;
+  box-shadow: 0 4px 16px rgba(19,0,50,0.2);
+}
+.meta-banner b { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; opacity: 0.7; }
+.meta-banner span { line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="meta-banner">
+  <b>Demo of the demo</b>
+  <span><kbd style="background:#fff;color:#130032;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:10px;">Space</kbd> play/pause</span>
+  <span><kbd style="background:#fff;color:#130032;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:10px;">←</kbd><kbd style="background:#fff;color:#130032;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:10px;">→</kbd> scrub when paused, speed when playing</span>
+  <span style="margin-top:4px;opacity:0.8;">Persona-break sweep fires only on actor flips (★)</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">docusign × Hillside</div>
+    <div class="persona" id="persona" data-side="advisor">
+      <span class="avatar" id="avatar">CW</span>
+      <span class="meta">
+        <span class="name" id="persona-name">Cathie Woods</span>
+        <span class="role" id="persona-role">Director of Advisor Onboarding · Hillside</span>
+      </span>
+    </div>
+    <div class="step-label" id="step-label">SCENE 1 OF 5</div>
+    <h1 class="headline" id="headline">Cathie opens the IRA rollover for the household.</h1>
+    <div class="lede" id="lede">She drops one envelope into the Agreement Desk; the workflow fans out the disclosures, sub-account forms, and KYC behind the scenes.</div>
+    <div class="foot-spacer"></div>
+    <div class="beat-pips" id="beat-pips"></div>
+    <div class="progress">
+      <div class="track"><div class="fill" id="progress-fill"></div></div>
+      <div class="meta">
+        <span id="beat-counter">Beat 1 of 11</span>
+        <span id="state-pill">paused</span>
+      </div>
+    </div>
+    <div class="hint-row">
+      <span class="kb-hint"><kbd>Space</kbd> play/pause</span>
+      <span class="kb-hint"><kbd>←</kbd><kbd>→</kbd> <span id="kb-arrows-mode">scrub beats</span></span>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div class="stage-mock">
+      <div class="stage-chrome">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="scene-name" id="stage-scene-name">Agreement Desk</span>
+      </div>
+      <div class="stage-body" id="stage-body">
+        <!-- gets re-rendered per beat -->
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* === BEATS — 11 beats with deliberate persona flips === */
+const BEATS = [
+  // SCENE 1 — Sender (Cathie / advisor) — 3 beats, no flip
+  { scene: 1, sceneName: 'Agreement Desk',
+    side: 'advisor', avatar: 'CW', name: 'Cathie Woods', role: 'Director of Advisor Onboarding · Hillside',
+    step: 'SCENE 1 OF 5',
+    headline: 'Cathie opens the IRA rollover for the household.',
+    lede: 'She drops one envelope into the Agreement Desk; the workflow fans out the disclosures, sub-account forms, and KYC behind the scenes.',
+    stageBlocks: ['IRA Rollover Packet', 'Routing → Patrick · Cathie · Trust Attorney', 'Maestro fan-out (5 documents)'] },
+  { scene: 1, sceneName: 'Agreement Desk',
+    side: 'advisor', avatar: 'CW', name: 'Cathie Woods', role: 'Director of Advisor Onboarding · Hillside',
+    step: 'SCENE 1 OF 5',
+    headline: 'The packet auto-assembles the right disclosures.',
+    lede: 'Sub-account types pulled from CRM; disclosures pulled from compliance library. No copy-paste, no manual checklist.',
+    stageBlocks: ['Sub-account: Roth IRA, SEP IRA', 'Disclosures: Form CRS, Reg BI', 'Beneficiary form: pre-populated from household'] },
+  { scene: 1, sceneName: 'Agreement Desk',
+    side: 'advisor', avatar: 'CW', name: 'Cathie Woods', role: 'Director of Advisor Onboarding · Hillside',
+    step: 'SCENE 1 OF 5',
+    headline: 'Sent. The household gets one link.',
+    lede: 'Cathie hits send. Patrick receives a Hillside-branded email with one link — every document inside, in the right order.',
+    stageBlocks: ['Envelope sent: 5 documents', 'Recipient: Patrick Meyer (TGK Capital)', 'Branded email queued'] },
+
+  // SCENE 2 — Identity (Patrick / client) — FLIP from advisor → client
+  { scene: 2, sceneName: 'CLEAR Identity', flipFromPrev: true,
+    side: 'client', avatar: 'PM', name: 'Patrick Meyer', role: 'Founder & Managing Partner · TGK Capital',
+    step: 'SCENE 2 OF 5',
+    headline: 'Patrick verifies once.',
+    lede: 'Desktop consent, mobile capture. CLEAR runs PEP, OFAC, and biometric match silently — one IAL2 verification binds to every downstream document.',
+    stageBlocks: ['Desktop: consent screen', 'Mobile: ID capture', 'CLEAR: IAL2 verification'] },
+  { scene: 2, sceneName: 'CLEAR Identity',
+    side: 'client', avatar: 'PM', name: 'Patrick Meyer', role: 'Founder & Managing Partner · TGK Capital',
+    step: 'SCENE 2 OF 5',
+    headline: 'Verified everywhere.',
+    lede: 'The same identity binding now applies to every document in the envelope. No re-verifications, no re-consents.',
+    stageBlocks: ['IAL2 binding: stored', 'Coverage: all 5 documents', 'No re-prompt downstream'] },
+
+  // SCENE 3 — Signing (Patrick / client) — same persona, NO flip
+  { scene: 3, sceneName: 'Signing Ceremony',
+    side: 'client', avatar: 'PM', name: 'Patrick Meyer', role: 'Founder & Managing Partner · TGK Capital',
+    step: 'SCENE 3 OF 5',
+    headline: 'Patrick signs from the kitchen table.',
+    lede: 'No PDF print, no overnight courier, no advisor handoff. Hillside branding throughout, on phone.',
+    stageBlocks: ['Document 1 of 5: signed', 'Document 2 of 5: signed', 'Tap to advance'] },
+
+  // Quick handoff to system AI for compliance checks — FLIP client → system
+  { scene: 3, sceneName: 'Signing Ceremony', flipFromPrev: true,
+    side: 'system', avatar: 'AI', name: 'AI assistant', role: 'AI · Compliance Pre-check',
+    step: 'SCENE 3 OF 5',
+    headline: 'AI verifies the disclosure trail.',
+    lede: 'Before routing onward, the AI verifies every required disclosure was acknowledged. Anomalies pause the route; clean trails advance.',
+    stageBlocks: ['Form CRS: acknowledged', 'Reg BI: acknowledged', 'Suitability addendum: acknowledged'] },
+
+  // Back to client — FLIP system → client
+  { scene: 3, sceneName: 'Signing Ceremony', flipFromPrev: true,
+    side: 'client', avatar: 'PM', name: 'Patrick Meyer', role: 'Founder & Managing Partner · TGK Capital',
+    step: 'SCENE 3 OF 5',
+    headline: 'Patrick finishes the last document.',
+    lede: 'Beneficiary form completed. Routing automatically advances to Cathie for advisor sign-off.',
+    stageBlocks: ['Document 5 of 5: signed', 'Routing → Cathie Woods', 'ETA: < 1 minute'] },
+
+  // SCENE 4 — Data review (Cathie / advisor) — FLIP client → advisor
+  { scene: 4, sceneName: 'Agreement Repository', flipFromPrev: true,
+    side: 'advisor', avatar: 'CW', name: 'Cathie Woods', role: 'Director of Advisor Onboarding · Hillside',
+    step: 'SCENE 4 OF 5',
+    headline: 'Every clause queryable.',
+    lede: 'Cathie searches the repository: "Show me Patrick\'s beneficiary designations." Navigator extracts and surfaces them inline.',
+    stageBlocks: ['Beneficiary 1: Spouse (50%)', 'Beneficiary 2: Trust (30%)', 'Beneficiary 3: Charity (20%)'] },
+  { scene: 4, sceneName: 'Agreement Repository',
+    side: 'advisor', avatar: 'CW', name: 'Cathie Woods', role: 'Director of Advisor Onboarding · Hillside',
+    step: 'SCENE 4 OF 5',
+    headline: 'Fees, terms, and rollover dates indexed.',
+    lede: 'Same repository surfaces fee schedule, rollover effective date, and trust attorney contact — without opening a single PDF.',
+    stageBlocks: ['Fee schedule: 0.85% AUM', 'Rollover effective: 2026-06-01', 'Trust attorney: Walker & Co.'] },
+
+  // SCENE 5 — Workspace handoff — FLIP advisor → handoff (TGK ↔ Hillside)
+  { scene: 5, sceneName: 'Workspace', flipFromPrev: true,
+    side: 'handoff', avatar: 'T→', name: 'TGK → Hillside', role: 'Multi-Recipient Routing',
+    step: 'SCENE 5 OF 5',
+    headline: 'A shared room for the household.',
+    lede: 'Patrick, Cathie, and the trust attorney now share one Workspace — every future document anchored to the household, never re-onboarded.',
+    stageBlocks: ['Members: Patrick · Cathie · Trust Attorney', 'Anchored: 5 signed agreements', 'Ready: future doc routing'] }
+];
+
+const BEAT_DURATION_MS = 4500; // baseline; multiplied by 1/playbackRate effectively
+const ALLOWED_RATES = [1, 1.5, 2];
+
+let beatIdx = 0;
+let playing = false;
+let playbackRate = 1.5;
+let beatStartTime = 0;
+let raf = null;
+
+const $ = id => document.getElementById(id);
+
+function showToast(msg, ms=1100) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function renderBeatPips() {
+  const pips = $('beat-pips');
+  pips.innerHTML = BEATS.map((_, i) => {
+    let cls = 'p';
+    if (i < beatIdx) cls += ' done';
+    else if (i === beatIdx) cls += ' on';
+    return `<span class="${cls}"></span>`;
+  }).join('');
+}
+
+function renderStage(beat) {
+  $('stage-scene-name').textContent = beat.sceneName;
+  const blocks = beat.stageBlocks.map(b => `<div class="placeholder">${b}</div>`).join('');
+  $('stage-body').innerHTML = `
+    <div class="scene-headline">${beat.sceneName} — beat ${beatIdx + 1}</div>
+    <div class="scene-sub">Mock stage frame · in the real shell this is an iframe of the scene template.</div>
+    ${blocks}
+  `;
+}
+
+function renderBeat(opts={}) {
+  const beat = BEATS[beatIdx];
+
+  // PERSONA BREAK — only fires on actor flips, not on routine advances
+  if (beat.flipFromPrev && !opts.skipBreak) {
+    const sb = $('sidebar');
+    sb.classList.remove('is-persona-break');
+    void sb.offsetWidth; // reflow to re-trigger
+    sb.classList.add('is-persona-break');
+    setTimeout(() => sb.classList.remove('is-persona-break'), 400);
+  }
+
+  // Persona swap (with smooth opacity transition)
+  const persona = $('persona');
+  persona.classList.add('persona-fading');
+  setTimeout(() => {
+    persona.dataset.side = beat.side;
+    $('avatar').textContent = beat.avatar;
+    $('persona-name').textContent = beat.name;
+    $('persona-role').textContent = beat.role;
+    persona.classList.remove('persona-fading');
+  }, 90);
+
+  $('step-label').textContent = beat.step;
+  $('headline').textContent = beat.headline;
+  $('lede').textContent = beat.lede;
+  $('beat-counter').textContent = `Beat ${beatIdx + 1} of ${BEATS.length}`;
+  renderBeatPips();
+  renderStage(beat);
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (!beatStartTime) beatStartTime = now;
+  const elapsed = (now - beatStartTime) * playbackRate;
+  const pct = Math.min(1, elapsed / BEAT_DURATION_MS);
+  $('progress-fill').style.width = (pct * 100) + '%';
+  if (pct >= 1) {
+    if (beatIdx < BEATS.length - 1) {
+      beatIdx++;
+      beatStartTime = now;
+      renderBeat();
+    } else {
+      // end of demo — auto-pause
+      playing = false;
+      updateState();
+      showToast('End of demo. Press Space to restart.');
+      $('progress-fill').style.width = '100%';
+      return;
+    }
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+function togglePlay() {
+  if (beatIdx === BEATS.length - 1 && !playing) {
+    // restart
+    beatIdx = 0;
+    renderBeat({ skipBreak: true });
+  }
+  playing = !playing;
+  if (playing) {
+    beatStartTime = 0;
+    raf = requestAnimationFrame(tick);
+  } else {
+    cancelAnimationFrame(raf);
+  }
+  updateState();
+}
+
+function updateState() {
+  $('state-pill').textContent = playing ? `playing · ${playbackRate}×` : 'paused';
+  $('kb-arrows-mode').textContent = playing ? `speed (${playbackRate}×)` : 'scrub beats';
+}
+
+function cycleSpeed(direction) {
+  const i = ALLOWED_RATES.indexOf(playbackRate);
+  const next = Math.max(0, Math.min(ALLOWED_RATES.length - 1, i + direction));
+  if (ALLOWED_RATES[next] === playbackRate) {
+    showToast(direction > 0 ? `Already at ${playbackRate}× (max)` : `Already at ${playbackRate}× (min)`);
+    return;
+  }
+  playbackRate = ALLOWED_RATES[next];
+  updateState();
+  showToast(`Speed → ${playbackRate}×`);
+}
+
+function advance() {
+  if (beatIdx >= BEATS.length - 1) { showToast('Already at last beat'); return; }
+  beatIdx++;
+  beatStartTime = 0;
+  $('progress-fill').style.width = '0%';
+  renderBeat();
+}
+function rewind() {
+  if (beatIdx <= 0) { showToast('Already at first beat'); return; }
+  beatIdx--;
+  beatStartTime = 0;
+  $('progress-fill').style.width = '0%';
+  renderBeat();
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  // Arrow semantics:
+  //   playing → ←/→ adjust speed
+  //   paused  → ←/→ scrub beats
+  if (e.key === 'ArrowLeft')  { if (playing) cycleSpeed(-1); else rewind();  e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { if (playing) cycleSpeed(+1); else advance(); e.preventDefault(); }
+  else if (e.key === ' ') { togglePlay(); e.preventDefault(); }
+});
+
+// initial render
+renderBeat({ skipBreak: true });
+updateState();
+</script>
+</body>
+</html>

@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TGK 2.0 — Surgical Edit Locator</title>
+<style>
+  :root {
+    --ink: #1B1F2A;
+    --ink-soft: #4A4F5C;
+    --ink-mute: #7A7F8C;
+    --ecru: #F5F0E6;
+    --ecru-deep: #EDE6D6;
+    --mist: #E8EAEE;
+    --paper: #FBF8F1;
+    --violet: #2E1A47;
+    --violet-soft: #5A3F7A;
+    --poppy: #C0432A;
+    --line: rgba(27,31,42,0.10);
+    --line-soft: rgba(27,31,42,0.05);
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--ecru);
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 56px 40px 120px; }
+
+  /* Masthead */
+  .mast { border-bottom: 1px solid var(--line); padding-bottom: 32px; margin-bottom: 40px; }
+  .mast .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); margin: 0 0 12px; font-weight: 600; }
+  .mast h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--violet); line-height: 1.1; }
+  .mast .lede { font-size: 16px; color: var(--ink-soft); max-width: 660px; margin: 0; }
+  .mast .meta { margin-top: 18px; font-size: 12px; color: var(--ink-mute); font-family: var(--mono); }
+
+  /* Section */
+  section { margin-bottom: 56px; }
+  h2 { font-family: var(--serif); font-weight: 400; font-size: 26px; margin: 0 0 8px; color: var(--violet); letter-spacing: -0.005em; }
+  .section-sub { color: var(--ink-mute); font-size: 14px; margin: 0 0 28px; max-width: 680px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 36px; flex-wrap: wrap; }
+  .tab {
+    background: none; border: none; padding: 14px 0;
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    color: var(--ink-mute); cursor: pointer; letter-spacing: 0.02em;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    margin-right: 32px; transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--violet); border-bottom-color: var(--violet); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Sub-section anchors inside a panel */
+  .anchor-bar {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    padding: 14px 0; margin-bottom: 32px;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    position: sticky; top: 0; background: var(--ecru); z-index: 5;
+  }
+  .anchor-bar a { color: var(--ink-mute); text-decoration: none; font-size: 12px; letter-spacing: 0.04em; font-weight: 500; }
+  .anchor-bar a:hover { color: var(--violet); }
+  .sub-h { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--violet); margin: 48px 0 4px; letter-spacing: -0.005em; }
+  .sub-h:first-child { margin-top: 0; }
+  .sub-lede { color: var(--ink-mute); font-size: 13.5px; margin: 0 0 22px; max-width: 680px; }
+
+  /* Card primitives */
+  .card {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 4px;
+    padding: 28px 32px; margin-bottom: 16px;
+  }
+  .card h3 { font-family: var(--serif); font-weight: 400; font-size: 19px; margin: 0 0 6px; color: var(--violet); }
+  .card .lede { color: var(--ink-soft); font-size: 14px; margin: 0 0 14px; }
+  .card ul, .card ol { margin: 8px 0; padding-left: 22px; color: var(--ink-soft); font-size: 14px; }
+  .card ul li, .card ol li { margin-bottom: 4px; }
+  .card code, td code, .lede code, p code { font-family: var(--mono); font-size: 12.5px; background: var(--mist); padding: 1px 6px; border-radius: 2px; color: var(--ink); }
+
+  .card.numbered { position: relative; padding-left: 76px; }
+  .card.numbered .num {
+    position: absolute; top: 28px; left: 32px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-mute); letter-spacing: 0.16em;
+  }
+
+  .note {
+    margin-top: 14px; padding: 12px 16px; background: var(--ecru-deep);
+    border-left: 3px solid var(--violet-soft); font-size: 13px; color: var(--ink-soft); border-radius: 0 3px 3px 0;
+  }
+  .note.warn { border-left-color: var(--poppy); }
+  .note strong { color: var(--ink); font-weight: 600; }
+
+  /* Locator */
+  .locator { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; }
+  .step { display: none; padding: 32px 36px; }
+  .step.active { display: block; animation: fade 0.2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .step h3 { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 0 0 6px; color: var(--violet); }
+  .step .hint { color: var(--ink-mute); font-size: 13px; margin: 0 0 22px; }
+  .choices { display: grid; gap: 8px; }
+  .choice {
+    text-align: left; background: white; border: 1px solid var(--line);
+    border-radius: 3px; padding: 14px 18px; cursor: pointer;
+    font-family: var(--sans); font-size: 14px; color: var(--ink);
+    transition: border-color 0.12s, background 0.12s;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .choice:hover { border-color: var(--violet); background: var(--ecru-deep); }
+  .choice .label { font-weight: 500; }
+  .choice .sub { color: var(--ink-mute); font-size: 12px; margin-top: 3px; font-weight: 400; }
+  .choice .arrow { color: var(--violet-soft); font-family: var(--mono); flex-shrink: 0; }
+
+  .nav { display: flex; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
+  .btn { background: none; border: 1px solid var(--line); padding: 7px 14px; border-radius: 3px;
+    font-family: var(--sans); font-size: 12px; cursor: pointer; color: var(--ink-soft); }
+  .btn:hover { border-color: var(--violet); color: var(--violet); }
+  .btn.primary { background: var(--violet); color: white; border-color: var(--violet); }
+  .btn.primary:hover { background: var(--violet-soft); border-color: var(--violet-soft); color: white; }
+
+  /* Answer card (locator terminal) */
+  .answer { background: white; border: 1px solid var(--line); border-radius: 4px; padding: 32px 36px; }
+  .answer .label-row { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--poppy); font-weight: 600; margin-bottom: 12px; }
+  .answer h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 6px; color: var(--violet); line-height: 1.25; }
+  .answer .summary { color: var(--ink-soft); margin: 0 0 22px; font-size: 14px; }
+  .file-block {
+    background: var(--ecru); border: 1px solid var(--line); border-radius: 3px;
+    padding: 14px 18px; margin: 10px 0; font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .file-block .path { word-break: break-all; }
+  .file-block .line { color: var(--violet-soft); white-space: nowrap; font-size: 12px; }
+  .answer ol { margin: 14px 0 0; padding-left: 22px; color: var(--ink-soft); font-size: 14px; }
+  .answer ol li { margin-bottom: 7px; }
+
+  /* Architecture diagram */
+  .arch { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 28px 32px; }
+  .arch-row {
+    display: grid; grid-template-columns: 180px 24px 1fr; gap: 16px; align-items: start;
+    padding: 14px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .arch-row:last-child { border-bottom: none; }
+  .arch-row .level { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; padding-top: 2px; }
+  .arch-row .pipe { font-family: var(--mono); color: var(--violet-soft); text-align: center; font-size: 14px; padding-top: 1px; }
+  .arch-row .body { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+  .arch-row .body .file { color: var(--violet); }
+  .arch-row .body .desc { color: var(--ink-mute); font-family: var(--sans); font-size: 13px; margin-top: 3px; }
+
+  /* Code blocks */
+  pre.code {
+    background: #1B1F2A; color: #F5F0E6;
+    padding: 18px 22px; border-radius: 3px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    margin: 12px 0 0; white-space: pre;
+  }
+  pre.code .c { color: #8C8479; font-style: italic; }
+  pre.code .k { color: #C99FE0; }
+  pre.code .s { color: #E8C26A; }
+  pre.code .n { color: #7DC9BA; }
+  pre.code .t { color: #E89870; }
+  pre.code .p { color: #94A3B8; }
+
+  /* URL Builder */
+  .url-builder { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 28px 32px; }
+  .form-row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; margin-bottom: 12px; }
+  .form-row label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; }
+  .form-row select {
+    font-family: var(--mono); font-size: 13px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 3px;
+    background: white; color: var(--ink); width: 100%;
+  }
+  .form-row select:focus { outline: none; border-color: var(--violet); }
+  .url-output { margin-top: 18px; padding: 16px 18px; background: var(--violet); color: var(--ecru); border-radius: 3px; font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+  .url-output .label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,240,230,0.55); margin-bottom: 6px; }
+  .url-loads { margin-top: 16px; font-size: 13px; color: var(--ink-soft); }
+  .url-loads .header { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 6px; font-weight: 600; }
+  .url-loads ul { margin: 0; padding-left: 18px; font-family: var(--mono); font-size: 12px; }
+  .url-loads ul li { margin-bottom: 2px; color: var(--ink); }
+
+  /* Vertical Index */
+  .vsearch { padding: 9px 14px; border: 1px solid var(--line); border-radius: 3px; font-family: var(--sans); font-size: 13px; width: 100%; max-width: 320px; margin-bottom: 14px; }
+  .vsearch:focus { outline: none; border-color: var(--violet); }
+  table.idx { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.idx th { text-align: left; padding: 10px 14px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); border-bottom: 1px solid var(--line); font-weight: 600; }
+  table.idx td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.idx td.key { font-family: var(--mono); color: var(--violet); }
+  table.idx td.line { font-family: var(--mono); color: var(--ink-mute); text-align: right; width: 72px; }
+  table.idx tr:hover td { background: var(--paper); }
+
+  /* Schema cards */
+  .schema-toc {
+    background: white; border: 1px solid var(--line); border-radius: 3px;
+    padding: 16px 22px; margin-bottom: 24px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 20px;
+  }
+  .schema-toc a {
+    color: var(--violet); text-decoration: none; font-size: 12.5px;
+    padding: 3px 0;
+  }
+  .schema-toc a:hover { text-decoration: underline; }
+  .schema-toc a .num { color: var(--ink-mute); font-family: var(--mono); font-size: 11px; margin-right: 8px; }
+
+  .schema-card .meta-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); font-size: 11.5px; color: var(--ink-mute);
+  }
+  .schema-card .meta-row code { font-family: var(--mono); color: var(--violet); background: var(--mist); padding: 1px 6px; border-radius: 2px; font-size: 11.5px; }
+  .field-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+  .field-table th { text-align: left; padding: 9px 14px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); border-bottom: 1px solid var(--line); font-weight: 600; }
+  .field-table td { padding: 9px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .field-table td.field { font-family: var(--mono); color: var(--violet); white-space: nowrap; font-size: 12px; }
+  .field-table td.type { font-family: var(--mono); color: var(--poppy); font-size: 11.5px; white-space: nowrap; }
+  .field-table td.desc { color: var(--ink-soft); }
+
+  /* Inventory */
+  .inv-section { margin-bottom: 32px; }
+  table.inv { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  table.inv th { text-align: left; padding: 11px 16px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); border-bottom: 1px solid var(--line); font-weight: 600; background: white; }
+  table.inv td { padding: 11px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.inv tr:last-child td { border-bottom: none; }
+  table.inv td.path { font-family: var(--mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+  table.inv td.role { color: var(--ink-soft); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+  }
+  .badge.live   { background: #E8F0EA; color: #2D6F4A; }
+  .badge.legacy { background: #F0E8E8; color: #8C3A3A; }
+  .badge.shim   { background: #F0EAD8; color: #6F5A18; }
+  .badge.exp    { background: #E8E6F0; color: #4B3FBF; }
+
+  @media (max-width: 760px) {
+    .wrap { padding: 36px 22px 80px; }
+    .mast h1 { font-size: 30px; }
+    .arch-row { grid-template-columns: 1fr; }
+    .arch-row .pipe { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .schema-toc { grid-template-columns: 1fr; }
+    .card.numbered { padding-left: 32px; }
+    .card.numbered .num { position: static; display: block; margin-bottom: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">TGK 2.0 · Internal handoff</p>
+  <h1>Surgical Edit Locator</h1>
+  <p class="lede">Tell it what you want to change. It tells you the exact file and line. Built for surgical updates — no narrative, no strategy. For state and roadmap, see CANONICAL.md.</p>
+  <p class="meta">Verified against repo · 2026-05-06 · 23 verticals · single shell at <code style="font-family:var(--mono);background:none;color:var(--ink-mute);padding:0;">stories/_shared/story-shell.html</code></p>
+</header>
+
+<section>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="start">Start</button>
+    <button class="tab" data-tab="locator">Locator</button>
+    <button class="tab" data-tab="reference">Reference</button>
+    <button class="tab" data-tab="ops">Operations</button>
+    <button class="tab" data-tab="inv">Inventory</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- START                                                        -->
+  <!-- ============================================================ -->
+  <div class="panel active" id="panel-start">
+    <h2>Start here</h2>
+    <p class="section-sub">Architecture in one diagram, then five steps to clone, run, edit, and ship.</p>
+
+    <div class="anchor-bar">
+      <a href="#s-arch">Architecture</a>
+      <a href="#s-setup">Setup</a>
+      <a href="#s-edit">First edit</a>
+      <a href="#s-deploy">Deploy</a>
+    </div>
+
+    <h3 class="sub-h" id="s-arch">Architecture</h3>
+    <p class="sub-lede">Five files cooperate via URL params. Narration lives in one place; visual furniture is shared across all 23 verticals.</p>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="level">1 · Entry</div>
+        <div class="pipe">↓</div>
+        <div class="body">
+          <span class="file">/picker.html</span> &nbsp;or direct link
+          <div class="desc">User chooses vertical + flow. Picker is canonical; geos.html and index-unified.html redirect here.</div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="level">2 · Per-vertical entry</div>
+        <div class="pipe">↓</div>
+        <div class="body">
+          <span class="file">/stories/story-&lt;vertical&gt;/index.html</span>
+          <div class="desc">One-line meta-refresh redirect. Never edit narrative here.</div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="level">3 · Shell</div>
+        <div class="pipe">↓</div>
+        <div class="body">
+          <span class="file">/stories/_shared/story-shell.html</span> <code style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);background:none;padding:0;">?vertical= &amp;usecase= &amp;splash=</code>
+          <div class="desc">Reads URL, looks up VERTICALS[key], renders sidebar copy + headlines + persona chips + beats. Iframes scene templates.</div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="level">4 · Scene template</div>
+        <div class="pipe">↓</div>
+        <div class="body">
+          <span class="file">/story-templates/docusign-&lt;scene&gt;.html</span> <code style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);background:none;padding:0;">?preset= &amp;embed=1</code>
+          <div class="desc">Visual UI moment — Agreement Desk · CLEAR · Signing · Navigator · Workspace. Shared across all verticals.</div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="level">5 · Preset lookup</div>
+        <div class="pipe">↓</div>
+        <div class="body">
+          PRESETS map inside the scene template
+          <div class="desc">Workspace template carries 21 presets (tenant brand, sections, agent rail). Other templates use preset for branding only.</div>
+        </div>
+      </div>
+    </div>
+    <p class="sub-lede" style="margin-top: 18px;">Key insight: <strong style="color:var(--ink)">narration lives in one place</strong> — the VERTICALS map inside story-shell.html. Scene templates are visual furniture; they only know which vertical they're rendering when the shell hands them <code>?preset=</code>.</p>
+
+    <h3 class="sub-h" id="s-setup">Setup</h3>
+    <p class="sub-lede">Day-one: clone, install, run locally. ~10 minutes.</p>
+
+    <div class="card numbered">
+      <div class="num">01</div>
+      <h3>Clone the repo</h3>
+      <p class="lede">Repo: <code>jnimbles03/tgk-2.0</code> (private). Mac working copy by convention at <code>~/Documents/Claude/Projects/TGK 2.0</code>.</p>
+<pre class="code">git clone git@github.com:jnimbles03/tgk-2.0.git
+cd tgk-2.0</pre>
+      <div class="note warn"><strong>Don't edit in Replit.</strong> Mac is the source. GitHub is truth. Replit deploys. Editing in the Repl creates drift you can't pull back.</div>
+    </div>
+
+    <div class="card numbered">
+      <div class="num">02</div>
+      <h3>Install and run</h3>
+      <p class="lede">Node 18+. Express server. No build step.</p>
+<pre class="code">npm install
+npm start
+<span class="c"># → server on http://localhost:3000</span></pre>
+      <p style="margin: 12px 0 6px; font-size: 13.5px; color: var(--ink-soft);">Confirm with these URLs:</p>
+      <ul>
+        <li><code>http://localhost:3000/</code> → redirects to picker</li>
+        <li><code>http://localhost:3000/stories/_shared/story-shell.html?vertical=wealth</code></li>
+        <li><code>...?vertical=wealth&amp;splash=1</code> — splash on</li>
+        <li><code>...?vertical=banking-deposits&amp;usecase=maintenance</code> — alt flow</li>
+      </ul>
+      <div class="note"><strong>Backend routes only run locally or on Replit.</strong> The feedback widget POSTs to <code>/api/feedback</code> — that's an Express route, not a Pages target. On the GitHub Pages mirror, those POSTs 404 silently. Don't chase that as a bug.</div>
+    </div>
+
+    <h3 class="sub-h" id="s-edit">Make your first edit</h3>
+    <p class="sub-lede">The full path: open the file, change a word, refresh, see it.</p>
+
+    <div class="card numbered">
+      <div class="num">03</div>
+      <h3>Edit a tenant string</h3>
+      <ul>
+        <li>Open <code>stories/_shared/story-shell.html</code></li>
+        <li>Search for <code>wealth: {</code> — should land near line 772</li>
+        <li>Find <code>tenant: "Hillside"</code> a few lines down</li>
+        <li>Change it to <code>"Hillside Advisors"</code></li>
+        <li>Save. Hard-refresh the wealth URL above</li>
+        <li>Chrome should now read "Hillside Advisors". Revert.</li>
+      </ul>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 12px;">If the page silently looks like a different vertical: you have a JSON shape error. The shell falls back to <code>'wealth'</code> when a key isn't found — that's the most common "why does my new vertical look wrong" symptom.</p>
+    </div>
+
+    <h3 class="sub-h" id="s-deploy">Deploy</h3>
+    <p class="sub-lede">Two targets, one source. Don't fight it.</p>
+
+    <div class="card numbered">
+      <div class="num">04</div>
+      <h3>Understand the deploy path</h3>
+      <ul>
+        <li><strong>Replit</strong> — full Express server. Backend feedback API works. Auto-pulls from GitHub <code>main</code>.</li>
+        <li><strong>GitHub Pages</strong> (<code>jnimbles03.github.io/tgk-2.0/</code>) — static-only mirror. Auto-deploys on push to <code>main</code> via <code>.github/workflows/deploy-pages.yml</code>.</li>
+      </ul>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 10px;">The Pages workflow runs <code>.github/scripts/rewrite-paths.mjs</code> which prepends <code>/tgk-2.0/</code> to every root-relative path — that's why source files use absolute paths like <code>/assets/...</code> instead of relative.</p>
+      <div class="note warn"><strong>Never convert source paths to relative.</strong> Both targets depend on the absolute form. Pages rewrites; Replit serves as-is. Relative paths break Pages.</div>
+    </div>
+
+    <div class="card numbered">
+      <div class="num">05</div>
+      <h3>Commit and ship</h3>
+      <p class="lede">Direct commits to <code>main</code> are the working pattern today. See Operations for the verify-before-push checklist.</p>
+<pre class="code">git add -p
+git commit -m "wealth: tenant string update"
+git push origin main
+<span class="c"># Replit auto-pulls within ~30s</span>
+<span class="c"># Pages workflow deploys static mirror within ~2min</span></pre>
+      <div class="note"><strong>Sharp edge:</strong> the <code>youtube-demos/</code> folder is gitignored — ~7 GiB of reference videos. A 2026-04-25 push hit GitHub's HTTP limit when this rule was missing. Keep reference media gitignored.</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- LOCATOR                                                      -->
+  <!-- ============================================================ -->
+  <div class="panel" id="panel-locator">
+    <h2>What do you need to change?</h2>
+    <p class="section-sub">Click through. Each path ends in the exact file and line.</p>
+    <div class="locator" id="locator"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- REFERENCE (Schema + URL Builder + Vertical Index)            -->
+  <!-- ============================================================ -->
+  <div class="panel" id="panel-reference">
+    <h2>Reference</h2>
+    <p class="section-sub">Data shapes, URL generator, and vertical index. Use this when you're authoring something new and need to know what the structure looks like.</p>
+
+    <div class="anchor-bar">
+      <a href="#r-schema">Schema</a>
+      <a href="#r-url">URL builder</a>
+      <a href="#r-index">Vertical index</a>
+    </div>
+
+    <h3 class="sub-h" id="r-schema">Schema</h3>
+    <p class="sub-lede">The shape of every data structure that drives the app.</p>
+
+    <div class="schema-toc">
+      <a href="#sc-url"><span class="num">01</span>URL contract</a>
+      <a href="#sc-vertical"><span class="num">02</span>VERTICALS entry</a>
+      <a href="#sc-scene"><span class="num">03</span>Scene</a>
+      <a href="#sc-beat"><span class="num">04</span>Beat</a>
+      <a href="#sc-persona"><span class="num">05</span>Persona</a>
+      <a href="#sc-preset"><span class="num">06</span>PRESETS entry</a>
+      <a href="#sc-keys"><span class="num">07</span>USECASE_SCENE_KEYS</a>
+      <a href="#sc-files"><span class="num">08</span>USECASE_TEMPLATE_FILES</a>
+      <a href="#sc-modes"><span class="num">09</span>USECASE_TEMPLATE_MODES</a>
+      <a href="#sc-b2i"><span class="num">10</span>BEAT_TO_INTERNAL</a>
+      <a href="#sc-msg"><span class="num">11</span>postMessage protocol</a>
+    </div>
+
+    <!-- URL contract -->
+    <div class="card schema-card" id="sc-url">
+      <h3>01 · URL contract</h3>
+      <p class="lede">Every story is fully determined by its URL. The shell parses these on load and reads nothing else for vertical selection.</p>
+      <table class="field-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="field">vertical</td><td class="type">string · required</td><td class="desc">Key into VERTICALS. 23 valid keys today.</td></tr>
+          <tr><td class="field">usecase</td><td class="type">string · optional</td><td class="desc">One of: <code>maintenance</code>, <code>fraud-fabric</code>, <code>intake-3</code>, <code>intake-4</code>, <code>workspaces</code>, <code>sales-deepdive</code>, <code>procurement-deepdive</code>. Omit for canonical onboarding. <code>auth-fabric</code> aliases <code>fraud-fabric</code>.</td></tr>
+          <tr><td class="field">splash</td><td class="type">"0" | "1"</td><td class="desc">Force Workspace splash on/off. Omit to use per-vertical <code>splashOk</code> default.</td></tr>
+          <tr><td class="field">preset</td><td class="type">string · injected</td><td class="desc">Passed to scene templates by the shell. Don't set manually.</td></tr>
+          <tr><td class="field">embed</td><td class="type">"1" · injected</td><td class="desc">Tells a scene template to hide its outer chrome.</td></tr>
+          <tr><td class="field">mode</td><td class="type">string · per usecase</td><td class="desc">Variant inside one template. From USECASE_TEMPLATE_MODES.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- VERTICALS entry -->
+    <div class="card schema-card" id="sc-vertical">
+      <h3>02 · VERTICALS entry</h3>
+      <p class="lede">The full shape of one vertical block. Where 95% of narrative edits land.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>stories/_shared/story-shell.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>771</code></div>
+<pre class="code"><span class="k">"banking-deposits"</span>: {
+  label:        <span class="s">"Banking Deposits"</span>,
+  tenant:       <span class="s">"Cedar Federal"</span>,
+  subtitle:     <span class="s">"× Williams Household — …"</span>,
+  tenantColor:  <span class="s">"#6BB6FF"</span>,
+  preset:       <span class="s">"banking-deposits"</span>,        <span class="c">// passed to iframes as ?preset=</span>
+  category:     <span class="s">"onboarding"</span>,              <span class="c">// onboarding | maintenance — picker chip filter</span>
+  splashOk:     <span class="t">true</span>,                       <span class="c">// optional · Scene 5 splash default</span>
+
+  scenes: [<span class="c"> exactly 5, see Scene schema </span>],
+
+  usecases: {<span class="c"> optional · alt narration per ?usecase= </span>
+    maintenance:    { scenes: [<span class="c"> 3 scenes </span>] },
+    <span class="s">"fraud-fabric"</span>: { scenes: [<span class="c"> 3 scenes </span>] },
+    workspaces:     { scenes: [<span class="c"> 1 scene  </span>] }
+  }
+}</pre>
+      <p class="lede" style="margin-top:14px">Required: <code>label</code>, <code>tenant</code>, <code>subtitle</code>, <code>tenantColor</code>, <code>preset</code>, <code>category</code>, <code>scenes</code> (exactly 5). Optional: <code>splashOk</code>, <code>usecases</code>. The <code>preset</code> value must match a key in workspace PRESETS.</p>
+    </div>
+
+    <!-- Scene -->
+    <div class="card schema-card" id="sc-scene">
+      <h3>03 · Scene</h3>
+      <p class="lede">One element of <code>scenes[]</code>. Five per canonical onboarding (sender · identity · signing · data · workspace).</p>
+<pre class="code">{
+  tag:     <span class="s">"SCENE 1 OF 5 · INTAKE · SENDER WEBFORM"</span>,  <span class="c">// eyebrow</span>
+  head:    <span class="s">"Cathie Woods at Hillside is bringing TGK Capital onboard…"</span>,
+  persona: { side:<span class="s">"advisor"</span>, name:<span class="s">"Cathie Woods"</span>, role:<span class="s">"Director · Hillside"</span> },
+  lede:    <span class="s">"&lt;p&gt;Cathie opens a new sub-advisor engagement…&lt;/p&gt;"</span>,  <span class="c">// HTML</span>
+  beats:   [<span class="c"> exactly 5 Beat objects </span>],
+  src:     <span class="s">"/flipbooks/…"</span>                              <span class="c">// optional · only for stage-iframe scenes</span>
+}</pre>
+    </div>
+
+    <!-- Beat -->
+    <div class="card schema-card" id="sc-beat">
+      <h3>04 · Beat</h3>
+      <p class="lede">One of <code>scenes[i].beats[]</code>. Five per scene; each corresponds to a hotspot inside the iframed template.</p>
+<pre class="code">{
+  head:    <span class="s">"Patrick adopts his signature."</span>,
+  lede:    <span class="s">"&lt;p&gt;The Adopt Signature modal shows a typed preview…&lt;/p&gt;"</span>,
+  persona: { side:<span class="s">"system"</span>, name:<span class="s">"AI assistant"</span>, role:<span class="s">"AI · Grounded Answer"</span> }
+            <span class="c">// optional · overrides scene persona for this beat only</span>
+}</pre>
+    </div>
+
+    <!-- Persona -->
+    <div class="card schema-card" id="sc-persona">
+      <h3>05 · Persona</h3>
+      <p class="lede">Speaker chip. Same shape on a Scene or a Beat.</p>
+<pre class="code">{
+  side: <span class="s">"advisor"</span>,        <span class="c">// "advisor" | "client" | "system" | "handoff"</span>
+  name: <span class="s">"Cathie Woods"</span>,
+  role: <span class="s">"Director of Advisor Onboarding · Hillside"</span>
+}</pre>
+      <p class="lede" style="margin-top:12px"><code>advisor</code> = the firm's person · <code>client</code> = the customer · <code>system</code> = automation / AI · <code>handoff</code> = transition between actors.</p>
+    </div>
+
+    <!-- PRESETS entry -->
+    <div class="card schema-card" id="sc-preset">
+      <h3>06 · PRESETS entry (workspace)</h3>
+      <p class="lede">Per-vertical content for the Workspace scene template. Mirrors the keys in VERTICALS but lives in a different file.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>story-templates/docusign-workspace.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>581</code></div>
+<pre class="code"><span class="k">"wealth"</span>: {
+  label:    <span class="s">"Wealth"</span>,
+  tenant:   { name, wordmark, primary, accent, markColor, mark <span class="c">// inline SVG</span> },
+  email:    { greeting, p1, p2, sender, role },
+  workspace:{ title, avatars, moreCount, userInitials, tenantSub },
+  summary:  { heroTitle, heroLede, pct, tiles[4], list[] },
+  sections: [{ title, tasks:[{ name, meta?, chip? }] }, <span class="c">…</span>],
+  activity: [{ kind, time, detail, link? }, <span class="c">…</span>],
+  iris:     { heroTitle, heroDesc, prompt, agreements[], qa[4] },
+  agent:    { title, sub, checks[7][2], summary }
+}</pre>
+      <div class="note warn" style="margin-top:14px"><strong>Known gap:</strong> sales and procurement verticals have no PRESETS entry as of today. Their Scene 5 falls back to a default. Add presets if you wire the Workspace flow for either.</div>
+    </div>
+
+    <!-- USECASE_SCENE_KEYS -->
+    <div class="card schema-card" id="sc-keys">
+      <h3>07 · USECASE_SCENE_KEYS</h3>
+      <p class="lede">Which scene keys to render, in order, for each usecase. Drives narration lookup.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>stories/_shared/story-shell.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>2074</code></div>
+<pre class="code">{
+  default:                [<span class="s">"agreement_desk"</span>, <span class="s">"clear_idv"</span>, <span class="s">"signing"</span>, <span class="s">"navigator"</span>, <span class="s">"workspace"</span>],
+  <span class="k">"fraud-fabric"</span>:         [<span class="s">"portal_clear_idv"</span>, <span class="s">"webform_intake"</span>, <span class="s">"portal_submit"</span>],
+  <span class="k">"intake-3"</span>:             [<span class="s">"webform_intake"</span>, <span class="s">"maestro_package"</span>, <span class="s">"envelope_deliver"</span>],
+  <span class="k">"intake-4"</span>:             [<span class="s">"webform_intake"</span>, <span class="s">"maestro_package"</span>, <span class="s">"envelope_deliver"</span>, <span class="s">"workspace"</span>],
+  maintenance:            [<span class="s">"portal_clear_idv"</span>, <span class="s">"webform_intake"</span>, <span class="s">"agreement_desk"</span>],
+  workspaces:             [<span class="s">"workspace"</span>],
+  <span class="k">"sales-deepdive"</span>:       [<span class="s">"sales_deepdive"</span>],
+  <span class="k">"procurement-deepdive"</span>: [<span class="s">"procurement_deepdive"</span>]
+}</pre>
+      <p class="lede" style="margin-top:12px">Adding a flow means adding the same key to all three sibling tables (07, 08, 09).</p>
+    </div>
+
+    <!-- USECASE_TEMPLATE_FILES -->
+    <div class="card schema-card" id="sc-files">
+      <h3>08 · USECASE_TEMPLATE_FILES</h3>
+      <p class="lede">Which iframe template loads at each scene index. Length must match USECASE_SCENE_KEYS.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>stories/_shared/story-shell.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>2099</code></div>
+<pre class="code">{
+  default: [
+    <span class="s">"/story-templates/docusign-agreement-desk.html"</span>,
+    <span class="s">"/story-templates/docusign-clear-idv.html"</span>,
+    <span class="s">"/story-templates/docusign-signing-ceremony.html"</span>,
+    <span class="s">"/story-templates/docusign-navigator.html"</span>,
+    <span class="s">"/story-templates/docusign-workspace.html"</span>
+  ],
+  <span class="k">"fraud-fabric"</span>: [
+    <span class="s">"/story-templates/docusign-portal-shell.html"</span>,
+    <span class="s">"/story-templates/docusign-webform-intake.html"</span>,
+    <span class="s">"/story-templates/docusign-agreement-desk-chain-of-custody.html"</span>
+  ],
+  maintenance: [
+    <span class="s">"/story-templates/docusign-portal-shell.html"</span>,
+    <span class="s">"/story-templates/docusign-webform-intake.html"</span>,
+    <span class="s">"/story-templates/docusign-agreement-desk.html"</span>
+  ],
+  <span class="c">// intake-3, intake-4, workspaces, sales-deepdive, procurement-deepdive: see file</span>
+}</pre>
+    </div>
+
+    <!-- USECASE_TEMPLATE_MODES -->
+    <div class="card schema-card" id="sc-modes">
+      <h3>09 · USECASE_TEMPLATE_MODES</h3>
+      <p class="lede">Optional <code>?mode=</code> per scene per usecase — same template renders different variants.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>stories/_shared/story-shell.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>2135</code></div>
+<pre class="code">{
+  <span class="k">"fraud-fabric"</span>: [<span class="s">"clear-idv-login"</span>, <span class="t">null</span>, <span class="t">null</span>],
+  maintenance:    [<span class="s">"clear-idv-login"</span>, <span class="t">null</span>, <span class="s">"approval-queue"</span>],
+  <span class="c">// null = no mode param appended</span>
+}</pre>
+      <p class="lede" style="margin-top:12px"><code>"clear-idv-login"</code> on portal-shell renders the IDV-at-the-door step-up. <code>"approval-queue"</code> on agreement-desk renders the inbound queue view instead of the canonical sender intake.</p>
+    </div>
+
+    <!-- BEAT_TO_INTERNAL -->
+    <div class="card schema-card" id="sc-b2i">
+      <h3>10 · BEAT_TO_INTERNAL</h3>
+      <p class="lede">Each shell beat advances the iframe to a specific internal scene id via postMessage.</p>
+      <div class="meta-row"><span><strong style="color:var(--ink)">File:</strong></span><code>stories/_shared/story-shell.html</code><span><strong style="color:var(--ink)">Line:</strong></span><code>2156</code></div>
+<pre class="code">{
+  agreement_desk:  [<span class="s">"s1"</span>, <span class="s">"s2"</span>, <span class="s">"s2"</span>, <span class="s">"s3"</span>, <span class="s">"s3"</span>],   <span class="c">// submit→arrives→click row→docs→send</span>
+  clear_idv:       [<span class="s">"s1"</span>, <span class="s">"s2"</span>, <span class="s">"s3"</span>, <span class="s">"s6"</span>, <span class="s">"s7"</span>],
+  signing:         [<span class="s">"s1"</span>, <span class="s">"s2"</span>, <span class="s">"s3"</span>, <span class="s">"s4"</span>, <span class="s">"s5"</span>],
+  navigator:       [<span class="s">"s1"</span>, <span class="s">"s2"</span>, <span class="s">"s3"</span>, <span class="s">"s4"</span>, <span class="s">"s4"</span>],   <span class="c">// repeat = sidebar advances, iframe holds</span>
+  workspace:       [<span class="s">"s1"</span>, <span class="s">"s2"</span>, <span class="s">"s3"</span>, <span class="s">"s4"</span>, <span class="s">"s5"</span>]
+}</pre>
+      <p class="lede" style="margin-top:12px">Override per-vertical via the admin localStorage key <code>tgkAdmin.beatToInternal</code> instead of editing the shell.</p>
+    </div>
+
+    <!-- postMessage -->
+    <div class="card schema-card" id="sc-msg">
+      <h3>11 · postMessage protocol</h3>
+      <p class="lede">How the shell drives an iframed scene template or vignette. Implement these when authoring a new template.</p>
+<pre class="code"><span class="c">// Shell → iframe</span>
+iframe.contentWindow.postMessage({ type: <span class="s">"tgk:lockToBeat"</span>, view: <span class="s">"appcenter"</span>, step: <span class="s">"done"</span> }, <span class="s">"*"</span>);
+iframe.contentWindow.postMessage({ type: <span class="s">"tgk:setPreset"</span>,  preset: <span class="s">"insurance-life"</span> }, <span class="s">"*"</span>);
+iframe.contentWindow.postMessage({ type: <span class="s">"tgk:queryRect"</span>, name: <span class="s">"cf_step1"</span> }, <span class="s">"*"</span>);
+iframe.contentWindow.postMessage({ type: <span class="s">"tgk:advanceTo"</span>, sceneId: <span class="s">"s3"</span> }, <span class="s">"*"</span>);
+
+<span class="c">// Iframe → shell (response to queryRect)</span>
+parent.postMessage({ type: <span class="s">"tgk:rect"</span>, name: <span class="s">"cf_step1"</span>, x: <span class="n">0.42</span>, y: <span class="n">0.58</span>, w: <span class="n">0.18</span>, h: <span class="n">0.06</span> }, <span class="s">"*"</span>);
+
+<span class="c">// Hotspot anchor on a sub-element inside the iframe</span>
+&lt;button <span class="p">data-hotspot=</span><span class="s">"cf_step1"</span>&gt;…&lt;/button&gt;</pre>
+    </div>
+
+    <h3 class="sub-h" id="r-url">URL builder</h3>
+    <p class="sub-lede">Pick a vertical and flow. See the URL the shell expects, plus the templates it loads.</p>
+    <div class="url-builder">
+      <div class="form-row">
+        <label for="ub-vertical">Vertical</label>
+        <select id="ub-vertical"></select>
+      </div>
+      <div class="form-row">
+        <label for="ub-usecase">Flow</label>
+        <select id="ub-usecase">
+          <option value="">Onboarding (canonical)</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="fraud-fabric">Fraud Fabric</option>
+          <option value="intake-3">Intake (3 scenes)</option>
+          <option value="intake-4">Intake (4 scenes)</option>
+          <option value="workspaces">Workspaces only</option>
+          <option value="sales-deepdive">Sales deep-dive</option>
+          <option value="procurement-deepdive">Procurement deep-dive</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="ub-splash">Splash</label>
+        <select id="ub-splash">
+          <option value="">Default (per-vertical)</option>
+          <option value="1">Force on</option>
+          <option value="0">Force off</option>
+        </select>
+      </div>
+      <div class="url-output">
+        <div class="label">URL</div>
+        <div id="ub-url"></div>
+      </div>
+      <div class="url-loads">
+        <div class="header">Templates the shell loads</div>
+        <ul id="ub-loads"></ul>
+      </div>
+    </div>
+
+    <h3 class="sub-h" id="r-index">Vertical index</h3>
+    <p class="sub-lede">23 verticals. Line numbers point to the <code>scenes:</code> array inside <code>VERTICALS.&lt;key&gt;</code> in story-shell.html. Numbers shift as the file is edited.</p>
+    <input type="text" class="vsearch" id="vsearch" placeholder="Filter — wealth, slgov, insurance">
+    <table class="idx">
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th>Tenant × customer</th>
+          <th>Color</th>
+          <th class="line">Line</th>
+        </tr>
+      </thead>
+      <tbody id="vbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- OPERATIONS                                                   -->
+  <!-- ============================================================ -->
+  <div class="panel" id="panel-ops">
+    <h2>Operations</h2>
+    <p class="section-sub">Verify, audit, deploy. The pre-push checklist that keeps a vertical from shipping broken.</p>
+
+    <div class="anchor-bar">
+      <a href="#o-smoke">Smoke-test</a>
+      <a href="#o-audit">Audit</a>
+      <a href="#o-calibrate">Calibrate</a>
+      <a href="#o-feedback">Feedback</a>
+      <a href="#o-checklist">Pre-push</a>
+      <a href="#o-conv">Conventions</a>
+    </div>
+
+    <div class="card numbered" id="o-smoke">
+      <div class="num">01</div>
+      <h3>Smoke-test before every push</h3>
+      <p class="lede">Three URLs. Two minutes. Catches 90% of broken-JSON, missing-preset, and misnamed-key bugs.</p>
+      <ul>
+        <li><strong>Onboarding:</strong> <code>?vertical=&lt;key&gt;</code> — click through all 5 scenes × 5 beats. Sidebar and iframe should advance together.</li>
+        <li><strong>Workspaces:</strong> add <code>&amp;usecase=workspaces</code> — Scene 5 only, populated from PRESETS.</li>
+        <li><strong>Splash:</strong> add <code>&amp;splash=1</code> — ~10s splash before Scene 5.</li>
+      </ul>
+      <div class="note"><strong>Symptom:</strong> sidebar reads as the wrong vertical's content. Cause: JSON shape error in <code>VERTICALS.&lt;key&gt;</code>. Shell silently falls back to <code>'wealth'</code> on lookup miss.</div>
+    </div>
+
+    <div class="card numbered" id="o-audit">
+      <div class="num">02</div>
+      <h3>Run the persona audit</h3>
+      <p class="lede">Mechanical pass: fonts, colors, emoji, structure, persona consistency across the cast.</p>
+<pre class="code">bash _audits/_persona_audit_build.sh
+<span class="c"># → regenerates audit pages under _audits/</span>
+<span class="c"># → open _audits/index.html locally to review</span></pre>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 10px;">Last green run: 74/74 OK on 2026-04-30. Common failures: emoji in narration (use SVG); persona <code>side</code> not in enum; tenant color hex changed without updating chrome.</p>
+    </div>
+
+    <div class="card numbered" id="o-calibrate">
+      <div class="num">03</div>
+      <h3>Hotspot calibration</h3>
+      <p class="lede">If a tooltip is pinned to the wrong spot inside the iframe, use calibrate mode instead of editing coordinates.</p>
+      <ul>
+        <li>Append <code>&amp;calibrate=1</code> to any shell URL.</li>
+        <li>Each hotspot becomes draggable. Drag to anchor.</li>
+        <li>New coords store in localStorage <code>tgkAdmin.hotspots</code>.</li>
+        <li>Export the override and paste into the shell's hotspot map.</li>
+      </ul>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 10px;">Hotspots are scene-keyed, not vertical-keyed. Recalibrating once fixes it everywhere.</p>
+    </div>
+
+    <div class="card numbered" id="o-feedback">
+      <div class="num">04</div>
+      <h3>Feedback pipeline</h3>
+      <p class="lede">Feedback widget on every page; submissions land in Replit DB; admin reviews at <code>/admin/feedback</code>.</p>
+      <ul>
+        <li><code>POST /api/feedback</code> — public. AI triage runs in background.</li>
+        <li><code>/admin/feedback</code> — Basic Auth (<code>admin</code> + <code>ADMIN_PASSWORD</code> env). Live updates via SSE.</li>
+        <li><code>/api/feedback/public-&lt;slug&gt;</code> — CORS-open, PII-stripped. Used by Cowork artifact.</li>
+      </ul>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-top: 10px;">Auto-fix execution is intentionally not wired. Approvals are recorded; execution stays manual.</p>
+    </div>
+
+    <div class="card numbered" id="o-checklist">
+      <div class="num">05</div>
+      <h3>Pre-push checklist</h3>
+      <ul>
+        <li>Smoke-test the affected vertical (3 URLs above).</li>
+        <li>Touched persona, casting, or cross-vertical patterns? Run <code>_persona_audit_build.sh</code>.</li>
+        <li>Added a new vertical? Confirm three coordinated edits — <code>VERTICALS</code>, <code>PRESETS</code>, redirect file.</li>
+        <li>Added or modified a scene template? Spot-check at least three verticals that use it.</li>
+        <li>Diff for accidentally-committed reference media or screenshots over a few MB.</li>
+        <li>Push. Replit pulls in ~30s; Pages deploys in ~2min.</li>
+      </ul>
+    </div>
+
+    <div class="card" id="o-conv">
+      <h3>Conventions</h3>
+      <p class="lede">Things easy to forget when you're deep in a file.</p>
+      <ul>
+        <li><strong>No emoji.</strong> Use inline SVG or brand icons. The persona audit catches strays.</li>
+        <li><strong>TGK Capital is a character, not a co-brand.</strong> Appears inside wealth + banking storylines as the customer firm. Patrick Meyer = TGK signer. Never appears as site chrome.</li>
+        <li><strong>SoR badge per vertical:</strong> Guidewire PAS for FINS insurance, nCino for banking-deposits.</li>
+        <li><strong>Source paths are root-relative</strong> (<code>/assets/...</code>). Pages workflow rewrites; Replit serves as-is. Never convert to relative.</li>
+        <li><strong>Front-office role vocabulary is per-domain.</strong> Insurance: Agent = Advisor. Compliance/legal/ops are never advisor-side.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- INVENTORY                                                    -->
+  <!-- ============================================================ -->
+  <div class="panel" id="panel-inv">
+    <h2>Inventory &amp; cleanup</h2>
+    <p class="section-sub">Honest map of what's in the repo. Some load-bearing, some half-finished, some preserved for git history. Read before deleting anything.</p>
+
+    <div class="anchor-bar">
+      <a href="#i-renders">What renders</a>
+      <a href="#i-templates">Story templates</a>
+      <a href="#i-components">Component mocks</a>
+      <a href="#i-infra">Infra</a>
+      <a href="#i-conflicts">Conflicting patterns</a>
+      <a href="#i-slop">Likely slop</a>
+    </div>
+
+    <p style="font-size: 13.5px; color: var(--ink-soft); margin-bottom: 24px;">
+      <span class="badge live">live</span> &nbsp; load-bearing — don't delete without replacing &nbsp;·&nbsp;
+      <span class="badge shim">shim</span> &nbsp; redirect or wrapper kept for back-compat &nbsp;·&nbsp;
+      <span class="badge legacy">legacy</span> &nbsp; superseded; cleanup candidate &nbsp;·&nbsp;
+      <span class="badge exp">experimental</span> &nbsp; verify before touching
+    </p>
+
+    <h3 class="sub-h" id="i-renders">What renders</h3>
+    <p class="sub-lede">Top-level surfaces + the story shell.</p>
+    <table class="inv">
+      <thead><tr><th>Path</th><th>Status</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="path">/picker.html</td><td><span class="badge live">live</span></td><td class="role">Canonical entry. Function-first chooser (Procurement / Sales / CX). CX expands inline to vertical wizard.</td></tr>
+        <tr><td class="path">/index.html, /geos.html, /index-unified.html</td><td><span class="badge shim">shim</span></td><td class="role">All three redirect to picker. <code>geos.html</code> forwards <code>?cluster=</code>; <code>index-unified.html</code> forwards <code>?mode=</code>.</td></tr>
+        <tr><td class="path">/audit.html, /admin/audit, /admin/feedback</td><td><span class="badge live">live</span></td><td class="role">Contributor edit page + admin queues. Express routes in server.js.</td></tr>
+        <tr><td class="path">/stories/_shared/story-shell.html</td><td><span class="badge live">live</span></td><td class="role">~7000 lines. The single shell. VERTICALS map, USECASE_* tables, BEAT_TO_INTERNAL, hotspot definitions.</td></tr>
+        <tr><td class="path">/stories/story-&lt;key&gt;/index.html</td><td><span class="badge live">live</span></td><td class="role">23 redirect files. Each is 5 lines. Keep them — they're the URLs people share.</td></tr>
+        <tr><td class="path">/stories/wealth-hillside-aster/</td><td><span class="badge shim">shim</span></td><td class="role">Vanity portal folder. Redirects to <code>?vertical=wealth</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-h" id="i-templates">Story templates</h3>
+    <p class="sub-lede">17 files in <code>/story-templates/</code>. Five canonical scenes, several alternate-flow templates, several flagged for verification.</p>
+    <table class="inv">
+      <thead><tr><th>Path</th><th>Status</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="path">docusign-agreement-desk.html</td><td><span class="badge live">live</span></td><td class="role">Canonical Scene 1.</td></tr>
+        <tr><td class="path">docusign-clear-idv.html</td><td><span class="badge live">live</span></td><td class="role">Canonical Scene 2.</td></tr>
+        <tr><td class="path">docusign-signing-ceremony.html</td><td><span class="badge live">live</span></td><td class="role">Canonical Scene 3.</td></tr>
+        <tr><td class="path">docusign-navigator.html</td><td><span class="badge live">live</span></td><td class="role">Canonical Scene 4 — Agreement Repository + AI Q&amp;A.</td></tr>
+        <tr><td class="path">docusign-workspace.html</td><td><span class="badge live">live</span></td><td class="role">Canonical Scene 5. Carries 21 PRESETS + inlined splash.</td></tr>
+        <tr><td class="path">docusign-portal-shell.html</td><td><span class="badge live">live</span></td><td class="role">Used by maintenance + fraud-fabric. <code>?mode=clear-idv-login</code>.</td></tr>
+        <tr><td class="path">docusign-webform-intake.html</td><td><span class="badge live">live</span></td><td class="role">Used by maintenance, fraud-fabric, intake-3, intake-4.</td></tr>
+        <tr><td class="path">docusign-agreement-desk-chain-of-custody.html</td><td><span class="badge live">live</span></td><td class="role">Used by fraud-fabric Scene 3.</td></tr>
+        <tr><td class="path">docusign-maestro-package.html</td><td><span class="badge live">live</span></td><td class="role">Used by intake-3 / intake-4 Scene 2.</td></tr>
+        <tr><td class="path">docusign-connected-forms.html</td><td><span class="badge live">live</span></td><td class="role">Callable vignette — App Center + Field Mapping. Wealth + insurance call as drill-down.</td></tr>
+        <tr><td class="path">docusign-agents.html</td><td><span class="badge exp">experimental</span></td><td class="role">Agentic experiences hub. Status mixed.</td></tr>
+        <tr><td class="path">docusign-maestro-loop.html</td><td><span class="badge exp">experimental</span></td><td class="role">Not referenced from shell. Confirm.</td></tr>
+        <tr><td class="path">docusign-webform.html</td><td><span class="badge legacy">legacy</span></td><td class="role">Likely superseded by docusign-webform-intake.</td></tr>
+        <tr><td class="path">docusign-ehr-desktop.html</td><td><span class="badge exp">experimental</span></td><td class="role">Provider-specific. Verify usage.</td></tr>
+        <tr><td class="path">portal.html</td><td><span class="badge legacy">legacy</span></td><td class="role">Predates docusign-portal-shell. Likely cleanup target.</td></tr>
+        <tr><td class="path">mastercard-workspace.html</td><td><span class="badge shim">shim</span></td><td class="role">Already a thin redirect. Removable after link audit.</td></tr>
+        <tr><td class="path">portals/enterprise-emptoris.html</td><td><span class="badge exp">experimental</span></td><td class="role">Vendor-portal subdirectory pattern. One entry only.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-h" id="i-components">Component mocks — the murky middle</h3>
+    <p class="sub-lede">~196 component HTML files split across <code>/components/current-state/</code> (97) and <code>/components/future-state/</code> (99 + a stray <code>_test.tmp</code>). Per CANONICAL.md the open question is whether these surface inside Navigator/Workspace as drill-downs, or only inside the root samplers.</p>
+    <table class="inv">
+      <thead><tr><th>Path</th><th>Status</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="path">/components/current-state/component-*.html</td><td><span class="badge exp">experimental</span></td><td class="role">~97 files. Per-vendor "as-is" mocks. Used as references in samplers; not iframed by the shell.</td></tr>
+        <tr><td class="path">/components/future-state/component-*.html, docusign-*-demo.html</td><td><span class="badge exp">experimental</span></td><td class="role">~99 files. Future-state demo mocks. Targeted as Scene 3/4 drill-downs in CANONICAL.md P3 — wiring not done.</td></tr>
+        <tr><td class="path">/components/{current,future}-state/preview-all.html, HLS_preview-all.html, _base.css.html</td><td><span class="badge exp">experimental</span></td><td class="role">Preview indexes + shared base CSS.</td></tr>
+        <tr><td class="path">/components/future-state/_test.tmp</td><td><span class="badge legacy">legacy</span></td><td class="role">Stray temp file. Safe to delete.</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top: 14px;"><strong>Cleanup recommendation:</strong> the components/ tree is the largest open question in the repo. Decide the wiring story (Navigator drill-downs? sampler-only? both?) before deleting or refactoring.</div>
+
+    <h3 class="sub-h" id="i-infra">Server, infra, primitives</h3>
+    <table class="inv">
+      <thead><tr><th>Path</th><th>Status</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="path">server.js</td><td><span class="badge live">live</span></td><td class="role">Express. Static serving + feedback API + admin UI + SSE + AI triage.</td></tr>
+        <tr><td class="path">feedback-widget.js</td><td><span class="badge live">live</span></td><td class="role">Floating widget injected on every page. Local queue + auto-flush.</td></tr>
+        <tr><td class="path">.replit</td><td><span class="badge live">live</span></td><td class="role"><code>deploymentTarget = "gce"</code> for persistent storage + single-instance SSE.</td></tr>
+        <tr><td class="path">.github/workflows/deploy-pages.yml</td><td><span class="badge live">live</span></td><td class="role">GitHub Pages auto-deploy.</td></tr>
+        <tr><td class="path">.github/scripts/rewrite-paths.mjs</td><td><span class="badge live">live</span></td><td class="role">Path rewriter — prepends <code>/tgk-2.0/</code> for Pages.</td></tr>
+        <tr><td class="path">/assets/wizard/{wizard.css,wizard.js}</td><td><span class="badge live">live</span></td><td class="role">Generic wizard primitive. Consumed by picker.</td></tr>
+        <tr><td class="path">/assets/demo-stage/{css,js}</td><td><span class="badge live">live</span></td><td class="role">Virtual clock + beat-snap scrubbing. Powers sales/procurement deep-dives.</td></tr>
+        <tr><td class="path">/_audits/_persona_audit_build.sh</td><td><span class="badge live">live</span></td><td class="role">Persona × fiction audit. Run before pushing cross-vertical changes.</td></tr>
+        <tr><td class="path">/flipbooks/_extract_frames.py, _new_flipbook.py</td><td><span class="badge live">live</span></td><td class="role">MP4 → stills → HTML flipbook pipeline.</td></tr>
+        <tr><td class="path">/flipbooks/vids/</td><td><span class="badge live">live</span></td><td class="role">Gitignored. ~7 GiB of source MP4s. Never commit.</td></tr>
+        <tr><td class="path">feedback-store.json</td><td><span class="badge legacy">legacy</span></td><td class="role">Auto-migrated to Replit KV on first boot. Don't delete unless you're sure migration ran.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-h" id="i-conflicts">Patterns that may conflict</h3>
+    <p class="sub-lede">Where the codebase has more than one way to do something. Pick one before adding more.</p>
+    <table class="inv">
+      <thead><tr><th>Pattern A</th><th>Pattern B</th><th>Decision</th></tr></thead>
+      <tbody>
+        <tr><td class="role"><code>VERTICALS.&lt;key&gt;.scenes</code> (canonical)</td><td class="role"><code>VERTICALS.&lt;key&gt;.usecases.&lt;flow&gt;.scenes</code></td><td class="role">Both live. Per-flow lives under <code>usecases</code>. Don't nest one inside the other.</td></tr>
+        <tr><td class="role">Per-vertical sampler HTML at root</td><td class="role"><code>?vertical=&lt;key&gt;</code> on the shell</td><td class="role">Shell wins. Samplers are now redirects per the 2026-04-26 split decision.</td></tr>
+        <tr><td class="role">geos.html + index-unified.html</td><td class="role">picker.html</td><td class="role">Picker won. Don't add new logic to the others.</td></tr>
+        <tr><td class="role">External splash CSS/JS modules</td><td class="role">Inline splash inside <code>docusign-workspace.html</code></td><td class="role">Inline won (resolved 2026-04-26). External files never existed on disk.</td></tr>
+        <tr><td class="role">Components rendered as Navigator drill-downs</td><td class="role">Components only inside samplers</td><td class="role"><strong>Open question</strong> per CANONICAL.md P3. Don't wire either way without deciding.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub-h" id="i-slop">Likely AI slop</h3>
+    <p class="sub-lede">Honest read on the most-likely cleanup wins, ranked by safety.</p>
+    <table class="inv">
+      <thead><tr><th>Likely slop</th><th>How to confirm</th></tr></thead>
+      <tbody>
+        <tr><td class="role"><strong>Component mock duplication.</strong> 196 files with mostly near-identical templates and vendor-string swaps.</td><td class="role">Diff a few siblings. If only delta is brand strings, replace with a parameterized renderer + JSON manifest.</td></tr>
+        <tr><td class="role"><strong>Dead story templates.</strong> portal.html, docusign-webform.html, docusign-maestro-loop.html, docusign-ehr-desktop.html — none referenced from USECASE_TEMPLATE_FILES.</td><td class="role">Grep the repo for each filename. If only the file matches itself, safe to delete.</td></tr>
+        <tr><td class="role"><strong>Sampler redirect files at root.</strong> 11 thin redirects from the split-into-verticals pass.</td><td class="role">Audit external bookmarks (Slack, decks, emails). Then delete in one PR.</td></tr>
+        <tr><td class="role"><strong>Comment-out experiments.</strong> story-shell.html is ~7000 lines. Likely contains commented blocks and dead branches.</td><td class="role">Search for large <code>/* */</code> blocks and <code>if(false)</code> guards. Trim cautiously — some are intentional documentation.</td></tr>
+        <tr><td class="role"><strong>Sales/procurement workspace gap.</strong> Both verticals exist but have no PRESETS entry in docusign-workspace.html. Scene 5 falls back to default.</td><td class="role">Decide: author proper presets, or remove Scene 5 from those verticals' canonical flow.</td></tr>
+        <tr><td class="role"><strong>Stray temp files.</strong> .DS_Store, _test.tmp, etc.</td><td class="role">Add to .gitignore; remove from history if leaked.</td></tr>
+      </tbody>
+    </table>
+    <div class="note warn" style="margin-top: 16px;"><strong>Don't refactor before you ship.</strong> Most of this slop doesn't render to users. Make narrative changes first, audit them, ship them. Cleanup comes once the team is comfortable with the architecture.</div>
+
+  </div>
+
+</section>
+</div>
+
+<script>
+/* ============================================================
+   DATA — verified against repo 2026-05-06
+   ============================================================ */
+
+const VERTICALS = [
+  { key: "wealth", tenant: "Hillside × TGK Capital", desc: "Sub-Advisor Onboarding", color: "#3FDA99", line: 779 },
+  { key: "banking", tenant: "Meridian × TGK Holdings", desc: "$2.5M Working Capital Facility", color: "#2D8EFF", line: 844 },
+  { key: "insurance", tenant: "Sentinel × Ramirez Family", desc: "HO3 Policy Binding", color: "#F2B3C2", line: 900 },
+  { key: "provider", tenant: "Riverside × Jordan Kim", desc: "New Patient Onboarding", color: "#6FD6C8", line: 952 },
+  { key: "lifesciences", tenant: "Helix × Austin Research Clinic", desc: "Site Activation HX-2104", color: "#C7A0FF", line: 1004 },
+  { key: "payor", tenant: "Unity × Marcus Chen", desc: "Silver HMO Enrollment", color: "#6FDA9B", line: 1058 },
+  { key: "fedgov", tenant: "DOL × Taylor Nguyen", desc: "UI Claim 2026-48211", color: "#E8B800", line: 1112 },
+  { key: "slgov", tenant: "Springfield × 1420 Oak", desc: "Residential Building Permit", color: "#E8A438", line: 1165 },
+  { key: "education", tenant: "Maple Ridge × Priya Shah", desc: "Fall 2026 Student Onboarding", color: "#F2C65A", line: 1217 },
+  { key: "nonprofit", tenant: "Harbor × Safe Streets", desc: "$120k Grantee Onboarding", color: "#FFB86B", line: 1269 },
+  { key: "insurance-life", tenant: "Beacon Mutual × Whitfield Family", desc: "Death Claim", color: "#B189D9", line: 1321 },
+  { key: "insurance-pc", tenant: "Northgate Mutual × Patel Logistics", desc: "Commercial Auto FNOL", color: "#FF8A4D", line: 1372 },
+  { key: "provider-roi", tenant: "Catalina Medical × Eric Tan", desc: "Records Release ROI", color: "#5BCDB8", line: 1423 },
+  { key: "slgov-311", tenant: "Greenhaven Public Works × 1124 Cedar", desc: "Pothole 311 Request", color: "#4CAF7A", line: 1477 },
+  { key: "slgov-benefits", tenant: "Eastside HHS × Rivera Family", desc: "SNAP Application", color: "#5DA9C9", line: 1528 },
+  { key: "slgov-recertification", tenant: "Cascade Medicaid × Diane Park", desc: "Annual Recert", color: "#94A3B8", line: 1579 },
+  { key: "slgov-vendor-compliance", tenant: "Ridgeview Procurement × Apex Logistics", desc: "Annual COI", color: "#E89B5B", line: 1630 },
+  { key: "slgov-employee-onboarding", tenant: "Cascade County HR × Marcus Lee", desc: "New Caseworker", color: "#B589DB", line: 1681 },
+  { key: "slgov-licensing", tenant: "Northbrook × Avalon Café", desc: "Restaurant License", color: "#F2A56B", line: 1732 },
+  { key: "banking-deposits", tenant: "Cedar Federal × Williams Household", desc: "Account Opening", color: "#6BB6FF", line: 1783 },
+  { key: "wealth-discovery", tenant: "Cypress Wealth × Holcomb Family", desc: "IRA Rollover + Family Trust", color: "#5BA1B8", line: 1834 },
+  { key: "sales", tenant: "TGK × Black Mesa Energy", desc: "Closed Won (no workspace preset)", color: "#0066CC", line: 1886 },
+  { key: "procurement", tenant: "TGK × Fontara, Inc.", desc: "New Supplier Onboarding (no workspace preset)", color: "#6B4FAF", line: 1952 },
+];
+
+const USECASE_TEMPLATES = {
+  "":              ["docusign-agreement-desk.html", "docusign-clear-idv.html", "docusign-signing-ceremony.html", "docusign-navigator.html", "docusign-workspace.html"],
+  "maintenance":   ["docusign-portal-shell.html (mode=clear-idv-login)", "docusign-webform-intake.html", "docusign-agreement-desk.html (mode=approval-queue)"],
+  "fraud-fabric":  ["docusign-portal-shell.html (mode=clear-idv-login)", "docusign-webform-intake.html", "docusign-agreement-desk-chain-of-custody.html"],
+  "intake-3":      ["docusign-webform-intake.html", "docusign-maestro-package.html", "docusign-signing-ceremony.html"],
+  "intake-4":      ["docusign-webform-intake.html", "docusign-maestro-package.html", "docusign-signing-ceremony.html", "docusign-workspace.html"],
+  "workspaces":    ["docusign-workspace.html"],
+  "sales-deepdive":      ["/flipbooks/IAM_for_Sales_and_Agentforce_Demo_stage.html"],
+  "procurement-deepdive":["/flipbooks/DocuSign_CLM_Procurement_Demo_Video_stage.html"],
+};
+
+/* ============================================================
+   LOCATOR (decision tree)
+   ============================================================ */
+
+const LOCATOR = {
+  start: {
+    title: "What kind of change are you making?",
+    hint: "Pick the closest match. Each path ends in a file and line.",
+    choices: [
+      { label: "Edit narration — words a persona says, headline, sidebar copy", sub: "Sidebar text, beat headlines, persona quotes", next: "narration" },
+      { label: "Edit tenant brand — name, color, customer, splash default", sub: "Top-level fields on a vertical block", next: "branding" },
+      { label: "Edit the workspace surface — sections, agent rail, activity log", sub: "Scene 5 / the workspaces flow", next: "workspace" },
+      { label: "Edit visual furniture inside an iframe — Signing UI, Navigator UI", sub: "Affects every vertical at once", next: "furniture" },
+      { label: "Change the flow — which scenes load for a usecase", sub: "Add/remove scenes for maintenance, fraud-fabric, intake", next: "flow" },
+      { label: "Change beat → internal scene mapping", sub: "Which iframe state each beat advances to", next: "choreography" },
+      { label: "Add a new vertical", sub: "Three coordinated edits", next: "newvert" },
+      { label: "Add a new callable vignette (drill-down moment)", sub: "Like Connected Forms — outside the 5-scene spine", next: "vignette" },
+      { label: "Edit the picker / entry surface", sub: "What users see before choosing a vertical", next: "picker" },
+      { label: "Edit Headless IAM portals (FINS / HLS / PS)", sub: "Standalone tenant-branded pages", next: "headless" },
+    ]
+  },
+
+  narration: {
+    title: "Which level of narration?",
+    hint: "Each scene has 5 beats. Persona can override per beat.",
+    choices: [
+      { label: "Beat headline or lede — per-beat copy", next: "narration-beat" },
+      { label: "Scene-level headline or persona", next: "narration-scene" },
+      { label: "Persona override on a single beat", next: "narration-persona" },
+    ]
+  },
+  "narration-beat": {
+    answer: {
+      title: "Edit a beat's headline or lede",
+      summary: "Beats are inlined as scenes[].beats[] on the vertical block.",
+      files: [{ path: "stories/_shared/story-shell.html", line: "VERTICALS.<key>.scenes[<sceneIdx>].beats[<beatIdx>].head | .lede" }],
+      steps: [
+        "Open <code>stories/_shared/story-shell.html</code>.",
+        "Search for the vertical key (e.g. <code>\"banking-deposits\"</code>).",
+        "Inside that block, find <code>scenes:</code>. Count from 0 — Scene 1 is index 0, Scene 5 is index 4.",
+        "Inside the scene's <code>beats:</code> array (also 0-indexed), edit <code>head:</code> for the bold headline or <code>lede:</code> for the HTML body.",
+        "Save. Reload the shell URL. No other file touched."
+      ],
+      note: "TGK 2.0 is no-emoji. Use SVG. Lede is HTML; project uses <code>&lt;span class=\"em\"&gt;</code> for emphasis."
+    }
+  },
+  "narration-scene": {
+    answer: {
+      title: "Edit a scene's tag, headline, lede, or default persona",
+      summary: "Scene-level fields sit on scenes[<idx>] alongside beats.",
+      files: [{ path: "stories/_shared/story-shell.html", line: "VERTICALS.<key>.scenes[<idx>].{tag,head,lede,persona}" }],
+      steps: [
+        "Open story-shell.html and find the vertical block.",
+        "On the scenes[] entry: <code>tag</code> (eyebrow), <code>head</code> (scene headline), <code>lede</code> (scene paragraph), <code>persona</code> ({ side, name, role }).",
+        "Persona <code>side</code>: <code>advisor</code> | <code>client</code> | <code>system</code> | <code>handoff</code>.",
+      ]
+    }
+  },
+  "narration-persona": {
+    answer: {
+      title: "Override the persona on a single beat",
+      summary: "Each beat can carry its own persona block — used when the speaker shifts mid-scene.",
+      files: [{ path: "stories/_shared/story-shell.html", line: "VERTICALS.<key>.scenes[<idx>].beats[<bidx>].persona" }],
+      steps: [
+        "On the beat object, add <code>persona: { side: \"system\", name: \"AI assistant\", role: \"AI · Grounded Answer\" }</code>.",
+        "If omitted, the beat inherits the scene's persona.",
+        "Use <code>side: \"handoff\"</code> for transitions between actors (e.g. \"TGK → Hillside\")."
+      ]
+    }
+  },
+
+  branding: {
+    answer: {
+      title: "Edit tenant branding for a vertical",
+      summary: "Name, color, customer, splash default — top-level fields on the vertical block.",
+      files: [{ path: "stories/_shared/story-shell.html", line: "VERTICALS.<key>.{tenant,subtitle,tenantColor,splashOk,preset,category}" }],
+      steps: [
+        "Open story-shell.html and find <code>VERTICALS.&lt;key&gt;</code>.",
+        "<code>tenant</code> = display name. <code>subtitle</code> = the \"× Customer — Story\" suffix. <code>tenantColor</code> = mark color hex.",
+        "<code>splashOk: true</code> turns the Workspace splash on by default. User can override with <code>?splash=0</code>.",
+        "If you change <code>preset:</code>, you must also have a matching block in <code>docusign-workspace.html</code> PRESETS."
+      ]
+    }
+  },
+
+  workspace: {
+    answer: {
+      title: "Edit the Workspace surface for a vertical",
+      summary: "Scene 5 / the workspaces flow renders from PRESETS — separate from the shell.",
+      files: [{ path: "story-templates/docusign-workspace.html", line: "PRESETS.<key> — line 581" }],
+      steps: [
+        "Open <code>story-templates/docusign-workspace.html</code>.",
+        "Find the <code>PRESETS</code> constant (line 581).",
+        "Each preset carries: tenant, email, workspace, summary, sections, activity, iris, agent.",
+        "Edit only the fields you need. The shell loads via <code>?preset=&lt;key&gt;</code>."
+      ],
+      note: "Only the workspace template carries vertical-specific data. Other scene templates use preset for branding only. Note: sales and procurement verticals have no PRESETS entry today."
+    }
+  },
+
+  furniture: {
+    answer: {
+      title: "Edit visual furniture inside a scene template",
+      summary: "Changes the iframe content for every vertical at once.",
+      files: [
+        { path: "story-templates/docusign-agreement-desk.html", line: "Scene 1 — sender webform / Maestro" },
+        { path: "story-templates/docusign-clear-idv.html", line: "Scene 2 — identity verification" },
+        { path: "story-templates/docusign-signing-ceremony.html", line: "Scene 3 — branded email + signing" },
+        { path: "story-templates/docusign-navigator.html", line: "Scene 4 — Agreement Repository + AI Q&A" },
+        { path: "story-templates/docusign-workspace.html", line: "Scene 5 — workspace + splash" },
+      ],
+      steps: [
+        "Pick the scene template that owns the visual.",
+        "Edit HTML/CSS/JS inside that one file.",
+        "Reload any vertical's shell URL — change appears for all 23 verticals.",
+        "If the change should apply to one vertical only, the right answer is a new <code>?preset=</code> case, not a hard edit."
+      ],
+      note: "Scene templates are deliberately shared. If you find yourself adding vertical-specific code paths, consider whether a new preset is the better answer."
+    }
+  },
+
+  flow: {
+    answer: {
+      title: "Change which scenes load for a usecase",
+      summary: "Three sibling lookup tables in the shell define which templates load and in what order.",
+      files: [
+        { path: "stories/_shared/story-shell.html", line: "USECASE_SCENE_KEYS — line 2074" },
+        { path: "stories/_shared/story-shell.html", line: "USECASE_TEMPLATE_FILES — line 2099" },
+        { path: "stories/_shared/story-shell.html", line: "USECASE_TEMPLATE_MODES — line 2135" },
+      ],
+      steps: [
+        "<code>USECASE_SCENE_KEYS[key]</code> — array of scene-key strings.",
+        "<code>USECASE_TEMPLATE_FILES[key]</code> — array of paths the shell iframes, same length and order.",
+        "<code>USECASE_TEMPLATE_MODES[key]</code> — optional <code>?mode=</code> per scene per usecase.",
+        "All three must be the same length. Per-vertical narration for new flows lives at <code>v.usecases.&lt;key&gt;.scenes[…]</code>."
+      ]
+    }
+  },
+
+  choreography: {
+    answer: {
+      title: "Change beat → internal-scene mapping",
+      summary: "Each shell beat tells the iframe which internal state to advance to.",
+      files: [{ path: "stories/_shared/story-shell.html", line: "BEAT_TO_INTERNAL — line 2156" }],
+      steps: [
+        "Each entry is keyed by scene-key and maps to a 5-element array of internal scene ids.",
+        "Example: <code>signing: [\"s1\",\"s2\",\"s3\",\"s4\",\"s5\"]</code>.",
+        "Repeat an id (<code>navigator: [...,\"s4\",\"s4\"]</code>) to hold the iframe while the sidebar advances.",
+        "Per-vertical overrides go in admin localStorage <code>tgkAdmin.beatToInternal</code> instead of editing the shell."
+      ]
+    }
+  },
+
+  newvert: {
+    answer: {
+      title: "Add a new vertical",
+      summary: "Three coordinated edits. Skip any one and the vertical breaks.",
+      files: [
+        { path: "stories/_shared/story-shell.html", line: "Add VERTICALS.<newkey>" },
+        { path: "story-templates/docusign-workspace.html", line: "Add PRESETS.<newkey>" },
+        { path: "stories/story-<newkey>/index.html", line: "Create — meta-refresh redirect" },
+      ],
+      steps: [
+        "Pick a key — kebab-case. Convention: <code>&lt;domain&gt;-&lt;variant&gt;</code> for splits.",
+        "Copy a similar existing vertical block in <code>VERTICALS</code>. Replace tenant, subtitle, color, splashOk, all 5 scenes × 5 beats.",
+        "Add a matching block to <code>PRESETS</code> in docusign-workspace.html.",
+        "Create <code>stories/story-&lt;newkey&gt;/index.html</code> as a thin meta-refresh."
+      ],
+      note: "After adding, bump CANONICAL.md and run <code>bash _audits/_persona_audit_build.sh</code>."
+    }
+  },
+
+  vignette: {
+    answer: {
+      title: "Add a callable vignette",
+      summary: "A reusable Docusign UI moment any vertical can iframe in as a beat-level drill-down (like Connected Forms). Lives outside the 5-scene spine.",
+      files: [{ path: "story-templates/docusign-<name>.html", line: "Create new file" }],
+      steps: [
+        "Drop the new template at <code>/story-templates/docusign-&lt;name&gt;.html</code>.",
+        "Support: <code>?embed=1</code>, <code>?preset=</code>, <code>?step=</code> or <code>?view=</code>.",
+        "Implement postMessage protocol: receive <code>tgk:lockToBeat</code> + <code>tgk:setPreset</code>; reply to <code>tgk:queryRect</code> with <code>tgk:rect</code>.",
+        "Tag interactive sub-elements with <code>data-hotspot=\"&lt;name&gt;\"</code>.",
+        "Register in CANONICAL.md § Callable Vignettes and bump REGISTRY.md."
+      ],
+      note: "Don't add a sixth scene — that's the wrong shape."
+    }
+  },
+
+  picker: {
+    answer: {
+      title: "Edit the picker / entry surface",
+      summary: "picker.html is canonical. geos and index-unified are redirect shims.",
+      files: [
+        { path: "/picker.html", line: "Function-first chooser" },
+        { path: "/assets/wizard/wizard.css", line: "Wizard primitive styles" },
+        { path: "/assets/wizard/wizard.js", line: "WizardPrimitive — setStage, attachBack" },
+      ],
+      steps: [
+        "Picker uses the wizard primitive — body gets <code>wizard-mode</code> + <code>wizard-stage-{N}</code>.",
+        "For wizard behavior changes, edit <code>/assets/wizard/wizard.js</code>.",
+        "For picker-specific show/hide logic, edit picker.html directly."
+      ]
+    }
+  },
+
+  headless: {
+    answer: {
+      title: "Edit a Headless IAM portal",
+      summary: "Three tenant-branded portals — separate from the shell.",
+      files: [
+        { path: "/headless-iam/fins.html", line: "Financial services" },
+        { path: "/headless-iam/hls.html", line: "Healthcare + life sciences" },
+        { path: "/headless-iam/ps.html", line: "Public sector" },
+      ],
+      steps: [
+        "Standalone tenant-branded pages — not driven by VERTICALS or USECASE_SCENE_KEYS.",
+        "Edit the file directly. They appear in the picker as appended chips on the relevant subverticals.",
+      ]
+    }
+  },
+};
+
+/* ============================================================
+   LOCATOR RENDERING
+   ============================================================ */
+
+const locatorEl = document.getElementById("locator");
+const history = [];
+
+function renderStep(stepKey) {
+  const step = LOCATOR[stepKey];
+  if (!step) return;
+  if (step.answer) { renderAnswer(step.answer); return; }
+  let html = `<div class="step active">`;
+  html += `<h3>${step.title}</h3>`;
+  if (step.hint) html += `<p class="hint">${step.hint}</p>`;
+  html += `<div class="choices">`;
+  step.choices.forEach(c => {
+    html += `<button class="choice" data-next="${c.next}">`;
+    html += `<div><div class="label">${c.label}</div>`;
+    if (c.sub) html += `<div class="sub">${c.sub}</div>`;
+    html += `</div><span class="arrow">→</span></button>`;
+  });
+  html += `</div>`;
+  if (history.length > 0) {
+    html += `<div class="nav"><button class="btn" id="back">← Back</button><button class="btn" id="restart">Start over</button></div>`;
+  }
+  html += `</div>`;
+  locatorEl.innerHTML = html;
+  locatorEl.querySelectorAll(".choice").forEach(btn => {
+    btn.onclick = () => { history.push(stepKey); renderStep(btn.getAttribute("data-next")); };
+  });
+  const back = document.getElementById("back");
+  if (back) back.onclick = () => { const prev = history.pop(); renderStep(prev || "start"); };
+  const restart = document.getElementById("restart");
+  if (restart) restart.onclick = () => { history.length = 0; renderStep("start"); };
+}
+
+function renderAnswer(a) {
+  let html = `<div class="answer">`;
+  html += `<div class="label-row">Edit here</div>`;
+  html += `<h3>${a.title}</h3>`;
+  if (a.summary) html += `<p class="summary">${a.summary}</p>`;
+  if (a.files) a.files.forEach(f => {
+    html += `<div class="file-block"><span class="path">${f.path}</span><span class="line">${f.line}</span></div>`;
+  });
+  if (a.steps) {
+    html += `<ol>`;
+    a.steps.forEach(s => { html += `<li>${s}</li>`; });
+    html += `</ol>`;
+  }
+  if (a.note) html += `<div class="note">${a.note}</div>`;
+  html += `<div class="nav"><button class="btn" id="back">← Back</button><button class="btn primary" id="restart">Start over</button></div>`;
+  html += `</div>`;
+  locatorEl.innerHTML = html;
+  document.getElementById("back").onclick = () => { const prev = history.pop(); renderStep(prev || "start"); };
+  document.getElementById("restart").onclick = () => { history.length = 0; renderStep("start"); };
+}
+
+renderStep("start");
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.tab).classList.add("active");
+    window.scrollTo(0, 0);
+  };
+});
+
+/* ============================================================
+   URL BUILDER
+   ============================================================ */
+const ubVertical = document.getElementById("ub-vertical");
+const ubUsecase = document.getElementById("ub-usecase");
+const ubSplash = document.getElementById("ub-splash");
+const ubUrl = document.getElementById("ub-url");
+const ubLoads = document.getElementById("ub-loads");
+
+VERTICALS.forEach(v => {
+  const opt = document.createElement("option");
+  opt.value = v.key;
+  opt.textContent = `${v.key}  —  ${v.tenant}`;
+  ubVertical.appendChild(opt);
+});
+
+function updateUrl() {
+  const v = ubVertical.value;
+  const u = ubUsecase.value;
+  const s = ubSplash.value;
+  const params = new URLSearchParams();
+  params.set("vertical", v);
+  if (u) params.set("usecase", u);
+  if (s !== "") params.set("splash", s);
+  ubUrl.textContent = `/stories/_shared/story-shell.html?${params.toString()}`;
+  const templates = USECASE_TEMPLATES[u] || USECASE_TEMPLATES[""];
+  ubLoads.innerHTML = templates.map((t, i) => `<li>Scene ${i+1}: ${t.startsWith("/") ? t : "/story-templates/" + t}</li>`).join("");
+}
+ubVertical.onchange = updateUrl;
+ubUsecase.onchange = updateUrl;
+ubSplash.onchange = updateUrl;
+updateUrl();
+
+/* ============================================================
+   VERTICAL INDEX
+   ============================================================ */
+const vbody = document.getElementById("vbody");
+const vsearch = document.getElementById("vsearch");
+
+function renderIndex(filter) {
+  const f = (filter || "").toLowerCase();
+  vbody.innerHTML = VERTICALS
+    .filter(v => !f || v.key.toLowerCase().includes(f) || v.tenant.toLowerCase().includes(f) || v.desc.toLowerCase().includes(f))
+    .map(v => `
+      <tr>
+        <td class="key">${v.key}</td>
+        <td>${v.tenant} — <span style="color:var(--ink-mute)">${v.desc}</span></td>
+        <td><span style="display:inline-block;width:9px;height:9px;background:${v.color};border-radius:50%;vertical-align:middle;margin-right:8px"></span><code style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mute)">${v.color}</code></td>
+        <td class="line">${v.line}</td>
+      </tr>
+    `).join("");
+}
+vsearch.oninput = e => renderIndex(e.target.value);
+renderIndex("");
+</script>
+</body>
+</html>

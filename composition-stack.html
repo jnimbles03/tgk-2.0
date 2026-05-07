@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
+<title>TGK 2.0 — Demo Composition Stack</title>
+<meta name="description" content="Six-layer architecture showing how granular component mocks compose up through vendor portals, story templates, the canonical story shell, vertical redirect stubs, and the picker entry point.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ds-purple:#4B00E9;
+    --ds-purple-soft:#EEE8FF;
+    --ds-purple-tint:#F5F1FF;
+    --ink:#18181B;
+    --ink-mid:#3F3F46;
+    --ink-soft:#71717A;
+    --ink-faint:#A1A1AA;
+    --hair:#E4E4E7;
+    --hair-strong:#D4D4D8;
+    --wash:#FAFAFA;
+    --ui:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --editorial:"Fraunces",Georgia,"Iowan Old Style",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{font-family:var(--ui);color:var(--ink);background:#fff;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+  .page{max-width:1100px;margin:0 auto;padding:48px 32px 80px;}
+
+  .eyebrow{font-size:11px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;}
+  h1{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:36px;line-height:1.15;color:var(--ink);letter-spacing:-0.005em;}
+  h1 strong{font-style:normal;font-weight:600;}
+  .lede{margin-top:16px;max-width:720px;font-size:15px;line-height:1.55;color:var(--ink-mid);}
+  .rule{margin:32px 0 28px;border:0;border-top:1px solid var(--hair);}
+
+  .figure{background:#fff;border:1px solid var(--hair);border-radius:6px;padding:24px;}
+  .figure svg{display:block;width:100%;height:auto;max-width:100%;}
+
+  .legend{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px 24px;}
+  .legend dt{font-family:var(--editorial);font-style:italic;font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+  .legend dd{font-size:13px;color:var(--ink-mid);line-height:1.5;}
+  .legend code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--ink);background:var(--wash);padding:1px 5px;border-radius:3px;border:1px solid var(--hair);}
+
+  .footnote{margin-top:32px;padding-top:18px;border-top:1px solid var(--hair);font-size:12px;color:var(--ink-soft);}
+  .footnote a{color:var(--ds-purple);text-decoration:none;border-bottom:1px solid var(--ds-purple-soft);}
+  .footnote a:hover{border-bottom-color:var(--ds-purple);}
+
+  @media (max-width:640px){
+    .page{padding:28px 18px 56px;}
+    h1{font-size:26px;}
+    .figure{padding:14px;}
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="eyebrow">TGK 2.0 / Architecture</p>
+  <h1>From <strong>198 component mocks</strong> up to <strong>one picker</strong>.</h1>
+  <p class="lede">A six-layer stack. Each tier composes the one below it. The story shell is the keystone: a single 10,185-line file that, given <code style="font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--wash);padding:1px 5px;border-radius:3px;border:1px solid var(--hair);">?vertical=&amp;usecase=</code>, selects which scene templates load as iframes — replacing what would otherwise be a hundred hand-built pages.</p>
+
+  <hr class="rule">
+
+  <figure class="figure" aria-label="TGK 2.0 demo composition stack">
+
+<svg viewBox="0 0 940 760" xmlns="http://www.w3.org/2000/svg" role="img" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">
+  <title>TGK 2.0 demo composition stack</title>
+  <desc>Six-layer architecture from granular HTML components at the bottom up through vendor portals, story templates, the canonical story shell, vertical redirect stubs, and the picker entry point at the top.</desc>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#A1A1AA"/>
+    </marker>
+  </defs>
+
+  <style>
+    .tier-label { font-family: Fraunces, Georgia, "Iowan Old Style", serif; font-style: italic; font-size: 13px; fill: #71717A; letter-spacing: 0.02em; }
+    .tier-count { font-size: 11px; fill: #71717A; font-weight: 500; letter-spacing: 0.04em; }
+    .box-title { font-size: 13px; font-weight: 600; fill: #18181B; }
+    .box-sub { font-size: 11px; fill: #3F3F46; }
+    .box-mono { font-size: 10.5px; fill: #71717A; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .accent { fill: #4B00E9; }
+    .accent-soft { fill: #EEE8FF; }
+    .hair { stroke: #E4E4E7; stroke-width: 1; fill: #FFFFFF; }
+    .wash { fill: #FAFAFA; stroke: #E4E4E7; stroke-width: 1; }
+    .conn { stroke: #D4D4D8; stroke-width: 1.2; fill: none; marker-end: url(#arr); }
+    .verb { font-size: 10px; fill: #71717A; font-style: italic; }
+    .h-num { font-size: 24px; font-weight: 700; fill: #18181B; }
+    .h-cap { font-size: 11px; fill: #71717A; letter-spacing: 0.06em; text-transform: uppercase; }
+    .scene-num { font-size: 9px; font-weight: 700; fill: #4B00E9; letter-spacing: 0.08em; }
+  </style>
+
+  <text x="32" y="34" font-size="11" fill="#71717A" letter-spacing="0.08em">TGK 2.0 / DEMO COMPOSITION</text>
+  <text x="32" y="60" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="22" fill="#18181B">From <tspan font-weight="600">198 component mocks</tspan> up to <tspan font-weight="600">one picker</tspan>.</text>
+  <line x1="32" y1="76" x2="908" y2="76" stroke="#E4E4E7"/>
+
+  <!-- TIER 6 -->
+  <text x="32" y="104" class="tier-label">6 — entry point</text>
+  <text x="908" y="104" class="tier-count" text-anchor="end">picker.html · ~100 entry rows</text>
+  <rect x="32" y="114" width="876" height="58" rx="4" class="hair"/>
+  <text x="48" y="138" class="box-title">Picker</text>
+  <text x="48" y="155" class="box-sub">20 verticals × ~5 flows · chip filter (Onboarding / Maintenance / Fraud Fabric / Workspaces) · Headless IAM appended</text>
+  <text x="48" y="167" class="box-mono">picker.html  →  href="/stories/_shared/story-shell.html?vertical=…&amp;usecase=…"</text>
+
+  <path class="conn" d="M 470 172 L 470 200"/>
+  <text x="478" y="190" class="verb">links to</text>
+
+  <!-- TIER 5 -->
+  <text x="32" y="218" class="tier-label">5 — vertical redirect stubs</text>
+  <text x="908" y="218" class="tier-count" text-anchor="end">stories/story-{vertical}/index.html · 23 stubs</text>
+
+  <g>
+    <rect x="32" y="228" width="170" height="52" rx="4" class="hair"/>
+    <text x="44" y="247" class="box-title">story-banking</text>
+    <text x="44" y="263" class="box-mono">?vertical=banking</text>
+
+    <rect x="212" y="228" width="170" height="52" rx="4" class="hair"/>
+    <text x="224" y="247" class="box-title">story-wealth</text>
+    <text x="224" y="263" class="box-mono">?vertical=wealth</text>
+
+    <rect x="392" y="228" width="170" height="52" rx="4" class="hair"/>
+    <text x="404" y="247" class="box-title">story-insurance-pc</text>
+    <text x="404" y="263" class="box-mono">?vertical=insurance-pc</text>
+
+    <rect x="572" y="228" width="170" height="52" rx="4" class="hair"/>
+    <text x="584" y="247" class="box-title">story-slgov-311</text>
+    <text x="584" y="263" class="box-mono">?vertical=slgov-311</text>
+
+    <rect x="752" y="228" width="156" height="52" rx="4" class="wash"/>
+    <text x="764" y="247" class="box-sub" font-style="italic">…19 more</text>
+    <text x="764" y="263" class="box-mono">23 total</text>
+  </g>
+
+  <path class="conn" d="M 470 280 L 470 308"/>
+  <text x="478" y="298" class="verb">single 0-line redirect → shell</text>
+
+  <!-- TIER 4 -->
+  <text x="32" y="326" class="tier-label">4 — canonical story shell</text>
+  <text x="908" y="326" class="tier-count" text-anchor="end">stories/_shared/story-shell.html · 1 file · 10,185 lines</text>
+
+  <rect x="32" y="336" width="876" height="92" rx="4" fill="#F5F1FF" stroke="#4B00E9" stroke-width="1.4"/>
+  <text x="48" y="360" class="box-title">5-scene runner</text>
+  <text x="48" y="378" class="box-sub">reads <tspan font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11">?vertical=&lt;key&gt;</tspan> for tenant brand + headlines · <tspan font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11">?usecase=&lt;flow&gt;</tspan> for scene sequence (18 variants)</text>
+
+  <g transform="translate(48,394)">
+    <rect x="0"   y="0" width="160" height="24" rx="3" fill="#FFFFFF" stroke="#D4D4D8"/>
+    <text x="10" y="11" class="scene-num">SCENE 1</text>
+    <text x="10" y="20" class="box-sub">Sender · Webform · Portal</text>
+
+    <rect x="172" y="0" width="160" height="24" rx="3" fill="#FFFFFF" stroke="#D4D4D8"/>
+    <text x="182" y="11" class="scene-num">SCENE 2</text>
+    <text x="182" y="20" class="box-sub">Identity · Clear IDV</text>
+
+    <rect x="344" y="0" width="160" height="24" rx="3" fill="#FFFFFF" stroke="#D4D4D8"/>
+    <text x="354" y="11" class="scene-num">SCENE 3</text>
+    <text x="354" y="20" class="box-sub">Signing Ceremony</text>
+
+    <rect x="516" y="0" width="160" height="24" rx="3" fill="#FFFFFF" stroke="#D4D4D8"/>
+    <text x="526" y="11" class="scene-num">SCENE 4</text>
+    <text x="526" y="20" class="box-sub">Data · Navigator</text>
+
+    <rect x="688" y="0" width="160" height="24" rx="3" fill="#FFFFFF" stroke="#D4D4D8"/>
+    <text x="698" y="11" class="scene-num">SCENE 5</text>
+    <text x="698" y="20" class="box-sub">Workspace · ?splash=1</text>
+  </g>
+
+  <path class="conn" d="M 128 428 L 128 458"/>
+  <path class="conn" d="M 300 428 L 300 458"/>
+  <path class="conn" d="M 470 428 L 470 458"/>
+  <path class="conn" d="M 640 428 L 640 458"/>
+  <path class="conn" d="M 812 428 L 812 458"/>
+  <text x="478" y="448" class="verb">each scene = one iframe</text>
+
+  <!-- TIER 3 -->
+  <text x="32" y="476" class="tier-label">3 — story templates · Docusign scene moments</text>
+  <text x="908" y="476" class="tier-count" text-anchor="end">/story-templates/docusign-*.html · 12 templates</text>
+
+  <g>
+    <rect x="32" y="486" width="170" height="56" rx="4" class="hair"/>
+    <text x="44" y="503" class="box-title">agreement-desk</text>
+    <text x="44" y="518" class="box-sub">Maestro proxy · orchestration</text>
+    <text x="44" y="532" class="box-mono">+ chain-of-custody variant</text>
+
+    <rect x="212" y="486" width="170" height="56" rx="4" class="hair"/>
+    <text x="224" y="503" class="box-title">clear-idv</text>
+    <text x="224" y="518" class="box-sub">identity verification</text>
+    <text x="224" y="532" class="box-mono">webform-intake · portal-shell</text>
+
+    <rect x="392" y="486" width="170" height="56" rx="4" class="hair"/>
+    <text x="404" y="503" class="box-title">signing-ceremony</text>
+    <text x="404" y="518" class="box-sub">signer experience</text>
+    <text x="404" y="532" class="box-mono">maestro-package · maestro-loop</text>
+
+    <rect x="572" y="486" width="170" height="56" rx="4" class="hair"/>
+    <text x="584" y="503" class="box-title">navigator</text>
+    <text x="584" y="518" class="box-sub">repository · extraction</text>
+    <text x="584" y="532" class="box-mono">connected-forms</text>
+
+    <rect x="752" y="486" width="156" height="56" rx="4" class="hair"/>
+    <text x="764" y="503" class="box-title">workspace</text>
+    <text x="764" y="518" class="box-sub">deal room · agents</text>
+    <text x="764" y="532" class="box-mono">+ mastercard splash</text>
+  </g>
+
+  <path class="conn" d="M 117 542 L 117 570"/>
+  <path class="conn" d="M 470 542 L 470 570"/>
+  <path class="conn" d="M 830 542 L 830 570"/>
+  <text x="478" y="560" class="verb">embed inside…</text>
+
+  <!-- TIER 2 -->
+  <text x="32" y="588" class="tier-label">2 — vendor portals</text>
+  <text x="908" y="588" class="tier-count" text-anchor="end">/story-templates/portals/ · vendor UI replicas</text>
+
+  <rect x="32" y="598" width="350" height="50" rx="4" class="hair"/>
+  <text x="44" y="616" class="box-title">enterprise-emptoris</text>
+  <text x="44" y="632" class="box-sub">vendor portal that hosts Docusign templates as drill-downs</text>
+
+  <rect x="392" y="598" width="516" height="50" rx="4" class="wash"/>
+  <text x="404" y="616" class="box-sub" font-style="italic">slot for additional vendor portals (built via tgk-vendor-portal skill)</text>
+  <text x="404" y="632" class="box-mono">REGISTRY.md · VERTICAL_PORTALS.md track which vertical → which portal</text>
+
+  <path class="conn" d="M 207 648 L 207 676"/>
+  <path class="conn" d="M 650 648 L 650 676"/>
+  <text x="660" y="666" class="verb">composed of…</text>
+
+  <!-- TIER 1 -->
+  <text x="32" y="694" class="tier-label">1 — granular component mocks</text>
+  <text x="908" y="694" class="tier-count" text-anchor="end">/components/{current,future}-state/ · 198 files</text>
+
+  <g>
+    <rect x="32" y="704" width="120" height="48" rx="4" fill="#18181B"/>
+    <text x="44" y="724" font-size="11" fill="#A1A1AA" letter-spacing="0.06em">FILES</text>
+    <text x="44" y="744" class="h-num" fill="#FFFFFF">97 · 101</text>
+
+    <g font-size="11" font-weight="500">
+      <rect x="162" y="704" width="84" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="172" y="719" fill="#3F3F46">insurance · 34</text>
+
+      <rect x="254" y="704" width="100" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="264" y="719" fill="#3F3F46">public-sector · 36</text>
+
+      <rect x="362" y="704" width="64" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="372" y="719" fill="#3F3F46">hls · 14</text>
+
+      <rect x="434" y="704" width="76" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="444" y="719" fill="#3F3F46">wealth · 7</text>
+
+      <rect x="518" y="704" width="84" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="528" y="719" fill="#3F3F46">banking · 6</text>
+
+      <rect x="610" y="704" width="298" height="22" rx="11" fill="#FAFAFA" stroke="#E4E4E7"/>
+      <text x="620" y="719" fill="#3F3F46" font-style="italic">payor · provider · life-sciences · nonprofit · education · fedgov</text>
+    </g>
+
+    <text x="162" y="744" class="box-mono">component-{system}-{domain}.html  ·  current-state = today's vendor SoR  ·  future-state = with Docusign</text>
+  </g>
+
+</svg>
+
+  </figure>
+
+  <dl class="legend">
+    <div><dt>Tier 1 — Components</dt><dd>The atoms. Each file mocks a single vendor system tile (CRM, doc assembly, EHR, claims admin) at <code>current-state</code> or <code>future-state</code>.</dd></div>
+    <div><dt>Tier 2 — Vendor portals</dt><dd>Replicas of real vendor UIs (Emptoris today; more via the <code>tgk-vendor-portal</code> skill) that host Docusign templates as drill-downs.</dd></div>
+    <div><dt>Tier 3 — Story templates</dt><dd>The 12 reusable Docusign scene moments. Agreement Desk is the Maestro orchestration visualizer; Workspace can layer the Mastercard splash.</dd></div>
+    <div><dt>Tier 4 — Story shell</dt><dd>One file. Reads <code>?vertical=</code> for tenant brand and <code>?usecase=</code> to swap the iframe sequence — 18 usecase variants in flight.</dd></div>
+    <div><dt>Tier 5 — Redirect stubs</dt><dd>23 one-line files that exist only to set the <code>?vertical=</code> param and forward to the shell.</dd></div>
+    <div><dt>Tier 6 — Picker</dt><dd>The storefront. ~100 entry rows across 20 verticals × ~5 flows, plus Headless IAM shortcuts.</dd></div>
+  </dl>
+
+  <p class="footnote">Source of truth: <code style="font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--wash);padding:1px 5px;border-radius:3px;border:1px solid var(--hair);">CANONICAL.md</code> · related: <a href="/architecture.html">architecture.html</a> · <a href="/picker.html">picker.html</a> · <a href="/stories/_shared/story-shell.html">story-shell.html</a></p>
+</main>
+</body>
+</html>
