@@ -266,6 +266,8 @@
     .field > label{padding-top:0;}
   }
 </style>
+<link rel="stylesheet" href="/assets/admin-auth/admin-auth.css">
+<script src="/assets/admin-auth/admin-auth.js"></script>
 </head>
 <body>
 
@@ -610,18 +612,18 @@ function unlock(){
   init();
 }
 function tryGate(){
-  if (localStorage.getItem("tgkAdminAuth") === "1") return unlock();
-  if (params.get("key") === ADMIN_TOKEN) return unlock();
+  // Use the new AdminAuth primitive for password-based gate.
+  if (AdminAuth.isUnlocked()) return unlock();
+  
+  // Prompt for password.
+  AdminAuth.prompt().then(ok => {
+    if (ok) unlock();
+    else location.href = '/index-unified.html';
+  });
 }
-$('gate-submit').addEventListener('click', () => {
-  const v = $('tok').value.trim();
-  if (v === ADMIN_TOKEN) unlock();
-  else $('gate-err').textContent = "That's not the token.";
-});
-$('tok').addEventListener('keydown', (e) => { if (e.key === "Enter") $('gate-submit').click(); });
 $('signout').addEventListener('click', (e) => {
   e.preventDefault();
-  localStorage.removeItem("tgkAdminAuth");
+  AdminAuth.lock();
   location.reload();
 });
 

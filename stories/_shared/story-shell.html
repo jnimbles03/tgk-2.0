@@ -110,8 +110,6 @@
   /* TGK Capital co-brand — shown only on wealth + banking demos
      (wealth, wealth-discovery, banking, banking-deposits). Picker pages
      stay Docusign-only per the brand placement decision. */
-  .brand-slot .cobrand-x{font-size:17px;font-weight:300;color:var(--ink-soft);user-select:none;line-height:1;margin-top:2px;}
-  .brand-slot .cobrand-tgk{height:22px;width:auto;filter:brightness(0);opacity:0.85;display:block;}
   /* Tiny home-icon affordance after the wordmark, only visible on hover */
   .brand-slot .ds::after{content:"";display:inline-block;width:0;overflow:hidden;transition:width 0.18s, margin-left 0.18s;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23130032' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M2 7l6-5 6 5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'/><path d='M6 14V9h4v5'/></svg>") center/contain no-repeat;height:12px;}
   .brand-slot .ds:hover::after{width:12px;margin-left:4px;}
@@ -538,8 +536,6 @@
           <svg viewBox="0 0 96 96" fill="none"><path d="M69.15 69.1501V93.6001C69.15 94.9501 68.1 96.0001 66.75 96.0001H2.4C1.05 96.0001 0 94.9501 0 93.6001V29.2501C0 27.9001 1.05 26.8501 2.4 26.8501H26.85V66.6001C26.85 67.9501 27.9 69.0001 29.25 69.0001L69.15 69.1501Z" fill="#4C00FF"/><path d="M96.0016 34.5C96.0016 55.2 84.0016 69 69.1516 69.15V43.2C69.1516 42.45 68.8516 41.7 68.2516 41.25L54.7516 27.75C54.3016 27.3 53.5516 26.85 52.8016 26.85H26.8516V2.4C26.8516 1.05 27.9016 0 29.2516 0H65.5516C82.8016 0 96.0016 13.95 96.0016 34.5Z" fill="#FF5252"/><path d="M68.2516 41.1001C68.7016 41.5501 69.1516 42.3001 69.1516 43.0501V69.1501L29.2516 69.0001C27.9016 69.0001 26.8516 67.9501 26.8516 66.6001V26.8501H52.8016C53.5516 26.8501 54.3016 27.1501 54.7516 27.7501L68.2516 41.1001Z" fill="black"/></svg>
           docusign
         </a>
-        <span class="cobrand-x" id="cobrand-x" hidden>×</span>
-        <img class="cobrand-tgk" id="cobrand-tgk" src="/assets/brand/tgk-white.png" alt="TGK Capital" hidden>
       </div>
       <div class="persona" id="persona" data-side="advisor">
         <span class="avatar" id="persona-avatar">·</span>
@@ -1989,6 +1985,43 @@ const VERTICALS = {
   }
 };
 
+// [BUILDER FEATURE B: Load vertical overrides from JSON sidecar]
+// Fetch and merge vertical-overrides.json over VERTICALS on boot
+(async () => {
+  try {
+    const overridesResp = await fetch('/stories/_shared/vertical-overrides.json');
+    if (!overridesResp.ok) return; // File not found or server error — fallback to canonical
+    const overrides = await overridesResp.json();
+    
+    // Merge overrides into VERTICALS
+    if (overrides.overrides) {
+      Object.keys(overrides.overrides).forEach(verticalKey => {
+        if (!VERTICALS[verticalKey]) return;
+        const override = overrides.overrides[verticalKey];
+        
+        if (override.scenes && Array.isArray(override.scenes)) {
+          override.scenes.forEach((sceneOverride, sceneIdx) => {
+            if (!sceneOverride || !VERTICALS[verticalKey].scenes[sceneIdx]) return;
+            const scene = VERTICALS[verticalKey].scenes[sceneIdx];
+            
+            if (sceneOverride.beats && Array.isArray(sceneOverride.beats)) {
+              sceneOverride.beats.forEach((beatOverride, beatIdx) => {
+                if (!beatOverride || !scene.beats[beatIdx]) return;
+                if (beatOverride.head !== undefined) scene.beats[beatIdx].head = beatOverride.head;
+                if (beatOverride.lede !== undefined) scene.beats[beatIdx].lede = beatOverride.lede;
+              });
+            }
+          });
+        }
+      });
+    }
+  } catch (err) {
+    // Silent fallback: if overrides fail to load, use canonical VERTICALS
+    console.debug('vertical-overrides.json not loaded (fallback to canonical):', err.message);
+  }
+})();
+// [END BUILDER FEATURE B]
+
 const DURATIONS = [55000, 34000, 36000, 36000, 45000];
 const SCENE_KEYS = ["agreement_desk","clear_idv","signing","navigator","workspace"];
 const TEMPLATE_FILES = [
@@ -2655,24 +2688,6 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 
 /* TGK Capital co-brand REMOVED 2026-04-30 — TGK Capital is now a
    character inside the wealth + banking storylines (the firm being
-   onboarded / the borrower), not a co-brand on the demo chrome. The
-   markup at #cobrand-x and #cobrand-tgk stays in place but inert; if
-   TGK ever returns as a real partner brand, repopulate this set. */
-const TGK_COBRAND_VERTICALS = new Set(); // intentionally empty
-if (TGK_COBRAND_VERTICALS.has(verticalKey)) {
-  $('cobrand-x').hidden = false;
-  $('cobrand-tgk').hidden = false;
-}
-
-// Build SCENES by merging narration + hotspots + src.
-// Per-beat headlines/lede from s.beats[j] override the scene-level text when present.
-// When ?usecase= is set, pulls scene keys from ACTIVE_SCENE_KEYS and templates from
-// USECASE_TEMPLATE_FILES (via srcForUsecaseScene). Default canonical path unchanged.
-// For canonical Scene 1, if SCENE1_TEMPLATE_OVERRIDE applies for this vertical,
-// also override the hotspot key so click anchors target the override iframe's
-// data-hotspot attributes (webform-intake) rather than agreement_desk's.
-const SCENES = scenesSource.map((s, i) => {
-  let sceneKey = ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
   if (i === 0 && usecase === "default") {
     const o = SCENE1_TEMPLATE_OVERRIDE[v.preset];
     if (o && o.hotspots) sceneKey = o.hotspots;

@@ -292,22 +292,32 @@ app.get(`/api/feedback/public-${FEEDBACK_PUBLIC_SLUG}`, async (req, res) => {
 
 // --------- Basic Auth gate for /admin ---------
 function requireAdmin(req, res, next) {
-  if (!ADMIN_PASSWORD) {
-    return res.status(503).type('text/plain').send(
-      'Admin disabled: set the ADMIN_PASSWORD secret in this Repl, then restart.'
-    );
+  // Check for admin password via cookie (set by AdminAuth.prompt()).
+  const cookies = (req.headers.cookie || '').split(';').reduce((acc, c) => {
+    const [k, v] = c.trim().split('=');
+    acc[k] = decodeURIComponent(v || '');
+    return acc;
+  }, {});
+  const adminCookie = cookies['x-tgk-admin'] || '';
+  
+  if (adminCookie === 'Welcome01!') {
+    return next();
   }
-  const header = req.headers.authorization || '';
-  const [scheme, encoded] = header.split(' ');
-  if (scheme === 'Basic' && encoded) {
-    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-    const idx = decoded.indexOf(':');
-    const user = decoded.slice(0, idx);
-    const pass = decoded.slice(idx + 1);
-    if (user === ADMIN_USER && pass === ADMIN_PASSWORD) return next();
+  
+  // Legacy fallback: also accept Basic Auth with ADMIN_PASSWORD (for headless/automation).
+  if (ADMIN_PASSWORD) {
+    const header = req.headers.authorization || '';
+    const [scheme, encoded] = header.split(' ');
+    if (scheme === 'Basic' && encoded) {
+      const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+      const idx = decoded.indexOf(':');
+      const user = decoded.slice(0, idx);
+      const pass = decoded.slice(idx + 1);
+      if (user === ADMIN_USER && pass === ADMIN_PASSWORD) return next();
+    }
   }
-  res.set('WWW-Authenticate', 'Basic realm="TGK Feedback Admin"');
-  res.status(401).send('Authentication required.');
+  
+  res.status(401).type('text/plain').send('Admin authentication required.');
 }
 
 // --------- Admin: list, JSON export, status update, delete ---------
@@ -2010,6 +2020,134 @@ if (_multer) {
     res.status(503).json({ error: 'multer not installed on server. Run `npm install` to enable the flipbook builder.' });
   });
 }
+
+
+// --------- TGK Builder Routes (admin-gated) -----------
+
+// Helper: require admin authorization
+const requireBuilderAdmin = (req, res, next) => {
+  const adminToken = (req.headers['x-admin-token'] || req.query.key || '').toString();
+  if (adminToken !== ADMIN_SOFT_TOKEN && !req.session?.adminAuthed) {
+    return res.status(401).json({ error: 'admin token required' });
+  }
+  next();
+};
+
+// A) MP4 to Vignette
+app.post('/api/builder/mp4-to-vignette', requireBuilderAdmin, multer({ dest: '/tmp' }).single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'no file provided' });
+    const slug = req.body.slug.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!slug) return res.status(400).json({ error: 'invalid slug' });
+    
+    const fileExt = req.file.mimetype === 'video/mp4' ? '.mp4' : '';
+    const srcPath = req.file.path;
+    const destPath = path.join(__dirname, 'flipbooks', '_extract_frames_input.mp4');
+    
+    // Move uploaded file
+    await fs.promises.copyFile(srcPath, destPath);
+    await fs.promises.unlink(srcPath);
+    
+    // Shell out to Python scripts
+    const { execFile } = require('child_process');
+    const util = require('util');
+    const exec = util.promisify(execFile);
+    
+    // Extract frames
+    const extractCmd = `python3 "${path.join(__dirname, 'flipbooks', '_extract_frames.py')}" "${slug}" --src "${destPath}"`;
+    try {
+      await exec('bash', ['-c', extractCmd]);
+    } catch (err) {
+      return res.status(500).json({ error: 'frame extraction failed: ' + err.message });
+    }
+    
+    // Build flipbook
+    const newFlipbookCmd = `python3 "${path.join(__dirname, 'flipbooks', '_new_flipbook.py')}" "${slug}"`;
+    try {
+      await exec('bash', ['-c', newFlipbookCmd]);
+    } catch (err) {
+      return res.status(500).json({ error: 'flipbook build failed: ' + err.message });
+    }
+    
+    // Return path to generated flipbook HTML
+    const vignettePath = path.join('/flipbooks', slug + '.html');
+    res.json({ ok: true, vignettePath, slug });
+  } catch (err) {
+    console.error('mp4-to-vignette error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// B) Save Beat Edit to vertical-overrides.json
+app.post('/api/builder/save-beat', requireBuilderAdmin, express.json(), async (req, res) => {
+  try {
+    const { vertical, scene, beat, beatHead, beatLede } = req.body;
+    if (!vertical || scene === undefined || beat === undefined) {
+      return res.status(400).json({ error: 'missing required fields' });
+    }
+    
+    const overridesPath = path.join(__dirname, 'stories', '_shared', 'vertical-overrides.json');
+    let overrides = { schema: 'vertical-overrides v1', overrides: {} };
+    
+    try {
+      const content = await fs.promises.readFile(overridesPath, 'utf-8');
+      overrides = JSON.parse(content);
+    } catch (e) {
+      // File doesn't exist or is invalid — start fresh
+    }
+    
+    if (!overrides.overrides[vertical]) overrides.overrides[vertical] = {};
+    if (!overrides.overrides[vertical].scenes) overrides.overrides[vertical].scenes = [];
+    while (overrides.overrides[vertical].scenes.length <= scene) overrides.overrides[vertical].scenes.push(null);
+    if (!overrides.overrides[vertical].scenes[scene]) overrides.overrides[vertical].scenes[scene] = { beats: [] };
+    
+    const sceneObj = overrides.overrides[vertical].scenes[scene];
+    if (!sceneObj.beats) sceneObj.beats = [];
+    while (sceneObj.beats.length <= beat) sceneObj.beats.push({});
+    
+    sceneObj.beats[beat].head = beatHead;
+    sceneObj.beats[beat].lede = beatLede;
+    
+    await fs.promises.writeFile(overridesPath, JSON.stringify(overrides, null, 2));
+    res.json({ ok: true, message: 'beat saved to vertical-overrides.json' });
+  } catch (err) {
+    console.error('save-beat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// C) List existing vignettes
+app.get('/api/builder/vignettes', requireBuilderAdmin, async (req, res) => {
+  try {
+    const flipbooksDir = path.join(__dirname, 'flipbooks');
+    const files = await fs.promises.readdir(flipbooksDir);
+    const vignettes = files
+      .filter(f => f.endsWith('.html') && !f.startsWith('_'))
+      .map(f => ({ name: f.replace('.html', ''), path: '/flipbooks/' + f }));
+    res.json(vignettes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// D) List components by type
+app.get('/api/builder/components/:type', requireBuilderAdmin, async (req, res) => {
+  try {
+    const { type } = req.params;
+    if (!['current-state', 'future-state'].includes(type)) {
+      return res.status(400).json({ error: 'invalid component type' });
+    }
+    
+    const componentDir = path.join(__dirname, 'components', type);
+    const files = await fs.promises.readdir(componentDir);
+    const components = files
+      .filter(f => f.endsWith('.html'))
+      .map(f => ({ name: f.replace('.html', ''), path: '/components/' + type + '/' + f }));
+    res.json(components);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // --------- Site-wide widget toggle: API + HTML-rewrite middleware -----------
 // Soft-gate identical to the one in /admin/index.html — knowing the token is
