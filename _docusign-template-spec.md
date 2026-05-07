@@ -4,7 +4,7 @@
 
 **Canonical layout:** *linear workflow with click-to-expand nodes* — e.g. `Application → Doc Collection → Underwriting → Approval → Closing → Servicing`. Each node explodes into a side-by-side **current state vs. future state** comparison. Assets land directly on this layout — no landing card, no browser chrome, no scene-by-scene walkthrough.
 
-**Source of truth for color & type:** `auto.html` — we pull the palette, DSIndigo font loads, and Iris logo treatment from it. We do **not** inherit its layout (scene-by-scene demo scenes). That layout is retired for this asset family.
+**Source of truth for color & type:** `docs/experiments/auto.html` — we pull the palette, DSIndigo font loads, and Iris logo treatment from it. We do **not** inherit its layout (scene-by-scene demo scenes). That layout is retired for this asset family.
 
 **Source of truth for the canonical file:** `_template.html`. Copy it, rename it, edit the `steps` array, done.
 
@@ -20,7 +20,7 @@
 - **`colors/colors.css`** — official palette, mapped to `.bf-background-*` / `.bf-color-*` utility classes.
 - **Icon/illustration library** — hundreds of flat PNG/SVG spot illustrations (wallet, warning, video_recorder, window, etc.) suitable for section headers, empty states, and problem-statement graphics.
 
-**Reference Docusign collateral (docusign.com):** confirmed use of the same palette (`#4C00FF`, `#130032`, `#CBC2FF`, `#FF5252`) and the DSIndigo family. `auto.html` is tracking current brand.
+**Reference Docusign collateral (docusign.com):** confirmed use of the same palette (`#4C00FF`, `#130032`, `#CBC2FF`, `#FF5252`) and the DSIndigo family. `docs/experiments/auto.html` is tracking current brand.
 
 ---
 
@@ -109,7 +109,7 @@ Stack: `"DSIndigo", Helvetica, Arial, sans-serif`.
 
 - **Full wordmark:** `DS Iris Large Mark/DS Iris logo primary.svg` for light surfaces; `...reversed.svg` for dark/gradient backgrounds. Render at ~28–32px tall in headers, 40–48px on landing cards.
 - **Favicon:** link the full `DSIcon favicon LightMode` set in `<head>` — at minimum 16, 32, 180 (apple-touch), 192, 512.
-- **Co-branding pattern (TGK Capital + Docusign):** vertical divider (`.tgk-sep`) between marks, both at ~30px; reversed variant for dark chrome. Already implemented as `.tgk-brand` in `auto.html`.
+- **Co-branding pattern (TGK Capital + Docusign):** vertical divider (`.tgk-sep`) between marks, both at ~30px; reversed variant for dark chrome. Already implemented as `.tgk-brand` in `docs/experiments/auto.html`.
 
 ### 2.5 Spacing, radii, shadows
 
@@ -122,7 +122,7 @@ Stack: `"DSIndigo", Helvetica, Arial, sans-serif`.
 | Page max-width | `1420px` (browser chrome), `920px` (prose) |
 | Section padding | `44px 36px` |
 
-Shadows (layered): `--shadow-xs → --shadow-xl` as defined in `auto.html`. Hero / landing shadow signature: `0 30px 80px rgba(19, 0, 50, 0.35)`.
+Shadows (layered): `--shadow-xs → --shadow-xl` as defined in `docs/experiments/auto.html`. Hero / landing shadow signature: `0 30px 80px rgba(19, 0, 50, 0.35)`.
 
 ---
 
@@ -262,12 +262,12 @@ All icons are inline feather-style SVG:
 | File | Folder | Status | Work needed |
 |---|---|---|---|
 | `_template.html` | `TGK 2.0/` | ✅ Canonical template | Single source of truth for new assets. |
-| `auto.html` | `TGK 2.0/` | 🟡 Palette reference only | Keep for color/font reference. Its scene-walkthrough layout is **retired** for this asset family. |
+| `docs/experiments/auto.html` | `TGK 2.0/` | 🟡 Palette reference only | Keep for color/font reference. Its scene-walkthrough layout is **retired** for this asset family. |
 | `banking-deposits.html` | `TGK 2.0/` | ❌ Off-brand | Dark `#0a0a0f`, Playfair, indigo `#6366f1`. Re-skin against `_template.html`. |
 | `insurance-life.html` | `TGK 2.0/` | ❌ Off-brand | Cream + Playfair + invented purple. Re-skin. |
 | `insurance-pc.html` | `TGK 2.0/` | ❌ Off-brand | Cream + Playfair + `#3D3BF3`. Re-skin. |
 | `wealth-onboarding.html` | `TGK 2.0/` | ❌ Off-brand | Navy + brown + Playfair. Re-skin. |
-| `index.html`, `index-playbook.html` | `TGK 2.0/` | Unreviewed | Audit after reconciliation. |
+| `index.html`, `docs/experiments/index-playbook.html` | `TGK 2.0/` | Unreviewed | Audit after reconciliation. |
 | `disco-bank.html` | `TGK2.0/` | ❌ Off-brand | Dark + indigo + Playfair. Re-skin. |
 | `disco-insurance.html` | `TGK2.0/` | ❌ Off-brand | Cream + Playfair + `#3D3BF3`. Re-skin. |
 | `disco-wealth.html` | `TGK2.0/` | ❌ Off-brand | Navy + `#4A00E0` + Playfair. Re-skin. |
@@ -291,7 +291,7 @@ All icons are inline feather-style SVG:
 
 1. **Reconcile existing files** against `_template.html`, in order: wealth-onboarding → insurance-pc → insurance-life → banking-deposits → disco-wealth → disco-insurance → disco-bank → disco-land. We can batch the index pages at the end. Each file should end up with the same shell (header, legend, point-solutions bar, swim lane, modal) and a populated `steps` array.
 2. **Capture per-industry instructions** from teammates so additional assets can be scaffolded from `_template.html` without re-litigating the layout.
-3. **Retire the scene-walkthrough pattern.** `auto.html` stays for palette/font reference only; no new assets use its layout.
+3. **Retire the scene-walkthrough pattern.** `docs/experiments/auto.html` stays for palette/font reference only; no new assets use its layout.
 
 ---
 

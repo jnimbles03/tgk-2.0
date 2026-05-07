@@ -19,10 +19,10 @@ Template: [`report-template.md`](./report-template.md).
 
 If the user named specific files, audit those. Otherwise ask (or infer from context) which scope to cover:
 
-- `swim-lane` — `_template.html`, `auto.html`, `insurance-life.html`, `insurance-pc.html`, `wealth-onboarding.html`, `banking-deposits.html`
+- `swim-lane` — `_template.html`, `docs/experiments/auto.html`, `insurance-life.html`, `insurance-pc.html`, `wealth-onboarding.html`, `banking-deposits.html`
 - `component-current` — `components/current-state/*.html` (vendor mocks)
 - `component-future` — `components/future-state/*.html` (Docusign mocks)
-- `index` — `index.html`, `index-playbook.html`, `landing.html`
+- `index` — `index.html`, `docs/experiments/index-playbook.html`, `docs/experiments/landing.html`
 - `story-shell` — `stories/_shared/story-shell.html` (the canonical VERTICALS narration; runs the Capabilities pass)
 - `all` — everything above
 
@@ -155,7 +155,7 @@ Save the report to `audit/reports/`, then share the file link with the user and 
 - **The spec is the spec.** If a finding feels like a judgment call about a rule, re-read `_docusign-template-spec.md` before flagging. Don't invent new rules in the report.
 - **Keep `rules.json` in sync.** If a new real vendor comes up during the LLM pass that should be in the allowlist, add it to `rules.json → known_vendor_point_solutions.<industry>` so the mechanical pass learns.
 - **Workspaces is the newest IAM product in the narrative.** When in doubt about its correct use, err on the side of asking Jimmy whether an instance he sees in the wild is intentional.
-- **Don't run on `auto.html` like it's a live asset.** Per the spec (§8), `auto.html` is palette/font reference only. Mechanical findings on it get severity downgraded to `Low`, judgment passes skip it entirely.
+- **Don't run on `docs/experiments/auto.html` like it's a live asset.** Per the spec (§8), `docs/experiments/auto.html` is palette/font reference only. Mechanical findings on it get severity downgraded to `Low`, judgment passes skip it entirely.
 
 ## Example invocation
 

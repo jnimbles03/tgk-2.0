@@ -885,8 +885,8 @@ app.get('/api/me', async (req, res) => {
 // Friendly aliases: /audit and /audit/ → /audit.html
 app.get(['/audit', '/audit/'], (req, res) => res.redirect('/audit.html'));
 
-// Friendly alias: /architecture and /architecture/ → /architecture.html
-app.get(['/architecture', '/architecture/'], (req, res) => res.redirect('/architecture.html'));
+// Friendly alias: /architecture and /architecture/ → /docs/experiments/architecture.html
+app.get(['/architecture', '/architecture/'], (req, res) => res.redirect('/docs/experiments/architecture.html'));
 
 // Friendly alias: /builder and /builder/ (and /build) → /builder.html
 app.get(['/builder', '/builder/', '/build', '/build/'], (req, res) => res.redirect('/builder.html'));

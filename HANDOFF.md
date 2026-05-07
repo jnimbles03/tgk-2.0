@@ -57,7 +57,7 @@ Cross · Procurement   ✓             ✓             —             —      
 2. **`docs/solution-design.html`** — single 44KB self-contained architecture reference. Read this first when you sit down day 1.
 3. **Picker reverted to function-first** (Procurement / Sales / Customer Experience) and step 3 thinned to exactly 1 demo per (sub-vertical × category) per `_audits/sub-vertical-mapping.md`, plus Headless IAM 5th cell added across all 10 sub-verticals.
 4. **2 new flipbook vignettes** — `Search_Agent.html` (356 frames) and `Search_Demo.html` (246 frames). Auto-registered in builder media pool.
-5. **Repo reorg phase 1** — 7 files moved to `/docs/` and `/docs/experiments/`. **9 root HTMLs deferred for the team** (each has runtime references in picker/server/scripts; safer as deliberate file-by-file work). Process documented in `README.md`.
+5. **Repo reorg complete** — 16 files moved out of root: 5 docs to `docs/` + 11 experimental/superseded HTMLs to `docs/experiments/` (architecture, audit-dashboard, dashboard, landing, index-playbook, auto, composition-stack, geos, index-unified, HANDOFF.html, _persona-keyboard-demo.html). All inbound refs updated in picker, server.js, admin/index.html, audit/SKILL.md. Server.js redirects (`/architecture` → `/docs/experiments/architecture.html`) preserve external bookmarks.
 
 **Where to look:**
 
@@ -294,8 +294,8 @@ Override per-vertical via the admin localStorage key `tgkAdmin.beatToInternal` i
 | Surface | File | Notes |
 |---|---|---|
 | Picker (canonical) | `/picker.html` | Function-first (Procurement / Sales / CX). CX expands inline to vertical wizard. |
-| Geos (legacy) | `/geos.html` | Now a redirect to picker, forwarding `?cluster=`. |
-| Index-unified (legacy) | `/index-unified.html` | Now a redirect to picker, forwarding `?mode=`. |
+| Geos (legacy) | `/docs/experiments/geos.html` | Now a redirect to picker, forwarding `?cluster=`. |
+| Index-unified (legacy) | `/docs/experiments/index-unified.html` | Now a redirect to picker, forwarding `?mode=`. |
 | Per-vertical entry | `/stories/story-<key>/index.html` | 1-line meta-refresh to shell. **Do not edit narrative here** — these are deliberately thin. |
 | Headless IAM | `/headless-iam/{fins,hls,ps}.html` | Tenant-branded portals; not the shell. |
 

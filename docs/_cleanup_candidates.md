@@ -4,7 +4,7 @@ Generated during the "be done" sweep. Each tier is reviewable independently.
 Run the listed `rm` (or VS Code delete) per tier; nothing here is mandatory.
 
 Background: per `CANONICAL.md`, the canonical entry is `picker.html`
-(server.js routes `/` to it). Both `geos.html` and `index-unified.html` are
+(server.js routes `/` to it). Both `docs/experiments/geos.html` and `docs/experiments/index-unified.html` are
 already thin redirects. The deploy workflow at
 `.github/workflows/deploy-pages.yml` plus `.github/scripts/rewrite-paths.mjs`
 still ships several legacy entry-point HTMLs that the picker no longer
@@ -47,15 +47,15 @@ Removing them requires two coupled edits.
 
 | File | Size | Last meaningful edit |
 |---|---|---|
-| `auto.html` | 745K | superseded by `picker.html` |
-| `landing.html` | 30K | superseded by `picker.html` |
-| `index-playbook.html` | 36K | superseded by `picker.html` |
+| `docs/experiments/auto.html` | 745K | superseded by `picker.html` |
+| `docs/experiments/landing.html` | 30K | superseded by `picker.html` |
+| `docs/experiments/index-playbook.html` | 36K | superseded by `picker.html` |
 
 To remove cleanly:
 
-1. Edit `.github/scripts/rewrite-paths.mjs` — drop `auto.html`,
-   `landing.html`, `index-playbook.html` from the path-rewrite array.
-2. Drop the `landing.html` index→story-demo-classic patch block (since
+1. Edit `.github/scripts/rewrite-paths.mjs` — drop `docs/experiments/auto.html`,
+   `docs/experiments/landing.html`, `docs/experiments/index-playbook.html` from the path-rewrite array.
+2. Drop the `docs/experiments/landing.html` index→story-demo-classic patch block (since
    the file is gone).
 3. `rm auto.html landing.html index-playbook.html`.
 
@@ -78,7 +78,7 @@ Total reclaimed: ~810KB plus a cleaner deploy.
 | `HANDOFF.html`, `HANDOFF.md` | Active handoff docs (last edited 2026-05-06). |
 | `STORYLINES.md`, `CANONICAL.md`, `TASKS.md` | Authoritative project docs. |
 | `replit.md` | Replit infra config. |
-| Every `*.html` redirect at root | `geos.html`, `index-unified.html`, the 11 sampler redirects per CANONICAL.md — keep, they're working URL shims. |
+| Every `*.html` redirect at root | `docs/experiments/geos.html`, `docs/experiments/index-unified.html`, the 11 sampler redirects per CANONICAL.md — keep, they're working URL shims. |
 | `hls-discovery-process-map.html` | Per CANONICAL.md, preserved as standalone process-map artifact. |
 
 ---
@@ -91,6 +91,6 @@ Total reclaimed: ~810KB plus a cleaner deploy.
 - `assets/clips/iam-sales-agentforce.mp4` is intentional — trimmed web clip referenced by builder.
 
 If the deploy script's array gets pruned (Tier 2), also re-grep
-`audit/` reports — they reference `auto.html` and `landing.html`
+`audit/` reports — they reference `docs/experiments/auto.html` and `docs/experiments/landing.html`
 historically; keeping those audit reports as historical record is
 fine, but flagging here so future audit runs don't try to reload them.

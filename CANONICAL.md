@@ -51,14 +51,18 @@ Patrick stayed at the keyboard one more session and landed five things:
 4. **Picker function-first revert + thinning + Headless IAM 5th cells**
    — see "Picker — function-first restored + thinned" subsection below.
 
-5. **Repo reorg phase 1** — 5 docs moved to `/docs/`, 2 scratch HTMLs
-   moved to `/docs/experiments/`, 5 historical attribution comments
-   updated. **Deferred for the team** (task #47): 9 root HTMLs
-   (`architecture.html`, `landing.html`, `dashboard.html`,
-   `audit-dashboard.html`, `index-playbook.html`, `auto.html`,
-   `composition-stack.html`, `geos.html`, `index-unified.html`) — each
-   has runtime references in picker/server/scripts; safer as
-   deliberate file-by-file work than a rushed sweep.
+5. **Repo reorg complete** — 16 files moved out of root in two
+   phases this evening. Phase 1: 5 docs to `docs/` (STORYLINES,
+   _cleanup_candidates, "HLS Discovery Playbook…", "Public Sector",
+   TGK-2.0-Imagery-Spec) + 2 scratch HTMLs to `docs/experiments/`
+   (HANDOFF.html, _persona-keyboard-demo.html). Phase 2: 9 root HTMLs
+   to `docs/experiments/` (architecture, audit-dashboard, dashboard,
+   landing, index-playbook, auto, composition-stack, geos,
+   index-unified). All inbound references updated in picker.html,
+   server.js, admin/index.html, audit/SKILL.md, and the spec docs.
+   Server.js preserves friendly aliases (`/architecture` →
+   `/docs/experiments/architecture.html`) so existing deep-links
+   keep resolving.
 
 ### 5-demos-per-sub-vertical (locked 2026-05-06)
 
@@ -246,7 +250,7 @@ Space, splash fades, autoplay resumes.
 ## Hosting & deploy
 
 Two targets, one source. Source files use root-relative paths (`/assets/…`,
-`/index-unified.html`, `/api/feedback`). **Do not** convert source paths to
+`/docs/experiments/index-unified.html`, `/api/feedback`). **Do not** convert source paths to
 relative — both targets depend on the absolute form, and the Pages workflow
 adds the prefix automatically.
 
@@ -258,7 +262,7 @@ adds the prefix automatically.
   which copies the repo into `_site/`, runs `.github/scripts/rewrite-paths.mjs`
   (prepends `/tgk-2.0/` to all root-relative paths), swaps the legacy
   `index.html` to `story-demo-classic.html`, and writes a fresh redirect
-  `index.html` → `index-unified.html`. The feedback widget no-ops here
+  `index.html` → `docs/experiments/index-unified.html`. The feedback widget no-ops here
   (POST 404s silently). Admin console partially renders but its API calls
   404 — this is intentional while feedback is being phased out.
 
@@ -538,7 +542,7 @@ In dependency order. Don't skip ahead — each step de-risks the next.
 **Decision (2026-04-29):** the surviving picker will be a **new
 consolidated file** (name TBD; provisionally `/picker.html` or a
 rebuilt `/index.html`), not a takeover of either existing file. Both
-`geos.html` (function-first) and `index-unified.html` (vertical-first)
+`docs/experiments/geos.html` (function-first) and `docs/experiments/index-unified.html` (vertical-first)
 become redirects once the new file ships. The FINS/HLS/PS path uses
 **inline cluster cards + handoff to a vertical chooser** — the b2c
 wizard isn't being inlined into geos's existing flow; the new picker
@@ -564,17 +568,17 @@ and per-stage CSS show/hide rules.
 ### Status
 
 - ✓ Wizard primitive extracted to `/assets/wizard/`.
-- ✓ `index-unified.html` consumes the primitive — its local
+- ✓ `docs/experiments/index-unified.html` consumes the primitive — its local
   `setWizardStage` is now a thin wrapper around `WizardPrimitive.setStage`,
   and its back-button + Escape wiring is one `attachBack` call. Behavior
   unchanged.
-- ✓ `geos.html` loads `wizard.css` + `wizard.js` for forward-compat. It
+- ✓ `docs/experiments/geos.html` loads `wizard.css` + `wizard.js` for forward-compat. It
   doesn't add `wizard-mode` to body today (still uses `.locked` section
   unlocking), so zero behavior change; assets are pre-positioned for the
   consolidated file.
 - ✓ Built `picker.html` — function-first (Procurement / Sales / CX) with CX expanding inline to the full vertical wizard (no navigate-away).
 - ✓ `server.js` `/` route + Pages deploy redirect flipped to `picker.html`.
-- ✓ `geos.html` and `index-unified.html` converted to thin JS redirects (forward `?cluster=` / `?mode=` intact).
+- ✓ `docs/experiments/geos.html` and `docs/experiments/index-unified.html` converted to thin JS redirects (forward `?cluster=` / `?mode=` intact).
 
 ### Visual + structural state of the two pages
 
@@ -587,9 +591,9 @@ and per-stage CSS show/hide rules.
   `?cluster=fins|hls|ps`. index-unified honors the cluster param and
   pre-selects the matching vertical (see `CLUSTER_TO_VERTICAL` in its
   IIFE).
-- Routing today: `server.js` redirects `/` → `/index-unified.html`;
+- Routing today: `server.js` redirects `/` → `/docs/experiments/index-unified.html`;
   the Pages workflow's generated `index.html` also redirects to
-  `/index-unified.html`. geos.html is reachable only by direct URL.
+  `/docs/experiments/index-unified.html`. geos.html is reachable only by direct URL.
 
 ---
 

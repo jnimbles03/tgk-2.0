@@ -85,13 +85,12 @@ Add a new vertical                     → 3 edits: VERTICALS block, PRESETS blo
 
 ### Reorg state (2026-05-07)
 
-The above is the post-handoff target. As of today, **moved**: the doc files
-listed under `docs/` and `docs/experiments/`. **Still at root** (deferred —
-each has runtime references that need careful inbound-ref updates):
-`architecture.html`, `audit-dashboard.html`, `dashboard.html`, `landing.html`,
-`index-playbook.html`, `auto.html`, `composition-stack.html`, `geos.html`,
-`index-unified.html`. Owners can proceed file-by-file; check
-`grep -rn "<filename>"` before each move and update picker.html / server.js / scripts.
+Cleanup is **complete**. Everything that was at root and shouldn't be has been moved:
+
+- **5 docs** → `docs/` (STORYLINES.md, _cleanup_candidates.md, "HLS Discovery Playbook…", "Public Sector.md", TGK-2.0-Imagery-Spec.xlsx)
+- **11 experimental/superseded HTMLs** → `docs/experiments/` (HANDOFF.html, _persona-keyboard-demo.html, architecture.html, audit-dashboard.html, dashboard.html, landing.html, index-playbook.html, auto.html, composition-stack.html, geos.html, index-unified.html)
+
+All inbound references in picker.html, server.js (redirects), admin/index.html (admin nav), audit/SKILL.md, and the various spec docs were updated. Deep-link aliases (`/architecture`, `/architecture/`) still resolve via server.js redirects.
 
 ## Conventions
 
