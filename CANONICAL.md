@@ -22,6 +22,44 @@ take over the codebase 2026-05-07 with target of IAM for Sales by next
 Friday. This section captures everything that landed during the wrap
 that overrides earlier sections of this doc.
 
+### Evening of 2026-05-07 — what shipped after the morning handoff
+
+Patrick stayed at the keyboard one more session and landed five things:
+
+1. **Studio pipeline (`/studio.html` + `builder/`)** — new 5-stage
+   MP4-to-animated-HTML pipeline (Decode → Triage → Classify → Extract →
+   Render). Wired end-to-end with Gemini 2.5 Pro/Flash; runs in fake
+   mode without `GEMINI_API_KEY` so the team can click through every
+   screen pre-integration. Verbatim prompts at `builder/prompts/v1/`,
+   server routes mounted at `/api/builder/jobs/*`. **Different output
+   type than flipbooks** — produces re-skinnable animated DOM-replay
+   HTML with verticalization via `content.json` + `theme.json` edits.
+   Hand-off state documented in `builder/README.md`.
+
+2. **Search vignettes** — `flipbooks/Search_Agent.html` (356 frames) and
+   `flipbooks/Search_Demo.html` (246 frames). MP4 sources staged at
+   `flipbooks/vids/` (gitignored). Auto-registered in
+   `flipbooks/manifest.json` (now 17 cards) so they appear in the
+   builder media pool on next deploy.
+
+3. **Solution design doc** — `docs/solution-design.html`. Single 44KB
+   self-contained reference page for the team: interactive lego schema,
+   60-cell canonical grid visualization, surfaces map, decision log
+   (17 entries), roadmap pulled from commits + builder/README. Linked
+   from main README.
+
+4. **Picker function-first revert + thinning + Headless IAM 5th cells**
+   — see "Picker — function-first restored + thinned" subsection below.
+
+5. **Repo reorg phase 1** — 5 docs moved to `/docs/`, 2 scratch HTMLs
+   moved to `/docs/experiments/`, 5 historical attribution comments
+   updated. **Deferred for the team** (task #47): 9 root HTMLs
+   (`architecture.html`, `landing.html`, `dashboard.html`,
+   `audit-dashboard.html`, `index-playbook.html`, `auto.html`,
+   `composition-stack.html`, `geos.html`, `index-unified.html`) — each
+   has runtime references in picker/server/scripts; safer as
+   deliberate file-by-file work than a rushed sweep.
+
 ### 5-demos-per-sub-vertical (locked 2026-05-06)
 
 Every sub-vertical now exposes **exactly 5 demos** — Onboarding,
@@ -39,15 +77,32 @@ keys keep working as aliases — they just don't surface in `picker.html`.
 Mapping doc: `_audits/sub-vertical-mapping.md` — full grid with
 which-key-fills-which-cell + 17 cells flagged as "(needs build)".
 
-### Picker rebuilt (2026-05-06)
+### Picker — function-first restored + thinned (2026-05-07 evening)
 
-`picker.html` is now the canonical 4-cluster × 3-sub × 5-demo grid
-navigation. Earlier multi-stage wizard (vertical → category → usecase)
-replaced with: Cluster (4 cards) → Sub-vertical (3 cards) → Demo
-(5 chips, with greyed-out "coming soon" badges on unbuilt cells).
-Backward compat preserved: `?cluster=fins` deep-links into FINS
-pre-selected. The CATALOG JSON sidecar (B2B / GEOS legacy) is
-untouched.
+`picker.html` was briefly rebuilt 2026-05-06 as a 4-cluster × 3-sub × 5-demo
+grid (Cluster → Sub-vertical → Demo). Reverted 2026-05-07 evening to the
+**function-first** structure:
+
+- **Step 1**: 3 function cards — Procurement, Sales, Customer Experience.
+- **Step 2 (Procurement / Sales)**: per-function use-case lists, branching
+  directly from step 1.
+- **Step 2 (Customer Experience)**: inline CX wizard with Demo Story /
+  Discovery toggle, then vertical (FS / HLS / PubSec) → sub-vertical →
+  step 3 demos.
+- **Step 3**: Catalog data thinned to **exactly 1 demo per (sub-vertical ×
+  category)** per `_audits/sub-vertical-mapping.md` canonical mapping.
+  Every sub-vertical now exposes 5 cells: Onboarding, Maintenance, Fraud
+  Fabric, Headless IAM, Workspaces (with two cells flagged as build-queue:
+  HLS Provider Maintenance, PubSec SLGov Maintenance).
+
+Step 3 went from 89 entries (with split-out duplicates rendered as separate
+cards) → 38 thinned cells → 48 with the Headless IAM 5th cells added.
+
+URL deep-link aliases for the dropped split-out keys (`?vertical=
+wealth-discovery`, `banking-deposits`, `insurance-life/pc`, `provider-roi`,
+`slgov-{311,benefits,recertification,vendor-compliance,employee-onboarding,
+licensing}`) still resolve via `story-shell.html` VERTICALS map — only the
+picker UI surfacing changed.
 
 ### Narration sweep — concise + impactful (2026-05-06)
 

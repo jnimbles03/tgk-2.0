@@ -52,16 +52,26 @@ Cross · Procurement   ✓             ✓             —             —      
 
 **First-week target:** IAM for Sales use case wired into Cross-org · Sales by next Friday.
 
+**Landed evening 2026-05-07 (after the morning handoff):**
+1. **`/studio.html` + `builder/`** — new 5-stage MP4-to-animated-HTML pipeline (Decode/Triage/Classify/Extract/Render). Uses Gemini 2.5 Pro/Flash. Runs in fake mode without `GEMINI_API_KEY` so you can click through every screen pre-integration. **Different output than flipbooks** — produces re-skinnable animated DOM-replay HTML. See `builder/README.md`.
+2. **`docs/solution-design.html`** — single 44KB self-contained architecture reference. Read this first when you sit down day 1.
+3. **Picker reverted to function-first** (Procurement / Sales / Customer Experience) and step 3 thinned to exactly 1 demo per (sub-vertical × category) per `_audits/sub-vertical-mapping.md`, plus Headless IAM 5th cell added across all 10 sub-verticals.
+4. **2 new flipbook vignettes** — `Search_Agent.html` (356 frames) and `Search_Demo.html` (246 frames). Auto-registered in builder media pool.
+5. **Repo reorg phase 1** — 7 files moved to `/docs/` and `/docs/experiments/`. **9 root HTMLs deferred for the team** (each has runtime references in picker/server/scripts; safer as deliberate file-by-file work). Process documented in `README.md`.
+
 **Where to look:**
 
 | To do this | Open this file |
 |---|---|
+| Get the one-page architecture overview | `docs/solution-design.html` |
 | Edit a beat's headline or lede | `stories/_shared/story-shell.html` → `VERTICALS[<key>]` |
 | Edit the workspace surface for a vertical | `story-templates/docusign-workspace.html` → `PRESETS[<key>]` |
 | Bulk-edit narration across all stories | `/audit-grid.html` (sortable + filterable + inline edit) |
 | Build a custom-branded demo | `/builder.html` (the "Demo iMovie") |
-| Add a new vignette from MP4 | `/builder.html` → topbar Admin → Stage 4 → Card A |
-| Wire into the picker | `/picker.html` — 4-cluster nav |
+| Add a new flipbook vignette from MP4 (simple, no key) | `/builder.html` → topbar Admin → Stage 4 → Card A |
+| Run the new 5-stage Gemini pipeline (animated HTML) | `/studio.html` (admin gate, needs `GEMINI_API_KEY`) |
+| Tune the studio's Gemini prompts | `/builder/prompts/v1/*.md` (versioned via `BUILDER_PROMPT_VERSION`) |
+| Wire into the picker | `/picker.html` — function-first nav (Procurement / Sales / CX) |
 
 ---
 
