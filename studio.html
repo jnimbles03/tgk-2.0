@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Studio – TGK 2.0</title>
+  <link rel="stylesheet" href="/assets/admin-auth/admin-auth.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ds-cobalt: #4C00FF;
+      --ds-deep-violet: #26065D;
+      --ds-ecru: #F8F3F0;
+      --ds-mist: #CBC2FF;
+      --ds-inkwell: #130032;
+      --ds-poppy: #FF5252;
+      --ds-sage: #4CAF50;
+      --ds-gray-light: #E0E0E0;
+      --ds-gray-medium: #999999;
+      --ds-gray-dark: #333333;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--ds-ecru);
+      color: var(--ds-inkwell);
+      line-height: 1.5;
+    }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--ds-gray-light);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .docusign-logo {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--ds-cobalt);
+      font-size: 18px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--ds-mist);
+      color: var(--ds-deep-violet);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .badge.fake-mode {
+      background: #FFE5E5;
+      color: var(--ds-poppy);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar-link {
+      color: var(--ds-cobalt);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .topbar-link:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .health-bar {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .health-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .health-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ds-sage);
+    }
+
+    .health-dot.error {
+      background: var(--ds-poppy);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 24px;
+      color: var(--ds-inkwell);
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--ds-deep-violet);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--ds-inkwell);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      font-family: Inter, sans-serif;
+      font-size: 14px;
+      background: white;
+      color: var(--ds-inkwell);
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="file"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--ds-cobalt);
+      box-shadow: 0 0 0 2px rgba(76, 0, 255, 0.1);
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--ds-mist);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(203, 194, 255, 0.05);
+      transition: all 0.2s;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--ds-cobalt);
+      background: rgba(76, 0, 255, 0.05);
+    }
+
+    .drop-zone.drag-over {
+      border-color: var(--ds-cobalt);
+      background: rgba(76, 0, 255, 0.1);
+    }
+
+    .drop-zone-icon {
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 8px;
+      stroke: var(--ds-cobalt);
+      stroke-width: 1.5;
+    }
+
+    .drop-zone-text {
+      font-size: 14px;
+      color: var(--ds-gray-dark);
+      margin-bottom: 4px;
+    }
+
+    .drop-zone-subtext {
+      font-size: 12px;
+      color: var(--ds-gray-medium);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 24px;
+      margin-top: 8px;
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: Inter, sans-serif;
+    }
+
+    .btn-primary {
+      background: var(--ds-cobalt);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--ds-deep-violet);
+    }
+
+    .btn-primary:disabled {
+      background: var(--ds-gray-light);
+      color: var(--ds-gray-medium);
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--ds-cobalt);
+      border: 1px solid var(--ds-cobalt);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(76, 0, 255, 0.05);
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--ds-mist);
+      border-top-color: var(--ds-cobalt);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-strip {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      background: white;
+      padding: 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ds-gray-light);
+    }
+
+    .progress-segment {
+      flex: 1;
+      padding: 12px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--ds-gray-light);
+      color: var(--ds-gray-medium);
+    }
+
+    .progress-segment.pending {
+      background: var(--ds-gray-light);
+      color: var(--ds-gray-medium);
+    }
+
+    .progress-segment.running {
+      background: var(--ds-cobalt);
+      color: white;
+      animation: pulse 1s infinite;
+    }
+
+    .progress-segment.completed {
+      background: var(--ds-sage);
+      color: white;
+      cursor: pointer;
+    }
+
+    .progress-segment.failed {
+      background: var(--ds-poppy);
+      color: white;
+    }
+
+    .progress-segment.awaiting {
+      background: #FFA500;
+      color: white;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .review-panel {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .review-section {
+      display: none;
+    }
+
+    .review-section.active {
+      display: block;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+    }
+
+    .column-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ds-deep-violet);
+      margin-bottom: 12px;
+    }
+
+    .thumbnail-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .thumbnail {
+      aspect-ratio: 16/9;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .thumbnail.kept {
+      border-color: var(--ds-sage);
+    }
+
+    .thumbnail.dropped {
+      opacity: 0.5;
+      border-color: var(--ds-poppy);
+    }
+
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .reason-badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 10px;
+      padding: 4px;
+      text-align: center;
+    }
+
+    .json-display {
+      background: var(--ds-ecru);
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      padding: 16px;
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .render-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+    }
+
+    .render-iframe-wrapper {
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      overflow: hidden;
+      background: white;
+    }
+
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: none;
+    }
+
+    .verticalize-panel {
+      border-left: 1px solid var(--ds-gray-light);
+      padding-left: 24px;
+    }
+
+    .verticalize-panel h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--ds-deep-violet);
+    }
+
+    .verticalize-field {
+      margin-bottom: 12px;
+    }
+
+    .verticalize-label {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--ds-gray-dark);
+    }
+
+    .verticalize-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 12px;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 3px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .table thead {
+      background: var(--ds-ecru);
+      border-bottom: 1px solid var(--ds-gray-light);
+    }
+
+    .table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ds-deep-violet);
+    }
+
+    .table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--ds-gray-light);
+      font-size: 13px;
+    }
+
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.pending {
+      background: var(--ds-gray-light);
+      color: var(--ds-gray-dark);
+    }
+
+    .status-badge.running {
+      background: rgba(76, 0, 255, 0.1);
+      color: var(--ds-cobalt);
+    }
+
+    .status-badge.completed {
+      background: rgba(76, 175, 80, 0.1);
+      color: var(--ds-sage);
+    }
+
+    .status-badge.failed {
+      background: rgba(255, 82, 82, 0.1);
+      color: var(--ds-poppy);
+    }
+
+    .time-ago {
+      color: var(--ds-gray-medium);
+      font-size: 12px;
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--ds-gray-light);
+      padding-bottom: 16px;
+    }
+
+    .admin-nav button {
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--ds-gray-medium);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .admin-nav button.active {
+      color: var(--ds-cobalt);
+      border-bottom-color: var(--ds-cobalt);
+    }
+
+    .admin-content {
+      background: white;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .admin-banner {
+      background: rgba(76, 0, 255, 0.05);
+      border: 1px solid var(--ds-mist);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--ds-deep-violet);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      background: white;
+      padding: 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ds-gray-light);
+    }
+
+    .header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ds-inkwell);
+    }
+
+    .header-meta {
+      font-size: 13px;
+      color: var(--ds-gray-medium);
+    }
+
+    .back-link {
+      color: var(--ds-cobalt);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .warning-gate {
+      background: #FFF3CD;
+      border: 1px solid #FFC107;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #856404;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--ds-gray-light);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--ds-sage);
+      transition: width 0.3s;
+    }
+
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .segment-list {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .segment-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--ds-gray-light);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      background: white;
+    }
+
+    .segment-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .segment-technique {
+      padding: 6px 10px;
+      border: 1px solid var(--ds-mist);
+      border-radius: 3px;
+      background: white;
+      color: var(--ds-deep-violet);
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="docusign-logo">Ds</div>
+      <div class="badge">Demo Studio</div>
+    </div>
+    <div class="topbar-right">
+      <span id="health-badge" class="badge" style="display: none;"></span>
+      <a class="topbar-link" onclick="switchView('jobs')">My Jobs</a>
+      <a class="topbar-link" onclick="switchView('admin-prompts')">Prompts Admin</a>
+      <a class="topbar-link" href="/picker.html">Back to Picker</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- NEW JOB VIEW -->
+    <div id="new-job-view" class="view active">
+      <h1>Create New Job</h1>
+      <div class="health-bar" id="health-display"></div>
+
+      <div class="form-group">
+        <label>Demo Video (MP4)</label>
+        <div class="drop-zone" id="mp4-drop">
+          <svg class="drop-zone-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v20m-8-8h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7 11l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="drop-zone-text">Drop your MP4 here or click to browse</div>
+          <div class="drop-zone-subtext">Max 500MB</div>
+          <input type="file" id="mp4-input" accept="video/mp4" style="display: none;">
+        </div>
+        <div id="mp4-name" style="margin-top: 8px; font-size: 13px; color: var(--ds-gray-medium);"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Reference Screenshots (Optional)</label>
+        <div class="drop-zone" id="ref-drop">
+          <svg class="drop-zone-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+            <path d="M3 15l5-5 8 8 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="drop-zone-text">Drop reference images here or click to browse</div>
+          <div class="drop-zone-subtext">PNG, JPG, WebP</div>
+          <input type="file" id="ref-input" accept="image/*" multiple style="display: none;">
+        </div>
+        <div id="ref-names" style="margin-top: 8px; font-size: 13px; color: var(--ds-gray-medium);"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label for="vertical">Vertical</label>
+          <select id="vertical">
+            <option value="">-- Select --</option>
+            <option value="banking">Banking</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="public-sector">Public Sector</option>
+            <option value="insurance">Insurance</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="vendor">Vendor</label>
+          <input type="text" id="vendor" placeholder="e.g. ncino">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label for="fps">Frames Per Second</label>
+          <input type="number" id="fps" value="1" min="0.25" step="0.25">
+        </div>
+
+        <div class="form-group">
+          <label>Classify Mode</label>
+          <div class="radio-group">
+            <div class="radio-item">
+              <input type="radio" id="auto" name="classify_mode" value="auto" checked>
+              <label for="auto" style="margin-bottom: 0;">Auto</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" id="replay" name="classify_mode" value="replay">
+              <label for="replay" style="margin-bottom: 0;">Replay</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" id="synthesize" name="classify_mode" value="synthesize">
+              <label for="synthesize" style="margin-bottom: 0;">Synth</label>
+            </div>
+            <div class="radio-item">
+              <input type="radio" id="hybrid" name="classify_mode" value="hybrid">
+              <label for="hybrid" style="margin-bottom: 0;">Hybrid</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" id="submit-job">Submit Job</button>
+      </div>
+    </div>
+
+    <!-- JOB DETAIL VIEW -->
+    <div id="job-detail-view" class="view">
+      <div class="header-row">
+        <div class="header-info">
+          <div class="header-title" id="job-id-display"></div>
+          <div class="header-meta" id="job-meta-display"></div>
+        </div>
+        <a class="back-link" onclick="switchView('jobs')">← Back to Jobs</a>
+      </div>
+
+      <div class="progress-strip" id="progress-strip"></div>
+
+      <div class="review-panel">
+        <!-- DECODE REVIEW -->
+        <div id="decode-review" class="review-section active">
+          <h2>Decode</h2>
+          <div id="decode-content" style="margin-top: 16px;"></div>
+        </div>
+
+        <!-- TRIAGE REVIEW -->
+        <div id="triage-review" class="review-section">
+          <h2>Triage</h2>
+          <div id="triage-warning" style="margin-bottom: 16px;"></div>
+          <div id="triage-progress" style="margin-bottom: 16px;"></div>
+          <div class="two-column" id="triage-content"></div>
+          <div class="form-actions" style="margin-top: 24px;">
+            <button class="btn btn-primary" id="triage-proceed">Proceed to Classify</button>
+          </div>
+        </div>
+
+        <!-- CLASSIFY REVIEW -->
+        <div id="classify-review" class="review-section">
+          <h2>Classify</h2>
+          <div class="toggle-switch" style="margin-bottom: 16px;">
+            <input type="checkbox" id="force-replay">
+            <label for="force-replay" style="margin-bottom: 0;">Force DOM replay</label>
+          </div>
+          <div id="classify-content" style="margin-bottom: 16px;"></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="classify-proceed">Proceed to Extract</button>
+          </div>
+        </div>
+
+        <!-- EXTRACT REVIEW -->
+        <div id="extract-review" class="review-section">
+          <h2>Extract</h2>
+          <div id="extract-content" style="margin-top: 16px;"></div>
+        </div>
+
+        <!-- RENDER REVIEW -->
+        <div id="render-review" class="review-section">
+          <h2>Render</h2>
+          <div class="render-container" id="render-content" style="margin-top: 16px;">
+            <div>
+              <div style="margin-bottom: 12px;">
+                <button class="btn btn-secondary btn-small" id="render-scale-toggle">View at 1440x900</button>
+              </div>
+              <div class="render-iframe-wrapper">
+                <iframe id="render-iframe"></iframe>
+              </div>
+            </div>
+            <div class="verticalize-panel">
+              <h3>Verticalization</h3>
+              <div id="verticalize-fields"></div>
+              <div class="form-actions" style="margin-top: 20px;">
+                <button class="btn btn-primary btn-small" id="render-rerender">Re-render</button>
+              </div>
+              <p style="font-size: 12px; color: var(--ds-gray-medium); margin-top: 12px; font-style: italic;">
+                <!-- TODO: Live preview of content edits via postMessage is not yet wired -->
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY JOBS VIEW -->
+    <div id="jobs-view" class="view">
+      <h1>My Jobs</h1>
+      <table class="table" id="jobs-table">
+        <thead>
+          <tr>
+            <th>Created</th>
+            <th>Vertical</th>
+            <th>Vendor</th>
+            <th>Filename</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-tbody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROMPTS ADMIN VIEW -->
+    <div id="admin-prompts-view" class="view">
+      <h1>Prompts Admin</h1>
+      <div class="form-group">
+        <label for="prompt-version">Version</label>
+        <select id="prompt-version">
+          <option value="v1">v1</option>
+        </select>
+      </div>
+
+      <div class="admin-nav" id="prompt-nav"></div>
+
+      <div class="admin-content">
+        <div class="admin-banner" id="prompt-banner"></div>
+        <textarea id="prompt-textarea" style="height: 400px; font-family: 'Courier New', monospace; font-size: 12px;"></textarea>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="prompt-save">Save as Draft</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/admin-auth/admin-auth.js"></script>
+  <script>
+    // ============================================================================
+    // STATE & GLOBALS
+    // ============================================================================
+    let currentView = 'new-job';
+    let currentJobId = null;
+    let currentJob = null;
+    let pollInterval = null;
+    let selectedStage = 'decode';
+    let mp4File = null;
+    let refFiles = [];
+    let currentPromptStage = null;
+    let renderScale = '1100x700';
+
+    // ============================================================================
+    // UTILITIES
+    // ============================================================================
+    function switchView(view) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(view + '-view').classList.add('active');
+      currentView = view;
+
+      if (view === 'jobs') {
+        loadJobsList();
+      } else if (view === 'admin-prompts') {
+        loadPromptsAdmin();
+      }
+    }
+
+    function timeAgo(isoString) {
+      const date = new Date(isoString);
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+      return Math.floor(seconds / 86400) + 'd ago';
+    }
+
+    function getStatusBadgeClass(status) {
+      if (status === 'pending') return 'pending';
+      if (status === 'running') return 'running';
+      if (status === 'completed') return 'completed';
+      if (status === 'failed') return 'failed';
+      if (status === 'awaiting_user') return 'awaiting';
+      return 'pending';
+    }
+
+    // ============================================================================
+    // HEALTH CHECK
+    // ============================================================================
+    async function loadHealth() {
+      try {
+        const res = await fetch('/api/builder/studio/health');
+        const data = await res.json();
+
+        let html = '';
+        if (data.model.fake_mode) {
+          html += '<div class="health-item"><div class="health-dot error"></div> <strong>Fake mode</strong> — no real API key</div>';
+        } else if (data.model.ok) {
+          html += '<div class="health-item"><div class="health-dot"></div> Model API ready</div>';
+        } else {
+          html += '<div class="health-item"><div class="health-dot error"></div> ' + (data.model.reason || 'Model API unavailable') + '</div>';
+        }
+
+        if (data.ffmpeg) {
+          html += '<div class="health-item"><div class="health-dot"></div> FFmpeg ready</div>';
+        } else {
+          html += '<div class="health-item"><div class="health-dot error"></div> FFmpeg not found</div>';
+        }
+
+        document.getElementById('health-display').innerHTML = html;
+        if (data.model.fake_mode) {
+          const badge = document.getElementById('health-badge');
+          badge.textContent = 'Fake mode';
+          badge.classList.add('fake-mode');
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) {
+        console.error('Health check failed:', e);
+      }
+    }
+
+    // ============================================================================
+    // NEW JOB VIEW
+    // ============================================================================
+    function setupDropZones() {
+      const mpZone = document.getElementById('mp4-drop');
+      const mpInput = document.getElementById('mp4-input');
+      const refZone = document.getElementById('ref-drop');
+      const refInput = document.getElementById('ref-input');
+
+      mpZone.addEventListener('click', () => mpInput.click());
+      refZone.addEventListener('click', () => refInput.click());
+
+      mpZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        mpZone.classList.add('drag-over');
+      });
+      mpZone.addEventListener('dragleave', () => mpZone.classList.remove('drag-over'));
+      mpZone.addEventListener('drop', e => {
+        e.preventDefault();
+        mpZone.classList.remove('drag-over');
+        if (e.dataTransfer.files[0]) {
+          mpInput.files = e.dataTransfer.files;
+          updateMp4Display();
+        }
+      });
+
+      mpInput.addEventListener('change', updateMp4Display);
+
+      refZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        refZone.classList.add('drag-over');
+      });
+      refZone.addEventListener('dragleave', () => refZone.classList.remove('drag-over'));
+      refZone.addEventListener('drop', e => {
+        e.preventDefault();
+        refZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+          refInput.files = e.dataTransfer.files;
+          updateRefDisplay();
+        }
+      });
+
+      refInput.addEventListener('change', updateRefDisplay);
+    }
+
+    function updateMp4Display() {
+      const input = document.getElementById('mp4-input');
+      if (input.files[0]) {
+        mp4File = input.files[0];
+        document.getElementById('mp4-name').textContent = mp4File.name + ' (' + (mp4File.size / 1024 / 1024).toFixed(1) + ' MB)';
+      }
+    }
+
+    function updateRefDisplay() {
+      const input = document.getElementById('ref-input');
+      refFiles = Array.from(input.files);
+      const names = refFiles.map(f => f.name).join(', ');
+      document.getElementById('ref-names').textContent = refFiles.length > 0 ? names : '';
+    }
+
+    async function submitJob() {
+      if (!mp4File) {
+        alert('Please select an MP4 file.');
+        return;
+      }
+      if (!document.getElementById('vertical').value) {
+        alert('Please select a vertical.');
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('mp4', mp4File);
+      refFiles.forEach(f => fd.append('reference', f));
+      fd.append('vertical', document.getElementById('vertical').value);
+      fd.append('vendor', document.getElementById('vendor').value || 'unknown');
+      fd.append('fps', parseFloat(document.getElementById('fps').value) || 1);
+      fd.append('classify_mode', document.querySelector('input[name="classify_mode"]:checked').value);
+
+      try {
+        const res = await fetch('/api/builder/jobs', {
+          method: 'POST',
+          body: fd,
+          headers: { 'Cookie': document.cookie }
+        });
+        const data = await res.json();
+        if (data.job_id) {
+          currentJobId = data.job_id;
+          switchView('job-detail');
+          loadJobDetail();
+          // Auto-run all stages
+          setTimeout(() => {
+            runAllStages();
+          }, 500);
+        } else {
+          alert('Failed to create job: ' + (data.error || 'unknown'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    document.getElementById('submit-job').addEventListener('click', submitJob);
+
+    // ============================================================================
+    // JOB DETAIL VIEW
+    // ============================================================================
+    async function loadJobDetail() {
+      try {
+        const res = await fetch('/api/builder/jobs/' + currentJobId);
+        currentJob = await res.json();
+        renderJobDetail();
+
+        if (currentJob.overall === 'pending' || currentJob.overall === 'running') {
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(() => {
+            loadJobDetail();
+          }, 1500);
+        } else {
+          if (pollInterval) clearInterval(pollInterval);
+        }
+      } catch (e) {
+        console.error('Load job detail failed:', e);
+      }
+    }
+
+    function renderJobDetail() {
+      document.getElementById('job-id-display').textContent = currentJob.job_id;
+      document.getElementById('job-meta-display').textContent =
+        currentJob.inputs.vertical + ' / ' + currentJob.inputs.vendor + ' / ' + currentJob.inputs.original_filename;
+
+      // Progress strip
+      const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+      let strip = '';
+      stages.forEach(stage => {
+        const meta = currentJob.stages[stage];
+        const status = meta ? meta.status : 'pending';
+        const cls = getStatusBadgeClass(status);
+        strip += `<div class="progress-segment ${cls}" onclick="selectStage('${stage}')">${stage}</div>`;
+      });
+      document.getElementById('progress-strip').innerHTML = strip;
+
+      // Hide all reviews
+      document.querySelectorAll('.review-section').forEach(s => s.classList.remove('active'));
+
+      // Show decode by default or selected stage
+      if (!selectedStage) selectedStage = 'decode';
+      document.getElementById(selectedStage + '-review').classList.add('active');
+
+      // Render active stage
+      if (selectedStage === 'decode') renderDecodeReview();
+      else if (selectedStage === 'triage') renderTriageReview();
+      else if (selectedStage === 'classify') renderClassifyReview();
+      else if (selectedStage === 'extract') renderExtractReview();
+      else if (selectedStage === 'render') renderRenderReview();
+    }
+
+    function selectStage(stage) {
+      const meta = currentJob.stages[stage];
+      if (meta && meta.status === 'completed') {
+        selectedStage = stage;
+        renderJobDetail();
+      }
+    }
+
+    function renderDecodeReview() {
+      const meta = currentJob.stages.decode;
+      let html = '';
+      if (meta && meta.status === 'completed') {
+        html = '<p>Frames: <strong>' + (meta.frame_count || '?') + '</strong></p>';
+        html += '<p>Duration: <strong>' + (meta.source_duration_s || '?') + 's</strong></p>';
+        html += '<p><a href="/api/builder/jobs/' + currentJobId + '/artifact/frames/f_0001.jpg" target="_blank">View sample frame</a></p>';
+      } else if (meta && meta.status === 'running') {
+        html = '<p><span class="loading"></span> Decoding...</p>';
+      } else if (meta && meta.status === 'failed') {
+        html = '<p style="color: var(--ds-poppy);">Failed: ' + (meta.reason || 'unknown') + '</p>';
+      } else {
+        html = '<p style="color: var(--ds-gray-medium);">Pending...</p>';
+      }
+      document.getElementById('decode-content').innerHTML = html;
+    }
+
+    function renderTriageReview() {
+      const meta = currentJob.stages.triage;
+      let html = '';
+
+      if (meta && meta.status === 'completed') {
+        // Show gated warning if present
+        const checkpoint = currentJob.checkpoints.post_triage;
+        if (checkpoint && checkpoint.gated) {
+          html += '<div class="warning-gate">' + (checkpoint.message || 'User action required') + '</div>';
+        }
+
+        // Show drop ratio
+        const dropRatio = meta.drop_ratio || 0;
+        html += '<div>';
+        html += '<strong>Drop ratio:</strong> ' + Math.round(dropRatio * 100) + '%';
+        html += '<div class="progress-bar"><div class="progress-bar-fill" style="width: ' + (dropRatio * 100) + '%"></div></div>';
+        html += '</div>';
+
+        // Load triage.json — schema: { frames: [{ frame: 'f_NNNN.jpg', verdict: 'KEEP'|'DROP', reason, mask_regions }], drop_ratio, kept_runtime_s, status, ... }
+        fetch('/api/builder/jobs/' + currentJobId + '/artifact/triage.json').then(r => r.json()).then(data => {
+          let kept = '', dropped = '';
+          (data.frames || []).forEach(f => {
+            const src = '/api/builder/jobs/' + currentJobId + '/artifact/frames/' + f.frame;
+            if (f.verdict === 'KEEP') {
+              kept += '<div class="thumbnail kept" data-frame="' + f.frame + '" title="Click to flip verdict (TODO: save endpoint)"><img src="' + src + '"></div>';
+            } else {
+              dropped += '<div class="thumbnail dropped" data-frame="' + f.frame + '" title="Click to flip verdict (TODO: save endpoint)"><img src="' + src + '"><div class="reason-badge">' + (f.reason || '?') + '</div></div>';
+            }
+          });
+          const dr = data.drop_ratio != null ? Math.round(data.drop_ratio * 100) : '?';
+          let twoCol = '';
+          if (data._fake) twoCol += '<div style="background:var(--ds-mist);padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:13px;">Fake mode — set GEMINI_API_KEY for real triage.</div>';
+          if (data.message) twoCol += '<div style="background:#fff3cd;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:13px;">' + data.message + '</div>';
+          twoCol += '<p style="font-size:12px;color:var(--ds-gray-medium);margin-bottom:12px;">drop_ratio: ' + dr + '% &middot; kept_runtime_s: ' + (data.kept_runtime_s || '?') + '</p>';
+          twoCol += '<div class="column-label">Kept Frames</div><div class="thumbnail-strip">' + (kept || '<em style="color:var(--ds-gray-medium)">none</em>') + '</div>';
+          twoCol += '<div class="column-label">Dropped Frames</div><div class="thumbnail-strip">' + (dropped || '<em style="color:var(--ds-gray-medium)">none</em>') + '</div>';
+          document.getElementById('triage-content').innerHTML = twoCol;
+        }).catch(e => {
+          console.error('Load triage.json failed:', e);
+          document.getElementById('triage-content').innerHTML = '<p style="color: var(--ds-gray-medium);">Could not load triage frames — has Triage stage run yet?</p>';
+        });
+      } else if (meta && meta.status === 'running') {
+        html = '<p><span class="loading"></span> Triaging...</p>';
+      } else if (meta && meta.status === 'failed') {
+        html = '<p style="color: var(--ds-poppy);">Failed: ' + (meta.reason || 'unknown') + '</p>';
+      } else {
+        html = '<p style="color: var(--ds-gray-medium);">Pending...</p>';
+      }
+
+      if (html) document.getElementById('triage-content').innerHTML = html;
+    }
+
+    function renderClassifyReview() {
+      const meta = currentJob.stages.classify;
+      let html = '';
+
+      if (meta && meta.status === 'completed') {
+        // TODO: Load segments.json and display segment list
+        fetch('/api/builder/jobs/' + currentJobId + '/artifact/segments.json').then(r => r.json()).then(data => {
+          let list = '<ul class="segment-list">';
+          if (data.segments) {
+            data.segments.forEach((seg, idx) => {
+              list += '<li class="segment-item">';
+              list += '<div class="segment-label">Segment ' + (idx + 1) + ': ' + (seg.technique || '?') + '</div>';
+              list += '<select class="segment-technique">';
+              for (let i = 1; i <= 6; i++) {
+                list += '<option value="' + i + '"' + (seg.technique_id === i ? ' selected' : '') + '>Technique ' + i + '</option>';
+              }
+              list += '</select>';
+              list += '</li>';
+            });
+          }
+          list += '</ul>';
+          document.getElementById('classify-content').innerHTML = list;
+        }).catch(e => {
+          console.error('Load segments.json failed:', e);
+          document.getElementById('classify-content').innerHTML = '<p style="color: var(--ds-gray-medium);">Could not load segments.</p>';
+        });
+      } else if (meta && meta.status === 'running') {
+        html = '<p><span class="loading"></span> Classifying...</p>';
+      } else if (meta && meta.status === 'failed') {
+        html = '<p style="color: var(--ds-poppy);">Failed: ' + (meta.reason || 'unknown') + '</p>';
+      } else {
+        html = '<p style="color: var(--ds-gray-medium);">Pending...</p>';
+      }
+
+      if (html) document.getElementById('classify-content').innerHTML = html;
+    }
+
+    function renderExtractReview() {
+      const meta = currentJob.stages.extract;
+      let html = '';
+
+      if (meta && meta.status === 'completed') {
+        // Load and display content.json, theme.json, structure.json
+        Promise.all([
+          fetch('/api/builder/jobs/' + currentJobId + '/artifact/content.json').then(r => r.json()),
+          fetch('/api/builder/jobs/' + currentJobId + '/artifact/theme.json').then(r => r.json()),
+          fetch('/api/builder/jobs/' + currentJobId + '/artifact/structure.json').then(r => r.json())
+        ]).then(([content, theme, structure]) => {
+          let json = '';
+          json += '<h3 style="margin-top: 16px; margin-bottom: 8px; font-size: 13px; color: var(--ds-deep-violet);">structure.json</h3>';
+          json += '<div class="json-display">' + JSON.stringify(structure, null, 2) + '</div>';
+          json += '<h3 style="margin-top: 16px; margin-bottom: 8px; font-size: 13px; color: var(--ds-deep-violet);">content.json</h3>';
+          json += '<div class="json-display">' + JSON.stringify(content, null, 2) + '</div>';
+          json += '<h3 style="margin-top: 16px; margin-bottom: 8px; font-size: 13px; color: var(--ds-deep-violet);">theme.json</h3>';
+          json += '<div class="json-display">' + JSON.stringify(theme, null, 2) + '</div>';
+          document.getElementById('extract-content').innerHTML = json;
+        }).catch(e => {
+          console.error('Load extract JSONs failed:', e);
+          document.getElementById('extract-content').innerHTML = '<p style="color: var(--ds-gray-medium);">Could not load extract data.</p>';
+        });
+      } else if (meta && meta.status === 'running') {
+        html = '<p><span class="loading"></span> Extracting...</p>';
+      } else if (meta && meta.status === 'failed') {
+        html = '<p style="color: var(--ds-poppy);">Failed: ' + (meta.reason || 'unknown') + '</p>';
+      } else {
+        html = '<p style="color: var(--ds-gray-medium);">Pending...</p>';
+      }
+
+      if (html) document.getElementById('extract-content').innerHTML = html;
+    }
+
+    function renderRenderReview() {
+      const meta = currentJob.stages.render;
+      let html = '';
+
+      if (meta && meta.status === 'completed') {
+        // Load iframe with build/index.html
+        document.getElementById('render-iframe').src = '/api/builder/jobs/' + currentJobId + '/artifact/build/index.html';
+
+        // Load verticalization form
+        Promise.all([
+          fetch('/api/builder/jobs/' + currentJobId + '/artifact/content.json').then(r => r.json()),
+          fetch('/api/builder/jobs/' + currentJobId + '/artifact/theme.json').then(r => r.json())
+        ]).then(([content, theme]) => {
+          let form = '';
+
+          // Content fields
+          for (let key in content) {
+            form += '<div class="verticalize-field">';
+            form += '<div class="verticalize-label">' + key + '</div>';
+            form += '<input type="text" class="verticalize-input" data-field="content.' + key + '" value="' + (content[key] || '') + '">';
+            form += '</div>';
+          }
+
+          // Theme fields (color inputs for hex values)
+          for (let key in theme) {
+            const val = theme[key];
+            const isColor = typeof val === 'string' && /^#[0-9a-fA-F]{3,8}$/i.test(val);
+            form += '<div class="verticalize-field">';
+            form += '<div class="verticalize-label">' + key + '</div>';
+            if (isColor) {
+              form += '<input type="color" class="verticalize-input" data-field="theme.' + key + '" value="' + val + '">';
+            } else {
+              form += '<input type="text" class="verticalize-input" data-field="theme.' + key + '" value="' + (val || '') + '">';
+            }
+            form += '</div>';
+          }
+
+          document.getElementById('verticalize-fields').innerHTML = form;
+        }).catch(e => {
+          console.error('Load verticalization data failed:', e);
+          document.getElementById('verticalize-fields').innerHTML = '<p style="color: var(--ds-gray-medium);">Could not load form data.</p>';
+        });
+      } else if (meta && meta.status === 'running') {
+        html = '<p><span class="loading"></span> Rendering...</p>';
+      } else if (meta && meta.status === 'failed') {
+        html = '<p style="color: var(--ds-poppy);">Failed: ' + (meta.reason || 'unknown') + '</p>';
+      } else {
+        html = '<p style="color: var(--ds-gray-medium);">Pending...</p>';
+      }
+    }
+
+    document.getElementById('render-scale-toggle').addEventListener('click', () => {
+      if (renderScale === '1100x700') {
+        renderScale = '1440x900';
+        document.getElementById('render-scale-toggle').textContent = 'View at 1100x700';
+        document.getElementById('render-iframe').style.height = '900px';
+      } else {
+        renderScale = '1100x700';
+        document.getElementById('render-scale-toggle').textContent = 'View at 1440x900';
+        document.getElementById('render-iframe').style.height = '700px';
+      }
+    });
+
+    document.getElementById('render-rerender').addEventListener('click', async () => {
+      // Collect verticalization form data
+      const fields = document.querySelectorAll('.verticalize-input');
+      const content = {}, theme = {};
+      fields.forEach(field => {
+        const [type, key] = field.dataset.field.split('.');
+        if (type === 'content') content[key] = field.value;
+        else if (type === 'theme') theme[key] = field.value;
+      });
+
+      try {
+        const res = await fetch('/api/builder/jobs/' + currentJobId + '/verticalize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Cookie': document.cookie },
+          body: JSON.stringify({ content, theme })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          // Refresh iframe
+          document.getElementById('render-iframe').src = document.getElementById('render-iframe').src + '?t=' + Date.now();
+        } else {
+          alert('Re-render failed: ' + data.error);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    });
+
+    document.getElementById('triage-proceed').addEventListener('click', () => {
+      runStage('classify');
+    });
+
+    document.getElementById('classify-proceed').addEventListener('click', () => {
+      runStage('extract');
+    });
+
+    async function runStage(stage) {
+      try {
+        const res = await fetch('/api/builder/jobs/' + currentJobId + '/stages/' + stage, {
+          method: 'POST',
+          headers: { 'Cookie': document.cookie }
+        });
+        const data = await res.json();
+        if (data.ok) {
+          loadJobDetail();
+        } else {
+          alert('Stage failed: ' + data.reason);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function runAllStages() {
+      try {
+        const res = await fetch('/api/builder/jobs/' + currentJobId + '/run-all', {
+          method: 'POST',
+          headers: { 'Cookie': document.cookie }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          loadJobDetail();
+        } else {
+          alert('Run-all failed');
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    // ============================================================================
+    // MY JOBS VIEW
+    // ============================================================================
+    async function loadJobsList() {
+      try {
+        const res = await fetch('/api/builder/jobs');
+        const data = await res.json();
+        let html = '';
+
+        if (data.jobs && data.jobs.length > 0) {
+          data.jobs.forEach(job => {
+            const status = job.overall || 'pending';
+            let action = '';
+            if (status === 'failed') {
+              const failedStage = Object.keys(job.stages || {}).find(s => job.stages[s].status === 'failed');
+              if (failedStage) {
+                action = '<button class="btn btn-secondary btn-small" onclick="retryStage(\'' + job.job_id + '\', \'' + failedStage + '\')">Retry</button>';
+              }
+            } else {
+              action = '<button class="btn btn-primary btn-small" onclick="openJob(\'' + job.job_id + '\')">Open</button>';
+            }
+
+            html += '<tr>';
+            html += '<td><span class="time-ago">' + timeAgo(job.created_at) + '</span></td>';
+            html += '<td>' + (job.inputs.vertical || '?') + '</td>';
+            html += '<td>' + (job.inputs.vendor || '?') + '</td>';
+            html += '<td>' + (job.inputs.original_filename || '?') + '</td>';
+            html += '<td><span class="status-badge ' + getStatusBadgeClass(status) + '">' + status + '</span></td>';
+            html += '<td>' + action + '</td>';
+            html += '</tr>';
+          });
+        } else {
+          html = '<tr><td colspan="6" style="text-align: center; color: var(--ds-gray-medium);">No jobs yet.</td></tr>';
+        }
+
+        document.getElementById('jobs-tbody').innerHTML = html;
+      } catch (e) {
+        console.error('Load jobs failed:', e);
+        document.getElementById('jobs-tbody').innerHTML = '<tr><td colspan="6" style="color: var(--ds-poppy);">Error loading jobs.</td></tr>';
+      }
+    }
+
+    function openJob(jobId) {
+      currentJobId = jobId;
+      selectedStage = 'decode';
+      switchView('job-detail');
+      loadJobDetail();
+    }
+
+    function retryStage(jobId, stage) {
+      currentJobId = jobId;
+      selectedStage = stage;
+      switchView('job-detail');
+      loadJobDetail();
+      setTimeout(() => runStage(stage), 500);
+    }
+
+    // ============================================================================
+    // PROMPTS ADMIN VIEW
+    // ============================================================================
+    async function loadPromptsAdmin() {
+      const version = document.getElementById('prompt-version').value || 'v1';
+      try {
+        const res = await fetch('/api/builder/admin/prompts?version=' + version);
+        const data = await res.json();
+
+        // Populate version dropdown
+        if (data.versions) {
+          let opts = '';
+          data.versions.forEach(v => {
+            opts += '<option value="' + v + '"' + (v === version ? ' selected' : '') + '>' + v + '</option>';
+          });
+          document.getElementById('prompt-version').innerHTML = opts;
+        }
+
+        // Update banner
+        document.getElementById('prompt-banner').innerHTML =
+          'Active version: <strong>' + (data.active_version || '?') + '</strong><br>' +
+          'Edits create a draft. Set BUILDER_PROMPT_VERSION env and restart server to promote.';
+
+        // Populate nav buttons
+        const stages = ['decode', 'triage', 'classify-replay', 'classify-synthesize', 'extract', 'render'];
+        let nav = '';
+        stages.forEach(stage => {
+          nav += '<button onclick="selectPromptStage(\'' + stage + '\')" class="' + (currentPromptStage === stage ? 'active' : '') + '">' + stage + '</button>';
+        });
+        document.getElementById('prompt-nav').innerHTML = nav;
+
+        if (!currentPromptStage) {
+          currentPromptStage = 'decode';
+        }
+
+        // Load selected stage prompt
+        if (data.version && data.version.prompts && data.version.prompts[currentPromptStage]) {
+          const content = data.version.prompts[currentPromptStage].content || '';
+          document.getElementById('prompt-textarea').value = content;
+        }
+      } catch (e) {
+        console.error('Load prompts failed:', e);
+        document.getElementById('prompt-textarea').value = 'Error loading prompts.';
+      }
+    }
+
+    function selectPromptStage(stage) {
+      currentPromptStage = stage;
+      loadPromptsAdmin();
+    }
+
+    document.getElementById('prompt-version').addEventListener('change', () => {
+      currentPromptStage = null;
+      loadPromptsAdmin();
+    });
+
+    document.getElementById('prompt-save').addEventListener('click', async () => {
+      const content = document.getElementById('prompt-textarea').value;
+      const fromVersion = document.getElementById('prompt-version').value;
+
+      try {
+        const res = await fetch('/api/builder/admin/prompts/' + currentPromptStage, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Cookie': document.cookie },
+          body: JSON.stringify({ content, fromVersion })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          alert('Prompt saved as draft.');
+        } else {
+          alert('Save failed: ' + data.error);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    });
+
+    // ============================================================================
+    // INIT
+    // ============================================================================
+    window.addEventListener('load', () => {
+      enterAdminMode();
+      loadHealth();
+      setupDropZones();
+    });
+  </script>
+</body>
+</html>
