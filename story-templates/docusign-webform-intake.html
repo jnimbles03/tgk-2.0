@@ -283,6 +283,30 @@
     0%, 100% { opacity: 0; transform: scale(1); }
     50% { opacity: 1; transform: scale(1.01); }
   }
+
+  /* Just-filled highlight — added 2026-05-06.
+     When a field gets its value via the per-state replay, attach
+     .just-filled for ~700ms to flash the field's outline so the eye
+     catches the new value landing. Removed automatically by the
+     animation reaching its end-state. */
+  @keyframes just-filled-flash {
+    0%   { box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.0); background-color: rgba(75, 0, 233, 0.08); }
+    35%  { box-shadow: 0 0 0 3px rgba(75, 0, 233, 0.18); background-color: rgba(75, 0, 233, 0.06); }
+    100% { box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.0); background-color: transparent; }
+  }
+  .just-filled {
+    animation: just-filled-flash 0.7s ease-out 1;
+  }
+  /* Checkbox "just-checked" tick scale-in — when a check-item gets
+     .checked, scale the inner box from 0.85 to 1 so it reads as a click. */
+  @keyframes check-tick-in {
+    0%   { transform: scale(0.85); }
+    70%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+  .check-item.checked .box {
+    animation: check-tick-in 0.32s cubic-bezier(.34, 1.56, .64, 1) 1;
+  }
 </style>
 </head>
 <body>
@@ -2143,6 +2167,73 @@
   /* === State management ===
    * Listen for tgk:lockToBeat messages from the shell and switch state.
    * Also support ?scene=sN URL param for direct linking. */
+
+  /* Per-state field-fill replay (added 2026-05-06). Each time a scene
+     state activates, clear the fields it owns, then re-fill them with a
+     staggered cadence so the viewer reads the cursor as driving the fill.
+     Cleanup ensures re-entering a state replays from blank instead of
+     showing an instantly-already-filled form.
+
+     Fill timing: ~150ms stagger between fields. With the shell's beat
+     duration at ~7s/beat (1.75x baseline of 4.5s/beat), there's plenty
+     of headroom for the staggered fills to complete inside the beat. */
+  const _fillTimers = [];
+  function _clearFillTimers() {
+    while (_fillTimers.length) clearTimeout(_fillTimers.pop());
+  }
+  function _at(ms, fn) { _fillTimers.push(setTimeout(fn, ms)); }
+
+  function replayState(sceneId) {
+    _clearFillTimers();
+
+    if (sceneId === 's1') {
+      // Reset to "— Select —". The dropdown sits empty until the viewer
+      // (or autoplay) advances; the cursor lands on it but doesn't pre-fill.
+      const sel = document.getElementById('s1-select');
+      if (sel) sel.selectedIndex = 0;
+    }
+
+    if (sceneId === 's2') {
+      // Engagement type was just selected — show the chosen option. Doc
+      // checkboxes start unchecked then tick one-by-one with a small
+      // stagger so it reads as sequential clicks.
+      const s2sel = document.getElementById('s2-select-1');
+      if (s2sel) s2sel.textContent = '— Select —';
+      _at(250, () => { if (s2sel) s2sel.textContent = p.engagementOptions[0]; });
+      const checks = document.querySelectorAll('#s2-checks .check-item');
+      checks.forEach(el => el.classList.remove('checked'));
+      checks.forEach((el, i) => {
+        if (p.checked[i]) _at(450 + i * 180, () => el.classList.add('checked'));
+      });
+    }
+
+    if (sceneId === 's3') {
+      // Signer info — clear, then fill name/email/phone/signers in sequence.
+      const name = document.getElementById('s3-name');
+      const email = document.getElementById('s3-email');
+      const tel = document.querySelector('#s3 input[type=tel]') || document.querySelector('input[type=tel]');
+      const addl = document.querySelector('[data-hotspot="form_signer"] select');
+      if (name) name.value = '';
+      if (email) email.value = '';
+      if (tel) tel.value = '';
+      if (addl) addl.selectedIndex = 0;
+      _at(220, () => { if (name) { name.value = p.signerName; name.classList.add('just-filled'); } });
+      _at(420, () => { if (email) { email.value = p.signerEmail; email.classList.add('just-filled'); } });
+      _at(620, () => { if (tel) { tel.value = '(415) 555-0182'; tel.classList.add('just-filled'); } });
+      _at(820, () => { if (addl && addl.options.length > 1) addl.selectedIndex = 1; });
+    }
+
+    if (sceneId === 's4') {
+      // Review state — flash the review box briefly so the eye lands there.
+      const review = document.querySelector('[data-hotspot="form_review"]');
+      if (review) {
+        review.classList.remove('just-filled');
+        _at(200, () => review.classList.add('just-filled'));
+      }
+    }
+    /* s5 has its own animation kicked from showState below. */
+  }
+
   function showState(sceneId) {
     const all = document.querySelectorAll('.state');
     all.forEach(el => el.classList.toggle('on', el.dataset.state === sceneId));
@@ -2161,6 +2252,8 @@
     } else {
       document.getElementById('toast').classList.remove('on');
     }
+    /* Replay the per-field fill for this state. */
+    replayState(sceneId);
   }
 
   window.addEventListener('message', (e) => {
