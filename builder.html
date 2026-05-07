@@ -1374,8 +1374,13 @@
             </select>
           </div>
 
+          <!-- Tenant logo (Hillside, Meridian, Sentinel, etc.) — appears in
+               the shell topbar lockup. The id stays #f-logo so existing
+               wiring (tenantLogo cfg field) is unchanged; the label is
+               renamed to match its actual effect (per Jimmy's PDF: "swap
+               the Hillside logo not just the customer logo"). -->
           <div class="field-group">
-            <label class="field-label" for="f-logo">Customer logo</label>
+            <label class="field-label" for="f-logo">Tenant logo</label>
             <div class="logo-row">
               <span class="logo-preview-box" id="logoPreview" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
@@ -1383,7 +1388,23 @@
               <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="flex:1;font-family:var(--font);font-size:12px;color:var(--muted);min-width:0;">
               <button type="button" id="btnLogoClear" class="btn-xs">Clear</button>
             </div>
-            <span class="field-help">PNG, JPG, SVG, WebP · max 500 KB</span>
+            <span class="field-help">Shown in the shell topbar (e.g. Hillside). PNG, JPG, SVG, WebP · max 500 KB.</span>
+          </div>
+
+          <!-- Customer logo (TGK Capital, Atlas, Ramirez Family, etc.) —
+               the firm/customer being onboarded. Appears in workspace cards
+               and customer-mark spots downstream. Optional — if blank, the
+               customer is referenced by name only. -->
+          <div class="field-group">
+            <label class="field-label" for="f-customer-logo">Customer logo</label>
+            <div class="logo-row">
+              <span class="logo-preview-box" id="customerLogoPreview" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+              </span>
+              <input type="file" id="f-customer-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="flex:1;font-family:var(--font);font-size:12px;color:var(--muted);min-width:0;">
+              <button type="button" id="btnCustomerLogoClear" class="btn-xs">Clear</button>
+            </div>
+            <span class="field-help">Shown alongside the customer's name (e.g. TGK Capital). Optional. PNG, JPG, SVG, WebP · max 500 KB.</span>
           </div>
 
           <div class="field-group">
@@ -2450,6 +2471,57 @@
   });
 
   // ============================================================
+  // Customer logo upload (added 2026-05-06 per Jimmy's wrap PDF —
+  // pairs with the existing tenant logo upload above so authors can
+  // swap BOTH brand marks, not just one). Mirrors the same shrink
+  // pipeline + size cap; persists separately as customerLogoDataUrl
+  // and rides through to cfg.customerLogo on Generate.
+  // ============================================================
+  let customerLogoDataUrl = null;
+  function renderCustomerLogoPreview() {
+    const box = $('customerLogoPreview');
+    if (customerLogoDataUrl) {
+      box.innerHTML = `<img src="${customerLogoDataUrl}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;">`;
+      box.style.borderStyle = 'solid';
+      box.style.background = 'white';
+    } else {
+      box.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>`;
+      box.style.borderStyle = 'dashed';
+      box.style.background = 'var(--bg)';
+    }
+  }
+  $('f-customer-logo').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|svg\+xml|webp)$/i.test(file.type)) {
+      showError('Customer logo must be PNG, JPG, SVG, or WebP.');
+      $('f-customer-logo').value = '';
+      return;
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      showError(`Customer logo too large (${Math.round(file.size/1024)} KB). Max is 500 KB.`);
+      $('f-customer-logo').value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const raw = reader.result;
+      const isPng = /^data:image\/png/i.test(raw);
+      const outMime = isPng ? 'image/png' : 'image/jpeg';
+      try { customerLogoDataUrl = await shrinkDataUrl(raw, 480, outMime, 0.85); }
+      catch (_) { customerLogoDataUrl = raw; }
+      renderCustomerLogoPreview();
+    };
+    reader.onerror = () => showError('Could not read that customer logo. Try another.');
+    reader.readAsDataURL(file);
+  });
+  $('btnCustomerLogoClear').addEventListener('click', () => {
+    customerLogoDataUrl = null;
+    $('f-customer-logo').value = '';
+    renderCustomerLogoPreview();
+  });
+
+  // ============================================================
   // Error helper
   // ============================================================
   function showError(msg) {
@@ -2494,6 +2566,7 @@
       customer: customer.startsWith('×') ? customer : '× ' + customer,
       tenantColor: color,
       tenantLogo: logoDataUrl || null,
+      customerLogo: customerLogoDataUrl || null,
       preset: 'custom',
       sor,
       signatureMoment: moment,
@@ -2505,7 +2578,8 @@
         sourceVertical: industry,
         shell,
         sceneCount: scenes.length,
-        hasLogo: !!logoDataUrl
+        hasLogo: !!logoDataUrl,
+        hasCustomerLogo: !!customerLogoDataUrl
       }
     };
 
@@ -2525,9 +2599,11 @@
       $('resultUrl').textContent = fullUrl;
       $('resultUrl').dataset.url = fullUrl;
       const logoSize = logoDataUrl ? Math.round(logoDataUrl.length * 0.75 / 1024) : 0;
+      const custLogoSize = customerLogoDataUrl ? Math.round(customerLogoDataUrl.length * 0.75 / 1024) : 0;
       $('resultMeta').textContent =
         `Token ${token} · expires in ${expiresInDays} days · ${shell} · scaffolded from ${industry}` +
-        (logoDataUrl ? ` · logo ~${logoSize} KB` : '');
+        (logoDataUrl ? ` · tenant logo ~${logoSize} KB` : '') +
+        (customerLogoDataUrl ? ` · customer logo ~${custLogoSize} KB` : '');
       $('resultPanel').classList.add('active');
       $('submitStatus').textContent = 'Saved.';
       setTimeout(() => $('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
