@@ -334,7 +334,14 @@
        8.5s  fade-out begins
        10.0s removed from DOM
      ============================================================ */
-  .mc-splash{position:absolute;inset:0;z-index:50;background:var(--ds-inkwell);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 80px;font-family:var(--ui-font);animation:mcFadeOut 1.5s ease 8.5s forwards;}
+  /* Splash auto-fade removed 2026-05-06 — splash now waits for the
+     viewer to press Space (handled in shell + via tgk:dismissSplash
+     postMessage). The .mc-splash.is-dismissing modifier triggers the
+     fade-out when the dismiss is requested. */
+  .mc-splash{position:absolute;inset:0;z-index:50;background:var(--ds-inkwell);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 80px;font-family:var(--ui-font);transition:opacity 0.6s ease, visibility 0.6s ease;}
+  .mc-splash.is-dismissing{opacity:0;visibility:hidden;}
+  .mc-splash .mc-ready-hint{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:rgba(248,243,240,0.7);opacity:0;animation:mcFadeIn 0.6s ease 7.6s forwards;display:flex;align-items:center;gap:10px;}
+  .mc-splash .mc-ready-hint kbd{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:0;padding:3px 8px;background:rgba(248,243,240,0.12);border:1px solid rgba(248,243,240,0.22);border-radius:4px;color:rgba(248,243,240,0.92);text-transform:none;}
   .mc-splash .mc-lockup{position:absolute;top:42px;left:54px;display:flex;align-items:center;gap:9px;opacity:0;animation:mcFadeIn 0.6s ease 0.4s forwards;}
   .mc-splash .mc-lockup .wm{font-family:var(--tn-wordmark-font);font-style:italic;font-weight:500;font-size:18px;color:var(--ds-ecru);letter-spacing:0.01em;}
   .mc-splash .mc-lockup .sub{font-size:11px;font-weight:600;color:rgba(248,243,240,0.55);letter-spacing:0.18em;text-transform:uppercase;margin-left:6px;border-left:1px solid rgba(248,243,240,0.22);padding-left:10px;}
@@ -546,28 +553,34 @@
    ============================================================ */
 const PRESETS = {
   wealth: {
+    /* Cast aligned 2026-05-06 to the rest of the wealth storyline:
+       Hillside Advisors (tenant) × TGK Capital (sub-advisor being onboarded).
+       Cathie Woods runs onboarding from the Hillside side; Patrick Meyer
+       is the TGK Capital principal who just signed the Sub-Advisory
+       Agreement in Scene 3. Was incorrectly Amy Peters / Casey Anderson
+       (private-wealth-client scenario) — broke continuity at Scene 5. */
     label:"Wealth",
     tenant:{name:"Hillside Advisors", wordmark:"Hillside", primary:"#0F2A1F", accent:"#3FDA99", mark:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>', markColor:"#3FDA99"},
-    email:{greeting:"Hello Amy,", p1:"It was a pleasure speaking with you today to learn more about your financial goals. As we discussed, I created a personal workspace for you to access and complete the necessary steps to begin working together.", p2:"Don't hesitate to reach out with any questions as we move forward. I'm here to support you every step of the way.", sender:"Casey Anderson", role:"Investment Advisor"},
-    workspace:{title:"New Wealth Management Client — Amy Peters", avatars:["FA","CU","IN"], moreCount:4, userInitials:"CA", tenantSub:"Private wealth onboarding"},
-    summary:{heroTitle:"Welcome back, Casey — here's where Amy's workspace stands.", heroLede:"Amy opened her access email this morning. She has 6 onboarding tasks waiting; ID verification is in progress. You'll get a notification when she submits each step.", pct:33, tiles:[{lab:"Open tasks",val:"6",sub:"Waiting on Amy"},{lab:"Risk score",val:"25/100",sub:"Low · preliminary",accent:true},{lab:"Docs signed",val:"0/3",sub:"IAA, Disclosures, Custodian"},{lab:"Next deadline",val:"Apr 30",sub:"6 days · onboarding SLA",warn:true}], list:[{nm:"ID verification uploaded",mt:"Amy submitted her California driver's license",rt:"10:14 am"},{nm:"Client intake form opened",mt:"Amy started reviewing the form",rt:"10:09 am"},{nm:"Access email delivered",mt:"Sent to amy.peters@example.com",rt:"Delivered",ok:true}]},
+    email:{greeting:"Patrick,", p1:"Welcome to Hillside. The Sub-Advisory Agreement is fully executed and your sub-advisor workspace is live. From here you'll have direct access to the disclosures, fee-share schedule, custodian account forms, and the ongoing reporting cadence we agreed to.", p2:"Reach me anytime — I'll be watching the workspace and will respond the same day. Looking forward to running this sleeve with you.", sender:"Cathie Woods", role:"Director of Advisor Onboarding"},
+    workspace:{title:"New Sub-Advisor — TGK Capital", avatars:["PM","CW","CO"], moreCount:4, userInitials:"CW", tenantSub:"Sub-advisor onboarding"},
+    summary:{heroTitle:"Welcome back, Cathie — here's where TGK Capital stands.", heroLede:"Patrick countersigned the Sub-Advisory Agreement an hour ago. The fee-share schedule and Form ADV exchange are filed; custodian setup at Charlton Schwab is in flight. Compliance review queues automatically when the last form clears.", pct:62, tiles:[{lab:"Open items",val:"4",sub:"Waiting on TGK"},{lab:"Sleeve",val:"$48M",sub:"Initial AUM mapping",accent:true},{lab:"Docs signed",val:"5/8",sub:"SAA, ADV, Fee schedule"},{lab:"Next deadline",val:"May 12",sub:"6 days · custodian SLA",warn:true}], list:[{nm:"Sub-Advisory Agreement countersigned",mt:"Patrick Meyer · TGK Capital",rt:"10:14 am"},{nm:"Form ADV exchange filed",mt:"Hillside ↔ TGK · 2024 amendment",rt:"10:09 am"},{nm:"Workspace access delivered",mt:"Sent to patrick.meyer@tgkcapital.com",rt:"Delivered",ok:true}]},
     sections:[
-      {title:"Data collection and client verification",tasks:[
-        {name:"Client intake form"},
-        {name:"ID verification",meta:"Risk score 25/100"},
-        {name:"Disclosures"}]},
-      {title:"Onboarding and account opening",tasks:[
-        {name:"Sign Investment Advisory Agreement"},
-        {name:"Upload last 2 years of tax returns"},
-        {name:"Custodian account forms",chip:"Imported from Quik!"}]}],
-    activity:[{kind:"Tasks sent",time:"10:01 am",detail:"Casey sent 6 tasks to Amy Peters."},{kind:"Roles assigned",time:"9:54 am",detail:"You assigned roles for Client, Associate, and Compliance Manager.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"You created the workspace using the <b>Client Onboarding</b> template."}],
-    iris:{heroTitle:"The AI assistant can answer across Amy's agreements.",heroDesc:"Ask about suitability findings, risk score movement, disclosure coverage, or any clause in the documents she's uploaded.",prompt:"Try: \"Summarize Amy's risk profile and flag anything unusual.\"",agreements:["Client Intake Form · In progress · 4 pages","California Driver's License · Uploaded · 1 page","Investment Advisory Agreement · Ready to send · 8 pages","Client Disclosure & Privacy Notice · Ready to send · 4 pages","Custodian Account Forms · Imported from Quik! · 6 pages"],qa:[
-      {q:"Summarize Amy's risk profile and flag anything unusual.",a:"Amy's preliminary risk score is <em>25/100</em> — low. Her <span class=\"src\">Client Intake Form</span> shows a moderate-growth objective with a 12-year horizon, no leverage, and no concentrated positions she's bringing in. Identity verified clean against the <span class=\"src\">California Driver's License</span>. <b>One advisory note:</b> the private-investments question is blank — worth confirming before suitability sign-off.",src:["Client Intake Form","California Driver's License"]},
-      {q:"What's still needed before we can send the IAA?",a:"Two items. The <span class=\"src\">Client Intake Form</span> is in progress — 4 of 7 sections complete; private-investments and trusted-contact are the open fields. Once intake closes, the <span class=\"src\">Investment Advisory Agreement</span> and <span class=\"src\">Client Disclosure & Privacy Notice</span> are pre-filled and route as one ceremony. The <span class=\"src\">Custodian Account Forms</span> queue automatically after IAA signature.",src:["Client Intake Form","Investment Advisory Agreement"]},
-      {q:"Does the disclosure pack cover what compliance requires?",a:"Yes. The <span class=\"src\">Client Disclosure & Privacy Notice</span> is the current Hillside version and includes Form ADV Part 2A, fee schedule, conflict-of-interest disclosure, and privacy notice. All <em>5 required disclosures</em> per Hillside policy are present; Amy acknowledges each section in the signing flow.",src:["Client Disclosure & Privacy Notice"]},
-      {q:"When should I check back on Amy's onboarding?",a:"Amy is expected to submit the remaining intake fields by end of day. Suitability fires automatically when intake closes; the <span class=\"src\">Investment Advisory Agreement</span> envelope is queued and routes the moment compliance clears. Check back tomorrow morning — the 6-day SLA gives headroom and the current ETA is <em>4 days to fully signed</em>.",src:["Client Intake Form","Investment Advisory Agreement"]}
+      {title:"Sub-advisor onboarding and disclosures",tasks:[
+        {name:"Sub-Advisory Agreement",meta:"Countersigned"},
+        {name:"Form ADV Part 2A exchange",meta:"Hillside ↔ TGK"},
+        {name:"Fee-share schedule"}]},
+      {title:"Custodian and reporting setup",tasks:[
+        {name:"Charlton Schwab account forms",chip:"Imported from Quik!"},
+        {name:"Trade reconciliation cadence"},
+        {name:"Quarterly attestation schedule"}]}],
+    activity:[{kind:"SAA countersigned",time:"10:14 am",detail:"Patrick Meyer (TGK Capital) countersigned the Sub-Advisory Agreement; Cathie's signature applied automatically."},{kind:"Roles assigned",time:"9:54 am",detail:"Cathie assigned roles for Sub-Advisor, Hillside Compliance, and Custodian Operations.",link:"View roles"},{kind:"Workspace created",time:"9:26 am",detail:"Cathie created the workspace using the <b>Sub-Advisor Onboarding</b> template."}],
+    iris:{heroTitle:"The AI assistant can answer across the TGK onboarding file.", heroDesc:"Ask about the fee-share split, ADV-amendment language, custodian setup, or any clause across the executed Sub-Advisory Agreement and supporting disclosures.", prompt:"Try: \"Summarize the fee-share schedule and flag anything off the Hillside template.\"", agreements:["Sub-Advisory Agreement · Countersigned · 12 pages","Form ADV Part 2A — TGK Capital · On file · 38 pages","Fee-Share Schedule · Executed · 3 pages","Hillside Compliance Disclosures · Acknowledged · 5 pages","Charlton Schwab Custodian Forms · Imported from Quik! · 6 pages"], qa:[
+      {q:"Summarize the fee-share schedule and flag anything off the Hillside template.", a:"The <span class=\"src\">Fee-Share Schedule</span> applies a <em>60/40 split</em> to TGK on the sleeve, with a 25 bps floor on Hillside's side and a quarterly true-up. The split tracks Hillside's standard sub-advisor template — <b>one note:</b> Patrick negotiated the floor down from 30 bps, which is documented in the addendum but worth flagging for the next compliance review.", src:["Fee-Share Schedule","Sub-Advisory Agreement"]},
+      {q:"What's still needed before TGK can start trading the sleeve?", a:"Two items. The <span class=\"src\">Charlton Schwab Custodian Forms</span> are imported but Patrick still owes a wet-signature on the master account agreement (Quik! flagged the same). After custodian setup clears, Charlton's trade-reconciliation feed needs to map to Hillside's reporting cadence — that's queued in the next workspace task.", src:["Charlton Schwab Custodian Forms","Sub-Advisory Agreement"]},
+      {q:"Does the disclosure pack cover what compliance requires for sub-advisors?", a:"Yes. The <span class=\"src\">Hillside Compliance Disclosures</span> include Form ADV Part 2A delivery, fee disclosure, conflict-of-interest acknowledgment, and the standard sub-advisor attestation. <em>All 5 required disclosures</em> per Hillside policy are present; Patrick acknowledged each section in the signing ceremony.", src:["Hillside Compliance Disclosures","Form ADV Part 2A — TGK Capital"]},
+      {q:"When should I check back on TGK's onboarding?", a:"Custodian setup is the long pole — Charlton's onboarding SLA is 6 business days from receipt. The <span class=\"src\">Charlton Schwab Custodian Forms</span> were imported this morning, so the wet-signature step completes by tomorrow and trading should be live by next Tuesday. Check back end of week for the trade-reconciliation handshake.", src:["Charlton Schwab Custodian Forms","Sub-Advisory Agreement"]}
     ]},
-    agent:{title:"Onboarding Agent",sub:"KYC & Risk",checks:[["Document authenticity","PDF417 barcode parsed · template matched"],["Identity match","Name, DOB, address match intake form"],["Liveness / face match","Selfie compared with ID photo"],["AML / OFAC screen","No matches across 14 sanctions lists"],["PEP & adverse media","No politically exposed person matches"],["Address verification","USPS + utility bill cross-reference"],["Risk score","25/100 · Low"]],summary:"<b>7 checks passed · 0 advisory notes.</b> Identity verified for Amy M Peters. Low-risk profile. Ready to advance the Client intake form and disclosures."}
+    agent:{title:"Sub-Advisor Onboarding Agent",sub:"Compliance & Custody",checks:[["Sub-Advisory Agreement","Countersigned · 12 pages · clause set matches Hillside template"],["Form ADV Part 2A delivery","Acknowledged by TGK · 2024 amendment on file"],["Fee-share schedule","60/40 split · 25 bps floor · quarterly true-up"],["Compliance disclosures","All 5 required disclosures acknowledged"],["AML / OFAC screen on principal","Patrick Meyer · clean across 14 sanctions lists"],["Custodian setup","Charlton Schwab forms imported · master signature pending"],["Reporting cadence","Quarterly attestation queued · trade reconciliation TBD"]],summary:"<b>6 checks passed · 1 advisory note.</b> Sub-Advisory Agreement and disclosures fully executed for TGK Capital. Custodian setup at Charlton Schwab is in flight; expect trading-live next Tuesday."}
   },
 
   banking: {
@@ -1780,9 +1793,28 @@ sel.addEventListener('change', () => {
       <div class="mc-line mc-l3">For everything else, there's <span class="mc-accent">Workspaces</span>.</div>
       <div class="mc-descriptor">${descriptor}</div>
     </div>
+    <div class="mc-ready-hint">Press <kbd>Space</kbd> when ready</div>
   `;
   mock.insertBefore(splash, mock.firstChild);
-  setTimeout(() => splash.remove(), 10000);
+
+  /* Splash now waits for the viewer (paused) — dismissal triggered by
+     the shell's Space handler via tgk:dismissSplash postMessage, OR by
+     a click on the splash itself as a backup affordance. The 600ms fade
+     matches the CSS transition above; remove from DOM once hidden. */
+  function dismissSplash(){
+    if (splash.classList.contains('is-dismissing')) return;
+    splash.classList.add('is-dismissing');
+    setTimeout(() => splash.remove(), 700);
+    parent.postMessage({ type: 'tgk:splashDismissed' }, '*');
+  }
+  splash.addEventListener('click', dismissSplash);
+  window.addEventListener('message', (ev) => {
+    const msg = ev.data;
+    if (msg && msg.type === 'tgk:dismissSplash') dismissSplash();
+  });
+  /* Tell the shell that a splash is up so it can pause autoplay and
+     re-route Space to dismissal. */
+  parent.postMessage({ type: 'tgk:splashShown' }, '*');
 })();
 
 /* =============================================================

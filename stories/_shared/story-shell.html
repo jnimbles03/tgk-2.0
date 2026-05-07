@@ -2889,10 +2889,25 @@ function positionHotspotFromRect(msg){
    - tgk:beatDone — template signals it's finished its internal animation
      for this beat. If autoplay is on, advance immediately instead of
      waiting for the beat duration to elapse. Ignored in manual mode. */
+/* Splash gate — when the workspace template raises a MasterCard-style
+   splash (?splash=1 or vertical's splashOk:true), pause autoplay and
+   wait for the viewer to press Space. Space (handled below in the
+   global keydown) routes to dismissal instead of toggling play, then
+   resumes autoplay normally. Cleared when the iframe confirms the
+   splash dismissed (or on any scene change away from Scene 5). */
+let _splashWaiting = false;
 window.addEventListener("message", (ev) => {
   const msg = ev.data;
   if (!msg || typeof msg !== "object") return;
   if (msg.type === "tgk:rect") positionHotspotFromRect(msg);
+  if (msg.type === "tgk:splashShown") {
+    _splashWaiting = true;
+    if (playing) togglePlay();          // pause autoplay so the splash dwells
+    showToast("Press Space when ready", 2400);
+  }
+  if (msg.type === "tgk:splashDismissed") {
+    _splashWaiting = false;
+  }
   // tgk:beatDone is intentionally NOT wired to advance() under the
   // persona-locked model. The shell's autoplay tick is the single
   // authoritative clock — letting the iframe advance independently
@@ -3229,7 +3244,10 @@ function goTo(i, opts = {}){
   // doesn't survive a tab-jump and re-pop on the new scene's first beat.
   // The hold will re-engage on its own if the new scene's first persona
   // doesn't match what we're carrying — but starting fresh is correct.
+  // Same for the splash gate — leaving Scene 5 invalidates any pending
+  // splash-dismiss state.
   holdingForGesture = false;
+  _splashWaiting = false;
   setHoldVisuals(false);
   // Always tear down lead-mode before re-entering — prevents the "stuck
   // expanded" symptom when goTo lands while a previous lead-mode is still
@@ -3824,6 +3842,17 @@ window.addEventListener('keydown', (e) => {
   // rewinds (forward-only hold release per spec).
   if (holdingForGesture && (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight')) {
     releaseHoldAndResume();
+    e.preventDefault();
+    return;
+  }
+  /* Splash gate (added 2026-05-06): if the workspace splash is up,
+     Space dismisses the splash AND resumes autoplay instead of
+     toggling play. The iframe clears _splashWaiting via
+     tgk:splashDismissed once the fade completes. */
+  if (_splashWaiting && (e.key === ' ' || e.key === 'Enter')) {
+    try { frame.contentWindow.postMessage({ type: 'tgk:dismissSplash' }, '*'); } catch (_) {}
+    _splashWaiting = false;
+    if (!playing) togglePlay();   // resume autoplay
     e.preventDefault();
     return;
   }
