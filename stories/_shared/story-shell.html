@@ -224,9 +224,15 @@
      line-height 1.22→1.3 (breathier even when 2-line); lede 1.6→1.5;
      margin-bottom on each block trimmed ~25% so the vertical rhythm
      reads less stacked. */
+  /* Spatial balance (added 2026-05-06) — the narration block (step-label
+     + headline + lede) was bunching at the top with a large empty area
+     above the beat pips. Auto margins on step-label (top) and lede
+     (bottom) split the free space evenly, floating the text toward the
+     vertical center between persona and beat-pips. The .foot-spacer is
+     downgraded from flex:1 to 0 so it doesn't fight for space. */
   .step-label{
     font-size:11px;font-weight:600;color:var(--step-blue);
-    letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;
+    letter-spacing:0.18em;text-transform:uppercase;margin:auto 0 10px;
     transition:opacity 0.22s ease, font-size 0.26s cubic-bezier(.4,0,.2,1), letter-spacing 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1);
   }
   .headline{
@@ -245,10 +251,20 @@
   }
   .lede{
     font-size:13px;color:var(--ink-soft);line-height:1.5;
-    margin-bottom:14px;max-width:92%;
+    /* margin-bottom:auto pairs with step-label's margin-top:auto to
+       float the narration block to vertical center. max-height + overflow
+       cap protects against narrations that would otherwise push the
+       beat-pips off-screen — overflowing copy clips with a soft fade so
+       the rail's bar zone stays clean. */
+    margin:0 0 auto;max-width:92%;max-height:42vh;overflow:hidden;
+    -webkit-mask-image:linear-gradient(to bottom, #000 86%, transparent 100%);
+            mask-image:linear-gradient(to bottom, #000 86%, transparent 100%);
     transition:opacity 0.24s ease, font-size 0.26s cubic-bezier(.4,0,.2,1), color 0.26s ease;
     opacity:0.85;
   }
+  /* Foot-spacer no longer fights for space — the auto margins on
+     step-label and lede already balance the layout. */
+  .foot-spacer{flex:0;}
   .lede p + p{margin-top:10px;}
   .lede .em{font-weight:600;color:var(--ink-mid);}
   .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
@@ -297,7 +313,10 @@
      whether the cold-open hint ("Press Space to begin") is visible. No
      size, color, or font changes apply.                                  */
 
-  .foot-spacer{flex:1;}
+  /* foot-spacer downgraded to flex:0 (was flex:1) since the auto margins
+     on step-label + lede now handle the vertical balance. Kept in the DOM
+     so JS that assumes the wrapping element exists doesn't break. */
+  .foot-spacer{flex:0;}
   .beat-pips{display:flex;gap:6px;margin-bottom:12px;}
   .beat-pips .pip{width:22px;height:5px;border-radius:3px;background:var(--hair);transition:background 0.2s;}
   .beat-pips .pip.on{background:var(--ds-purple);}
