@@ -164,14 +164,6 @@
   .option-card .oc-count { display: inline-block; margin-top: 8px; font-size: .6875rem; font-weight: 600; color: var(--ds-cobalt); background: rgba(76,0,255,.08); border-radius: 99px; padding: 1px 8px; }
   .option-card .oc-soon { display: inline-block; margin-top: 6px; font-size: .625rem; font-weight: 600; color: var(--muted); background: var(--rule); border-radius: 99px; padding: 1px 7px; }
 
-  /* ─── DEMO CHIPS (STEP 3) ─── */
-  .demo-chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .demo-chip { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border: 1px solid var(--rule-strong); border-radius: 10px; background: white; cursor: pointer; transition: all .15s; font-size: .9375rem; font-weight: 500; }
-  .demo-chip:not(.disabled):hover { border-color: var(--ds-cobalt); box-shadow: 0 2px 12px rgba(76,0,255,.10); transform: translateY(-1px); }
-  .demo-chip.disabled { opacity: .45; cursor: not-allowed; }
-  .demo-chip.disabled .demo-soon { display: inline; margin-left: 6px; font-size: .625rem; font-weight: 600; color: var(--muted); background: var(--rule); border-radius: 99px; padding: 1px 7px; }
-  .demo-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ds-cobalt); flex-shrink: 0; }
-
   /* wiz back button */
   .wiz-back-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
   .wiz-back { display: none; align-items: center; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--muted); border: 1px solid var(--rule-strong); border-radius: 7px; padding: 6px 12px; transition: all .15s; }
@@ -364,60 +356,163 @@
     </button>
   </div>
 
-  <!-- ═══ STEP 1 — Cluster ═══ -->
+  <!-- ═══ STEP 1 — Function ═══ -->
   <section class="sect" id="step1">
     <div class="sect-label" data-toggle>
       <span class="step">STEP 1</span>
-      <span>Pick an industry cluster</span>
+      <span>Pick a business function</span>
       <span class="picked-val" id="picked-1"></span>
       <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <div class="grid c4">
+    <div class="grid c3">
 
-      <div class="card" data-pick data-next="step2" data-crumb="FINS" data-cluster="fins">
-        <div class="ttl">FINS</div>
-        <div class="sub">Financial Services · Banking, Wealth, Insurance</div>
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Procurement" data-mode="procurement">
+        <div class="ttl">Procurement</div>
+        <div class="sub">Intake, orchestration, supplier &amp; contract lifecycle</div>
       </div>
 
-      <div class="card" data-pick data-next="step2" data-crumb="HLS" data-cluster="hls">
-        <div class="ttl">HLS</div>
-        <div class="sub">Health &amp; Life Sciences · Provider, Payor, Research</div>
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Sales" data-mode="sales">
+        <div class="ttl">Sales</div>
+        <div class="sub">Lead-to-cash, CPQ, CRM-driven contracting</div>
       </div>
 
-      <div class="card" data-pick data-next="step2" data-crumb="PubSec" data-cluster="pubsec">
-        <div class="ttl">PubSec</div>
-        <div class="sub">Public Sector · Federal, State &amp; Local Gov, Education</div>
-      </div>
-
-      <div class="card" data-pick data-next="step2" data-crumb="Cross-org" data-cluster="crossorg">
-        <div class="ttl">Cross-org</div>
-        <div class="sub">Sales, Procurement, Nonprofit</div>
+      <div class="card fn-card" data-pick data-next="step2" data-crumb="Customer Experience" data-mode="b2c">
+        <div class="ttl">Customer Experience</div>
+        <div class="sub">Onboarding, maintenance, complex B2C flows</div>
       </div>
 
     </div>
   </section>
 
-  <!-- ═══ STEP 2 — Sub-vertical ═══ -->
+  <!-- ═══ STEP 2 — Use case (B2B functions) or inline wizard (CX) ═══ -->
   <section class="sect locked" id="step2">
     <div class="sect-label" data-toggle>
       <span class="step">STEP 2</span>
-      <span id="step2Label">Pick a sub-vertical</span>
+      <span id="step2Label">Pick a use case</span>
       <span class="picked-val" id="picked-2"></span>
       <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-    <div class="step2-panels" id="step2Grid"></div>
-  </section>
-
-  <!-- ═══ STEP 3 — Demo (5 chips) ═══ -->
-  <section class="sect locked" id="step3">
-    <div class="sect-label" data-toggle>
-      <span class="step">STEP 3</span>
-      <span id="step3Label">Pick a demo</span>
-      <span class="picked-val" id="picked-3"></span>
-      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="step2-panels">
+    <!-- Procurement use cases -->
+    <div class="uc-list step2-procurement">
+      <a class="uc-row uc-link" href="/stories/_shared/story-shell.html?vertical=procurement" data-crumb="Drilling Services MSA">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Drilling Services MSA</div>
+          <span class="uc-vertical">Oil &amp; Gas · Procurement</span>
+          <div class="uc-outcome">Author in CLM, multi-party sign, obligations live in the repository.</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="uc-row uc-link" href="/stories/_shared/story-shell.html?vertical=procurement&amp;usecase=maintenance" data-crumb="Vendor Renewal at Scale">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Vendor Renewal at Scale</div>
+          <span class="uc-vertical">Cross-Industry · Procurement</span>
+          <div class="uc-outcome">60-day renewal alert fires; AI flags playbook drift; new term lands automatically.</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">New Supplier Onboarding</div>
+          <span class="uc-vertical">Cross-Industry · Procurement</span>
+          <div class="uc-outcome">Web Form intake, playbook check, sign, onboarded.</div>
+        </div>
+        <span class="ready-pill muted">Sketched</span>
+      </div>
     </div>
-    <div class="demo-chips" id="demoChipsGrid"></div>
+
+    <!-- Sales use cases -->
+    <div class="uc-list step2-sales hidden" style="display:none">
+      <a class="uc-row uc-link" href="/stories/_shared/story-shell.html?vertical=sales" data-crumb="Agentforce-Driven Close">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Agentforce-Driven Close</div>
+          <span class="uc-vertical">SaaS · Sales</span>
+          <div class="uc-outcome">CRM stage gate fires the agreement; reps stop assembling packets.</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4 L10 8 L6 12" stroke="#130032" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">CPQ-to-Sign with Playbook Guardrails</div>
+          <span class="uc-vertical">Cross-Industry · Sales</span>
+          <div class="uc-outcome">CPQ quote, AI flags non-standard terms, deal desk approves, repository captures.</div>
+        </div>
+        <span class="ready-pill muted">Future</span>
+      </div>
+      <div class="uc-row">
+        <div class="dot"></div>
+        <div class="uc-meta">
+          <div class="uc-ttl">Channel Partner Agreement</div>
+          <span class="uc-vertical">Cross-Industry · Sales</span>
+          <div class="uc-outcome">Templated terms, multi-party sign, ongoing collab in Workspaces.</div>
+        </div>
+        <span class="ready-pill muted">Future</span>
+      </div>
+    </div>
+
+    <!-- CX — inline vertical wizard (replaces handoff to index-unified) -->
+    <div class="step2-b2c" id="cx-wizard" style="display:none">
+
+      <!-- Mode toggle for the wizard half -->
+      <div class="cx-mode-bar" style="margin-bottom:24px">
+        <button class="cx-mode-pill active" id="wizPillStory">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          Demo Story
+        </button>
+        <button class="cx-mode-pill" id="wizPillDiscovery">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Discovery
+        </button>
+      </div>
+
+      <!-- Wiz back + breadcrumb -->
+      <div class="wiz-back-row">
+        <button class="wiz-back" id="wizBack" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <div class="wiz-crumb" id="wizCrumb"></div>
+      </div>
+
+      <!-- Stage 1: Cluster/Vertical -->
+      <div class="wiz-section" id="wizStage1">
+        <div class="wiz-label"><span class="step-pill">01</span> Vertical</div>
+        <div class="option-grid cols-3" id="verticalGrid"></div>
+      </div>
+
+      <!-- Stage 2: Subvertical -->
+      <div class="wiz-section" id="wizStage2" style="display:none">
+        <div class="wiz-label"><span class="step-pill">02</span> Subvertical</div>
+        <div class="option-grid cols-3" id="subverticalGrid"></div>
+      </div>
+
+      <!-- Stage 3: Category -->
+      <div class="wiz-section" id="wizStage3" style="display:none">
+        <div class="wiz-label"><span class="step-pill">03</span> Category</div>
+        <div class="option-grid cols-3" id="categoryGrid"></div>
+      </div>
+
+      <!-- Stage 4: Use case -->
+      <div class="wiz-section" id="wizStage4" style="display:none">
+        <div class="wiz-label"><span class="step-pill">04</span> Use case</div>
+        <div id="useCaseGrid"></div>
+      </div>
+
+      <!-- Launch bar -->
+      <div class="wiz-launch-bar" id="wizLaunchBar">
+        <div class="wiz-launch-crumb" id="wizLaunchCrumb">Select a use case above</div>
+        <button class="wiz-launch-btn" id="wizLaunchBtn" disabled onclick="wizLaunch()">Launch Demo &rarr;</button>
+      </div>
+
+    </div>
+
+    </div><!-- /step2-panels -->
   </section>
 
   <!-- ═══ STORY BAND — Oil & Gas ═══ -->
@@ -1085,165 +1180,32 @@
 (function () {
 'use strict';
 
-// ─── CANONICAL CLUSTER MAP ───
-// 4 clusters × 3 sub-verticals × 5 demos per sub-vertical
-// Structure: { clusterKey: { clusterName, subverticals: { key: { name, demos: { onboarding, maintenance, fraud, headless, workspaces } } } } }
+// ─── CATALOG ───
+const CATALOG = JSON.parse(document.getElementById('catalog-data').textContent);
 
-const CLUSTER_MAP = {
-  fins: {
-    name: 'FINS (Financial Services)',
-    subverticals: {
-      wealth: {
-        name: 'Wealth',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=wealth',                   enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=wealth&usecase=maintenance', enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: 'stories/_shared/story-shell.html?vertical=wealth&usecase=fraud-fabric', enabled: false, reason: 'needs content audit' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/fins.html?vertical=wealth',                              enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=wealth&usecase=workspaces',   enabled: true }
-        }
-      },
-      banking: {
-        name: 'Banking',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=banking',                     enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=banking-deposits',            enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: 'stories/_shared/story-shell.html?vertical=banking&usecase=fraud-fabric', enabled: false, reason: 'needs content audit' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/fins.html?vertical=banking',                              enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=banking&usecase=workspaces',   enabled: true }
-        }
-      },
-      insurance: {
-        name: 'Insurance',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=insurance',                    enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=insurance-life',              enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: 'stories/_shared/story-shell.html?vertical=insurance-pc',                enabled: true },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/fins.html?vertical=insurance',                             enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=insurance&usecase=workspaces', enabled: true }
-        }
-      }
-    }
-  },
-  hls: {
-    name: 'HLS (Health & Life Sciences)',
-    subverticals: {
-      provider: {
-        name: 'Provider',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=provider',                    enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=provider-roi',                enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/hls.html?vertical=provider',                               enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=provider&usecase=workspaces', enabled: true }
-        }
-      },
-      lifesciences: {
-        name: 'Life Sciences',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=lifesciences',                enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'needs build' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/hls.html?vertical=lifesciences',                           enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=lifesciences&usecase=workspaces', enabled: true }
-        }
-      },
-      payor: {
-        name: 'Payor',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=payor',                       enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'needs build' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/hls.html?vertical=payor',                                  enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=payor&usecase=workspaces',   enabled: true }
-        }
-      }
-    }
-  },
-  pubsec: {
-    name: 'PubSec (Public Sector)',
-    subverticals: {
-      fedgov: {
-        name: 'FedGov',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=fedgov',                     enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'needs build' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/ps.html?vertical=fedgov',                                  enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=fedgov&usecase=workspaces',  enabled: true }
-        }
-      },
-      slgov: {
-        name: 'SLGov',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=slgov',                       enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=slgov-recertification',        enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: 'stories/_shared/story-shell.html?vertical=slgov-311',                   enabled: true },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/ps.html?vertical=slgov',                                   enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=slgov&usecase=workspaces',    enabled: true }
-        }
-      },
-      education: {
-        name: 'Education',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=education',                   enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'needs build' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: 'headless-iam/ps.html?vertical=education',                               enabled: true },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=education&usecase=workspaces', enabled: true }
-        }
-      }
-    }
-  },
-  crossorg: {
-    name: 'Cross-org',
-    subverticals: {
-      nonprofit: {
-        name: 'Nonprofit',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=nonprofit',                   enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'needs build' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'needs build' },
-          headless:    { label: 'Headless IAM', url: '#',                                                       enabled: false, reason: 'needs build' },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=nonprofit&usecase=workspaces', enabled: true }
-        }
-      },
-      sales: {
-        name: 'Sales',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=sales',                       enabled: true },
-          maintenance: { label: 'Maintenance',  url: '#',                                                       enabled: false, reason: 'not applicable' },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'not applicable' },
-          headless:    { label: 'Headless IAM', url: '#',                                                       enabled: false, reason: 'not applicable' },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=sales&usecase=workspaces',    enabled: true }
-        }
-      },
-      procurement: {
-        name: 'Procurement',
-        demos: {
-          onboarding:  { label: 'Onboarding',   url: 'stories/_shared/story-shell.html?vertical=procurement',                 enabled: true },
-          maintenance: { label: 'Maintenance',  url: 'stories/_shared/story-shell.html?vertical=procurement&usecase=maintenance', enabled: true },
-          fraud:       { label: 'Fraud Fabric', url: '#',                                                       enabled: false, reason: 'not applicable' },
-          headless:    { label: 'Headless IAM', url: '#',                                                       enabled: false, reason: 'not applicable' },
-          workspaces:  { label: 'Workspaces',   url: 'stories/_shared/story-shell.html?vertical=procurement&usecase=workspaces', enabled: true }
-        }
-      }
-    }
-  }
+// ─── HEADLESS PORTALS ───
+const HEADLESS_PORTALS = {
+  'financial-services': { slug: 'fins', tenant: 'TGK Capital — Advisor Portal',        role: 'Patrick Meyer, CFA · Wealth Manager' },
+  'hls':                { slug: 'hls',  tenant: 'Riverside Health Network — Epic',     role: 'Dr. Marcus Chen · Clinical Operations' },
+  'public-sector':      { slug: 'ps',   tenant: 'Cascade County — Caseworker Desktop', role: 'Marcus Lee · Sr. Caseworker' }
 };
 
+const CLUSTER_TO_VERTICAL = { fins: 'financial-services', hls: 'hls', ps: 'public-sector', pubsec: 'public-sector' };
+
+const CATEGORY_LABELS    = { onboarding:'Onboarding', maintenance:'Maintenance', auth:'Fraud Fabric', workspaces:'Workspaces', headless:'Headless IAM', other:'Other' };
+const CATEGORY_SUBTITLES = { onboarding:'New customer / new relationship onboarding', maintenance:'Customer-initiated change in the authenticated portal', auth:'Identity verification-at-the-door + chain-of-custody binding', workspaces:'Multi-party persistent collaboration surface', headless:'Tenant-branded employee desktop with embedded IAM moments', other:'Adjacent flows' };
+const CATEGORY_ORDER     = ['onboarding','maintenance','auth','workspaces','other','headless'];
+
 // ─── STATE ───
-const wiz = { stage: 1, cluster: null, subvertical: null };
+const wiz = { mode: 'story', vertical: null, subvertical: null, category: null, useCase: null, stage: 1 };
 
 // ─── DOM REFS ───
-const step1Clusters   = document.getElementById('step1Clusters');
-const step1Label      = document.getElementById('step1Label');
-const step2Label      = document.getElementById('step2Label');
-const step2Grid       = document.getElementById('step2Grid');
-const step3Label      = document.getElementById('step3Label');
-const demoChips       = document.getElementById('demoChips');
-const wizBack         = document.getElementById('wizBack');
-const wizCrumb        = document.getElementById('wizCrumb');
+const verticalGrid   = document.getElementById('verticalGrid');
+const subvertGrid    = document.getElementById('subverticalGrid');
+const categoryGrid   = document.getElementById('categoryGrid');
+const useCaseGrid    = document.getElementById('useCaseGrid');
+const wizBack        = document.getElementById('wizBack');
+const wizCrumb       = document.getElementById('wizCrumb');
 const wizLaunchBar   = document.getElementById('wizLaunchBar');
 const wizLaunchBtn   = document.getElementById('wizLaunchBtn');
 const wizLaunchCrumb = document.getElementById('wizLaunchCrumb');
@@ -1262,140 +1224,272 @@ const stageEls = {
   4: document.getElementById('wizStage4'),
 };
 
-// ─── RENDER STEP 1: CLUSTER CARDS ───
-function renderClusters() {
-  step1Clusters.innerHTML = '';
-  const clusters = ['fins', 'hls', 'pubsec', 'crossorg'];
-  clusters.forEach(clusterKey => {
-    const cluster = CLUSTER_MAP[clusterKey];
-    const card = document.createElement('div');
-    card.className = 'cluster-card';
-    card.dataset.cluster = clusterKey;
-    card.innerHTML = `<div class="card-title">${cluster.name}</div>`;
-    card.addEventListener('click', () => selectCluster(clusterKey));
-    step1Clusters.appendChild(card);
+// ─── WIZARD STAGE MANAGEMENT ───
+function setWizStage(n) {
+  const prev = wiz.stage;
+  wiz.stage = n;
+  Object.entries(stageEls).forEach(([k, el]) => {
+    el.style.display = Number(k) <= n ? 'block' : 'none';
   });
+  wizBack.classList.toggle('visible', n > 1);
+  updateWizCrumb();
+  updateLaunchBar();
+  // Mirror step 1 → step 2 reveal feel: when a new stage is unlocked,
+  // smooth-scroll it to viewport center so the user's eye follows the
+  // newly revealed content rather than jamming to the top.
+  if (n > prev) {
+    const el = stageEls[n];
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 40);
+  }
 }
 
-function selectCluster(clusterKey) {
-  wiz.cluster = clusterKey;
-  wiz.subvertical = null;
-  step1Clusters.querySelectorAll('.cluster-card').forEach(c => c.classList.toggle('selected', c.dataset.cluster === clusterKey));
-  renderSubverticals(clusterKey);
-  step1Label.style.display = 'none';
-  step2Label.style.display = 'block';
-  step3Label.style.display = 'none';
-  demoChips.innerHTML = '';
-  wizBack.classList.add('visible');
-}
-
-// ─── RENDER STEP 2: SUB-VERTICAL CARDS ───
-function renderSubverticals(clusterKey) {
-  step2Grid.innerHTML = '';
-  const cluster = CLUSTER_MAP[clusterKey];
-  Object.entries(cluster.subverticals).forEach(([subKey, sub]) => {
-    const card = document.createElement('div');
-    card.className = 'subvertical-card';
-    card.dataset.subvertical = subKey;
-    card.innerHTML = `<div class="card-title">${sub.name}</div>`;
-    card.addEventListener('click', () => selectSubvertical(clusterKey, subKey));
-    step2Grid.appendChild(card);
-  });
-}
-
-function selectSubvertical(clusterKey, subverticalKey) {
-  wiz.subvertical = subverticalKey;
-  step2Grid.querySelectorAll('.subvertical-card').forEach(c => c.classList.toggle('selected', c.dataset.subvertical === subverticalKey));
-  renderDemos(clusterKey, subverticalKey);
-  step2Label.style.display = 'none';
-  step3Label.style.display = 'block';
-}
-
-// ─── RENDER STEP 3: DEMO CHIPS (5 PER SUB-VERTICAL) ───
-function renderDemos(clusterKey, subverticalKey) {
-  demoChips.innerHTML = '';
-  const cluster = CLUSTER_MAP[clusterKey];
-  const subvert = cluster.subverticals[subverticalKey];
-  const demoOrder = ['onboarding', 'maintenance', 'fraud', 'headless', 'workspaces'];
-
-  demoOrder.forEach(demoKey => {
-    const demo = subvert.demos[demoKey];
-    const chip = document.createElement('div');
-    chip.className = 'demo-chip';
-
-    if (demo.enabled) {
-      const link = document.createElement('a');
-      link.href = demo.url;
-      link.className = 'demo-link';
-      link.textContent = demo.label;
-      chip.appendChild(link);
-    } else {
-      const btn = document.createElement('button');
-      btn.disabled = true;
-      btn.className = 'demo-button disabled';
-      btn.innerHTML = `${demo.label}<span class="coming-soon-badge">Coming soon</span>`;
-      chip.appendChild(btn);
-    }
-
-    demoChips.appendChild(chip);
-  });
-}
-
-// ─── KEYBOARD NAVIGATION ───
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' || e.key === 'Backspace') {
-    if (wiz.subvertical) {
-      wiz.subvertical = null;
-      step2Grid.querySelectorAll('.subvertical-card').forEach(c => c.classList.remove('selected'));
-      step2Label.style.display = 'block';
-      step3Label.style.display = 'none';
-      demoChips.innerHTML = '';
-    } else if (wiz.cluster) {
-      wiz.cluster = null;
-      step1Clusters.querySelectorAll('.cluster-card').forEach(c => c.classList.remove('selected'));
-      step1Label.style.display = 'block';
-      step2Label.style.display = 'none';
-      step3Label.style.display = 'none';
-      step2Grid.innerHTML = '';
-      demoChips.innerHTML = '';
-      wizBack.classList.remove('visible');
+// ─── MODE ───
+const geosModeDisc  = document.getElementById('geosModeDiscovery');
+const geosModeStory = document.getElementById('geosModeStory');
+function setWizMode(mode) {
+  wiz.mode = mode;
+  wizPillStory.classList.toggle('active', mode === 'story');
+  wizPillDisc.classList.toggle('active', mode === 'discovery');
+  // Keep the top-level hero mode tabs in sync with the inline wizard pills
+  if (geosModeStory) {
+    geosModeStory.classList.toggle('active', mode === 'story');
+    geosModeStory.setAttribute('aria-selected', mode === 'story' ? 'true' : 'false');
+  }
+  if (geosModeDisc) {
+    geosModeDisc.classList.toggle('active', mode === 'discovery');
+    geosModeDisc.setAttribute('aria-selected', mode === 'discovery' ? 'true' : 'false');
+  }
+  // Re-render use cases if we're at stage 4
+  if (wiz.stage === 4 && wiz.vertical && wiz.subvertical && wiz.category) {
+    renderUseCases(wiz.vertical, wiz.subvertical, wiz.category);
+    if (wiz.useCase !== null) {
+      const card = useCaseGrid.querySelector(`.usecase-card[data-index="${wiz.useCase}"]`);
+      if (card) card.classList.add('selected');
     }
   }
+  updateLaunchBar();
+}
+wizPillStory.addEventListener('click', () => setWizMode('story'));
+wizPillDisc.addEventListener('click',  () => setWizMode('discovery'));
+if (geosModeStory) geosModeStory.addEventListener('click', () => setWizMode('story'));
+if (geosModeDisc)  geosModeDisc.addEventListener('click',  () => setWizMode('discovery'));
+
+// ─── RENDER VERTICAL CARDS ───
+Object.entries(CATALOG).forEach(([key, v]) => {
+  const card = document.createElement('div');
+  card.className = 'option-card';
+  card.dataset.value = key;
+  card.innerHTML = `<div class="oc-title">${v.title}</div><div class="oc-sub">${v.subtitle}</div>`;
+  card.addEventListener('click', () => selectVertical(key));
+  verticalGrid.appendChild(card);
 });
 
-wizBack.addEventListener('click', () => {
-  if (wiz.subvertical) {
-    wiz.subvertical = null;
-    step2Grid.querySelectorAll('.subvertical-card').forEach(c => c.classList.remove('selected'));
-    step2Label.style.display = 'block';
-    step3Label.style.display = 'none';
-    demoChips.innerHTML = '';
-  } else if (wiz.cluster) {
-    wiz.cluster = null;
-    step1Clusters.querySelectorAll('.cluster-card').forEach(c => c.classList.remove('selected'));
-    step1Label.style.display = 'block';
-    step2Label.style.display = 'none';
-    step3Label.style.display = 'none';
-    step2Grid.innerHTML = '';
-    demoChips.innerHTML = '';
-    wizBack.classList.remove('visible');
+function selectVertical(key) {
+  wiz.vertical = key; wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+  verticalGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === key));
+  renderSubverticals(key);
+  setWizStage(2);
+}
+
+function renderSubverticals(vKey) {
+  subvertGrid.innerHTML = '';
+  Object.entries(CATALOG[vKey].subverticals).forEach(([key, sv]) => {
+    const empty = !sv.useCases || sv.useCases.length === 0;
+    const card = document.createElement('div');
+    card.className = 'option-card' + (empty ? ' empty' : '');
+    card.dataset.value = key;
+    card.innerHTML = `<div class="oc-title">${sv.title}</div><div class="oc-sub">${sv.subtitle}</div>${empty ? '<span class="oc-soon">Coming soon</span>' : ''}`;
+    card.addEventListener('click', () => { if (!empty) selectSubvertical(key); });
+    subvertGrid.appendChild(card);
+  });
+}
+
+function selectSubvertical(key) {
+  wiz.subvertical = key; wiz.category = null; wiz.useCase = null;
+  subvertGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === key));
+  renderCategories(wiz.vertical, key);
+  setWizStage(3);
+}
+
+function renderCategories(vKey, svKey) {
+  categoryGrid.innerHTML = '';
+  const sv = CATALOG[vKey].subverticals[svKey];
+  if (!sv.useCases || sv.useCases.length === 0) { categoryGrid.innerHTML = '<div style="color:var(--muted);font-size:.875rem">No use cases authored yet.</div>'; return; }
+  const counts = { onboarding:0, maintenance:0, auth:0, workspaces:0, other:0 };
+  sv.useCases.forEach(uc => { const c = (uc.category && counts.hasOwnProperty(uc.category)) ? uc.category : 'other'; counts[c]++; });
+  const hasPortal = !!HEADLESS_PORTALS[vKey];
+  CATEGORY_ORDER.forEach(catKey => {
+    const count = catKey === 'headless' ? (hasPortal ? 1 : 0) : (counts[catKey] || 0);
+    if (!count) return;
+    const card = document.createElement('div');
+    card.className = 'option-card category-card';
+    card.dataset.value = catKey;
+    card.innerHTML = `<div class="oc-title">${CATEGORY_LABELS[catKey]}</div><div class="oc-sub">${CATEGORY_SUBTITLES[catKey]}</div><span class="oc-count">${count} ${count===1?'use case':'use cases'}</span>`;
+    card.addEventListener('click', () => selectCategory(catKey));
+    categoryGrid.appendChild(card);
+  });
+}
+
+function selectCategory(catKey) {
+  wiz.category = catKey; wiz.useCase = null;
+  categoryGrid.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.value === catKey));
+  renderUseCases(wiz.vertical, wiz.subvertical, catKey);
+  setWizStage(4);
+}
+
+function ucSupported(uc) { return wiz.mode === 'discovery' ? !!uc.discoveryUrl : true; }
+function ucReady(uc)     { return !!uc.storyImplemented; }
+
+function renderUseCases(vKey, svKey, catFilter) {
+  useCaseGrid.innerHTML = '';
+  const sv = CATALOG[vKey].subverticals[svKey];
+  const portal = HEADLESS_PORTALS[vKey];
+  const grid = document.createElement('div');
+  grid.className = 'usecase-grid';
+
+  if (catFilter === 'headless') {
+    if (portal) {
+      const card = document.createElement('div');
+      card.className = 'usecase-card';
+      card.dataset.index = 'headless';
+      card.innerHTML = `<div class="uc-title"><span>Step into the employee desktop</span></div><div class="uc-sub">${portal.tenant} &middot; ${portal.role}</div>`;
+      card.addEventListener('click', () => selectUseCase('headless'));
+      grid.appendChild(card);
+    }
+  } else {
+    (sv.useCases || []).forEach((uc, i) => {
+      const knownCats = ['onboarding','maintenance','auth','workspaces'];
+      const cat = (uc.category && knownCats.includes(uc.category)) ? uc.category : 'other';
+      if (catFilter && cat !== catFilter) return;
+      const supported = ucSupported(uc);
+      const ready = ucReady(uc);
+      let pill = '';
+      if (wiz.mode === 'discovery' && !supported) pill = '<span class="uc-availability">Demo only</span>';
+      else if (wiz.mode === 'story' && !ready) pill = '<span class="uc-availability">Coming soon</span>';
+      const card = document.createElement('div');
+      card.className = 'usecase-card' + (supported ? '' : ' unavailable');
+      card.dataset.index = i;
+      card.innerHTML = `<div class="uc-title"><span>${uc.title}</span>${pill}</div><div class="uc-sub">${uc.subtitle}</div>`;
+      if (supported) {
+        card.addEventListener('click', () => selectUseCase(i));
+        card.addEventListener('dblclick', () => { selectUseCase(i); wizLaunch(); });
+      }
+      grid.appendChild(card);
+    });
   }
+  useCaseGrid.appendChild(grid);
+}
+
+function selectUseCase(index) {
+  wiz.useCase = index;
+  useCaseGrid.querySelectorAll('.usecase-card').forEach(c => c.classList.toggle('selected', c.dataset.index === String(index)));
+  updateLaunchBar();
+}
+
+function updateLaunchBar() {
+  const ready = wiz.vertical && wiz.subvertical && wiz.category && wiz.useCase !== null;
+  wizLaunchBar.classList.toggle('visible', ready);
+  wizLaunchBtn.disabled = !ready;
+  if (!ready) { wizLaunchCrumb.textContent = 'Select a use case above'; return; }
+  const vTitle  = CATALOG[wiz.vertical].title;
+  const svTitle = CATALOG[wiz.vertical].subverticals[wiz.subvertical].title;
+  const verb = wiz.mode === 'discovery' ? 'Open Discovery' : 'Launch Demo';
+  if (wiz.useCase === 'headless') {
+    const p = HEADLESS_PORTALS[wiz.vertical];
+    wizLaunchCrumb.innerHTML = `<strong>${vTitle}</strong> › ${svTitle} › ${p.tenant}`;
+    wizLaunchBtn.textContent = 'Open Desktop →';
+  } else {
+    const uc = CATALOG[wiz.vertical].subverticals[wiz.subvertical].useCases[wiz.useCase];
+    wizLaunchCrumb.innerHTML = `<strong>${vTitle}</strong> › ${svTitle} › "${uc.title}"`;
+    wizLaunchBtn.textContent = verb + ' →';
+  }
+}
+
+function updateWizCrumb() {
+  const parts = [];
+  if (wiz.vertical)    parts.push(CATALOG[wiz.vertical].title);
+  if (wiz.subvertical) parts.push(CATALOG[wiz.vertical].subverticals[wiz.subvertical].title);
+  if (wiz.category)    parts.push(CATEGORY_LABELS[wiz.category] || wiz.category);
+  wizCrumb.innerHTML = parts.map((p,i) => `<span class="crumb-part">${p}</span>${i<parts.length-1?'<span class="sep">›</span>':''}`).join('');
+}
+
+// ─── LAUNCH ───
+window.wizLaunch = function () {
+  if (wizLaunchBtn.disabled) return;
+  if (wiz.useCase === 'headless') {
+    const p = HEADLESS_PORTALS[wiz.vertical];
+    if (p) window.location.href = `/headless-iam/${p.slug}.html`;
+    return;
+  }
+  const uc = CATALOG[wiz.vertical].subverticals[wiz.subvertical].useCases[wiz.useCase];
+  if (wiz.mode === 'discovery') {
+    if (uc.discoveryUrl) window.location.href = uc.discoveryUrl;
+    return;
+  }
+  if (!ucReady(uc)) {
+    const vTitle  = CATALOG[wiz.vertical].title;
+    const svTitle = CATALOG[wiz.vertical].subverticals[wiz.subvertical].title;
+    csModalCrumb.innerHTML = `${vTitle} › ${svTitle} › ${uc.title}`;
+    csModal.classList.add('active');
+    return;
+  }
+  if (uc.storyUrl)  { window.location.href = uc.storyUrl; return; }
+  if (uc.storyMap)  { window.location.href = `/stories/_shared/story-shell.html?vertical=${uc.storyMap.vertical}${uc.storyMap.workflow ? '&usecase='+uc.storyMap.workflow : ''}`; }
+};
+
+// ─── WIZARD BACK ───
+function wizGoBack() {
+  if (wiz.stage === 4) {
+    wiz.category = null; wiz.useCase = null;
+    useCaseGrid.innerHTML = '';
+    categoryGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(3);
+  } else if (wiz.stage === 3) {
+    wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+    categoryGrid.innerHTML = '';
+    subvertGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(2);
+  } else if (wiz.stage === 2) {
+    wiz.vertical = null; wiz.subvertical = null; wiz.category = null; wiz.useCase = null;
+    subvertGrid.innerHTML = '';
+    verticalGrid.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    setWizStage(1);
+  }
+}
+wizBack.addEventListener('click', wizGoBack);
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Escape' || e.key === 'Backspace') && document.getElementById('cx-wizard').style.display !== 'none' && wiz.stage > 1 && !csModal.classList.contains('active')) {
+    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault(); wizGoBack();
+    }
+  }
+  if (e.key === 'Enter' && !wizLaunchBtn.disabled) wizLaunch();
 });
 
-// ─── HANDLE ?cluster= DEEP-LINK ───
-function initDeepLinks() {
+// ─── COMING SOON MODAL ───
+csModalClose.addEventListener('click', () => csModal.classList.remove('active'));
+csModal.addEventListener('click', e => { if (e.target === csModal) csModal.classList.remove('active'); });
+csModalSwitch.addEventListener('click', () => { csModal.classList.remove('active'); setWizMode('discovery'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && csModal.classList.contains('active')) csModal.classList.remove('active'); });
+
+// ─── ?cluster= DEEP LINK ───
+(function handleCluster() {
   const params = new URLSearchParams(window.location.search);
-  const clusterParam = params.get('cluster');
-  if (clusterParam && CLUSTER_MAP[clusterParam]) {
-    selectCluster(clusterParam);
-  }
-}
+  const cluster = params.get('cluster');
+  const vKey = cluster && CLUSTER_TO_VERTICAL[cluster.toLowerCase()];
+  if (!vKey || !CATALOG[vKey]) return;
+  // Reveal CX section, then pre-select the vertical
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const cxWiz = document.getElementById('cx-wizard');
+  step2.classList.remove('locked');
+  cxWiz.style.display = 'block';
+  // Set crumb and mode state
+  document.body.classList.add('flow-started');
+  requestAnimationFrame(() => selectVertical(vKey));
+})();
 
-// ─── INIT ───
-renderClusters();
-initDeepLinks();
-
-})(); // end 3-stage cluster picker IIFE
+})(); // end unified wizard IIFE
 
 // ═══════════════════════════════════════════════════════
 //  GEOS FLOW — B2B step unlock + story player
