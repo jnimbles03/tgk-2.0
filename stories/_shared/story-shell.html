@@ -3675,9 +3675,13 @@ function tickTimer(){
         setTimeout(() => sb.classList.remove('is-persona-break'), 400);
       }
       advance({ suppressScenePop: true, fromTick: true });
-      return;
+      // Fall through to re-arm raf — autoplay continues across handoffs
+      // per the AUTOPLAY-ONLY MODEL note above. (Earlier `return;` here
+      // silently stopped autoplay at every persona crossing — fixed
+      // 2026-05-06.)
+    } else {
+      advance({ suppressScenePop: true, fromTick: true }); // same-persona beats stay flat
     }
-    advance({ suppressScenePop: true, fromTick: true }); // same-persona beats stay flat
   }
   raf = requestAnimationFrame(tickTimer);
 }
