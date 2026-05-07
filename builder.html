@@ -242,6 +242,22 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 14px;
   }
+  /* Maintain-existing panel — the load-existing-demo affordance on stage 1.
+     Visually quieter than seq-cards so the primary path (pick a starting
+     sequence) still leads. */
+  .maintenance-panel { background: var(--ds-mist-soft); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+  .maintenance-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .maintenance-tag { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ds-cobalt); }
+  .maintenance-sub { font-size: 13px; color: var(--muted); }
+  .maintenance-row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+  .maintenance-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; min-width: 180px; }
+  .maintenance-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .maintenance-field select { background: white; border: 1px solid var(--rule); border-radius: 5px; padding: 8px 10px; font-family: var(--font); font-size: 14px; color: var(--text); }
+  .maintenance-field select:focus { outline: none; border-color: var(--ds-cobalt); }
+  .maintenance-btn { background: var(--ds-deep-violet); color: white; border-radius: 6px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+  .maintenance-btn:hover { background: var(--ds-cobalt); }
+  .maintenance-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .maintenance-status { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 16px; }
   .seq-card {
     background: white;
     border: 2px solid var(--rule);
@@ -448,6 +464,19 @@
     grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
     gap: 10px;
   }
+  /* Divider between scene templates and dynamically loaded flipbook
+     vignettes. Spans the whole row so the two groups read as separate. */
+  .pool-divider {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 0 2px;
+    border-top: 1px dashed var(--rule);
+    margin-top: 4px;
+  }
   .pool-tile {
     position: relative;
     background: var(--bg);
@@ -651,7 +680,21 @@
   .inspector-label strong { font-style: italic; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ds-cobalt); font-size: 14px; }
   .inspector-close { font-size: 18px; color: var(--muted); padding: 2px 6px; border-radius: 4px; transition: all .15s; }
   .inspector-close:hover { background: rgba(19,0,50,.06); color: var(--text); }
+  .inspector-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 18px; align-items: start; }
+  @media (max-width: 1100px) { .inspector-grid { grid-template-columns: 1fr; } }
+  .inspector-kb-hint { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+  .inspector-kb-hint kbd { font-family: var(--mono); font-size: 10px; padding: 1px 5px; background: white; border: 1px solid var(--rule); border-radius: 3px; color: var(--text); font-weight: 600; line-height: 1; }
   .inspector-fields { display: flex; flex-direction: column; gap: 10px; }
+  .inspector-preview { display: flex; flex-direction: column; gap: 6px; }
+  .inspector-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .inspector-preview-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .inspector-preview-open { font-size: 11px; color: var(--ds-cobalt); text-decoration: none; padding: 2px 6px; border-radius: 4px; }
+  .inspector-preview-open:hover { background: rgba(76,0,255,.08); }
+  .inspector-preview-frame { position: relative; aspect-ratio: 16 / 10; background: white; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+  .inspector-preview-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; transform: scale(0.6); transform-origin: 0 0; width: 166.66%; height: 166.66%; }
+  .inspector-preview-empty { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); padding: 12px; text-align: center; }
+  .inspector-preview-frame.is-empty iframe { display: none; }
+  .inspector-preview-frame.is-empty .inspector-preview-empty { display: flex; }
   .inspector-field-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: start; }
   .inspector-field-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 9px; }
   .inspector-field-input, .inspector-field-textarea { background: white; border: 1px solid var(--rule); border-radius: 5px; padding: 8px 10px; font-family: var(--font); font-size: 14px; color: var(--text); width: 100%; line-height: 1.5; resize: vertical; transition: border-color .15s; }
@@ -981,7 +1024,75 @@
     display: none;
   }
   .tools-log.is-shown { display: block; }
+
+  /* ══════════════════ STAGE 4: ADMIN TOOLS ══════════════════
+     Reveal-on-unlock admin surfaces — MP4→vignette pipeline, baked-in
+     beat editor (writes to /stories/_shared/vertical-overrides.json
+     sidecar), existing-vignette browser, and current/future state
+     component editor. All four are gated by AdminAuth ('Welcome01!');
+     the Stage 4 sidebar button is hidden until the gate unlocks.
+     ══════════════════════════════════════════════════════════ */
+  #stageBtn4 { display: none; }
+  body.is-admin-unlocked #stageBtn4 { display: flex; }
+
+  .admin-card { background: #fff; border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .admin-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); letter-spacing: -0.01em; }
+  .admin-card .admin-sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+
+  .drop-zone { border: 2px dashed var(--rule); border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: border-color .18s, background .18s; background: var(--ds-mist-soft); }
+  .drop-zone:hover { border-color: var(--ds-cobalt); background: #f0fdf9; }
+  .drop-zone.dragover { border-color: var(--ds-cobalt); background: #e8fdf6; }
+  .drop-zone p { font-size: 14px; color: var(--muted); margin: 0; }
+
+  .progress-indicator { display: none; margin: 14px 0; padding: 12px 14px; background: #e3f2fd; border-radius: 6px; }
+  .progress-indicator.active { display: block; }
+  .progress-bar { width: 100%; height: 6px; background: #cfe7fb; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--ds-cobalt), #2dc985); width: 0; transition: width .3s ease; }
+  .progress-text { font-size: 12px; color: #0f4c91; }
+
+  .vignette-preview { border: 1px solid var(--rule); border-radius: 6px; height: 300px; overflow: hidden; background: var(--ds-mist-soft); margin-top: 12px; }
+  .vignette-preview iframe { width: 100%; height: 100%; border: none; }
+
+  .admin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .admin-form-row.single { grid-template-columns: 1fr; }
+  .admin-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .admin-field input, .admin-field select, .admin-field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 5px; font-family: var(--font); font-size: 14px; color: var(--text); background: #fff; }
+  .admin-field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus { outline: none; border-color: var(--ds-cobalt); }
+
+  .admin-btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .admin-btn { padding: 8px 14px; background: var(--ds-deep-violet); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background .15s; font-family: inherit; }
+  .admin-btn:hover { background: var(--ds-cobalt); }
+  .admin-btn.secondary { background: #fff; color: var(--text); border: 1px solid var(--rule); }
+  .admin-btn.secondary:hover { border-color: var(--ds-cobalt); color: var(--ds-cobalt); }
+
+  .beat-list { display: grid; gap: 8px; margin-top: 12px; }
+  .beat-item { border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s; }
+  .beat-item:hover { background: var(--ds-mist-soft); border-color: var(--ds-cobalt); }
+  .beat-item.selected { background: #e8fdf6; border-color: var(--ds-cobalt); }
+  .beat-label { font-weight: 600; color: var(--text); margin-bottom: 3px; font-size: 13px; }
+  .beat-preview { font-size: 12px; color: var(--muted); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .editor-panel { display: none; margin-top: 16px; padding: 16px; background: var(--ds-mist-soft); border-radius: 6px; border-left: 3px solid var(--ds-cobalt); }
+  .editor-panel.active { display: block; }
+  .editor-panel h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+
+  .vignette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+  .vignette-card { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: #fff; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+  .vignette-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--ds-cobalt); }
+  .vignette-thumb { width: 100%; height: 110px; background: var(--ds-mist-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .vignette-info { padding: 10px 12px; }
+  .vignette-name { font-weight: 600; font-size: 12px; color: var(--text); margin-bottom: 2px; }
+  .vignette-path { font-size: 10.5px; color: var(--muted); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .admin-alert { padding: 10px 12px; border-radius: 5px; margin-top: 10px; font-size: 13px; line-height: 1.4; }
+  .admin-alert.success { background: #d4edda; border-left: 3px solid #198754; color: #0f5132; }
+  .admin-alert.error { background: #f8d7da; border-left: 3px solid #dc3545; color: #842029; }
+  .admin-alert.info { background: #d1ecf1; border-left: 3px solid #0d6efd; color: #084298; }
+
+  /* Admin auth modal — load the small primitive's stylesheet for the prompt overlay */
 </style>
+<link rel="stylesheet" href="/assets/admin-auth/admin-auth.css">
 </head>
 <body>
 
@@ -1005,8 +1116,9 @@
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M9 3.5L3 3.5M9 6L3 6M9 8.5L3 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     Tools
   </button>
-  <a class="topbar-link" href="/admin/audit" target="_blank">Admin</a>
+  <button class="topbar-link" type="button" id="adminBtn">Admin</button>
 </header>
+<script src="/assets/admin-auth/admin-auth.js"></script>
 
 <!-- ══════════════════ MIDDLE ══════════════════ -->
 <div class="mid">
@@ -1036,6 +1148,13 @@
           <div class="stage-sub">Arrange &amp; narrate</div>
         </span>
       </button>
+      <button class="stage-btn" type="button" data-stage="4" id="stageBtn4">
+        <span class="stage-num">4</span>
+        <span>
+          <div class="stage-label">Admin tools</div>
+          <div class="stage-sub">MP4 pipeline + edits</div>
+        </span>
+      </button>
     </nav>
 
     <div class="sidebar-divider"></div>
@@ -1056,8 +1175,41 @@
       <div class="stage-header">
         <div class="stage-header-eyebrow">Step 1 of 3</div>
         <h2>Choose a starting sequence</h2>
-        <p class="stage-header-sub">Select a pre-canned flow or start blank and build scene-by-scene in step 3.</p>
+        <p class="stage-header-sub">Select a pre-canned flow, start blank, or open an existing demo for maintenance.</p>
       </div>
+
+      <!-- Maintenance: load an existing canonical demo into the timeline.
+           Uses the same audit-mode hydration as `?vertical=<key>` URL —
+           we just expose it as a UI affordance so authors don't need to
+           edit URL params. -->
+      <div class="stage-body" style="padding-bottom:0;">
+        <div class="maintenance-panel" id="maintenancePanel">
+          <div class="maintenance-head">
+            <span class="maintenance-tag">Maintain existing</span>
+            <span class="maintenance-sub">Open a canonical demo to edit narration in place.</span>
+          </div>
+          <div class="maintenance-row">
+            <label class="maintenance-field">
+              <span class="maintenance-label">Vertical</span>
+              <select id="loadVerticalSelect">
+                <option value="">— pick one —</option>
+              </select>
+            </label>
+            <label class="maintenance-field">
+              <span class="maintenance-label">Use case</span>
+              <select id="loadUsecaseSelect">
+                <option value="default">Onboarding (default)</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="fraud-fabric">Fraud Fabric</option>
+                <option value="workspaces">Workspaces</option>
+              </select>
+            </label>
+            <button type="button" class="maintenance-btn" id="loadVerticalBtn">Load for editing →</button>
+          </div>
+          <div class="maintenance-status" id="loadVerticalStatus"></div>
+        </div>
+      </div>
+
       <div class="stage-body">
         <div class="seq-grid" id="seqGrid">
 
@@ -1323,26 +1475,42 @@
               <div class="inspector" id="inspector" hidden aria-live="polite">
                 <div class="inspector-head">
                   <span class="inspector-label">Scene inspector · <strong id="inspectorTitle">—</strong></span>
+                  <span class="inspector-kb-hint"><kbd>←</kbd><kbd>→</kbd> scrub vignettes</span>
                   <button type="button" class="inspector-close" id="inspectorClose" aria-label="Close inspector">×</button>
                 </div>
-                <div class="inspector-fields">
-                  <div class="inspector-field-row">
-                    <label class="inspector-field-label" for="inspTag">Tag</label>
-                    <input class="inspector-field-input" type="text" id="inspTag" maxlength="40" placeholder="Sender · workflow proxy">
+                <div class="inspector-grid">
+                  <div class="inspector-fields">
+                    <div class="inspector-field-row">
+                      <label class="inspector-field-label" for="inspTag">Tag</label>
+                      <input class="inspector-field-input" type="text" id="inspTag" maxlength="40" placeholder="Sender · workflow proxy">
+                    </div>
+                    <div class="inspector-field-row">
+                      <label class="inspector-field-label" for="inspHeadline">Headline</label>
+                      <input class="inspector-field-input" type="text" id="inspHeadline" placeholder="$5M household, one envelope.">
+                      <div class="lint-chips" id="lintHead" hidden></div>
+                    </div>
+                    <div class="inspector-field-row">
+                      <label class="inspector-field-label" for="inspLede">Lede</label>
+                      <textarea class="inspector-field-textarea" id="inspLede" rows="3" placeholder="One line the prospect will remember."></textarea>
+                      <div class="lint-chips" id="lintLede" hidden></div>
+                    </div>
+                    <div class="beats-list" id="inspBeats" hidden>
+                      <span class="beats-label">Beats</span>
+                      <div id="inspBeatsList"></div>
+                    </div>
                   </div>
-                  <div class="inspector-field-row">
-                    <label class="inspector-field-label" for="inspHeadline">Headline</label>
-                    <input class="inspector-field-input" type="text" id="inspHeadline" placeholder="$5M household, one envelope.">
-                    <div class="lint-chips" id="lintHead" hidden></div>
-                  </div>
-                  <div class="inspector-field-row">
-                    <label class="inspector-field-label" for="inspLede">Lede</label>
-                    <textarea class="inspector-field-textarea" id="inspLede" rows="3" placeholder="One line the prospect will remember."></textarea>
-                    <div class="lint-chips" id="lintLede" hidden></div>
-                  </div>
-                  <div class="beats-list" id="inspBeats" hidden>
-                    <span class="beats-label">Beats</span>
-                    <div id="inspBeatsList"></div>
+                  <!-- Preview pane — iframes the selected scene template or
+                       flipbook vignette so the author can see what the demo
+                       actually renders for the current timeline item. -->
+                  <div class="inspector-preview">
+                    <div class="inspector-preview-head">
+                      <span class="inspector-preview-label">Preview</span>
+                      <a class="inspector-preview-open" id="inspPreviewOpen" target="_blank" rel="noopener" hidden>Open ↗</a>
+                    </div>
+                    <div class="inspector-preview-frame">
+                      <iframe id="inspPreview" title="Scene preview" loading="lazy"></iframe>
+                      <div class="inspector-preview-empty" id="inspPreviewEmpty">No preview for this scene type.</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1379,6 +1547,172 @@
             </div>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STAGE 4: ADMIN TOOLS ══
+         Hidden until AdminAuth.prompt() unlocks (sets body.is-admin-unlocked).
+         Houses the four admin-only operations: MP4→vignette pipeline, baked-in
+         beat editor (writes to /stories/_shared/vertical-overrides.json),
+         existing-vignette browser/replacer, and current/future state component
+         editor. All four route through /api/builder/* on the server. -->
+    <div class="stage-panel" id="stage4">
+      <div class="stage-header">
+        <div class="stage-header-eyebrow">Admin tools</div>
+        <h2>Admin operations</h2>
+        <p class="stage-header-sub">MP4 → flipbook pipeline, baked-in narration overrides, vignette + component editing. Gated by the admin password.</p>
+      </div>
+
+      <div class="stage-body">
+        <!-- A) MP4 → Vignette -->
+        <div class="admin-card" id="admin-A">
+          <h3>A) MP4 → Flipbook vignette</h3>
+          <p class="admin-sub">Drop an MP4. The server runs <code>_extract_frames.py</code> + <code>_new_flipbook.py</code> and produces a flipbook HTML you can drop into the media pool.</p>
+          <div class="drop-zone" id="mp4DropZone">
+            <p>Drag an MP4 here or click to browse.</p>
+          </div>
+          <input type="file" id="mp4FileInput" accept=".mp4" style="display:none;">
+          <div class="admin-form-row" style="margin-top:14px;">
+            <div class="admin-field">
+              <label>Slug</label>
+              <input type="text" id="mp4Slug" placeholder="auto-generated from filename">
+            </div>
+            <div class="admin-field">
+              <label>Status</label>
+              <input type="text" id="mp4StatusText" value="Idle" readonly>
+            </div>
+          </div>
+          <div class="progress-indicator" id="mp4Progress">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div class="progress-text">Uploading… <span id="mp4Status">0%</span></div>
+          </div>
+          <div id="mp4Messages"></div>
+          <div id="mp4Preview"></div>
+        </div>
+
+        <!-- B) Edit baked-in beat narration -->
+        <div class="admin-card" id="admin-B">
+          <h3>B) Edit baked-in beat narration</h3>
+          <p class="admin-sub">Override per-beat <code>head</code>/<code>lede</code> in the canonical VERTICALS map. Saves to <code>/stories/_shared/vertical-overrides.json</code>; the shell merges over canonical at boot.</p>
+          <div class="admin-form-row">
+            <div class="admin-field">
+              <label>Vertical</label>
+              <select id="verticalSelect"></select>
+            </div>
+            <div class="admin-field">
+              <label>Scene</label>
+              <select id="sceneSelect"></select>
+            </div>
+          </div>
+          <div class="beat-list" id="beatList"></div>
+          <div class="editor-panel" id="beatEditorPanel">
+            <h4>Edit Beat <span id="beatNumber"></span></h4>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>Headline</label>
+                <input type="text" id="beatHeadInput" placeholder="Short, punchy headline">
+              </div>
+            </div>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>Lede</label>
+                <textarea id="beatLedeInput" placeholder="Supporting narrative text"></textarea>
+              </div>
+            </div>
+            <div class="admin-btn-row">
+              <button type="button" class="admin-btn" id="beatSaveBtn">Save override</button>
+              <button type="button" class="admin-btn secondary" id="beatRevertBtn">Revert to canonical</button>
+            </div>
+            <div id="beatMessages"></div>
+          </div>
+        </div>
+
+        <!-- C) Edit existing vignettes -->
+        <div class="admin-card" id="admin-C">
+          <h3>C) Edit existing vignettes</h3>
+          <p class="admin-sub">Browse flipbooks under <code>/flipbooks/</code>. Replace any with a fresh MP4 — the shell's iframe reload picks up the new vignette.</p>
+          <div class="vignette-grid" id="vignettesGrid"></div>
+          <div id="vignetteListMessages"></div>
+          <div class="editor-panel" id="vignetteEditorPanel">
+            <h4>Replace vignette: <span id="selectedVignetteName"></span></h4>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>Path</label>
+                <input type="text" id="vignettePath" readonly>
+              </div>
+            </div>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>New MP4</label>
+                <input type="file" id="vignetteMp4Input" accept=".mp4">
+              </div>
+            </div>
+            <div class="progress-indicator" id="vignetteProgress">
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+              <div class="progress-text">Processing… <span id="vignetteStatus">0%</span></div>
+            </div>
+            <div class="admin-btn-row">
+              <button type="button" class="admin-btn" id="vignetteReplaceBtn">Replace</button>
+              <button type="button" class="admin-btn secondary" id="vignetteCloseBtn">Close</button>
+            </div>
+            <div id="vignetteMessages"></div>
+          </div>
+        </div>
+
+        <!-- D) Current / Future state component editor -->
+        <div class="admin-card" id="admin-D">
+          <h3>D) Current / Future state component editor</h3>
+          <p class="admin-sub">Browse <code>/components/current-state/</code> or <code>/components/future-state/</code>. Replace with the same MP4 → vignette pipeline.</p>
+          <div class="admin-form-row">
+            <div class="admin-field">
+              <label>Type</label>
+              <select id="componentTypeSelect">
+                <option value="current-state">Current state</option>
+                <option value="future-state">Future state</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Filter</label>
+              <input type="text" id="componentFilter" placeholder="filename contains…">
+            </div>
+          </div>
+          <div class="vignette-grid" id="componentGrid"></div>
+          <div id="componentListMessages"></div>
+          <div class="editor-panel" id="componentEditorPanel">
+            <h4>Replace component: <span id="selectedComponentName"></span></h4>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>Path</label>
+                <input type="text" id="componentPath" readonly>
+              </div>
+            </div>
+            <div class="admin-form-row single">
+              <div class="admin-field">
+                <label>New MP4</label>
+                <input type="file" id="componentMp4Input" accept=".mp4">
+              </div>
+            </div>
+            <div class="progress-indicator" id="componentProgress">
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+              <div class="progress-text">Processing… <span id="componentStatus">0%</span></div>
+            </div>
+            <div class="admin-btn-row">
+              <button type="button" class="admin-btn" id="componentReplaceBtn">Replace</button>
+              <button type="button" class="admin-btn secondary" id="componentCloseBtn">Close</button>
+            </div>
+            <div id="componentMessages"></div>
+          </div>
+        </div>
+
+        <!-- Quick links to other admin surfaces -->
+        <div class="admin-card">
+          <h3>Other admin surfaces</h3>
+          <p class="admin-sub">Already gated by the same password.</p>
+          <div class="admin-btn-row">
+            <a class="admin-btn secondary" href="/admin/audit" target="_blank">Open audit console</a>
+            <button type="button" class="admin-btn secondary" id="adminLockBtn">Lock admin</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1592,11 +1926,16 @@
         }
         const data = await r.json();
         logEl.textContent = (data.log || '').trim() || '(no log output)';
-        statusEl.textContent = 'Done.';
+        statusEl.textContent = 'Done. Added to media pool.';
         resultEl.classList.add('is-shown');
         resultEl.innerHTML =
           'Flipbook built · <a href="' + data.url + '" target="_blank" rel="noopener">' + data.url + '</a>' +
           (data.embedUrl ? '<br><span style="font-size:11px;color:var(--muted)">Embed: <code>' + data.embedUrl + '</code></span>' : '');
+        // Refresh the builder media pool so the new flipbook shows up
+        // immediately — no page reload required.
+        if (window.__timeline && typeof window.__timeline.refreshFlipbooks === 'function') {
+          try { await window.__timeline.refreshFlipbooks(); } catch (_) {}
+        }
       } catch (err) {
         statusEl.textContent = 'Build failed.';
         errorEl.classList.add('is-shown');
@@ -1665,13 +2004,294 @@
     const btn = e.target.closest('.stage-btn');
     if (!btn) return;
     const target = Number(btn.dataset.stage);
-    // Allow jumping back freely; jumping forward only if stages are done
+    // Stage 4 is admin tools — separate flow, not part of the 1→2→3 build sequence.
+    // Clicking it (only visible post-unlock) just routes into admin mode.
+    if (target === 4) { enterAdminMode(); return; }
+    // For stages 1-3: allow jumping back freely; jumping forward only if stages are done
     if (target <= currentStage) {
       goToStage(target, true);
     } else if (target === currentStage + 1) {
       goToStage(target);
     }
   });
+
+  // ============================================================
+  // STAGE 4 — Admin tools (gated by AdminAuth → 'Welcome01!')
+  // Side-route off the main 1→2→3 build flow. Topbar 'Admin' button
+  // and the post-unlock sidebar stage-4 button both call enterAdminMode().
+  // Stages 1-3 reset adminMode when re-entered.
+  // ============================================================
+  function enterAdminMode() {
+    // Show stage4 panel, hide stages 1-3, mark stage4 button active
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('stage' + i).classList.remove('is-active');
+      document.getElementById('stageBtn' + i).classList.remove('is-active');
+    }
+    document.getElementById('stage4').classList.add('is-active');
+    document.getElementById('stageBtn4').classList.add('is-active');
+    // Hide the bottom Back/Next/Generate row — admin tools don't use it
+    const bottomBar = document.querySelector('.bottombar');
+    if (bottomBar) bottomBar.style.display = 'none';
+    // Initialize features on first entry
+    initAdminFeatures();
+  }
+
+  // When user navigates back to stages 1-3, restore the bottom bar and clear stage4 active
+  function exitAdminMode() {
+    document.getElementById('stage4').classList.remove('is-active');
+    document.getElementById('stageBtn4').classList.remove('is-active');
+    const bottomBar = document.querySelector('.bottombar');
+    if (bottomBar) bottomBar.style.display = '';
+  }
+
+  // Wrap goToStage to exit admin when entering 1/2/3
+  const _origGoToStage = goToStage;
+  goToStage = function(n, allowBack) {
+    if (n >= 1 && n <= 3) exitAdminMode();
+    return _origGoToStage(n, allowBack);
+  };
+
+  // Topbar Admin button: prompt for password, on unlock enter admin mode
+  document.getElementById('adminBtn').addEventListener('click', () => {
+    if (!window.AdminAuth) { console.warn('AdminAuth primitive not loaded'); return; }
+    if (window.AdminAuth.isUnlocked()) {
+      document.body.classList.add('is-admin-unlocked');
+      enterAdminMode();
+      return;
+    }
+    window.AdminAuth.prompt().then(ok => {
+      if (ok) {
+        document.body.classList.add('is-admin-unlocked');
+        enterAdminMode();
+      }
+    });
+  });
+
+  // If the user comes back with a still-valid sessionStorage unlock, surface the stage4 button
+  if (window.AdminAuth && window.AdminAuth.isUnlocked()) {
+    document.body.classList.add('is-admin-unlocked');
+  }
+
+  // ============================================================
+  // STAGE 4 — Feature initializers (idempotent — only run once)
+  // ============================================================
+  let _adminFeaturesInited = false;
+  function initAdminFeatures() {
+    if (_adminFeaturesInited) return;
+    _adminFeaturesInited = true;
+    initMp4Upload();
+    initBeatEditor();
+    initVignetteEditor();
+    initComponentEditor();
+    document.getElementById('adminLockBtn').addEventListener('click', () => {
+      if (window.AdminAuth) window.AdminAuth.lock();
+      document.body.classList.remove('is-admin-unlocked');
+      goToStage(1, true);
+    });
+  }
+
+  function adminAlert(container, type, text) {
+    container.innerHTML = '<div class="admin-alert ' + type + '">' + text + '</div>';
+  }
+
+  // ── A) MP4 → Vignette ──
+  function initMp4Upload() {
+    const dropZone = document.getElementById('mp4DropZone');
+    const fileInput = document.getElementById('mp4FileInput');
+    if (!dropZone) return;
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleMp4File(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files.length) handleMp4File(e.target.files[0]); });
+  }
+  function handleMp4File(file) {
+    const slug = file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '_').toLowerCase();
+    document.getElementById('mp4Slug').value = slug;
+    uploadMp4(file, slug, document.getElementById('mp4Progress'),
+              document.getElementById('mp4Messages'), document.getElementById('mp4Preview'));
+  }
+  function uploadMp4(file, slug, progressEl, messagesEl, previewEl) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('slug', slug);
+    const fill = progressEl.querySelector('.progress-fill');
+    progressEl.classList.add('active');
+    if (messagesEl) messagesEl.innerHTML = '';
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) fill.style.width = Math.round(e.loaded / e.total * 100) + '%'; });
+    xhr.addEventListener('load', () => {
+      progressEl.classList.remove('active');
+      try {
+        const result = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && result.ok !== false) {
+          adminAlert(messagesEl, 'success', 'Vignette created: <code>' + (result.vignettePath || 'unknown') + '</code>');
+          if (previewEl && result.vignettePath) {
+            previewEl.innerHTML = '<div class="vignette-preview"><iframe src="' + result.vignettePath + '"></iframe></div>';
+          }
+        } else {
+          adminAlert(messagesEl, 'error', result.error || 'Upload failed');
+        }
+      } catch (e) { adminAlert(messagesEl, 'error', 'Server returned non-JSON response'); }
+    });
+    xhr.addEventListener('error', () => { adminAlert(messagesEl, 'error', 'Upload error'); progressEl.classList.remove('active'); });
+    xhr.open('POST', '/api/builder/mp4-to-vignette');
+    xhr.send(formData);
+  }
+
+  // ── B) Edit baked-in beat narration ──
+  // Two-step fetch: GET /api/verticals returns the metadata list (for dropdown);
+  // GET /api/verticals/:key returns the resolved scenes/beats payload.
+  let _beatVerticalsList = [], _curVerticalEntry = null, _curVK = null, _curScene = null, _curBeat = null;
+  function initBeatEditor() {
+    const verticalSelect = document.getElementById('verticalSelect');
+    if (!verticalSelect) return;
+    fetch('/api/verticals').then(r => r.json()).then(data => {
+      _beatVerticalsList = (data && data.verticals) ? data.verticals : [];
+      _beatVerticalsList.forEach(entry => {
+        const opt = document.createElement('option');
+        opt.value = entry.key;
+        opt.textContent = entry.tenant ? entry.tenant + ' — ' + entry.key : entry.key;
+        verticalSelect.appendChild(opt);
+      });
+      verticalSelect.addEventListener('change', e => { _curVK = e.target.value; loadVerticalDetail(); });
+      if (_beatVerticalsList.length > 0) {
+        _curVK = _beatVerticalsList[0].key;
+        verticalSelect.value = _curVK;
+        loadVerticalDetail();
+      }
+    }).catch(err => adminAlert(document.getElementById('beatMessages'), 'error', 'Could not load /api/verticals: ' + err.message));
+    document.getElementById('beatSaveBtn').addEventListener('click', saveBeatEdit);
+    document.getElementById('beatRevertBtn').addEventListener('click', revertBeatEdit);
+  }
+  function loadVerticalDetail() {
+    if (!_curVK) return;
+    fetch('/api/verticals/' + encodeURIComponent(_curVK)).then(r => r.json()).then(detail => {
+      _curVerticalEntry = detail;
+      loadScenesForBeats();
+    }).catch(err => adminAlert(document.getElementById('beatMessages'), 'error', 'Could not load detail: ' + err.message));
+  }
+  function loadScenesForBeats() {
+    const sel = document.getElementById('sceneSelect');
+    sel.innerHTML = '';
+    const scenes = (_curVerticalEntry && _curVerticalEntry.scenes) || [];
+    if (!scenes.length) return;
+    scenes.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = 'Scene ' + (i + 1) + (s.tag ? ' — ' + s.tag : ''); sel.appendChild(o); });
+    sel.onchange = e => { _curScene = parseInt(e.target.value, 10); loadBeats(); };
+    _curScene = 0; sel.value = 0; loadBeats();
+  }
+  function loadBeats() {
+    const list = document.getElementById('beatList'); list.innerHTML = '';
+    const scenes = _curVerticalEntry && _curVerticalEntry.scenes;
+    const scene = scenes && scenes[_curScene];
+    // Scene-level data uses `hotspots` (the canonical 5-beat shape per shell);
+    // each hotspot carries beatHead/beatLede. Fall back to scene-level head/lede
+    // if a beat doesn't have its own.
+    const beats = (scene && (scene.hotspots || scene.beats)) || [];
+    if (!beats.length) return;
+    beats.forEach((beat, idx) => {
+      const head = beat.beatHead || beat.head || (idx === 0 ? scene.headline : '(no headline)');
+      const card = document.createElement('div');
+      card.className = 'beat-item';
+      card.innerHTML = '<div class="beat-label">Beat ' + (idx + 1) + '</div><div class="beat-preview">' + (head || '(no headline)') + '</div>';
+      card.addEventListener('click', () => selectBeat(idx, beat, scene));
+      list.appendChild(card);
+    });
+    document.getElementById('beatEditorPanel').classList.remove('active');
+  }
+  function selectBeat(idx, beat, scene) {
+    _curBeat = idx;
+    document.getElementById('beatNumber').textContent = (idx + 1);
+    document.getElementById('beatHeadInput').value = beat.beatHead || beat.head || (idx === 0 && scene ? (scene.headline || '') : '');
+    document.getElementById('beatLedeInput').value = beat.beatLede || beat.lede || (idx === 0 && scene ? (scene.lede || '') : '');
+    document.getElementById('beatEditorPanel').classList.add('active');
+    document.querySelectorAll('#beatList .beat-item').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  }
+  function saveBeatEdit() {
+    if (_curBeat === null) return;
+    const payload = { vertical: _curVK, scene: _curScene, beat: _curBeat,
+                      beatHead: document.getElementById('beatHeadInput').value,
+                      beatLede: document.getElementById('beatLedeInput').value };
+    fetch('/api/builder/save-beat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(d => adminAlert(document.getElementById('beatMessages'), d.ok ? 'success' : 'error', d.ok ? 'Override saved to vertical-overrides.json' : (d.error || 'Save failed')))
+      .catch(err => adminAlert(document.getElementById('beatMessages'), 'error', 'Error: ' + err.message));
+  }
+  function revertBeatEdit() {
+    const scenes = _curVerticalEntry && _curVerticalEntry.scenes;
+    const scene = scenes && scenes[_curScene];
+    const beats = (scene && (scene.hotspots || scene.beats)) || [];
+    const beat = beats[_curBeat]; if (!beat) return;
+    document.getElementById('beatHeadInput').value = beat.beatHead || beat.head || (_curBeat === 0 ? (scene.headline || '') : '');
+    document.getElementById('beatLedeInput').value = beat.beatLede || beat.lede || (_curBeat === 0 ? (scene.lede || '') : '');
+  }
+
+  // ── C) Edit existing vignettes ──
+  function initVignetteEditor() {
+    fetch('/api/builder/vignettes').then(r => r.json()).then(data => {
+      const grid = document.getElementById('vignettesGrid'); grid.innerHTML = '';
+      (data || []).forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'vignette-card';
+        card.innerHTML = '<div class="vignette-thumb">FLIPBOOK</div><div class="vignette-info"><div class="vignette-name">' + v.name + '</div><div class="vignette-path">' + v.path + '</div></div>';
+        card.addEventListener('click', () => {
+          document.getElementById('selectedVignetteName').textContent = v.name;
+          document.getElementById('vignettePath').value = v.path;
+          document.getElementById('vignetteEditorPanel').classList.add('active');
+        });
+        grid.appendChild(card);
+      });
+    }).catch(err => adminAlert(document.getElementById('vignetteListMessages'), 'error', 'Error loading vignettes: ' + err.message));
+    document.getElementById('vignetteReplaceBtn').addEventListener('click', () => {
+      const file = document.getElementById('vignetteMp4Input').files[0];
+      if (!file) { adminAlert(document.getElementById('vignetteMessages'), 'error', 'Pick an MP4 first'); return; }
+      const slug = (document.getElementById('vignettePath').value.split('/').pop() || 'replacement').replace(/\.[^/.]+$/, '');
+      uploadMp4(file, slug, document.getElementById('vignetteProgress'),
+                document.getElementById('vignetteMessages'), null);
+    });
+    document.getElementById('vignetteCloseBtn').addEventListener('click', () => {
+      document.getElementById('vignetteEditorPanel').classList.remove('active');
+    });
+  }
+
+  // ── D) Current/Future state component editor ──
+  function initComponentEditor() {
+    const typeSel = document.getElementById('componentTypeSelect');
+    const filter = document.getElementById('componentFilter');
+    function reload() {
+      fetch('/api/builder/components/' + typeSel.value).then(r => r.json()).then(data => {
+        const grid = document.getElementById('componentGrid'); grid.innerHTML = '';
+        const q = (filter.value || '').toLowerCase();
+        (data || []).filter(c => !q || c.name.toLowerCase().includes(q)).forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'vignette-card';
+          card.innerHTML = '<div class="vignette-thumb">' + typeSel.value.toUpperCase().replace('-', ' ') + '</div><div class="vignette-info"><div class="vignette-name">' + c.name + '</div><div class="vignette-path">' + c.path + '</div></div>';
+          card.addEventListener('click', () => {
+            document.getElementById('selectedComponentName').textContent = c.name;
+            document.getElementById('componentPath').value = c.path;
+            document.getElementById('componentEditorPanel').classList.add('active');
+          });
+          grid.appendChild(card);
+        });
+      }).catch(err => adminAlert(document.getElementById('componentListMessages'), 'error', 'Error: ' + err.message));
+    }
+    typeSel.addEventListener('change', reload);
+    filter.addEventListener('input', reload);
+    reload();
+    document.getElementById('componentReplaceBtn').addEventListener('click', () => {
+      const file = document.getElementById('componentMp4Input').files[0];
+      if (!file) { adminAlert(document.getElementById('componentMessages'), 'error', 'Pick an MP4 first'); return; }
+      const slug = (document.getElementById('componentPath').value.split('/').pop() || 'replacement').replace(/\.[^/.]+$/, '');
+      uploadMp4(file, slug, document.getElementById('componentProgress'),
+                document.getElementById('componentMessages'), null);
+    });
+    document.getElementById('componentCloseBtn').addEventListener('click', () => {
+      document.getElementById('componentEditorPanel').classList.remove('active');
+    });
+  }
 
   // ============================================================
   // Sequence card selection (Stage 1)
@@ -1999,6 +2619,24 @@
     const elInspClose    = $('inspectorClose');
     const elReset        = $('btnResetPlaylist');
     const elPoolCount    = $('poolCount');
+    const elInspPreview  = $('inspPreview');
+    const elInspPreviewOpen  = $('inspPreviewOpen');
+    const elInspPreviewFrame = elInspPreview && elInspPreview.parentElement;
+
+    // Map a SCENE_LIBRARY id to the URL the preview iframe should load.
+    // For canonical scenes this is /story-templates/docusign-<id>.html;
+    // for flipbooks it's the URL stored on the SCENE_LIBRARY entry.
+    const PREVIEW_URL_OVERRIDES = {
+      'agreement-desk-coc': '/story-templates/docusign-agreement-desk-chain-of-custody.html?embed=1',
+      'webform-intake':     '/story-templates/docusign-webform-intake.html?embed=1'
+    };
+    function previewUrlForTemplate(templateId) {
+      if (!templateId) return null;
+      const s = SCENE_BY_ID[templateId];
+      if (s && s.url) return s.url; // flipbook
+      if (PREVIEW_URL_OVERRIDES[templateId]) return PREVIEW_URL_OVERRIDES[templateId];
+      return '/story-templates/docusign-' + templateId + '.html?embed=1';
+    }
 
     let timeline    = [];
     let selectedUid = null;
@@ -2010,7 +2648,12 @@
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
     function renderPool() {
-      elPool.innerHTML = SCENE_LIBRARY.map(s => `
+      // Two sections: canonical scene templates + dynamic flipbook vignettes.
+      // Flipbooks are appended at runtime by loadFlipbookManifest() and live
+      // alongside scene templates in the timeline. Their id is `flipbook:<slug>`.
+      const scenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('flipbook:'));
+      const vignettes = SCENE_LIBRARY.filter(s =>  s.id.startsWith('flipbook:'));
+      const tile = (s) => `
         <div class="pool-tile" draggable="true" data-template="${s.id}" title="${escapeHtml(s.name)} — ${escapeHtml(s.role)}">
           <div class="pool-poster" data-poster="${s.poster}">
             <span class="pool-glyph">${s.glyph}</span>
@@ -2020,9 +2663,54 @@
             <div class="pool-name">${escapeHtml(s.name)}</div>
             <div class="pool-role">${escapeHtml(s.role)}</div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      let html = scenes.map(tile).join('');
+      if (vignettes.length) {
+        html += `<div class="pool-divider" role="separator" aria-label="Demo vignettes (flipbooks)">vignettes</div>`;
+        html += vignettes.map(tile).join('');
+      }
+      elPool.innerHTML = html;
       if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
+    }
+
+    /* Load /flipbooks/manifest.json (written by _build_vignettes.py) and
+       extend SCENE_LIBRARY with one tile per flipbook. Each becomes a
+       draggable pool item; when added to the timeline it carries its
+       flipbook URL so the preview pane can iframe it directly.
+
+       Failure modes are quiet: the manifest doesn't exist on the GitHub
+       Pages mirror, and we don't want to spam the console. The pool
+       just stays at 13 canonical scene templates. */
+    async function loadFlipbookManifest() {
+      try {
+        const r = await fetch('/flipbooks/manifest.json', { cache: 'no-store' });
+        if (!r.ok) return;
+        const m = await r.json();
+        const fbs = (m && m.flipbooks) || [];
+        // Drop any existing flipbook entries so re-fetch is idempotent.
+        for (let i = SCENE_LIBRARY.length - 1; i >= 0; i--) {
+          if (SCENE_LIBRARY[i].id.startsWith('flipbook:')) SCENE_LIBRARY.splice(i, 1);
+        }
+        const POSTER_BY_TAG = {
+          'Identity': 'cobalt', 'Intake': 'slate', 'Signing': 'poppy',
+          'Search & Ask': 'mist', 'Workspaces': 'mint', 'Audit & Monitor': 'amber',
+          'CLM': 'violet', 'Sales': 'glow'
+        };
+        for (const fb of fbs) {
+          const slug = fb.slug;
+          if (!slug) continue;
+          SCENE_LIBRARY.push({
+            id:     'flipbook:' + slug,
+            glyph:  'FB',
+            name:   (fb.title || slug).slice(0, 40),
+            role:   (fb.tag || 'Vignette') + ' · flipbook',
+            poster: POSTER_BY_TAG[fb.tag] || 'amber',
+            url:    '/flipbooks/' + slug + '.html?embed=1'
+          });
+          SCENE_BY_ID['flipbook:' + slug] = SCENE_LIBRARY[SCENE_LIBRARY.length - 1];
+        }
+        renderPool();
+      } catch (_) { /* manifest unavailable — quiet */ }
     }
 
     function updateCounts() {
@@ -2068,7 +2756,53 @@
       elInspTag.value  = item.tag || '';
       elInspHead.value = item.headline || '';
       elInspLede.value = item.lede || '';
+      // Sync the preview iframe to the selected vignette. Only swap src when
+      // the URL actually changes — avoids a reload flash when only narration
+      // fields edit. Empty state shows for templates we can't preview yet.
+      if (elInspPreview && elInspPreviewFrame) {
+        const url = previewUrlForTemplate(item.templateId);
+        if (url) {
+          elInspPreviewFrame.classList.remove('is-empty');
+          if (elInspPreview.dataset.src !== url) {
+            elInspPreview.dataset.src = url;
+            elInspPreview.src = url;
+          }
+          if (elInspPreviewOpen) {
+            elInspPreviewOpen.hidden = false;
+            elInspPreviewOpen.href = url.replace('?embed=1', '');
+          }
+        } else {
+          elInspPreviewFrame.classList.add('is-empty');
+          elInspPreview.removeAttribute('src');
+          elInspPreview.dataset.src = '';
+          if (elInspPreviewOpen) elInspPreviewOpen.hidden = true;
+        }
+      }
     }
+
+    /* Keyboard scrubbing on the timeline. ←/→ select prev/next vignette
+       so the author can sweep through the demo without picking up the
+       mouse. Skips when focus is in a text field so typing isn't hijacked. */
+    function scrubBy(direction) {
+      if (!timeline.length) return;
+      const isText = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+      if (isText) return;
+      const idx = selectedUid ? timeline.findIndex(t => t.uid === selectedUid) : -1;
+      const next = Math.max(0, Math.min(timeline.length - 1, (idx < 0 ? 0 : idx + direction)));
+      selectedUid = timeline[next].uid;
+      renderTimeline();
+      requestAnimationFrame(() => {
+        const tile = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"]`);
+        tile?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      // Only scrub while the Scenes stage is active.
+      const stage3 = document.getElementById('stage3');
+      if (!stage3 || !stage3.classList.contains('is-active')) return;
+      if (e.key === 'ArrowLeft')  { scrubBy(-1); e.preventDefault(); }
+      else if (e.key === 'ArrowRight') { scrubBy(+1); e.preventDefault(); }
+    });
 
     function newItem(templateId) {
       const s = SCENE_BY_ID[templateId];
@@ -2376,6 +3110,11 @@
 
     renderPool();
     resetToUsecaseDefault();
+    // Async-extend the pool with flipbook vignettes from /flipbooks/manifest.json.
+    // Doesn't block initial render — renderPool() is re-run if the fetch succeeds.
+    loadFlipbookManifest();
+    // Expose a refresh hook so the Tools modal can re-fetch after a build.
+    window.__timeline.refreshFlipbooks = loadFlipbookManifest;
 
     if (_pendingSeq) {
       resetToShell(_pendingSeq);
@@ -2453,6 +3192,50 @@
       })
       .catch(() => {});
     window.__lint = { renderChips, findHits, recomputeAuditCount };
+  })();
+
+  // ============================================================
+  // Maintain-existing panel (stage 1)
+  // ============================================================
+  // Populates the vertical dropdown from /api/verticals and, on submit,
+  // navigates to ?vertical=<key>&usecase=<...> which the audit-mode init
+  // (below) picks up to hydrate the timeline. We keep this separate from
+  // audit-mode init so a fresh page-load with a vertical param still
+  // works — the panel is just a UI shortcut for setting that param.
+  (function initMaintenancePanel() {
+    const verticalSel = document.getElementById('loadVerticalSelect');
+    const usecaseSel  = document.getElementById('loadUsecaseSelect');
+    const btn         = document.getElementById('loadVerticalBtn');
+    const statusEl    = document.getElementById('loadVerticalStatus');
+    if (!verticalSel || !btn) return;
+
+    fetch('/api/verticals', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => {
+        const items = (data && data.verticals) || [];
+        for (const v of items) {
+          const opt = document.createElement('option');
+          opt.value = v.key;
+          const label = v.label || v.tenant || '';
+          opt.textContent = label ? `${v.key} — ${label}` : v.key;
+          verticalSel.appendChild(opt);
+        }
+        if (statusEl) statusEl.textContent = `${items.length} canonical demos loadable.`;
+      })
+      .catch(err => {
+        if (statusEl) statusEl.textContent = `Could not list verticals: ${err.message}`;
+        btn.disabled = true;
+      });
+
+    btn.addEventListener('click', () => {
+      const key = verticalSel.value;
+      if (!key) { statusEl.textContent = 'Pick a vertical first.'; return; }
+      const usecase = usecaseSel.value || 'default';
+      const url = new URL(location);
+      url.searchParams.set('vertical', key);
+      url.searchParams.set('usecase', usecase);
+      location.href = url.toString();
+    });
   })();
 
   // ============================================================
