@@ -35,7 +35,11 @@
   .tenant-mark .m{width:24px;height:24px;color:var(--tenant-accent);display:inline-flex;align-items:center;justify-content:center;}
   .tenant-mark .m svg{width:100%;height:100%;}
   .tenant-mark .wm{font-family:var(--editorial);font-style:italic;font-weight:500;font-size:22px;color:var(--ink);letter-spacing:0.005em;}
-  .tenant-mark .story{font-size:13px;color:var(--ink-soft);margin-left:14px;}
+  .tenant-mark .story{font-size:13px;color:var(--ink-soft);margin-left:14px;display:inline-flex;align-items:center;gap:7px;}
+  /* Customer mark — small image inline with the story-subtitle, only
+     visible when the builder Step 2 customer-logo upload populated
+     v.customerLogo. Hidden by default; JS unhides + sets src below. */
+  .tenant-mark .customer-mark{height:18px;width:auto;max-width:64px;object-fit:contain;display:none;opacity:0.85;}
   .topbar .sp{flex:1;}
   .topbar .scene-tabs{display:flex;gap:14px;font-size:13px;color:var(--ink-mid);font-weight:500;}
   .topbar .scene-tabs .t{cursor:pointer;padding:4px 0;position:relative;transition:color 0.15s;}
@@ -543,7 +547,10 @@
     <div class="tenant-mark">
       <span class="m" id="tn-mark"></span>
       <span class="wm" id="tn-wm"></span>
-      <span class="story" id="story-subtitle"></span>
+      <span class="story" id="story-subtitle">
+        <img class="customer-mark" id="customer-mark" alt="">
+        <span id="story-subtitle-text"></span>
+      </span>
     </div>
     <div class="sp"></div>
     <div class="scene-tabs" id="scene-tabs">
@@ -2562,6 +2569,7 @@ function mergeUsecasesBundle(bundle){
     custom.subtitle     = cfg.customer     || src.subtitle;
     custom.tenantColor  = cfg.tenantColor  || src.tenantColor;
     custom.tenantLogo   = cfg.tenantLogo   || null;          // base64 dataURL or null
+    custom.customerLogo = cfg.customerLogo || null;          // base64 dataURL or null (wrap PDF #27)
     custom.preset       = 'custom';
     custom.label        = cfg.tenant       || src.label;
     if (cfg.signatureMoment) custom.signatureMoment = cfg.signatureMoment;
@@ -2604,9 +2612,10 @@ function mergeUsecasesBundle(bundle){
     // workspace template dressed in the source vertical's customer/SoR/etc.
     if (typeof window.PRESETS === 'object' && window.PRESETS) {
       window.PRESETS.custom = clone(window.PRESETS[srcKey] || {});
-      window.PRESETS.custom.tenant      = cfg.tenant;
-      window.PRESETS.custom.tenantColor = cfg.tenantColor;
-      window.PRESETS.custom.tenantLogo  = cfg.tenantLogo || null;
+      window.PRESETS.custom.tenant       = cfg.tenant;
+      window.PRESETS.custom.tenantColor  = cfg.tenantColor;
+      window.PRESETS.custom.tenantLogo   = cfg.tenantLogo   || null;
+      window.PRESETS.custom.customerLogo = cfg.customerLogo || null;
       // PRESETS.customer is the raw customer name without the "× " prefix
       // that subtitle carries — strip it if the picker added one.
       if (cfg.customer) {
@@ -2718,7 +2727,26 @@ if (v.tenantLogo) {
   $('tn-mark').innerHTML = MARK_SVG;
 }
 $('tn-wm').textContent = v.tenant;
-$('story-subtitle').textContent = v.subtitle;
+/* Render the subtitle text into the inner span so the customer-mark
+   image stays in place. Falls back to legacy textContent if the inner
+   span is missing (older builders, snapshot iframes, etc.). */
+const _subtitleText = document.getElementById('story-subtitle-text');
+if (_subtitleText) _subtitleText.textContent = v.subtitle;
+else $('story-subtitle').textContent = v.subtitle;
+/* Customer mark — shown when builder Step 2 captured a customer logo.
+   Sits inline with the story-subtitle, scaled to ~18px tall. Quiet
+   no-op when v.customerLogo is null. */
+const _custMark = document.getElementById('customer-mark');
+if (_custMark) {
+  if (v.customerLogo) {
+    _custMark.src = v.customerLogo;
+    _custMark.alt = (v.subtitle || '').replace(/^×\s*/, '').split(/[—-]/)[0].trim() || 'customer';
+    _custMark.style.display = 'inline-block';
+  } else {
+    _custMark.removeAttribute('src');
+    _custMark.style.display = 'none';
+  }
+}
 $('vertical-chip').textContent = v.label;
 document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 
