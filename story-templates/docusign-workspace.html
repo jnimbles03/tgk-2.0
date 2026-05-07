@@ -95,6 +95,16 @@
   .ds-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;letter-spacing:-0.02em;color:var(--ds-inkwell);}
   .ds-logo-mark{width:22px;height:22px;display:inline-block;}
   .ds-logo-mark img{width:100%;height:100%;display:block;}
+
+  /* Embedded-iframe detection (added 2026-05-06 per Jimmy's wrap PDF):
+     when this template is loaded inside the story shell, the shell's
+     sidebar already shows a 'docusign' wordmark. Hiding the iframe's
+     own Docusign logo + separator removes the visual collision. The
+     'Workspaces' product label stays visible — it's useful context. */
+  body.shell-embedded .ds-topbar > .ds-logo,
+  body.shell-embedded .ds-topbar > .sep:first-of-type {
+    display: none;
+  }
   .ds-topbar .sep{width:1px;height:22px;background:var(--hair);}
   .ds-product{font-size:13px;font-weight:600;color:var(--ds-inkwell);}
   .ds-topbar .sp{flex:1;}
@@ -370,6 +380,14 @@
 </head>
 <script src="/assets/sor-badge/sor-badge.js"></script>
 <body>
+<script>
+  /* Detect iframe context — when loaded inside story-shell, hide the
+     iframe's own Docusign logo via the .shell-embedded body class.
+     Runs synchronously so the class is present before first paint. */
+  if (window !== window.top || new URLSearchParams(location.search).get('embed') === '1') {
+    document.body.classList.add('shell-embedded');
+  }
+</script>
 <div class="sor-badge" id="sor-badge"></div>
 <div class="mock workspaces-demo">
 
