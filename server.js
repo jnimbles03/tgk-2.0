@@ -2024,59 +2024,72 @@ if (_multer) {
 
 // --------- TGK Builder Routes (admin-gated) -----------
 
-// Helper: require admin authorization
+// Helper: require admin authorization. Mirrors the auth scheme used by
+// requireAdmin (above) — checks the x-tgk-admin cookie set by
+// /assets/admin-auth/admin-auth.js (value: 'Welcome01!'). Falls back to
+// ADMIN_SOFT_TOKEN via header/query for headless tooling.
 const requireBuilderAdmin = (req, res, next) => {
+  const cookies = (req.headers.cookie || '').split(';').reduce((acc, c) => {
+    const [k, v] = c.trim().split('=');
+    if (k) acc[k] = decodeURIComponent(v || '');
+    return acc;
+  }, {});
+  if (cookies['x-tgk-admin'] === 'Welcome01!') return next();
   const adminToken = (req.headers['x-admin-token'] || req.query.key || '').toString();
-  if (adminToken !== ADMIN_SOFT_TOKEN && !req.session?.adminAuthed) {
-    return res.status(401).json({ error: 'admin token required' });
-  }
-  next();
+  if (adminToken && adminToken === ADMIN_SOFT_TOKEN) return next();
+  return res.status(401).json({ error: 'admin authentication required' });
 };
 
 // A) MP4 to Vignette
-app.post('/api/builder/mp4-to-vignette', requireBuilderAdmin, multer({ dest: '/tmp' }).single('file'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'no file provided' });
-    const slug = req.body.slug.replace(/[^a-zA-Z0-9_-]/g, '');
-    if (!slug) return res.status(400).json({ error: 'invalid slug' });
-    
-    const fileExt = req.file.mimetype === 'video/mp4' ? '.mp4' : '';
-    const srcPath = req.file.path;
-    const destPath = path.join(__dirname, 'flipbooks', '_extract_frames_input.mp4');
-    
-    // Move uploaded file
-    await fs.promises.copyFile(srcPath, destPath);
-    await fs.promises.unlink(srcPath);
-    
-    // Shell out to Python scripts
-    const { execFile } = require('child_process');
-    const util = require('util');
-    const exec = util.promisify(execFile);
-    
-    // Extract frames
-    const extractCmd = `python3 "${path.join(__dirname, 'flipbooks', '_extract_frames.py')}" "${slug}" --src "${destPath}"`;
+// Guarded by `if (_multer)` because the route's multer({...}) call would
+// throw ReferenceError at module load time if the dep isn't installed,
+// crashing the entire server on boot. With the guard, mp4-to-vignette
+// returns 503 cleanly when multer is missing.
+if (_multer) {
+  app.post('/api/builder/mp4-to-vignette', requireBuilderAdmin, _multer({ dest: '/tmp' }).single('file'), async (req, res) => {
     try {
-      await exec('bash', ['-c', extractCmd]);
+      if (!req.file) return res.status(400).json({ error: 'no file provided' });
+      const slug = (req.body.slug || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      if (!slug) return res.status(400).json({ error: 'invalid slug' });
+
+      const srcPath = req.file.path;
+      const destPath = path.join(__dirname, 'flipbooks', '_extract_frames_input.mp4');
+
+      // Move uploaded file
+      await fs.promises.copyFile(srcPath, destPath);
+      await fs.promises.unlink(srcPath);
+
+      // Shell out to Python scripts
+      const { execFile } = require('child_process');
+      const util = require('util');
+      const exec = util.promisify(execFile);
+
+      // Extract frames
+      try {
+        await exec('python3', [path.join(__dirname, 'flipbooks', '_extract_frames.py'), slug, '--src', destPath]);
+      } catch (err) {
+        return res.status(500).json({ error: 'frame extraction failed: ' + (err.stderr || err.message) });
+      }
+
+      // Build flipbook
+      try {
+        await exec('python3', [path.join(__dirname, 'flipbooks', '_new_flipbook.py'), slug]);
+      } catch (err) {
+        return res.status(500).json({ error: 'flipbook build failed: ' + (err.stderr || err.message) });
+      }
+
+      const vignettePath = '/flipbooks/' + slug + '.html';
+      res.json({ ok: true, vignettePath, slug });
     } catch (err) {
-      return res.status(500).json({ error: 'frame extraction failed: ' + err.message });
+      console.error('mp4-to-vignette error:', err);
+      res.status(500).json({ error: err.message });
     }
-    
-    // Build flipbook
-    const newFlipbookCmd = `python3 "${path.join(__dirname, 'flipbooks', '_new_flipbook.py')}" "${slug}"`;
-    try {
-      await exec('bash', ['-c', newFlipbookCmd]);
-    } catch (err) {
-      return res.status(500).json({ error: 'flipbook build failed: ' + err.message });
-    }
-    
-    // Return path to generated flipbook HTML
-    const vignettePath = path.join('/flipbooks', slug + '.html');
-    res.json({ ok: true, vignettePath, slug });
-  } catch (err) {
-    console.error('mp4-to-vignette error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
+  });
+} else {
+  app.post('/api/builder/mp4-to-vignette', requireBuilderAdmin, (req, res) => {
+    res.status(503).json({ error: 'multer not installed on server. Run `npm install` to enable the MP4 pipeline.' });
+  });
+}
 
 // B) Save Beat Edit to vertical-overrides.json
 app.post('/api/builder/save-beat', requireBuilderAdmin, express.json(), async (req, res) => {
