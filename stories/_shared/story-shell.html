@@ -2137,7 +2137,14 @@ const USECASE_TEMPLATE_MODES = {
 const BEAT_TO_INTERNAL = {
   agreement_desk: ["s1", "s2", "s2", "s3", "s3"],   // submit → arrives → click row → docs tab → send
   clear_idv:      ["s1", "s2", "s3", "s6", "s7"],   // consent → choose identity verification → phone → mobile selfie → verified
-  signing:        ["s1", "s2", "s3", "s4", "s5"],   // 1:1 — email → start → adopt → finished → download
+  /* Signing: beat-to-internal corrected 2026-05-06. The 1:1 mapping
+     drifted out of sync with the hotspot labels — beat 2 ("adopt_sig")
+     was landing on s3 (field-fill) instead of s4 (Adopt modal), and
+     beat 3 ("finished_status") was landing on s4 instead of s5
+     (completion + routing). Skip s3 (generic field fill — not
+     called out in any vertical's narration) and double-tap s5 for
+     beats 3 + 4 (finished status and download both live there). */
+  signing:        ["s1", "s2", "s4", "s5", "s5"],   // email → start → adopt → finished → download
   navigator:      ["s1", "s2", "s3", "s4", "s4"],   // list → insights → fields → ask the AI assistant → answer
   workspace:      ["s1", "s2", "s3", "s4", "s5"],   // email arrives → workspace overview → the AI assistant rail → drill+agent → agent done
   /* Webform-intake template (Scene 1 override for non-C-archetype verticals).
