@@ -2688,6 +2688,17 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 
 /* TGK Capital co-brand REMOVED 2026-04-30 — TGK Capital is now a
    character inside the wealth + banking storylines (the firm being
+   onboarded / the borrower), not a co-brand on the demo chrome. */
+
+// Build SCENES by merging narration + hotspots + src.
+// Per-beat headlines/lede from s.beats[j] override the scene-level text when present.
+// When ?usecase= is set, pulls scene keys from ACTIVE_SCENE_KEYS and templates from
+// USECASE_TEMPLATE_FILES (via srcForUsecaseScene). Default canonical path unchanged.
+// For canonical Scene 1, if SCENE1_TEMPLATE_OVERRIDE applies for this vertical,
+// also override the hotspot key so click anchors target the override iframe's
+// data-hotspot attributes (webform-intake) rather than agreement_desk's.
+const SCENES = scenesSource.map((s, i) => {
+  let sceneKey = ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
   if (i === 0 && usecase === "default") {
     const o = SCENE1_TEMPLATE_OVERRIDE[v.preset];
     if (o && o.hotspots) sceneKey = o.hotspots;
