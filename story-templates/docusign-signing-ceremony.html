@@ -221,6 +221,15 @@
   .preset-chip{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--hair-strong);border-radius:18px;padding:6px 10px 6px 12px;font-size:11px;color:var(--ink-mid);box-shadow:0 4px 14px rgba(0,0,0,0.08);z-index:30;display:flex;align-items:center;gap:8px;font-family:var(--ui-font);}
   .preset-chip .lab{text-transform:uppercase;letter-spacing:0.06em;font-size:9px;color:var(--ink-soft);font-weight:600;}
   .preset-chip select{border:none;background:transparent;font:inherit;color:inherit;font-weight:600;outline:none;cursor:pointer;}
+
+  /* Per-beat replay highlight (added 2026-05-06) — pulse the cursor
+     target on each scene entry so it reads as "cursor-driven". */
+  @keyframes signJustPulsed {
+    0%   { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+    35%  { box-shadow: 0 0 0 6px rgba(75,0,233,0.22); transform: scale(1.03); }
+    100% { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+  }
+  .just-pulsed { animation: signJustPulsed 0.55s cubic-bezier(.34,1.56,.64,1) 1; }
 </style>
 <link rel="stylesheet" href="/assets/sor-badge/sor-badge.css">
 </head>
@@ -338,8 +347,8 @@
           <div class="sign-body">
             <div class="doc-paper">
               <h4>Investment Advisory Agreement</h4>
-              <div class="doc-sub">Between <b id="doc-tenant-s3">[Tenant] Inc.</b> and <b>Amy M. Peters</b> — Effective May 1, 2026</div>
-              <p>The Client, <span class="inline-field focused">Amy M. Peters<span class="caret"></span></span>, residing at <span class="inline-field" style="min-width:240px;">2570 24th Street, San Francisco, CA</span>, hereby engages the Advisor for discretionary investment management of the following account(s).</p>
+              <div class="doc-sub">Between <b id="doc-tenant-s3">[Tenant] Inc.</b> and <b id="doc-client-s3">Amy M. Peters</b> — Effective May 1, 2026</div>
+              <p>The Client, <span class="inline-field focused">Amy M. Peters<span class="caret"></span></span>, residing at <span class="inline-field" id="doc-address-s3" style="min-width:240px;">2570 24th Street, San Francisco, CA</span>, hereby engages the Advisor for discretionary investment management of the following account(s).</p>
               <p>Initial deposit: <span class="inline-field" style="min-width:120px;">$750,000.00</span>. Suitability profile selected: <span class="inline-field" style="min-width:130px;">Moderate Growth</span>. The Client affirms that the information provided is accurate to the best of their knowledge.</p>
               <p>Signed this <span class="inline-field" style="min-width:60px;">1st</span> day of <span class="inline-field" style="min-width:80px;">May</span>, 2026.</p>
               <div class="sig-row">
@@ -368,7 +377,7 @@
           <div class="sign-body">
             <div class="doc-paper">
               <h4>Investment Advisory Agreement</h4>
-              <div class="doc-sub">Between <b id="doc-tenant-s4">[Tenant] Inc.</b> and <b>Amy M. Peters</b> — Effective May 1, 2026</div>
+              <div class="doc-sub">Between <b id="doc-tenant-s4">[Tenant] Inc.</b> and <b id="doc-client-s4">Amy M. Peters</b> — Effective May 1, 2026</div>
               <p>This Investment Advisory Agreement is entered into as of the Effective Date between the Advisor and the Client named above.</p>
               <p>Fees for services shall be calculated quarterly at an annual rate of <span class="kv">1.00%</span> of assets under management.</p>
               <div class="sig-row">
@@ -430,14 +439,14 @@
           <div class="routing" data-hotspot="finished_status">
             <div class="routing-title">Envelope routing · 1 of 3 complete</div>
             <div class="route-step done">
-              <div class="av">AP</div>
-              <div class="info"><div class="nm">Amy M. Peters</div><div class="role">Client</div></div>
+              <div class="av" id="route-client-init">AP</div>
+              <div class="info"><div class="nm" id="route-client-name">Amy M. Peters</div><div class="role">Client</div></div>
               <div class="st">Signed · just now</div>
             </div>
             <div class="route-sep"></div>
             <div class="route-step active">
-              <div class="av">CA</div>
-              <div class="info"><div class="nm">Casey Anderson</div><div class="role">Investment Advisor</div></div>
+              <div class="av" id="route-sender-init">CA</div>
+              <div class="info"><div class="nm" id="route-sender-name">Casey Anderson</div><div class="role" id="route-sender-role">Investment Advisor</div></div>
               <div class="st">In progress · sent</div>
             </div>
             <div class="route-sep"></div>
@@ -468,7 +477,7 @@
 
 <script>
 const PRESETS = {
-  wealth: {label:"Wealth", tenant:"Hillside", primary:"#0F2A1F", mark:"#3FDA99", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Casey Anderson", senderInitials:"CA", senderRole:"Investment Advisor", envTitle:"Investment Advisory Agreement", client:"Amy M. Peters", clientInitials:"AP", docBody:"Please review and sign the attached agreement to finalize the opening of your advisory account."},
+  wealth: {label:"Wealth", tenant:"Hillside", primary:"#0F2A1F", mark:"#3FDA99", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Cathie Woods", senderInitials:"CW", senderRole:"Director of Advisor Onboarding", envTitle:"Sub-Advisory Agreement — TGK Capital", client:"Patrick Meyer", clientInitials:"PM", clientAddress:"55 Beale Street, Suite 2100, San Francisco, CA", docBody:"Please review and countersign the Sub-Advisory Agreement to finalize TGK Capital's onboarding as a sub-advisor on the Hillside platform."},
   banking: {label:"Banking", tenant:"Meridian", primary:"#0A2540", mark:"#2D8EFF", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Raj Malhotra", senderInitials:"RM", senderRole:"Commercial Relationship Manager", envTitle:"Commercial Loan Agreement", client:"Diana Holbrook", clientInitials:"DH", docBody:"Please review and sign the attached agreement to finalize the Atlas Manufacturing working-capital facility."},
   insurance: {label:"Insurance", tenant:"Sentinel", primary:"#7B1E3F", mark:"#F2B3C2", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Marisol Vega", senderInitials:"MV", senderRole:"Agent", envTitle:"Homeowners Policy Binder", client:"Elena Ramirez", clientInitials:"ER", docBody:"Please review and sign the attached policy binder so we can bind coverage before your closing date."},
   provider: {label:"Provider", tenant:"Riverside", primary:"#0E4A56", mark:"#6FD6C8", wmFont:'"Fraunces",Georgia,serif', wmStyle:"italic", wmWeight:"500", sender:"Daniela Okafor", senderInitials:"DO", senderRole:"Patient Coordinator", envTitle:"Consent to Treat & HIPAA", client:"Jordan Kim", clientInitials:"JK", docBody:"Please review and sign the consent forms ahead of your first visit next Tuesday."},
@@ -516,6 +525,15 @@ function applyPreset(key){
   document.getElementById('doc-client-s2').textContent = p.client;
   document.getElementById('doc-tenant-s3').textContent = p.tenant + ' Inc.';
   document.getElementById('doc-tenant-s4').textContent = p.tenant + ' Inc.';
+  /* Template the doc-sub client name + s3 address (added 2026-05-06 —
+     these were hardcoded 'Amy M. Peters' and a SF residential address). */
+  const setIfPresent = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  setIfPresent('doc-client-s3', p.client);
+  setIfPresent('doc-client-s4', p.client);
+  if (p.clientAddress) setIfPresent('doc-address-s3', p.clientAddress);
   document.querySelectorAll('#s3 .inline-field.focused').forEach(f => {
     f.firstChild && (f.firstChild.textContent = p.client);
   });
@@ -555,6 +573,25 @@ const URL_MAP = {
   s5: 'app.docusign.com/sign/completed'
 };
 
+/* Per-beat replay — added 2026-05-06 to make scene transitions read as
+   cursor-driven. Each state's anchor (REVIEW DOCUMENT, START tab, Adopt
+   and Sign, finished routing) gets a brief pulse on entry. The pulse
+   class is removed before re-adding so back-to-back enters re-trigger. */
+let _lastSigningSceneId = null;
+function _pulseTarget(selector){
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.classList.remove('just-pulsed');
+  void el.offsetWidth;
+  el.classList.add('just-pulsed');
+}
+function replaySigningState(sceneId){
+  if (sceneId === 's1') _pulseTarget('[data-hotspot="review_doc"]');
+  else if (sceneId === 's2') _pulseTarget('[data-hotspot="start_tab"]');
+  else if (sceneId === 's4') _pulseTarget('[data-hotspot="adopt_sig"]');
+  else if (sceneId === 's5') _pulseTarget('[data-hotspot="finished_status"]');
+}
+
 // Extracted from render() so the postMessage handler can apply a scene
 // directly without going through the time-based selector.
 function applyScene(active){
@@ -562,6 +599,12 @@ function applyScene(active){
   const idx = SCENES.findIndex(s => s.id === active.id);
   document.querySelectorAll('.scene-dots .d').forEach((d,i) => d.classList.toggle('on', i === idx));
   document.getElementById('br-url').textContent = URL_MAP[active.id] || URL_MAP.s1;
+  /* Replay only on state CHANGE (avoids re-firing every animation frame
+     in the auto-render loop). */
+  if (active.id !== _lastSigningSceneId) {
+    _lastSigningSceneId = active.id;
+    replaySigningState(active.id);
+  }
 }
 
 function render(now){

@@ -166,6 +166,15 @@
   .s7 .verified-art .card .lines::after{width:34px;opacity:0.55;}
   .s7 .verified-art .check{position:absolute;right:-6px;bottom:-6px;width:34px;height:34px;border-radius:50%;background:#19B36F;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(25,179,111,0.35);animation:checkPop 0.6s cubic-bezier(.2,.9,.4,1.3) forwards;}
   @keyframes checkPop{from{transform:scale(0);}to{transform:scale(1);}}
+
+  /* Per-beat replay highlights — added 2026-05-06 to make scene transitions
+     read as cursor-driven. Same pattern as docusign-webform-intake.html. */
+  @keyframes idvJustPulsed {
+    0%   { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+    35%  { box-shadow: 0 0 0 6px rgba(75,0,233,0.22); transform: scale(1.02); }
+    100% { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+  }
+  .just-pulsed { animation: idvJustPulsed 0.55s cubic-bezier(.34,1.56,.64,1) 1; }
   .s7 .verified-art .check svg{width:18px;height:18px;stroke:#fff;stroke-width:3;fill:none;}
   .s7 h3{font-size:20px;font-weight:500;color:var(--ink);text-align:center;line-height:1.22;margin-bottom:8px;}
   .s7 .hint{font-size:11px;color:var(--ink-soft);text-align:center;}
@@ -448,6 +457,49 @@ let shellDriven = false;
 
 // Extracted from render() so the postMessage handler can apply a scene
 // directly without going through the time-based selector.
+let _lastAppliedSceneId = null;
+const _idvReplayTimers = [];
+function _clearIdvTimers(){ while (_idvReplayTimers.length) clearTimeout(_idvReplayTimers.pop()); }
+function _idvAt(ms, fn){ _idvReplayTimers.push(setTimeout(fn, ms)); }
+
+/* Per-beat replay — fires once on state-entry. Cursor-driven look:
+   s1: brief pulse on the I Agree button as the cursor lands.
+   s2: bounce-in on the selected 'Verify with identity verification' option.
+   s3: phone field clears then chunks 212 / -641 / -5393 fill in sequence
+       at 500/850/1200ms so it reads as typing.
+   Mobile scenes (s5/s6/s7) already animate via their own keyframes. */
+function replayIdvState(sceneId){
+  _clearIdvTimers();
+
+  if (sceneId === 's1') {
+    const btn = document.querySelector('[data-hotspot="consent_agree"]');
+    if (btn) { btn.classList.remove('just-pulsed'); void btn.offsetWidth; btn.classList.add('just-pulsed'); }
+  }
+
+  if (sceneId === 's2') {
+    const opt = document.querySelector('#s2 .opt.sel');
+    if (opt) { opt.classList.remove('just-pulsed'); void opt.offsetWidth; opt.classList.add('just-pulsed'); }
+  }
+
+  if (sceneId === 's3') {
+    const phoneIn = document.querySelector('#s3 .phone-in');
+    if (!phoneIn) return;
+    /* Detach the blinking cursor span, wipe text, re-attach so it stays
+       to the right of whatever digits land. */
+    const cur = phoneIn.querySelector('.cur');
+    phoneIn.textContent = '';
+    if (cur) phoneIn.appendChild(cur);
+    const chunks = ['212', '-641', '-5393'];
+    chunks.forEach((chunk, i) => {
+      _idvAt(500 + i * 350, () => {
+        const node = document.createTextNode(chunk);
+        if (cur && cur.parentNode === phoneIn) phoneIn.insertBefore(node, cur);
+        else phoneIn.appendChild(node);
+      });
+    });
+  }
+}
+
 function applyScene(active){
   const isPhone = active.frame === "phone";
   document.getElementById("desktop").classList.toggle("dimmed", isPhone);
@@ -467,6 +519,12 @@ function applyScene(active){
 
   const dotIdx = SCENES.findIndex(s => s.id === active.id);
   document.querySelectorAll(".scene-dots .d").forEach((d, i) => d.classList.toggle("on", i === dotIdx));
+
+  /* Replay only on state CHANGE (not on every animation frame in auto mode). */
+  if (active.id !== _lastAppliedSceneId) {
+    _lastAppliedSceneId = active.id;
+    replayIdvState(active.id);
+  }
 }
 
 function render(now){
