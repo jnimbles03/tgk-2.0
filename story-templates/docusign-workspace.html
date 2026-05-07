@@ -356,6 +356,15 @@
   @keyframes mcFadeIn{to{opacity:1;}}
   @keyframes mcLineIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
   @keyframes mcFadeOut{to{opacity:0;visibility:hidden;}}
+
+  /* Per-beat replay highlight (added 2026-05-06) — pulse the cursor
+     target on each scene entry so it reads as cursor-driven. */
+  @keyframes wsJustPulsed {
+    0%   { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+    35%  { box-shadow: 0 0 0 6px rgba(75,0,233,0.22); transform: scale(1.02); }
+    100% { box-shadow: 0 0 0 0 rgba(75,0,233,0.0); transform: scale(1); }
+  }
+  .just-pulsed { animation: wsJustPulsed 0.55s cubic-bezier(.34,1.56,.64,1) 1; }
 </style>
 <link rel="stylesheet" href="/assets/sor-badge/sor-badge.css">
 </head>
@@ -1670,11 +1679,37 @@ function _firstTaskName(){
   const el = document.querySelector('.task-name');
   return el ? el.childNodes[0].textContent.trim() : 'First task';
 }
+/* Per-beat replay pulse — added 2026-05-06. Pulses the scene's cursor
+   target on state-entry so each beat reads as cursor-driven. */
+let _lastWsSceneId = null;
+function _wsPulse(selector){
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.classList.remove('just-pulsed');
+  void el.offsetWidth;
+  el.classList.add('just-pulsed');
+}
+function replayWsState(sceneId){
+  if (sceneId === 's1') _wsPulse('[data-hotspot="access_workspace"]');
+  else if (sceneId === 's2') _wsPulse('[data-hotspot="tabs_strip"]');
+  else if (sceneId === 's3') _wsPulse('[data-hotspot="iris_rail"]');
+  else if (sceneId === 's4') _wsPulse('[data-hotspot="agent_status"]');
+  else if (sceneId === 's5') _wsPulse('[data-hotspot="agent_summary"]');
+}
+
 function showWorkspaceState(sceneId){
   /* First beat message → switch off the autoplay email-fade animation
      and let JS take over visibility entirely. */
   if (!document.body.classList.contains('beat-driven')) {
     document.body.classList.add('beat-driven');
+  }
+  /* Replay only on state CHANGE — avoid double-firing if shell sends
+     the same sceneId twice. */
+  if (sceneId !== _lastWsSceneId) {
+    _lastWsSceneId = sceneId;
+    /* Defer so the showWorkspaceState side-effects (drill open, rail
+       activate, etc.) finish first; replay queries the resulting DOM. */
+    requestAnimationFrame(() => replayWsState(sceneId));
   }
   const email = document.getElementById('email-scene');
   const ws    = document.querySelector('.workspace');
