@@ -1,6 +1,6 @@
 # TGK 2.0 — Canonical State Matrix
 
-**Audit date:** 2026-04-26 (last revised 2026-04-26 PM after the split-into-verticals batch)
+**Audit date:** 2026-05-07 (wrap state for handoff to Steven & Jesse)
 **Purpose:** One source of truth for what each vertical *is* today vs. what
 the docs and older memories *say* it is. Drives the prioritized build
 punch list at the bottom.
@@ -9,6 +9,182 @@ This file gets edited as work lands. Don't trust REGISTRY.md or
 VERTICAL_PORTALS.md alone — they were brought current 2026-04-26 AM but
 the vertical-count split happened later that day; spot-check before
 quoting either as authoritative on count.
+
+**For team navigation:** start with `HANDOFF.md` for the lego framework
+TL;DR + day-1 file map. This doc is the granular state, not the intro.
+
+---
+
+## Wrap state (2026-05-07)
+
+Patrick's last day of active development is 2026-05-06. Steven & Jesse
+take over the codebase 2026-05-07 with target of IAM for Sales by next
+Friday. This section captures everything that landed during the wrap
+that overrides earlier sections of this doc.
+
+### 5-demos-per-sub-vertical (locked 2026-05-06)
+
+Every sub-vertical now exposes **exactly 5 demos** — Onboarding,
+Maintenance, Fraud Fabric, Headless IAM, Workspaces — across 4 clusters
+(FINS, HLS, PubSec, Cross-org). 60-cell canonical grid total. The 11
+earlier "split-out" verticals (insurance-life, insurance-pc,
+banking-deposits, wealth-discovery, provider-roi, slgov-{311,benefits,
+recertification,vendor-compliance,employee-onboarding,licensing}) are
+NO longer first-class picker entries — they live as the **content** of
+specific cells in the canonical grid (e.g. `insurance-life` is the
+content for *FINS · Insurance · Maintenance*; `slgov-recertification`
+is *PubSec · SLGov · Maintenance*). URL deep-links to the split-out
+keys keep working as aliases — they just don't surface in `picker.html`.
+
+Mapping doc: `_audits/sub-vertical-mapping.md` — full grid with
+which-key-fills-which-cell + 17 cells flagged as "(needs build)".
+
+### Picker rebuilt (2026-05-06)
+
+`picker.html` is now the canonical 4-cluster × 3-sub × 5-demo grid
+navigation. Earlier multi-stage wizard (vertical → category → usecase)
+replaced with: Cluster (4 cards) → Sub-vertical (3 cards) → Demo
+(5 chips, with greyed-out "coming soon" badges on unbuilt cells).
+Backward compat preserved: `?cluster=fins` deep-links into FINS
+pre-selected. The CATALOG JSON sidecar (B2B / GEOS legacy) is
+untouched.
+
+### Narration sweep — concise + impactful (2026-05-06)
+
+All 23 VERTICALS-map entries' orientation ledes collapsed from 2
+paragraphs to 1-2 sentences; every beat lede tightened to subject +
+verb + period-break (per Jimmy: "for longer ones, shorten to just the
+short bars"). Cadence reference: Scene 5 Beat 5 of wealth ("Every
+document executed, every check passed, every party in the same
+Workspace. Hillside's compliance team has the full audit trail.").
+Zero multi-paragraph ledes remain in the VERTICALS map.
+
+The `tgk-usecases` JSON sidecar still holds older usecase-variant
+copy (maintenance / fraud-fabric / intake / workspaces) — that fires
+only when `?usecase=` is set on the URL. Canonical default flow is
+fully concise.
+
+### New audit-grid surface (2026-05-06)
+
+`/audit-grid.html` — sortable + filterable + inline-edit grid of every
+(vertical, scene, beat) tuple in the VERTICALS map. ~575 rows.
+Edits POST to `/api/builder/save-beat` which writes to
+`/stories/_shared/vertical-overrides.json`; the shell merges
+overrides over canonical at boot. Replaces the per-beat inspector view
+on `/audit.html` (which is still around as "Classic dashboard").
+
+### Builder ("Demo iMovie") finalized — Stage 4 + admin gate (2026-05-06)
+
+`/builder.html` now has 4 stages:
+
+  1. Sequence — pick a starting flow (or blank)
+  2. Brand the demo — tenant + customer + color + logos + SoR + Sig Moment
+  3. Scenes — drag-drop scene composer with media pool (canonical
+     templates + flipbook vignettes from `/flipbooks/manifest.json`)
+  4. Admin tools — gated by `Welcome01!` via `/assets/admin-auth/`.
+     Four cards: A) MP4 → flipbook vignette pipeline, B) Edit baked-in
+     beat narration (writes `vertical-overrides.json`), C) Browse +
+     replace existing vignettes, D) Edit current/future state HTML.
+
+Step 2 captures both **tenant logo** (Hillside, Meridian, etc.) AND a
+new **customer logo** (TGK Capital, Atlas Manufacturing). Both ride
+through to `cfg.tenantLogo` / `cfg.customerLogo` and render in the
+shell topbar lockup. System of Record + Signature Moment are real
+persisted fields. Generated demo URL is real
+(`/stories/custom-<token>/`) — the route in `server.js` line 1448
+serves the cfg-injected shell.
+
+### Admin auth (2026-05-06)
+
+Single password gate `Welcome01!` for all `/admin/*` routes + builder
+Stage 4 + audit-grid inline edits. Primitive at
+`/assets/admin-auth/{admin-auth.css, admin-auth.js}` exposes
+`AdminAuth.isUnlocked() / .prompt() / .lock()`. SessionStorage-backed,
+sets `x-tgk-admin` cookie on unlock; `requireAdmin` and
+`requireBuilderAdmin` middleware in `server.js` validate the cookie.
+
+### TGK Capital co-brand removed from chrome (2026-05-06)
+
+TGK Capital is now a **character inside** wealth + banking storylines
+(the firm being onboarded / the borrower), NOT a chrome co-brand.
+`.cobrand-x` and `.cobrand-tgk` CSS + DOM stripped from
+`story-shell.html`. Topbar is Docusign-only. Patrick Meyer / TGK
+Capital references inside narration text are preserved.
+
+### Persona handoff model — autoplay-only (2026-05-06)
+
+Replaces the earlier "click to hand off to next actor" gesture-pause
+pattern. At persona crossings, the shell sidebar fires a 360ms violet
+sweep + headline flash and autoplay continues. The
+`<div class="persona-handoff">` cue + `.is-handoff-pending` avatar
+glow are retired. Same-persona beats stay flat.
+
+### Speed baseline retuned (2026-05-06)
+
+`SPEED_MULTIPLIER = 1.75` constant in `story-shell.html`. Displayed
+rates stay 1× / 1.5× / 2× in the hint row but effective rates are
+1.75× / 2.625× / 3.5× of the canonical scene durations. Cold-open
+default playbackRate dropped from 1.5 to 1 since the baseline is now
+faster.
+
+### Sub-Advisory Agreement → IMA fix (2026-05-06)
+
+The wealth storyline reads as "Sub-Advisory Agreement" everywhere now.
+Earlier hardcoded "Investment Advisory Agreement" references in
+`docusign-signing-ceremony.html` (s2/s3/s4 env-titles + h4 headings +
+body paragraph) and the `webform-intake.html` wealth onboarding preset
+(was Aster Capital / Mira Sundar / IMA cast) are templated through
+`p.envTitle` and rewritten to TGK Capital × Hillside.
+
+### Sidebar layout — spatial balance (2026-05-06)
+
+Auto margins on step-label (top) and lede (bottom) split free space
+between persona card and beat pips, floating the narration block to
+vertical center. Foot-spacer downgraded to flex:0. Headline 22→19px,
+line-height 1.22→1.3; lede font 13.5→13px, line-height 1.6→1.5.
+
+### Per-beat field-fill replays (2026-05-06)
+
+Every wealth scene has on-state-entry interactions that read as
+cursor-driven:
+
+  Scene 1 (webform-intake): dropdown reset → engagement chip flips →
+    checkboxes tick in sequence → name/email/phone fill in waves
+  Scene 2 (clear-idv): I Agree button pulse · option tile bounce ·
+    phone digits 212-641-5393 type-fills in chunks
+  Scene 3 (signing): REVIEW DOCUMENT pulse · START tab pulse ·
+    Adopt+Sign pulse · finished routing pulse
+  Scene 4 (navigator): agreement_row pulse · ai_banner pulse ·
+    fields_panel pulse · iris_answer pulse
+  Scene 5 (workspace): access_workspace · tabs_strip · iris_rail ·
+    agent_status · agent_summary pulses
+
+Single `.just-pulsed` keyframe across templates: 0.55s cubic spring,
+6px violet glow, 1.02 scale.
+
+### Scene 5 splash — pause + Spacebar (2026-05-06)
+
+Workspaces splash (the MasterCard-style intro) no longer auto-fades
+after 10 seconds. Stays up indefinitely with "Press Space when ready"
+hint at the bottom. Iframe ↔ shell handshake via postMessage:
+`tgk:splashShown` / `tgk:dismissSplash` / `tgk:splashDismissed`. On
+Space, splash fades, autoplay resumes.
+
+### Other surfaces
+
+- **SoR badge** — `System of record: <vendor>` pill in the chrome of
+  every scene template. Mapping at `_audits/sor-mapping.md`. Wired via
+  `/assets/sor-badge/{sor-badge.css, sor-badge.js}`.
+- **Navigator per-doc** — every preset now carries its own document
+  content (docTitle / docHeading / docBody / docFields). No generic
+  Master Services Agreement fallback.
+- **Workspace cast** — wealth preset rewritten from Amy Peters / Casey
+  Anderson to Patrick Meyer / Cathie Woods.
+- **Discovery side-by-side bug** — `width: 100%` added to `.state-grid`
+  across 13 Discovery files; steps 2+ now render both panels.
+- **Demo-stage primitive** for sales/procurement flipbooks
+  (`/assets/demo-stage/`) carries the same keyboard model + toast
+  + speed-cycle as the shell.
 
 ---
 
