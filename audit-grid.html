@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit grid · TGK 2.0</title>
+<style>
+  :root {
+    --bg:#F8F6F2; --paper:#fff; --ink:#130032; --ink-mid:#3F3F46;
+    --ink-soft:#71717A; --hair:#E4E4E7; --hair-strong:#D4D4D8;
+    --ds-purple:#4C00FF; --cobalt:#1565D8; --poppy:#FF5252; --green:#16A34A;
+    --warn:#E08A1A;
+    --font:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+    --mono:ui-monospace,"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:13px;line-height:1.4;}
+  .topbar{background:var(--paper);border-bottom:1px solid var(--hair);padding:12px 24px;display:flex;align-items:center;gap:18px;}
+  .topbar h1{font-size:15px;font-weight:600;letter-spacing:-0.005em;}
+  .topbar .crumb{font-size:11px;color:var(--ink-soft);letter-spacing:0.06em;text-transform:uppercase;font-family:var(--mono);}
+  .topbar .sp{flex:1;}
+  .topbar a{font-size:12px;color:var(--ink-mid);text-decoration:none;padding:5px 10px;border-radius:5px;}
+  .topbar a:hover{background:#F0EBE3;}
+
+  .filters{background:var(--paper);border-bottom:1px solid var(--hair);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .filters label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);}
+  .filters input[type=search],.filters select{padding:6px 10px;border:1px solid var(--hair);border-radius:5px;font:inherit;font-size:12px;background:#fff;color:var(--ink);}
+  .filters input[type=search]{min-width:240px;}
+  .filters .stats{margin-left:auto;font-size:11px;color:var(--ink-soft);font-family:var(--mono);}
+
+  .grid-wrap{padding:0 24px 24px;}
+  table.grid{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--hair);border-radius:6px;overflow:hidden;font-size:12.5px;}
+  table.grid thead th{background:#F0EBE3;border-bottom:1px solid var(--hair-strong);padding:9px 12px;text-align:left;font-weight:600;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mid);position:sticky;top:0;z-index:3;cursor:pointer;user-select:none;}
+  table.grid thead th:hover{background:#E8E2D8;}
+  table.grid thead th .sort{margin-left:5px;color:var(--ink-soft);font-size:10px;}
+  table.grid thead th.sorted{color:var(--ds-purple);}
+  table.grid tbody td{padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  table.grid tbody tr:hover{background:#FBF8F2;}
+  table.grid tbody tr.persona-flip{background:rgba(76,0,255,0.04);}
+
+  td.col-vertical{font-weight:600;font-family:var(--mono);font-size:11.5px;white-space:nowrap;}
+  td.col-scene{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;}
+  td.col-beat{font-family:var(--mono);font-size:11px;color:var(--ink-soft);text-align:center;width:60px;}
+  td.col-side{font-size:10.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;text-align:center;width:80px;}
+  td.col-side.advisor{color:var(--green);}
+  td.col-side.client{color:var(--ds-purple);}
+  td.col-side.system{color:var(--ink-soft);}
+  td.col-side.handoff{background:linear-gradient(90deg,var(--green) 0% 50%, var(--ds-purple) 50% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  td.col-head{font-weight:600;color:var(--ink);max-width:280px;}
+  td.col-lede{color:var(--ink-mid);font-size:12px;line-height:1.5;}
+  td.col-lede p{margin:0 0 6px;}
+  td.col-lede p:last-child{margin-bottom:0;}
+
+  .editable{cursor:text;border-radius:3px;}
+  .editable:hover{background:rgba(76,0,255,0.05);outline:1px solid rgba(76,0,255,0.2);}
+  .editable:focus{background:#fff;outline:2px solid var(--ds-purple);}
+  .editable.dirty{background:rgba(255,82,82,0.08);}
+  .editable.saved{background:rgba(22,163,74,0.10);transition:background 1.2s;}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:9px 18px;border-radius:999px;font-size:12.5px;font-weight:500;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;box-shadow:0 6px 20px rgba(19,0,50,0.25);}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .empty{padding:48px 24px;text-align:center;color:var(--ink-soft);}
+  .err{padding:14px 24px;background:#fde6e6;color:#841a1a;border-bottom:1px solid #f0b8b8;}
+</style>
+<link rel="stylesheet" href="/assets/admin-auth/admin-auth.css">
+</head>
+<body>
+<script src="/assets/admin-auth/admin-auth.js"></script>
+
+<div class="topbar">
+  <span class="crumb">TGK 2.0 · audit</span>
+  <h1>All stories · all beats · sortable + filterable</h1>
+  <div class="sp"></div>
+  <a href="/audit.html">Classic dashboard</a>
+  <a href="/picker.html">Picker</a>
+  <a href="/builder.html">Builder</a>
+</div>
+
+<div class="filters">
+  <label>Vertical</label>
+  <select id="f-vertical">
+    <option value="">All</option>
+  </select>
+
+  <label>Scene</label>
+  <select id="f-scene">
+    <option value="">All</option>
+    <option value="0">Scene 1</option>
+    <option value="1">Scene 2</option>
+    <option value="2">Scene 3</option>
+    <option value="3">Scene 4</option>
+    <option value="4">Scene 5</option>
+  </select>
+
+  <label>Persona</label>
+  <select id="f-side">
+    <option value="">All</option>
+    <option value="advisor">Advisor</option>
+    <option value="client">Client</option>
+    <option value="system">System</option>
+    <option value="handoff">Handoff</option>
+  </select>
+
+  <label>Search</label>
+  <input type="search" id="f-search" placeholder="head, lede, persona…">
+
+  <div class="stats" id="stats">— rows</div>
+</div>
+
+<div id="err" class="err" hidden></div>
+
+<div class="grid-wrap">
+  <table class="grid" id="grid">
+    <thead>
+      <tr>
+        <th data-sort="vertical">Vertical <span class="sort">↕</span></th>
+        <th data-sort="scene">Scene <span class="sort">↕</span></th>
+        <th data-sort="beat" style="text-align:center;">Beat <span class="sort">↕</span></th>
+        <th data-sort="side" style="text-align:center;">Side <span class="sort">↕</span></th>
+        <th data-sort="head">Headline <span class="sort">↕</span></th>
+        <th data-sort="lede">Lede <span class="sort">↕</span></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No beats match the current filters.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Audit grid — flat view of every (vertical, scene, beat) tuple
+   in the VERTICALS map. Inline edit on head + lede; saves through
+   /api/builder/save-beat (admin-gated by x-tgk-admin cookie).
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const SCENE_TAGS = ['INTAKE','IDENTITY','SIGNING','DATA','WORKSPACE'];
+
+let ROWS = [];
+let sortKey = 'vertical';
+let sortDir = 1;
+
+function showToast(msg, ms){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(() => t.classList.remove('on'), ms || 1400);
+}
+
+async function loadAll(){
+  try {
+    const list = await fetch('/api/verticals').then(r => r.json());
+    const verticals = (list && list.verticals) || [];
+
+    /* Populate vertical filter */
+    const fv = $('f-vertical');
+    verticals.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.key;
+      opt.textContent = (v.tenant || v.label || v.key) + ' — ' + v.key;
+      fv.appendChild(opt);
+    });
+
+    /* Fetch each vertical's resolved scenes in parallel */
+    const details = await Promise.all(verticals.map(async v => {
+      try {
+        const r = await fetch('/api/verticals/' + encodeURIComponent(v.key));
+        if (!r.ok) return null;
+        const detail = await r.json();
+        detail._key = v.key;
+        detail._tenant = v.tenant || v.label || v.key;
+        return detail;
+      } catch (_) { return null; }
+    }));
+
+    /* Flatten into ROWS — one entry per beat */
+    ROWS = [];
+    details.filter(Boolean).forEach(d => {
+      const scenes = d.scenes || [];
+      scenes.forEach((sc, sceneIdx) => {
+        const beats = sc.hotspots || sc.beats || [];
+        beats.forEach((beat, beatIdx) => {
+          /* Resolve persona — beat overrides scene-level */
+          const persona = beat.persona || sc.persona || { side: 'system' };
+          ROWS.push({
+            vertical: d._key,
+            tenant: d._tenant,
+            scene: sceneIdx,
+            sceneTag: SCENE_TAGS[sceneIdx] || ('S' + (sceneIdx + 1)),
+            beat: beatIdx,
+            side: persona.side || 'system',
+            personaName: persona.name || '',
+            head: beat.beatHead || beat.head || (beatIdx === 0 ? sc.headline : '') || '',
+            lede: beat.beatLede || beat.lede || (beatIdx === 0 ? sc.lede : '') || ''
+          });
+        });
+      });
+    });
+
+    render();
+  } catch (err) {
+    $('err').hidden = false;
+    $('err').textContent = 'Could not load verticals: ' + (err.message || err);
+  }
+}
+
+function filterRows(){
+  const fv = $('f-vertical').value;
+  const fs = $('f-scene').value;
+  const fside = $('f-side').value;
+  const q = $('f-search').value.trim().toLowerCase();
+  return ROWS.filter(r => {
+    if (fv && r.vertical !== fv) return false;
+    if (fs !== '' && String(r.scene) !== fs) return false;
+    if (fside && r.side !== fside) return false;
+    if (q) {
+      const hay = (r.head + ' ' + r.lede + ' ' + r.personaName + ' ' + r.tenant + ' ' + r.vertical).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function sortRows(rows){
+  return rows.slice().sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av < bv) return -1 * sortDir;
+    if (av > bv) return  1 * sortDir;
+    /* tiebreak on scene then beat for stable ordering */
+    if (a.scene !== b.scene) return a.scene - b.scene;
+    return a.beat - b.beat;
+  });
+}
+
+function render(){
+  const filtered = sortRows(filterRows());
+  const tbody = $('rows');
+  tbody.innerHTML = '';
+  let prevSide = null, prevVertical = null;
+  filtered.forEach(r => {
+    const tr = document.createElement('tr');
+    /* Mark a row as a persona flip so the eye catches handoffs while scanning */
+    const flip = (prevVertical === r.vertical) && (prevSide !== null) && (prevSide !== r.side);
+    if (flip) tr.classList.add('persona-flip');
+    prevSide = r.side;
+    prevVertical = r.vertical;
+    tr.innerHTML =
+      '<td class="col-vertical" title="' + esc(r.tenant) + '">' + esc(r.vertical) + '</td>' +
+      '<td class="col-scene">' + esc(r.sceneTag) + '</td>' +
+      '<td class="col-beat">' + (r.beat + 1) + '/' + (r.beat + 1 === 5 ? 5 : '5') + '</td>' +
+      '<td class="col-side ' + esc(r.side) + '">' + esc(r.side) + (r.personaName ? ' · ' + esc(r.personaName) : '') + '</td>' +
+      '<td class="col-head editable" contenteditable="true" data-field="head" data-key="' + esc(r.vertical) + '" data-scene="' + r.scene + '" data-beat="' + r.beat + '">' + esc(r.head) + '</td>' +
+      '<td class="col-lede editable" contenteditable="true" data-field="lede" data-key="' + esc(r.vertical) + '" data-scene="' + r.scene + '" data-beat="' + r.beat + '">' + r.lede + '</td>';
+    tbody.appendChild(tr);
+  });
+  $('empty').hidden = filtered.length > 0;
+  $('stats').textContent = filtered.length + ' of ' + ROWS.length + ' beats';
+  /* Sort indicator */
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === sortKey);
+    const sortSpan = th.querySelector('.sort');
+    if (th.dataset.sort === sortKey) sortSpan.textContent = sortDir > 0 ? '↑' : '↓';
+    else sortSpan.textContent = '↕';
+  });
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Inline edit save — fires on blur if the cell is dirty. Routes through
+   /api/builder/save-beat which writes to /stories/_shared/vertical-overrides.json. */
+function attachEditHandlers(){
+  document.body.addEventListener('focusin', e => {
+    if (e.target.classList && e.target.classList.contains('editable')) {
+      e.target.dataset.original = e.target.innerHTML;
+    }
+  });
+  document.body.addEventListener('input', e => {
+    if (e.target.classList && e.target.classList.contains('editable')) {
+      const orig = e.target.dataset.original || '';
+      e.target.classList.toggle('dirty', e.target.innerHTML !== orig);
+    }
+  });
+  document.body.addEventListener('focusout', async e => {
+    if (!e.target.classList || !e.target.classList.contains('editable')) return;
+    if (!e.target.classList.contains('dirty')) return;
+    const cell = e.target;
+    const field = cell.dataset.field;
+    const key = cell.dataset.key;
+    const scene = parseInt(cell.dataset.scene, 10);
+    const beat = parseInt(cell.dataset.beat, 10);
+    /* Pull head + lede off both cells in this row so the override saves
+       both together — server merges into a single beat object. */
+    const tr = cell.closest('tr');
+    const headCell = tr.querySelector('[data-field="head"]');
+    const ledeCell = tr.querySelector('[data-field="lede"]');
+    const payload = {
+      vertical: key, scene, beat,
+      beatHead: headCell ? headCell.textContent : '',
+      beatLede: ledeCell ? ledeCell.innerHTML : ''
+    };
+    try {
+      const r = await fetch('/api/builder/save-beat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await r.json();
+      if (data.ok) {
+        cell.classList.remove('dirty');
+        cell.classList.add('saved');
+        setTimeout(() => cell.classList.remove('saved'), 1200);
+        showToast('Saved · ' + key + ' · scene ' + (scene + 1) + ' beat ' + (beat + 1));
+      } else {
+        showToast(data.error || 'Save failed', 2400);
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('401')) {
+        showToast('Unlock admin first', 2000);
+        if (window.AdminAuth) window.AdminAuth.prompt();
+      } else {
+        showToast('Save error: ' + err.message, 2400);
+      }
+    }
+  });
+}
+
+/* Sort header clicks */
+document.querySelector('thead').addEventListener('click', e => {
+  const th = e.target.closest('th');
+  if (!th || !th.dataset.sort) return;
+  if (sortKey === th.dataset.sort) sortDir = -sortDir;
+  else { sortKey = th.dataset.sort; sortDir = 1; }
+  render();
+});
+
+/* Filter changes */
+['f-vertical','f-scene','f-side','f-search'].forEach(id => {
+  $(id).addEventListener('input', render);
+});
+
+attachEditHandlers();
+loadAll();
+
+/* Prompt for admin auth on first load so the inline edits actually save. */
+window.addEventListener('load', () => {
+  if (window.AdminAuth && !window.AdminAuth.isUnlocked()) {
+    window.AdminAuth.prompt();
+  }
+});
+</script>
+</body>
+</html>
