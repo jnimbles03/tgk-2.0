@@ -146,7 +146,12 @@
     25%  { opacity: 1; }
     100% { transform: translateX(100%); opacity: 0; }
   }
-  .sidebar { position: relative; }
+  /* (Removed 2026-05-06) Earlier override `.sidebar { position: relative; }`
+     forced the sidebar back into flex flow alongside the .body::before
+     spacer, which doubled the rail's visual width and squeezed the stage
+     to ~52%. The sidebar's main rule (line ~73) already sets position:absolute,
+     and that is itself a positioning context — the .sidebar::before sweep
+     anchors against it correctly without needing `position: relative`. */
   .sidebar::before {
     content: "";
     position: absolute; left: 0; right: 0; top: 0; bottom: 0;
@@ -271,61 +276,10 @@
   }
   body.calibrate .lead-hint{display:none !important;}
 
-  /* Persona-handoff hint — shown when autoplay pauses at a persona switch.
-     Required manual gesture (click anywhere on the stage / arrow / Next /
-     spacebar) before the story moves to the next actor. The pulsing arrow
-     telegraphs "you've got the wheel". Hidden by default; JS toggles
-     [hidden] off when paused-for-persona is true. */
-  .persona-handoff{
-    margin-top:14px;
-    padding:9px 12px;
-    background:rgba(75,0,233,0.06);
-    border:1px solid rgba(75,0,233,0.2);
-    border-radius:8px;
-    font-size:12.5px;
-    color:var(--ink-mid);
-    display:flex;
-    align-items:center;
-    gap:9px;
-    line-height:1.45;
-    letter-spacing:0.01em;
-    animation:handoffFadeIn 0.32s cubic-bezier(.34, 1.18, .64, 1);
-  }
-  .persona-handoff .handoff-arrow{
-    color:var(--ds-purple);
-    font-weight:700;
-    font-size:16px;
-    line-height:1;
-    animation:handoffArrow 1.4s ease-in-out infinite;
-    flex-shrink:0;
-  }
-  .persona-handoff .handoff-text strong{color:var(--ink);font-weight:600;}
-  .persona-handoff kbd{
-    font-family:ui-monospace,monospace;
-    font-size:10.5px;
-    padding:1px 5px;
-    background:#fff;
-    border:1px solid var(--hair);
-    border-radius:3px;
-    color:var(--ink-mid);
-    font-weight:600;
-    line-height:1;
-  }
-  @keyframes handoffArrow{
-    0%,100%{transform:translateX(0);opacity:0.7;}
-    50%{transform:translateX(3px);opacity:1;}
-  }
-  @keyframes handoffFadeIn{
-    from{opacity:0;transform:translateY(2px);}
-    to{opacity:1;transform:translateY(0);}
-  }
-  /* While paused-for-persona, glow the persona avatar so the eye knows
-     who's stepping in next — same purple as the cue. */
-  .sidebar.is-handoff-pending .persona .avatar{
-    box-shadow:0 0 0 3px rgba(75,0,233,0.32),0 0 0 6px rgba(75,0,233,0.12);
-    transition:box-shadow 0.32s ease;
-  }
-  body.calibrate .persona-handoff{display:none !important;}
+  /* Persona-handoff hint — RETIRED 2026-05-06.
+     Replaced by the persona-break sweep + keyboard-only model (Space + arrows).
+     The .persona-handoff DOM block, related JS show/hide logic, and the
+     .is-handoff-pending avatar glow are no longer used. CSS deleted. */
 
   /* ===================== Lead state — RETIRED (2026-05-06) ================
      Previously the sidebar widened from 24% to 48%, the headline swelled
@@ -599,13 +553,8 @@
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
       <div class="lead-hint" id="lead-hint" aria-hidden="true">Press <kbd>Space</kbd> to begin</div>
-      <!-- Persona-switch handoff cue. Shown only when autoplay is paused
-           because the next beat hands off to a different actor. Cleared
-           the moment the user manually advances. -->
-      <div class="persona-handoff" id="persona-handoff" aria-live="polite" hidden>
-        <span class="handoff-arrow">→</span>
-        <span class="handoff-text">Click or <kbd>→</kbd> to hand off to <strong id="handoff-actor">the next actor</strong></span>
-      </div>
+      <!-- Persona-handoff cue retired 2026-05-06. Persona-break sweep
+           replaces it; keyboard-only model (Space + arrows) drives navigation. -->
       <div class="foot-spacer"></div>
       <div class="beat-pips" id="beat-pips"></div>
       <div class="progress">
@@ -2795,19 +2744,25 @@ let raf = null;
    (Reduced from 4 options to 3 — the 1.25 increment was redundant with 1.5;
    adding 2x gives a meaningful "skip ahead" option for long demos.) */
 const ALLOWED_RATES = [1, 1.5, 2];
-/* Cold-open default is 1.5× so the first-gesture handoff into autoplay
-   feels brisk. If the user has previously chosen a rate this session/
-   browser, honor that instead — once they pick, we don't override.
-   The localStorage key was previously seeded to '1' even on cold opens
-   that never touched the picker, so we treat a missing key (not just an
-   invalid value) as "user has not chosen yet." */
+/* SPEED_MULTIPLIER (locked 2026-05-06) bakes the user-perceived "1× feels
+   too slow" feedback into the baseline. The displayed rate (1× / 1.5× / 2×)
+   is multiplied by 1.75 before being applied to the autoplay clock, so
+   1× displayed ≈ old 1.75× effective. The hint row + speed picker keep
+   the familiar labels; the demo just plays faster. Bumping this constant
+   later is the single-touch way to globally retune pacing. */
+const SPEED_MULTIPLIER = 1.75;
+
+/* Cold-open default is 1× now (was 1.5×) — combined with the multiplier
+   above, that puts cold-open at 1.75× effective, which matches the speed
+   the user signed off on. localStorage'd preferences still override; once
+   the user picks a rate, that choice sticks for the session. */
 let playbackRate = (() => {
   try {
     const stored = localStorage.getItem('tgkShell.playbackRate');
-    if (stored === null) return 1.5; // cold-open default
+    if (stored === null) return 1; // cold-open default (now 1×, was 1.5×)
     const v = parseFloat(stored);
-    return ALLOWED_RATES.includes(v) ? v : 1.5;
-  } catch (e) { return 1.5; }
+    return ALLOWED_RATES.includes(v) ? v : 1;
+  } catch (e) { return 1; }
 })();
 
 /* Tracks the currently-rendered hotspot element + which iframe target it
@@ -3652,11 +3607,12 @@ function tickTimer(){
   // Per-beat duration so autoplay distributes scene.duration across all
   // beats — used to advance one beat per (scene.duration / beats) ms.
   const beatDur = scene.duration / Math.max(1, scene.hotspots.length);
-  // Scale wall-clock elapsed by playbackRate. At 1.5×, the timer counts 1.5×
-  // faster and the advance threshold trips proportionally sooner. Displayed
-  // total stays the canonical scene.duration so users see standard timestamps.
-  const sceneElapsed = (performance.now() - sceneStart) * playbackRate;
-  const beatElapsed  = (performance.now() - beatStart)  * playbackRate;
+  // Scale wall-clock elapsed by playbackRate × SPEED_MULTIPLIER. At 1×
+  // displayed × 1.75 multiplier, beats trip 1.75× faster than scene.duration
+  // would suggest. The timer display also moves at the boosted speed so the
+  // viewer sees the readout climb in lockstep with the actual pace.
+  const sceneElapsed = (performance.now() - sceneStart) * playbackRate * SPEED_MULTIPLIER;
+  const beatElapsed  = (performance.now() - beatStart)  * playbackRate * SPEED_MULTIPLIER;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
     // Capture handoff intent against CURRENT cursor BEFORE advance
