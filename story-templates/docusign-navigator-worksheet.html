@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocuSign Navigator — AI Worksheet Demo</title>
+<meta name="description" content="Animated DocuSign Navigator AI Worksheet flow: NL search → worksheet generation → AI-extracted columns. Vertical copy swaps via ?preset=KEY.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --ds-purple:#4B00E9;--ds-purple-dark:#3B00BA;
+  --ds-purple-soft:#EEE8FF;--ds-purple-tint:#F5F1FF;
+  --ds-poppy:#FF5252;--ds-inkwell:#130032;
+  --bg:#FFFFFF;--bg-muted:#FAFAFB;--bg-shell:#F3F0EC;
+  --ink:#18181B;--ink-mid:#3F3F46;--ink-soft:#71717A;--ink-faint:#A1A1AA;
+  --hair:#E4E4E7;--hair-strong:#D4D4D8;
+  --ok:#16A34A;--ok-soft:#D1FADF;
+  --warn:#F59E0B;--warn-soft:#FEF3C7;
+  --ui-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--ui-font);color:var(--ink);background:var(--bg-shell);overflow:hidden;font-size:13px;line-height:1.5;}
+.stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px 24px 60px;}
+.mock{width:min(1320px,96vw);height:min(900px,calc(100vh - 100px));background:#fff;border-radius:10px;box-shadow:0 22px 60px rgba(19,0,50,.16),0 2px 8px rgba(19,0,50,.06);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+/* Top nav */
+.topnav{flex-shrink:0;height:54px;background:#fff;border-bottom:1px solid var(--hair);display:flex;align-items:center;padding:0 20px;gap:22px;}
+.topnav .grid{width:22px;height:22px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;}
+.topnav .grid span{background:var(--ink-mid);border-radius:1px;}
+.topnav .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px;color:var(--ds-inkwell);letter-spacing:-.01em;}
+.topnav .logo svg{width:22px;height:22px;}
+.topnav-tabs{display:flex;gap:2px;margin-left:4px;}
+.tab{font-size:13.5px;font-weight:500;color:var(--ink-mid);padding:18px 14px;position:relative;cursor:pointer;}
+.tab.active{color:var(--ink);font-weight:600;}
+.tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2.5px;background:var(--ds-purple);border-radius:2px;}
+.topnav .sp{flex:1;}
+.topnav .ic{width:20px;height:20px;color:var(--ink-mid);cursor:pointer;}
+.topnav .av{width:30px;height:30px;border-radius:50%;background:#FFD1A8;color:#7B4225;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+/* Body layout */
+.body{flex:1;display:flex;overflow:hidden;min-height:0;position:relative;isolation:isolate;}
+.rail{flex-shrink:0;width:220px;background:#fff;border-right:1px solid var(--hair);padding:14px 12px;display:flex;flex-direction:column;gap:2px;}
+.rail .cta{background:var(--ds-purple);color:#fff;font-size:13px;font-weight:700;padding:9px 14px;border-radius:5px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;cursor:pointer;}
+.rail .cta::after{content:"▾";margin-left:6px;font-weight:400;opacity:.8;}
+.rail-sec{margin-bottom:4px;}
+.rail-sec>.hdr{display:flex;align-items:center;gap:8px;padding:7px 8px 5px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;}
+.rail-sec>.hdr .ic{width:14px;height:14px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+.rail-sec>.hdr .sp{flex:1;}
+.rail-sec>.hdr .chev{width:10px;height:10px;stroke:var(--ink-soft);stroke-width:2;fill:none;}
+.rail-item{display:block;padding:6px 10px 6px 30px;font-size:12.5px;color:var(--ink-mid);border-radius:5px;cursor:pointer;}
+.rail-item.active{background:var(--ds-purple-tint);color:var(--ds-purple);font-weight:600;}
+.rail-badge{font-size:10px;background:var(--ds-purple);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px;}
+
+/* Content area */
+.content{flex:1;overflow:hidden;position:relative;background:#fff;}
+.scene{position:absolute;inset:0;opacity:0;transition:opacity .5s ease;overflow:auto;padding:22px 26px 26px;}
+.scene.on{opacity:1;}
+
+/* Breadcrumb */
+.breadcrumb{font-size:12px;color:var(--ink-soft);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.breadcrumb span{color:var(--ink-mid);}
+.breadcrumb .sep{color:var(--ink-faint);}
+.breadcrumb .cur{color:var(--ink);font-weight:500;}
+
+/* Page header */
+.ph{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.ph h1{font-size:22px;font-weight:700;letter-spacing:-.015em;color:var(--ink);}
+.ai-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:14px;background:var(--ds-purple-soft);color:var(--ds-purple);font-size:11.5px;font-weight:600;}
+.ai-chip svg{width:11px;height:11px;fill:currentColor;}
+
+/* Search / filter bar */
+.search-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.search-input{flex:1;max-width:440px;display:flex;align-items:center;gap:8px;border:1px solid var(--hair-strong);border-radius:6px;padding:7px 12px;font-size:13px;color:var(--ink-soft);background:#fff;}
+.search-input svg{width:14px;height:14px;stroke:var(--ink-faint);stroke-width:2;fill:none;flex-shrink:0;}
+.search-input .cursor{display:inline-block;width:1px;height:13px;background:var(--ds-purple);margin-left:1px;animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:5px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--hair-strong);background:#fff;color:var(--ink-mid);}
+.btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+.btn.primary{background:var(--ds-purple);color:#fff;border-color:var(--ds-purple);}
+.btn.sm{padding:5px 11px;font-size:12px;}
+
+/* Filter chips */
+.filter-row{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--hair-strong);border-radius:14px;padding:4px 11px;font-size:12px;color:var(--ink);background:#fff;cursor:pointer;}
+.chip .x{color:var(--ink-soft);margin-left:2px;font-size:10px;}
+.chip.purple{background:var(--ds-purple-tint);border-color:var(--ds-purple-soft);color:var(--ds-purple);}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead tr{border-bottom:1.5px solid var(--hair-strong);}
+thead th{padding:8px 10px;font-weight:600;color:var(--ink-mid);text-align:left;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--hair);}
+tbody tr:hover{background:var(--bg-muted);}
+tbody td{padding:9px 10px;color:var(--ink);vertical-align:middle;}
+.doc-name{display:flex;align-items:center;gap:8px;}
+.doc-name .ic{width:26px;height:26px;background:var(--ds-purple-tint);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-name .ic svg{width:13px;height:13px;stroke:var(--ds-purple);stroke-width:2;fill:none;}
+.doc-name .nm{font-size:12.5px;color:var(--ink);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:10px;}
+.status-badge.active{background:var(--ok-soft);color:var(--ok);}
+.status-badge.inactive{background:var(--bg-muted);color:var(--ink-soft);}
+.status-badge.warn{background:var(--warn-soft);color:var(--warn);}
+.status-badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;}
+.ai-val{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;}
+.spark{color:var(--ds-purple);display:flex;align-items:center;}
+.spark svg{width:9px;height:9px;}
+.bool-yes{color:var(--ok);font-weight:600;}
+.bool-no{color:var(--ink-soft);}
+.tag-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--ds-purple-soft);color:var(--ds-purple);}
+.tag-badge.gray{background:var(--bg-muted);color:var(--ink-mid);}
+.tag-badge.ok{background:var(--ok-soft);color:var(--ok);}
+.tag-badge.warn{background:var(--warn-soft);color:var(--warn);}
+.pct-val{font-weight:600;color:var(--ink);}
+.text-val{color:var(--ink-mid);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:12px;color:var(--ink-soft);}
+.pagination select{border:1px solid var(--hair-strong);border-radius:5px;padding:3px 8px;font-size:12px;color:var(--ink);}
+.pagination .sp{flex:1;}
+.pg-arrows{display:flex;gap:4px;}
+.pg-arrows button{width:26px;height:26px;border:1px solid var(--hair-strong);background:#fff;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pg-arrows button svg{width:12px;height:12px;stroke:var(--ink-mid);stroke-width:2;fill:none;}
+
+/* Worksheet dropdown */
+.ws-dropdown{position:absolute;top:54px;right:8px;background:#fff;border:1px solid var(--hair-strong);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:50;min-width:280px;padding:6px 0;opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .3s;}
+.ws-dropdown.on{opacity:1;transform:translateY(0);}
+.ws-dd-item{padding:9px 16px;font-size:13px;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:10px;}
+.ws-dd-item:hover{background:var(--bg-muted);}
+.ws-dd-item svg{width:14px;height:14px;stroke:var(--ink-mid);stroke-width:2;fill:none;flex-shrink:0;}
+.ws-dd-item.active{color:var(--ds-purple);}
+.ws-dd-item.active svg{stroke:var(--ds-purple);}
+.ws-dd-div{border-top:1px solid var(--hair);margin:4px 0;}
+
+/* Worksheet description */
+.ws-desc{font-size:13px;color:var(--ink-mid);line-height:1.6;max-width:760px;margin-bottom:18px;}
+.ws-header-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px;}
+.ws-header-row h1{font-size:20px;font-weight:700;letter-spacing:-.015em;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.ws-check{width:20px;height:20px;background:var(--ok-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-check svg{width:11px;height:11px;stroke:var(--ok);stroke-width:2.5;fill:none;}
+.action-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+
+/* Modal overlay (scenes 2 & 3) */
+.modal-scrim{position:absolute;inset:0;background:rgba(19,0,50,.35);display:flex;align-items:center;justify-content:center;z-index:30;opacity:0;transition:opacity .4s;}
+.modal-scrim.on{opacity:1;}
+.modal{background:#fff;border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;display:flex;width:min(640px,90%);}
+.modal-left{width:200px;flex-shrink:0;background:linear-gradient(145deg,#3B00BA,var(--ds-purple),#7C3AED);display:flex;align-items:center;justify-content:center;padding:24px;}
+.modal-left svg{width:100%;max-width:120px;opacity:.9;}
+.modal-right{flex:1;padding:28px 28px 24px;}
+.modal-right h2{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.01em;}
+.modal-right .sub{font-size:12.5px;color:var(--ink-mid);line-height:1.5;margin-bottom:20px;}
+.modal-label{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.modal-helper{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+.modal-textarea{width:100%;height:70px;border:1.5px solid var(--ds-purple);border-radius:6px;padding:10px 12px;font-size:13px;font-family:var(--ui-font);color:var(--ink);resize:none;outline:none;line-height:1.5;}
+.char-count{font-size:11px;color:var(--ink-faint);text-align:right;margin-top:3px;margin-bottom:16px;}
+.examples-label{font-size:12px;font-weight:600;color:var(--ink-mid);margin-bottom:8px;}
+.example-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px;color:var(--ink-mid);cursor:pointer;}
+.example-item input[type=checkbox]{accent-color:var(--ds-purple);width:14px;height:14px;}
+.modal-footer{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);}
+.modal-footer .link{font-size:12.5px;color:var(--ds-purple);font-weight:500;cursor:pointer;text-decoration:underline;}
+.modal-footer .sp{flex:1;}
+
+/* Loading modal */
+.loading-modal{background:#fff;border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,.2);padding:36px 40px;width:min(460px,90%);text-align:center;}
+.loading-modal h2{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.loading-modal .query-quote{font-size:13px;color:var(--ink-mid);font-style:italic;margin-bottom:24px;line-height:1.5;padding:10px 14px;background:var(--bg-muted);border-radius:6px;border-left:3px solid var(--ds-purple);}
+.spinner{width:36px;height:36px;border:3px solid var(--ds-purple-soft);border-top-color:var(--ds-purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-status{font-size:13px;color:var(--ink-mid);margin-bottom:6px;}
+.loading-status2{font-size:12.5px;color:var(--ink-soft);opacity:0;transition:opacity .6s;}
+.loading-status2.on{opacity:1;}
+
+/* Select agreements panel (scene 4) */
+.s4-header{padding:22px 26px 16px;border-bottom:1px solid var(--hair);}
+.s4-header .back-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.s4-header .back-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-mid);cursor:pointer;}
+.s4-header .back-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+.s4-header h2{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.s4-header .nlq{font-size:12.5px;color:var(--ink-mid);margin-bottom:14px;}
+.ai-banner{background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border:1px solid var(--ds-purple-soft);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.ai-banner .mk{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-banner .mk svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;}
+.ai-banner .copy{flex:1;font-size:12px;color:var(--ink-mid);line-height:1.5;}
+.ai-banner .copy strong{color:var(--ink);}
+.s4-body{padding:16px 26px 20px;overflow:auto;}
+.s4-footer{padding:14px 26px;border-top:1px solid var(--hair);display:flex;align-items:center;gap:10px;background:#fff;}
+.s4-scene{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;opacity:0;transition:opacity .5s;overflow:hidden;background:#fff;}
+.s4-scene.on{opacity:1;}
+.selected-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sel-count{font-size:13px;font-weight:600;color:var(--ds-purple);background:var(--ds-purple-tint);border:1px solid var(--ds-purple-soft);padding:4px 12px;border-radius:14px;}
+
+/* Row stagger animation */
+@keyframes rowIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.row-anim td{animation:rowIn .25s ease forwards;}
+
+/* Preset chip */
+.preset-chip{position:fixed;bottom:14px;right:20px;display:flex;align-items:center;gap:8px;background:rgba(19,0,50,.82);backdrop-filter:blur(6px);border-radius:20px;padding:5px 12px 5px 8px;z-index:100;}
+.preset-chip label{font-size:11px;color:rgba(255,255,255,.6);font-weight:500;}
+.preset-chip select{background:transparent;border:none;outline:none;color:#fff;font-size:12px;font-weight:600;font-family:var(--ui-font);cursor:pointer;}
+.preset-chip select option{background:#1a0050;color:#fff;}
+
+/* Scene dots */
+.scene-dots{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:100;}
+.scene-dots .d{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .3s;}
+.scene-dots .d.on{background:#fff;}
+
+/* Pulse hotspot */
+@keyframes hotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,.35);}50%{box-shadow:0 0 0 6px rgba(75,0,233,0);}}
+.just-pulsed{animation:hotPulse .8s ease;}
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="mock">
+
+  <!-- Top nav -->
+  <div class="topnav">
+    <div class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#4B00E9" stroke-width="2" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="#4B00E9" stroke-width="2" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="#4B00E9" stroke-width="2" stroke-linejoin="round"/></svg>
+      Docusign
+    </div>
+    <div class="topnav-tabs">
+      <div class="tab">Home</div>
+      <div class="tab active" id="tab-agreements">Agreements</div>
+      <div class="tab">Templates</div>
+      <div class="tab" id="tab-insights">Insights</div>
+      <div class="tab">Admin</div>
+    </div>
+    <div class="sp"></div>
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <div class="av">CS</div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <!-- Left rail -->
+    <div class="rail">
+      <div class="cta">Start</div>
+      <div class="rail-sec">
+        <div class="hdr">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span style="flex:1;font-size:12.5px;font-weight:600;color:var(--ink);">All Agreements</span>
+          <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="rail-item">Drafts</div>
+        <div class="rail-item">In Progress</div>
+        <div class="rail-item active" id="rail-completed">Completed</div>
+        <div class="rail-item">Deleted</div>
+      </div>
+      <div class="rail-sec">
+        <div class="hdr">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span style="flex:1;font-size:12.5px;font-weight:600;color:var(--ink);">Folders</span>
+        </div>
+      </div>
+      <div class="rail-item" style="padding-left:14px;">Parties <span class="rail-badge">New</span></div>
+      <div class="rail-item" style="padding-left:14px;">Requests <span class="rail-badge">New</span></div>
+      <div class="rail-item" style="padding-left:14px;">Manage Workflows <span class="rail-badge">New</span></div>
+      <div class="rail-item" style="padding-left:14px;">PowerForms</div>
+      <div class="rail-item" style="padding-left:14px;">Bulk Send</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- SCENE 1: Navigator list -->
+      <div class="scene on" id="s1">
+        <div class="ph">
+          <h1>Completed Documents</h1>
+          <div class="ai-chip"><svg viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>AI-Assisted</div>
+        </div>
+        <div class="search-bar">
+          <div class="search-input">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span id="s1-query-text">Try keywords, phrases, or a question</span><span class="cursor" id="s1-cursor" style="display:none"></span>
+          </div>
+          <button class="btn"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Filters</button>
+          <button class="btn">Workspaces ▾</button>
+          <button class="btn primary" style="margin-left:auto">Add to ▾</button>
+        </div>
+        <div style="position:relative;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12.5px;color:var(--ink-soft);">
+            <span id="s1-result-count">1 - 25 of 347</span>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button class="btn sm">Show Insights</button>
+              <button class="btn sm primary" id="ws-btn" onclick="toggleDropdown()">Worksheets ▾</button>
+            </div>
+          </div>
+          <!-- Worksheet dropdown -->
+          <div class="ws-dropdown" id="ws-dropdown">
+            <div class="ws-dd-item active" id="dd-ws-title">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              <span id="dd-ws-name">Vendor Agreements Renewing Next Year…</span>
+            </div>
+            <div class="ws-dd-item">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              Prior worksheet
+            </div>
+            <div class="ws-dd-div"></div>
+            <div class="ws-dd-item">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              Generate New Worksheet with AI
+            </div>
+            <div class="ws-dd-item">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Manage all Worksheets
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px"><input type="checkbox" style="accent-color:var(--ds-purple)"></th>
+              <th>File Name</th>
+              <th>Parties</th>
+              <th>Status</th>
+              <th>Agreement Type</th>
+              <th>Total Contract Value</th>
+              <th>Effective Date</th>
+              <th>Expiration Date</th>
+            </tr></thead>
+            <tbody id="s1-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <select><option>25 / Page</option></select>
+          <span class="sp"></span>
+          <span>1 - 25 of 347</span>
+          <div class="pg-arrows">
+            <button><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 5: Worksheet view -->
+      <div class="scene" id="s5">
+        <div class="breadcrumb">
+          <span>Completed Documents</span><span class="sep">›</span>
+          <span>Worksheets</span><span class="sep">›</span>
+          <span class="cur" id="s5-title-crumb">Vendor Agreements Renewing Next Year…</span>
+        </div>
+        <div class="ws-header-row">
+          <div class="ws-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h1 id="s5-title">Vendor Agreements Renewing Next Year with Price Increase Language</h1>
+        </div>
+        <div class="ws-desc" id="s5-desc">Reviews vendor agreements scheduled for renewal next year to identify price increase language, prioritize renegotiations, and assess commercial exposure.</div>
+        <div class="action-bar">
+          <button class="btn sm"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add agreements</button>
+          <button class="btn sm"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Filters</button>
+          <button class="btn sm primary" style="margin-left:auto" id="s5-add-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42"/></svg><span id="s5-add-label">+ Add info about 11 agreements</span></button>
+        </div>
+        <div class="tbl-wrap" data-hotspot="worksheet_view">
+          <table>
+            <thead><tr id="s5-thead">
+              <th style="width:28px"><input type="checkbox" style="accent-color:var(--ds-purple)"></th>
+              <th>File Name</th>
+              <!-- dynamic columns injected -->
+            </tr></thead>
+            <tbody id="s5-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <select><option>25 / Page</option></select>
+          <span class="sp"></span>
+          <span id="s5-count">1 - 11 of 11</span>
+          <div class="pg-arrows">
+            <button><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /body -->
+
+  <!-- SCENE 2 modal: Start a worksheet -->
+  <div class="modal-scrim" id="s2-scrim">
+    <div class="modal">
+      <div class="modal-left">
+        <svg viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="20" width="100" height="110" rx="6" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <rect x="10" y="20" width="100" height="22" rx="6" fill="rgba(255,255,255,.2)"/>
+          <rect x="10" y="36" width="100" height="6" fill="rgba(255,255,255,.2)"/>
+          <line x1="20" y1="60" x2="100" y2="60" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="20" y1="74" x2="100" y2="74" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="20" y1="88" x2="100" y2="88" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="20" y1="102" x2="80" y2="102" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="50" y1="42" x2="50" y2="130" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <line x1="80" y1="42" x2="80" y2="130" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <circle cx="95" cy="115" r="14" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+          <path d="M90 115 L95 120 L102 110" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="modal-right">
+        <h2>Start a worksheet</h2>
+        <div class="sub">We'll use AI to add relevant agreement data that you can track, compare, and analyze.</div>
+        <div class="modal-label">Describe the problem you want to solve <span style="color:var(--ds-poppy)">*</span></div>
+        <div class="modal-helper">Full sentences of at least 100 characters work best.</div>
+        <textarea class="modal-textarea" id="s2-textarea" readonly></textarea>
+        <div class="char-count"><span id="s2-charcount">0</span> characters</div>
+        <div class="examples-label">Try these examples:</div>
+        <div id="s2-examples"></div>
+        <div class="modal-footer">
+          <span class="link">What is a worksheet?</span>
+          <div class="sp"></div>
+          <button class="btn" style="margin-right:6px">Cancel</button>
+          <button class="btn primary" id="s2-generate-btn" style="opacity:.5">Generate Worksheet Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 3 modal: Loading -->
+  <div class="modal-scrim" id="s3-scrim">
+    <div class="loading-modal">
+      <h2>Getting you a recommendation...</h2>
+      <div class="loading-modal query-quote" id="s3-query"></div>
+      <div class="spinner"></div>
+      <div class="loading-status">Building the recommendation...</div>
+      <div class="loading-status2" id="s3-status2">Scoping to <span id="s3-scope"></span> agreements...</div>
+    </div>
+  </div>
+
+  <!-- SCENE 4: Select agreements (full overlay) -->
+  <div class="s4-scene" id="s4-scene">
+    <div class="s4-header">
+      <div class="back-row">
+        <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back</div>
+        <div style="flex:1"></div>
+        <svg style="width:16px;height:16px;stroke:var(--ink-mid);stroke-width:2;fill:none;cursor:pointer" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <h2>Select agreements for your worksheet</h2>
+      <div class="nlq" id="s4-nlq"></div>
+      <div class="ai-banner">
+        <div class="mk"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+        <div class="copy">Scoped to <strong id="s4-scope-type">vendor-related</strong> agreement types · limited to agreements with a <strong id="s4-date-context">renewal notice event next year</strong></div>
+        <button class="btn sm primary" id="s4-ask-btn">Ask AI about <span id="s4-count">11</span> agreements</button>
+      </div>
+      <div class="search-bar" style="margin-bottom:0">
+        <div class="search-input">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span id="s4-search-placeholder" style="color:var(--ink-faint)">Try keywords or phrases</span>
+        </div>
+        <button class="btn sm"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Filters</button>
+        <div class="chip purple" id="s4-chip1">Agreement Type: <span id="s4-type-chip">Consulting Agreem...</span> <span class="x">×</span></div>
+        <div class="chip purple" id="s4-chip2"><span id="s4-date-chip">Renewal Notice Date: between 1/1/26...</span> <span class="x">×</span></div>
+        <button class="btn sm primary" style="margin-left:auto">Save</button>
+      </div>
+    </div>
+    <div class="s4-body">
+      <div class="selected-row">
+        <div class="sel-count" id="s4-sel-count">11 Selected ▾</div>
+        <button class="btn sm">Show Selected Agreements</button>
+      </div>
+      <div class="tbl-wrap" data-hotspot="select_agreements">
+        <table>
+          <thead><tr>
+            <th style="width:28px"><input type="checkbox" checked style="accent-color:var(--ds-purple)"></th>
+            <th>File Name</th><th>Parties</th><th>Status</th><th>Agreement Type</th>
+            <th>Total Contract Value</th><th>Effective Date</th><th>Expiration Date</th>
+            <th id="s4-date-col">Renewal Notice Date</th>
+          </tr></thead>
+          <tbody id="s4-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <select><option>25 / Page</option></select>
+        <span class="sp"></span>
+        <span id="s4-pagination">1 - 11 of 11</span>
+      </div>
+    </div>
+    <div class="s4-footer">
+      <button class="btn">Cancel</button>
+      <div style="flex:1"></div>
+      <button class="btn primary" id="s4-add-all">Add <span id="s4-add-count">11</span> agreements</button>
+    </div>
+  </div>
+
+</div><!-- /mock -->
+</div><!-- /stage -->
+
+<div class="scene-dots" id="dots">
+  <div class="d on"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+</div>
+
+<div class="preset-chip">
+  <label>Vertical</label>
+  <select id="preset-select"></select>
+</div>
+
+<script>
+/* ================================================================
+   PRESETS — 7 verticals
+   ================================================================ */
+const PRESETS = {
+
+"financial-services": {
+  label:"Financial Services",
+  s1SearchQuery:'which vendor agreements expire in 90 days?',
+  nlQuery:'Find all vendor agreements that will renew next year that have price increase language in them',
+  agreementType:'Vendor Agreements',
+  dateFilterLabel:'Renewal Notice Date: between 1/1/26...',
+  dateColHeader:'Renewal Notice Date',
+  s4ScopeType:'vendor-related',
+  s4DateContext:'renewal notice event next year',
+  worksheetTitle:'Vendor Agreements Renewing Next Year with Price Increase Language',
+  worksheetDesc:'Reviews vendor agreements scheduled for renewal next year to identify price increase language, prioritize renegotiations, and assess commercial exposure.',
+  worksheetCount:11,
+  exampleQueries:['Analyze active vendor agreements expiring soon','What agreements do we have with our top three vendors?','Track recently signed MSAs'],
+  agreements:[
+    ['Elco Limited_Acme Renewal Order Form.pdf','Elco Limited','active','Order Form','$24,000 USD','1/15/2024','1/14/2026'],
+    ['Wayne Enterprises MSA.docx','Wayne Enterprises','active','Master Service Agreement','$148,500 USD','3/1/2023','2/28/2027'],
+    ['Stark Industries MSA.docx','Stark Industries','active','Master Service Agreement','$92,000 USD','6/1/2023','5/31/2026'],
+    ['Globex Corp Services Agreement','Globex Corp','inactive','Services Agreement','$34,200 USD','8/10/2022','8/9/2025'],
+    ['Parker Industries SOW Q2.pdf','Parker Industries','active','Statement of Work','$18,750 USD','4/1/2024','3/31/2026'],
+    ['LexCorp Consulting Agreement.docx','LexCorp','active','Consulting Agreement','$67,000 USD','9/1/2023','8/31/2026'],
+    ['Xavier Institute MSA-Addon','Xavier Institute','active','MSA Addendum','$12,400 USD','11/1/2024','10/31/2026'],
+    ['Initech IT Services Agreement','Initech LLC','inactive','Services Agreement','$55,600 USD','2/1/2022','1/31/2025'],
+  ],
+  filteredAgreements:[
+    ['Elco Limited_Acme Renewal Order Form.pdf','Elco Limited','active','Order Form','$24,000 USD','1/15/2024','1/14/2026','11/15/2025'],
+    ['Wayne Enterprises MSA.docx','Wayne Enterprises','active','Master Service Agreement','$148,500 USD','3/1/2023','2/28/2027','12/1/2026'],
+    ['Stark Industries MSA.docx','Stark Industries','active','Master Service Agreement','$92,000 USD','6/1/2023','5/31/2026','3/2/2026'],
+    ['Parker Industries SOW Q2.pdf','Parker Industries','active','Statement of Work','$18,750 USD','4/1/2024','3/31/2026','1/15/2026'],
+    ['LexCorp Consulting Agreement.docx','LexCorp','active','Consulting Agreement','$67,000 USD','9/1/2023','8/31/2026','6/1/2026'],
+    ['Xavier Institute MSA-Addon','Xavier Institute','active','MSA Addendum','$12,400 USD','11/1/2024','10/31/2026','8/1/2026'],
+    ['Hammer Industries MSA.docx','Hammer Industries','active','Master Service Agreement','$204,000 USD','1/1/2024','12/31/2026','10/1/2026'],
+    ['Morris Facility Services Agreement','Morris Group','active','Services Agreement','$38,900 USD','7/1/2024','6/30/2026','4/1/2026'],
+    ['Cyberdyne Systems Licensing Agreement','Cyberdyne Systems','active','Licensing Agreement','$310,000 USD','5/1/2023','4/30/2026','2/1/2026'],
+    ['Umbrella Corp IT MSA','Umbrella Corp','active','Master Service Agreement','$76,500 USD','8/15/2024','8/14/2027','6/15/2027'],
+    ['OCP Industrial Services MSA','OCP Holdings','active','Master Service Agreement','$128,000 USD','2/1/2024','1/31/2027','11/1/2026'],
+  ],
+  aiColumns:[
+    {key:'Renewal Notice Date',type:'date'},
+    {key:'Renewal Type',type:'tag'},
+    {key:'Price Cap Increase %',type:'pct'},
+    {key:'Has Price Increase Language',type:'bool'},
+    {key:'Price Increase Summary',type:'text'},
+  ],
+  worksheetRows:[
+    ['Elco Limited_Acme Renewal Order Form.pdf','11/15/2025','Auto Renew','5%','Yes','CPI-indexed, capped at 5% annually'],
+    ['Wayne Enterprises MSA.docx','12/1/2026','Manual Renew','—','No','No price escalation language found'],
+    ['Stark Industries MSA.docx','3/2/2026','Auto Renew','8%','Yes','8% cap; triggers on 60-day notice'],
+    ['Parker Industries SOW Q2.pdf','1/15/2026','Manual Renew','3%','Yes','Fixed 3% annual increase per SOW'],
+    ['LexCorp Consulting Agreement.docx','6/1/2026','Auto Renew','—','No','Rates fixed for term; no escalation'],
+    ['Xavier Institute MSA-Addon','8/1/2026','Auto Renew','5%','Yes','CPI or 5%, whichever is lower'],
+    ['Hammer Industries MSA.docx','10/1/2026','Manual Renew','6%','Yes','6% cap; mutual written consent req.'],
+    ['Morris Facility Services Agreement','4/1/2026','Auto Renew','4%','Yes','Labor cost pass-through, 4% ceiling'],
+    ['Cyberdyne Systems Licensing Agreement','2/1/2026','Auto Renew','10%','Yes','Technology fee escalation, 10% max'],
+    ['Umbrella Corp IT MSA','6/15/2027','Manual Renew','—','No','Flat rate; no escalation provision'],
+    ['OCP Industrial Services MSA','11/1/2026','Auto Renew','7%','Yes','Market rate adjustment, 7% annually'],
+  ],
+},
+
+"healthcare-provider": {
+  label:"Healthcare — Provider",
+  s1SearchQuery:'which payor contracts are up for renegotiation?',
+  nlQuery:'Find all payor contracts due for renegotiation in the next 12 months with rate adjustment clauses',
+  agreementType:'Payor Contracts',
+  dateFilterLabel:'Contract End Date: next 12 months',
+  dateColHeader:'Contract End Date',
+  s4ScopeType:'payor',
+  s4DateContext:'contract end date within 12 months',
+  worksheetTitle:'Payor Contracts Due for Renegotiation with Rate Adjustment Language',
+  worksheetDesc:'Identifies payor contracts approaching renegotiation windows and flags rate adjustment clauses to support proactive contracting strategy and reimbursement planning.',
+  worksheetCount:9,
+  exampleQueries:['Show payor contracts expiring before Q4','Which payers have most-favored nation clauses?','Find contracts with quality bonus provisions'],
+  agreements:[
+    ['BCBS Illinois Provider Agreement','Blue Cross Blue Shield IL','active','Network Agreement','—','1/1/2022','12/31/2026'],
+    ['Aetna Professional Services Agreement','Aetna Health Inc.','active','Provider Service Agreement','—','4/1/2023','3/31/2026'],
+    ['UnitedHealth PSA — Midwest Region','UnitedHealth Group','active','Provider Service Agreement','—','7/1/2022','6/30/2026'],
+    ['Cigna Network Participation Agreement','Cigna Health','active','Network Agreement','—','1/1/2023','12/31/2025'],
+    ['Humana Value-Based Contract','Humana Inc.','active','Value-Based Agreement','—','10/1/2023','9/30/2026'],
+    ['Centene Medicaid Agreement','Centene Corporation','active','Managed Care Agreement','—','6/1/2022','5/31/2026'],
+    ['Molina Healthcare Contract','Molina Healthcare','inactive','Network Agreement','—','1/1/2021','12/31/2024'],
+    ['Oscar Health Network Agreement','Oscar Health','active','Network Agreement','—','3/1/2024','2/28/2027'],
+  ],
+  filteredAgreements:[
+    ['BCBS Illinois Provider Agreement','Blue Cross Blue Shield IL','active','Network Agreement','—','1/1/2022','12/31/2026','9/30/2026'],
+    ['Aetna Professional Services Agreement','Aetna Health Inc.','active','Provider Service Agreement','—','4/1/2023','3/31/2026','12/31/2025'],
+    ['UnitedHealth PSA — Midwest Region','UnitedHealth Group','active','Provider Service Agreement','—','7/1/2022','6/30/2026','3/31/2026'],
+    ['Cigna Network Participation Agreement','Cigna Health','active','Network Agreement','—','1/1/2023','12/31/2026','9/30/2026'],
+    ['Humana Value-Based Contract','Humana Inc.','active','Value-Based Agreement','—','10/1/2023','9/30/2026','6/30/2026'],
+    ['Centene Medicaid Agreement','Centene Corporation','active','Managed Care Agreement','—','6/1/2022','5/31/2026','2/28/2026'],
+    ['Anthem BlueCross Commercial Plan','Anthem Inc.','active','Network Agreement','—','5/1/2023','4/30/2026','1/31/2026'],
+    ['Kaiser Foundation Health Plan PSA','Kaiser Foundation','active','Provider Service Agreement','—','9/1/2023','8/31/2026','5/31/2026'],
+    ['Highmark Blue Shield Agreement','Highmark Health','active','Network Agreement','—','2/1/2024','1/31/2027','10/31/2026'],
+  ],
+  aiColumns:[
+    {key:'Contract End Date',type:'date'},
+    {key:'Rate Adjustment Type',type:'tag'},
+    {key:'Reimbursement Rate Change %',type:'pct'},
+    {key:'Has Rate Floor Language',type:'bool'},
+    {key:'Negotiation Priority',type:'text'},
+  ],
+  worksheetRows:[
+    ['BCBS Illinois Provider Agreement','9/30/2026','Annual Escalator','4.2%','Yes','High — $18M revenue; floor at Medicare+5%'],
+    ['Aetna Professional Services Agreement','12/31/2025','CPI-Linked','+3.1%','No','Critical — expires in 90 days'],
+    ['UnitedHealth PSA — Midwest Region','3/31/2026','Market Rate','—','Yes','High — largest commercial payer volume'],
+    ['Cigna Network Participation Agreement','9/30/2026','Fixed Escalator','2.5%','No','Medium — renewal standard terms expected'],
+    ['Humana Value-Based Contract','6/30/2026','Quality Bonus','+5% max','Yes','High — VBC performance bonus at risk'],
+    ['Centene Medicaid Agreement','2/28/2026','State-Indexed','—','Yes','Critical — Medicaid rate refresh required'],
+    ['Anthem BlueCross Commercial Plan','1/31/2026','CPI + Quality','3.8%','Yes','High — includes Star Rating adjustment'],
+    ['Kaiser Foundation Health Plan PSA','5/31/2026','Annual Step','2.0%','No','Medium — stable relationship, routine renegotiation'],
+    ['Highmark Blue Shield Agreement','10/31/2026','Market Basket','+4.0%','Yes','Medium — rate floor triggers at 95% Medicare'],
+  ],
+},
+
+"healthcare-payer": {
+  label:"Healthcare — Payer",
+  s1SearchQuery:'which provider network agreements have termination risk?',
+  nlQuery:'Identify provider network agreements expiring this year with termination without cause or exclusivity provisions',
+  agreementType:'Provider Network Agreements',
+  dateFilterLabel:'Expiration Date: within 12 months',
+  dateColHeader:'Termination Notice Due',
+  s4ScopeType:'provider network',
+  s4DateContext:'expiration date within 12 months',
+  worksheetTitle:'Provider Network Agreements with Termination Risk Provisions',
+  worksheetDesc:'Surfaces provider agreements at risk of termination or exclusivity conflicts to support network adequacy planning, member continuity, and strategic renegotiation.',
+  worksheetCount:10,
+  exampleQueries:['Find providers with open credentialing issues','Which network agreements include exclusivity carve-outs?','Show contracts with termination without cause provisions'],
+  agreements:[
+    ['Mercy Health System Network Agreement','Mercy Health','active','Hospital Network Agreement','—','1/1/2022','12/31/2026'],
+    ['Northwestern Medicine PSA','Northwestern Medicine','active','Physician Group Agreement','—','4/1/2023','3/31/2026'],
+    ['Advocate Aurora Health Contract','Advocate Aurora','active','Health System Agreement','—','6/1/2022','5/31/2026'],
+    ['Rush University Medical Group PSA','Rush University Med','active','Physician Group Agreement','—','3/1/2023','2/28/2026'],
+    ['DuPage Medical Group Network Agreement','DuPage Medical','active','Multi-Specialty Agreement','—','7/1/2023','6/30/2026'],
+    ['Suburban Radiology Associates PSA','Suburban Radiology','inactive','Ancillary Agreement','—','1/1/2021','12/31/2025'],
+    ['Midwest Oncology Partners Agreement','Midwest Oncology','active','Specialty Agreement','—','10/1/2023','9/30/2026'],
+    ['Lakeshore Behavioral Health Contract','Lakeshore Behavioral','active','Behavioral Health Agreement','—','5/1/2024','4/30/2027'],
+  ],
+  filteredAgreements:[
+    ['Mercy Health System Network Agreement','Mercy Health','active','Hospital Network Agreement','—','1/1/2022','12/31/2026','9/30/2026'],
+    ['Northwestern Medicine PSA','Northwestern Medicine','active','Physician Group Agreement','—','4/1/2023','3/31/2026','12/31/2025'],
+    ['Advocate Aurora Health Contract','Advocate Aurora','active','Health System Agreement','—','6/1/2022','5/31/2026','2/28/2026'],
+    ['Rush University Medical Group PSA','Rush University Med','active','Physician Group Agreement','—','3/1/2023','2/28/2026','11/30/2025'],
+    ['DuPage Medical Group Network Agreement','DuPage Medical','active','Multi-Specialty Agreement','—','7/1/2023','6/30/2026','3/31/2026'],
+    ['Suburban Radiology Associates PSA','Suburban Radiology','active','Ancillary Agreement','—','1/1/2024','12/31/2026','9/30/2026'],
+    ['Midwest Oncology Partners Agreement','Midwest Oncology','active','Specialty Agreement','—','10/1/2023','9/30/2026','6/30/2026'],
+    ['Carle Health Physician Network PSA','Carle Health','active','Physician Group Agreement','—','8/1/2023','7/31/2026','4/30/2026'],
+    ['Illinois Bone & Joint Institute PSA','IBJI','active','Orthopedics Agreement','—','11/1/2024','10/31/2026','7/31/2026'],
+    ['Presence Health Behavioral Agreement','Presence Health','active','Behavioral Health Agreement','—','2/1/2024','1/31/2027','10/31/2026'],
+  ],
+  aiColumns:[
+    {key:'Termination Notice Due',type:'date'},
+    {key:'Has Without Cause Clause',type:'bool'},
+    {key:'Exclusivity Type',type:'tag'},
+    {key:'Panel Status',type:'tag'},
+    {key:'Network Risk Score',type:'text'},
+  ],
+  worksheetRows:[
+    ['Mercy Health System Network Agreement','9/30/2026','Yes','Non-Exclusive','Open','High — 14,200 members in-panel'],
+    ['Northwestern Medicine PSA','12/31/2025','Yes','Partial Exclusivity','Open','Critical — 90-day notice expires Dec'],
+    ['Advocate Aurora Health Contract','2/28/2026','No','Non-Exclusive','Open','Medium — renewal standard terms'],
+    ['Rush University Medical Group PSA','11/30/2025','Yes','Exclusivity Carve-Out','Restricted','High — carve-out may limit competing PSA'],
+    ['DuPage Medical Group Network Agreement','3/31/2026','No','Non-Exclusive','Open','Low — stable multi-specialty group'],
+    ['Suburban Radiology Associates PSA','9/30/2026','Yes','Non-Exclusive','Restricted','Medium — imaging adequacy concern'],
+    ['Midwest Oncology Partners Agreement','6/30/2026','Yes','Partial Exclusivity','Open','High — oncology network gap if terminated'],
+    ['Carle Health Physician Network PSA','4/30/2026','No','Non-Exclusive','Open','Low — routine renewal expected'],
+    ['Illinois Bone & Joint Institute PSA','7/31/2026','Yes','Non-Exclusive','Open','Medium — orthopedics volume risk'],
+    ['Presence Health Behavioral Agreement','10/31/2026','No','Non-Exclusive','Open','Low — behavioral health parity compliance'],
+  ],
+},
+
+"life-sciences": {
+  label:"Life Sciences",
+  s1SearchQuery:'which CRO agreements have milestone payments due?',
+  nlQuery:'Show all CRO and CMO agreements with milestone payment clauses and phase completion dates in the next 6 months',
+  agreementType:'CRO/CMO Agreements',
+  dateFilterLabel:'Phase Completion Date: next 6 months',
+  dateColHeader:'Phase Milestone Date',
+  s4ScopeType:'CRO and CMO',
+  s4DateContext:'phase completion dates in next 6 months',
+  worksheetTitle:'CRO/CMO Agreements with Upcoming Phase Milestones and Payment Triggers',
+  worksheetDesc:'Tracks clinical and manufacturing agreements with imminent milestone dates to proactively manage payment obligations, study continuity risk, and IP assignment implications.',
+  worksheetCount:9,
+  exampleQueries:['Find agreements with unmet enrollment milestones','Which sponsors have IP assignment provisions?','Show CMO agreements with force majeure triggers'],
+  agreements:[
+    ['IQVIA Phase II CTA — Study NCT-04421','IQVIA Inc.','active','Clinical Trial Agreement','$4,200,000 USD','3/1/2023','2/28/2027'],
+    ['Covance Bioanalytical Services Agreement','Covance (Labcorp)','active','Master Services Agreement','$1,850,000 USD','6/1/2022','5/31/2026'],
+    ['PPD Global Phase III CRO Agreement','PPD Inc.','active','CRO Master Agreement','$8,750,000 USD','9/1/2023','8/31/2027'],
+    ['Charles River ADME Study Agreement','Charles River Labs','active','Study Agreement','$620,000 USD','1/1/2024','6/30/2025'],
+    ['WuXi Biologics CMO Agreement','WuXi Biologics','active','Manufacturing Agreement','$12,500,000 USD','4/1/2023','3/31/2028'],
+    ['Lonza Pharma CMO Drug Substance','Lonza Group','active','Drug Substance Agreement','$7,200,000 USD','7/1/2023','6/30/2027'],
+    ['PRA Health Sciences Phase I CTA','PRA Health Sciences','inactive','Clinical Trial Agreement','$980,000 USD','2/1/2022','1/31/2025'],
+    ['Syneos Health Real World Evidence MSA','Syneos Health','active','Master Services Agreement','$2,100,000 USD','11/1/2023','10/31/2026'],
+  ],
+  filteredAgreements:[
+    ['IQVIA Phase II CTA — Study NCT-04421','IQVIA Inc.','active','Clinical Trial Agreement','$4,200,000 USD','3/1/2023','2/28/2027','6/15/2026'],
+    ['Covance Bioanalytical Services Agreement','Covance (Labcorp)','active','Master Services Agreement','$1,850,000 USD','6/1/2022','5/31/2026','4/1/2026'],
+    ['PPD Global Phase III CRO Agreement','PPD Inc.','active','CRO Master Agreement','$8,750,000 USD','9/1/2023','8/31/2027','7/31/2026'],
+    ['Charles River ADME Study Agreement','Charles River Labs','active','Study Agreement','$620,000 USD','1/1/2024','6/30/2026','5/15/2026'],
+    ['WuXi Biologics CMO Agreement','WuXi Biologics','active','Manufacturing Agreement','$12,500,000 USD','4/1/2023','3/31/2028','8/1/2026'],
+    ['Lonza Pharma CMO Drug Substance','Lonza Group','active','Drug Substance Agreement','$7,200,000 USD','7/1/2023','6/30/2027','6/1/2026'],
+    ['Syneos Health Real World Evidence MSA','Syneos Health','active','Master Services Agreement','$2,100,000 USD','11/1/2023','10/31/2026','5/30/2026'],
+    ['Parexel Regulatory Submissions CRO','Parexel International','active','Regulatory Services Agreement','$1,400,000 USD','5/1/2024','4/30/2027','7/1/2026'],
+    ['Catalent Biologics Fill-Finish CMO','Catalent Inc.','active','Fill-Finish Agreement','$5,800,000 USD','8/1/2023','7/31/2027','6/30/2026'],
+  ],
+  aiColumns:[
+    {key:'Phase Milestone Date',type:'date'},
+    {key:'Payment Trigger Amount',type:'text'},
+    {key:'Phase Status',type:'tag'},
+    {key:'Has IP Assignment',type:'bool'},
+    {key:'Override Clause',type:'text'},
+  ],
+  worksheetRows:[
+    ['IQVIA Phase II CTA — NCT-04421','6/15/2026','$850,000','On Track','Yes','Force majeure override; 30-day cure'],
+    ['Covance Bioanalytical Services Agreement','4/1/2026','$240,000','On Track','No','No override; fixed milestone schedule'],
+    ['PPD Global Phase III CRO Agreement','7/31/2026','$1,400,000','At Risk','Yes','Enrollment delay clause; penalty waiver'],
+    ['Charles River ADME Study Agreement','5/15/2026','$180,000','On Track','No','Partial delivery accepted per addendum'],
+    ['WuXi Biologics CMO Agreement','8/1/2026','$3,200,000','On Track','Yes','Regulatory delay clause; 60-day extension'],
+    ['Lonza Pharma CMO Drug Substance','6/1/2026','$1,050,000','On Track','Yes','GMP failure override; mutual termination'],
+    ['Syneos Health Real World Evidence MSA','5/30/2026','$420,000','On Track','No','No override; milestone payment fixed'],
+    ['Parexel Regulatory Submissions CRO','7/1/2026','$310,000','On Track','No','Agency delay exception; auto-extend'],
+    ['Catalent Biologics Fill-Finish CMO','6/30/2026','$720,000','At Risk','Yes','Supply chain clause; 45-day cure period'],
+  ],
+},
+
+"federal-govt": {
+  label:"Federal Government",
+  s1SearchQuery:'which contracts have option periods exercisable in 90 days?',
+  nlQuery:'Find all contracts with option periods exercisable in the next 90 days and their associated funding ceilings',
+  agreementType:'Federal Contracts',
+  dateFilterLabel:'Option Exercise Deadline: next 90 days',
+  dateColHeader:'Option Exercise Deadline',
+  s4ScopeType:'federal contract',
+  s4DateContext:'option exercise deadline within 90 days',
+  worksheetTitle:'Contracts with Option Periods Exercisable in Next 90 Days',
+  worksheetDesc:'Identifies contracts requiring timely option period decisions to avoid service gaps and ensure compliance with FAR option exercise notice requirements.',
+  worksheetCount:10,
+  exampleQueries:['Find IDIQ contracts nearing ceiling','Which task orders have incremental funding clauses?','Show contracts with CPARS reporting due'],
+  agreements:[
+    ['GSA OASIS+ Task Order — IT Modernization','Leidos Inc.','active','Task Order (IDIQ)','$14,200,000 USD','10/1/2023','9/30/2026'],
+    ['DoD DISA Cybersecurity Services IDIQ','Booz Allen Hamilton','active','Indefinite Delivery Contract','$28,500,000 USD','1/1/2023','12/31/2027'],
+    ['VA Health Informatics BPA','SAIC','active','Blanket Purchase Agreement','$6,800,000 USD','4/1/2024','3/31/2026'],
+    ['DHS Data Analytics Services Contract','Palantir Technologies','active','CPFF Contract','$9,100,000 USD','7/1/2022','6/30/2026'],
+    ['DoJ Litigation Support IDIQ','Deloitte Federal','active','Task Order (IDIQ)','$4,350,000 USD','11/1/2023','10/31/2026'],
+    ['State Dept. Diplomatic Security MSA','CACI International','active','T&M Contract','$7,600,000 USD','3/1/2023','2/28/2027'],
+    ['HHS CMS IT Infrastructure Support','CGI Federal','inactive','FFP Contract','$11,200,000 USD','6/1/2021','5/31/2025'],
+    ['NSF Research Computing Services BPA','ManTech International','active','Blanket Purchase Agreement','$3,200,000 USD','9/1/2024','8/31/2026'],
+  ],
+  filteredAgreements:[
+    ['GSA OASIS+ Task Order — IT Modernization','Leidos Inc.','active','Task Order (IDIQ)','$14,200,000 USD','10/1/2023','9/30/2026','7/2/2026'],
+    ['VA Health Informatics BPA','SAIC','active','Blanket Purchase Agreement','$6,800,000 USD','4/1/2024','3/31/2026','1/31/2026'],
+    ['DHS Data Analytics Services Contract','Palantir Technologies','active','CPFF Contract','$9,100,000 USD','7/1/2022','6/30/2026','4/30/2026'],
+    ['DoJ Litigation Support IDIQ','Deloitte Federal','active','Task Order (IDIQ)','$4,350,000 USD','11/1/2023','10/31/2026','8/31/2026'],
+    ['HHS NIH Research Services Task Order','Accenture Federal','active','Task Order (IDIQ)','$5,750,000 USD','2/1/2024','1/31/2026','11/30/2025'],
+    ['USDA Forest Service IT Services BPA','IBM Federal','active','Blanket Purchase Agreement','$2,900,000 USD','5/1/2024','4/30/2026','2/28/2026'],
+    ['DoD TRANSCOM Logistics Support','L3 Harris Technologies','active','FFP Contract','$18,400,000 USD','8/1/2023','7/31/2026','5/31/2026'],
+    ['Treasury FINCEN Data Services IDIQ','Guidehouse','active','Task Order (IDIQ)','$3,600,000 USD','10/1/2024','9/30/2026','7/31/2026'],
+    ['EPA Environmental Monitoring BPA','ICF International','active','Blanket Purchase Agreement','$1,800,000 USD','3/1/2024','2/28/2026','12/31/2025'],
+    ['GSA PBS Facilities Management Contract','CBRE Federal','active','FFP Contract','$22,100,000 USD','1/1/2024','12/31/2026','10/31/2026'],
+  ],
+  aiColumns:[
+    {key:'Option Exercise Deadline',type:'date'},
+    {key:'Funding Ceiling',type:'text'},
+    {key:'Contract Type',type:'tag'},
+    {key:'Has Incremental Funding',type:'bool'},
+    {key:'Contracting Officer',type:'text'},
+  ],
+  worksheetRows:[
+    ['GSA OASIS+ TO — IT Modernization','7/2/2026','$14.2M','Task Order (IDIQ)','Yes','CO: J. Ramirez, GSA Region 4'],
+    ['VA Health Informatics BPA','1/31/2026','$6.8M','BPA','No','CO: M. Chen, VA Office of IT'],
+    ['DHS Data Analytics Services Contract','4/30/2026','$9.1M','CPFF','Yes','CO: T. Williams, DHS OCIO'],
+    ['DoJ Litigation Support IDIQ','8/31/2026','$4.35M','Task Order','No','CO: K. Peterson, DoJ JMD'],
+    ['HHS NIH Research Services Task Order','11/30/2025','$5.75M','Task Order','Yes','CO: R. Jackson, HHS/NIH OA'],
+    ['USDA Forest Service IT Services BPA','2/28/2026','$2.9M','BPA','No','CO: D. Torres, USDA OCIO'],
+    ['DoD TRANSCOM Logistics Support','5/31/2026','$18.4M','FFP','Yes','CO: Lt. Col. A. Foster, TRANSCOM'],
+    ['Treasury FINCEN Data Services IDIQ','7/31/2026','$3.6M','Task Order','No','CO: S. Park, Treasury Dept.'],
+    ['EPA Environmental Monitoring BPA','12/31/2025','$1.8M','BPA','No','CO: L. Nguyen, EPA Region 5'],
+    ['GSA PBS Facilities Management','10/31/2026','$22.1M','FFP','Yes','CO: B. Rodriguez, GSA PBS'],
+  ],
+},
+
+"state-local-govt": {
+  label:"State & Local Government",
+  s1SearchQuery:'which service contracts expire before fiscal year end?',
+  nlQuery:'Find all service contracts expiring before fiscal year end with multi-year renewal provisions',
+  agreementType:'Service Contracts',
+  dateFilterLabel:'Expiration Date: before 6/30/2026',
+  dateColHeader:'FY Expiration Date',
+  s4ScopeType:'municipal service',
+  s4DateContext:'expiration date before fiscal year-end 6/30/2026',
+  worksheetTitle:'Service Contracts Expiring Before Fiscal Year-End with Renewal Options',
+  worksheetDesc:'Surfaces service contracts approaching fiscal year-end expirations with renewal provisions to ensure continuity of public services and timely procurement action.',
+  worksheetCount:9,
+  exampleQueries:['Find vendor contracts requiring council approval for renewal','Which contracts have performance bond requirements?','Show agreements with DBE/MBE compliance provisions'],
+  agreements:[
+    ['IT Infrastructure Support Agreement — City of Austin','Cisco Systems','active','Technology Services','$3,400,000 USD','7/1/2022','6/30/2026'],
+    ['Solid Waste Collection Services Contract','Waste Management Inc.','active','Environmental Services','$8,200,000 USD','1/1/2023','12/31/2026'],
+    ['Public Safety Software — CAD/RMS System','Motorola Solutions','active','Software & Maintenance','$1,850,000 USD','4/1/2023','3/31/2027'],
+    ['Fleet Maintenance & Repair Services MSA','Enterprise Fleet Mgmt','active','Fleet Services','$1,200,000 USD','10/1/2022','9/30/2025'],
+    ['Parks & Recreation Landscape Services','BrightView Landscapes','active','Grounds Maintenance','$680,000 USD','3/1/2024','2/28/2027'],
+    ['Transit Operations & Maintenance Contract','FirstGroup America','active','Transportation Services','$12,400,000 USD','6/1/2021','5/31/2026'],
+    ['HR Benefits Administration Services','Mercer LLC','active','Professional Services','$920,000 USD','1/1/2024','12/31/2026'],
+    ['Water Infrastructure Monitoring Contract','Xylem Inc.','inactive','Utility Services','$740,000 USD','7/1/2020','6/30/2024'],
+  ],
+  filteredAgreements:[
+    ['IT Infrastructure Support Agreement','Cisco Systems','active','Technology Services','$3,400,000 USD','7/1/2022','6/30/2026','3/31/2026'],
+    ['Solid Waste Collection Services Contract','Waste Management Inc.','active','Environmental Services','$8,200,000 USD','1/1/2023','5/31/2026','2/28/2026'],
+    ['Fleet Maintenance & Repair Services MSA','Enterprise Fleet Mgmt','active','Fleet Services','$1,200,000 USD','10/1/2022','3/31/2026','12/31/2025'],
+    ['Transit Operations & Maintenance Contract','FirstGroup America','active','Transportation Services','$12,400,000 USD','6/1/2021','5/31/2026','2/28/2026'],
+    ['Streetlight LED Retrofit Agreement','Siemens Smart Infra.','active','Infrastructure Services','$2,100,000 USD','8/1/2023','4/30/2026','1/31/2026'],
+    ['Emergency Dispatch Technology Services','Tyler Technologies','active','Technology Services','$1,450,000 USD','11/1/2023','4/30/2026','1/31/2026'],
+    ['Animal Control & Shelter Services','SPCA Contract Services','active','Social Services','$540,000 USD','7/1/2023','6/30/2026','3/31/2026'],
+    ['Court Case Management Software','Thomson Reuters Legal','active','Software Services','$875,000 USD','2/1/2024','6/30/2026','3/31/2026'],
+    ['Public Health Nursing Services MSA','Maximus Federal','active','Health Services','$1,800,000 USD','9/1/2023','5/31/2026','2/28/2026'],
+  ],
+  aiColumns:[
+    {key:'FY Expiration Date',type:'date'},
+    {key:'Renewal Option',type:'tag'},
+    {key:'Annual Budget Impact',type:'text'},
+    {key:'Approval Required By',type:'date'},
+    {key:'Has DBE Provision',type:'bool'},
+  ],
+  worksheetRows:[
+    ['IT Infrastructure Support Agreement','6/30/2026','2-Year Option','$3.4M','4/30/2026','Yes'],
+    ['Solid Waste Collection Services','5/31/2026','3-Year Option','$8.2M','3/31/2026','Yes'],
+    ['Fleet Maintenance & Repair Services','3/31/2026','1-Year Option','$1.2M','1/31/2026','No'],
+    ['Transit Operations & Maintenance','5/31/2026','3-Year Option','$12.4M','2/28/2026','Yes'],
+    ['Streetlight LED Retrofit Agreement','4/30/2026','No Renewal','$2.1M','2/28/2026','Yes'],
+    ['Emergency Dispatch Technology','4/30/2026','1-Year Option','$1.45M','2/28/2026','No'],
+    ['Animal Control & Shelter Services','6/30/2026','2-Year Option','$540K','4/30/2026','No'],
+    ['Court Case Management Software','6/30/2026','2-Year Option','$875K','4/30/2026','No'],
+    ['Public Health Nursing Services MSA','5/31/2026','1-Year Option','$1.8M','3/31/2026','Yes'],
+  ],
+},
+
+"higher-education": {
+  label:"Higher Education",
+  s1SearchQuery:'which research agreements have F&A provisions and upcoming reporting deadlines?',
+  nlQuery:'Identify research agreements with indirect cost rate provisions and upcoming financial reporting deadlines',
+  agreementType:'Research Agreements',
+  dateFilterLabel:'Report Due Date: next 90 days',
+  dateColHeader:'Report Due Date',
+  s4ScopeType:'sponsored research',
+  s4DateContext:'financial reporting deadlines in next 90 days',
+  worksheetTitle:'Research Agreements with F&A Rate Provisions and Pending Financial Reports',
+  worksheetDesc:'Tracks sponsored research agreements with upcoming reporting obligations and indirect cost provisions to support compliance, grant management, and PI accountability.',
+  worksheetCount:10,
+  exampleQueries:['Find NIH grants with subrecipient monitoring requirements','Which agreements include IP commercialization rights?','Show subawards with auditable expenditure thresholds'],
+  agreements:[
+    ['NIH R01 — Alzheimer\'s Disease Biomarkers','National Institutes of Health','active','Federal Grant','$2,400,000 USD','9/1/2022','8/31/2027'],
+    ['NSF CAREER Award — Machine Learning','National Science Foundation','active','Federal Grant','$850,000 USD','1/1/2023','12/31/2027'],
+    ['DARPA Explainable AI Cooperative Agreement','Defense Advanced Research','active','Cooperative Agreement','$3,200,000 USD','4/1/2023','3/31/2027'],
+    ['Gates Foundation Global Health Grant','Bill & Melinda Gates Found.','active','Private Foundation Grant','$1,100,000 USD','6/1/2023','5/31/2026'],
+    ['DOE Energy Storage SRA','Dept. of Energy','active','Sponsored Research Agreement','$1,800,000 USD','10/1/2022','9/30/2026'],
+    ['Pfizer Drug Discovery Research Contract','Pfizer Inc.','active','Industry Sponsored Research','$4,500,000 USD','3/1/2024','2/28/2028'],
+    ['NIH T32 Training Grant','National Institutes of Health','active','Training Grant','$620,000 USD','7/1/2023','6/30/2028'],
+    ['AHA Cardiovascular Research Award','American Heart Association','inactive','Private Charity Grant','$280,000 USD','1/1/2022','12/31/2024'],
+  ],
+  filteredAgreements:[
+    ['NIH R01 — Alzheimer\'s Disease Biomarkers','National Institutes of Health','active','Federal Grant','$2,400,000 USD','9/1/2022','8/31/2027','6/1/2026'],
+    ['NSF CAREER Award — Machine Learning','National Science Foundation','active','Federal Grant','$850,000 USD','1/1/2023','12/31/2027','4/30/2026'],
+    ['DARPA Explainable AI Cooperative Agmt','Defense Advanced Research','active','Cooperative Agreement','$3,200,000 USD','4/1/2023','3/31/2027','7/1/2026'],
+    ['Gates Foundation Global Health Grant','Bill & Melinda Gates Found.','active','Private Foundation Grant','$1,100,000 USD','6/1/2023','5/31/2026','5/15/2026'],
+    ['DOE Energy Storage SRA','Dept. of Energy','active','Sponsored Research Agreement','$1,800,000 USD','10/1/2022','9/30/2026','6/30/2026'],
+    ['Pfizer Drug Discovery Research Contract','Pfizer Inc.','active','Industry Sponsored Research','$4,500,000 USD','3/1/2024','2/28/2028','5/31/2026'],
+    ['NIH T32 Training Grant','National Institutes of Health','active','Training Grant','$620,000 USD','7/1/2023','6/30/2028','4/15/2026'],
+    ['Simons Foundation Math Research Award','Simons Foundation','active','Private Foundation Grant','$450,000 USD','9/1/2024','8/31/2027','6/15/2026'],
+    ['NSF MRI Equipment Grant','National Science Foundation','active','Equipment Grant','$720,000 USD','1/1/2025','12/31/2027','5/1/2026'],
+    ['DoD CDMRP Peer Reviewed Grant','Dept. of Defense CDMRP','active','Federal Grant','$1,250,000 USD','6/1/2023','5/31/2027','7/31/2026'],
+  ],
+  aiColumns:[
+    {key:'Report Due Date',type:'date'},
+    {key:'F&A Rate',type:'pct'},
+    {key:'Sponsor Type',type:'tag'},
+    {key:'Has IP Assignment',type:'bool'},
+    {key:'Subrecipient Monitor Required',type:'text'},
+  ],
+  worksheetRows:[
+    ['NIH R01 — Alzheimer\'s Biomarkers','6/1/2026','54.5%','Federal','Yes','Yes — 2 subawards >$25K'],
+    ['NSF CAREER Award — Machine Learning','4/30/2026','54.5%','Federal','No','No subrecipients'],
+    ['DARPA Explainable AI Coop. Agmt','7/1/2026','54.5%','Federal','Yes','Yes — 1 subaward, annual audit req.'],
+    ['Gates Foundation Global Health Grant','5/15/2026','15.0%','Private Foundation','No','Yes — 3 international subawards'],
+    ['DOE Energy Storage SRA','6/30/2026','54.5%','Federal','Yes','No subrecipients'],
+    ['Pfizer Drug Discovery Research','5/31/2026','0% (fixed fee)','Industry','Yes','No subrecipients'],
+    ['NIH T32 Training Grant','4/15/2026','54.5%','Federal','No','No subrecipients'],
+    ['Simons Foundation Math Award','6/15/2026','20.0%','Private Foundation','No','No subrecipients'],
+    ['NSF MRI Equipment Grant','5/1/2026','54.5%','Federal','No','No subrecipients'],
+    ['DoD CDMRP Peer Reviewed Grant','7/31/2026','54.5%','Federal','Yes','Yes — 1 subaward, site visit req.'],
+  ],
+},
+
+};
+
+const ORDER = ["financial-services","healthcare-provider","healthcare-payer","life-sciences","federal-govt","state-local-govt","higher-education"];
+
+/* ================================================================
+   RENDER HELPERS
+   ================================================================ */
+const sparkSVG = '<svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--ds-purple);width:9px;height:9px;"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>';
+
+function docIcon(){
+  return '<div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>';
+}
+
+function statusBadge(s){
+  const cls = s==='active'?'active':s==='inactive'?'inactive':'warn';
+  const lbl = s==='active'?'Active':s==='inactive'?'Inactive':'Expired';
+  return `<span class="status-badge ${cls}">${lbl}</span>`;
+}
+
+function renderColVal(val, type){
+  if(type==='bool') return val==='Yes'?'<span class="bool-yes">Yes</span>':'<span class="bool-no">No</span>';
+  if(type==='tag'){
+    const cls = val.includes('Auto')||val.includes('Federal')||val.includes('Open')?'':'gray';
+    return `<span class="tag-badge ${cls}">${val}</span>`;
+  }
+  if(type==='pct') return val==='—'?'<span style="color:var(--ink-faint)">—</span>':`<span class="pct-val">${val}</span>`;
+  if(type==='date') return `<span style="font-size:12px;color:var(--ink-mid)">${val}</span>`;
+  return `<span class="text-val" title="${val}">${val}</span>`;
+}
+
+function applyPreset(key){
+  const p = PRESETS[key]; if(!p) return;
+
+  /* S1 query search text */
+  document.getElementById('s1-query-text').textContent = p.s1SearchQuery;
+
+  /* S1 table */
+  const s1tb = document.getElementById('s1-tbody');
+  s1tb.innerHTML = p.agreements.map((r,i)=>`
+    <tr${i===0?' data-hotspot="agreement_row" class="just-pulsed"':''}>
+      <td><input type="checkbox" style="accent-color:var(--ds-purple)"${i<3?' checked':''}></td>
+      <td><div class="doc-name">${docIcon()}<span class="nm" title="${r[0]}">${r[0]}</span></div></td>
+      <td style="font-size:12px;color:var(--ink-mid)">${r[1]}</td>
+      <td>${statusBadge(r[2])}</td>
+      <td style="font-size:12px;color:var(--ink-mid)">${r[3]}</td>
+      <td style="font-size:12px">${r[4]}</td>
+      <td style="font-size:12px;color:var(--ink-soft)">${r[5]}</td>
+      <td style="font-size:12px;color:var(--ink-soft)">${r[6]}</td>
+    </tr>`).join('');
+
+  /* Worksheet dropdown name */
+  document.getElementById('dd-ws-name').textContent = p.worksheetTitle.substring(0,42)+'…';
+
+  /* S2 examples */
+  const exDiv = document.getElementById('s2-examples');
+  exDiv.innerHTML = p.exampleQueries.map(q=>`
+    <div class="example-item"><input type="checkbox"><span>${q}</span></div>`).join('');
+
+  /* S3 query + scope */
+  document.getElementById('s3-query').textContent = '"' + p.nlQuery + '"';
+  document.getElementById('s3-scope').textContent = p.agreementType;
+
+  /* S4 */
+  document.getElementById('s4-nlq').textContent = p.nlQuery;
+  document.getElementById('s4-scope-type').textContent = p.s4ScopeType;
+  document.getElementById('s4-date-context').textContent = p.s4DateContext;
+  document.getElementById('s4-type-chip').textContent = p.agreementType.substring(0,18)+'...';
+  document.getElementById('s4-date-chip').textContent = p.dateFilterLabel;
+  document.getElementById('s4-date-col').textContent = p.dateColHeader;
+  const cnt = p.filteredAgreements.length;
+  document.getElementById('s4-count').textContent = cnt;
+  document.getElementById('s4-sel-count').textContent = cnt + ' Selected ▾';
+  document.getElementById('s4-add-count').textContent = cnt;
+  document.getElementById('s4-pagination').textContent = `1 - ${cnt} of ${cnt}`;
+
+  const s4tb = document.getElementById('s4-tbody');
+  s4tb.innerHTML = p.filteredAgreements.map((r,i)=>`
+    <tr class="row-anim" style="animation-delay:${i*40}ms">
+      <td><input type="checkbox" checked style="accent-color:var(--ds-purple)"></td>
+      <td><div class="doc-name">${docIcon()}<span class="nm" title="${r[0]}">${r[0]}</span></div></td>
+      <td style="font-size:12px;color:var(--ink-mid)">${r[1]}</td>
+      <td>${statusBadge(r[2])}</td>
+      <td style="font-size:12px;color:var(--ink-mid)">${r[3]}</td>
+      <td style="font-size:12px">${r[4]}</td>
+      <td style="font-size:12px;color:var(--ink-soft)">${r[5]}</td>
+      <td style="font-size:12px;color:var(--ink-soft)">${r[6]}</td>
+      <td style="font-size:12px;color:var(--ink-soft)">${r[7]}</td>
+    </tr>`).join('');
+
+  /* S5 */
+  document.getElementById('s5-title').textContent = p.worksheetTitle;
+  document.getElementById('s5-title-crumb').textContent = p.worksheetTitle.substring(0,40)+'…';
+  document.getElementById('s5-desc').textContent = p.worksheetDesc;
+  document.getElementById('s5-add-label').textContent = `+ Add info about ${p.worksheetCount} agreements`;
+  document.getElementById('s5-count').textContent = `1 - ${p.worksheetCount} of ${p.worksheetCount}`;
+
+  /* S5 column headers */
+  const thead = document.getElementById('s5-thead');
+  thead.innerHTML = '<th style="width:28px"><input type="checkbox" style="accent-color:var(--ds-purple)"></th><th>File Name</th>' +
+    p.aiColumns.map(c=>`<th>${c.key}</th>`).join('');
+
+  /* S5 rows */
+  const s5tb = document.getElementById('s5-tbody');
+  s5tb.innerHTML = p.worksheetRows.map((r,i)=>{
+    const cells = p.aiColumns.map((col,ci)=>
+      `<td>${renderColVal(r[ci+1]||'—', col.type)}</td>`).join('');
+    return `<tr class="row-anim" style="animation-delay:${i*45}ms">
+      <td><input type="checkbox" checked style="accent-color:var(--ds-purple)"></td>
+      <td><div class="doc-name">${docIcon()}<span class="nm" title="${r[0]}">${r[0]}</span></div></td>
+      ${cells}
+    </tr>`;
+  }).join('');
+}
+
+/* ================================================================
+   TYPEWRITER
+   ================================================================ */
+let _typeTimer = null;
+function startTypewriter(text, el, charEl, btnEl){
+  clearInterval(_typeTimer);
+  el.value = '';
+  if(charEl) charEl.textContent = '0';
+  if(btnEl) btnEl.style.opacity = '0.5';
+  let i = 0;
+  _typeTimer = setInterval(()=>{
+    if(i < text.length){
+      el.value += text[i++];
+      if(charEl) charEl.textContent = i;
+      if(btnEl && i > 80) btnEl.style.opacity = '1';
+    } else {
+      clearInterval(_typeTimer);
+    }
+  }, 38);
+}
+
+/* ================================================================
+   SCENE TIMELINE
+   ================================================================ */
+const SCENES = [
+  {id:'s1', at:0,     dur:7000},
+  {id:'s2', at:7000,  dur:7000},
+  {id:'s3', at:14000, dur:7000},
+  {id:'s4', at:21000, dur:7000},
+  {id:'s5', at:28000, dur:7000},
+];
+const TOTAL = 35000;
+let t0 = performance.now();
+let shellDriven = false;
+let _lastScene = null;
+let _s3Timer = null;
+
+function applyScene(sc){
+  const id = sc.id;
+  /* Content scenes */
+  document.querySelectorAll('.scene').forEach(el=>el.classList.toggle('on', el.id===id));
+  /* Modal scrims */
+  document.getElementById('s2-scrim').classList.toggle('on', id==='s2');
+  document.getElementById('s3-scrim').classList.toggle('on', id==='s3');
+  /* S4 full overlay */
+  document.getElementById('s4-scene').classList.toggle('on', id==='s4');
+  /* S1 stays visible behind s2/s3 modals */
+  if(id==='s2'||id==='s3'){
+    document.getElementById('s1').classList.add('on');
+  }
+  /* Scene dots */
+  const idx = SCENES.findIndex(s=>s.id===id);
+  document.querySelectorAll('.scene-dots .d').forEach((d,i)=>d.classList.toggle('on',i===idx));
+
+  if(id !== _lastScene){
+    _lastScene = id;
+    if(id==='s2'){
+      const p = PRESETS[currentPreset()];
+      setTimeout(()=>{
+        startTypewriter(
+          p.nlQuery,
+          document.getElementById('s2-textarea'),
+          document.getElementById('s2-charcount'),
+          document.getElementById('s2-generate-btn')
+        );
+      }, 400);
+    }
+    if(id==='s3'){
+      clearTimeout(_s3Timer);
+      document.getElementById('s3-status2').classList.remove('on');
+      _s3Timer = setTimeout(()=>{
+        document.getElementById('s3-status2').classList.add('on');
+      }, 2200);
+    }
+    if(id==='s1'){
+      const dd = document.getElementById('ws-dropdown');
+      dd.classList.remove('on');
+      setTimeout(()=>dd.classList.add('on'), 3000);
+    } else {
+      document.getElementById('ws-dropdown').classList.remove('on');
+    }
+  }
+}
+
+function render(now){
+  if(shellDriven){ requestAnimationFrame(render); return; }
+  const elapsed = (now - t0) % TOTAL;
+  let active = SCENES[0];
+  for(const s of SCENES){ if(elapsed >= s.at && elapsed < s.at+s.dur){ active=s; break; } }
+  applyScene(active);
+  requestAnimationFrame(render);
+}
+
+/* ================================================================
+   PRESET SELECT
+   ================================================================ */
+const sel = document.getElementById('preset-select');
+ORDER.forEach(k=>{
+  const o = document.createElement('option');
+  o.value=k; o.textContent=PRESETS[k].label;
+  sel.appendChild(o);
+});
+function currentPreset(){ return sel.value || 'financial-services'; }
+function presetFromURL(){
+  const p = new URLSearchParams(location.search).get('preset') || location.hash.replace(/^#/,'') || 'financial-services';
+  return PRESETS[p] ? p : 'financial-services';
+}
+const initial = presetFromURL();
+sel.value = initial;
+applyPreset(initial);
+sel.addEventListener('change', ()=>{
+  applyPreset(sel.value);
+  history.replaceState(null,'','?preset='+sel.value);
+  _lastScene = null; // force re-init on scene re-entry
+  t0 = performance.now();
+});
+
+/* ================================================================
+   WORKSHEET DROPDOWN TOGGLE
+   ================================================================ */
+function toggleDropdown(){
+  document.getElementById('ws-dropdown').classList.toggle('on');
+}
+
+/* ================================================================
+   SHELL SYNC
+   ================================================================ */
+window.addEventListener('message', ev=>{
+  const msg = ev.data;
+  if(!msg||typeof msg!=='object'||typeof msg.type!=='string') return;
+  if(msg.type==='tgk:lockToBeat'){
+    shellDriven = true;
+    const sc = SCENES.find(s=>s.id===msg.sceneId);
+    if(sc) applyScene(sc);
+    if(msg.target){
+      requestAnimationFrame(()=>{
+        const el = document.querySelector('[data-hotspot="'+msg.target+'"]');
+        if(!el) return;
+        const r = el.getBoundingClientRect();
+        parent.postMessage({type:'tgk:rect',target:msg.target,rect:{x:r.left,y:r.top,w:r.width,h:r.height},viewport:{w:window.innerWidth,h:window.innerHeight}},'*');
+      });
+    }
+  } else if(msg.type==='tgk:queryRect'){
+    const el = document.querySelector('[data-hotspot="'+msg.target+'"]');
+    if(!el) return;
+    const r = el.getBoundingClientRect();
+    parent.postMessage({type:'tgk:rect',target:msg.target,rect:{x:r.left,y:r.top,w:r.width,h:r.height},viewport:{w:window.innerWidth,h:window.innerHeight}},'*');
+  } else if(msg.type==='tgk:resumeAuto'){
+    shellDriven = false;
+    t0 = performance.now();
+  }
+});
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
