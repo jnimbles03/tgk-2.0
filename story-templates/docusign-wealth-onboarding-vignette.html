@@ -30,7 +30,7 @@ html,body{width:100%;height:100%;font-family:"DSIndigo","Inter",-apple-system,sa
 
 /* === STAGE / MOCK / CHROME === */
 .stage{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
-.mock{width:1280px;height:720px;background:#fff;border-radius:10px;box-shadow:0 20px 64px rgba(0,0,0,.45);overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column}
+.mock{width:1280px;height:720px;background:#fff;border-radius:10px;box-shadow:0 20px 64px rgba(0,0,0,.45);overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column;transform-origin:center center;}
 .browser-bar{height:36px;background:#2A2A2C;display:flex;align-items:center;padding:0 14px;gap:6px;flex-shrink:0}
 .bdots{display:flex;gap:5px}
 .bdot{width:11px;height:11px;border-radius:50%}
@@ -803,6 +803,19 @@ html,body{width:100%;height:100%;font-family:"DSIndigo","Inter",-apple-system,sa
 
 <script>
 (function(){"use strict";
+
+// Scale mock to fit viewport
+function scaleMock(){
+  const mock=document.querySelector('.mock');
+  if(!mock)return;
+  const scaleX=window.innerWidth/1280;
+  const scaleY=window.innerHeight/720;
+  const s=Math.min(scaleX,scaleY)*0.96;
+  mock.style.transform='scale('+s+')';
+}
+scaleMock();
+window.addEventListener('resize',scaleMock);
+
 
 const SCENES=[
   {id:'s1',at:0,     dur:9000,  url:'hillside.docusign.net/onboarding/sub-advisor'},
