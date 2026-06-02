@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Onboarding — Hillside × TGK Capital</title>
+<link rel="icon" type="image/svg+xml" href="../assets/brand/DSIcon_favicon_LightMode_96x96.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500;0,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
+
+/* === VARS === */
+:root{
+  --hs-dark:#0F2A1F;--hs-mid:#1A4030;--hs-accent:#3FDA99;--hs-accent-soft:rgba(63,218,153,.15);
+  --ds-cobalt:#4C00FF;--ds-inkwell:#130032;--ds-deep-violet:#26065D;
+  --ds-purple-soft:rgba(76,0,255,.08);--ds-purple-tint:#EEE9FF;
+  --ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;--ink-faint:#A89EC8;
+  --hair:rgba(19,0,50,.07);--hair-strong:rgba(19,0,50,.14);
+  --bg-muted:#F4F2FA;--ok:#00836D;--ok-soft:#E6F4F1;
+  --warn:#C05800;--warn-soft:#FFF3E0;
+  --n-ink:#18181B;--n-mid:#3F3F46;--n-soft:#71717A;--n-faint:#A1A1AA;
+  --n-hair:#E4E4E7;--n-hair-str:#D4D4D8;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;font-family:"DSIndigo","Inter",-apple-system,sans-serif;background:#1A1625;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* === STAGE / MOCK / CHROME === */
+.stage{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+.mock{width:1280px;height:720px;background:#fff;border-radius:10px;box-shadow:0 20px 64px rgba(0,0,0,.45);overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column}
+.browser-bar{height:36px;background:#2A2A2C;display:flex;align-items:center;padding:0 14px;gap:6px;flex-shrink:0}
+.bdots{display:flex;gap:5px}
+.bdot{width:11px;height:11px;border-radius:50%}
+.bdot.r{background:#FF5F57}.bdot.y{background:#FEBC2E}.bdot.g{background:#28C840}
+.burl{flex:1;margin:0 10px;height:20px;background:#3C3C3E;border-radius:4px;display:flex;align-items:center;padding:0 10px;font-family:'Inter',sans-serif;font-size:10.5px;color:#888896;overflow:hidden;white-space:nowrap}
+.app-area{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* === SCENE CONTAINERS === */
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;opacity:0;pointer-events:none;transition:opacity .28s ease}
+.scene.on{opacity:1;pointer-events:auto}
+
+/* === DS TOPNAV (S4, S5) === */
+.ds-topnav{height:44px;background:#fff;border-bottom:1.5px solid var(--hair-strong);display:flex;align-items:center;padding:0 18px;gap:0;flex-shrink:0}
+.ds-topnav .ds-logo{display:flex;align-items:center;gap:8px;margin-right:28px;text-decoration:none;cursor:default}
+.ds-topnav .ds-logo img.icon{height:24px;width:24px}
+.ds-topnav .ds-logo img.wm{height:13px;width:auto}
+.ds-topnav .ds-nav{display:flex;align-items:stretch;gap:0;height:100%}
+.ds-topnav .ds-nav a{font-size:13px;font-weight:500;color:var(--ink-soft);padding:0 14px;display:flex;align-items:center;cursor:default;text-decoration:none;border-bottom:2.5px solid transparent;transition:color .15s}
+.ds-topnav .ds-nav a.active{color:var(--ds-cobalt);font-weight:600;border-bottom-color:var(--ds-cobalt)}
+.ds-topnav .sp{flex:1}
+.ds-topnav .ds-avi{width:28px;height:28px;border-radius:50%;background:var(--ds-purple-tint);color:var(--ds-cobalt);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* === HILLSIDE TOPNAV (S1, S2) === */
+.hs-topnav{height:52px;background:var(--hs-dark);display:flex;align-items:center;padding:0 24px;flex-shrink:0}
+.hs-brand{display:flex;align-items:center;gap:10px}
+.hs-mark{color:var(--hs-accent);font-size:16px;line-height:1}
+.hs-wordmark{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;font-size:21px;color:var(--hs-accent);letter-spacing:.01em}
+.hs-sub{font-size:12px;color:rgba(63,218,153,.55);margin-left:6px}
+.hs-spacer{flex:1}
+.hs-avi{width:28px;height:28px;border-radius:50%;background:rgba(63,218,153,.2);color:var(--hs-accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* ===================================================
+   SCENE 1 — HILLSIDE WEBFORM (Step 4: Review & Route)
+   =================================================== */
+.s1-stepper{display:flex;align-items:center;padding:13px 28px;border-bottom:1px solid var(--n-hair);flex-shrink:0}
+.s1-step{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:500;color:var(--n-soft)}
+.s1-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.s1-step.done{color:var(--hs-dark)}
+.s1-step.done .s1-step-num{background:var(--hs-accent);color:var(--hs-dark)}
+.s1-step.active{color:var(--hs-dark);font-weight:600}
+.s1-step.active .s1-step-num{background:var(--hs-dark);color:var(--hs-accent)}
+.s1-step.pending .s1-step-num{background:var(--n-hair);color:var(--n-soft)}
+.s1-step-line{width:36px;height:1px;background:var(--n-hair-str);margin:0 8px;flex-shrink:0}
+.s1-body{flex:1;display:flex;overflow:hidden}
+.s1-left{flex:1;padding:22px 28px;overflow-y:auto;border-right:1px solid var(--n-hair)}
+.s1-right{width:278px;padding:20px 18px;overflow-y:auto;background:#FAFAFA;border-right:0}
+.s1-sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--n-soft);margin-bottom:11px}
+.s1-doc{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border:1.5px solid var(--n-hair);border-radius:8px;margin-bottom:8px;background:#fff;opacity:0;transform:translateY(8px);transition:opacity .38s ease,transform .38s ease}
+.s1-doc.show{opacity:1;transform:none}
+.s1-check{width:18px;height:18px;border-radius:4px;background:var(--hs-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.s1-check svg{width:11px;height:11px;stroke:#0F2A1F;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s1-doc-name{font-size:13px;font-weight:600;color:var(--n-ink);line-height:1.3}
+.s1-doc-sub{font-size:11px;color:var(--n-soft);margin-top:2px}
+.s1-tag{display:inline-flex;align-items:center;background:#F4F2FA;border:1px solid var(--hair-strong);border-radius:12px;padding:4px 11px;font-size:11.5px;color:var(--ink-mid);font-weight:500;margin:0 4px 6px 0}
+.s1-route{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--n-hair)}
+.s1-route:last-child{border-bottom:none}
+.s1-route-avi{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0}
+.s1-route-name{font-size:12.5px;font-weight:600;color:var(--n-ink)}
+.s1-route-role{font-size:10.5px;color:var(--n-soft);margin-top:1px}
+.s1-footer{padding:14px 28px 16px;border-top:1px solid var(--n-hair);flex-shrink:0}
+.s1-submit{width:100%;padding:13px;background:var(--hs-dark);color:var(--hs-accent);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.01em;transition:background .15s}
+.s1-submit:hover{background:var(--hs-mid)}
+
+/* ===================================================
+   SCENE 2 — IDV VERIFIED
+   =================================================== */
+.s2-body{flex:1;display:flex;align-items:center;justify-content:center;background:#F8FBF9}
+.s2-card{background:#fff;border-radius:16px;padding:44px 52px;text-align:center;border:1px solid var(--n-hair);box-shadow:0 4px 28px rgba(15,42,31,.07);max-width:500px;width:100%;margin:0 24px}
+.s2-ring{width:80px;height:80px;border-radius:50%;background:var(--ok-soft);border:3px solid var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.s2-ring svg{width:38px;height:38px;stroke:var(--ok);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s2-ring-anim{animation:checkPop .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes checkPop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
+.s2-badge{display:inline-flex;align-items:center;gap:5px;background:var(--ok-soft);color:var(--ok);border-radius:20px;padding:5px 14px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px;border:1px solid rgba(0,131,109,.2)}
+.s2-name{font-size:22px;font-weight:700;color:var(--n-ink);letter-spacing:-.01em;margin-bottom:4px}
+.s2-role{font-size:13px;color:var(--n-soft);margin-bottom:22px}
+.s2-timeline{display:flex;align-items:center;margin:0 auto 20px}
+.s2-tl-col{display:flex;flex-direction:column;align-items:center;flex:1}
+.s2-tl-label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--n-soft);margin-bottom:5px}
+.s2-tl-dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.s2-tl-line{height:2px;flex:1;background:var(--ok)}
+.s2-tl-connector{display:flex;align-items:center;flex:1;padding-bottom:20px}
+.s2-unlock{background:#F8FBF9;border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--n-mid);border:1px solid var(--n-hair);margin-top:4px}
+.s2-unlock strong{color:var(--hs-dark)}
+
+/* ===================================================
+   SCENE 3 — SIGNING / GMAIL
+   =================================================== */
+.s3-shell{flex:1;display:flex;overflow:hidden;background:#F6F8FC}
+.s3-rail{width:188px;flex-shrink:0;padding:10px 0;background:#F6F8FC;border-right:1px solid #E0E0E0}
+.s3-compose{margin:8px 14px 14px;background:#C2E7FF;border-radius:16px;padding:12px 18px;font-size:13.5px;font-weight:500;color:#001D35;cursor:pointer;display:flex;align-items:center;gap:10px}
+.s3-nav{display:flex;align-items:center;gap:10px;padding:5px 16px;font-size:13.5px;cursor:pointer;border-radius:0 24px 24px 0;margin-right:6px;color:#444746}
+.s3-nav.active{background:#D3E3FD;font-weight:600;color:#001D35}
+.s3-nav .count{margin-left:auto;font-size:12px;font-weight:700}
+.s3-content{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.s3-email-hdr{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #E0E0E0;gap:12px}
+.s3-subject{font-size:20px;font-weight:400;color:#202124;flex:1}
+.s3-inbox-tag{background:#E8F0FE;color:#1967D2;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.s3-meta{padding:12px 20px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid #E0E0E0}
+.s3-from-avi{width:36px;height:36px;border-radius:50%;background:var(--hs-accent);color:var(--hs-dark);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s3-from-name{font-size:14px;font-weight:600;color:#202124}
+.s3-from-addr{font-size:12px;color:#5F6368;margin-top:2px}
+.s3-ts{margin-left:auto;font-size:12px;color:#5F6368;white-space:nowrap}
+.s3-body{flex:1;padding:24px;overflow-y:auto;display:flex;justify-content:flex-start;align-items:flex-start}
+.s3-hs-card{background:var(--hs-dark);border-radius:12px;overflow:hidden;width:520px}
+.s3-hs-card-top{padding:20px 26px;border-bottom:1px solid rgba(63,218,153,.18);display:flex;align-items:center}
+.s3-card-brand{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:21px;color:var(--hs-accent)}
+.s3-card-via{margin-left:auto;font-size:11px;color:rgba(63,218,153,.5)}
+.s3-hs-card-body{padding:28px 26px}
+.s3-doc-icon{width:56px;height:56px;border-radius:10px;background:rgba(63,218,153,.12);border:1.5px solid rgba(63,218,153,.28);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.s3-doc-icon svg{width:26px;height:26px;stroke:var(--hs-accent);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s3-doc-title{font-size:15.5px;font-weight:600;color:#fff;text-align:center;margin-bottom:6px}
+.s3-doc-sent{font-size:12.5px;color:rgba(255,255,255,.55);text-align:center;margin-bottom:20px}
+.s3-doc-desc{font-size:12px;color:rgba(255,255,255,.65);text-align:center;margin-bottom:22px;line-height:1.55;padding:0 8px}
+.s3-cta{display:block;width:100%;padding:13px;background:var(--hs-accent);color:var(--hs-dark);border-radius:8px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit}
+.s3-legal{font-size:10px;color:rgba(255,255,255,.35);text-align:center;margin-top:14px;line-height:1.5}
+
+/* ===================================================
+   SCENE 4 — AGREEMENT REPOSITORY (NAVIGATOR)
+   =================================================== */
+.s4-shell{flex:1;display:flex;overflow:hidden}
+.s4-rail{width:180px;flex-shrink:0;border-right:1px solid var(--hair);padding:10px 0;background:#FAFAFA}
+.s4-nav{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink-mid)}
+.s4-nav svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s4-nav.active{background:var(--ds-purple-tint);color:var(--ds-cobalt);font-weight:600;border-right:2px solid var(--ds-cobalt)}
+.s4-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.s4-main-hdr{padding:14px 20px 10px;border-bottom:1px solid var(--hair);flex-shrink:0}
+.s4-page-title{font-size:18px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:10px}
+.s4-ai-badge{font-size:10px;font-weight:600;color:var(--ds-cobalt);background:var(--ds-purple-tint);border-radius:10px;padding:3px 9px;display:flex;align-items:center;gap:4px}
+.s4-content{flex:1;display:flex;overflow:hidden}
+.s4-table-wrap{flex:1;overflow-y:auto;padding:0}
+.s4-filters{padding:9px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--hair);flex-shrink:0}
+.s4-fb{padding:5px 12px;border-radius:16px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--hair-strong);color:var(--ink-soft)}
+.s4-fb.active{background:var(--ds-cobalt);color:#fff;border-color:var(--ds-cobalt)}
+.s4-banner{margin:12px 20px;padding:12px 16px;background:var(--ds-purple-tint);border-radius:10px;border-left:3px solid var(--ds-cobalt);display:flex;gap:12px;flex-shrink:0}
+.s4-banner .bicon{font-size:17px;flex-shrink:0;line-height:1.4}
+.s4-banner .btitle{font-size:13px;font-weight:600;color:var(--ds-cobalt)}
+.s4-banner .bbody{font-size:11.5px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
+.s4-banner .blink{font-size:11.5px;color:var(--ds-cobalt);font-weight:600;cursor:pointer;margin-top:5px}
+.s4-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.s4-table th{padding:8px 12px 8px 14px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);border-bottom:1.5px solid var(--hair);background:#fff;white-space:nowrap}
+.s4-table td{padding:10px 12px 10px 14px;border-bottom:1px solid var(--hair);vertical-align:middle}
+.s4-table tr.hl{background:var(--ds-purple-tint)}
+.s4-table tr:not(.hl):hover{background:#F8F6FF}
+.s4-doc-name{font-weight:600;color:var(--ink)}
+.s4-ai-mark{font-size:10px;color:var(--ds-cobalt);margin-left:5px;font-weight:700}
+.s4-active{display:inline-flex;align-items:center;gap:4px;color:var(--ok);font-size:11px;font-weight:600}
+.s4-active::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.s4-renew{display:inline-flex;align-items:center;gap:4px;color:var(--warn);font-size:11px;font-weight:600}
+.s4-renew::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--warn)}
+
+/* S4 Chat panel */
+.s4-chat{width:308px;border-left:1px solid var(--hair);display:flex;flex-direction:column;background:#fff;flex-shrink:0}
+.s4-chat-hdr{padding:12px 16px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.s4-chat-hdr .icon{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--ds-deep-violet),var(--ds-cobalt));display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0}
+.s4-chat-hdr .title{font-size:13px;font-weight:600;color:var(--ink)}
+.s4-chat-hdr .sub{font-size:10.5px;color:var(--ink-faint)}
+.s4-chat-msgs{flex:1;padding:14px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.s4-chat-q{background:#EDE8FF;border-radius:12px 12px 3px 12px;padding:8px 12px;font-size:12px;color:var(--ink);align-self:flex-end;max-width:90%;text-align:right}
+.s4-chat-a{background:#F4F2FA;border:1px solid #EDE8FF;border-radius:3px 12px 12px 12px;padding:10px 12px;font-size:12px;color:var(--ink-mid);line-height:1.55;display:none}
+.s4-chat-a.show{display:block;animation:fadeIn .6s ease both}
+.s4-chat-a .src{font-weight:600;color:var(--ds-cobalt)}
+.s4-chat-a em{font-style:italic}
+.s4-chat-src-tags{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.s4-src-tag{background:var(--ds-purple-tint);color:var(--ds-cobalt);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ===================================================
+   SCENE 5 — WORKSPACE
+   =================================================== */
+.s5-shell{flex:1;display:flex;overflow:hidden}
+.s5-left{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.s5-ws-hdr{padding:15px 20px 10px;border-bottom:1px solid var(--hair);flex-shrink:0}
+.s5-ws-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.s5-ws-meta{display:flex;align-items:center;gap:12px}
+.s5-avis{display:flex}
+.s5-avi{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid #fff;margin-right:-6px}
+.s5-avi.a{background:var(--hs-accent);color:var(--hs-dark)}
+.s5-avi.c{background:var(--ds-cobalt);color:#fff}
+.s5-avi.m{background:var(--n-hair);color:var(--n-soft)}
+.s5-ws-sub{font-size:12px;color:var(--ink-soft);margin-left:10px}
+.s5-pb-wrap{height:5px;background:var(--n-hair);margin:0;flex-shrink:0}
+.s5-pb-fill{height:100%;background:linear-gradient(90deg,var(--hs-accent),var(--ds-cobalt));width:0;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.s5-tiles{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--hair);flex-shrink:0}
+.s5-tile{padding:13px 16px;border-right:1px solid var(--hair)}
+.s5-tile:last-child{border-right:none}
+.s5-tile-lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:5px}
+.s5-tile-val{font-size:19px;font-weight:700;color:var(--ink);line-height:1.1}
+.s5-tile-val.accent{color:var(--hs-dark)}
+.s5-tile-val.warn{color:var(--warn)}
+.s5-tile-sub{font-size:11px;color:var(--ink-faint);margin-top:4px}
+.s5-sections{padding:14px 20px;flex:1}
+.s5-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-soft);margin:0 0 8px;margin-top:14px}
+.s5-sec-title:first-child{margin-top:0}
+.s5-task{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair)}
+.s5-task:last-child{border-bottom:none}
+.s5-task-ck{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--n-hair-str);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s5-task-ck.done{background:var(--ok-soft);border-color:var(--ok)}
+.s5-task-ck.done svg{width:10px;height:10px;stroke:var(--ok);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s5-task-name{font-size:13px;color:var(--ink);flex:1}
+.s5-task-meta{font-size:11px;color:var(--ink-faint)}
+.s5-task-chip{font-size:10px;font-weight:600;color:var(--ds-cobalt);background:var(--ds-purple-tint);border-radius:4px;padding:2px 6px}
+.s5-activity{padding:0 20px 16px}
+.s5-act-row{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:12.5px}
+.s5-act-row:last-child{border-bottom:none}
+.s5-act-ts{color:var(--ink-faint);width:80px;flex-shrink:0}
+.s5-act-text{color:var(--ink)}
+.s5-act-ok{color:var(--ok)}
+
+/* S5 AI agent rail */
+.s5-right{width:294px;border-left:1px solid var(--hair);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;background:#FAFAFA}
+.s5-agent-hdr{padding:13px 16px 10px;border-bottom:1px solid var(--hair);background:#fff;flex-shrink:0}
+.s5-agent-title{font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.s5-agent-sub{font-size:10.5px;color:var(--ink-faint)}
+.s5-checks{padding:10px 12px;display:flex;flex-direction:column;gap:0}
+.s5-check{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair);opacity:0;transform:translateX(8px);transition:opacity .38s ease,transform .38s ease}
+.s5-check:last-child{border-bottom:none}
+.s5-check.show{opacity:1;transform:none}
+.s5-ck-icon{width:20px;height:20px;border-radius:50%;background:var(--ok-soft);border:1px solid rgba(0,131,109,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.s5-ck-icon svg{width:11px;height:11px;stroke:var(--ok);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.s5-ck-name{font-size:12px;font-weight:600;color:var(--ink)}
+.s5-ck-detail{font-size:10.5px;color:var(--ink-faint);margin-top:2px;line-height:1.4}
+.s5-summary{margin:8px 12px 14px;padding:11px 12px;background:var(--ok-soft);border-radius:8px;border:1px solid rgba(0,131,109,.2);font-size:12px;color:var(--ok);font-weight:600;opacity:0;transition:opacity .5s ease;line-height:1.5}
+.s5-summary span{font-weight:400;color:var(--ok)}
+
+/* === NAV DOTS === */
+.scene-nav{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:100;pointer-events:none}
+.scene-dot{width:8px;height:8px;border-radius:50%;background:rgba(19,0,50,.15);cursor:pointer;transition:all .2s;pointer-events:auto}
+.scene-dot.active{background:var(--ds-cobalt);transform:scale(1.35)}
+
+/* === CTA === */
+#scene-cta{position:absolute;bottom:28px;right:20px;z-index:50;background:var(--ds-cobalt);color:#fff;font-size:12px;font-weight:600;border-radius:20px;padding:8px 20px;cursor:pointer;box-shadow:0 4px 16px rgba(76,0,255,.35);opacity:0;pointer-events:none;transition:opacity .3s,transform .15s;font-family:inherit}
+#scene-cta.show{opacity:1;pointer-events:auto}
+#scene-cta:hover{transform:scale(1.04)}
+
+/* === AUTOPLAY BTN === */
+#autoplay-btn{position:fixed;bottom:18px;left:18px;z-index:200;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:600;color:#3F3F46;cursor:pointer;backdrop-filter:blur(8px);font-family:inherit;transition:background .2s,color .2s}
+#autoplay-btn.playing{background:var(--ds-cobalt);color:#fff}
+
+/* === VERTICAL CHIP === */
+#vchip{position:fixed;bottom:18px;right:18px;z-index:200;background:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:600;color:#71717A;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px)}
+</style>
+</head>
+<body>
+
+<div class="stage">
+<div class="mock">
+
+  <!-- Browser chrome -->
+  <div class="browser-bar">
+    <div class="bdots"><div class="bdot r"></div><div class="bdot y"></div><div class="bdot g"></div></div>
+    <div class="burl" id="url-bar">hillside.docusign.net/onboarding/sub-advisor</div>
+  </div>
+
+  <div class="app-area">
+
+    <!-- ================================================
+         SCENE 1 — WEBFORM (Step 4: Review & Route)
+         ================================================ -->
+    <div class="scene on" id="s1">
+      <div class="hs-topnav">
+        <div class="hs-brand">
+          <span class="hs-mark">▲</span>
+          <span class="hs-wordmark">Hillside</span>
+          <span class="hs-sub">/ Sub-Advisor Onboarding</span>
+        </div>
+        <div class="hs-spacer"></div>
+        <div class="hs-avi">CW</div>
+      </div>
+      <!-- Step indicator -->
+      <div class="s1-stepper">
+        <div class="s1-step done"><div class="s1-step-num">✓</div><span>Engagement type</span></div>
+        <div class="s1-step-line"></div>
+        <div class="s1-step done"><div class="s1-step-num">✓</div><span>Configure package</span></div>
+        <div class="s1-step-line"></div>
+        <div class="s1-step done"><div class="s1-step-num">✓</div><span>Confirm signer</span></div>
+        <div class="s1-step-line"></div>
+        <div class="s1-step active"><div class="s1-step-num">4</div><span>Review and route</span></div>
+      </div>
+      <div class="s1-body">
+        <!-- Left: Docs -->
+        <div class="s1-left">
+          <div class="s1-sec-label">Documents included (4)</div>
+          <div class="s1-doc" id="s1-d1">
+            <div class="s1-check"><svg viewBox="0 0 11 11"><polyline points="2,5.5 4.5,8 9,3"/></svg></div>
+            <div><div class="s1-doc-name">Sub-Advisory Agreement</div><div class="s1-doc-sub">Drives the SAA template and fee schedule.</div></div>
+          </div>
+          <div class="s1-doc" id="s1-d2">
+            <div class="s1-check"><svg viewBox="0 0 11 11"><polyline points="2,5.5 4.5,8 9,3"/></svg></div>
+            <div><div class="s1-doc-name">Fee-Share Schedule</div><div class="s1-doc-sub">60/40 split with 25 bps floor; quarterly true-up.</div></div>
+          </div>
+          <div class="s1-doc" id="s1-d3">
+            <div class="s1-check"><svg viewBox="0 0 11 11"><polyline points="2,5.5 4.5,8 9,3"/></svg></div>
+            <div><div class="s1-doc-name">Form ADV Part 2A Exchange</div><div class="s1-doc-sub">Auto-included for sub-advisor type.</div></div>
+          </div>
+          <div class="s1-doc" id="s1-d4">
+            <div class="s1-check"><svg viewBox="0 0 11 11"><polyline points="2,5.5 4.5,8 9,3"/></svg></div>
+            <div><div class="s1-doc-name">Hillside Compliance Disclosures</div><div class="s1-doc-sub">Standard sub-advisor disclosure pack.</div></div>
+          </div>
+
+          <div class="s1-sec-label" style="margin-top:20px">Package pre-fill</div>
+          <div style="display:flex;flex-wrap:wrap">
+            <span class="s1-tag">SAA template (sub-advisor + AUM tier)</span>
+            <span class="s1-tag">Charlton Schwab custodian setup</span>
+            <span class="s1-tag">Fee-share schedule</span>
+            <span class="s1-tag">Pre-fill from TGK registration</span>
+          </div>
+        </div>
+        <!-- Right: Routing -->
+        <div class="s1-right">
+          <div class="s1-sec-label">Routing (3 parties)</div>
+          <div class="s1-route">
+            <div class="s1-route-avi" style="background:var(--ds-cobalt);color:#fff">PM</div>
+            <div><div class="s1-route-name">Patrick Meyer</div><div class="s1-route-role">TGK Capital · Primary signer</div></div>
+          </div>
+          <div class="s1-route">
+            <div class="s1-route-avi" style="background:var(--hs-accent);color:var(--hs-dark)">CW</div>
+            <div><div class="s1-route-name">Cathie Woods</div><div class="s1-route-role">Hillside · Counter-sign</div></div>
+          </div>
+          <div class="s1-route">
+            <div class="s1-route-avi" style="background:var(--n-hair);color:var(--n-mid)">CS</div>
+            <div><div class="s1-route-name">Charlton Schwab</div><div class="s1-route-role">Custodian · CC on completion</div></div>
+          </div>
+
+          <div style="margin-top:20px">
+            <div class="s1-sec-label">Engagement</div>
+            <div style="background:#F4F2FA;border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--ink);font-weight:500">New Sub-Advisor · Boutique RIA · $48M sleeve (TGK Capital)</div>
+          </div>
+
+          <div style="margin-top:14px">
+            <div class="s1-sec-label">Identity gate</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-mid)">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0"></span>
+              Verification required · Patrick Meyer
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s1-footer">
+        <button class="s1-submit" onclick="goNext()">Submit — Send Sub-Advisory Package to TGK Capital →</button>
+      </div>
+    </div><!-- /s1 -->
+
+    <!-- ================================================
+         SCENE 2 — IDENTITY VERIFIED
+         ================================================ -->
+    <div class="scene" id="s2">
+      <div class="hs-topnav">
+        <div class="hs-brand">
+          <span class="hs-mark">▲</span>
+          <span class="hs-wordmark">Hillside</span>
+        </div>
+        <div class="hs-spacer"></div>
+        <div style="font-size:11.5px;color:rgba(63,218,153,.6)">Powered by Docusign Identity Verification</div>
+      </div>
+      <div class="s2-body">
+        <div class="s2-card">
+          <div class="s2-ring" id="s2-ring">
+            <svg viewBox="0 0 38 38"><polyline points="7,19 16,28 31,11"/></svg>
+          </div>
+          <div class="s2-badge">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M6 1L1 4v4c0 2.2 2 3.8 5 4.5C9 12 11 10.4 11 8V4L6 1z"/></svg>
+            Identity Verified
+          </div>
+          <div class="s2-name">Patrick Meyer</div>
+          <div class="s2-role">Founder &amp; Managing Partner · TGK Capital, LLC</div>
+          <!-- Timeline -->
+          <div class="s2-timeline" style="margin-bottom:22px">
+            <div class="s2-tl-col">
+              <div class="s2-tl-label">Consent</div>
+              <div class="s2-tl-dot"></div>
+            </div>
+            <div class="s2-tl-connector"><div class="s2-tl-line"></div></div>
+            <div class="s2-tl-col">
+              <div class="s2-tl-label">ID Scan</div>
+              <div class="s2-tl-dot"></div>
+            </div>
+            <div class="s2-tl-connector"><div class="s2-tl-line"></div></div>
+            <div class="s2-tl-col">
+              <div class="s2-tl-label">Biometric</div>
+              <div class="s2-tl-dot"></div>
+            </div>
+            <div class="s2-tl-connector"><div class="s2-tl-line"></div></div>
+            <div class="s2-tl-col">
+              <div class="s2-tl-label">Verified</div>
+              <div class="s2-tl-dot"></div>
+            </div>
+          </div>
+          <div class="s2-unlock">
+            Signing ceremony unlocked · <strong>Sub-Advisory Agreement — TGK Capital</strong>
+          </div>
+        </div>
+      </div>
+    </div><!-- /s2 -->
+
+    <!-- ================================================
+         SCENE 3 — SIGNING (GMAIL)
+         ================================================ -->
+    <div class="scene" id="s3">
+      <div class="s3-shell">
+        <!-- Gmail rail -->
+        <div class="s3-rail">
+          <div class="s3-compose">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#001D35" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M8 5v6"/></svg>
+            Compose
+          </div>
+          <div class="s3-nav active">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4h11M2 8h11M2 12h7"/></svg>
+            Inbox <span class="count">3</span>
+          </div>
+          <div class="s3-nav">Starred</div>
+          <div class="s3-nav">Sent</div>
+          <div class="s3-nav">Drafts</div>
+          <div style="padding:8px 16px 3px;font-size:12px;color:#5F6368;font-weight:600">LABELS</div>
+          <div class="s3-nav" style="font-size:12.5px;color:#5F6368">Docusign</div>
+        </div>
+        <!-- Email content -->
+        <div class="s3-content">
+          <div class="s3-email-hdr">
+            <div class="s3-subject">Contract for signature</div>
+            <div class="s3-inbox-tag">Inbox ×</div>
+          </div>
+          <div class="s3-meta">
+            <div class="s3-from-avi">CW</div>
+            <div>
+              <div class="s3-from-name">Cathie Woods via Docusign <span style="font-weight:400;color:#5F6368;font-size:12px">&lt;dse@docusign.net&gt;</span></div>
+              <div class="s3-from-addr">to Patrick Meyer &lt;patrick.meyer@tgkcapital.com&gt;</div>
+            </div>
+            <div class="s3-ts">2:07 PM (5 minutes ago)</div>
+          </div>
+          <div class="s3-body">
+            <div class="s3-hs-card">
+              <div class="s3-hs-card-top">
+                <div class="s3-card-brand">▲ Hillside</div>
+                <div class="s3-card-via">via Docusign</div>
+              </div>
+              <div class="s3-hs-card-body">
+                <div class="s3-doc-icon">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="s3-doc-title">Sub-Advisory Agreement — TGK Capital</div>
+                <div class="s3-doc-sent">Cathie Woods sent you a document to review and sign.</div>
+                <div class="s3-doc-desc">Sub-Advisory Agreement, fee-share schedule, and Form ADV Part 2A exchange ready for your review and signature.</div>
+                <button class="s3-cta" onclick="goNext()">Review Document →</button>
+                <div class="s3-legal">This message was sent to you by Cathie Woods who is using the Docusign Electronic Signature Service. If you would rather not receive email from this sender you may contact the sender.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /s3 -->
+
+    <!-- ================================================
+         SCENE 4 — AGREEMENT REPOSITORY (NAVIGATOR)
+         ================================================ -->
+    <div class="scene" id="s4">
+      <div class="ds-topnav">
+        <a class="ds-logo">
+          <img class="icon" src="../assets/brand/DSIcon_favicon_LightMode_96x96.svg" alt="">
+          <img class="wm" src="../assets/brand/DS_Wordmark_v2.svg" alt="Docusign">
+        </a>
+        <div class="ds-nav">
+          <a>Home</a>
+          <a class="active">Agreements</a>
+          <a>Templates</a>
+          <a>Insights</a>
+          <a>Settings</a>
+        </div>
+        <div class="sp"></div>
+        <div class="ds-avi">CW</div>
+      </div>
+      <div class="s4-shell">
+        <!-- Left rail -->
+        <div class="s4-rail">
+          <div class="s4-nav">
+            <svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+            Overview
+          </div>
+          <div class="s4-nav active">
+            <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8"/></svg>
+            Agreements
+          </div>
+          <div class="s4-nav">
+            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 3V2M11 3V2"/></svg>
+            Templates
+          </div>
+          <div class="s4-nav">
+            <svg viewBox="0 0 16 16"><path d="M2 12L6 7l3 3 3-4 3 2"/></svg>
+            Insights
+          </div>
+          <div class="s4-nav">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 4.6l-1.4 1.4M4.6 11.4L3.2 12.8"/></svg>
+            Settings
+          </div>
+        </div>
+        <!-- Main -->
+        <div class="s4-main">
+          <div class="s4-main-hdr">
+            <div class="s4-page-title">
+              Agreements
+              <div class="s4-ai-badge">✦ AI-Assisted</div>
+            </div>
+          </div>
+          <div class="s4-content">
+            <div class="s4-table-wrap">
+              <div class="s4-banner">
+                <div class="bicon">✦</div>
+                <div>
+                  <div class="btitle">the AI assistant extracted key terms across 58 sub-advisor and operating agreements.</div>
+                  <div class="bbody">Parties, effective dates, fee schedules, and renewal windows are searchable and filterable below. Review any extraction that needs a human eye.</div>
+                  <div class="blink">Review extractions →</div>
+                </div>
+              </div>
+              <div class="s4-filters">
+                <div class="s4-fb active">All agreements</div>
+                <div class="s4-fb">Party</div>
+                <div class="s4-fb">Effective date</div>
+                <div class="s4-fb">Renewal</div>
+                <div class="s4-fb">Value</div>
+                <div style="margin-left:auto;font-size:12px;color:var(--ink-faint)">Advanced →</div>
+              </div>
+              <table class="s4-table">
+                <thead>
+                  <tr>
+                    <th>NAME</th>
+                    <th>PARTY ↑</th>
+                    <th>VALUE ↑</th>
+                    <th>EFFECTIVE ↑</th>
+                    <th>RENEWAL ↑</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="hl">
+                    <td><span class="s4-doc-name">Sub-Advisory Agreement — TGK Capital</span><span class="s4-ai-mark">✦</span></td>
+                    <td>TGK Capital</td>
+                    <td>60/40 split · $48M sleeve</td>
+                    <td>May 6 2026</td>
+                    <td>Auto-renew · 12 mo</td>
+                    <td><span class="s4-active">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="s4-doc-name">Form ADV Part 2A Exchange — TGK</span><span class="s4-ai-mark">✦</span></td>
+                    <td>TGK Capital</td>
+                    <td>—</td>
+                    <td>May 6 2026</td>
+                    <td>Annual refresh</td>
+                    <td><span class="s4-active">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="s4-doc-name">Fee-Share Schedule — Hillside × TGK</span><span class="s4-ai-mark">✦</span></td>
+                    <td>TGK Capital</td>
+                    <td>60/40 · 25 bps floor</td>
+                    <td>May 6 2026</td>
+                    <td>Tied to SAA term</td>
+                    <td><span class="s4-active">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="s4-doc-name">Charlton Schwab Custodian Services</span><span class="s4-ai-mark">✦</span></td>
+                    <td>Charlton Schwab</td>
+                    <td>Tiered</td>
+                    <td>Jan 1 2024</td>
+                    <td>Auto-renew</td>
+                    <td><span class="s4-renew">Renew</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="s4-doc-name">Research Subscription — FactSet</span><span class="s4-ai-mark">✦</span></td>
+                    <td>FactSet LLC</td>
+                    <td>$48,000 / yr</td>
+                    <td>Jun 30 2024</td>
+                    <td>30-day opt-out</td>
+                    <td><span class="s4-renew">Renew</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Chat panel -->
+            <div class="s4-chat">
+              <div class="s4-chat-hdr">
+                <div class="icon">✦</div>
+                <div>
+                  <div class="title">AI Assistant</div>
+                  <div class="sub">Grounded on your agreements</div>
+                </div>
+              </div>
+              <div class="s4-chat-msgs">
+                <div class="s4-chat-q">What are the fee-share terms on the TGK Sub-Advisory Agreement?</div>
+                <div class="s4-chat-a" id="s4-ans">
+                  The <span class="src">Fee-Share Schedule</span> applies a <em>60/40 split</em> to TGK on the $48M sleeve, with a <em>25 bps floor</em> on Hillside's share and a quarterly true-up. One note: Patrick negotiated the floor down from 30 bps — documented in the addendum and worth flagging at the next compliance review.
+                  <div class="s4-chat-src-tags">
+                    <span class="s4-src-tag">Fee-Share Schedule</span>
+                    <span class="s4-src-tag">Sub-Advisory Agreement</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /s4 -->
+
+    <!-- ================================================
+         SCENE 5 — WORKSPACE
+         ================================================ -->
+    <div class="scene" id="s5">
+      <div class="ds-topnav">
+        <a class="ds-logo">
+          <img class="icon" src="../assets/brand/DSIcon_favicon_LightMode_96x96.svg" alt="">
+          <img class="wm" src="../assets/brand/DS_Wordmark_v2.svg" alt="Docusign">
+        </a>
+        <div class="ds-nav">
+          <a>Home</a>
+          <a class="active">Workspaces</a>
+          <a>Agreements</a>
+          <a>Insights</a>
+        </div>
+        <div class="sp"></div>
+        <div class="ds-avi">CW</div>
+      </div>
+      <div class="s5-shell">
+        <!-- Left main -->
+        <div class="s5-left">
+          <div class="s5-ws-hdr">
+            <div class="s5-ws-title">New Sub-Advisor — TGK Capital</div>
+            <div class="s5-ws-meta">
+              <div class="s5-avis">
+                <div class="s5-avi a">CW</div>
+                <div class="s5-avi c">PM</div>
+                <div class="s5-avi m">CO</div>
+                <div class="s5-avi m" style="margin-right:0">+4</div>
+              </div>
+              <div class="s5-ws-sub">Sub-advisor onboarding · 62% complete</div>
+            </div>
+          </div>
+          <div class="s5-pb-wrap"><div class="s5-pb-fill" id="s5-pb"></div></div>
+          <!-- Tiles -->
+          <div class="s5-tiles">
+            <div class="s5-tile">
+              <div class="s5-tile-lab">Open items</div>
+              <div class="s5-tile-val">4</div>
+              <div class="s5-tile-sub">Waiting on TGK</div>
+            </div>
+            <div class="s5-tile">
+              <div class="s5-tile-lab">Sleeve</div>
+              <div class="s5-tile-val accent">$48M</div>
+              <div class="s5-tile-sub">Initial AUM mapping</div>
+            </div>
+            <div class="s5-tile">
+              <div class="s5-tile-lab">Docs signed</div>
+              <div class="s5-tile-val">5/8</div>
+              <div class="s5-tile-sub">SAA, ADV, Fee schedule</div>
+            </div>
+            <div class="s5-tile">
+              <div class="s5-tile-lab">Next deadline</div>
+              <div class="s5-tile-val warn">May 12</div>
+              <div class="s5-tile-sub">6 days · custodian SLA</div>
+            </div>
+          </div>
+          <!-- Task sections -->
+          <div class="s5-sections">
+            <div class="s5-sec-title">Sub-advisor onboarding and disclosures</div>
+            <div class="s5-task">
+              <div class="s5-task-ck done"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div class="s5-task-name">Sub-Advisory Agreement</div>
+              <div class="s5-task-meta">Countersigned</div>
+            </div>
+            <div class="s5-task">
+              <div class="s5-task-ck done"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div class="s5-task-name">Form ADV Part 2A Exchange</div>
+              <div class="s5-task-meta">Hillside ↔ TGK</div>
+            </div>
+            <div class="s5-task">
+              <div class="s5-task-ck"></div>
+              <div class="s5-task-name">Compliance disclosures acknowledgment</div>
+            </div>
+            <div class="s5-sec-title" style="margin-top:14px">Custodian and reporting setup</div>
+            <div class="s5-task">
+              <div class="s5-task-ck"></div>
+              <div class="s5-task-name">Charlton Schwab account forms</div>
+              <div class="s5-task-chip">Imported from Quik!</div>
+            </div>
+            <div class="s5-task">
+              <div class="s5-task-ck"></div>
+              <div class="s5-task-name">Trade reconciliation cadence</div>
+            </div>
+            <div class="s5-task">
+              <div class="s5-task-ck"></div>
+              <div class="s5-task-name">Quarterly attestation schedule</div>
+            </div>
+          </div>
+          <!-- Activity -->
+          <div class="s5-activity">
+            <div class="s5-sec-title">Recent activity</div>
+            <div class="s5-act-row">
+              <div class="s5-act-ts">10:14 am</div>
+              <div class="s5-act-text">SAA countersigned — <span style="color:var(--ink-soft)">Patrick Meyer · TGK Capital</span></div>
+            </div>
+            <div class="s5-act-row">
+              <div class="s5-act-ts">10:09 am</div>
+              <div class="s5-act-text">Form ADV exchange filed — <span style="color:var(--ink-soft)">Hillside ↔ TGK · 2024 amendment</span></div>
+            </div>
+            <div class="s5-act-row">
+              <div class="s5-act-ts">Delivered</div>
+              <div class="s5-act-text">Workspace access sent — <span class="s5-act-ok">patrick.meyer@tgkcapital.com</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- AI agent rail -->
+        <div class="s5-right">
+          <div class="s5-agent-hdr">
+            <div class="s5-agent-title">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--ds-cobalt)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 13c0-2.8 2.7-5 6-5s6 2.2 6 5"/><path d="M5 5h-.5a1 1 0 0 0 0 2h.5M11 5h.5a1 1 0 0 1 0 2H11"/></svg>
+              Sub-Advisor Onboarding Agent
+            </div>
+            <div class="s5-agent-sub">Compliance &amp; Custody · 7 checks</div>
+          </div>
+          <div class="s5-checks">
+            <div class="s5-check" id="c1">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Sub-Advisory Agreement</div><div class="s5-ck-detail">Countersigned · 12 pages · clause set matches Hillside template</div></div>
+            </div>
+            <div class="s5-check" id="c2">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Form ADV Part 2A delivery</div><div class="s5-ck-detail">Acknowledged by TGK · 2024 amendment on file</div></div>
+            </div>
+            <div class="s5-check" id="c3">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Fee-share schedule</div><div class="s5-ck-detail">60/40 split · 25 bps floor · quarterly true-up</div></div>
+            </div>
+            <div class="s5-check" id="c4">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Compliance disclosures</div><div class="s5-ck-detail">All 5 required disclosures acknowledged</div></div>
+            </div>
+            <div class="s5-check" id="c5">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">AML / OFAC screen · principal</div><div class="s5-ck-detail">Patrick Meyer · clean across 14 sanctions lists</div></div>
+            </div>
+            <div class="s5-check" id="c6">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Custodian setup</div><div class="s5-ck-detail">Charlton Schwab forms imported · master signature pending</div></div>
+            </div>
+            <div class="s5-check" id="c7">
+              <div class="s5-ck-icon"><svg viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+              <div><div class="s5-ck-name">Reporting cadence</div><div class="s5-ck-detail">Quarterly attestation queued · trade reconciliation TBD</div></div>
+            </div>
+          </div>
+          <div class="s5-summary" id="s5-sum">✓ 6 checks passed · 1 advisory note. <span>Custodian setup at Charlton Schwab is in flight; expect trading-live next Tuesday.</span></div>
+        </div>
+      </div>
+    </div><!-- /s5 -->
+
+  </div><!-- /app-area -->
+
+  <!-- Nav dots (inside .mock so they render above overflow:hidden content) -->
+  <div class="scene-nav">
+    <div class="scene-dot active" onclick="goTo('s1')" title="S1: Webform"></div>
+    <div class="scene-dot" onclick="goTo('s2')" title="S2: Identity Verification"></div>
+    <div class="scene-dot" onclick="goTo('s3')" title="S3: Signing"></div>
+    <div class="scene-dot" onclick="goTo('s4')" title="S4: Agreement Repository"></div>
+    <div class="scene-dot" onclick="goTo('s5')" title="S5: Workspace"></div>
+  </div>
+
+  <!-- CTA -->
+  <div id="scene-cta" onclick="ctaClick()">Submit Package →</div>
+
+</div><!-- /mock -->
+</div><!-- /stage -->
+
+<button id="autoplay-btn" onclick="toggleAutoplay()">▶ Autoplay</button>
+<div id="vchip">Wealth · Hillside × TGK Capital</div>
+
+<script>
+(function(){"use strict";
+
+const SCENES=[
+  {id:'s1',at:0,     dur:9000,  url:'hillside.docusign.net/onboarding/sub-advisor'},
+  {id:'s2',at:9000,  dur:8000,  url:'verify.docusign.com/session/hillside-tgk-idv'},
+  {id:'s3',at:17000, dur:8000,  url:'mail.google.com/mail/u/0/#inbox/tgk-sub-advisory'},
+  {id:'s4',at:25000, dur:10000, url:'apps.docusign.com/navigator/agreements?preset=wealth'},
+  {id:'s5',at:35000, dur:12000, url:'apps.docusign.com/workspaces/sub-advisor-tgk'},
+];
+const TOTAL=47000;
+
+const CTA_LABELS=[
+  '✅ Submit Sub-Advisory Package →',
+  '📝 Proceed to Signing →',
+  '📋 Open &amp; Review Document →',
+  '🏠 Open TGK Workspace →',
+  null,
+];
+
+let startTime=null,raf=null,shellDriven=true,autoPlaying=false,curId=null,curIdx=0;
+
+function applyScene(sc){
+  if(!sc)return;
+  const idx=SCENES.indexOf(sc);
+  curId=sc.id;curIdx=idx;
+
+  // URL bar
+  const u=document.getElementById('url-bar');
+  if(u)u.textContent=sc.url;
+
+  // Show scene
+  document.querySelectorAll('.scene').forEach(el=>el.classList.remove('on'));
+  const el=document.getElementById(sc.id);
+  if(el)el.classList.add('on');
+
+  // Dots
+  document.querySelectorAll('.scene-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+
+  // CTA
+  const cta=document.getElementById('scene-cta');
+  const lbl=CTA_LABELS[idx];
+  if(cta){if(lbl){cta.innerHTML=lbl;cta.classList.add('show');}else{cta.classList.remove('show');}}
+
+  // Per-scene init
+  if(sc.id==='s1')initS1();
+  if(sc.id==='s2')initS2();
+  if(sc.id==='s4')initS4();
+  if(sc.id==='s5')initS5();
+}
+
+function initS1(){
+  ['s1-d1','s1-d2','s1-d3','s1-d4'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.remove('show');
+  });
+  ['s1-d1','s1-d2','s1-d3','s1-d4'].forEach((id,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      if(el)el.classList.add('show');
+    },120+i*160);
+  });
+}
+
+function initS2(){
+  const r=document.getElementById('s2-ring');
+  if(r){
+    r.classList.remove('s2-ring-anim');
+    void r.offsetWidth;
+    r.classList.add('s2-ring-anim');
+  }
+}
+
+function initS4(){
+  const a=document.getElementById('s4-ans');
+  if(a){
+    a.classList.remove('show');
+    a.style.display='none';
+    setTimeout(()=>{
+      a.style.display='';
+      void a.offsetWidth;
+      a.classList.add('show');
+    },1100);
+  }
+}
+
+function initS5(){
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById('c'+i);
+    if(el)el.classList.remove('show');
+  }
+  const sum=document.getElementById('s5-sum');
+  if(sum)sum.style.opacity='0';
+
+  // Progress bar
+  const pb=document.getElementById('s5-pb');
+  if(pb){pb.style.width='0';setTimeout(()=>{pb.style.width='62%';},150);}
+
+  for(let i=1;i<=7;i++){
+    const n=i;
+    setTimeout(()=>{
+      const el=document.getElementById('c'+n);
+      if(el)el.classList.add('show');
+    },200+(n-1)*280);
+  }
+  setTimeout(()=>{if(sum)sum.style.opacity='1';},200+7*280+300);
+}
+
+function goTo(id){
+  shellDriven=true;autoPlaying=false;
+  const btn=document.getElementById('autoplay-btn');
+  if(btn){btn.textContent='▶ Autoplay';btn.classList.remove('playing');}
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  const sc=SCENES.find(s=>s.id===id);
+  if(sc)applyScene(sc);
+}
+
+function goNext(){const n=SCENES[curIdx+1];if(n)goTo(n.id);}
+function goPrev(){const p=SCENES[curIdx-1];if(p)goTo(p.id);}
+function ctaClick(){goNext();}
+
+function toggleAutoplay(){
+  autoPlaying=!autoPlaying;shellDriven=!autoPlaying;
+  const btn=document.getElementById('autoplay-btn');
+  if(btn){btn.textContent=autoPlaying?'⏸ Pause':'▶ Autoplay';btn.classList.toggle('playing',autoPlaying);}
+  if(autoPlaying){
+    startTime=performance.now()-(SCENES[curIdx]?.at||0);
+    raf=requestAnimationFrame(render);
+  }else{
+    if(raf){cancelAnimationFrame(raf);raf=null;}
+  }
+}
+
+function render(ts){
+  if(!autoPlaying)return;
+  if(!startTime)startTime=ts;
+  const elapsed=(ts-startTime)%TOTAL;
+  const sc=SCENES.slice().reverse().find(s=>elapsed>=s.at)||SCENES[0];
+  if(sc.id!==curId)applyScene(sc);
+  raf=requestAnimationFrame(render);
+}
+
+// Keyboard
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();goNext();}
+  if(e.key==='ArrowLeft'){e.preventDefault();goPrev();}
+});
+
+// Shell postMessage
+window.addEventListener('message',function(e){
+  const d=e.data;if(!d||!d.type)return;
+  if(d.type==='tgk:lockToBeat'){
+    shellDriven=true;autoPlaying=false;
+    if(d.sceneId)goTo(d.sceneId);
+  }
+  if(d.type==='tgk:resumeAuto'){
+    autoPlaying=true;shellDriven=false;startTime=null;
+    raf=requestAnimationFrame(render);
+  }
+  if(d.type==='tgk:queryRect'&&d.target){
+    const el=document.querySelector('[data-hotspot="'+d.target+'"]');
+    if(el&&e.source){
+      const r=el.getBoundingClientRect();
+      e.source.postMessage({type:'tgk:rect',target:d.target,rect:{x:r.left,y:r.top,w:r.width,h:r.height},viewport:{w:window.innerWidth,h:window.innerHeight}},'*');
+    }
+  }
+});
+
+// Init
+applyScene(SCENES[0]);
+
+})();
+</script>
+</body>
+</html>
