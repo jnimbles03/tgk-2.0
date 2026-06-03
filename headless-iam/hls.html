@@ -537,8 +537,12 @@
 </div>
 
 <script>
-const TENANT = { slug:'riverside', label:'Riverside' };
-const IAM_DEMOS = [
+const VERTICAL = new URLSearchParams(location.search).get('vertical') || 'provider';
+const TENANT = VERTICAL === 'lifesciences'
+  ? { slug:'helix', label:'Helix' }
+  : { slug:'riverside', label:'Riverside' };
+
+const IAM_DEMOS_HCP = [
   { id:'webforms',  num:'01', title:'Web Forms',                    sub:'Patient intake, ROI request, screening forms.', section:'Intake & orchestration', template:'/story-templates/docusign-webform-intake.html?preset=riverside' },
   { id:'maestro',   num:'02', title:'the workflow Workflow Templates',    sub:'Multi-party orchestration: site activation, ROI, claims.', section:'Intake & orchestration', template:'/story-templates/docusign-maestro-package.html?preset=riverside' },
   { id:'clear',     num:'03', title:'identity verification · IAL2',                  sub:'Clinician + patient identity step-up at consent moments.', section:'Identity', template:'/story-templates/docusign-clear-idv.html?preset=riverside' },
@@ -553,6 +557,24 @@ const IAM_DEMOS = [
   { id:'iamsales',  num:'12', title:'IAM for Sales · Agentforce',     sub:'Originate from CRM (B2B + payer relationships).', section:'Vertical extensions', template:'/story-templates/docusign-agents.html?preset=riverside' },
   { id:'clm',       num:'13', title:'CLM · Procurement',             sub:'Lifecycle management for vendor and procurement docs.', section:'Vertical extensions' }
 ];
+
+const IAM_DEMOS_LS = [
+  { id:'webforms',  num:'01', title:'Electronic Quality Event Form',        sub:'Deviation, CAPA, change control — dynamic intake with compliance rider branching by vendor type.', section:'Intake & orchestration', template:'/story-templates/docusign-webform-intake.html?preset=lifesciences' },
+  { id:'maestro',   num:'02', title:'GxP Workflow Templates',               sub:'Deviation routing, CAPA escalation, 30-day FDA notification workflows.', section:'Intake & orchestration', template:'/story-templates/docusign-maestro-package.html?preset=lifesciences' },
+  { id:'clear',     num:'03', title:'IAL2 · Controlled Substance Gate',      sub:'IAL2 biometric check + DEA cross-reference before any chain-of-custody signature.', section:'Identity', template:'/story-templates/docusign-clear-idv.html?preset=lifesciences' },
+  { id:'idme',      num:'04', title:'ID.me · Researcher Authentication',     sub:'Federated identity step-up for research portal and study document access.', section:'Identity' },
+  { id:'idverse',   num:'05', title:'IDVerse · Investigator Verification',   sub:'Document + selfie verification for external investigators and CRO contacts.', section:'Identity' },
+  { id:'signing',   num:'06', title:'21 CFR Part 11 Signing Ceremony',       sub:'GxP-compliant signing: CTA, Form 1572, MQA, SOP attestation, chain-of-custody.', section:'Agreement execution', template:'/story-templates/docusign-signing-ceremony.html?preset=lifesciences' },
+  { id:'navigator', num:'07', title:'TMF Repository',                        sub:'Search CTAs, protocol amendments, Form 1572s, and Protocol Deviation waivers.', section:'Data & discovery', template:'/story-templates/docusign-navigator.html?preset=lifesciences' },
+  { id:'iris',      num:'08', title:'AI-Assisted Protocol Review',           sub:'Protocol amendment analysis — surfaces obligations and change-from-prior delta.', section:'Data & discovery' },
+  { id:'workspace', num:'09', title:'JSC & Out-Licensing Workspace',         sub:'Safety data sheets, patent definitions, royalty structures, milestone payout agreements.', section:'Collaboration', template:'/story-templates/docusign-workspace.html?preset=lifesciences' },
+  { id:'monitor',   num:'10', title:'Docusign Monitor',                      sub:'21 CFR Part 11 anomaly detection on electronic record access and signings.', section:'Risk & monitoring' },
+  { id:'dataverify',num:'11', title:'Investigator Data Verification',        sub:'Cross-references PI credentials and DEA registration against FDA DUNS.', section:'Risk & monitoring' },
+  { id:'iamsales',  num:'12', title:'IAM for CRO Partnerships',              sub:'Originate CRO vendor setup and out-licensing agreements from alliance management CRM.', section:'Vertical extensions', template:'/story-templates/docusign-agents.html?preset=lifesciences' },
+  { id:'clm',       num:'13', title:'CLM · Vendor Lifecycle Management',     sub:'CRO contract lifecycle: MSA, MQA, annual renewal, SOW amendments.', section:'Vertical extensions' }
+];
+
+const IAM_DEMOS = VERTICAL === 'lifesciences' ? IAM_DEMOS_LS : IAM_DEMOS_HCP;
 
 function iconForDemo(id){
   switch(id){
@@ -616,7 +638,194 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('iamTray').classList.contains('open')) return closeTray();
 });
 
+function applyLifeSciencesConfig() {
+  document.title = 'Helix Pharmaceuticals · QMS SOP Management';
+  const r = document.documentElement;
+  r.style.setProperty('--ehr-teal',       '#3A1A5C');
+  r.style.setProperty('--ehr-teal-dark',  '#2A0E4A');
+  r.style.setProperty('--ehr-teal-light', '#5E2E8A');
+  r.style.setProperty('--ehr-navy',       '#1E0B36');
+
+  // Title bar
+  const tb = document.querySelector('.ehr-titlebar');
+  tb.querySelector('.vendor .wm').textContent = 'Vault';
+  tb.querySelector('.breadcrumb').textContent = 'QualityDocs · R&D Quality · SOP Library';
+  tb.querySelector('.deploy').textContent = 'Deployed at: Helix Pharmaceuticals';
+  tb.querySelector('.env').textContent = 'QUALITY · CHEN, SARAH · QualityDocs';
+
+  // Activity toolbar
+  document.querySelector('.ehr-activities').innerHTML = `
+    <div class="ehr-act"><div class="icon">&#128196;</div>Dashboard</div>
+    <div class="ehr-act active"><div class="icon">&#128193;</div>Documents</div>
+    <div class="ehr-act" onclick="openDemo('webforms', event)" title="Open Electronic Quality Event Form"><div class="icon">&#128203;</div>Quality Events</div>
+    <div class="ehr-act"><div class="icon">&#127891;</div>Training Records</div>
+    <div class="ehr-act" onclick="openDemo('maestro', event)" title="Open GxP Workflow Templates"><div class="icon">&#9881;</div>Workflows</div>
+    <div class="ehr-act"><div class="icon">&#128269;</div>Audits</div>
+    <div class="ehr-act"><div class="icon">&#128202;</div>Reports</div>
+    <div class="ehr-act iam" onclick="openTray()" title="Open all 13 IAM demos">
+      <div class="icon">
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7 L6 10 L11 5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      IAM Demos
+    </div>`;
+
+  // Left rail: SOP metadata
+  document.querySelector('.ehr-patient-rail').innerHTML = `
+    <div class="pp">
+      <div style="width:42px;height:42px;background:linear-gradient(135deg,#C7A0FF,#7B2FBE);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="pn">SOP-0042<small>Cell Culture Maintenance</small></div>
+    </div>
+    <div class="kv"><span class="k">Version</span><span class="v">v3.1</span></div>
+    <div class="kv"><span class="k">Doc Type</span><span class="v">SOP</span></div>
+    <div class="kv"><span class="k">Owner</span><span class="v">Chen, Sarah (QA)</span></div>
+    <div class="kv"><span class="k">SME</span><span class="v">Torres, M. (R&amp;D)</span></div>
+    <div class="kv"><span class="k">Eff. Date</span><span class="v">2026-01-15</span></div>
+    <div class="sec">Compliance</div>
+    <div class="chip active"><span>Status</span><b>Pending Attestation</b></div>
+    <div class="chip"><span>Regulation</span><b>21 CFR Part 11</b></div>
+    <div class="chip"><span>GxP Level</span><b>GMP Critical</b></div>
+    <div class="sec">Review Cycle</div>
+    <div class="chip"><span>Frequency</span><b>Annual</b></div>
+    <div class="chip"><span>Next Review</span><b>2027-01-15</b></div>
+    <div class="sec">Step-Up Auth</div>
+    <div class="alert" onclick="openDemo('clear', event)" title="IAL2 required for controlled substance SOPs">DEA Step-Up Required</div>
+    <div class="id-cta" onclick="openDemo('clear', event)" title="IAL2 identity verification for GxP controlled substance">IAL2 Verified &middot; Active</div>`;
+
+  // Subtabs
+  document.querySelector('.ehr-subtabs').innerHTML = `
+    <div class="ehr-subtab active">SOP Library</div>
+    <div class="ehr-subtab">By Category</div>
+    <div class="ehr-subtab">Pending Attestations</div>
+    <div class="ehr-subtab" onclick="openDemo('signing', event)">Signed Records</div>
+    <div class="ehr-subtab">Archived</div>`;
+
+  // Sub-sub nav
+  document.querySelector('.ehr-subsub').innerHTML = `
+    <span class="item">All SOPs</span>
+    <span class="item active">GxP Critical</span>
+    <span class="item">Laboratory</span>
+    <span class="item">Manufacturing</span>
+    <span class="item" onclick="openDemo('maestro', event)">Deviation Workflows</span>
+    <span class="item iam" onclick="openDemo('webforms', event)">Quality Events</span>`;
+
+  // Sticky note
+  document.querySelector('.ehr-sticky').innerHTML = `
+    <div class="h">QA Note</div>
+    SOP-0042 v3.1 — annual revision. Cell passage limit updated from 15 to 12 per stability data. All primary cell culture staff must re-attest by 2026-06-30.`;
+
+  // Main content: SOP list
+  document.querySelector('.ehr-content').innerHTML = `
+    <div class="ehr-section-hd">GxP Critical &middot; Manufacturing <span class="cnt">3 SOPs &middot; 2 pending</span></div>
+    <div class="med">
+      <span class="pill-ic cardiac">GxP</span>
+      <div class="name">Cell Culture Maintenance<small>SOP-0042 &middot; v3.1</small></div>
+      <div class="details">Annual attestation &middot; All R&amp;D cell culture staff &middot; Effective 2026-01-15<span class="note">Amendment note 2026-01-10: <b>Cell passage limit updated to 12 (was 15)</b> per ICH stability data</span></div>
+      <div class="lastdose">Due 2026-06-30</div>
+      <div class="time">GMP</div>
+      <div class="taking"><span class="cb"></span>Pending</div>
+      <div class="menu">&#8942;</div>
+    </div>
+    <div class="med">
+      <span class="pill-ic anticoag">GxP</span>
+      <div class="name">Aseptic Technique &mdash; Class A Cleanroom<small>SOP-0051 &middot; v2.4</small></div>
+      <div class="details">Bi-annual attestation &middot; Cleanroom-qualified staff &middot; Effective 2025-10-01<span class="note">Next qualification window 2026-09-15</span></div>
+      <div class="lastdose">Attested 2026-04-12</div>
+      <div class="time">GMP</div>
+      <div class="taking yes"><span class="cb"></span>Attested</div>
+      <div class="menu">&#8942;</div>
+    </div>
+    <div class="med hover">
+      <span class="pill-ic antibiotic">GxP</span>
+      <div class="name">Controlled Substance Handling &amp; Chain-of-Custody<small>SOP-0063 &middot; v1.8</small></div>
+      <div class="details">Annual attestation &middot; DEA registrants only &middot; IAL2 step-up required<span class="note">21 CFR Part 11 binding: <b>DEA verification required before signature rights granted</b></span></div>
+      <div class="lastdose obtain">&#9888; IAL2 Required</div>
+      <div class="time">DEA</div>
+      <div class="taking"><span class="cb"></span>Pending</div>
+      <div class="menu">&#8942;</div>
+    </div>
+    <div class="ehr-section-hd">Laboratory Operations <span class="cnt">2 SOPs &middot; 1 overdue</span></div>
+    <div class="med">
+      <span class="pill-ic ppi">Lab</span>
+      <div class="name">Equipment Calibration &amp; Qualification<small>SOP-0087 &middot; v4.0</small></div>
+      <div class="details">Annual attestation &middot; All lab staff &middot; Effective 2026-03-01<span class="note">Overdue: <b>attestation window closed 2026-05-31</b> — CAPA required</span></div>
+      <div class="lastdose obtain">&#9888; Overdue</div>
+      <div class="time">GLP</div>
+      <div class="taking"><span class="cb"></span>Overdue</div>
+      <div class="menu">&#8942;</div>
+    </div>
+    <div class="med">
+      <span class="pill-ic">Lab</span>
+      <div class="name">Sample Receipt, Labeling &amp; Storage<small>SOP-0091 &middot; v2.1</small></div>
+      <div class="details">Annual attestation &middot; Sample management team &middot; Effective 2025-11-15</div>
+      <div class="lastdose">Attested 2026-02-20</div>
+      <div class="time">GLP</div>
+      <div class="taking yes"><span class="cb"></span>Attested</div>
+      <div class="menu">&#8942;</div>
+    </div>`;
+
+  // Footer: Attest SOP
+  document.querySelector('.ehr-footer').innerHTML = `
+    <button class="btn" onclick="openDemo('signing', event)" title="Attest SOP via 21 CFR Part 11 electronic signature">Attest SOP</button>
+    <span class="reviewed">Last attested by Chen, Sarah, QA on 2025-12-15 at 10:42 AM</span>
+    <span class="spacer"></span>
+    <span class="nav">
+      <button class="btn ghost">Export Log</button>
+      <button class="btn ghost">Close</button>
+      <button class="btn primary">&#9664; Previous SOP</button>
+      <button class="btn primary">Next SOP &#9654;</button>
+    </span>`;
+
+  // In Basket: Pending Attestations
+  document.querySelector('.ehr-inbasket').innerHTML = `
+    <div class="ih">
+      <span>&#128203; Pending Attestations</span>
+      <span class="cnt">3 open</span>
+      <span class="close" title="Hide panel" aria-hidden="true">&times;</span>
+    </div>
+    <div class="ib-item selected" onclick="openDemo('signing', event)" title="Attest SOP-0042 via headless GxP signing">
+      <span class="tag sign">Attest</span>
+      <div class="body">
+        <div class="subj">SOP-0042 &middot; Cell Culture Maintenance v3.1</div>
+        <div class="meta">Annual attestation &middot; Due 2026-06-30 &middot; GMP Critical</div>
+      </div>
+    </div>
+    <div class="ib-item" onclick="openDemo('signing', event)" title="Attest SOP-0087 (overdue)">
+      <span class="tag urgent">Overdue</span>
+      <div class="body">
+        <div class="subj">SOP-0087 &middot; Equipment Calibration v4.0</div>
+        <div class="meta">Window closed 2026-05-31 &middot; CAPA required</div>
+      </div>
+    </div>
+    <div class="ib-item" onclick="openDemo('webforms', event)" title="Open Quality Event form">
+      <span class="tag roi">QE</span>
+      <div class="body">
+        <div class="subj">Change control #CC-2026-0182</div>
+        <div class="meta">SOP-0042 amendment impact assessment &middot; R&amp;D QA</div>
+      </div>
+    </div>
+    <div class="ib-detail">
+      <b>SOP-0042 Cell Culture Maintenance v3.1 — annual attestation required.</b> Effective 2026-01-15. Key change: cell passage limit updated from 15 to 12. Attestation due by 2026-06-30.
+      <div class="cta-row">
+        <button class="cta docusign" onclick="openDemo('signing', event)">Attest SOP</button>
+        <button class="cta ghost" onclick="openDemo('navigator', event)">View in TMF</button>
+        <button class="cta ghost">Defer</button>
+      </div>
+    </div>`;
+
+  // Live strip
+  document.querySelector('.live-strip').innerHTML = `
+    <span class="dot"></span>
+    <span>Helix Pharmaceuticals &middot; GxP SOP attestation — Docusign invisible to the scientist</span>`;
+
+  // IAM tray header + drilldown breadcrumb
+  document.querySelector('.iam-tray-h .meta-eyebrow').textContent = 'Docusign · Embedded in Helix QMS (Vault)';
+  document.querySelector('.dd-bar .crumb b').textContent = 'Helix / Vault';
+}
+
 renderTray();
+if (VERTICAL === 'lifesciences') applyLifeSciencesConfig();
 const hash = location.hash.replace('#','').toLowerCase();
 if (hash){ const d = IAM_DEMOS.find(d => d.id === hash); if (d) openDemo(hash); }
 </script>
