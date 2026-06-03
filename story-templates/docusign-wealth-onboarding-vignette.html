@@ -923,7 +923,7 @@ function initS5(){
   setTimeout(()=>{if(sum)sum.style.opacity='1';},200+7*280+300);
 }
 
-function goTo(id){
+window.goTo=function goTo(id){
   shellDriven=true;autoPlaying=false;
   const btn=document.getElementById('autoplay-btn');
   if(btn){btn.textContent='▶ Autoplay';btn.classList.remove('playing');}
@@ -932,11 +932,10 @@ function goTo(id){
   if(sc)applyScene(sc);
 }
 
-function goNext(){const n=SCENES[curIdx+1];if(n)goTo(n.id);}
-function goPrev(){const p=SCENES[curIdx-1];if(p)goTo(p.id);}
-function ctaClick(){goNext();}
-
-function toggleAutoplay(){
+window.goNext=function goNext(){const n=SCENES[curIdx+1];if(n)window.goTo(n.id);}
+window.goPrev=function goPrev(){const p=SCENES[curIdx-1];if(p)window.goTo(p.id);}
+window.ctaClick=function ctaClick(){window.goNext();}
+window.toggleAutoplay=function toggleAutoplay(){
   autoPlaying=!autoPlaying;shellDriven=!autoPlaying;
   const btn=document.getElementById('autoplay-btn');
   if(btn){btn.textContent=autoPlaying?'⏸ Pause':'▶ Autoplay';btn.classList.toggle('playing',autoPlaying);}
@@ -959,8 +958,8 @@ function render(ts){
 
 // Keyboard
 document.addEventListener('keydown',function(e){
-  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();goNext();}
-  if(e.key==='ArrowLeft'){e.preventDefault();goPrev();}
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();window.goNext();}
+  if(e.key==='ArrowLeft'){e.preventDefault();window.goPrev();}
 });
 
 // Shell postMessage
