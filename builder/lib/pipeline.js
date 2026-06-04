@@ -488,12 +488,22 @@ async function runRender(jobId) {
   fs.mkdirSync(path.join(dir, 'build'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'build', 'index.html'), html);
 
+  // Persist output to builder/outputs/ so it survives container restarts.
+  const outputsDir = path.join(__dirname, '..', 'outputs');
+  fs.mkdirSync(outputsDir, { recursive: true });
+  const vendor  = (meta.inputs && meta.inputs.vendor)   ? meta.inputs.vendor.replace(/[^a-zA-Z0-9_-]/g, '_')   : 'unknown';
+  const vertical = (meta.inputs && meta.inputs.vertical) ? meta.inputs.vertical.replace(/[^a-zA-Z0-9_-]/g, '_') : 'unknown';
+  const ts = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+  const outputFile = `${ts}_${vendor}_${vertical}_${jobId.slice(0, 8)}.html`;
+  fs.writeFileSync(path.join(outputsDir, outputFile), html);
+
   jobStore.updateStage(jobId, 'render', {
     status: 'completed', completed_at: new Date().toISOString(),
-    model_calls: 1, model_tokens: r.tokens
+    model_calls: 1, model_tokens: r.tokens,
+    output_file: outputFile
   });
   jobStore.updateOverall(jobId, 'completed');
-  return { ok: true, html_path: `/api/builder/jobs/${jobId}/artifact/build/index.html` };
+  return { ok: true, html_path: `/api/builder/jobs/${jobId}/artifact/build/index.html`, output_file: outputFile };
 }
 
 // --------------------------------------------------------------------------

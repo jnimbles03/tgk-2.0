@@ -1657,6 +1657,11 @@
           </div>
           <div id="mp4Messages"></div>
           <div id="mp4Preview"></div>
+          <!-- Saved Outputs — persisted across container restarts -->
+          <div id="savedOutputsPanel" style="margin-top:16px;">
+            <h4 style="margin:0 0 8px;font-size:13px;color:var(--ds-ink-muted,#666);">Saved Outputs</h4>
+            <div id="savedOutputsList" style="font-size:13px;color:var(--ds-ink-muted,#888);">Loading…</div>
+          </div>
         </div>
 
         <!-- B) Edit baked-in beat narration -->
@@ -2341,6 +2346,31 @@
     let pollCount = 0;
     const MAX_POLLS = 120;  // 120 × 3s = 6 min ceiling
 
+  // Load and render persisted saved outputs
+  function loadSavedOutputs() {
+    const listEl = document.getElementById('savedOutputsList');
+    if (!listEl) return;
+    fetch('/api/builder/outputs')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.outputs || data.outputs.length === 0) {
+          listEl.textContent = 'No saved outputs yet.';
+          return;
+        }
+        listEl.innerHTML = data.outputs.map(o =>
+          '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--rule,#eee)">' +
+          '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + o.file + '">' + o.file + '</span>' +
+          '<a href="' + o.url + '" target="_blank" style="white-space:nowrap">Open ↗</a>' +
+          '<a href="' + o.download + '" style="white-space:nowrap;font-weight:600">⬇ Download</a>' +
+          '</div>'
+        ).join('');
+      })
+      .catch(() => { listEl.textContent = 'Could not load saved outputs.'; });
+  }
+  loadSavedOutputs();
+
+
+
     // Kick off all stages in sequence first, then poll for status
     fetch('/api/builder/jobs/' + jobId + '/run-all', { method: 'POST' })
       .then(r => r.json())
@@ -2348,11 +2378,17 @@
         if (result.meta && result.meta.overall === 'completed') {
           if (statusInput) statusInput.value = 'Done';
           const htmlPath = '/api/builder/jobs/' + jobId + '/artifact/build/index.html';
+          const outputFile = result.stages && result.stages.render && result.stages.render.output_file;
+          const downloadHtml = outputFile
+            ? ' &nbsp;<a href="/api/builder/outputs/' + encodeURIComponent(outputFile) + '?download=1" style="font-weight:600">⬇ Download</a>'
+            : '';
           adminAlert(messagesEl, 'success',
-            'Vignette ready: <a href="' + htmlPath + '" target="_blank">Open ↗</a>');
+            'Vignette ready: <a href="' + htmlPath + '" target="_blank">Open ↗</a>' + downloadHtml);
           if (previewEl) {
             previewEl.innerHTML = '<div class="vignette-preview"><iframe src="' + htmlPath + '"></iframe></div>';
           }
+          // Refresh saved outputs panel if present
+          if (typeof loadSavedOutputs === 'function') loadSavedOutputs();
         } else {
           const failedStage = Object.entries((result.stages || {})).find(([, s]) => s && s.ok === false);
           if (statusInput) statusInput.value = 'Failed';
