@@ -2382,6 +2382,27 @@ if (_studioJobStore && _multer) {
     res.sendFile(abs);
   });
 
+  // List persisted outputs (survive container restarts).
+  app.get('/api/builder/outputs', requireBuilderAdmin, (req, res) => {
+    const outputsDir = path.join(__dirname, 'builder', 'outputs');
+    if (!fs.existsSync(outputsDir)) return res.json({ outputs: [] });
+    const files = fs.readdirSync(outputsDir)
+      .filter(f => f.endsWith('.html'))
+      .sort().reverse()
+      .map(f => ({ file: f, url: `/api/builder/outputs/${encodeURIComponent(f)}`, download: `/api/builder/outputs/${encodeURIComponent(f)}?download=1` }));
+    res.json({ outputs: files });
+  });
+
+  // Serve / download a persisted output.
+  app.get('/api/builder/outputs/:file', requireBuilderAdmin, (req, res) => {
+    const name = path.basename(req.params.file);
+    if (!name.endsWith('.html') || name.includes('..')) return res.status(400).send('bad path');
+    const abs = path.join(__dirname, 'builder', 'outputs', name);
+    if (!fs.existsSync(abs)) return res.status(404).send('not found');
+    if (req.query.download) res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+    res.sendFile(abs);
+  });
+
   // Admin: list prompt versions.
   app.get('/api/builder/admin/prompts', requireBuilderAdmin, (req, res) => {
     res.json({
