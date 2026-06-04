@@ -12,7 +12,7 @@ const Database = require('@replit/database');
 const OpenAI = require('openai');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 // Audit page auth — magic-link sent to a @docusign.com email.
