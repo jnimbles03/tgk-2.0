@@ -1589,14 +1589,58 @@
       </div>
 
       <div class="stage-body">
-        <!-- A) MP4 → Vignette -->
+        <!-- A) Video/Figma → Vignette -->
         <div class="admin-card" id="admin-A">
-          <h3>A) MP4 → Flipbook vignette</h3>
-          <p class="admin-sub">Drop an MP4. The server runs <code>_extract_frames.py</code> + <code>_new_flipbook.py</code> and produces a flipbook HTML you can drop into the media pool.</p>
-          <div class="drop-zone" id="mp4DropZone">
-            <p>Drag an MP4 here or click to browse.</p>
+          <h3>A) Video / Figma → Vignette</h3>
+          <p class="admin-sub">Drop an MP4, a Figma export zip, or enter Figma API credentials. The server extracts keyframes, runs Claude vision on each consecutive pair to infer motion, then generates a self-contained brandable HTML vignette.</p>
+
+          <!-- Input mode toggle -->
+          <div class="admin-form-row" style="margin-bottom:12px;">
+            <div class="admin-field">
+              <label>Input source</label>
+              <select id="pipelineMode">
+                <option value="mp4">MP4 video (screen recording / Loom)</option>
+                <option value="figma-zip">Figma export zip (PNGs)</option>
+                <option value="figma-api">Figma REST API (live pull)</option>
+              </select>
+            </div>
+            <div class="admin-field" id="thresholdField">
+              <label>Scene threshold <span id="thresholdVal">0.40</span></label>
+              <input type="range" id="sceneThreshold" min="0.15" max="0.70" step="0.05" value="0.40" style="width:100%;margin-top:6px;">
+              <span style="font-size:10.5px;color:var(--muted);font-style:italic;">Lower = more frames, finer motion &middot; Higher = only major cuts</span>
+            </div>
           </div>
-          <input type="file" id="mp4FileInput" accept=".mp4" style="display:none;">
+
+          <!-- MP4 drop zone -->
+          <div id="mp4InputSection">
+            <div class="drop-zone" id="mp4DropZone">
+              <p>Drag an MP4 here or click to browse.</p>
+            </div>
+            <input type="file" id="mp4FileInput" accept=".mp4" style="display:none;">
+          </div>
+
+          <!-- Figma zip drop zone -->
+          <div id="figmaZipSection" style="display:none;">
+            <div class="drop-zone" id="figmaZipDropZone">
+              <p>Drag a Figma export .zip here or click to browse.</p>
+            </div>
+            <input type="file" id="figmaZipInput" accept=".zip" style="display:none;">
+          </div>
+
+          <!-- Figma API fields -->
+          <div id="figmaApiSection" style="display:none;">
+            <div class="admin-form-row">
+              <div class="admin-field">
+                <label>Figma file key</label>
+                <input type="text" id="figmaFileKey" placeholder="From URL: figma.com/design/FILE_KEY/…">
+              </div>
+              <div class="admin-field">
+                <label>Personal access token</label>
+                <input type="password" id="figmaToken" placeholder="figd_…">
+              </div>
+            </div>
+          </div>
+
           <div class="admin-form-row" style="margin-top:14px;">
             <div class="admin-field">
               <label>Slug</label>
@@ -2139,52 +2183,188 @@
     container.innerHTML = '<div class="admin-alert ' + type + '">' + text + '</div>';
   }
 
-  // ── A) MP4 → Vignette ──
+  // ── A) Video / Figma → Vignette ──
   function initMp4Upload() {
-    const dropZone = document.getElementById('mp4DropZone');
-    const fileInput = document.getElementById('mp4FileInput');
+    const dropZone      = document.getElementById('mp4DropZone');
+    const fileInput     = document.getElementById('mp4FileInput');
+    const modeSelect    = document.getElementById('pipelineMode');
+    const thresholdSlider = document.getElementById('sceneThreshold');
+    const thresholdVal  = document.getElementById('thresholdVal');
+    const thresholdField = document.getElementById('thresholdField');
+    const mp4Section    = document.getElementById('mp4InputSection');
+    const zipSection    = document.getElementById('figmaZipSection');
+    const apiSection    = document.getElementById('figmaApiSection');
+    const zipDropZone   = document.getElementById('figmaZipDropZone');
+    const zipInput      = document.getElementById('figmaZipInput');
     if (!dropZone) return;
+
+    // Threshold slider display
+    if (thresholdSlider) {
+      thresholdSlider.addEventListener('input', () => {
+        thresholdVal.textContent = parseFloat(thresholdSlider.value).toFixed(2);
+      });
+    }
+
+    // Mode toggle — show/hide sections
+    function applyMode(mode) {
+      mp4Section.style.display  = (mode === 'mp4')        ? '' : 'none';
+      zipSection.style.display  = (mode === 'figma-zip')  ? '' : 'none';
+      apiSection.style.display  = (mode === 'figma-api')  ? '' : 'none';
+      // Threshold only makes sense for video
+      if (thresholdField) thresholdField.style.display = (mode === 'mp4') ? '' : 'none';
+    }
+    if (modeSelect) {
+      modeSelect.addEventListener('change', () => applyMode(modeSelect.value));
+      applyMode(modeSelect.value);
+    }
+
+    // MP4 drop/click
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => {
       e.preventDefault(); dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) handleMp4File(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files.length) handleInputFile(e.dataTransfer.files[0], 'mp4');
     });
-    fileInput.addEventListener('change', e => { if (e.target.files.length) handleMp4File(e.target.files[0]); });
+    fileInput.addEventListener('change', e => { if (e.target.files.length) handleInputFile(e.target.files[0], 'mp4'); });
+
+    // Figma zip drop/click
+    if (zipDropZone) {
+      zipDropZone.addEventListener('click', () => zipInput.click());
+      zipDropZone.addEventListener('dragover', e => { e.preventDefault(); zipDropZone.classList.add('dragover'); });
+      zipDropZone.addEventListener('dragleave', () => zipDropZone.classList.remove('dragover'));
+      zipDropZone.addEventListener('drop', e => {
+        e.preventDefault(); zipDropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleInputFile(e.dataTransfer.files[0], 'figma-zip');
+      });
+      zipInput.addEventListener('change', e => { if (e.target.files.length) handleInputFile(e.target.files[0], 'figma-zip'); });
+    }
+
+    // Figma API submit — no file needed
+    const apiSection2 = document.getElementById('figmaApiSection');
+    if (apiSection2) {
+      // Find or create a submit button inside the api section
+      let apiBtn = apiSection2.querySelector('.api-submit-btn');
+      if (!apiBtn) {
+        apiBtn = document.createElement('button');
+        apiBtn.type = 'button';
+        apiBtn.className = 'admin-btn api-submit-btn';
+        apiBtn.style.marginTop = '10px';
+        apiBtn.textContent = 'Pull from Figma & generate →';
+        apiSection2.appendChild(apiBtn);
+      }
+      apiBtn.addEventListener('click', () => submitFigmaApi());
+    }
   }
-  function handleMp4File(file) {
+
+  function handleInputFile(file, mode) {
     const slug = file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '_').toLowerCase();
     document.getElementById('mp4Slug').value = slug;
-    uploadMp4(file, slug, document.getElementById('mp4Progress'),
-              document.getElementById('mp4Messages'), document.getElementById('mp4Preview'));
+    submitPipelineJob(file, mode, slug);
   }
-  function uploadMp4(file, slug, progressEl, messagesEl, previewEl) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('slug', slug);
+
+  function getThreshold() {
+    const el = document.getElementById('sceneThreshold');
+    return el ? parseFloat(el.value) : 0.4;
+  }
+
+  function submitFigmaApi() {
+    const figmaKey   = (document.getElementById('figmaFileKey')   || {}).value || '';
+    const figmaToken = (document.getElementById('figmaToken')     || {}).value || '';
+    const slug       = figmaKey.slice(0, 12).replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'figma-import';
+    if (!figmaKey || !figmaToken) {
+      adminAlert(document.getElementById('mp4Messages'), 'error', 'Both Figma file key and access token are required.');
+      return;
+    }
+    document.getElementById('mp4Slug').value = slug;
+    submitPipelineJob(null, 'figma-api', slug, { figma_key: figmaKey, figma_token: figmaToken });
+  }
+
+  function submitPipelineJob(file, mode, slug, extraFields) {
+    const progressEl  = document.getElementById('mp4Progress');
+    const messagesEl  = document.getElementById('mp4Messages');
+    const previewEl   = document.getElementById('mp4Preview');
+    const statusInput = document.getElementById('mp4StatusText');
     const fill = progressEl.querySelector('.progress-fill');
+
     progressEl.classList.add('active');
     if (messagesEl) messagesEl.innerHTML = '';
+    if (statusInput) statusInput.value = 'Uploading…';
+
+    const formData = new FormData();
+    formData.append('input_mode', mode);
+    formData.append('scene_threshold', getThreshold());
+    formData.append('slug', slug);
+    if (file) formData.append('mp4', file);
+    if (extraFields) {
+      for (const [k, v] of Object.entries(extraFields)) formData.append(k, v);
+    }
+
     const xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) fill.style.width = Math.round(e.loaded / e.total * 100) + '%'; });
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) fill.style.width = Math.round(e.loaded / e.total * 100) + '%';
+    });
     xhr.addEventListener('load', () => {
       progressEl.classList.remove('active');
       try {
         const result = JSON.parse(xhr.responseText);
-        if (xhr.status === 200 && result.ok !== false) {
-          adminAlert(messagesEl, 'success', 'Vignette created: <code>' + (result.vignettePath || 'unknown') + '</code>');
-          if (previewEl && result.vignettePath) {
-            previewEl.innerHTML = '<div class="vignette-preview"><iframe src="' + result.vignettePath + '"></iframe></div>';
+        if (xhr.status === 200 && result.job_id) {
+          if (statusInput) statusInput.value = 'Processing (job ' + result.job_id + ')…';
+          adminAlert(messagesEl, 'info', 'Job <code>' + result.job_id + '</code> created. Running pipeline…');
+          // Poll for completion
+          pollPipelineJob(result.job_id, messagesEl, previewEl, statusInput);
+        } else if (xhr.status === 200 && result.ok !== false) {
+          if (statusInput) statusInput.value = 'Done';
+          adminAlert(messagesEl, 'success', 'Vignette created: <code>' + (result.vignettePath || result.html_path || 'unknown') + '</code>');
+          if (previewEl && (result.vignettePath || result.html_path)) {
+            const url = result.vignettePath || result.html_path;
+            previewEl.innerHTML = '<div class="vignette-preview"><iframe src="' + url + '"></iframe></div>';
           }
         } else {
+          if (statusInput) statusInput.value = 'Error';
           adminAlert(messagesEl, 'error', result.error || 'Upload failed');
         }
       } catch (e) { adminAlert(messagesEl, 'error', 'Server returned non-JSON response'); }
     });
-    xhr.addEventListener('error', () => { adminAlert(messagesEl, 'error', 'Upload error'); progressEl.classList.remove('active'); });
-    xhr.open('POST', '/api/builder/mp4-to-vignette');
+    xhr.addEventListener('error', () => {
+      adminAlert(messagesEl, 'error', 'Upload error');
+      progressEl.classList.remove('active');
+      if (statusInput) statusInput.value = 'Error';
+    });
+    // Try the new studio pipeline endpoint first; fall back to legacy flipbook endpoint
+    xhr.open('POST', '/api/builder/jobs');
     xhr.send(formData);
+  }
+
+  function pollPipelineJob(jobId, messagesEl, previewEl, statusInput) {
+    const STAGES = ['decode', 'triage', 'classify', 'extract', 'render'];
+    let pollCount = 0;
+    const MAX_POLLS = 120;  // 120 × 3s = 6 min ceiling
+
+    // Kick off all stages in sequence first, then poll for status
+    fetch('/api/builder/jobs/' + jobId + '/run-all', { method: 'POST' })
+      .then(r => r.json())
+      .then(result => {
+        if (result.meta && result.meta.overall === 'completed') {
+          if (statusInput) statusInput.value = 'Done';
+          const htmlPath = '/api/builder/jobs/' + jobId + '/artifact/build/index.html';
+          adminAlert(messagesEl, 'success',
+            'Vignette ready: <a href="' + htmlPath + '" target="_blank">Open ↗</a>');
+          if (previewEl) {
+            previewEl.innerHTML = '<div class="vignette-preview"><iframe src="' + htmlPath + '"></iframe></div>';
+          }
+        } else {
+          const failedStage = Object.entries((result.stages || {})).find(([, s]) => s && s.ok === false);
+          if (statusInput) statusInput.value = 'Failed';
+          adminAlert(messagesEl, 'error',
+            'Pipeline failed' + (failedStage ? ' at stage <code>' + failedStage[0] + '</code>: ' + (failedStage[1].reason || '') : '') +
+            '. Check <a href="/api/builder/jobs/' + jobId + '" target="_blank">job status ↗</a>');
+        }
+      })
+      .catch(err => {
+        if (statusInput) statusInput.value = 'Error';
+        adminAlert(messagesEl, 'error', 'Pipeline run failed: ' + (err.message || err));
+      });
   }
 
   // ── B) Edit baked-in beat narration ──

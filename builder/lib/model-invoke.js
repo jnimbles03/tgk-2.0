@@ -1,62 +1,55 @@
 /* =========================================================================
-   builder/lib/model-invoke.js — Gemini client wrapper for the /builder pipeline
+   builder/lib/model-invoke.js — Anthropic Claude client wrapper
    -------------------------------------------------------------------------
    Single integration surface for every stage that needs an LLM call.
    Stages call modelInvoke({ stage, system, user, images, model }) and get
    { text, raw, tokens, latency_ms } back.
 
-   PASSOFFABLE STATE (2026-05-07 handoff):
-     - Real Gemini integration: stubbed. The function below short-circuits to
-       FAKE_RESPONSES when GEMINI_API_KEY is missing, so the rest of the pipeline
-       (file I/O, job storage, server routes, UI) can be exercised end-to-end
-       without a key. When the key is present, it calls @google/genai.
-     - Demo engineers (Steven & Jesse) drop their key into GEMINI_API_KEY,
-       npm install @google/genai, and the pipeline goes live.
-     - Model names default to gemini-2.5-pro / gemini-2.5-flash but are
-       overridable per env so we can swap to 3.x or whatever's current
-       without touching code.
-
    ENV VARS
-     GEMINI_API_KEY            — required for real calls; absent = fake mode
-     GEMINI_MODEL_REASONING    — default "gemini-2.5-pro"  (CLASSIFY/EXTRACT/RENDER)
-     GEMINI_MODEL_VOLUME       — default "gemini-2.5-flash" (TRIAGE volume frames)
+     ANTHROPIC_API_KEY         — required for real calls; absent = fake mode
+     CLAUDE_MODEL_REASONING    — default "claude-sonnet-4-5" (analyze/generate)
+     CLAUDE_MODEL_VOLUME       — default "claude-haiku-4-5"  (triage/fast passes)
      BUILDER_PROMPT_VERSION    — default "v1" (folder under builder/prompts/)
+
+   FAKE MODE
+     When ANTHROPIC_API_KEY is absent, every stage gets a deterministic stub
+     so the full pipeline (file I/O, job storage, routes, UI) can be exercised
+     without a key. Shapes mirror the real outputs so downstream stages work.
 
    USAGE
      const { modelInvoke } = require('./builder/lib/model-invoke');
      const { text, tokens } = await modelInvoke({
-       stage: 'triage',
-       system: loadPrompt('triage'),
-       user: 'Classify these frames as KEEP or DROP.',
-       images: [{ path: '/path/to/f_0001.jpg' }, ...],
-       model: 'volume'   // 'volume' or 'reasoning'
+       stage: 'analyze',
+       system: loadPrompt('analyze'),
+       user: 'Describe what changed between these frames.',
+       images: [{ path: '/path/to/prev.jpg' }, { path: '/path/to/curr.jpg' }],
+       model: 'reasoning'
      });
    ========================================================================= */
 
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
 
-// ---- Lazy-load the SDK so the rest of the server keeps working pre-install --
-let _genai = null;
-let _genaiErr = null;
-try { _genai = require('@google/genai'); }
-catch (e) { _genaiErr = e; /* npm install @google/genai to enable */ }
+// ---- Lazy-load SDK so the server stays up pre-install --------------------
+let _anthropic     = null;
+let _anthropicErr  = null;
+try { _anthropic = require('@anthropic-ai/sdk'); }
+catch (e) { _anthropicErr = e; }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const MODEL_REASONING = process.env.GEMINI_MODEL_REASONING || 'gemini-2.5-pro';
-const MODEL_VOLUME    = process.env.GEMINI_MODEL_VOLUME    || 'gemini-2.5-flash';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const MODEL_REASONING   = process.env.CLAUDE_MODEL_REASONING || 'claude-sonnet-4-5';
+const MODEL_VOLUME      = process.env.CLAUDE_MODEL_VOLUME    || 'claude-haiku-4-5';
 
-// ---- Fake mode -------------------------------------------------------------
-// Lets the team click through the UI before integration lights up.
-// Each stage gets a deterministic stub so the pipeline can ship a build
-// even with no API key. The shape mirrors the real validator output.
+// ---- Fake mode -----------------------------------------------------------
+// Lets the team click through the UI before an API key is set.
+// Each stage gets a deterministic stub whose shape mirrors real validator output.
 const FAKE_RESPONSES = {
   triage: () => ({
     text: JSON.stringify({
       _fake: true,
-      frames: [],   // job-store fills this in via on-disk frame walk
-      drop_ratio: 0.15,
-      kept_runtime_s: null,  // pipeline computes from kept frame count
+      frames: [],      // pipeline fills this via on-disk frame walk
+      drop_ratio: 0,
+      kept_runtime_s: null,
       status: 'ok'
     })
   }),
@@ -79,135 +72,162 @@ const FAKE_RESPONSES = {
   'classify-synthesize': () => ({
     text: JSON.stringify({
       _fake: true,
-      background: { frame: 'f_0001.jpg', role: 'primary', mask_regions: [] },
-      segments: [],
-      timeline: [],
-      content: { 'placeholder_field.value': 'Acme Industries LLC' }
+      segments: [
+        { id: 'scene_1', t_start_ms: 0, t_end_ms: 8000, frame_range: [0, 8],
+          synopsis: 'User opens an agreement form and begins filling in fields.',
+          technique: 2, background_required: false }
+      ],
+      timeline: [
+        { op: 'appear', element: 'agreement_form', easing: 'ease-out', duration_ms: 400 },
+        { op: 'type', element: 'placeholder_field', text: '@@placeholder_field.value@@', duration_ms: 1200 }
+      ],
+      background: {},
+      content: {}
     })
+  }),
+  analyze: (i) => ({
+    text: `FRAME ${i}:\nUI shows a form with input fields. The primary action button is highlighted in blue. ` +
+          (i > 0 ? 'CHANGE FROM PREVIOUS: A modal dialog slid in from the right edge covering the center pane.' : '')
   }),
   extract: () => ({
     text: JSON.stringify({
       _fake: true,
-      structure: {
-        scene_id: 'scene_1',
-        root: { tag: 'div', data_demo_target: 'scene_root',
-                attrs: { class: 'app-shell' },
-                children: [{ tag: 'h1', content: '@@header.title@@' }] }
+      structure: { scenes: [{ id: 's1', role: 'form-fill', duration_ms: 4000 }] },
+      content: {
+        org_name: '{{VENDOR_NAME}}',
+        doc_type: 'Agreement',
+        language: '{{LANGUAGE}}'
       },
-      content: { 'header.title': 'Loan Application' },
-      theme: { '--vendor-primary': '#002B5C', '--vendor-canvas': '#F5F7FA' }
+      theme: {
+        primary: '{{PRIMARY_COLOR}}',
+        secondary: '{{SECONDARY_COLOR}}'
+      }
     })
   }),
   render: () => ({
-    text: '<!DOCTYPE html><html><head><title>Stub Render</title></head>' +
-          '<body><div data-demo-target="scene_root">' +
-          '<h1>@@header.title@@</h1>' +
-          '<p style="color:var(--vendor-primary)">Fake render — wire GEMINI_API_KEY for real output.</p>' +
-          '</div></body></html>'
+    text: `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{VENDOR_NAME}} Demo</title>
+<style>
+  /* TEMPLATE VARIABLES
+     --customer-logo    : {{CUSTOMER_LOGO}}
+     --language         : {{LANGUAGE}}
+     --vendor-name      : {{VENDOR_NAME}}
+     --primary-color    : {{PRIMARY_COLOR}}
+     --secondary-color  : {{SECONDARY_COLOR}}
+  */
+  :root {
+    --primary:   {{PRIMARY_COLOR}};
+    --secondary: {{SECONDARY_COLOR}};
+  }
+  body { font-family: sans-serif; background: #f9f9f9; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+  .card { background:#fff; border-radius:12px; padding:40px; box-shadow:0 4px 20px rgba(0,0,0,.1); max-width:500px; text-align:center; }
+  h1 { color: var(--primary); }
+  p  { color: #666; margin-top:12px; }
+  .badge { display:inline-block; background:var(--secondary); color:#fff; border-radius:99px; padding:4px 14px; font-size:12px; margin-top:16px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img src="{{CUSTOMER_LOGO}}" alt="{{VENDOR_NAME}}" style="height:48px;margin-bottom:16px;">
+    <h1>{{VENDOR_NAME}}</h1>
+    <p>{{LANGUAGE}}</p>
+    <span class="badge">Demo vignette · fake mode</span>
+  </div>
+</body>
+</html>`
   })
 };
 
-/**
- * Invoke a Gemini model for a pipeline stage.
- *
- * @param {Object} args
- * @param {string} args.stage       Stage key — 'triage' | 'classify-replay' | 'classify-synthesize' | 'extract' | 'render'
- * @param {string} args.system      System prompt (loaded from builder/prompts/{version}/{stage}.{version}.md)
- * @param {string} args.user        User-turn content (job-specific instructions, context)
- * @param {Array}  [args.images]    Optional [{ path: '/abs/to/jpg' }] — encoded as inline parts
- * @param {string} [args.model]     'reasoning' (default) or 'volume'
- * @param {Object} [args.opts]      Pass-through to genai.generateContent (temperature, etc.)
- * @returns {Promise<{ text: string, raw: any, tokens: number, latency_ms: number, model_used: string, fake: boolean }>}
- */
-async function modelInvoke({ stage, system, user, images = [], model = 'reasoning', opts = {} }) {
-  const t0 = Date.now();
-  const modelName = model === 'volume' ? MODEL_VOLUME : MODEL_REASONING;
+// ---- Helpers ---------------------------------------------------------------
+function b64(filePath) {
+  return fs.readFileSync(filePath).toString('base64');
+}
 
-  // ---- Fake mode: short-circuit before the SDK is even consulted ----------
-  if (!GEMINI_API_KEY || !_genai) {
-    const stub = FAKE_RESPONSES[stage] || (() => ({ text: '{"_fake":true,"note":"no stub for stage"}' }));
-    const out = stub();
+function mimeForPath(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return ({ '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+            '.gif': 'image/gif', '.webp': 'image/webp' })[ext] || 'image/jpeg';
+}
+
+// Build Anthropic-shaped image content blocks from { path } descriptors.
+function buildImageBlocks(images) {
+  return (images || []).map(img => ({
+    type: 'image',
+    source: {
+      type: 'base64',
+      media_type: mimeForPath(img.path),
+      data: b64(img.path)
+    }
+  }));
+}
+
+// ---- Main export -----------------------------------------------------------
+async function modelInvoke({ stage, system, user, images, model }) {
+  const modelName = (model === 'volume') ? MODEL_VOLUME : MODEL_REASONING;
+  const start = Date.now();
+
+  // ---- Fake mode ---------------------------------------------------------
+  if (!ANTHROPIC_API_KEY || !_anthropic) {
+    const fakeFn = FAKE_RESPONSES[stage] || FAKE_RESPONSES['analyze'];
+    const frameIdx = (images || []).length > 1 ? 1 : 0;  // for analyze stage
+    const stub = fakeFn(frameIdx);
     return {
-      text: out.text,
-      raw: { _fake: true, reason: !GEMINI_API_KEY ? 'no_api_key' : 'sdk_not_installed' },
-      tokens: 0,
-      latency_ms: Date.now() - t0,
-      model_used: modelName + ' (fake)',
-      fake: true
+      text:       stub.text,
+      raw:        null,
+      tokens:     0,
+      latency_ms: 50,
+      fake:       true,
+      missing_key: !ANTHROPIC_API_KEY,
+      missing_sdk: !_anthropic
     };
   }
 
-  // ---- Real Gemini call ---------------------------------------------------
-  const ai = new _genai.GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  // ---- Real Claude call --------------------------------------------------
+  const client = new _anthropic.Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-  // Encode images as inline parts (base64 jpg/png).
-  const imageParts = images.map(img => {
-    const buf = fs.readFileSync(img.path);
-    const ext = path.extname(img.path).slice(1).toLowerCase();
-    const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-    return { inlineData: { mimeType: mime, data: buf.toString('base64') } };
-  });
+  // Build user message: interleave image blocks then text
+  const userContent = [];
+  for (const img of (images || [])) {
+    userContent.push({
+      type: 'image',
+      source: { type: 'base64', media_type: mimeForPath(img.path), data: b64(img.path) }
+    });
+  }
+  userContent.push({ type: 'text', text: user });
 
-  const contents = [
-    { role: 'user', parts: [
-        { text: user },
-        ...imageParts
-      ] }
-  ];
-
-  const result = await ai.models.generateContent({
+  const response = await client.messages.create({
     model: modelName,
-    contents,
-    config: {
-      systemInstruction: system,
-      ...opts
-    }
+    max_tokens: stage === 'render' ? 8192 : 2048,
+    system: system || undefined,
+    messages: [{ role: 'user', content: userContent }]
   });
 
-  const text = result?.text || result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const usage = result?.usageMetadata || {};
-  const tokens = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0);
+  const text   = response.content.map(b => b.type === 'text' ? b.text : '').join('');
+  const tokens = (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
 
+  return { text, raw: response, tokens, latency_ms: Date.now() - start, fake: false };
+}
+
+// Health check — called by the studio sidebar to surface config status.
+async function modelHealth() {
   return {
-    text,
-    raw: result,
-    tokens,
-    latency_ms: Date.now() - t0,
-    model_used: modelName,
-    fake: false
+    provider:    'anthropic',
+    has_key:     !!ANTHROPIC_API_KEY,
+    has_sdk:     !!_anthropic,
+    sdk_error:   _anthropicErr ? _anthropicErr.message : null,
+    fake_mode:   !ANTHROPIC_API_KEY || !_anthropic,
+    models:      { reasoning: MODEL_REASONING, volume: MODEL_VOLUME }
   };
 }
 
-/**
- * Sanity check the model client. Useful for the studio's "system status" panel
- * and for the regression CI to detect quota/auth issues before running a job.
- */
-async function modelHealth() {
-  if (!_genai) {
-    return { ok: false, reason: 'sdk_not_installed',
-             hint: 'npm install @google/genai',
-             error: _genaiErr?.message };
-  }
-  if (!GEMINI_API_KEY) {
-    return { ok: false, reason: 'no_api_key',
-             hint: 'set GEMINI_API_KEY in env (Replit Secrets / .env)',
-             fake_mode: true };
-  }
-  try {
-    const r = await modelInvoke({
-      stage: '_health',
-      system: 'Reply with the single word OK.',
-      user: 'Health check.',
-      model: 'volume'
-    });
-    return { ok: true, model_used: r.model_used, latency_ms: r.latency_ms, sample: r.text.slice(0, 60) };
-  } catch (err) {
-    return { ok: false, reason: 'call_failed', error: String(err?.message || err) };
-  }
-}
-
-module.exports = {
-  modelInvoke,
-  modelHealth,
-  config: { MODEL_REASONING, MODEL_VOLUME, BUILDER_PROMPT_VERSION: process.env.BUILDER_PROMPT_VERSION || 'v1' }
+const config = {
+  provider: 'anthropic',
+  model_reasoning: MODEL_REASONING,
+  model_volume: MODEL_VOLUME,
+  fake_mode: !ANTHROPIC_API_KEY || !_anthropic
 };
+
+module.exports = { modelInvoke, modelHealth, config };

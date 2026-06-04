@@ -38,7 +38,7 @@ function newJobId() {
  * Create a new job. Sets up the directory structure and writes the initial
  * job-meta.json. Returns the job ID + paths.
  */
-function createJob({ vertical, vendor, fps, classifyMode, originalFilename }) {
+function createJob({ vertical, vendor, fps, classifyMode, originalFilename, inputMode, sceneThreshold, figmaKey, figmaToken }) {
   ensureJobsRoot();
   const jobId = newJobId();
   const dir = jobDir(jobId);
@@ -56,7 +56,11 @@ function createJob({ vertical, vendor, fps, classifyMode, originalFilename }) {
       vendor: vendor || 'unknown',
       fps: fps || 1,
       classify_mode: classifyMode || 'auto',  // 'auto' | 'replay' | 'synthesize' | 'hybrid'
-      original_filename: originalFilename || null
+      original_filename: originalFilename || null,
+      input_mode: inputMode || 'mp4',          // 'mp4' | 'figma-zip' | 'figma-api'
+      scene_threshold: sceneThreshold || 0.4,  // FFmpeg scene change sensitivity (0.2–0.6)
+      figma_key:   figmaKey   || null,          // Figma file key (figma-api mode)
+      figma_token: figmaToken || null           // Figma personal access token (figma-api mode)
     },
     prompt_version: process.env.BUILDER_PROMPT_VERSION || 'v1',
     stages: STAGES.reduce((acc, s) => {

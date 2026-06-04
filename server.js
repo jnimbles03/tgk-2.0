@@ -2281,19 +2281,33 @@ if (_studioJobStore && _multer) {
     studioUpload.fields([{ name: 'mp4', maxCount: 1 }, { name: 'reference', maxCount: 10 }]),
     async (req, res) => {
       try {
-        const { vertical, vendor, fps, classify_mode } = req.body || {};
+        const { vertical, vendor, fps, classify_mode, input_mode, scene_threshold, figma_key, figma_token } = req.body || {};
         const mp4File = (req.files?.mp4 || [])[0];
-        if (!mp4File) return res.status(400).json({ error: 'no_mp4' });
+
+        // input_mode determines required upload:
+        //   'mp4'       → mp4File required
+        //   'figma-zip' → zip attached as 'mp4' slot (server reuses the same field)
+        //   'figma-api' → no file needed; figma_key + figma_token in body
+        const mode = input_mode || 'mp4';
+        if (mode === 'mp4' && !mp4File) return res.status(400).json({ error: 'no_mp4' });
+        if (mode === 'figma-zip' && !mp4File) return res.status(400).json({ error: 'no_zip' });
 
         const { jobId, dir } = _studioJobStore.createJob({
           vertical, vendor,
           fps: parseFloat(fps) || 1,
           classifyMode: classify_mode || 'auto',
-          originalFilename: mp4File.originalname
+          originalFilename: mp4File ? mp4File.originalname : null,
+          inputMode: mode,
+          sceneThreshold: parseFloat(scene_threshold) || 0.4,
+          figmaKey: figma_key || null,
+          figmaToken: figma_token || null
         });
 
         // Move uploaded files into the job's raw/ + reference-screens/ dirs.
-        fs.renameSync(mp4File.path, path.join(dir, 'raw', 'upload.mp4'));
+        if (mp4File) {
+          const destName = (mode === 'figma-zip') ? 'upload.zip' : 'upload.mp4';
+          fs.renameSync(mp4File.path, path.join(dir, 'raw', destName));
+        }
         for (const ref of (req.files?.reference || [])) {
           fs.renameSync(ref.path, path.join(dir, 'reference-screens', ref.originalname));
         }

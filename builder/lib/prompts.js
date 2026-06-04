@@ -23,8 +23,10 @@ const STAGE_FILES = {
   triage:               'triage.{v}.md',
   'classify-replay':    'classify-replay.{v}.md',
   'classify-synthesize':'classify-synthesize.{v}.md',
+  analyze:              'analyze.{v}.md',    // vision loop: prev+current frame pair analysis
   extract:              'extract.{v}.md',
-  render:               'render.{v}.md'
+  render:               'render.{v}.md',     // HTML generation from ordered descriptions
+  generate:             'render.{v}.md'      // alias — 'generate' routes to the render prompt
 };
 
 /** Load a prompt's text content for the active version (or an explicit one). */

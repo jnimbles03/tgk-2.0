@@ -1,26 +1,30 @@
 /* =========================================================================
-   builder/lib/pipeline.js — five-stage runner for /builder
+   builder/lib/pipeline.js — four-stage runner for /builder
    -------------------------------------------------------------------------
-   Each stage is independently invocable via runStage(jobId, stageName).
-   Stages read inputs from job storage, write outputs to job storage,
-   update job-meta.json. Idempotent given the same inputs.
+   Pipeline:
+     1. DECODE  — keyframe extraction. Two paths:
+          A. MP4  → FFmpeg scene detection (gt(scene,T), vsync vfr)
+          B. Figma export zip → unzip PNGs
+          C. Figma REST API  → pull FRAME nodes, download PNGs
+     2. TRIAGE  — passthrough. Scene detection already triages; all
+                  extracted frames move to keep/. Kept for API compat.
+     3. CLASSIFY → ANALYZE: Claude vision loop. Each frame sent with its
+                  predecessor so the model can infer motion direction/intent.
+                  Output: descriptions.json (ordered array of frame descriptions).
+     4. EXTRACT  — build structure/content/theme from descriptions. Thin wrapper.
+     5. RENDER  → GENERATE: Claude HTML generation from ordered descriptions.
+                  Output: build/index.html — self-contained, templated vignette.
 
-   PASSOFFABLE STATE (2026-05-07 handoff):
-     - Stage 1 DECODE: fully wired. Shells out to ffmpeg.
-     - Stage 1.5 TRIAGE: stubbed via modelInvoke. In fake mode it copies
-       all frames to keep/ and computes drop_ratio = 0.
-     - Stage 2 CLASSIFY: dispatcher in code (matches spec pseudocode);
-       both REPLAY and SYNTHESIZE branches call modelInvoke.
-     - Stage 3 EXTRACT: stubbed via modelInvoke.
-     - Stage 4 RENDER: stubbed via modelInvoke; in fake mode emits a
-       minimal static index.html so the preview iframe shows something.
-     - Cost ceilings + escape hatches per spec are enforced for DECODE
-       only; the model-driven stages currently trust the model output.
-       Add validators in the next pass.
+   Each stage is independently re-runnable via runStage(jobId, stageName).
+   Stages read inputs from job storage, write outputs to job storage,
+   and update job-meta.json. Idempotent given the same inputs.
    ========================================================================= */
 
-const fs = require('fs');
-const path = require('path');
+'use strict';
+
+const fs      = require('fs');
+const path    = require('path');
+const https   = require('https');
 const { spawn } = require('child_process');
 
 const jobStore = require('./job-store');
@@ -28,17 +32,18 @@ const { loadPrompt, ACTIVE_VERSION } = require('./prompts');
 const { modelInvoke } = require('./model-invoke');
 
 // --------------------------------------------------------------------------
-// FFmpeg shell-out helper. Uses spawn so we can capture stderr cleanly.
+// FFmpeg / ffprobe helpers
 // --------------------------------------------------------------------------
 function ffmpeg(args) {
   return new Promise((resolve, reject) => {
     const p = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-    let err = '';
+    let out = '', err = '';
+    p.stdout.on('data', d => { out += d.toString(); });
     p.stderr.on('data', d => { err += d.toString(); });
     p.on('error', e => reject(e));
     p.on('close', code => {
-      if (code === 0) resolve({ stderr: err });
-      else reject(new Error(`ffmpeg exited ${code}: ${err.slice(-500)}`));
+      if (code === 0) resolve({ stdout: out, stderr: err });
+      else reject(new Error(`ffmpeg exited ${code}: ${err.slice(-600)}`));
     });
   });
 }
@@ -51,56 +56,12 @@ async function ffmpegAvailable() {
   });
 }
 
-// --------------------------------------------------------------------------
-// STAGE 1 — DECODE
-// --------------------------------------------------------------------------
-async function runDecode(jobId) {
-  jobStore.updateStage(jobId, 'decode', { status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION() });
-
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
-  const inputPath = path.join(dir, 'raw', 'upload.mp4');
-  const framesDir = path.join(dir, 'frames');
-
-  if (!fs.existsSync(inputPath)) {
-    return failStage(jobId, 'decode', 'malformed_input', 'No upload.mp4 in job/raw');
-  }
-
-  // Cost ceilings per spec.
-  const stat = fs.statSync(inputPath);
-  if (stat.size > 2 * 1024 * 1024 * 1024) {
-    return failStage(jobId, 'decode', 'quota_exceeded', 'mp4 > 2GB');
-  }
-
-  // ffprobe duration — spec rejects > 600s.
-  let sourceDuration = 0;
-  try {
-    sourceDuration = await ffprobeDuration(inputPath);
-  } catch (e) {
-    return failStage(jobId, 'decode', 'malformed_input', `ffprobe failed: ${e.message}`);
-  }
-  if (sourceDuration > 600) {
-    return failStage(jobId, 'decode', 'quota_exceeded', `mp4 duration ${sourceDuration}s > 600s`);
-  }
-
-  // Extract frames.
-  const fps = meta.inputs.fps || 1;
-  try {
-    await ffmpeg(['-y', '-i', inputPath, '-vf', `fps=${fps}`, '-q:v', '2', path.join(framesDir, 'f_%04d.jpg')]);
-  } catch (e) {
-    return failStage(jobId, 'decode', 'cannot_proceed', String(e.message || e));
-  }
-
-  const frameCount = jobStore.listFrames(jobId, 'frames').length;
-  jobStore.writeBlob(jobId, 'decode-result.json', { status: 'ok', frame_count: frameCount, source_duration_s: sourceDuration });
-  jobStore.updateStage(jobId, 'decode', { status: 'completed', completed_at: new Date().toISOString() });
-  return { ok: true, frame_count: frameCount, source_duration_s: sourceDuration };
-}
-
 function ffprobeDuration(filePath) {
   return new Promise((resolve, reject) => {
-    const p = spawn('ffprobe', ['-v', 'error', '-show_entries', 'format=duration',
-                                '-of', 'default=noprint_wrappers=1:nokey=1', filePath]);
+    const p = spawn('ffprobe', [
+      '-v', 'error', '-show_entries', 'format=duration',
+      '-of', 'default=noprint_wrappers=1:nokey=1', filePath
+    ]);
     let out = '', err = '';
     p.stdout.on('data', d => { out += d.toString(); });
     p.stderr.on('data', d => { err += d.toString(); });
@@ -113,216 +74,426 @@ function ffprobeDuration(filePath) {
 }
 
 // --------------------------------------------------------------------------
-// STAGE 1.5 — TRIAGE
+// Figma helpers
+// --------------------------------------------------------------------------
+
+/** Extract PNGs from a Figma export zip. */
+function extractFigmaZip(zipPath, outDir) {
+  // Node stdlib has no zip support; shell out to unzip.
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(outDir, { recursive: true });
+    const p = spawn('unzip', ['-j', zipPath, '*.png', '-d', outDir]);
+    let err = '';
+    p.stderr.on('data', d => { err += d.toString(); });
+    p.on('error', e => reject(new Error(`unzip failed: ${e.message}`)));
+    p.on('close', code => {
+      if (code === 0 || code === 1) { // exit 1 = no errors, just warnings
+        const files = fs.readdirSync(outDir)
+          .filter(f => /\.png$/i.test(f))
+          .sort()
+          .map(f => path.join(outDir, f));
+        resolve(files);
+      } else {
+        reject(new Error(`unzip exited ${code}: ${err.slice(-200)}`));
+      }
+    });
+  });
+}
+
+/** Download a URL to a local file. Returns a Promise. */
+function downloadFile(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(destPath);
+    https.get(url, res => {
+      if (res.statusCode !== 200) {
+        return reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+      }
+      res.pipe(file);
+      file.on('finish', () => file.close(resolve));
+    }).on('error', reject);
+  });
+}
+
+/** Pull FRAME nodes from Figma REST API and download as PNGs. */
+async function extractFigmaApi(figmaKey, figmaToken, outDir) {
+  fs.mkdirSync(outDir, { recursive: true });
+
+  // 1) Get file tree, collect top-level FRAME ids.
+  const treeUrl = `https://api.figma.com/v1/files/${figmaKey}`;
+  const treeData = await new Promise((resolve, reject) => {
+    https.get(treeUrl, { headers: { 'X-Figma-Token': figmaToken } }, res => {
+      let body = '';
+      res.on('data', d => { body += d; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('Figma API returned non-JSON')); }
+      });
+    }).on('error', reject);
+  });
+
+  const pages = (treeData.document && treeData.document.children) || [];
+  const firstPage = pages[0] || {};
+  const nodeIds = (firstPage.children || [])
+    .filter(c => c.type === 'FRAME')
+    .map(c => c.id);
+
+  if (nodeIds.length === 0) throw new Error('No FRAME nodes found in Figma file');
+
+  // 2) Request rendered PNGs (scale=2 for retina).
+  const imgsUrl = `https://api.figma.com/v1/images/${figmaKey}?ids=${encodeURIComponent(nodeIds.join(','))}&format=png&scale=2`;
+  const imgsData = await new Promise((resolve, reject) => {
+    https.get(imgsUrl, { headers: { 'X-Figma-Token': figmaToken } }, res => {
+      let body = '';
+      res.on('data', d => { body += d; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('Figma images API returned non-JSON')); }
+      });
+    }).on('error', reject);
+  });
+
+  const images = imgsData.images || {};
+  const paths = [];
+  let i = 0;
+  for (const [, url] of Object.entries(images)) {
+    const destPath = path.join(outDir, `artboard_${String(i).padStart(4, '0')}.png`);
+    await downloadFile(url, destPath);
+    paths.push(destPath);
+    i++;
+  }
+  return paths;
+}
+
+// --------------------------------------------------------------------------
+// STAGE 1 — DECODE
+// --------------------------------------------------------------------------
+async function runDecode(jobId) {
+  jobStore.updateStage(jobId, 'decode', {
+    status: 'running',
+    started_at: new Date().toISOString(),
+    prompt_version: ACTIVE_VERSION()
+  });
+
+  const meta      = jobStore.readMeta(jobId);
+  const dir       = jobStore.jobDir(jobId);
+  const framesDir = path.join(dir, 'frames');
+  fs.mkdirSync(framesDir, { recursive: true });
+
+  const inputMode      = meta.inputs.input_mode || 'mp4';  // 'mp4' | 'figma-zip' | 'figma-api'
+  const sceneThreshold = meta.inputs.scene_threshold || 0.4;
+
+  // ---- Path A: MP4 scene detection ----------------------------------------
+  if (inputMode === 'mp4') {
+    const inputPath = path.join(dir, 'raw', 'upload.mp4');
+    if (!fs.existsSync(inputPath)) {
+      return failStage(jobId, 'decode', 'malformed_input', 'No upload.mp4 in job/raw');
+    }
+    const stat = fs.statSync(inputPath);
+    if (stat.size > 2 * 1024 * 1024 * 1024) {
+      return failStage(jobId, 'decode', 'quota_exceeded', 'mp4 > 2GB');
+    }
+
+    let sourceDuration = 0;
+    try { sourceDuration = await ffprobeDuration(inputPath); }
+    catch (e) {
+      return failStage(jobId, 'decode', 'malformed_input', `ffprobe failed: ${e.message}`);
+    }
+    if (sourceDuration > 600) {
+      return failStage(jobId, 'decode', 'quota_exceeded', `mp4 duration ${sourceDuration}s > 600s`);
+    }
+
+    // Scene detection: extract only frames where composition meaningfully changes.
+    // -vsync vfr avoids duplicate frames. showinfo prints timestamps to stderr.
+    try {
+      await ffmpeg([
+        '-y', '-i', inputPath,
+        '-vf', `select='gt(scene,${sceneThreshold})',showinfo`,
+        '-vsync', 'vfr',
+        '-q:v', '2',
+        path.join(framesDir, 'keyframe_%04d.jpg')
+      ]);
+    } catch (e) {
+      return failStage(jobId, 'decode', 'cannot_proceed', String(e.message || e));
+    }
+
+    const frameCount = jobStore.listFrames(jobId, 'frames').length;
+    jobStore.writeBlob(jobId, 'decode-result.json', {
+      status: 'ok', input_mode: 'mp4', frame_count: frameCount,
+      source_duration_s: sourceDuration, scene_threshold: sceneThreshold
+    });
+    jobStore.updateStage(jobId, 'decode', { status: 'completed', completed_at: new Date().toISOString() });
+    return { ok: true, input_mode: 'mp4', frame_count: frameCount, source_duration_s: sourceDuration };
+  }
+
+  // ---- Path B: Figma export zip ------------------------------------------
+  if (inputMode === 'figma-zip') {
+    const zipPath = path.join(dir, 'raw', 'upload.zip');
+    if (!fs.existsSync(zipPath)) {
+      return failStage(jobId, 'decode', 'malformed_input', 'No upload.zip in job/raw');
+    }
+    let extractedPaths;
+    try { extractedPaths = await extractFigmaZip(zipPath, framesDir); }
+    catch (e) {
+      return failStage(jobId, 'decode', 'cannot_proceed', `Figma zip extraction failed: ${e.message}`);
+    }
+    const frameCount = extractedPaths.length;
+    jobStore.writeBlob(jobId, 'decode-result.json', {
+      status: 'ok', input_mode: 'figma-zip', frame_count: frameCount
+    });
+    jobStore.updateStage(jobId, 'decode', { status: 'completed', completed_at: new Date().toISOString() });
+    return { ok: true, input_mode: 'figma-zip', frame_count: frameCount };
+  }
+
+  // ---- Path C: Figma REST API --------------------------------------------
+  if (inputMode === 'figma-api') {
+    const figmaKey   = meta.inputs.figma_key   || '';
+    const figmaToken = meta.inputs.figma_token || '';
+    if (!figmaKey || !figmaToken) {
+      return failStage(jobId, 'decode', 'malformed_input', 'figma_key and figma_token are required for figma-api mode');
+    }
+    let extractedPaths;
+    try { extractedPaths = await extractFigmaApi(figmaKey, figmaToken, framesDir); }
+    catch (e) {
+      return failStage(jobId, 'decode', 'cannot_proceed', `Figma API extraction failed: ${e.message}`);
+    }
+    const frameCount = extractedPaths.length;
+    jobStore.writeBlob(jobId, 'decode-result.json', {
+      status: 'ok', input_mode: 'figma-api', frame_count: frameCount
+    });
+    jobStore.updateStage(jobId, 'decode', { status: 'completed', completed_at: new Date().toISOString() });
+    return { ok: true, input_mode: 'figma-api', frame_count: frameCount };
+  }
+
+  return failStage(jobId, 'decode', 'malformed_input', `Unknown input_mode: ${inputMode}`);
+}
+
+// --------------------------------------------------------------------------
+// STAGE 2 — TRIAGE (passthrough)
+// Scene detection already selects only meaningful keyframes. This stage
+// simply copies all frames to keep/ so the API contract is unchanged.
 // --------------------------------------------------------------------------
 async function runTriage(jobId) {
-  jobStore.updateStage(jobId, 'triage', { status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION() });
+  jobStore.updateStage(jobId, 'triage', {
+    status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION()
+  });
 
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
+  const dir    = jobStore.jobDir(jobId);
   const frames = jobStore.listFrames(jobId, 'frames');
   if (frames.length === 0) {
-    return failStage(jobId, 'triage', 'cannot_proceed', 'no_frames_to_classify');
-  }
-  if (frames.length > 1000) {
-    return failStage(jobId, 'triage', 'quota_exceeded', 'frame_count_exceeded');
+    return failStage(jobId, 'triage', 'cannot_proceed', 'no frames from decode stage');
   }
 
-  const system = loadPrompt('triage');
-  const images = frames.map(f => ({ path: path.join(dir, 'frames', f) }));
+  const keepDir = path.join(dir, 'keep');
+  fs.mkdirSync(keepDir, { recursive: true });
+  for (const f of frames) {
+    const src = path.join(dir, 'frames', f);
+    const dst = path.join(dir, 'keep', f);
+    if (fs.existsSync(src) && !fs.existsSync(dst)) fs.copyFileSync(src, dst);
+  }
+
+  const passthru = {
+    status: 'ok', drop_ratio: 0, _passthrough: true,
+    frames: frames.map(f => ({ frame: f, verdict: 'KEEP', reason: 'scene_detected' }))
+  };
+  jobStore.writeBlob(jobId, 'triage.json', passthru);
+  jobStore.updateStage(jobId, 'triage', { status: 'completed', completed_at: new Date().toISOString() });
+  return { ok: true, drop_ratio: 0, kept: frames.length };
+}
+
+// --------------------------------------------------------------------------
+// STAGE 3 — CLASSIFY → ANALYZE
+// Loops kept frames in order, sending each frame together with its
+// predecessor so the model can infer motion direction and transition intent.
+// Output: descriptions.json — ordered array of { frame, description }.
+// --------------------------------------------------------------------------
+async function runClassify(jobId) {
+  jobStore.updateStage(jobId, 'classify', {
+    status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION()
+  });
+
+  const meta   = jobStore.readMeta(jobId);
+  const dir    = jobStore.jobDir(jobId);
+  const frames = jobStore.listFrames(jobId, 'keep');
+
+  if (frames.length === 0) {
+    return failStage(jobId, 'classify', 'cannot_proceed', 'no frames in keep/');
+  }
+  if (frames.length > 200) {
+    return failStage(jobId, 'classify', 'quota_exceeded', `${frames.length} frames > 200 ceiling — lower the scene threshold or trim the video`);
+  }
+
+  // Determine analysis mode from input_mode (video vs figma artboards)
+  const inputMode   = meta.inputs.input_mode || 'mp4';
+  const visionMode  = (inputMode === 'mp4') ? 'video' : 'figma';
+
+  let system;
+  try { system = loadPrompt('analyze'); }
+  catch (e) { system = ''; }  // graceful if prompt file missing
+
+  const descriptions  = [];
+  let   totalTokens   = 0;
+  let   totalCalls    = 0;
+
+  for (let i = 0; i < frames.length; i++) {
+    const currPath = path.join(dir, 'keep', frames[i]);
+    const images   = [];
+
+    if (i > 0) {
+      images.push({ path: path.join(dir, 'keep', frames[i - 1]) });
+    }
+    images.push({ path: currPath });
+
+    const userPrompt = buildAnalyzePrompt(i, frames[i], inputMode, meta);
+
+    const r = await modelInvoke({
+      stage:  'analyze',
+      system,
+      user:   userPrompt,
+      images,
+      model:  'volume'
+    });
+
+    descriptions.push({ frame: i, filename: frames[i], description: r.text });
+    totalTokens += r.tokens || 0;
+    totalCalls++;
+  }
+
+  jobStore.writeBlob(jobId, 'descriptions.json', { mode: visionMode, descriptions });
+  // Stub-compatible: also write segments.json so extract/render see expected blobs.
+  jobStore.writeBlob(jobId, 'segments.json', descriptions.map((d, i) => ({
+    id: `scene_${i + 1}`,
+    frame: d.frame,
+    description: d.description
+  })));
+
+  jobStore.updateStage(jobId, 'classify', {
+    status: 'completed', completed_at: new Date().toISOString(),
+    model_calls: totalCalls, model_tokens: totalTokens
+  });
+  return { ok: true, frame_count: frames.length, mode: visionMode };
+}
+
+function buildAnalyzePrompt(idx, filename, inputMode, meta) {
+  const hasPrev = idx > 0;
+  const modeHint = (inputMode === 'mp4')
+    ? 'This is a video frame from a product demo screen recording.'
+    : 'This is an artboard from a Figma design storyboard.';
+  const prevHint = hasPrev
+    ? 'The PREVIOUS frame is included before the CURRENT frame so you can describe what changed and how it moved.'
+    : 'This is the first frame — no previous frame.';
+  return [
+    modeHint,
+    prevHint,
+    `Frame index: ${idx}. File: ${filename}.`,
+    `Vertical: ${meta.inputs.vertical || 'unknown'}. Vendor: ${meta.inputs.vendor || 'unknown'}.`
+  ].join(' ');
+}
+
+// --------------------------------------------------------------------------
+// STAGE 4 — EXTRACT (thin wrapper: read descriptions, write structure/content/theme)
+// --------------------------------------------------------------------------
+async function runExtract(jobId) {
+  jobStore.updateStage(jobId, 'extract', {
+    status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION()
+  });
+
+  const meta        = jobStore.readMeta(jobId);
+  const dir         = jobStore.jobDir(jobId);
+  const descBlob    = jobStore.readBlob(jobId, 'descriptions.json');
+
+  if (!descBlob || !descBlob.descriptions) {
+    return failStage(jobId, 'extract', 'cannot_proceed', 'no descriptions.json — run classify stage first');
+  }
+
+  let system;
+  try { system = loadPrompt('extract'); }
+  catch (e) { system = ''; }
+
+  const sequence = descBlob.descriptions
+    .map(d => `FRAME ${d.frame}:\n${d.description}`)
+    .join('\n\n');
+
+  const keepFrames = jobStore.listFrames(jobId, 'keep');
+  const sampleImages = keepFrames.slice(0, 6).map(f => ({ path: path.join(dir, 'keep', f) }));
 
   const r = await modelInvoke({
-    stage: 'triage',
+    stage:  'extract',
     system,
-    user: `Classify these ${frames.length} frames. Vertical: ${meta.inputs.vertical}. Vendor: ${meta.inputs.vendor}.`,
-    images,
-    model: 'volume'
+    user:   `Vendor: ${meta.inputs.vendor}. Vertical: ${meta.inputs.vertical}.\n\n` +
+            `FRAME DESCRIPTIONS:\n${sequence}`,
+    images: sampleImages,
+    model:  'reasoning'
   });
 
   let parsed;
-  try { parsed = JSON.parse(extractJson(r.text)); }
-  catch (e) {
-    return failStage(jobId, 'triage', 'validation_failed', `triage model returned non-JSON: ${e.message}`);
-  }
-
-  // Fake-mode shortcut: if model returned _fake, build a stub triage output
-  // by treating every frame as KEEP. Lets the rest of the pipeline run.
-  if (parsed._fake) {
+  try {
+    const raw = extractJson(r.text);
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    // Fall back: write descriptions as structure directly
     parsed = {
-      frames: frames.map(f => ({ frame: f, verdict: 'KEEP', reason: 'fake_passthrough', mask_regions: [] })),
-      drop_ratio: 0,
-      kept_runtime_s: frames.length / (meta.inputs.fps || 1),
-      status: 'ok',
-      _fake: true
+      structure: { scenes: descBlob.descriptions.map((d, i) => ({ id: `s${i + 1}`, description: d.description })) },
+      content: { language: '{{LANGUAGE}}', org_name: '{{VENDOR_NAME}}' },
+      theme: { primary: '{{PRIMARY_COLOR}}', secondary: '{{SECONDARY_COLOR}}' }
     };
   }
 
-  // Copy KEEP frames to keep/ for downstream stages.
-  for (const fi of parsed.frames || []) {
-    if (fi.verdict === 'KEEP') {
-      const src = path.join(dir, 'frames', fi.frame);
-      const dst = path.join(dir, 'keep', fi.frame);
-      if (fs.existsSync(src) && !fs.existsSync(dst)) fs.copyFileSync(src, dst);
-    }
-  }
+  if (parsed.structure) jobStore.writeBlob(jobId, 'structure.json', parsed.structure);
+  if (parsed.content)   jobStore.writeBlob(jobId, 'content.json', parsed.content);
+  if (parsed.theme)     jobStore.writeBlob(jobId, 'theme.json', parsed.theme);
 
-  jobStore.writeBlob(jobId, 'triage.json', parsed);
-  jobStore.updateStage(jobId, 'triage', {
+  jobStore.updateStage(jobId, 'extract', {
     status: 'completed', completed_at: new Date().toISOString(),
     model_calls: 1, model_tokens: r.tokens
   });
-
-  // Warning gate per spec: pause for user review on soft/hard warnings.
-  if (parsed.status === 'user_review_required') {
-    const m = jobStore.readMeta(jobId);
-    m.checkpoints.post_triage.gated = true;
-    m.checkpoints.post_triage.warning = parsed.warning;
-    m.checkpoints.post_triage.message = parsed.message;
-    m.overall = 'awaiting_user';
-    jobStore.writeMeta(jobId, m);
-  }
-
-  return { ok: true, drop_ratio: parsed.drop_ratio, kept: (parsed.frames || []).filter(f => f.verdict === 'KEEP').length };
-}
-
-// --------------------------------------------------------------------------
-// STAGE 2 — CLASSIFY (dispatcher per spec pseudocode)
-// --------------------------------------------------------------------------
-async function runClassify(jobId) {
-  jobStore.updateStage(jobId, 'classify', { status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION() });
-
-  const meta = jobStore.readMeta(jobId);
-  const triage = jobStore.readBlob(jobId, 'triage.json');
-  if (!triage) return failStage(jobId, 'classify', 'cannot_proceed', 'no triage.json');
-
-  const keptRuntime = triage.kept_runtime_s || 0;
-  const userChoice = meta.inputs.classify_mode || 'auto';
-  let branch = 'replay';
-  if (userChoice !== 'auto') {
-    branch = userChoice;  // 'replay' | 'synthesize' | 'hybrid'
-  } else {
-    if (keptRuntime >= 20) branch = 'replay';
-    else if (keptRuntime >= 8) branch = 'replay';
-    else branch = 'synthesize';
-  }
-
-  let result;
-  try {
-    if (branch === 'replay') result = await classifyReplay(jobId);
-    else if (branch === 'synthesize') result = await classifySynthesize(jobId);
-    else if (branch === 'hybrid') {
-      const a = await classifyReplay(jobId);
-      const b = await classifySynthesize(jobId);
-      result = { branch: 'hybrid', replay: a, synthesize: b };
-    }
-  } catch (e) {
-    return failStage(jobId, 'classify', 'cannot_proceed', String(e.message || e));
-  }
-
-  jobStore.updateStage(jobId, 'classify', { status: 'completed', completed_at: new Date().toISOString(), model_calls: 1 });
-  return { ok: true, branch, ...result };
-}
-
-async function classifyReplay(jobId) {
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
-  const keepFrames = jobStore.listFrames(jobId, 'keep');
-  const r = await modelInvoke({
-    stage: 'classify-replay',
-    system: loadPrompt('classify-replay'),
-    user: `Vendor: ${meta.inputs.vendor}. Vertical: ${meta.inputs.vertical}. Classify ${keepFrames.length} kept frames.`,
-    images: keepFrames.slice(0, 30).map(f => ({ path: path.join(dir, 'keep', f) })),  // sample
-    model: 'reasoning'
-  });
-  const parsed = JSON.parse(extractJson(r.text));
-  jobStore.writeBlob(jobId, 'segments.json', parsed.segments || []);
-  jobStore.writeBlob(jobId, 'timeline.json', parsed.timeline || []);
-  return { branch: 'replay', segment_count: (parsed.segments || []).length };
-}
-
-async function classifySynthesize(jobId) {
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
-  const keepFrames = jobStore.listFrames(jobId, 'keep');
-  const r = await modelInvoke({
-    stage: 'classify-synthesize',
-    system: loadPrompt('classify-synthesize'),
-    user: `Vendor: ${meta.inputs.vendor}. Vertical: ${meta.inputs.vertical}. target_runtime_s: 20. Synthesize a script.`,
-    images: keepFrames.slice(0, 5).map(f => ({ path: path.join(dir, 'keep', f) })),
-    model: 'reasoning'
-  });
-  const parsed = JSON.parse(extractJson(r.text));
-  jobStore.writeBlob(jobId, 'segments.json', parsed.segments || []);
-  jobStore.writeBlob(jobId, 'timeline.json', parsed.timeline || []);
-  if (parsed.background) jobStore.writeBlob(jobId, 'background.json', parsed.background);
-  if (parsed.content) jobStore.writeBlob(jobId, 'content.json', parsed.content);
-  return { branch: 'synthesize', segment_count: (parsed.segments || []).length };
-}
-
-// --------------------------------------------------------------------------
-// STAGE 3 — EXTRACT
-// --------------------------------------------------------------------------
-async function runExtract(jobId) {
-  jobStore.updateStage(jobId, 'extract', { status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION() });
-
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
-  const segments = jobStore.readBlob(jobId, 'segments.json');
-  const keepFrames = jobStore.listFrames(jobId, 'keep');
-
-  if (!segments) return failStage(jobId, 'extract', 'cannot_proceed', 'no segments.json');
-
-  const r = await modelInvoke({
-    stage: 'extract',
-    system: loadPrompt('extract'),
-    user: `Vendor: ${meta.inputs.vendor}. Vertical: ${meta.inputs.vertical}. Build structure/content/theme for ${segments.length} segments.`,
-    images: keepFrames.slice(0, 10).map(f => ({ path: path.join(dir, 'keep', f) })),
-    model: 'reasoning'
-  });
-  const parsed = JSON.parse(extractJson(r.text));
-
-  if (parsed.structure) jobStore.writeBlob(jobId, 'structure.json', parsed.structure);
-  if (parsed.content) {
-    // Merge with any synthesize-emitted content
-    const existing = jobStore.readBlob(jobId, 'content.json') || {};
-    jobStore.writeBlob(jobId, 'content.json', { ...existing, ...parsed.content });
-  }
-  if (parsed.theme) jobStore.writeBlob(jobId, 'theme.json', parsed.theme);
-
-  jobStore.updateStage(jobId, 'extract', { status: 'completed', completed_at: new Date().toISOString(), model_calls: 1, model_tokens: r.tokens });
   return { ok: true };
 }
 
 // --------------------------------------------------------------------------
-// STAGE 4 — RENDER
+// STAGE 5 — RENDER → GENERATE
+// Feeds ordered frame descriptions to Claude with HTML_GEN_PROMPT.
+// Outputs a self-contained, brandable vignette.html to build/index.html.
 // --------------------------------------------------------------------------
 async function runRender(jobId) {
-  jobStore.updateStage(jobId, 'render', { status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION() });
+  jobStore.updateStage(jobId, 'render', {
+    status: 'running', started_at: new Date().toISOString(), prompt_version: ACTIVE_VERSION()
+  });
 
-  const meta = jobStore.readMeta(jobId);
-  const dir = jobStore.jobDir(jobId);
-  const structure = jobStore.readBlob(jobId, 'structure.json');
-  const content = jobStore.readBlob(jobId, 'content.json') || {};
-  const theme = jobStore.readBlob(jobId, 'theme.json') || {};
-  const timeline = jobStore.readBlob(jobId, 'timeline.json') || [];
+  const meta     = jobStore.readMeta(jobId);
+  const dir      = jobStore.jobDir(jobId);
+  const descBlob = jobStore.readBlob(jobId, 'descriptions.json');
+
+  if (!descBlob || !descBlob.descriptions) {
+    return failStage(jobId, 'render', 'cannot_proceed', 'no descriptions.json — run classify+extract first');
+  }
+
+  let system;
+  try { system = loadPrompt('render'); }
+  catch (e) { system = ''; }
+
+  const sequence = descBlob.descriptions
+    .map(d => `FRAME ${d.frame}:\n${d.description}`)
+    .join('\n\n');
 
   const r = await modelInvoke({
-    stage: 'render',
-    system: loadPrompt('render'),
-    user: `Vendor: ${meta.inputs.vendor}. Vertical: ${meta.inputs.vertical}.\n\n` +
-          `STRUCTURE:\n${JSON.stringify(structure)}\n\n` +
-          `CONTENT:\n${JSON.stringify(content)}\n\n` +
-          `THEME:\n${JSON.stringify(theme)}\n\n` +
-          `TIMELINE:\n${JSON.stringify(timeline)}`,
-    model: 'reasoning'
+    stage:  'render',
+    system,
+    user:   `Vendor: ${meta.inputs.vendor || '{{VENDOR_NAME}}'}. Vertical: ${meta.inputs.vertical}.\n\n` +
+            `SEQUENCE OF STATES:\n${sequence}`,
+    images: [],
+    model:  'reasoning'
   });
 
   const html = stripCodeFences(r.text);
+  fs.mkdirSync(path.join(dir, 'build'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'build', 'index.html'), html);
 
-  jobStore.updateStage(jobId, 'render', { status: 'completed', completed_at: new Date().toISOString(), model_calls: 1, model_tokens: r.tokens });
+  jobStore.updateStage(jobId, 'render', {
+    status: 'completed', completed_at: new Date().toISOString(),
+    model_calls: 1, model_tokens: r.tokens
+  });
   jobStore.updateOverall(jobId, 'completed');
-  return { ok: true, html_path: `/api/builder/jobs/${jobId}/build/index.html` };
+  return { ok: true, html_path: `/api/builder/jobs/${jobId}/artifact/build/index.html` };
 }
 
 // --------------------------------------------------------------------------
@@ -330,7 +501,7 @@ async function runRender(jobId) {
 // --------------------------------------------------------------------------
 async function runVerticalize(jobId, editedContent, editedTheme) {
   if (editedContent) jobStore.writeBlob(jobId, 'content.json', editedContent);
-  if (editedTheme) jobStore.writeBlob(jobId, 'theme.json', editedTheme);
+  if (editedTheme)   jobStore.writeBlob(jobId, 'theme.json', editedTheme);
   return runRender(jobId);
 }
 
@@ -348,7 +519,6 @@ function failStage(jobId, stage, category, reason) {
   return { ok: false, stage, reason_category: category, reason };
 }
 
-/** Pull JSON out of fenced or unfenced model output. */
 function extractJson(text) {
   if (!text) return '{}';
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -363,11 +533,11 @@ function stripCodeFences(text) {
 }
 
 const STAGE_RUNNERS = {
-  decode: runDecode,
-  triage: runTriage,
+  decode:   runDecode,
+  triage:   runTriage,
   classify: runClassify,
-  extract: runExtract,
-  render: runRender
+  extract:  runExtract,
+  render:   runRender
 };
 
 async function runStage(jobId, stage) {
