@@ -2464,7 +2464,8 @@ if (_studioJobStore && _studioPipeline && _multer) {
         sceneThreshold: 0.4
       });
 
-      fs.renameSync(mp4File.path, path.join(dir, 'raw', 'upload.mp4'));
+      fs.copyFileSync(mp4File.path, path.join(dir, 'raw', 'upload.mp4'));
+      try { fs.unlinkSync(mp4File.path); } catch (_) {}
       res.json({ job_id: jobId });
 
       // Run pipeline async (non-blocking)
