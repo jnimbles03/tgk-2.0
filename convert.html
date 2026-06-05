@@ -303,6 +303,7 @@
     </div>
     <div class="progress-stage" id="progressStage">Starting…</div>
     <div class="progress-label" id="progressLabel">This takes 60–120 seconds</div>
+    <div class="progress-label" id="progressElapsed" style="opacity:0.6;font-size:0.8em;margin-top:4px;"></div>
   </div>
 
   <div class="result" id="resultArea">
@@ -323,10 +324,27 @@ const fileChosen = document.getElementById('fileChosen');
 const fileName   = document.getElementById('fileName');
 const fileSize   = document.getElementById('fileSize');
 const convertBtn = document.getElementById('convertBtn');
-const progressArea  = document.getElementById('progressArea');
-const progressBar   = document.getElementById('progressBar');
-const progressStage = document.getElementById('progressStage');
-const progressLabel = document.getElementById('progressLabel');
+const progressArea    = document.getElementById('progressArea');
+const progressBar     = document.getElementById('progressBar');
+const progressStage   = document.getElementById('progressStage');
+const progressLabel   = document.getElementById('progressLabel');
+const progressElapsed = document.getElementById('progressElapsed');
+
+let _elapsedStart = null;
+let _elapsedTimer = null;
+function startElapsedTimer() {
+  _elapsedStart = Date.now();
+  _elapsedTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - _elapsedStart) / 1000);
+    const m = Math.floor(s / 60);
+    const ss = s % 60;
+    progressElapsed.textContent = m > 0 ? `${m}m ${ss}s elapsed — still working…` : `${ss}s elapsed — still working…`;
+  }, 1000);
+}
+function stopElapsedTimer() {
+  clearInterval(_elapsedTimer);
+  progressElapsed.textContent = '';
+}
 const resultArea    = document.getElementById('resultArea');
 const downloadLink  = document.getElementById('downloadLink');
 const resetBtn      = document.getElementById('resetBtn');
@@ -431,6 +449,7 @@ async function startConvert() {
   }
 
   setStage('Extracting frames…', 10);
+  startElapsedTimer();
   await poll(jobId);
 }
 
@@ -475,6 +494,7 @@ async function poll(jobId) {
     }
 
     if (overall === 'completed') {
+      stopElapsedTimer();
       setStage('Done!', 100);
       await sleep(400);
       showResult(jobId, meta);
@@ -482,6 +502,7 @@ async function poll(jobId) {
     }
 
     if (overall === 'failed') {
+      stopElapsedTimer();
       const failedStage = order.find(s => stages[s] && stages[s].status === 'failed');
       const reason = failedStage ? (stages[failedStage].reason || 'Pipeline failed') : 'Pipeline failed';
       showError('Build failed: ' + reason);
@@ -491,6 +512,7 @@ async function poll(jobId) {
     }
   }
 
+  stopElapsedTimer();
   showError('Timed out after 15 minutes. Try a shorter video or check the server logs.');
   convertBtn.disabled = false;
   progressArea.classList.remove('visible');
