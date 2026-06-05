@@ -2495,7 +2495,7 @@ if (_studioJobStore && _studioPipeline && _multer) {
           out.write(data);
           fs.unlinkSync(cp);
         }
-        out.end();
+        await new Promise((resolve, reject) => { out.end(err => err ? reject(err) : resolve()); });
         delete _chunkMap[jobId];
 
         res.json({ job_id: jobId, assembled: true });
