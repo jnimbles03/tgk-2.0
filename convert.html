@@ -6,7 +6,6 @@
 <title>MP4 → Demo Converter</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #0a0a0f;
@@ -17,7 +16,6 @@
     justify-content: center;
     padding: 24px;
   }
-
   .card {
     background: #13131a;
     border: 1px solid #2a2a3a;
@@ -26,20 +24,8 @@
     width: 100%;
     max-width: 560px;
   }
-
-  h1 {
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-    color: #666680;
-    margin-bottom: 36px;
-  }
-
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.3px; }
+  .subtitle { font-size: 14px; color: #666680; margin-bottom: 36px; }
   .drop-zone {
     border: 2px dashed #2a2a3a;
     border-radius: 12px;
@@ -48,419 +34,190 @@
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
-    margin-bottom: 24px;
   }
-
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: #5555ff;
-    background: rgba(85, 85, 255, 0.05);
-  }
-
-  .drop-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
-  .drop-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-  }
-
-  .drop-label {
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-
-  .drop-hint {
-    font-size: 13px;
-    color: #555570;
-  }
-
-  .file-chosen {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    background: rgba(85, 85, 255, 0.1);
-    border: 1px solid rgba(85, 85, 255, 0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 24px;
-    font-size: 14px;
-  }
-
-  .file-chosen.visible { display: flex; }
-
-  .file-chosen .fname {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .file-chosen .fsize {
-    color: #666680;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  .fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .field label {
-    display: block;
-    font-size: 12px;
-    color: #666680;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-
-  .field input {
-    width: 100%;
-    background: #0a0a0f;
-    border: 1px solid #2a2a3a;
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #e8e8f0;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .field input:focus {
-    border-color: #5555ff;
-  }
-
-  .field input::placeholder {
-    color: #3a3a50;
-  }
-
+  .drop-zone:hover, .drop-zone.drag-over { border-color: #5b5bf0; background: #16162a; }
+  .drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-icon { font-size: 32px; margin-bottom: 12px; }
+  .drop-label { font-size: 15px; color: #888; }
+  .drop-label span { color: #5b5bf0; }
+  .file-selected { font-size: 13px; color: #5b5bf0; margin-top: 8px; font-weight: 500; }
   .btn {
+    display: block;
     width: 100%;
+    margin-top: 24px;
     padding: 14px;
-    background: #5555ff;
-    color: white;
+    background: #5b5bf0;
+    color: #fff;
     border: none;
     border-radius: 10px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    letter-spacing: -0.2px;
+    transition: background 0.2s;
   }
-
-  .btn:hover { background: #6666ff; }
-  .btn:active { transform: scale(0.99); }
-  .btn:disabled { background: #2a2a3a; color: #444460; cursor: not-allowed; transform: none; }
-
-  .progress {
-    display: none;
-    margin-top: 24px;
-  }
-
-  .progress.visible { display: block; }
-
-  .progress-bar-wrap {
-    background: #1a1a24;
-    border-radius: 6px;
-    height: 6px;
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: #5555ff;
-    border-radius: 6px;
-    width: 0%;
-    transition: width 0.4s ease;
-  }
-
-  .progress-bar.indeterminate {
-    width: 40%;
-    animation: slide 1.4s ease-in-out infinite;
-  }
-
-  @keyframes slide {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(350%); }
-  }
-
-  .progress-label {
-    font-size: 13px;
-    color: #888890;
-    text-align: center;
-  }
-
-  .progress-stage {
-    font-size: 14px;
-    font-weight: 500;
-    text-align: center;
-    margin-bottom: 4px;
-  }
-
-  .result {
-    display: none;
-    margin-top: 24px;
-    text-align: center;
-  }
-
-  .result.visible { display: block; }
-
-  .result-icon { font-size: 32px; margin-bottom: 8px; }
-  .result-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .result-sub { font-size: 13px; color: #666680; margin-bottom: 20px; }
-
-  .btn-dl {
+  .btn:hover { background: #4a4adf; }
+  .btn:disabled { background: #2a2a4a; color: #555; cursor: not-allowed; }
+  .progress-area { display: none; margin-top: 28px; }
+  .progress-area.visible { display: block; }
+  .stage-label { font-size: 14px; color: #888; margin-bottom: 8px; }
+  .stage-label span { color: #e8e8f0; font-weight: 500; }
+  .progress-bar-bg { background: #1e1e2e; border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-bar { background: #5b5bf0; height: 6px; border-radius: 99px; transition: width 0.4s; }
+  .elapsed { font-size: 12px; color: #444; margin-top: 8px; }
+  .result-area { display: none; margin-top: 28px; text-align: center; }
+  .result-area.visible { display: block; }
+  .result-area p { font-size: 14px; color: #888; margin-bottom: 16px; }
+  .download-btn {
     display: inline-block;
     padding: 12px 28px;
     background: #22c55e;
-    color: white;
-    border-radius: 8px;
-    font-size: 14px;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     text-decoration: none;
-    cursor: pointer;
-    border: none;
     transition: background 0.2s;
   }
-
-  .btn-dl:hover { background: #16a34a; }
-
-  .error {
+  .download-btn:hover { background: #16a34a; }
+  .error-box {
     display: none;
     margin-top: 20px;
-    padding: 14px 16px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #2a1010;
+    border: 1px solid #5a2020;
     border-radius: 8px;
+    padding: 12px 16px;
     font-size: 13px;
     color: #f87171;
   }
-
-  .error.visible { display: block; }
-
-  .btn-again {
-    margin-top: 16px;
-    background: none;
-    border: 1px solid #2a2a3a;
-    color: #888890;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    display: block;
-    width: 100%;
-  }
-
-  .btn-again:hover { border-color: #5555ff; color: #e8e8f0; }
+  .error-box.visible { display: block; }
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>MP4 → Animated Demo</h1>
-  <p class="subtitle">Upload a screen recording. Get a clickable HTML demo back.</p>
+  <h1>MP4 → Demo</h1>
+  <p class="subtitle">Upload a screen recording. Get a clickable animated HTML demo.</p>
 
   <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".mp4,video/mp4">
+    <input type="file" id="fileInput" accept="video/mp4,video/*">
     <div class="drop-icon">🎬</div>
-    <div class="drop-label">Drop MP4 here or click to browse</div>
-    <div class="drop-hint">Max 500MB · Screen recordings, Loom exports, walkthroughs</div>
-  </div>
-
-  <div class="file-chosen" id="fileChosen">
-    <span>🎥</span>
-    <span class="fname" id="fileName"></span>
-    <span class="fsize" id="fileSize"></span>
-  </div>
-
-  <div class="fields">
-    <div class="field">
-      <label>Vendor / Product</label>
-      <input type="text" id="vendor" placeholder="e.g. DocuSign">
-    </div>
-    <div class="field">
-      <label>Vertical</label>
-      <input type="text" id="vertical" placeholder="e.g. CLM, HR">
-    </div>
+    <div class="drop-label">Drop MP4 here or <span>browse</span></div>
+    <div class="file-selected" id="fileLabel"></div>
   </div>
 
   <button class="btn" id="convertBtn" disabled>Convert to Demo</button>
 
-  <div class="progress" id="progressArea">
-    <div class="progress-bar-wrap">
-      <div class="progress-bar indeterminate" id="progressBar"></div>
-    </div>
-    <div class="progress-stage" id="progressStage">Starting…</div>
-    <div class="progress-label" id="progressLabel">This takes 60–120 seconds</div>
-    <div class="progress-label" id="progressElapsed" style="opacity:0.6;font-size:0.8em;margin-top:4px;"></div>
+  <div class="progress-area" id="progressArea">
+    <div class="stage-label">Status: <span id="stageText">Starting…</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="elapsed" id="elapsed"></div>
   </div>
 
-  <div class="result" id="resultArea">
-    <div class="result-icon">✅</div>
-    <div class="result-title">Demo ready</div>
-    <div class="result-sub">Your animated HTML demo has been generated</div>
-    <a class="btn-dl" id="downloadLink" href="#" download>Download HTML Demo</a>
-    <button class="btn-again" id="resetBtn">Convert another</button>
+  <div class="result-area" id="resultArea">
+    <p>Your demo is ready!</p>
+    <a class="download-btn" id="downloadLink" href="#" download>Download HTML Demo</a>
   </div>
 
-  <div class="error" id="errorArea"></div>
+  <div class="error-box" id="errorBox"></div>
 </div>
 
 <script>
-const fileInput  = document.getElementById('fileInput');
-const dropZone   = document.getElementById('dropZone');
-const fileChosen = document.getElementById('fileChosen');
-const fileName   = document.getElementById('fileName');
-const fileSize   = document.getElementById('fileSize');
-const convertBtn = document.getElementById('convertBtn');
-const progressArea    = document.getElementById('progressArea');
-const progressBar     = document.getElementById('progressBar');
-const progressStage   = document.getElementById('progressStage');
-const progressLabel   = document.getElementById('progressLabel');
-const progressElapsed = document.getElementById('progressElapsed');
-
-let _elapsedStart = null;
-let _elapsedTimer = null;
-function startElapsedTimer() {
-  _elapsedStart = Date.now();
-  _elapsedTimer = setInterval(() => {
-    const s = Math.floor((Date.now() - _elapsedStart) / 1000);
-    const m = Math.floor(s / 60);
-    const ss = s % 60;
-    progressElapsed.textContent = m > 0 ? `${m}m ${ss}s elapsed — still working…` : `${ss}s elapsed — still working…`;
-  }, 1000);
-}
-function stopElapsedTimer() {
-  clearInterval(_elapsedTimer);
-  progressElapsed.textContent = '';
-}
-const resultArea    = document.getElementById('resultArea');
-const downloadLink  = document.getElementById('downloadLink');
-const resetBtn      = document.getElementById('resetBtn');
-const errorArea     = document.getElementById('errorArea');
-
+const CHUNK_SIZE = 512 * 1024;
 let selectedFile = null;
+let elapsedTimer = null;
+let elapsedSec = 0;
 
-function fmtSize(bytes) {
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-}
-
-function setFile(file) {
-  if (!file || !file.name.match(/\.mp4$/i)) {
-    showError('Please select an MP4 file.');
-    return;
-  }
-  selectedFile = file;
-  fileName.textContent = file.name;
-  fileSize.textContent = fmtSize(file.size);
-  fileChosen.classList.add('visible');
-  convertBtn.disabled = false;
-  hideError();
-}
+const fileInput    = document.getElementById('fileInput');
+const fileLabel    = document.getElementById('fileLabel');
+const convertBtn   = document.getElementById('convertBtn');
+const progressArea = document.getElementById('progressArea');
+const resultArea   = document.getElementById('resultArea');
+const stageText    = document.getElementById('stageText');
+const progressBar  = document.getElementById('progressBar');
+const elapsedEl    = document.getElementById('elapsed');
+const errorBox     = document.getElementById('errorBox');
+const dropZone     = document.getElementById('dropZone');
+const downloadLink = document.getElementById('downloadLink');
 
 fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) setFile(fileInput.files[0]);
+  if (fileInput.files[0]) selectFile(fileInput.files[0]);
 });
-
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (f) setFile(f);
+  if (e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
 });
 
-convertBtn.addEventListener('click', startConvert);
-resetBtn.addEventListener('click', reset);
-
-function reset() {
-  selectedFile = null;
-  fileInput.value = '';
-  fileChosen.classList.remove('visible');
-  convertBtn.disabled = true;
-  progressArea.classList.remove('visible');
-  resultArea.classList.remove('visible');
-  hideError();
-  progressBar.className = 'progress-bar indeterminate';
-}
-
-function showError(msg) {
-  errorArea.textContent = msg;
-  errorArea.classList.add('visible');
-}
-
-function hideError() {
-  errorArea.classList.remove('visible');
+function selectFile(f) {
+  selectedFile = f;
+  fileLabel.textContent = f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)';
+  convertBtn.disabled = false;
 }
 
 function setStage(label, pct) {
-  progressStage.textContent = label;
-  if (pct != null) {
-    progressBar.className = 'progress-bar';
-    progressBar.style.width = pct + '%';
-  } else {
-    progressBar.className = 'progress-bar indeterminate';
-    progressBar.style.width = '';
-  }
+  stageText.textContent = label;
+  progressBar.style.width = pct + '%';
 }
 
-const CHUNK_SIZE = 512 * 1024; // 512KB chunks — safely under Replit proxy limit
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('visible');
+  stopTimer();
+  convertBtn.disabled = false;
+  progressArea.classList.remove('visible');
+}
+
+function hideError() { errorBox.classList.remove('visible'); }
+
+function startTimer() {
+  elapsedSec = 0;
+  elapsedEl.textContent = '';
+  elapsedTimer = setInterval(() => {
+    elapsedSec++;
+    elapsedEl.textContent = elapsedSec + 's elapsed — still working…';
+  }, 1000);
+}
+
+function stopTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
+convertBtn.addEventListener('click', startConvert);
 
 async function startConvert() {
   if (!selectedFile) return;
-
   convertBtn.disabled = true;
   progressArea.classList.add('visible');
   resultArea.classList.remove('visible');
   hideError();
+  startTimer();
 
-  const vendor   = document.getElementById('vendor').value   || 'unknown';
-  const vertical = document.getElementById('vertical').value || 'unknown';
   const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
-
   let jobId;
 
   for (let i = 0; i < totalChunks; i++) {
     const start = i * CHUNK_SIZE;
     const end   = Math.min(start + CHUNK_SIZE, selectedFile.size);
     const chunk = selectedFile.slice(start, end);
-    const pct   = Math.round(((i + 1) / totalChunks) * 18); // 0–18% for upload phase
-
-    setStage(`Uploading… (${i + 1}/${totalChunks})`, pct);
+    const pct   = Math.round(((i + 1) / totalChunks) * 18);
+    setStage('Uploading… (' + (i + 1) + '/' + totalChunks + ')', pct);
 
     const fd = new FormData();
     fd.append('chunk', chunk, 'chunk.bin');
     fd.append('chunkIndex',  String(i));
     fd.append('totalChunks', String(totalChunks));
     fd.append('filename', selectedFile.name);
-    if (i === 0) {
-      fd.append('vendor',   vendor);
-      fd.append('vertical', vertical);
-    }
     if (jobId) fd.append('jobId', jobId);
 
     let data;
     try {
       const res = await fetch('/api/convert/chunk', { method: 'POST', body: fd });
-      data = await res.json();
+      const text = await res.text();
+      try { data = JSON.parse(text); } catch(_) { throw new Error('Server error: ' + text.slice(0, 200)); }
       if (!res.ok || data.error) throw new Error(data.error || 'Chunk upload failed');
     } catch (e) {
       showError('Upload failed on chunk ' + (i + 1) + ': ' + e.message);
-      convertBtn.disabled = false;
-      progressArea.classList.remove('visible');
       return;
     }
 
@@ -468,91 +225,53 @@ async function startConvert() {
   }
 
   setStage('Extracting frames…', 20);
-  startElapsedTimer();
-  await poll(jobId);
+  pollJob(jobId);
 }
 
 const STAGE_LABELS = {
-  decode:   ['Extracting keyframes…', 25],
-  triage:   ['Selecting best frames…', 40],
-  classify: ['Analyzing screens with AI…', 60],
-  extract:  ['Building demo structure…', 75],
-  render:   ['Generating HTML demo…', 88]
+  decode:   ['Extracting frames…',  25],
+  triage:   ['Triaging scenes…',    35],
+  classify: ['Analysing frames…',   50],
+  extract:  ['Extracting UI data…', 65],
+  render:   ['Generating HTML demo…', 80],
 };
+const TIMEOUT_MS = 20 * 60 * 1000;
+let pollStart;
 
-async function poll(jobId) {
-  const MAX_WAIT = 900000; // 15 min
-  const start = Date.now();
-
-  while (Date.now() - start < MAX_WAIT) {
-    await sleep(3000);
-
-    let meta;
+function pollJob(jobId) {
+  pollStart = Date.now();
+  const iv = setInterval(async () => {
+    if (Date.now() - pollStart > TIMEOUT_MS) {
+      clearInterval(iv);
+      showError('Timed out after 20 minutes. Try a shorter video.');
+      return;
+    }
     try {
       const res = await fetch('/api/convert/' + jobId);
-      if (!res.ok) continue;
-      meta = await res.json();
-    } catch { continue; }
+      const job = await res.json();
+      const stages = job.stages || {};
 
-    const overall = meta.status;
-    const stages = meta.stages || {};
-
-    // Find the current running or most-recently-completed stage
-    const order = ['decode', 'triage', 'classify', 'extract', 'render'];
-    let activeStage = null;
-    for (const s of order) {
-      if (stages[s] && (stages[s].status === 'running' || stages[s].status === 'completed')) {
-        activeStage = s;
+      // Find current active or last completed stage
+      for (const [s, [label, pct]] of Object.entries(STAGE_LABELS)) {
+        if (stages[s]?.status === 'running') { setStage(label, pct); break; }
       }
-    }
 
-    if (activeStage && STAGE_LABELS[activeStage]) {
-      const [label, pct] = STAGE_LABELS[activeStage];
-      const isRunning = stages[activeStage].status === 'running';
-      setStage(label, isRunning ? null : pct);
-    }
-
-    if (overall === 'completed') {
-      stopElapsedTimer();
-      setStage('Done!', 100);
-      await sleep(400);
-      showResult(jobId, meta);
-      return;
-    }
-
-    if (overall === 'failed') {
-      stopElapsedTimer();
-      const failedStage = order.find(s => stages[s] && stages[s].status === 'failed');
-      const reason = failedStage ? (stages[failedStage].reason || 'Pipeline failed') : 'Pipeline failed';
-      showError('Build failed: ' + reason);
-      convertBtn.disabled = false;
-      progressArea.classList.remove('visible');
-      return;
-    }
-  }
-
-  stopElapsedTimer();
-  showError('Timed out after 15 minutes. Try a shorter video or check the server logs.');
-  convertBtn.disabled = false;
-  progressArea.classList.remove('visible');
+      if (job.overall === 'completed') {
+        clearInterval(iv);
+        stopTimer();
+        setStage('Done!', 100);
+        progressArea.classList.remove('visible');
+        resultArea.classList.add('visible');
+        downloadLink.href = '/api/convert/' + jobId + '/download';
+        downloadLink.download = (job.inputs?.original_filename || 'demo').replace(/\.mp4$/i, '') + '-demo.html';
+      } else if (job.overall === 'failed') {
+        clearInterval(iv);
+        const failedStage = Object.entries(stages).find(([,v]) => v.status === 'failed');
+        showError('Pipeline failed at ' + (failedStage?.[0] || 'unknown') + ' stage. Check server logs.');
+      }
+    } catch(e) { /* ignore transient poll errors */ }
+  }, 3000);
 }
-
-function showResult(jobId, meta) {
-  progressArea.classList.remove('visible');
-  resultArea.classList.add('visible');
-
-  // Point to the artifact download endpoint
-  const href = `/api/convert/${jobId}/download`;
-  downloadLink.href = href;
-
-  // Auto-trigger download
-  const a = document.createElement('a');
-  a.href = href;
-  a.download = (document.getElementById('vendor').value || 'demo') + '-demo.html';
-  a.click();
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 </body>
 </html>
