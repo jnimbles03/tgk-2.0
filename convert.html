@@ -417,6 +417,8 @@ function setStage(label, pct) {
   }
 }
 
+const CHUNK_SIZE = 512 * 1024; // 512KB chunks — safely under Replit proxy limit
+
 async function startConvert() {
   if (!selectedFile) return;
 
@@ -424,31 +426,48 @@ async function startConvert() {
   progressArea.classList.add('visible');
   resultArea.classList.remove('visible');
   hideError();
-  setStage('Uploading MP4…', null);
 
-  const formData = new FormData();
-  formData.append('mp4', selectedFile);
-  formData.append('vendor', document.getElementById('vendor').value || 'unknown');
-  formData.append('vertical', document.getElementById('vertical').value || 'unknown');
-  formData.append('input_mode', 'mp4');
+  const vendor   = document.getElementById('vendor').value   || 'unknown';
+  const vertical = document.getElementById('vertical').value || 'unknown';
+  const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
 
   let jobId;
-  try {
-    const res = await fetch('/api/convert', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Upload failed');
-    jobId = data.job_id;
-  } catch (e) {
-    showError('Upload failed: ' + e.message);
-    convertBtn.disabled = false;
-    progressArea.classList.remove('visible');
-    return;
+
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * CHUNK_SIZE;
+    const end   = Math.min(start + CHUNK_SIZE, selectedFile.size);
+    const chunk = selectedFile.slice(start, end);
+    const pct   = Math.round(((i + 1) / totalChunks) * 18); // 0–18% for upload phase
+
+    setStage(`Uploading… (${i + 1}/${totalChunks})`, pct);
+
+    const fd = new FormData();
+    fd.append('chunk', chunk, 'chunk.bin');
+    fd.append('chunkIndex',  String(i));
+    fd.append('totalChunks', String(totalChunks));
+    fd.append('filename', selectedFile.name);
+    if (i === 0) {
+      fd.append('vendor',   vendor);
+      fd.append('vertical', vertical);
+    }
+    if (jobId) fd.append('jobId', jobId);
+
+    let data;
+    try {
+      const res = await fetch('/api/convert/chunk', { method: 'POST', body: fd });
+      data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Chunk upload failed');
+    } catch (e) {
+      showError('Upload failed on chunk ' + (i + 1) + ': ' + e.message);
+      convertBtn.disabled = false;
+      progressArea.classList.remove('visible');
+      return;
+    }
+
+    if (i === 0) jobId = data.job_id;
   }
 
-  setStage('Extracting frames…', 10);
+  setStage('Extracting frames…', 20);
   startElapsedTimer();
   await poll(jobId);
 }

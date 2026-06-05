@@ -2447,6 +2447,76 @@ if (_studioJobStore && _multer) {
 if (_studioJobStore && _studioPipeline && _multer) {
   const convertUpload = _multer({ dest: '/tmp', limits: { fileSize: 500 * 1024 * 1024 } });
 
+  // POST /api/convert/chunk — chunked upload endpoint (bypasses proxy size limits)
+  const chunkUpload = _multer({ dest: '/tmp', limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB per chunk
+  const _chunkMap = {}; // jobId -> { dir, totalChunks, received: Set }
+
+  app.post('/api/convert/chunk', chunkUpload.fields([{ name: 'chunk', maxCount: 1 }]), async (req, res) => {
+    try {
+      const chunkFile   = (req.files?.chunk || [])[0];
+      if (!chunkFile) return res.status(400).json({ error: 'no_chunk' });
+
+      const chunkIndex  = parseInt(req.body.chunkIndex  || '0', 10);
+      const totalChunks = parseInt(req.body.totalChunks || '1', 10);
+      const { vendor, vertical, filename } = req.body || {};
+
+      let jobId = req.body.jobId;
+
+      // First chunk — create the job
+      if (chunkIndex === 0) {
+        const { jobId: jid, dir } = _studioJobStore.createJob({
+          vertical: vertical || 'unknown',
+          vendor:   vendor   || 'unknown',
+          fps: 1,
+          classifyMode: 'auto',
+          originalFilename: filename || 'upload.mp4',
+          inputMode: 'mp4',
+          sceneThreshold: 0.4
+        });
+        jobId = jid;
+        _chunkMap[jobId] = { dir, totalChunks, received: new Set() };
+      }
+
+      if (!jobId || !_chunkMap[jobId]) return res.status(400).json({ error: 'unknown_job' });
+
+      const { dir, received } = _chunkMap[jobId];
+      const chunkDest = path.join(dir, 'raw', `chunk_${String(chunkIndex).padStart(5, '0')}`);
+      fs.copyFileSync(chunkFile.path, chunkDest);
+      try { fs.unlinkSync(chunkFile.path); } catch (_) {}
+      received.add(chunkIndex);
+
+      // All chunks received — assemble
+      if (received.size === _chunkMap[jobId].totalChunks) {
+        const destPath = path.join(dir, 'raw', 'upload.mp4');
+        const out = fs.createWriteStream(destPath);
+        for (let i = 0; i < totalChunks; i++) {
+          const cp = path.join(dir, 'raw', `chunk_${String(i).padStart(5, '0')}`);
+          const data = fs.readFileSync(cp);
+          out.write(data);
+          fs.unlinkSync(cp);
+        }
+        out.end();
+        delete _chunkMap[jobId];
+
+        res.json({ job_id: jobId, assembled: true });
+
+        // Kick off pipeline async
+        const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+        (async () => {
+          for (const stage of stages) {
+            const result = await _studioPipeline.runStage(jobId, stage);
+            if (!result.ok) { console.error('[convert/chunk] stage failed:', stage, result.reason); return; }
+          }
+        })().catch(e => console.error('[convert/chunk] pipeline error:', e));
+      } else {
+        res.json({ job_id: jobId, received: received.size, total: _chunkMap[jobId].totalChunks });
+      }
+    } catch (err) {
+      console.error('[convert/chunk] error:', err);
+      res.status(500).json({ error: String(err?.message || err) });
+    }
+  });
+
   // POST /api/convert — upload MP4, kick off full pipeline
   app.post('/api/convert', convertUpload.fields([{ name: 'mp4', maxCount: 1 }]), async (req, res) => {
     try {
