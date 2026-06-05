@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP4 → Demo Converter</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #13131a;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 48px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #666680;
+    margin-bottom: 36px;
+  }
+
+  .drop-zone {
+    border: 2px dashed #2a2a3a;
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: #5555ff;
+    background: rgba(85, 85, 255, 0.05);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .drop-label {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .drop-hint {
+    font-size: 13px;
+    color: #555570;
+  }
+
+  .file-chosen {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: rgba(85, 85, 255, 0.1);
+    border: 1px solid rgba(85, 85, 255, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .file-chosen.visible { display: flex; }
+
+  .file-chosen .fname {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-chosen .fsize {
+    color: #666680;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: #666680;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: #0a0a0f;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #e8e8f0;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus {
+    border-color: #5555ff;
+  }
+
+  .field input::placeholder {
+    color: #3a3a50;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: #5555ff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: -0.2px;
+  }
+
+  .btn:hover { background: #6666ff; }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { background: #2a2a3a; color: #444460; cursor: not-allowed; transform: none; }
+
+  .progress {
+    display: none;
+    margin-top: 24px;
+  }
+
+  .progress.visible { display: block; }
+
+  .progress-bar-wrap {
+    background: #1a1a24;
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: #5555ff;
+    border-radius: 6px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .progress-bar.indeterminate {
+    width: 40%;
+    animation: slide 1.4s ease-in-out infinite;
+  }
+
+  @keyframes slide {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+  }
+
+  .progress-label {
+    font-size: 13px;
+    color: #888890;
+    text-align: center;
+  }
+
+  .progress-stage {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .result {
+    display: none;
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .result.visible { display: block; }
+
+  .result-icon { font-size: 32px; margin-bottom: 8px; }
+  .result-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .result-sub { font-size: 13px; color: #666680; margin-bottom: 20px; }
+
+  .btn-dl {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #22c55e;
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+  }
+
+  .btn-dl:hover { background: #16a34a; }
+
+  .error {
+    display: none;
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #f87171;
+  }
+
+  .error.visible { display: block; }
+
+  .btn-again {
+    margin-top: 16px;
+    background: none;
+    border: 1px solid #2a2a3a;
+    color: #888890;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    display: block;
+    width: 100%;
+  }
+
+  .btn-again:hover { border-color: #5555ff; color: #e8e8f0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>MP4 → Animated Demo</h1>
+  <p class="subtitle">Upload a screen recording. Get a clickable HTML demo back.</p>
+
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".mp4,video/mp4">
+    <div class="drop-icon">🎬</div>
+    <div class="drop-label">Drop MP4 here or click to browse</div>
+    <div class="drop-hint">Max 500MB · Screen recordings, Loom exports, walkthroughs</div>
+  </div>
+
+  <div class="file-chosen" id="fileChosen">
+    <span>🎥</span>
+    <span class="fname" id="fileName"></span>
+    <span class="fsize" id="fileSize"></span>
+  </div>
+
+  <div class="fields">
+    <div class="field">
+      <label>Vendor / Product</label>
+      <input type="text" id="vendor" placeholder="e.g. DocuSign">
+    </div>
+    <div class="field">
+      <label>Vertical</label>
+      <input type="text" id="vertical" placeholder="e.g. CLM, HR">
+    </div>
+  </div>
+
+  <button class="btn" id="convertBtn" disabled>Convert to Demo</button>
+
+  <div class="progress" id="progressArea">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar indeterminate" id="progressBar"></div>
+    </div>
+    <div class="progress-stage" id="progressStage">Starting…</div>
+    <div class="progress-label" id="progressLabel">This takes 60–120 seconds</div>
+  </div>
+
+  <div class="result" id="resultArea">
+    <div class="result-icon">✅</div>
+    <div class="result-title">Demo ready</div>
+    <div class="result-sub">Your animated HTML demo has been generated</div>
+    <a class="btn-dl" id="downloadLink" href="#" download>Download HTML Demo</a>
+    <button class="btn-again" id="resetBtn">Convert another</button>
+  </div>
+
+  <div class="error" id="errorArea"></div>
+</div>
+
+<script>
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const fileChosen = document.getElementById('fileChosen');
+const fileName   = document.getElementById('fileName');
+const fileSize   = document.getElementById('fileSize');
+const convertBtn = document.getElementById('convertBtn');
+const progressArea  = document.getElementById('progressArea');
+const progressBar   = document.getElementById('progressBar');
+const progressStage = document.getElementById('progressStage');
+const progressLabel = document.getElementById('progressLabel');
+const resultArea    = document.getElementById('resultArea');
+const downloadLink  = document.getElementById('downloadLink');
+const resetBtn      = document.getElementById('resetBtn');
+const errorArea     = document.getElementById('errorArea');
+
+let selectedFile = null;
+
+function fmtSize(bytes) {
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function setFile(file) {
+  if (!file || !file.name.match(/\.mp4$/i)) {
+    showError('Please select an MP4 file.');
+    return;
+  }
+  selectedFile = file;
+  fileName.textContent = file.name;
+  fileSize.textContent = fmtSize(file.size);
+  fileChosen.classList.add('visible');
+  convertBtn.disabled = false;
+  hideError();
+}
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) setFile(f);
+});
+
+convertBtn.addEventListener('click', startConvert);
+resetBtn.addEventListener('click', reset);
+
+function reset() {
+  selectedFile = null;
+  fileInput.value = '';
+  fileChosen.classList.remove('visible');
+  convertBtn.disabled = true;
+  progressArea.classList.remove('visible');
+  resultArea.classList.remove('visible');
+  hideError();
+  progressBar.className = 'progress-bar indeterminate';
+}
+
+function showError(msg) {
+  errorArea.textContent = msg;
+  errorArea.classList.add('visible');
+}
+
+function hideError() {
+  errorArea.classList.remove('visible');
+}
+
+function setStage(label, pct) {
+  progressStage.textContent = label;
+  if (pct != null) {
+    progressBar.className = 'progress-bar';
+    progressBar.style.width = pct + '%';
+  } else {
+    progressBar.className = 'progress-bar indeterminate';
+    progressBar.style.width = '';
+  }
+}
+
+async function startConvert() {
+  if (!selectedFile) return;
+
+  convertBtn.disabled = true;
+  progressArea.classList.add('visible');
+  resultArea.classList.remove('visible');
+  hideError();
+  setStage('Uploading MP4…', null);
+
+  const formData = new FormData();
+  formData.append('mp4', selectedFile);
+  formData.append('vendor', document.getElementById('vendor').value || 'unknown');
+  formData.append('vertical', document.getElementById('vertical').value || 'unknown');
+  formData.append('input_mode', 'mp4');
+
+  let jobId;
+  try {
+    const res = await fetch('/api/convert', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Upload failed');
+    jobId = data.job_id;
+  } catch (e) {
+    showError('Upload failed: ' + e.message);
+    convertBtn.disabled = false;
+    progressArea.classList.remove('visible');
+    return;
+  }
+
+  setStage('Extracting frames…', 10);
+  await poll(jobId);
+}
+
+const STAGE_LABELS = {
+  decode:   ['Extracting keyframes…', 25],
+  triage:   ['Selecting best frames…', 40],
+  classify: ['Analyzing screens with AI…', 60],
+  extract:  ['Building demo structure…', 75],
+  render:   ['Generating HTML demo…', 88]
+};
+
+async function poll(jobId) {
+  const MAX_WAIT = 300000; // 5 min
+  const start = Date.now();
+
+  while (Date.now() - start < MAX_WAIT) {
+    await sleep(3000);
+
+    let meta;
+    try {
+      const res = await fetch('/api/convert/' + jobId);
+      if (!res.ok) continue;
+      meta = await res.json();
+    } catch { continue; }
+
+    const overall = meta.status;
+    const stages = meta.stages || {};
+
+    // Find the current running or most-recently-completed stage
+    const order = ['decode', 'triage', 'classify', 'extract', 'render'];
+    let activeStage = null;
+    for (const s of order) {
+      if (stages[s] && (stages[s].status === 'running' || stages[s].status === 'completed')) {
+        activeStage = s;
+      }
+    }
+
+    if (activeStage && STAGE_LABELS[activeStage]) {
+      const [label, pct] = STAGE_LABELS[activeStage];
+      const isRunning = stages[activeStage].status === 'running';
+      setStage(label, isRunning ? null : pct);
+    }
+
+    if (overall === 'completed') {
+      setStage('Done!', 100);
+      await sleep(400);
+      showResult(jobId, meta);
+      return;
+    }
+
+    if (overall === 'failed') {
+      const failedStage = order.find(s => stages[s] && stages[s].status === 'failed');
+      const reason = failedStage ? (stages[failedStage].reason || 'Pipeline failed') : 'Pipeline failed';
+      showError('Build failed: ' + reason);
+      convertBtn.disabled = false;
+      progressArea.classList.remove('visible');
+      return;
+    }
+  }
+
+  showError('Timed out after 5 minutes. Try a shorter video.');
+  convertBtn.disabled = false;
+  progressArea.classList.remove('visible');
+}
+
+function showResult(jobId, meta) {
+  progressArea.classList.remove('visible');
+  resultArea.classList.add('visible');
+
+  // Point to the artifact download endpoint
+  const href = `/api/convert/${jobId}/download`;
+  downloadLink.href = href;
+
+  // Auto-trigger download
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = (document.getElementById('vendor').value || 'demo') + '-demo.html';
+  a.click();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

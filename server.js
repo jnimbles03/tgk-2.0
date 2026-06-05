@@ -2440,6 +2440,68 @@ if (_studioJobStore && _multer) {
   });
 }
 
+// =========================================================================
+//  /api/convert — PUBLIC no-auth MP4-to-demo endpoint
+//  Powers convert.html. No admin cookie required.
+// =========================================================================
+if (_studioJobStore && _studioPipeline && _multer) {
+  const convertUpload = _multer({ dest: '/tmp', limits: { fileSize: 500 * 1024 * 1024 } });
+
+  // POST /api/convert — upload MP4, kick off full pipeline
+  app.post('/api/convert', convertUpload.fields([{ name: 'mp4', maxCount: 1 }]), async (req, res) => {
+    try {
+      const mp4File = (req.files?.mp4 || [])[0];
+      if (!mp4File) return res.status(400).json({ error: 'no_mp4' });
+
+      const { vendor, vertical } = req.body || {};
+      const { jobId, dir } = _studioJobStore.createJob({
+        vertical: vertical || 'unknown',
+        vendor:   vendor   || 'unknown',
+        fps: 1,
+        classifyMode: 'auto',
+        originalFilename: mp4File.originalname,
+        inputMode: 'mp4',
+        sceneThreshold: 0.4
+      });
+
+      fs.renameSync(mp4File.path, path.join(dir, 'raw', 'upload.mp4'));
+      res.json({ job_id: jobId });
+
+      // Run pipeline async (non-blocking)
+      const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+      (async () => {
+        for (const stage of stages) {
+          const result = await _studioPipeline.runStage(jobId, stage);
+          if (!result.ok) { console.error('[convert] stage failed:', stage, result.reason); return; }
+        }
+      })().catch(e => console.error('[convert] pipeline error:', e));
+    } catch (err) {
+      console.error('[convert] create failed:', err);
+      res.status(500).json({ error: String(err?.message || err) });
+    }
+  });
+
+  // GET /api/convert/:id — job status (same as builder but public)
+  app.get('/api/convert/:id', (req, res) => {
+    try { res.json(_studioJobStore.readMeta(req.params.id)); }
+    catch (e) { res.status(404).json({ error: 'job not found' }); }
+  });
+
+  // GET /api/convert/:id/download — serve finished HTML
+  app.get('/api/convert/:id/download', (req, res) => {
+    try {
+      const dir = _studioJobStore.jobDir(req.params.id);
+      const htmlPath = path.join(dir, 'build', 'index.html');
+      if (!fs.existsSync(htmlPath)) return res.status(404).json({ error: 'not_ready' });
+      const meta = _studioJobStore.readMeta(req.params.id);
+      const vendor = (meta?.inputs?.vendor || 'demo').replace(/[^a-zA-Z0-9_-]/g, '_');
+      res.setHeader('Content-Disposition', `attachment; filename="${vendor}-demo.html"`);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.sendFile(htmlPath);
+    } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+  });
+}
+
 // --------- Static (HTML/JS/assets) ---------
 app.use(express.static(__dirname, {
   extensions: ['html'],
