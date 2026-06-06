@@ -2471,7 +2471,10 @@ if (_studioJobStore && _studioPipeline && _multer) {
           classifyMode: 'auto',
           originalFilename: filename || 'upload.mp4',
           inputMode: 'mp4',
-          sceneThreshold: 0.4
+          sceneThreshold: 0.4,
+          output_type: req.body.outputType || 'portal',
+          key_moment:  req.body.keyMoment  || '',
+          vertical:    req.body.vertical   || 'other'
         });
         jobId = jid;
         _chunkMap[jobId] = { dir, totalChunks, received: new Set() };
@@ -2501,7 +2504,7 @@ if (_studioJobStore && _studioPipeline && _multer) {
         res.json({ job_id: jobId, assembled: true });
 
         // Kick off pipeline async
-        const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+        const stages = ['decode', 'triage', 'classify', 'match', 'assemble'];
         (async () => {
           for (const stage of stages) {
             const result = await _studioPipeline.runStage(jobId, stage);
@@ -2539,7 +2542,7 @@ if (_studioJobStore && _studioPipeline && _multer) {
       res.json({ job_id: jobId });
 
       // Run pipeline async (non-blocking)
-      const stages = ['decode', 'triage', 'classify', 'extract', 'render'];
+      const stages = ['decode', 'triage', 'classify', 'match', 'assemble'];
       (async () => {
         for (const stage of stages) {
           const result = await _studioPipeline.runStage(jobId, stage);
@@ -2561,12 +2564,24 @@ if (_studioJobStore && _studioPipeline && _multer) {
   // GET /api/convert/:id/download — serve finished HTML
   app.get('/api/convert/:id/download', (req, res) => {
     try {
-      const dir = _studioJobStore.jobDir(req.params.id);
-      const htmlPath = path.join(dir, 'build', 'index.html');
-      if (!fs.existsSync(htmlPath)) return res.status(404).json({ error: 'not_ready' });
       const meta = _studioJobStore.readMeta(req.params.id);
-      const vendor = (meta?.inputs?.vendor || 'demo').replace(/[^a-zA-Z0-9_-]/g, '_');
-      res.setHeader('Content-Disposition', `attachment; filename="${vendor}-demo.html"`);
+      const dir  = _studioJobStore.jobDir(req.params.id);
+      // Try assemble output first, then render output, then legacy build/index.html
+      const assembleFile = meta?.stages?.assemble?.output_file;
+      const renderFile   = meta?.stages?.render?.output_file;
+      const outFile      = assembleFile || renderFile;
+      let htmlPath;
+      if (outFile) {
+        htmlPath = path.join(dir, 'build', outFile);
+        if (!fs.existsSync(htmlPath)) htmlPath = path.join(dir, outFile);
+      }
+      if (!htmlPath || !fs.existsSync(htmlPath)) {
+        const legacy = path.join(dir, 'build', 'index.html');
+        if (fs.existsSync(legacy)) htmlPath = legacy;
+      }
+      if (!htmlPath || !fs.existsSync(htmlPath)) return res.status(404).json({ error: 'not_ready' });
+      const fname = (outFile || 'tgk-demo.html').replace(/[^a-zA-Z0-9._-]/g, '_');
+      res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.sendFile(htmlPath);
     } catch (e) { res.status(500).json({ error: String(e.message || e) }); }

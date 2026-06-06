@@ -21,6 +21,8 @@
    ========================================================================= */
 
 'use strict';
+const { runMatch }     = require('./stages/match');
+const { runAssemble }  = require('./stages/assemble');
 
 const fs      = require('fs');
 const path    = require('path');
@@ -547,7 +549,9 @@ const STAGE_RUNNERS = {
   triage:   runTriage,
   classify: runClassify,
   extract:  runExtract,
-  render:   runRender
+  render:   runRender,
+  match:    (jobId) => runMatch(jobId, require('./job-store')),
+  assemble: (jobId) => runAssemble(jobId, require('./job-store'))
 };
 
 async function runStage(jobId, stage) {
@@ -558,5 +562,5 @@ async function runStage(jobId, stage) {
 
 module.exports = {
   runStage, runDecode, runTriage, runClassify, runExtract, runRender,
-  runVerticalize, ffmpegAvailable
+  runMatch, runAssemble, runVerticalize, ffmpegAvailable
 };
