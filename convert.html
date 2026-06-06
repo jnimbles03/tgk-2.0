@@ -1,277 +1,731 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MP4 → Demo Converter</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #0a0a0f;
-    color: #e8e8f0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .card {
-    background: #13131a;
-    border: 1px solid #2a2a3a;
-    border-radius: 16px;
-    padding: 48px;
-    width: 100%;
-    max-width: 560px;
-  }
-  h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.3px; }
-  .subtitle { font-size: 14px; color: #666680; margin-bottom: 36px; }
-  .drop-zone {
-    border: 2px dashed #2a2a3a;
-    border-radius: 12px;
-    padding: 40px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .drop-zone:hover, .drop-zone.drag-over { border-color: #5b5bf0; background: #16162a; }
-  .drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .drop-icon { font-size: 32px; margin-bottom: 12px; }
-  .drop-label { font-size: 15px; color: #888; }
-  .drop-label span { color: #5b5bf0; }
-  .file-selected { font-size: 13px; color: #5b5bf0; margin-top: 8px; font-weight: 500; }
-  .btn {
-    display: block;
-    width: 100%;
-    margin-top: 24px;
-    padding: 14px;
-    background: #5b5bf0;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn:hover { background: #4a4adf; }
-  .btn:disabled { background: #2a2a4a; color: #555; cursor: not-allowed; }
-  .progress-area { display: none; margin-top: 28px; }
-  .progress-area.visible { display: block; }
-  .stage-label { font-size: 14px; color: #888; margin-bottom: 8px; }
-  .stage-label span { color: #e8e8f0; font-weight: 500; }
-  .progress-bar-bg { background: #1e1e2e; border-radius: 99px; height: 6px; overflow: hidden; }
-  .progress-bar { background: #5b5bf0; height: 6px; border-radius: 99px; transition: width 0.4s; }
-  .elapsed { font-size: 12px; color: #444; margin-top: 8px; }
-  .result-area { display: none; margin-top: 28px; text-align: center; }
-  .result-area.visible { display: block; }
-  .result-area p { font-size: 14px; color: #888; margin-bottom: 16px; }
-  .download-btn {
-    display: inline-block;
-    padding: 12px 28px;
-    background: #22c55e;
-    color: #fff;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.2s;
-  }
-  .download-btn:hover { background: #16a34a; }
-  .error-box {
-    display: none;
-    margin-top: 20px;
-    background: #2a1010;
-    border: 1px solid #5a2020;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: #f87171;
-  }
-  .error-box.visible { display: block; }
-</style>
-</head>
-<body>
-<div class="card">
-  <h1>MP4 → Demo</h1>
-  <p class="subtitle">Upload a screen recording. Get a clickable animated HTML demo.</p>
-
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept="video/mp4,video/*">
-    <div class="drop-icon">🎬</div>
-    <div class="drop-label">Drop MP4 here or <span>browse</span></div>
-    <div class="file-selected" id="fileLabel"></div>
-  </div>
-
-  <button class="btn" id="convertBtn" disabled>Convert to Demo</button>
-
-  <div class="progress-area" id="progressArea">
-    <div class="stage-label">Status: <span id="stageText">Starting…</span></div>
-    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
-    <div class="elapsed" id="elapsed"></div>
-  </div>
-
-  <div class="result-area" id="resultArea">
-    <p>Your demo is ready!</p>
-    <a class="download-btn" id="downloadLink" href="#" download>Download HTML Demo</a>
-  </div>
-
-  <div class="error-box" id="errorBox"></div>
-</div>
-
-<script>
-const CHUNK_SIZE = 512 * 1024;
-let selectedFile = null;
-let elapsedTimer = null;
-let elapsedSec = 0;
-
-const fileInput    = document.getElementById('fileInput');
-const fileLabel    = document.getElementById('fileLabel');
-const convertBtn   = document.getElementById('convertBtn');
-const progressArea = document.getElementById('progressArea');
-const resultArea   = document.getElementById('resultArea');
-const stageText    = document.getElementById('stageText');
-const progressBar  = document.getElementById('progressBar');
-const elapsedEl    = document.getElementById('elapsed');
-const errorBox     = document.getElementById('errorBox');
-const dropZone     = document.getElementById('dropZone');
-const downloadLink = document.getElementById('downloadLink');
-
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) selectFile(fileInput.files[0]);
-});
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
-});
-
-function selectFile(f) {
-  selectedFile = f;
-  fileLabel.textContent = f.name + ' (' + (f.size / 1024 / 1024).toFixed(1) + ' MB)';
-  convertBtn.disabled = false;
-}
-
-function setStage(label, pct) {
-  stageText.textContent = label;
-  progressBar.style.width = pct + '%';
-}
-
-function showError(msg) {
-  errorBox.textContent = msg;
-  errorBox.classList.add('visible');
-  stopTimer();
-  convertBtn.disabled = false;
-  progressArea.classList.remove('visible');
-}
-
-function hideError() { errorBox.classList.remove('visible'); }
-
-function startTimer() {
-  elapsedSec = 0;
-  elapsedEl.textContent = '';
-  elapsedTimer = setInterval(() => {
-    elapsedSec++;
-    elapsedEl.textContent = elapsedSec + 's elapsed — still working…';
-  }, 1000);
-}
-
-function stopTimer() {
-  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
-}
-
-convertBtn.addEventListener('click', startConvert);
-
-async function startConvert() {
-  if (!selectedFile) return;
-  convertBtn.disabled = true;
-  progressArea.classList.add('visible');
-  resultArea.classList.remove('visible');
-  hideError();
-  startTimer();
-
-  const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
-  let jobId;
-
-  for (let i = 0; i < totalChunks; i++) {
-    const start = i * CHUNK_SIZE;
-    const end   = Math.min(start + CHUNK_SIZE, selectedFile.size);
-    const chunk = selectedFile.slice(start, end);
-    const pct   = Math.round(((i + 1) / totalChunks) * 18);
-    setStage('Uploading… (' + (i + 1) + '/' + totalChunks + ')', pct);
-
-    const fd = new FormData();
-    fd.append('chunk', chunk, 'chunk.bin');
-    fd.append('chunkIndex',  String(i));
-    fd.append('totalChunks', String(totalChunks));
-    fd.append('filename', selectedFile.name);
-    if (jobId) fd.append('jobId', jobId);
-
-    let data;
-    try {
-      const res = await fetch('/api/convert/chunk', { method: 'POST', body: fd });
-      const text = await res.text();
-      try { data = JSON.parse(text); } catch(_) { throw new Error('Server error: ' + text.slice(0, 200)); }
-      if (!res.ok || data.error) throw new Error(data.error || 'Chunk upload failed');
-    } catch (e) {
-      showError('Upload failed on chunk ' + (i + 1) + ': ' + e.message);
-      return;
-    }
-
-    if (i === 0) jobId = data.job_id;
-  }
-
-  setStage('Extracting frames…', 20);
-  pollJob(jobId);
-}
-
-const STAGE_LABELS = {
-  decode:   ['Extracting frames…',  25],
-  triage:   ['Triaging scenes…',    35],
-  classify: ['Analysing frames…',   50],
-  extract:  ['Extracting UI data…', 65],
-  render:   ['Generating HTML demo…', 80],
-};
-const TIMEOUT_MS = 20 * 60 * 1000;
-let pollStart;
-
-function pollJob(jobId) {
-  pollStart = Date.now();
-  const iv = setInterval(async () => {
-    if (Date.now() - pollStart > TIMEOUT_MS) {
-      clearInterval(iv);
-      showError('Timed out after 20 minutes. Try a shorter video.');
-      return;
-    }
-    try {
-      const res = await fetch('/api/convert/' + jobId);
-      const job = await res.json();
-      const stages = job.stages || {};
-
-      // Find current active or last completed stage
-      for (const [s, [label, pct]] of Object.entries(STAGE_LABELS)) {
-        if (stages[s]?.status === 'running') { setStage(label, pct); break; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MP4 → Demo Builder · TGK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
 
-      if (job.overall === 'completed') {
-        clearInterval(iv);
-        stopTimer();
-        setStage('Done!', 100);
-        progressArea.classList.remove('visible');
-        resultArea.classList.add('visible');
-        downloadLink.href = '/api/convert/' + jobId + '/download';
-        downloadLink.download = (job.inputs?.original_filename || 'demo').replace(/\.mp4$/i, '') + '-demo.html';
-      } else if (job.overall === 'failed') {
-        clearInterval(iv);
-        const failedStage = Object.entries(stages).find(([,v]) => v.status === 'failed');
-        showError('Pipeline failed at ' + (failedStage?.[0] || 'unknown') + ' stage. Check server logs.');
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: #130032;
+        color: #f8f3f0;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 48px 24px;
       }
-    } catch(e) { /* ignore transient poll errors */ }
-  }, 3000);
-}
-</script>
-</body>
+
+      .container {
+        width: 100%;
+        max-width: 640px;
+      }
+
+      .logo {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #cbc2ff;
+        margin-bottom: 32px;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        font-size: 15px;
+        color: #9b8fc0;
+        margin-bottom: 40px;
+        line-height: 1.5;
+      }
+
+      .section {
+        margin-bottom: 32px;
+      }
+
+      .section-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #cbc2ff;
+        margin-bottom: 6px;
+      }
+
+      .section-hint {
+        font-size: 13px;
+        color: #7a6fa0;
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+
+      /* Output type cards */
+      .type-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .type-card {
+        border: 1.5px solid #2a1a4a;
+        border-radius: 10px;
+        padding: 16px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: #1a0a3a;
+        position: relative;
+      }
+
+      .type-card:hover {
+        border-color: #4c00ff;
+        background: #200a4a;
+      }
+
+      .type-card.selected {
+        border-color: #4c00ff;
+        background: #1e0060;
+        box-shadow: 0 0 0 1px #4c00ff;
+      }
+
+      .type-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .type-icon {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+
+      .type-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .type-desc {
+        font-size: 12px;
+        color: #7a6fa0;
+        line-height: 1.4;
+      }
+
+      .type-card.selected .type-desc {
+        color: #cbc2ff;
+      }
+
+      /* Vertical dropdown */
+      select {
+        width: 100%;
+        background: #1a0a3a;
+        border: 1.5px solid #2a1a4a;
+        border-radius: 8px;
+        color: #f8f3f0;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23CBC2FF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: #4c00ff;
+      }
+
+      select option {
+        background: #130032;
+      }
+
+      /* Key moment input */
+      textarea {
+        width: 100%;
+        background: #1a0a3a;
+        border: 1.5px solid #2a1a4a;
+        border-radius: 8px;
+        color: #f8f3f0;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        resize: vertical;
+        min-height: 80px;
+        line-height: 1.5;
+        transition: border-color 0.15s;
+      }
+
+      textarea::placeholder {
+        color: #4a3a6a;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: #4c00ff;
+      }
+
+      /* Drop zone */
+      .drop-zone {
+        border: 2px dashed #2a1a4a;
+        border-radius: 12px;
+        padding: 36px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        background: #1a0a3a;
+      }
+
+      .drop-zone:hover,
+      .drop-zone.dragover {
+        border-color: #4c00ff;
+        background: #1e0060;
+      }
+
+      .drop-zone.has-file {
+        border-color: #4c00ff;
+        background: #1e0060;
+      }
+
+      .drop-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .drop-text {
+        font-size: 14px;
+        color: #9b8fc0;
+      }
+
+      .drop-text strong {
+        color: #f8f3f0;
+      }
+
+      .file-name {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        color: #cbc2ff;
+        margin-top: 8px;
+      }
+
+      #fileInput {
+        display: none;
+      }
+
+      /* Convert button */
+      .btn {
+        width: 100%;
+        background: #4c00ff;
+        color: #f8f3f0;
+        border: none;
+        border-radius: 8px;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-top: 8px;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: #5c1aff;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      /* Progress */
+      .progress-area {
+        display: none;
+        margin-top: 24px;
+        background: #1a0a3a;
+        border: 1.5px solid #2a1a4a;
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      .progress-area.visible {
+        display: block;
+      }
+
+      .stage-label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #f8f3f0;
+      }
+
+      .progress-bar-track {
+        background: #2a1a4a;
+        border-radius: 4px;
+        height: 4px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        background: #4c00ff;
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.4s ease;
+        width: 0%;
+      }
+
+      .elapsed {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        color: #7a6fa0;
+      }
+
+      /* Result */
+      .result-area {
+        display: none;
+        margin-top: 24px;
+        background: #0a2010;
+        border: 1.5px solid #1a5030;
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      .result-area.visible {
+        display: block;
+      }
+
+      .result-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #4ade80;
+        margin-bottom: 8px;
+      }
+
+      .result-sub {
+        font-size: 13px;
+        color: #7a9a80;
+        margin-bottom: 16px;
+      }
+
+      .download-btn {
+        display: inline-block;
+        background: #4ade80;
+        color: #0a2010;
+        border-radius: 7px;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: background 0.15s;
+      }
+
+      .download-btn:hover {
+        background: #22c55e;
+      }
+
+      /* Error */
+      .error-area {
+        display: none;
+        margin-top: 24px;
+        background: #2a0a10;
+        border: 1.5px solid #5a1a2a;
+        border-radius: 12px;
+        padding: 20px;
+        font-size: 13px;
+        color: #ff5252;
+        line-height: 1.5;
+      }
+
+      .error-area.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">TGK 2.0 · Demo Builder</div>
+      <h1>Turn a screen recording into a live demo</h1>
+      <p class="subtitle">
+        Upload an MP4 of your product and get a self-contained, animated HTML
+        demo — ready to embed or send.
+      </p>
+
+      <!-- Output Type -->
+      <div class="section">
+        <div class="section-label">What are you building?</div>
+        <div class="section-hint">
+          Choose the output type. This shapes how the demo is structured and how
+          interactive it is.
+        </div>
+        <div class="type-cards">
+          <label class="type-card selected" id="card-portal">
+            <input type="radio" name="outputType" value="portal" checked />
+            <div class="type-icon">🏛️</div>
+            <div class="type-name">Portal</div>
+            <div class="type-desc">
+              Full clickable environment. User navigates, explores, signs.
+            </div>
+          </label>
+          <label class="type-card" id="card-vignette">
+            <input type="radio" name="outputType" value="vignette" />
+            <div class="type-icon">🎬</div>
+            <div class="type-name">Vignette</div>
+            <div class="type-desc">
+              One business process, animated end-to-end. Watches like a demo.
+            </div>
+          </label>
+          <label class="type-card" id="card-step">
+            <input type="radio" name="outputType" value="step" />
+            <div class="type-icon">👆</div>
+            <div class="type-name">Step</div>
+            <div class="type-desc">
+              A single moment requiring user action — signature, checkbox,
+              upload.
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Industry Vertical -->
+      <div class="section">
+        <div class="section-label">Industry vertical</div>
+        <div class="section-hint">
+          Sets the visual tone, chrome style, and copy register of the output.
+        </div>
+        <select id="vertical">
+          <option value="">Select a vertical…</option>
+          <option value="financial">
+            Financial Services — loan origination, account opening, KYC
+          </option>
+          <option value="healthcare">
+            Healthcare — patient portal, prior auth, consent forms
+          </option>
+          <option value="government">
+            Government — benefits enrollment, permit applications, DMV
+          </option>
+          <option value="legal">
+            Legal — contract review, e-signature, matter management
+          </option>
+          <option value="hr">
+            HR / Benefits — onboarding, open enrollment, policy acknowledgment
+          </option>
+          <option value="realestate">
+            Real Estate — lease signing, title, escrow workflows
+          </option>
+          <option value="insurance">
+            Insurance — claims, underwriting, policy issuance
+          </option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Key Moment -->
+      <div class="section">
+        <div class="section-label">Key moment</div>
+        <div class="section-hint">
+          Describe the climax of this demo in one sentence — the moment that
+          matters most. This anchors the entire output around it.<br /><br />
+          <em style="color: #4a3a6a"
+            >e.g. "Patient clicks Accept on the consent form" · "Signer
+            completes the final signature block" · "User submits a new account
+            application"</em
+          >
+        </div>
+        <textarea
+          id="keyMoment"
+          placeholder="e.g. The loan officer approves the application and the customer receives a confirmation"
+        ></textarea>
+      </div>
+
+      <!-- Upload -->
+      <div class="section">
+        <div class="section-label">Screen recording</div>
+        <div class="section-hint">
+          MP4 of your product in action. 1–5 minutes works best. Loom exports,
+          QuickTime recordings, and Zoom screen shares all work.
+        </div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="video/mp4,video/*" />
+          <div class="drop-icon">🎥</div>
+          <div class="drop-text">
+            <strong>Drop your MP4 here</strong> or click to browse
+          </div>
+          <div class="file-name" id="fileName"></div>
+        </div>
+      </div>
+
+      <button class="btn" id="convertBtn" disabled>Build demo →</button>
+
+      <div class="progress-area" id="progressArea">
+        <div class="stage-label" id="stageLabel">Starting…</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="elapsed" id="elapsed">0s elapsed</div>
+      </div>
+
+      <div class="result-area" id="resultArea">
+        <div class="result-title">✓ Demo ready</div>
+        <div class="result-sub" id="resultSub">
+          Your animated HTML demo has been generated.
+        </div>
+        <a class="download-btn" id="downloadLink" href="#" download
+          >Download HTML demo</a
+        >
+      </div>
+
+      <div class="error-area" id="errorArea"></div>
+    </div>
+
+    <script>
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const fileName = document.getElementById("fileName");
+      const convertBtn = document.getElementById("convertBtn");
+      const progressArea = document.getElementById("progressArea");
+      const stageLabel = document.getElementById("stageLabel");
+      const progressFill = document.getElementById("progressFill");
+      const elapsedEl = document.getElementById("elapsed");
+      const resultArea = document.getElementById("resultArea");
+      const resultSub = document.getElementById("resultSub");
+      const downloadLink = document.getElementById("downloadLink");
+      const errorArea = document.getElementById("errorArea");
+
+      let selectedFile = null;
+      let elapsedTimer = null;
+      let elapsedSecs = 0;
+
+      // Type card selection
+      document.querySelectorAll(".type-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          document
+            .querySelectorAll(".type-card")
+            .forEach((c) => c.classList.remove("selected"));
+          card.classList.add("selected");
+          card.querySelector("input[type=radio]").checked = true;
+        });
+      });
+
+      // Drop zone
+      dropZone.addEventListener("click", () => fileInput.click());
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("dragover"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f) setFile(f);
+      });
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) setFile(fileInput.files[0]);
+      });
+
+      function setFile(f) {
+        selectedFile = f;
+        fileName.textContent =
+          f.name + " · " + (f.size / 1024 / 1024).toFixed(1) + " MB";
+        dropZone.classList.add("has-file");
+        convertBtn.disabled = false;
+      }
+
+      function setStage(label, pct) {
+        stageLabel.textContent = label;
+        progressFill.style.width = pct + "%";
+      }
+
+      function showError(msg) {
+        errorArea.textContent = msg;
+        errorArea.classList.add("visible");
+      }
+
+      function hideError() {
+        errorArea.classList.remove("visible");
+      }
+
+      function startTimer() {
+        elapsedSecs = 0;
+        elapsedTimer = setInterval(() => {
+          elapsedSecs++;
+          elapsedEl.textContent = elapsedSecs + "s elapsed — still working…";
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (elapsedTimer) {
+          clearInterval(elapsedTimer);
+          elapsedTimer = null;
+        }
+      }
+
+      convertBtn.addEventListener("click", startConvert);
+
+      const CHUNK_SIZE = 512 * 1024;
+
+      async function startConvert() {
+        if (!selectedFile) return;
+
+        const outputType =
+          document.querySelector("input[name=outputType]:checked")?.value ||
+          "portal";
+        const vertical = document.getElementById("vertical").value || "other";
+        const keyMoment = document.getElementById("keyMoment").value.trim();
+
+        convertBtn.disabled = true;
+        progressArea.classList.add("visible");
+        resultArea.classList.remove("visible");
+        hideError();
+        startTimer();
+
+        const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
+        let jobId;
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, selectedFile.size);
+          const chunk = selectedFile.slice(start, end);
+          const pct = Math.round(((i + 1) / totalChunks) * 18);
+
+          setStage(`Uploading… (${i + 1}/${totalChunks})`, pct);
+
+          const fd = new FormData();
+          fd.append("chunk", chunk, "chunk.bin");
+          fd.append("chunkIndex", String(i));
+          fd.append("totalChunks", String(totalChunks));
+          fd.append("filename", selectedFile.name);
+          if (jobId) fd.append("jobId", jobId);
+          if (i === 0) {
+            fd.append("outputType", outputType);
+            fd.append("vertical", vertical);
+            fd.append("keyMoment", keyMoment);
+          }
+
+          try {
+            const res = await fetch("/api/convert/chunk", {
+              method: "POST",
+              body: fd,
+            });
+            const text = await res.text();
+            let data;
+            try {
+              data = JSON.parse(text);
+            } catch (_) {
+              throw new Error("Server error: " + text.slice(0, 200));
+            }
+            if (!res.ok || data.error)
+              throw new Error(data.error || "Chunk upload failed");
+            if (i === 0) jobId = data.job_id;
+          } catch (e) {
+            stopTimer();
+            showError("Upload failed on chunk " + (i + 1) + ": " + e.message);
+            convertBtn.disabled = false;
+            progressArea.classList.remove("visible");
+            return;
+          }
+        }
+
+        setStage("Extracting frames…", 20);
+        pollJob(jobId);
+      }
+
+      const STAGE_LABELS = {
+        decode: ["Extracting keyframes…", 25],
+        triage: ["Triaging frames…", 35],
+        classify: ["Analyzing UI states…", 55],
+        extract: ["Mapping interactions…", 70],
+        render: ["Generating HTML demo…", 88],
+      };
+
+      const TIMEOUT_MS = 20 * 60 * 1000;
+      let pollStart = Date.now();
+
+      function pollJob(jobId) {
+        pollStart = Date.now();
+        const iv = setInterval(async () => {
+          if (Date.now() - pollStart > TIMEOUT_MS) {
+            clearInterval(iv);
+            stopTimer();
+            showError("Timed out after 20 minutes. Try a shorter video.");
+            convertBtn.disabled = false;
+            progressArea.classList.remove("visible");
+            return;
+          }
+
+          try {
+            const res = await fetch("/api/convert/" + jobId);
+            const data = await res.json();
+            const overall = data.overall;
+            const stages = data.stages || {};
+
+            // Update stage display
+            for (const [stage, [label, pct]] of Object.entries(STAGE_LABELS)) {
+              if (stages[stage]?.status === "running") {
+                setStage(label, pct);
+                break;
+              }
+            }
+
+            if (overall === "completed") {
+              clearInterval(iv);
+              stopTimer();
+              progressFill.style.width = "100%";
+              stageLabel.textContent = "Done!";
+
+              const outputFile = stages.render?.output_file;
+              downloadLink.href = "/api/convert/" + jobId + "/download";
+              downloadLink.download = outputFile || "tgk-demo.html";
+              resultSub.textContent =
+                "Your animated HTML demo is ready to download and embed.";
+              resultArea.classList.add("visible");
+              progressArea.classList.remove("visible");
+
+              // Also save to outputs
+              fetch("/api/builder/outputs/" + jobId).catch(() => {});
+            }
+
+            if (overall === "failed") {
+              clearInterval(iv);
+              stopTimer();
+              const failedStage = Object.entries(stages).find(
+                ([, v]) => v.status === "failed",
+              );
+              showError(
+                "Pipeline failed" +
+                  (failedStage
+                    ? " at " +
+                      failedStage[0] +
+                      ": " +
+                      (failedStage[1].reason || "")
+                    : "") +
+                  ". Check server logs.",
+              );
+              convertBtn.disabled = false;
+              progressArea.classList.remove("visible");
+            }
+          } catch (_) {}
+        }, 3000);
+      }
+    </script>
+  </body>
 </html>
