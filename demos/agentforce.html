@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docusign for Agentforce — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/agent.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const SCENES='<section class="de-scene is-active" data-scene="sf"><div class="sf">'+
+  '<div class="sf-top"><span class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="app">Sales</span>'+
+    '<span class="search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>Search Salesforce</span>'+
+    '<span class="ic">★ ? ⚙ ▤</span><span class="av"></span></div>'+
+  '<div class="sf-tabs"><span class="t">Home</span><span class="t on">Opportunities</span><span class="t">Accounts</span><span class="t">Contacts</span><span class="t">Reports</span></div>'+
+  '<div class="sf-body"><div class="sf-main">'+
+    '<div class="sf-rec"><div class="eyebrow">Opportunity</div><div class="nm" id="sf-opp"></div>'+
+      '<div class="sf-path"><span class="st done">Qualify</span><span class="st done">Meet</span><span class="st cur">Propose</span><span class="st">Negotiate</span><span class="st">Closed Won</span></div>'+
+      '<div class="sf-fields"><div class="f"><div class="k">Account</div><div class="v" id="sf-acct"></div></div>'+
+        '<div class="f"><div class="k">Amount</div><div class="v" id="sf-amt"></div></div>'+
+        '<div class="f"><div class="k">Close date</div><div class="v" id="sf-close"></div></div>'+
+        '<div class="f"><div class="k">Owner</div><div class="v" id="sf-owner"></div></div></div></div>'+
+    '<div class="sf-act"><div class="hd">Activity</div>'+
+      '<div class="item" id="sf-a1"><span class="dot"></span><span>Agentforce generated <b id="sf-doc"></b> with Docusign</span><span class="tm">now</span></div>'+
+      '<div class="item" id="sf-a2"><span class="dot"></span><span>Sent for signature — counterparty notified</span><span class="tm">now</span></div>'+
+      '<div class="item" id="sf-a3"><span class="dot"></span><span>Logged to Agreement Manager &amp; the opportunity</span><span class="tm">now</span></div></div>'+
+  '</div>'+
+  '<div class="af"><div class="af-hd"><span class="astro"></span> Agentforce</div>'+
+    '<div class="af-chat" id="af-chat">'+
+      '<div class="af-msg ai on">Hi! I can search records, draft agreements, and send them for signature. What can I help with?</div>'+
+      '<div class="af-msg user" id="af-u1"></div>'+
+      '<div class="af-msg ai" id="af-a1">On it — pulling the account and pricing from Salesforce and generating the agreement with Docusign…</div>'+
+      '<div class="af-msg ai" id="af-a2"><span id="af-done"></span>'+
+        '<div class="af-card"><div class="t"><span class="dm"></span><span id="af-cardt"></span></div><div class="s">✓ Sent for signature via Docusign</div></div></div></div>'+
+    '<div class="af-prompts" id="af-prompts"><div class="af-prompt" id="af-prompt"></div><div class="af-prompt">Summarize this account</div></div>'+
+    '<div class="af-input"><div class="box">Message Agentforce…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Ask Agentforce</div><span class="arr">&rarr;</span><div class="node lead">Generated &amp; sent</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"Docusign for Agentforce", productTag:"Agentforce", home:"index.html",
+    footnote:'<b>Faithful Agentforce flow, re-skinnable content.</b> The Salesforce opportunity, the Agentforce assistant generating an agreement with Docusign, and the write-back are the shared spine. Switching vertical swaps the deal, the counterparty and narration.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:26,
+    beats:[ {t:0,key:"open",sceneId:"sf"},{t:6,key:"ask",sceneId:"sf"},{t:10,key:"generate",sceneId:"sf"},{t:14,key:"sent",sceneId:"sf"},{t:20,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:700,y:300,action:"move"},
+      {t:6,target:"#af-prompt",action:"click",sayKey:"ask"},
+      {t:11,x:1140,y:240,action:"move",sayKey:"generate"},
+      {t:15,x:1140,y:320,action:"move",sayKey:"sent"},
+      {t:20,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"tally.lightning.force.com — Opportunities", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Mary Okonkwo", role:"Account Executive", side:"advisor" }, sorNode:"Salesforce",
+      opp:"Atlas Corp — Treasury Services", acct:"Atlas Corp", amt:"$128,400", close:"Aug 30, 2026", owner:"Mary Okonkwo",
+      prompt:"Generate an MSA for Atlas Corp", doc:"Master Services Agreement", cardt:"MSA — Atlas Corp.docx",
+      say:{ open:{eyebrow:"Agentforce",title:"Agreements, generated inside the CRM",body:"Mary is on the Atlas opportunity. Agentforce can draft and send the contract without leaving Salesforce."},
+        ask:{eyebrow:"Ask",title:"One plain-English request",body:"“Generate an MSA for Atlas Corp.” No template hunting, no copy-paste from the record."},
+        generate:{eyebrow:"Docusign",title:"Pulls the deal data, drafts the doc",body:"Agentforce reads account and pricing from Salesforce and generates the MSA with Docusign."},
+        sent:{eyebrow:"Sent",title:"Out for signature in seconds",body:"The MSA is generated and sent for signature — the counterparty is notified automatically."},
+        handoff:{eyebrow:"Write-back",title:"Logged back to the opportunity",body:"Status and the executed agreement write back to Salesforce and Agreement Manager."} },
+      handoff:{h:"Generated and sent from the CRM",p:"Agentforce drafted the MSA with Docusign and sent it for signature — written back to Salesforce."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"riverside.lightning.force.com — Opportunities", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Mary Okonkwo", role:"Procurement Lead", side:"advisor" }, sorNode:"Salesforce",
+      opp:"Medline — Supply Agreement Renewal", acct:"Medline", amt:"$84,000", close:"Sep 2, 2026", owner:"Mary Okonkwo",
+      prompt:"Generate a vendor MSA for Medline", doc:"Vendor Master Agreement", cardt:"Vendor MSA — Medline.docx",
+      say:{ open:{eyebrow:"Agentforce",title:"Agreements, generated inside the CRM",body:"Mary is on the Medline renewal. Agentforce can draft and send the contract without leaving Salesforce."},
+        ask:{eyebrow:"Ask",title:"One plain-English request",body:"“Generate a vendor MSA for Medline.” No template hunting, no copy-paste from the record."},
+        generate:{eyebrow:"Docusign",title:"Pulls the deal data, drafts the doc",body:"Agentforce reads account and pricing from Salesforce and generates the vendor MSA with Docusign."},
+        sent:{eyebrow:"Sent",title:"Out for signature in seconds",body:"The agreement is generated and sent for signature — the vendor is notified automatically."},
+        handoff:{eyebrow:"Write-back",title:"Logged back to the opportunity",body:"Status and the executed agreement write back to Salesforce and Agreement Manager."} },
+      handoff:{h:"Generated and sent from the CRM",p:"Agentforce drafted the vendor MSA with Docusign and sent it for signature — written back to Salesforce."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#sf-opp").textContent=p.opp; root.querySelector("#sf-acct").textContent=p.acct;
+    root.querySelector("#sf-amt").textContent=p.amt; root.querySelector("#sf-close").textContent=p.close; root.querySelector("#sf-owner").textContent=p.owner;
+    root.querySelector("#af-u1").textContent=p.prompt; root.querySelector("#af-prompt").textContent=p.prompt;
+    root.querySelector("#af-done").textContent="Done — I generated the "+p.doc+" and sent it for signature.";
+    root.querySelector("#af-cardt").textContent=p.cardt; root.querySelector("#sf-doc").textContent="the "+p.doc;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    root.querySelector("#af-prompts").style.opacity = time>=6?0:1;
+    root.querySelector("#af-u1").classList.toggle("on", time>=6.3);
+    root.querySelector("#af-a1").classList.toggle("on", time>=10);
+    root.querySelector("#af-a2").classList.toggle("on", time>=14);
+    root.querySelector("#sf-a1").classList.toggle("on", time>=14.5);
+    root.querySelector("#sf-a2").classList.toggle("on", time>=15.5);
+    root.querySelector("#sf-a3").classList.toggle("on", time>=16.5);
+  }
+});
+</script>
+</body>
+</html>

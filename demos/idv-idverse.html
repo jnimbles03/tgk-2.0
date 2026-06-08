@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Verification (IDVerse) — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/idv.css">
+<style>
+  .iv-co{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;color:#1a1a26;margin-bottom:22px;letter-spacing:.5px}
+  .iv-co .m{width:16px;height:16px;border-radius:4px;background:var(--tenant-accent)}
+  .iv-h{font-size:23px;font-weight:600;color:#1a1a26;margin-bottom:14px;line-height:1.18}
+  .iv-cam{margin:14px 0 18px;height:200px;background:#11131A;border-radius:14px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .iv-idcard{width:200px;height:124px;border:2.5px dashed rgba(255,255,255,.7);border-radius:11px;position:relative}
+  .iv-idcard.cap{border-style:solid;border-color:#33D17A}
+  .iv-idcard .img{position:absolute;inset:6px;border-radius:7px;background:linear-gradient(120deg,#9db4d6,#c7d3e6);opacity:0;transition:opacity .3s}
+  .iv-idcard.cap .img{opacity:1}
+  .iv-idcard .img:after{content:"";position:absolute;left:10px;top:14px;width:30px;height:38px;border-radius:50%;background:#7a8cae}
+  .iv-corner{position:absolute;width:22px;height:22px;border:3px solid var(--tenant-accent)}
+  .iv-corner.tl{top:-2px;left:-2px;border-right:none;border-bottom:none;border-radius:11px 0 0 0}
+  .iv-corner.br{bottom:-2px;right:-2px;border-left:none;border-top:none;border-radius:0 0 11px 0}
+  .iv-face{width:160px;height:200px;margin:10px auto 16px;border-radius:50%;background:#11131A;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .iv-face .oval{width:120px;height:160px;border:3px dashed rgba(255,255,255,.7);border-radius:50%}
+  .iv-face.cap .oval{border-style:solid;border-color:#33D17A}
+  .iv-face .ppl{position:absolute;width:70px;height:70px;border-radius:50%;background:#5a6b86;top:50px;opacity:0;transition:opacity .3s}
+  .iv-face.cap .ppl{opacity:1}
+  .iv-cap-btn{width:58px;height:58px;border-radius:50%;background:#fff;border:4px solid var(--tenant-accent);margin:0 auto;display:block}
+  .iv-hint{text-align:center;font-size:12.5px;color:#777;margin-bottom:12px}
+  .idme-foot{position:absolute;left:0;right:0;bottom:58px;height:28px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;color:#888;border-top:1px solid #f0f0f0}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IOS='<div class="ios"><div class="time">09:41<small>◂ Mail</small></div><div class="island"></div><div class="right">▮▮▮ ⌃ <span class="batt">76</span></div></div>';
+const MBAR='<div class="mbar"><div class="url"><svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z" fill="none" stroke="#888" stroke-width="2"/></svg>verify.idverse.com ⟳</div></div><div class="homebar"></div>';
+const CO='<div class="iv-co"><span class="m"></span><span class="cob"></span> · IDVerse</div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="device"><div class="idv"><div class="phone">'+IOS+
+  '<div class="scr screen" data-screen="consent">'+CO+'<div class="iv-h">Verify your identity with IDVerse</div>'+
+    '<p>We will scan your ID and take a quick selfie to confirm it is really you. Your biometrics are encrypted and never reused.</p>'+
+    '<div style="height:16px"></div><div class="btn-primary" data-cta="consent">Continue</div><div class="btn-ghost">Cancel</div>'+
+    '<div class="idme-foot"><span>Powered by Docusign Partner AI</span></div></div>'+
+  '<div class="scr screen" data-screen="document" style="display:none">'+CO+'<div class="iv-h" style="font-size:19px">Scan the front of your license</div>'+
+    '<div class="scan-cam" id="iv-scan"><div class="idcard"><div class="band"><span>DRIVER LICENSE</span><span>CALIFORNIA</span></div>'+
+      '<div class="photo"><span class="head"></span><span class="body"></span></div><div class="lines"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="holo"></div><div class="sheen"></div></div>'+
+      '<span class="scan-line"></span><span class="scan-cn tl"></span><span class="scan-cn tr"></span><span class="scan-cn bl"></span><span class="scan-cn br"></span>'+
+      '<span class="scan-badge">✓ Captured</span></div>'+
+    '<div class="scan-status" id="iv-dochint">Detecting the edges of your ID…</div>'+
+    '<div class="idme-foot"><span>Powered by Docusign Partner AI</span></div></div>'+
+  '<div class="scr screen" data-screen="liveness" style="display:none">'+CO+'<div class="iv-h" style="font-size:19px">Now take a quick selfie</div>'+
+    '<div class="live-ring" id="iv-live"><svg viewBox="0 0 188 188"><circle class="track" cx="94" cy="94" r="88"></circle><circle class="prog" id="iv-prog" cx="94" cy="94" r="88" stroke-dasharray="553" stroke-dashoffset="553"></circle></svg>'+
+      '<div class="live-face"><img class="live-photo" id="iv-photo" src="./assets/liveness-face.jpg" alt=""></div></div>'+
+    '<div class="live-prompt" id="iv-livehint">Center your face in the circle</div>'+
+    '<div class="idme-foot"><span>Liveness check · Docusign Partner AI</span></div></div>'+
+  '<div class="scr screen" data-screen="verified" style="display:none"><div class="verified" style="padding-top:50px">'+
+    '<div class="big"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 style="font-size:22px" id="iv-vname"></h2><p>Document and liveness checks passed.</p><span class="ial">IAL2 VERIFIED</span></div></div>'+
+  MBAR+'</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">IDVerse IAL2</div><span class="arr">&rarr;</span><div class="node lead">Verified identity</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"ID Verification — IDVerse (document + liveness)", productTag:"Identity · IDVerse", home:"index.html",
+    footnote:'<b>Faithful document + liveness IDV, re-skinnable context.</b> Consent → scan the ID → liveness selfie → verified. Switching vertical swaps the verifying person, accent and narration. Built on the same IDV archetype as CLEAR, ID.me and Apple Wallet.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:30,
+    beats:[ {t:0,key:"consent",sceneId:"device"},{t:7,key:"document",sceneId:"device"},{t:13,key:"liveness",sceneId:"device"},{t:19,key:"verified",sceneId:"device"},{t:25,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"[data-cta='consent']",x:640,y:520,action:"click",sayKey:"consent"},
+      {t:10,x:640,y:560,action:"move",sayKey:"document"},
+      {t:13,x:640,y:560,action:"move",sayKey:"liveness"},
+      {t:19,x:640,y:300,action:"move",sayKey:"verified"},
+      {t:25,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"verify.idverse.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sam Smith", role:"Applicant", side:"client" }, cobrand:"Tally", sorNode:"nCino core", first:"Sam", face:"./assets/liveness-face.jpg",
+      say:{ consent:{eyebrow:"IDVerse",title:"Sam verifies with document + selfie",body:"For applicants without a wallet ID, IDVerse scans a physical ID and matches a live selfie."},
+        document:{eyebrow:"Document",title:"Capture the ID",body:"Sam frames the front of his license — IDVerse reads and validates it automatically."},
+        liveness:{eyebrow:"Liveness",title:"Prove it's a live person",body:"A quick selfie with liveness detection confirms Sam is real and matches the ID photo."},
+        verified:{eyebrow:"IAL2",title:"Both checks passed",body:"Document authenticity and liveness both clear — a high-assurance result."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 result attaches to the envelope and writes back to nCino."} },
+      handoff:{h:"Verified — straight into signing",p:"The IDVerse IAL2 result attaches to the agreement and writes back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"verify.idverse.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Jordan Kim", role:"New Patient", side:"client" }, cobrand:"Riverside", sorNode:"Epic chart", first:"Jordan", face:"./assets/liveness-face-2.jpg",
+      say:{ consent:{eyebrow:"IDVerse",title:"Jordan verifies with document + selfie",body:"For patients without a wallet ID, IDVerse scans a physical ID and matches a live selfie."},
+        document:{eyebrow:"Document",title:"Capture the ID",body:"Jordan frames the front of the license — IDVerse reads and validates it automatically."},
+        liveness:{eyebrow:"Liveness",title:"Prove it's a live person",body:"A quick selfie with liveness detection confirms Jordan is real and matches the ID photo."},
+        verified:{eyebrow:"IAL2",title:"Both checks passed",body:"Document authenticity and liveness both clear — HIPAA-grade assurance."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 result attaches to the consent and writes back to Epic."} },
+      handoff:{h:"Verified — straight into consent",p:"The IDVerse IAL2 result attaches to the consent and writes back to the Epic chart."} }
+  },
+  paintContent(p, root){
+    root.querySelectorAll(".cob").forEach(e=>e.textContent=p.cobrand);
+    if(p.face) root.querySelector("#iv-photo").src=p.face;
+    root.querySelector("#iv-vname").textContent="You're verified, "+p.first;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    let k="consent"; this.timeline.beats.forEach(b=>{ if(b.sceneId==="device"&&b.t<=time+0.02)k=b.key; });
+    root.querySelectorAll(".screen").forEach(s=>s.style.display=(s.dataset.screen===k?"block":"none"));
+    // document scan: detect edges -> hold steady -> lock
+    const scan=root.querySelector("#iv-scan");
+    if(scan){ const locked=k==="document"&&time>=10.5; scan.classList.toggle("locked",locked);
+      const h=root.querySelector("#iv-dochint");
+      if(k==="document") h.textContent = time<8.8?"Detecting the edges of your ID…":(time<10.5?"Hold steady — reading the document…":"Captured — document authentic ✓"); }
+    // liveness: progress ring fills + motion prompts
+    const prog=root.querySelector("#iv-prog"), ring=root.querySelector("#iv-live");
+    if(prog && ring){ const frac=Math.max(0,Math.min(1,(time-13.5)/4));
+      prog.setAttribute("stroke-dashoffset",(553*(1-frac)).toFixed(0));
+      const done=k==="liveness"&&frac>=1; ring.classList.toggle("done",done);
+      const lp=root.querySelector("#iv-livehint");
+      if(k==="liveness") lp.innerHTML = done?"Liveness confirmed ✓":(frac<.35?"Center your face in the circle":(frac<.7?"<b>Turn your head</b> slowly":"<b>Blink</b> to confirm")); }
+  }
+});
+</script>
+</body>
+</html>

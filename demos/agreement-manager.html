@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agreement Manager — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/app-shell.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+<style>
+  .am-th,.am-row{display:flex;align-items:center}
+  .am-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
+  .am-row{padding:12px;border-bottom:1px solid #F1F1F4}
+  .am-row.hot{background:var(--tenant-accent-soft)}
+  .c-ag{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
+  .c-ag .fi{width:20px;height:24px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto}
+  .c-cp{width:150px;flex:0 0 auto;font-size:12.5px;color:#555}
+  .c-ai{width:150px;flex:0 0 auto;font-size:12.5px}
+  .c-ai .v{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+  .c-ai .v.yes{color:#C0392B}.c-ai .v.no{color:#1f9d57}
+  .c-ai .pend{color:#bbb;font-style:italic}
+  .am-aicol{display:inline-flex;align-items:center;gap:5px;color:var(--tenant-accent)}
+  .am-run{background:var(--tenant-accent);color:#fff;font-weight:600;font-size:13px;padding:8px 16px;border-radius:7px;display:inline-flex;align-items:center;gap:7px}
+  .am-run svg{width:14px;height:14px;fill:#fff}
+  .am-ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:8px}
+  .am-summary{margin-top:18px;padding:14px 18px;border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:11px;font-size:13.5px;color:var(--tenant-ink);font-weight:600;display:none;align-items:center;gap:10px}
+  .am-summary.on{display:flex}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Manager</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="am-cobrand"></span></span><span class="avatar" id="am-av"></span></div></div>';
+const RAIL='<div class="app-rail"><div class="grp">Insights</div><div class="it"><span class="ai">✦</span> Agreements</div>'+
+  '<div class="it on"><span class="ai">✦</span> Live analysis</div><div class="it">Renewals <span class="ct">12</span></div>'+
+  '<div class="grp">Worksheets</div><div class="it">M&amp;A audit</div><div class="it">Obligations</div><div class="it">+ New worksheet</div></div>';
+
+function row(id,ag,cp){ return '<div class="am-row" id="'+id+'"><div class="c-ag"><span class="fi"></span>'+ag+'</div>'+
+  '<div class="c-cp">'+cp+'</div><div class="c-ai" data-ai1><span class="pend">analyzing…</span></div><div class="c-ai" data-ai2><span class="pend">analyzing…</span></div></div>'; }
+
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+RAIL+
+  '<div class="app-body"><div class="app-head"><h2>Live analysis worksheet</h2><span class="am-ai-badge">✦ AGREEMENT MANAGER</span>'+
+    '<div class="acts"><span class="am-run" id="am-run"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>Run analysis</span></div></div>'+
+    '<div class="am-th"><span class="c-ag" style="padding-left:31px">Agreement</span><span class="c-cp">Counterparty</span>'+
+      '<span class="c-ai"><span class="am-aicol" id="am-c1">✦ <span data-c1></span></span></span>'+
+      '<span class="c-ai"><span class="am-aicol">✦ <span data-c2></span></span></span></div>'+
+    '<div id="am-rows"></div>'+
+    '<div class="am-summary" id="am-summary"><span style="font-size:16px">✦</span><span id="am-sumtext"></span></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Live analysis</div><span class="arr">&rarr;</span><div class="node lead">Flagged for review</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"Agreement Manager", productTag:"Agreement Manager", home:"index.html",
+    footnote:'<b>Faithful Agreement Manager, re-skinnable content.</b> The live AI-analysis worksheet, columns and run-and-fill are the shared spine. Switching vertical swaps the portfolio, the analysis questions and narration. Same app-shell archetype as Navigator, CLM and Monitor.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"run",sceneId:"app"},{t:13,key:"fill",sceneId:"app"},{t:19,key:"insight",sceneId:"app"},{t:24,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"#am-run",action:"click",sayKey:"run"},
+      {t:12,target:"#am-c1",action:"move",sayKey:"fill"},
+      {t:18,target:"#am-row3",action:"move",sayKey:"insight"},
+      {t:24,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Dana Whit", role:"Legal Operations", side:"advisor" },
+      cobrand:"Tally", c1:"Change of control?", c2:"Auto-renew?", sorNode:"nCino core",
+      rows:[ ["am-row1","Master Service Agreement (MSA)","Braun LLC","no","yes"],
+        ["am-row2","Vendor NDA","Fontara Inc","no","no"],
+        ["am-row3","SaaS Order Form","Atlas Corp","yes","yes"],
+        ["am-row4","Master Loan Agreement","TGK Capital","yes","no"],
+        ["am-row5","Custody Agreement","Beacon Trust","no","yes"] ],
+      summary:"3 of 5 agreements carry a Change-of-Control clause — flagged for the M&A review.",
+      say:{ open:{eyebrow:"Agreement Manager",title:"A live worksheet over the portfolio",body:"Dana needs to know which agreements have a Change-of-Control clause — across the whole book, not one at a time."},
+        run:{eyebrow:"Run analysis",title:"Ask one question of every contract",body:"She defines the question once. Agreement Manager runs it live across the portfolio."},
+        fill:{eyebrow:"Docusign Iris",title:"AI answers, contract by contract",body:"Each cell fills as Iris reads the actual agreement — no manual audit, no spreadsheet."},
+        insight:{eyebrow:"Insight",title:"The risk surfaces itself",body:"Three agreements carry a Change-of-Control clause — flagged in seconds, not weeks."},
+        handoff:{eyebrow:"Act on it",title:"Insight becomes action",body:"The flagged set routes into the M&A review — the analysis writes back to nCino."} },
+      handoff:{h:"From portfolio to decision",p:"A live AI analysis flagged the at-risk agreements and routed them for M&A review — written back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Dana Whit", role:"Contracts Manager", side:"advisor" },
+      cobrand:"Riverside", c1:"BAA on file?", c2:"Auto-renew?", sorNode:"Epic chart",
+      rows:[ ["am-row1","Payer Contract","Unity Health","yes","yes"],
+        ["am-row2","Vendor MSA","Medline","no","no"],
+        ["am-row3","Research Agreement","Helix Bio","no","yes"],
+        ["am-row4","Staffing Agreement","CareStaff","no","no"],
+        ["am-row5","Lab Services Agreement","Quest","yes","yes"] ],
+      summary:"2 of 5 vendor agreements are missing a Business Associate Agreement — flagged for compliance.",
+      say:{ open:{eyebrow:"Agreement Manager",title:"A live worksheet over the portfolio",body:"Dana needs to know which vendor agreements lack a signed BAA — across the whole book, not one at a time."},
+        run:{eyebrow:"Run analysis",title:"Ask one question of every contract",body:"She defines the question once. Agreement Manager runs it live across the portfolio."},
+        fill:{eyebrow:"Docusign Iris",title:"AI answers, contract by contract",body:"Each cell fills as Iris reads the actual agreement — no manual audit, no spreadsheet."},
+        insight:{eyebrow:"Insight",title:"The gap surfaces itself",body:"Two vendor agreements are missing a BAA — a HIPAA exposure flagged in seconds."},
+        handoff:{eyebrow:"Act on it",title:"Insight becomes action",body:"The flagged set routes into compliance review — the analysis writes back to Epic."} },
+      handoff:{h:"From portfolio to decision",p:"A live AI analysis flagged the non-compliant agreements and routed them for review — written back to the Epic chart."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#am-cobrand").textContent=p.cobrand;
+    root.querySelector("#am-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    root.querySelector("[data-c1]").textContent=p.c1; root.querySelector("[data-c2]").textContent=p.c2;
+    root.querySelector("#am-sumtext").textContent=p.summary;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+    root.querySelector("#am-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],r[2])).join("");
+  },
+  onTime(time, p, root){
+    // fill AI cells progressively after Run (t6) — one row every ~1.1s
+    const prog = Math.max(0, Math.floor((time-7)/1.1));
+    p.rows.forEach((r,i)=>{ const el=root.querySelector("#"+r[0]); if(!el)return;
+      const a1=el.querySelector("[data-ai1]"), a2=el.querySelector("[data-ai2]");
+      if(time>=6 && i<prog){
+        a1.innerHTML='<span class="v '+r[3]+'">'+(r[3]==="yes"?"● Yes":"○ No")+'</span>';
+        a2.innerHTML='<span class="v '+r[4]+'">'+(r[4]==="yes"?"● Yes":"○ No")+'</span>';
+      } else { a1.innerHTML='<span class="pend">analyzing…</span>'; a2.innerHTML='<span class="pend">analyzing…</span>'; }
+      el.classList.toggle("hot", time>=18 && time<24 && r[3]==="yes"); });
+    root.querySelector("#am-summary").classList.toggle("on", time>=18);
+    root.querySelector("#am-run").style.opacity = time>=6 ? .5 : 1;
+  }
+});
+</script>
+</body>
+</html>

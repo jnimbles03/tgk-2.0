@@ -2204,12 +2204,8 @@ app.post('/admin/widget', softAdminGate, async (req, res) => {
 // the rewritten HTML. Everything else falls through to express.static.
 const FEEDBACK_TAG = '<script src="/feedback-widget.js" defer></script>';
 function applyWidgetInjection(html) {
-  if (widgetEnabled) {
-    if (html.includes('feedback-widget.js')) return html; // idempotent
-    const idx = html.lastIndexOf('</body>');
-    if (idx >= 0) return html.slice(0, idx) + '  ' + FEEDBACK_TAG + '\n' + html.slice(idx);
-    return html + '\n' + FEEDBACK_TAG + '\n';
-  }
+  // Feedback widget hard-disabled (per request). Never inject; strip any existing tag
+  // so it can't ride along inside drill-down component iframes or demos.
   return html.replace(/\s*<script[^>]*feedback-widget\.js[^>]*><\/script>\s*/gi, '\n');
 }
 function resolveHtmlPath(urlPath) {

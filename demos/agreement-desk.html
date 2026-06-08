@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agreement Desk — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/app-shell.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+<style>
+  .ad-agent{border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:18px}
+  .ad-agent .hd{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--tenant-accent);margin-bottom:9px}
+  .ad-email{background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #E8E8EE}
+  .ad-email .fr{font-size:12px;color:#888;margin-bottom:3px}
+  .ad-email .su{font-size:13px;font-weight:600;color:#1a1a26;margin-bottom:4px}
+  .ad-email .bd{font-size:12px;color:#555;line-height:1.45}
+  .ad-status{margin-top:9px;font-size:12.5px;font-weight:600;color:var(--tenant-accent);display:flex;align-items:center;gap:7px}
+  .ad-status .sp{width:13px;height:13px;border:2px solid var(--tenant-accent);border-top-color:transparent;border-radius:50%;animation:ad-spin .7s linear infinite}
+  @keyframes ad-spin{to{transform:rotate(360deg)}}
+  .ad-status.done .sp{border:none;width:auto;height:auto;animation:none}
+  .ad-th,.ad-row{display:flex;align-items:center}
+  .ad-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
+  .ad-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .3s}
+  .ad-row.new{background:var(--tenant-accent-soft)}
+  .ad-row.appear{animation:ad-in .5s ease}
+  @keyframes ad-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .c-req{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
+  .c-req .fi{width:18px;height:22px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto}
+  .c-typ{width:120px;flex:0 0 auto;font-size:12.5px;color:#555}
+  .c-stg{width:150px;flex:0 0 auto}
+  .c-stg .pill{font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px}
+  .pill.intake{background:#FBF0DD;color:#B07A1E}.pill.review{background:#E7EDFB;color:#2D55C9}.pill.review2{background:var(--tenant-accent-soft);color:var(--tenant-ink)}.pill.appr{background:#E6F7EE;color:#1f9d57}
+  .c-own{width:130px;flex:0 0 auto;font-size:12.5px;color:#555}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Desk</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="ad-cobrand"></span></span><span class="avatar" id="ad-av"></span></div></div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app">'+NAV+
+  '<div class="app-body"><div class="app-head"><h2>Agreement Desk</h2><span class="ai-pill" style="font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:3px 9px;border-radius:20px">✦ AI CONTRACT AGENT</span>'+
+    '<div class="acts"><span class="add">+ New request</span></div></div>'+
+    '<div class="ad-agent" id="ad-agent"><div class="hd">✦ AI Contract Agent · new inbound email</div>'+
+      '<div class="ad-email"><div class="fr" id="ad-from"></div><div class="su" id="ad-subj"></div><div class="bd" id="ad-body"></div></div>'+
+      '<div class="ad-status" id="ad-status"><span class="sp"></span><span id="ad-statustext">Reading the email…</span></div></div>'+
+    '<div class="ad-th"><span class="c-req" style="padding-left:29px">Request</span><span class="c-typ">Type</span><span class="c-stg">Stage</span><span class="c-own">Owner</span></div>'+
+    '<div id="ad-rows"></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Email</div><span class="arr">&rarr;</span><div class="node lead">AI-drafted request</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"Agreement Desk", productTag:"Agreement Desk", home:"index.html",
+    footnote:'<b>Faithful Agreement Desk, re-skinnable content.</b> The request hub + AI Contract Agent reading an email into a routed request are the shared spine. Switching vertical swaps the request, the parties and narration. Built on the app-shell archetype; hosts the AI-Assisted Review surface.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"read",sceneId:"app"},{t:12,key:"create",sceneId:"app"},{t:17,key:"route",sceneId:"app"},{t:23,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"#ad-agent",action:"move",sayKey:"read"},
+      {t:12,target:"#ad-newrow",action:"move",sayKey:"create"},
+      {t:17,target:"#ad-newrow",action:"move",sayKey:"route"},
+      {t:23,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Tally", sorNode:"nCino core",
+      from:"From: ops@atlascorp.com", subj:"Need the Atlas order form reviewed & signed ASAP",
+      body:"Hey — can someone get the attached $128k order form reviewed and out for signature this week? Same terms as last time. Thanks!",
+      newReq:["Atlas Corp — Order Form","Order Form","Sam Patel (Legal)"],
+      rows:[ ["Black Mesa — Mutual NDA","NDA","review","Legal"], ["Fontara — Vendor MSA","MSA","appr","Procurement"], ["TGK — Custody Agreement","Agreement","intake","Unassigned"] ],
+      say:{ open:{eyebrow:"Agreement Desk",title:"One hub for every agreement request",body:"Intake, review and approvals for Tally live in one queue — no more requests lost in inboxes."},
+        read:{eyebrow:"AI Contract Agent",title:"It reads the email for you",body:"A vendor emails a vague ask. The AI Contract Agent reads it — sender, intent, the attached terms."},
+        create:{eyebrow:"Drafted",title:"A structured request, auto-created",body:"From a messy email, the agent drafts a complete Agreement Desk request — type, value, counterparty, all pre-filled."},
+        route:{eyebrow:"Routed",title:"Sent to the right reviewer",body:"The request routes straight to Legal for review — no manual triage, nothing dropped."},
+        handoff:{eyebrow:"Closed loop",title:"Email becomes action",body:"What used to be a forwarded email is now a tracked, routed request — logged to nCino."} },
+      handoff:{h:"From inbox to orchestrated request",p:"The AI Contract Agent turned a vague email into a structured, routed Agreement Desk request — logged to nCino."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Riverside", sorNode:"Epic chart",
+      from:"From: contracts@unityhealth.com", subj:"Payer amendment for review before quarter-end",
+      body:"Please review the attached amendment to our payer agreement and route for signature. Needs to be done before the quarter closes.",
+      newReq:["Unity Health — Payer Amendment","Amendment","Sam Patel (Legal)"],
+      rows:[ ["Medline — BAA","BAA","review","Compliance"], ["Quest — Lab Services","MSA","appr","Legal"], ["CareStaff — Staffing","Agreement","intake","Unassigned"] ],
+      say:{ open:{eyebrow:"Agreement Desk",title:"One hub for every agreement request",body:"Intake, review and approvals for Riverside live in one queue — no more requests lost in inboxes."},
+        read:{eyebrow:"AI Contract Agent",title:"It reads the email for you",body:"A payer emails an amendment request. The AI Contract Agent reads it — sender, intent, the attached terms."},
+        create:{eyebrow:"Drafted",title:"A structured request, auto-created",body:"From a messy email, the agent drafts a complete Agreement Desk request — type, counterparty, deadline, all pre-filled."},
+        route:{eyebrow:"Routed",title:"Sent to the right reviewer",body:"The request routes straight to Legal for review — no manual triage, nothing dropped."},
+        handoff:{eyebrow:"Closed loop",title:"Email becomes action",body:"What used to be a forwarded email is now a tracked, routed request — logged to Epic."} },
+      handoff:{h:"From inbox to orchestrated request",p:"The AI Contract Agent turned a vague email into a structured, routed Agreement Desk request — logged to Epic."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#ad-cobrand").textContent=p.cobrand; root.querySelector("#ad-av").textContent="AI";
+    root.querySelector("#ad-from").textContent=p.from; root.querySelector("#ad-subj").textContent=p.subj; root.querySelector("#ad-body").textContent=p.body;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+    const stageHtml=s=>({intake:'<span class="pill intake">Intake</span>',review:'<span class="pill review">In review</span>',appr:'<span class="pill appr">Approved</span>'}[s]);
+    let html=p.rows.map(r=>'<div class="ad-row"><span class="c-req"><span class="fi"></span>'+r[0]+'</span><span class="c-typ">'+r[1]+'</span><span class="c-stg">'+stageHtml(r[2])+'</span><span class="c-own">'+r[3]+'</span></div>').join("");
+    // the AI-created request row (hidden until create)
+    html = '<div class="ad-row new" id="ad-newrow" style="display:none"><span class="c-req"><span class="fi"></span>'+p.newReq[0]+'</span><span class="c-typ">'+p.newReq[1]+'</span><span class="c-stg" id="ad-newstage"></span><span class="c-own" id="ad-newown">Unassigned</span></div>' + html;
+    root.querySelector("#ad-rows").innerHTML=html;
+    root.querySelector("#ad-newrow")._own=p.newReq[2];
+  },
+  onTime(time, p, root){
+    const st=root.querySelector("#ad-status"), stx=root.querySelector("#ad-statustext");
+    const read=time>=6, drafted=time>=11.5;
+    st.classList.toggle("done",drafted);
+    if(stx) stx.innerHTML = drafted ? "✓ Request drafted from email and added to the queue" : (read?"Reading the email and attachment…":"Reading the email…");
+    const nr=root.querySelector("#ad-newrow");
+    if(nr){ if(time>=12){ if(nr.style.display==="none"){ nr.style.display="flex"; nr.classList.add("appear"); } }
+      else { nr.style.display="none"; nr.classList.remove("appear"); }
+      const routed=time>=17;
+      root.querySelector("#ad-newstage").innerHTML = routed?'<span class="pill review2">In review</span>':'<span class="pill intake">Intake</span>';
+      root.querySelector("#ad-newown").textContent = routed?nr._own:"Unassigned";
+      nr.classList.toggle("new", time<22);
+    }
+  }
+});
+</script>
+</body>
+</html>

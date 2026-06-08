@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navigator Agent (Search) — interactive</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/app-shell.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  .nv-wrap{max-width:640px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+  .nv-hd{text-align:center;padding:14px 0 6px}
+  .nv-hd .ai{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:5px 13px;border-radius:20px}
+  .nv-hd h2{font-size:20px;font-weight:600;color:#16121f;margin-top:10px}
+  .agc-chat{background:#fff;border:1px solid #E8E8EE;border-radius:12px;margin-top:10px}
+  .agc-chips{border:none}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
+<script>
+const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Navigator</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="nv-cobrand"></span></span><span class="avatar" id="nv-av"></span></div></div>';
+const RAIL='<div class="app-rail"><div class="grp">Insights</div><div class="it">Agreements</div>'+
+  '<div class="it on"><span class="ai">✦</span> Ask Navigator</div><div class="it">Renewals <span class="ct">12</span></div>'+
+  '<div class="grp">Reports</div><div class="it">All <span class="ct">52</span></div><div class="it">+ New report</div></div>';
+
+const SCENES='<div class="app has-rail">'+NAV+RAIL+
+  '<div class="app-body"><div class="nv-wrap"><div class="nv-hd"><span class="ai">✦ NAVIGATOR AGENT</span><h2>Ask your agreements anything</h2></div>'+
+    '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
+      '<div class="agc-input"><div class="box">Ask about your agreements…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+  '</div></div></div>';
+
+function cites(arr){ return '<div style="font-size:10.5px;font-weight:700;letter-spacing:.3px;color:#9a9aa2;text-transform:uppercase;margin-bottom:6px">Cited agreements</div>'+arr.map(c=>'<span class="chip">📄 '+c+'</span>').join(""); }
+
+DemoEngine.interactive({
+  meta:{ title:"Navigator Agent (Search) — interactive", productTag:"Navigator Agent · Live", home:"index.html",
+    footnote:'<b>This is live.</b> Click a question (or imagine typing your own) and Navigator types out a specific, cited answer drawn from the agreement portfolio. Switch vertical to re-skin.' },
+  defaultPack:"banking", steps:3, scenes:SCENES,
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Dana Whit", role:"Legal Operations", side:"advisor" }, cobrand:"Tally",
+      say:{ intro:{eyebrow:"Navigator Agent",title:"Ask your agreements",body:"No filters, no query language — pick a question and Navigator answers from the actual contracts, with citations."} },
+      exchanges:[
+        {label:"Which vendor agreements auto-renew in 90 days over $100k?",
+         answer:"Three agreements auto-renew in the next 90 days above $100k: the Atlas SaaS Order Form ($128k, Aug 30), the TGK Master Loan Agreement ($2.5M, Dec 1), and the Beacon Custody Agreement ($210k, Sep 12). Two have no opt-out window — I'd review before Aug 15.",
+         card:cites(["Atlas — SaaS Order Form","TGK — Master Loan Agreement","Beacon — Custody Agreement"])},
+        {label:"Which contracts reference GDPR?",
+         answer:"Four agreements reference GDPR, all in your EU vendor set. The Fontara MSA and the Northwind DPA carry the strictest data-transfer obligations — both renew in Q4.",
+         card:cites(["Fontara — Vendor MSA","Northwind — DPA","Atlas — SaaS Order Form","Beacon — Custody Agreement"])},
+        {label:"Summarize the Atlas relationship",
+         answer:"Atlas Corp has 3 active agreements totaling about $156k/yr: a SaaS order form, an NDA, and a support addendum. The order form is the nearest renewal (Aug 30) and the only one with an auto-renew clause."}
+      ] },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Dana Whit", role:"Contracts Manager", side:"advisor" }, cobrand:"Riverside",
+      say:{ intro:{eyebrow:"Navigator Agent",title:"Ask your agreements",body:"No filters, no query language — pick a question and Navigator answers from the actual contracts, with citations."} },
+      exchanges:[
+        {label:"Which vendor agreements are missing a signed BAA?",
+         answer:"Two vendor agreements lack a signed BAA: the Medline Vendor MSA and the CareStaff Staffing Agreement. Both handle PHI, so the gap is a HIPAA exposure — I'd issue BAAs before the next audit window.",
+         card:cites(["Medline — Vendor MSA","CareStaff — Staffing Agreement","Quest — Lab Services"])},
+        {label:"Which payer contracts renew this quarter?",
+         answer:"Two payer contracts renew this quarter: Unity Health ($1.2M, Aug 30) and Aetna Regional ($940k, Sep 18). Unity auto-renews with a 3% escalator — worth reviewing before it locks.",
+         card:cites(["Unity Health — Payer Contract","Aetna — Regional Agreement"])},
+        {label:"Summarize the Medline relationship",
+         answer:"Medline has 2 active agreements: a vendor MSA ($84k/yr) and a lab-supply addendum. The MSA renews Sep 2 and is currently missing a BAA — flagged for compliance."}
+      ] }
+  },
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#nv-cobrand").textContent=p.cobrand; $("#nv-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    api.narrate("intro"); api.progress(0); let done=0;
+    AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), hint:"Ask a question", speed:13,
+      intro:"Ask me anything about your agreements — I read the actual documents and cite my sources.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card, after:()=>{ done++; api.progress(Math.min(done,3)); } })) });
+    if(api.auto) api.after(900,()=>{ const c=$("#nv-chips").querySelector(".agc-chip"); c&&c.click(); });
+  }
+});
+</script>
+</body>
+</html>

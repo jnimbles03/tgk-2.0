@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Forms intake — interactive</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+<style>
+  .fld{width:100%;height:25px;border:1.5px solid #DADAE3;border-radius:5px;padding:0 8px;font-size:11.5px;color:#1a1a26;font-family:Arial;background:#fff}
+  .fld:focus{outline:none;border-color:var(--tenant-accent);box-shadow:0 0 0 2px var(--tenant-accent-soft)}
+  .fld.bad{border-color:#E11D2A;background:#FEF6F6}
+  .fld.narrow{width:120px}
+  select.fld{height:27px;cursor:pointer}
+  .wf-prefill{cursor:pointer;margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;background:rgba(255,255,255,.2);color:#fff;padding:4px 11px;border-radius:20px}
+  .wf-prefill svg{width:12px;height:12px;fill:#fff}
+  .ds-bar .finish{cursor:pointer;transition:opacity .2s}
+  .ds-bar .finish.off{opacity:.45;cursor:default}
+  .wf-outcome{position:absolute;inset:0;background:linear-gradient(160deg,#fff,var(--tenant-accent-soft) 140%);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:'Inter',sans-serif;padding:0 40px}
+  .wf-outcome.on{display:flex}
+  .wf-outcome .chk{width:74px;height:74px;border-radius:50%;background:var(--tenant-accent);display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 12px 30px var(--tenant-accent-soft)}
+  .wf-outcome .chk svg{width:38px;height:38px;stroke:#fff;stroke-width:3;fill:none}
+  .wf-outcome h2{font-size:25px;font-weight:600;color:#16121f;margin-bottom:8px}
+  .wf-outcome .sub{font-size:14px;color:#555;margin-bottom:20px}
+  .wf-payload{background:#fff;border:1px solid #E5E5EC;border-radius:11px;box-shadow:0 10px 30px rgba(20,10,50,.08);padding:16px 20px;text-align:left;min-width:420px}
+  .wf-payload .pr{display:flex;justify-content:space-between;gap:24px;font-size:12.5px;padding:5px 0;border-bottom:1px solid #F2F2F5}
+  .wf-payload .pr:last-child{border-bottom:none}
+  .wf-payload .pk{color:#888}.wf-payload .pv{color:#1a1a26;font-weight:600}
+  .wf-written{margin-top:16px;font-size:12.5px;font-weight:600;color:var(--tenant-accent);display:flex;align-items:center;gap:7px;justify-content:center}
+  .wf-written .d{width:7px;height:7px;border-radius:50%;background:#1FB866}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const ORDER=["fullName","email","phone","ssn","dob","marital","dependents"];
+const REQUIRED=["fullName","email","phone","ssn","dependents"];
+const PREFILL=["fullName","email","phone","dob","marital"];
+
+const SCENES =
+  '<div class="ds" id="ds" style="opacity:1">'+
+    '<div class="ds-bar"><span class="msg">Complete the highlighted fields to continue.</span>'+
+      '<span class="acts"><span class="finish off" id="wf-finish">FINISH</span><span>FINISH LATER</span>'+
+      '<span class="oa">OTHER ACTIONS ▾</span></span></div>'+
+    '<div class="ds-tools"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>'+
+      '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>'+
+      '<svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-5h8v5z"/></svg></div>'+
+    '<div class="ds-canvas"><div class="doc" style="top:40px">'+
+      '<div class="doc-meta"><div class="doc-eid">Docusign Envelope ID: 4F5BAA69-8285-480E-B6EF-15A3B46297FA</div>'+
+        '<div class="doc-demo">DEMONSTRATION DOCUMENT ONLY<br>PROVIDED BY DOCUSIGN ONLINE SIGNING SERVICE</div></div>'+
+      '<div class="doc-logo"><span class="lw" id="wf-lw"></span><span class="sub" id="wf-sub"></span></div>'+
+      '<div class="sec" id="wf-sec" style="display:flex;align-items:center">'+
+        '<span id="wf-sectitle"></span><span class="wf-prefill" id="wf-prefill"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.9L21 9l-5.4 4 2 7-5.6-4.2L6.4 20l2-7L3 9l6.6-.1z"/></svg> Pre-fill with AI</span></div>'+
+      '<div class="tbl" id="wf-rows"></div></div>'+
+      '<div class="wf-outcome" id="wf-outcome"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+        '<h2 id="wf-oh"></h2><div class="sub" id="wf-os"></div>'+
+        '<div class="wf-payload" id="wf-payload"></div>'+
+        '<div class="wf-written"><span class="d"></span><span id="wf-wr"></span></div></div>'+
+    '<div class="ds-scrollbar"></div></div></div>';
+
+DemoEngine.interactive({
+  meta:{ title:"Web Forms intake — interactive", productTag:"Web Forms · Live", home:"index.html",
+    footnote:'<b>This one is real.</b> Type into the fields, watch required-field validation, hit <b>Pre-fill with AI</b>, then FINISH — which only enables once the form is valid. The outcome state shows the clean, validated payload written to the system of record. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
+  packs:{
+    banking:{ label:"Banking · Tally",
+      theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sam Smith", role:"Applicant", side:"client" },
+      logo:{lw:"Tally",sub:"Bank"}, sectionTitle:"Primary Account Holder", sor:"nCino core",
+      fields:{ fullName:{label:"Full Name",val:"Sam Smith",req:1,narrow:1}, email:{label:"Email Address",val:"sam.smith@email.com",req:1},
+        phone:{label:"Phone Number",val:"(415) 555-0142",req:1}, ssn:{label:"SSN / TIN#",val:"123-45-6789",req:1,gap:1},
+        dob:{label:"Date of Birth",val:"11/15/1983"}, marital:{label:"Marital Status",val:"Married"},
+        dependents:{label:"# of Dependents",req:1,select:["— select —","0","1","2","3+"],gap:1} },
+      say:{ open:{eyebrow:"Web Forms",title:"Start the account application",body:"This is the live form. Required fields are outlined in red. Type, or let AI pre-fill what the bank already knows."},
+        prefill:{eyebrow:"Docusign Iris",title:"AI pre-filled the known fields",body:"Name, email, phone and DOB flowed in from the bank's records — no re-keying."},
+        validate:{eyebrow:"Validation",title:"Finish the flagged fields",body:"SSN and # of dependents are still required. The form won't submit until they're valid."},
+        complete:{eyebrow:"Ready",title:"Validated — FINISH is live",body:"Every required field checks out. You can submit."},
+        submit:{eyebrow:"Outcome",title:"Submitted and written to nCino",body:"Clean, validated data — no PDFs, no rekeying — handed off to eSignature and the core."} },
+      outcome:{h:"Application submitted",s:"Clean, validated data — captured once."} },
+    healthcare:{ label:"Healthcare · Riverside",
+      theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Jordan Kim", role:"New Patient", side:"client" },
+      logo:{lw:"Riverside",sub:"Health"}, sectionTitle:"Patient Information", sor:"Epic chart",
+      fields:{ fullName:{label:"Patient Full Name",val:"Jordan Kim",req:1,narrow:1}, email:{label:"Email Address",val:"jordan.kim@email.com",req:1},
+        phone:{label:"Phone Number",val:"(415) 555-0199",req:1}, ssn:{label:"Insurance Member ID",val:"UNH-44712208",req:1,gap:1},
+        dob:{label:"Date of Birth",val:"03/22/1991"}, marital:{label:"Primary Care Provider",val:"Dr. A. Reyes"},
+        dependents:{label:"Reason for Visit",req:1,select:["— select —","Annual physical","New symptom","Follow-up","Referral"],gap:1} },
+      say:{ open:{eyebrow:"Web Forms",title:"Start patient intake",body:"This is the live form. Required fields are outlined in red. Type, or let AI pre-fill what the clinic already knows."},
+        prefill:{eyebrow:"Docusign Iris",title:"AI pre-filled the known fields",body:"Name, email, phone and DOB flowed in from the patient record — no re-keying."},
+        validate:{eyebrow:"Validation",title:"Finish the flagged fields",body:"Insurance member ID and reason for visit are still required before submitting."},
+        complete:{eyebrow:"Ready",title:"Validated — FINISH is live",body:"Every required field checks out. You can submit."},
+        submit:{eyebrow:"Outcome",title:"Submitted and written to Epic",body:"Clean, validated intake — no clipboards — handed off to eSignature consents and the chart."} },
+      outcome:{h:"Intake submitted",s:"Clean, validated data — captured once."} }
+  },
+  setup(p, root, api){
+    const $ = s => root.querySelector(s);
+    $("#wf-lw").textContent=p.logo.lw; $("#wf-sub").textContent=p.logo.sub; $("#wf-sectitle").textContent=p.sectionTitle;
+    $("#wf-outcome").classList.remove("on");
+    let prefilled=false;
+    // render fields
+    $("#wf-rows").innerHTML=ORDER.map(id=>{ const f=p.fields[id];
+      const input = f.select
+        ? '<select class="fld" data-field="'+id+'">'+f.select.map(o=>'<option>'+o+'</option>').join("")+'</select>'
+        : '<input class="fld'+(f.narrow?' narrow':'')+'" data-field="'+id+'" placeholder="'+(f.req?'required':'')+'">';
+      return '<div class="trow"><div class="tlab">'+f.label+'</div><div class="tval">'+input+'</div></div>'; }).join("");
+
+    const val = id => { const el=$('[data-field="'+id+'"]'); return el.value.trim(); };
+    const valid = id => { const v=val(id); if(!v)return false;
+      if(id==="email")return /.+@.+\..+/.test(v); if(id==="ssn")return v.replace(/\D/g,"").length>=6;
+      if($('[data-field="'+id+'"]').tagName==="SELECT")return !v.startsWith("—"); return v.length>0; };
+
+    function render(){
+      let allOk=true;
+      REQUIRED.forEach(id=>{ const el=$('[data-field="'+id+'"]'); const ok=valid(id);
+        el.classList.toggle("bad", !ok); if(!ok)allOk=false; });
+      const fin=$("#wf-finish"); fin.classList.toggle("off", !allOk);
+      // narration by state
+      if(allOk){ api.narrate("complete"); api.progress(3); }
+      else if(prefilled){ api.narrate("validate"); api.progress(2); }
+      else { api.narrate("open"); api.progress(0); }
+      return allOk;
+    }
+    root.querySelectorAll(".fld").forEach(el=>el.addEventListener("input",render));
+
+    $("#wf-prefill").onclick=()=>{ PREFILL.forEach(id=>{ const el=$('[data-field="'+id+'"]'); if(el&&p.fields[id].val)el.value=p.fields[id].val; });
+      prefilled=true; api.narrate("prefill"); api.progress(1); setTimeout(render,400); };
+
+    $("#wf-finish").onclick=()=>{ if(!render())return;
+      // build payload + outcome
+      const rows=ORDER.map(id=>'<div class="pr"><span class="pk">'+p.fields[id].label+'</span><span class="pv">'+(val(id)||"—")+'</span></div>').join("");
+      $("#wf-payload").innerHTML=rows; $("#wf-oh").textContent=p.outcome.h; $("#wf-os").textContent=p.outcome.s;
+      $("#wf-wr").textContent="Written to "+p.sor+" · handed to eSignature";
+      $("#wf-outcome").classList.add("on"); api.done("submit"); };
+
+    render(); // flag required fields red on load
+
+    if(api.auto){ // self-run (cancelable via api.after for attract mode)
+      api.after(900,()=>$("#wf-prefill").click());
+      api.after(2100,()=>{ const s=$('[data-field="ssn"]'); s.value=p.fields.ssn.val; s.dispatchEvent(new Event("input")); });
+      api.after(3200,()=>{ const d=$('[data-field="dependents"]'); d.selectedIndex=2; d.dispatchEvent(new Event("input")); });
+      api.after(4400,()=>$("#wf-finish").click());
+    }
+  }
+});
+</script>
+</body>
+</html>

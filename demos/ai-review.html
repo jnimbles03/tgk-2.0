@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Assisted Review — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/review.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const SCENES='<section class="de-scene is-active" data-scene="rv"><div class="rv">'+
+  '<div class="rv-top"><span class="dslogo"><span class="dsmark"></span>Docusign</span><span class="ttl" id="rv-ttl"></span>'+
+    '<div class="right"><span class="send">Send for signature</span></div></div>'+
+  '<div class="rv-body">'+
+    '<div class="rv-doc"><div class="rv-page"><div class="h" id="rv-doctitle"></div>'+
+      '<p id="rv-p1"></p>'+
+      '<div class="rv-clause" id="rv-clause"><b id="rv-cnum"></b> <span id="rv-cbody"></span></div>'+
+      '<p id="rv-p2"></p><p id="rv-p3"></p></div></div>'+
+    '<div class="rv-panel"><div class="rv-phd"><span class="ai">✦</span> AI-Assisted Review</div>'+
+      '<div class="rv-chat" id="rv-chat">'+
+        '<div class="rv-msg user" id="rv-m0">Review this against our playbook.</div>'+
+        '<div class="rv-msg ai" id="rv-m1"><span id="rv-intro"></span>'+
+          '<div class="rv-issue" id="rv-issue1"><div class="top"><span class="sev hi">HIGH</span><span class="ti" id="rv-i1t"></span></div>'+
+            '<div class="ds" id="rv-i1d"></div><span class="accept" id="rv-accept">✦ Accept suggested redline</span></div>'+
+          '<div class="rv-issue" id="rv-issue2"><div class="top"><span class="sev md">MEDIUM</span><span class="ti" id="rv-i2t"></span></div>'+
+            '<div class="ds" id="rv-i2d"></div></div></div>'+
+        '<div class="rv-msg ai" id="rv-m2"><span id="rv-confirm"></span></div></div>'+
+      '<div class="rv-input"><div class="box">Ask AI to redline, summarize, or draft…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">AI-Assisted Review</div><span class="arr">&rarr;</span><div class="node lead">Redlined &amp; aligned</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"AI-Assisted Review", productTag:"AI-Assisted Review", home:"index.html",
+    footnote:'<b>Faithful AI-Assisted Review, re-skinnable content.</b> The agreement, conversational AI panel, flagged issues and one-click redline are the shared spine. Switching vertical swaps the contract, the playbook and the issues. The same review surface lives inside Agreement Desk.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"rv"},{t:6,key:"analyze",sceneId:"rv"},{t:11,key:"findings",sceneId:"rv"},{t:16,key:"accept",sceneId:"rv"},{t:22,key:"done",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:700,y:300,action:"move"},
+      {t:6,x:1040,y:240,action:"move",sayKey:"analyze"},
+      {t:11,target:"#rv-issue1",action:"move",sayKey:"findings"},
+      {t:16,target:"#rv-accept",action:"click",sayKey:"accept"},
+      {t:22,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Priya Raman", role:"Legal Counsel", side:"advisor" }, sorNode:"nCino core",
+      ttl:"Master Services Agreement — Atlas Corp · Review", doctitle:"MASTER SERVICES AGREEMENT",
+      p1:"This Master Services Agreement is entered into between Tally Bank (“Client”) and Atlas Corp (“Provider”) for the provision of the services described in the attached Statement of Work.",
+      cnum:"8. Limitation of Liability.", cbodyNormal:"Provider's aggregate liability under this Agreement shall be <span id=\"rv-risk\">unlimited for all claims arising hereunder</span>.",
+      cbodyFixed:"Provider's aggregate liability under this Agreement shall be <span class=\"rv-strike\">unlimited for all claims arising hereunder</span> <span class=\"rv-ins\">capped at the fees paid in the preceding twelve (12) months</span>.",
+      p2:"9. Term &amp; Renewal. This Agreement renews automatically for successive one-year terms unless either party provides notice of non-renewal.",
+      p3:"10. Governing Law. This Agreement shall be governed by the laws of the State of Delaware.",
+      intro:"I reviewed this MSA against your <b>Vendor Contracting playbook</b>. Two issues need attention:",
+      i1t:"Unlimited liability — no cap", i1d:"Section 8 exposes the bank to uncapped liability. Your playbook requires a cap at 12 months of fees. I drafted the redline.",
+      i2t:"Auto-renewal without notice window", i2d:"Section 9 renews automatically with no defined opt-out window. Recommend a 30-day notice period.",
+      confirm:"Redline applied to Section 8. The liability cap now matches your playbook. One medium issue remains for your review.",
+      say:{ open:{eyebrow:"AI-Assisted Review",title:"AI reads the contract for you",body:"Priya opens the Atlas MSA. AI-Assisted Review is already analyzing it against the bank's playbook."},
+        analyze:{eyebrow:"Iris",title:"Checked against your playbook",body:"Not a generic scan — it reviews against Tally's own Vendor Contracting standards."},
+        findings:{eyebrow:"Findings",title:"Two issues, ranked by risk",body:"An uncapped-liability clause (high) and an open-ended auto-renewal (medium) — each explained."},
+        accept:{eyebrow:"One click",title:"Accept the drafted redline",body:"Priya accepts the suggested cap — the clause is redlined in place, no retyping."},
+        done:{eyebrow:"Aligned",title:"Contract aligned to policy",body:"The redline is applied and the agreement is ready to send — minutes, not a manual review cycle."} },
+      handoff:{h:"Reviewed, redlined, ready",p:"AI aligned the Atlas MSA to Tally's playbook and applied the redline — ready to send, logged to nCino."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Priya Raman", role:"Compliance Counsel", side:"advisor" }, sorNode:"Epic chart",
+      ttl:"Business Associate Agreement — Medline · Review", doctitle:"BUSINESS ASSOCIATE AGREEMENT",
+      p1:"This Business Associate Agreement is entered into between Riverside Health (“Covered Entity”) and Medline (“Business Associate”) governing the handling of Protected Health Information under HIPAA.",
+      cnum:"6. Breach Notification.", cbodyNormal:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within <span id=\"rv-risk\">ninety (90) days</span> of discovery.",
+      cbodyFixed:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within <span class=\"rv-strike\">ninety (90) days</span> <span class=\"rv-ins\">sixty (60) days</span> of discovery.",
+      p2:"7. Subcontractors. Business Associate may engage subcontractors to perform services under this Agreement.",
+      p3:"8. Term &amp; Termination. This Agreement remains in effect until terminated in accordance with its terms.",
+      intro:"I reviewed this BAA against your <b>HIPAA Compliance playbook</b>. Two issues need attention:",
+      i1t:"Breach notice exceeds 60 days", i1d:"Section 6 allows 90 days; HIPAA and your playbook require notification within 60 days. I drafted the redline.",
+      i2t:"No subcontractor flow-down clause", i2d:"Section 7 lets subcontractors be engaged without requiring them to accept the same PHI obligations. Add a flow-down requirement.",
+      confirm:"Redline applied to Section 6. Breach notification now meets the 60-day HIPAA requirement. One medium issue remains for your review.",
+      say:{ open:{eyebrow:"AI-Assisted Review",title:"AI reads the contract for you",body:"Priya opens the Medline BAA. AI-Assisted Review is already analyzing it against the HIPAA playbook."},
+        analyze:{eyebrow:"Iris",title:"Checked against your playbook",body:"Not a generic scan — it reviews against Riverside's own HIPAA compliance standards."},
+        findings:{eyebrow:"Findings",title:"Two issues, ranked by risk",body:"A breach-notice window that's too long (high) and a missing subcontractor flow-down (medium) — each explained."},
+        accept:{eyebrow:"One click",title:"Accept the drafted redline",body:"Priya accepts the 60-day fix — the clause is redlined in place, no retyping."},
+        done:{eyebrow:"Aligned",title:"Contract aligned to policy",body:"The redline is applied and the BAA is ready to send — minutes, not a manual review cycle."} },
+      handoff:{h:"Reviewed, redlined, ready",p:"AI aligned the Medline BAA to Riverside's HIPAA playbook and applied the redline — ready to send, logged to Epic."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#rv-ttl").textContent=p.ttl; root.querySelector("#rv-doctitle").textContent=p.doctitle;
+    root.querySelector("#rv-p1").textContent=p.p1; root.querySelector("#rv-p2").innerHTML=p.p2; root.querySelector("#rv-p3").innerHTML=p.p3;
+    root.querySelector("#rv-cnum").textContent=p.cnum; root.querySelector("#rv-cbody").innerHTML=p.cbodyNormal;
+    root.querySelector("#rv-intro").innerHTML=p.intro; root.querySelector("#rv-i1t").textContent=p.i1t; root.querySelector("#rv-i1d").textContent=p.i1d;
+    root.querySelector("#rv-i2t").textContent=p.i2t; root.querySelector("#rv-i2d").textContent=p.i2d; root.querySelector("#rv-confirm").innerHTML=p.confirm;
+    root.querySelector("#rv-clause").className="rv-clause"; root.querySelector("#rv-issue1").classList.remove("done");
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    root.querySelector("#rv-m0").classList.toggle("on", time>=2);
+    root.querySelector("#rv-m1").classList.toggle("on", time>=6.5);
+    root.querySelector("#rv-issue1").style.display = time>=11?"block":"none";
+    root.querySelector("#rv-issue2").style.display = time>=12.5?"block":"none";
+    // flag the risky clause once findings are shown
+    const cl=root.querySelector("#rv-clause"); const accepted=time>=16;
+    cl.classList.toggle("flag", time>=11 && !accepted); cl.classList.toggle("fixed", accepted);
+    root.querySelector("#rv-cbody").innerHTML = accepted ? p.cbodyFixed : p.cbodyNormal;
+    root.querySelector("#rv-issue1").classList.toggle("done", accepted);
+    const acc=root.querySelector("#rv-accept"); acc.textContent = accepted ? "✓ Redline accepted" : "✦ Accept suggested redline";
+    root.querySelector("#rv-m2").classList.toggle("on", time>=17.5);
+  }
+});
+</script>
+</body>
+</html>

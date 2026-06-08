@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/app-shell.css">
+<link rel="stylesheet" href="./archetypes/dashboard.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Admin</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="mo-cobrand"></span></span><span class="avatar" id="mo-av"></span></div></div>';
+const RAIL='<div class="app-rail"><div class="grp">Access management</div><div class="it">Domains</div><div class="it">Identity providers</div>'+
+  '<div class="grp">Data &amp; envelopes</div><div class="it">Envelope transfer</div><div class="it on"><span class="ai">◆</span> Monitor</div>'+
+  '<div class="grp">Security</div><div class="it">Alerts <span class="ct" id="mo-alertct">1</span></div><div class="it">Activity log</div></div>';
+
+// line chart polyline (viewBox 540x150) with a late spike (the anomaly at x~470,y~22)
+const LINE='M0 110 L24 96 L48 104 L72 84 L96 100 L120 78 L144 92 L168 70 L192 96 L216 82 L240 104 L264 88 L288 98 L312 76 L336 94 L360 86 L384 100 L408 90 L432 96 L470 22 L500 104 L540 96';
+const BARS=[["Sent",118,"#2D6BE0"],["Created",96,"#16B3A0"],["Deleted",60,"#E08E2E"],["Signed",40,"#7A5BD8"]];
+
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="dash">'+NAV+RAIL+
+  '<div class="dash-body"><div class="dash-head"><h2>Monitor</h2><span class="badge">◆ MONITOR FOR IAM</span></div>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="lab">Events · last 90 days</div><div class="num">24,076</div><div class="delta">eSign · CLM · IAM</div></div>'+
+      '<div class="kpi"><div class="lab">Active users</div><div class="num">1,284</div><div class="delta">+3% vs prior</div></div>'+
+      '<div class="kpi alert" id="mo-kpi"><div class="lab">Anomalies flagged</div><div class="num" id="mo-anomnum">0</div><div class="delta" id="mo-anomlbl">monitoring…</div></div></div>'+
+    '<div class="charts">'+
+      '<div class="chart"><h4>Envelope events — last 90 days</h4><div class="sub" id="mo-csub"></div>'+
+        '<svg viewBox="0 0 540 150" preserveAspectRatio="none"><polyline points="0 130 540 130" stroke="#EEE" fill="none"/>'+
+          '<path d="'+LINE+'" fill="none" stroke="var(--tenant-accent)" stroke-width="2"/>'+
+          '<g class="anom" id="mo-anom"><circle class="ring" cx="470" cy="22" r="4"/><circle class="pt" cx="470" cy="22" r="4"/>'+
+            '<text class="lbl" x="470" y="14" text-anchor="middle" id="mo-anomtext"></text></g></svg></div>'+
+      '<div class="chart"><h4>Events by type</h4><div class="sub">last 90 days</div>'+
+        '<svg viewBox="0 0 540 150"><line x1="0" y1="130" x2="540" y2="130" stroke="#EEE"/>'+
+          BARS.map((b,i)=>'<rect x="'+(40+i*128)+'" y="'+(130-b[1])+'" width="74" height="'+b[1]+'" rx="3" fill="'+b[2]+'"/><text x="'+(77+i*128)+'" y="145" text-anchor="middle" font-size="11" fill="#888">'+b[0]+'</text>').join("")+'</svg></div></div>'+
+    '<div class="alerts"><div class="ah">Recent activity</div><div id="mo-rows"></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Monitor signal</div><span class="arr">&rarr;</span><div class="node lead">Investigated &amp; contained</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"Monitor", productTag:"Monitor", home:"index.html",
+    footnote:'<b>Faithful Monitor dashboard, re-skinnable content.</b> The KPI cards, event charts, anomaly detection and alert feed are the shared spine. Switching vertical swaps the anomaly type, the actors and the narration. Real-frame reference: Docusign Monitor.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"trend",sceneId:"app"},{t:12,key:"anomaly",sceneId:"app"},{t:18,key:"investigate",sceneId:"app"},{t:24,key:"contain",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"#mo-anom",action:"move",sayKey:"trend"},
+      {t:12,target:"#mo-anom",action:"move",sayKey:"anomaly"},
+      {t:18,target:"#mo-flag",action:"move",sayKey:"investigate"},
+      {t:24,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"admin.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Marcus Reed", role:"Security Admin", side:"advisor" },
+      cobrand:"Tally", csub:"all plans · eSign, CLM, IAM", sorNode:"SIEM / nCino", anomtext:"42× normal", anomlbl:"off-hours bulk send",
+      rows:[ ["","lo","jdoe@tally.com sent 4 envelopes","2m ago"],
+        ["mo-flag","hi","svc-batch@tally.com sent 612 envelopes at 02:14","8m ago"],
+        ["","md","admin changed a permission profile","26m ago"],
+        ["","lo","mchen@tally.com signed an agreement","41m ago"] ],
+      say:{ open:{eyebrow:"Monitor",title:"One view across every Docusign event",body:"Monitor watches eSignature, CLM and IAM activity for Tally in one place — 24,076 events in 90 days."},
+        trend:{eyebrow:"Baseline",title:"Normal activity has a shape",body:"Monitor learns the normal rhythm of sends and signs so deviations stand out."},
+        anomaly:{eyebrow:"Anomaly",title:"A spike breaks the pattern",body:"A service account sent 612 envelopes at 2am — 42× the norm. Monitor flags it instantly."},
+        investigate:{eyebrow:"Investigate",title:"Drill into the actor",body:"Marcus opens the flagged event — the user, time and volume are all there to triage."},
+        contain:{eyebrow:"Contain",title:"Threat surfaced, not missed",body:"The anomaly is escalated before damage spreads — and the rule is tuned for next time."} },
+      handoff:{h:"Caught before it spread",p:"Monitor flagged an off-hours bulk-send anomaly and routed it for investigation — feeding the bank's SIEM."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"admin.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Marcus Reed", role:"Security Admin", side:"advisor" },
+      cobrand:"Riverside", csub:"all plans · eSign, CLM, IAM", sorNode:"SIEM / Epic", anomtext:"38× normal", anomlbl:"unusual record access",
+      rows:[ ["","lo","jdoe@riverside.org sent 3 consents","3m ago"],
+        ["mo-flag","hi","kpatel@riverside.org accessed 540 records at 01:50","9m ago"],
+        ["","md","admin changed a permission profile","22m ago"],
+        ["","lo","achen@riverside.org signed a consent","38m ago"] ],
+      say:{ open:{eyebrow:"Monitor",title:"One view across every Docusign event",body:"Monitor watches eSignature, CLM and IAM activity for Riverside in one place — 24,076 events in 90 days."},
+        trend:{eyebrow:"Baseline",title:"Normal activity has a shape",body:"Monitor learns the normal rhythm of access and signing so deviations stand out."},
+        anomaly:{eyebrow:"Anomaly",title:"A spike breaks the pattern",body:"A user accessed 540 records at 2am — 38× the norm. Monitor flags it instantly."},
+        investigate:{eyebrow:"Investigate",title:"Drill into the actor",body:"Marcus opens the flagged event — the user, time and volume are all there to triage."},
+        contain:{eyebrow:"Contain",title:"Threat surfaced, not missed",body:"A potential HIPAA breach is escalated before it spreads — and the rule is tuned for next time."} },
+      handoff:{h:"Caught before it spread",p:"Monitor flagged an unusual record-access anomaly and routed it for investigation — feeding the system SIEM."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#mo-cobrand").textContent=p.cobrand; root.querySelector("#mo-csub").textContent=p.csub;
+    root.querySelector("#mo-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    root.querySelector("#mo-anomtext").textContent=p.anomtext;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+    root.querySelector("#mo-rows").innerHTML=p.rows.map(r=>'<div class="alert-row" '+(r[0]?'id="'+r[0]+'"':'')+'><span class="sev '+r[1]+'"></span><span class="who">'+r[2]+'</span><span class="tm">'+r[3]+'</span></div>').join("");
+  },
+  onTime(time, p, root){
+    const show=time>=12;
+    root.querySelector("#mo-anom").classList.toggle("show",show);
+    root.querySelector("#mo-anomnum").textContent=show?"1":"0";
+    root.querySelector("#mo-anomlbl").textContent=show?p.anomlbl:"monitoring…";
+    const flag=root.querySelector("#mo-flag"); if(flag) flag.classList.toggle("flag", time>=12);
+  }
+});
+</script>
+</body>
+</html>

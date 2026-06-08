@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Verification (Risk-Based / Data Verification) — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/idv.css">
+<style>
+  .rb-co{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#1a1a26;margin-bottom:20px}
+  .rb-co .m{width:16px;height:16px;border-radius:4px;background:var(--tenant-accent)}
+  .rb-h{font-size:22px;font-weight:600;color:#1a1a26;margin-bottom:16px;line-height:1.18}
+  .rb-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #F0F0F4;font-size:13.5px}
+  .rb-row .k{color:#888}.rb-row .v{color:#1a1a26;font-weight:600}
+  .rb-checks{margin:8px 0 16px}
+  .rb-check{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #F0F0F4;font-size:13.5px;color:#444}
+  .rb-check .st{width:20px;height:20px;border-radius:50%;border:2px solid #d5d5dd;flex:0 0 auto;position:relative}
+  .rb-check.done .st{background:#1F9D57;border-color:#1F9D57}
+  .rb-check.done .st:after{content:"";position:absolute;left:5px;top:2px;width:6px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .rb-check.run .st{border-color:var(--tenant-accent);border-top-color:transparent;animation:rb-spin .7s linear infinite}
+  @keyframes rb-spin{to{transform:rotate(360deg)}}
+  .rb-meter{margin:14px 0;background:#EFEFF3;border-radius:20px;height:10px;overflow:hidden}
+  .rb-meter i{display:block;height:100%;width:18%;background:#1F9D57;border-radius:20px}
+  .rb-risk{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px}
+  .rb-risk b{color:#1F9D57}
+  .idme-foot{position:absolute;left:0;right:0;bottom:58px;height:28px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;border-top:1px solid #f0f0f0}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IOS='<div class="ios"><div class="time">10:05<small>◂ Mail</small></div><div class="island"></div><div class="right">▮▮▮ ⌃ <span class="batt">90</span></div></div>';
+const MBAR='<div class="mbar"><div class="url"><svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z" fill="none" stroke="#888" stroke-width="2"/></svg>verify.docusign.com ⟳</div></div><div class="homebar"></div>';
+const CO='<div class="rb-co"><span class="m"></span><span class="cob"></span> · Data Verification</div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="device"><div class="idv"><div class="phone">'+IOS+
+  '<div class="scr screen" data-screen="details"><div style="padding-top:6px"></div>'+CO+'<div class="rb-h">Confirm your details</div>'+
+    '<p>We will check these against trusted data sources — no document upload needed for low-risk profiles.</p><div style="height:6px"></div>'+
+    '<div class="rb-row"><span class="k">Full name</span><span class="v" id="rb-name"></span></div>'+
+    '<div class="rb-row"><span class="k">Date of birth</span><span class="v">11 / 15 / 1983</span></div>'+
+    '<div class="rb-row"><span class="k">Last 4 of SSN</span><span class="v">•••• 6789</span></div>'+
+    '<div style="height:16px"></div><div class="btn-primary" data-cta="details">Verify my identity</div>'+
+    '<div class="idme-foot">Powered by Docusign Partner AI</div></div>'+
+  '<div class="scr screen" data-screen="checking" style="display:none"><div style="padding-top:6px"></div>'+CO+'<div class="rb-h" style="font-size:19px">Checking trusted sources…</div>'+
+    '<div class="rb-checks">'+
+      '<div class="rb-check" data-chk="0"><span class="st"></span> Identity records</div>'+
+      '<div class="rb-check" data-chk="1"><span class="st"></span> Address &amp; phone history</div>'+
+      '<div class="rb-check" data-chk="2"><span class="st"></span> Watchlist &amp; sanctions</div>'+
+      '<div class="rb-check" data-chk="3"><span class="st"></span> Device &amp; behavioral risk</div></div>'+
+    '<div class="idme-foot">No personal data leaves Docusign’s trust boundary</div></div>'+
+  '<div class="scr screen" data-screen="result" style="display:none"><div style="padding-top:6px"></div>'+CO+'<div class="rb-h" style="font-size:19px">Low-risk match</div>'+
+    '<div class="rb-risk"><span>Risk score</span><b>LOW</b></div><div class="rb-meter"><i></i></div>'+
+    '<p>All four checks passed. Because the profile is low-risk, no step-up document scan is required.</p>'+
+    '<div style="height:14px"></div><div class="btn-primary" data-cta="result">Continue</div>'+
+    '<div class="idme-foot">Risk-based · adaptive assurance</div></div>'+
+  '<div class="scr screen" data-screen="verified" style="display:none"><div class="verified" style="padding-top:54px">'+
+    '<div class="big"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 style="font-size:22px" id="rb-vname"></h2><p>Verified against trusted data sources.</p><span class="ial">IDENTITY VERIFIED</span></div></div>'+
+  MBAR+'</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Data Verification</div><span class="arr">&rarr;</span><div class="node lead">Verified identity</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"ID Verification — Risk-Based (Data Verification)", productTag:"Identity · Risk-Based", home:"index.html",
+    footnote:'<b>Faithful adaptive IDV, re-skinnable context.</b> Confirm details → check trusted data sources → risk-based decision → verified (step-up only when risk is high). Switching vertical swaps the person, accent and narration. Same IDV archetype as CLEAR, ID.me, Apple Wallet and IDVerse.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:30,
+    beats:[ {t:0,key:"details",sceneId:"device"},{t:7,key:"checking",sceneId:"device"},{t:15,key:"result",sceneId:"device"},{t:20,key:"verified",sceneId:"device"},{t:25,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"[data-cta='details']",x:640,y:520,action:"click",sayKey:"details"},
+      {t:8,x:640,y:300,action:"move",sayKey:"checking"},
+      {t:15,x:640,y:300,action:"move",sayKey:"result"},
+      {t:19,target:"[data-cta='result']",x:640,y:470,action:"click",sayKey:"verified"},
+      {t:25,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"verify.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sam Smith", role:"Applicant", side:"client" }, cobrand:"Tally", sorNode:"nCino core", name:"Sam Smith", first:"Sam",
+      say:{ details:{eyebrow:"Data Verification",title:"Confirm the basics first",body:"For low-risk transactions, Sam just confirms his details — Docusign checks them against trusted sources."},
+        checking:{eyebrow:"Checks",title:"Verified against trusted sources",body:"Identity records, address history, watchlists and device risk are checked in seconds — no document needed."},
+        result:{eyebrow:"Adaptive",title:"Risk decides the friction",body:"Sam's profile scores low-risk, so no step-up scan is required. A high-risk profile would be challenged."},
+        verified:{eyebrow:"Verified",title:"Identity confirmed",body:"A trusted-data match — the right assurance for the risk, without extra friction."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The result attaches to the envelope and writes back to nCino."} },
+      handoff:{h:"Verified — straight into signing",p:"The Data Verification result attaches to the agreement and writes back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"verify.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Jordan Kim", role:"New Patient", side:"client" }, cobrand:"Riverside", sorNode:"Epic chart", name:"Jordan Kim", first:"Jordan",
+      say:{ details:{eyebrow:"Data Verification",title:"Confirm the basics first",body:"For low-risk intake, Jordan just confirms details — Docusign checks them against trusted sources."},
+        checking:{eyebrow:"Checks",title:"Verified against trusted sources",body:"Identity records, address history, watchlists and device risk are checked in seconds — no document needed."},
+        result:{eyebrow:"Adaptive",title:"Risk decides the friction",body:"Jordan's profile scores low-risk, so no step-up scan is required. A high-risk profile would be challenged."},
+        verified:{eyebrow:"Verified",title:"Identity confirmed",body:"A trusted-data match — the right assurance for the risk, without extra friction."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The result attaches to the consent and writes back to Epic."} },
+      handoff:{h:"Verified — straight into consent",p:"The Data Verification result attaches to the consent and writes back to the Epic chart."} },
+    pubsec:{ label:"Public Sector · Gov", theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
+      brand:{ name:"State Agency", mark:"G" }, url:"verify.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Jordan Rivera", role:"Constituent", side:"client" }, cobrand:"State", sorNode:"agency system of record", name:"Jordan Rivera", first:"Jordan",
+      say:{ details:{eyebrow:"Data Verification",title:"Confirm the basics first",body:"For low-risk eligibility, the applicant just confirms details — Docusign checks them against trusted sources."},
+        checking:{eyebrow:"Checks",title:"Verified against trusted sources",body:"Identity records, address history, watchlists and device risk are checked in seconds — no document needed."},
+        result:{eyebrow:"Adaptive",title:"Risk decides the friction",body:"The applicant's profile scores low-risk, so no step-up scan is required. A high-risk profile would be challenged."},
+        verified:{eyebrow:"Verified",title:"Identity confirmed",body:"A trusted-data match — the right assurance for the risk, without an office visit."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The result attaches to the application and writes back to the agency system of record."} },
+      handoff:{h:"Verified — straight into the application",p:"The Data Verification result attaches to the application and writes back to the agency's system of record."} }
+  },
+  paintContent(p, root){
+    root.querySelectorAll(".cob").forEach(e=>e.textContent=p.cobrand);
+    root.querySelector("#rb-name").textContent=p.name; root.querySelector("#rb-vname").textContent="You're verified, "+p.first;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    let k="details"; this.timeline.beats.forEach(b=>{ if(b.sceneId==="device"&&b.t<=time+0.02)k=b.key; });
+    root.querySelectorAll(".screen").forEach(s=>s.style.display=(s.dataset.screen===k?"block":"none"));
+    if(k==="checking"){ const prog=(time-7)/1.7; root.querySelectorAll(".rb-check").forEach((el,i)=>{
+      el.classList.remove("run","done"); if(prog>i+1)el.classList.add("done"); else if(prog>i)el.classList.add("run"); }); }
+    else if(k==="result"||k==="verified"||k==="handoff"){ root.querySelectorAll(".rb-check").forEach(el=>el.classList.add("done")); }
+  }
+});
+</script>
+</body>
+</html>

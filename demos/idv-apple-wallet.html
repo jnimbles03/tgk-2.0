@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Verification (Apple Wallet mDL) — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/idv.css">
+<style>
+  .aw-co{display:flex;align-items:center;gap:7px;font-size:17px;font-weight:700;color:#1a1a26;margin-bottom:26px}
+  .aw-co .m{width:16px;height:16px;border-radius:4px;background:var(--tenant-accent)}
+  .aw-h{font-size:26px;font-weight:600;color:#1a1a26;margin-bottom:14px;line-height:1.15}
+  .aw-partner{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#666;margin-top:14px;line-height:1.4}
+  .aw-partner .s{color:var(--tenant-accent)}
+  .aw-method{border:1.5px solid #e0e0e6;border-radius:11px;padding:14px;display:flex;align-items:center;gap:13px;margin-bottom:11px}
+  .aw-method.sel{border-color:var(--tenant-accent);box-shadow:0 0 0 2px var(--tenant-accent-soft)}
+  .aw-method .ic{width:34px;height:34px;border-radius:8px;background:var(--tenant-accent-soft);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .aw-method .ic svg{width:19px;height:19px;fill:var(--tenant-accent)}
+  .aw-method .nm{font-size:13.5px;font-weight:600;color:#1a1a26}
+  .aw-method .sub{font-size:11.5px;color:#888}
+  /* Apple Wallet bottom sheet */
+  .aw-scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end}
+  .aw-sheet{background:#F2F2F4;border-radius:18px 18px 0 0;width:100%;padding:16px 16px 22px}
+  .aw-sheet .wh{display:flex;align-items:center;font-size:19px;font-weight:700;color:#1a1a26;margin-bottom:14px}
+  .aw-sheet .wh .x{margin-left:auto;width:26px;height:26px;border-radius:50%;background:#E0E0E4;color:#888;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .aw-sheet .req{background:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:11px;margin-bottom:11px}
+  .aw-sheet .req .dm{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082)}
+  .aw-sheet .req .nm{font-size:14px;font-weight:600}.aw-sheet .req .u{font-size:11.5px;color:#999}
+  .aw-sheet .card{background:#fff;border-radius:12px;padding:12px 14px}
+  .aw-sheet .card .lic{display:flex;align-items:center;gap:11px;padding-bottom:11px;border-bottom:1px solid #EEE;margin-bottom:11px}
+  .aw-sheet .card .lic .th{width:42px;height:28px;border-radius:5px;background:linear-gradient(120deg,#9db4d6,#c7d3e6);flex:0 0 auto;position:relative;overflow:hidden}
+  .aw-sheet .card .lic .th:after{content:"";position:absolute;left:4px;top:5px;width:11px;height:13px;border-radius:50%;background:#7a8cae}
+  .aw-sheet .card .lic .nm{font-size:13.5px;font-weight:600}.aw-sheet .card .lic .u{font-size:11px;color:#999}
+  .aw-sheet .card .shl{font-size:12.5px;font-weight:600;color:#1a1a26;margin-bottom:2px}
+  .aw-sheet .card .shn{font-size:11px;color:#999;margin-bottom:8px}
+  .aw-sheet .card .field{display:flex;align-items:center;gap:8px;font-size:13px;color:#333;padding:4px 0}
+  .aw-sheet .card .field svg{width:14px;height:14px;fill:#666}
+  .aw-sheet .done{margin-top:16px;text-align:center}
+  .aw-sheet .done .faceid{width:46px;height:46px;border-radius:50%;background:var(--tenant-accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:5px}
+  .aw-sheet .done .faceid svg{width:24px;height:24px;stroke:#fff;stroke-width:2.4;fill:none}
+  .aw-sheet .done .lbl{font-size:13px;color:#555;font-weight:600}
+  .aw-vcard{width:120px;height:84px;margin:0 auto 22px;position:relative}
+  .aw-vcard .c{position:absolute;inset:0;background:var(--tenant-accent-soft);border-radius:12px;display:flex;align-items:center;gap:8px;padding:0 14px}
+  .aw-vcard .c .av{width:26px;height:26px;border-radius:50%;background:var(--tenant-accent)}
+  .aw-vcard .c .ln{flex:1}.aw-vcard .c .ln i{display:block;height:4px;background:#fff;border-radius:2px;margin:3px 0;width:80%}
+  .aw-vcard .chk{position:absolute;right:-8px;bottom:-8px;width:30px;height:30px;border-radius:50%;background:#1F9D57;display:flex;align-items:center;justify-content:center}
+  .aw-vcard .chk svg{width:16px;height:16px;stroke:#fff;stroke-width:3;fill:none}
+  .idme-foot{position:absolute;left:0;right:0;bottom:58px;height:30px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;color:#888;border-top:1px solid #f0f0f0}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IOS='<div class="ios"><div class="time">18:50<small>◂ Mail</small></div><div class="island"></div><div class="right">▮▮▮ ⌃ <span class="batt">82</span></div></div>';
+const MBAR='<div class="mbar"><div class="url"><svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z" fill="none" stroke="#888" stroke-width="2"/></svg>identity.docusign.com ⟳</div></div><div class="homebar"></div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="device"><div class="idv"><div class="phone">'+IOS+
+  // consent
+  '<div class="scr screen" data-screen="consent"><div class="aw-co"><span class="m"></span><span id="aw-cobrand"></span></div>'+
+    '<div class="aw-h">Let’s verify your identity</div><p>This helps to protect your data. It should only take a few minutes.</p>'+
+    '<div class="aw-partner"><span class="s">✦</span><span>Powered by Docusign Partner AI. Learn more about how we use AI at Docusign.</span></div>'+
+    '<div style="height:18px"></div><div class="btn-primary" data-cta="consent">I Agree</div><div class="btn-ghost">Exit</div></div>'+
+  // method
+  '<div class="scr screen" data-screen="method" style="display:none"><div class="aw-co"><span class="m"></span><span class="cob2"></span></div>'+
+    '<div class="aw-h">Select your verification method</div><div style="height:8px"></div>'+
+    '<div class="aw-method sel"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm0 11a2 2 0 0 1 2 2v2h-4v-2a2 2 0 0 1 2-2z"/></svg></span>'+
+      '<div><div class="nm">Mobile driver’s license</div><div class="sub">Verify with ID in Apple Wallet</div></div></div>'+
+    '<div class="aw-method"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9h5v1.6H6zM6 12h5v1.6H6z"/></svg></span>'+
+      '<div><div class="nm">Physical ID</div><div class="sub">Verify by taking a photo of your ID</div></div></div>'+
+    '<div style="flex:1"></div><div class="btn-ghost" data-cta="method">Continue</div></div>'+
+  // wallet sheet
+  '<div class="scr screen" data-screen="wallet" style="display:none;padding:0;background:#EDEDF0">'+
+    '<div class="aw-scrim"><div class="aw-sheet"><div class="wh">Wallet<span class="x">✕</span></div>'+
+      '<div class="req"><span class="dm"></span><div><div class="nm">Docusign</div><div class="u">identity.docusign.com</div></div></div>'+
+      '<div class="card"><div class="lic"><span class="th"></span><div><div class="nm">California Driver’s License</div><div class="u">Government-Issued ID</div></div></div>'+
+        '<div class="shl">The following information will be shared:</div><div class="shn">Docusign will store the information.</div>'+
+        '<div class="field"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg> Legal Name</div>'+
+        '<div class="field"><svg viewBox="0 0 24 24"><path d="M7 2h10v20H7z"/></svg> Date of Birth</div></div>'+
+      '<div class="done" data-cta="wallet"><div class="faceid"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3M9 10v1M15 10v1M12 9v4l-1 1M9 15a4 4 0 0 0 6 0"/></svg></div><div class="lbl">Confirm with Face ID</div></div>'+
+    '</div></div></div>'+
+  // verified
+  '<div class="scr screen" data-screen="verified" style="display:none"><div class="verified" style="padding-top:60px">'+
+    '<div class="aw-vcard"><div class="c"><span class="av"></span><span class="ln"><i></i><i></i></span></div><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div></div>'+
+    '<h2 style="font-size:23px">We’ve verified your identity</h2><p>Redirecting to your agreement…</p><span class="ial">IAL2 · mDL VERIFIED</span></div></div>'+
+  MBAR+'</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Apple Wallet mDL</div><span class="arr">&rarr;</span><div class="node lead">Verified identity</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"ID Verification — Apple Wallet (mDL)", productTag:"Identity · Apple Wallet", home:"index.html",
+    footnote:'<b>Faithful Apple Wallet mDL flow, re-skinnable context.</b> Consent → select method → present the mobile driver’s license from Apple Wallet → verified. Roadmap: LA Jun 2026 / GA Nov 2026, US-only. Source: Docusign Apple Wallet clickthrough. Switching vertical swaps the sender, person and narration.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:30,
+    beats:[ {t:0,key:"consent",sceneId:"device"},{t:7,key:"method",sceneId:"device"},{t:13,key:"wallet",sceneId:"device"},{t:19,key:"verified",sceneId:"device"},{t:25,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"[data-cta='consent']",x:640,y:520,action:"click",sayKey:"consent"},
+      {t:10,x:600,y:300,action:"move",sayKey:"method"},
+      {t:13,target:"[data-cta='method']",x:640,y:560,action:"click",sayKey:"method2"},
+      {t:14,x:640,y:430,action:"move",sayKey:"wallet"},
+      {t:18,target:"[data-cta='wallet']",x:640,y:560,action:"click",sayKey:"faceid"},
+      {t:25,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"identity.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sam Smith", role:"Applicant", side:"client" }, cobrand:"Tally", sorNode:"nCino core",
+      say:{ consent:{eyebrow:"Apple Wallet IDV",title:"Sam starts identity verification",body:"To open the account, Sam first confirms who he is — consenting to a fast, wallet-based check."},
+        method:{eyebrow:"Method",title:"Use the ID already on the phone",body:"Instead of photographing a document, Sam picks his mobile driver's license in Apple Wallet."},
+        method2:{eyebrow:"Method",title:"Mobile driver's license selected",body:"No document upload, no selfie — the credential is already verified by the state."},
+        wallet:{eyebrow:"Apple Wallet",title:"Only what's needed is shared",body:"Apple Wallet shows exactly which fields Docusign will receive — legal name and date of birth."},
+        faceid:{eyebrow:"Face ID",title:"Confirmed biometrically",body:"Sam approves with Face ID. The verified mDL credentials apply to the agreement instantly."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 mDL result attaches to the envelope and writes back to nCino."} },
+      handoff:{h:"Verified — straight into signing",p:"The Apple Wallet mDL result attaches to the agreement and writes back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"identity.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Jordan Kim", role:"New Patient", side:"client" }, cobrand:"Riverside", sorNode:"Epic chart",
+      say:{ consent:{eyebrow:"Apple Wallet IDV",title:"Jordan starts identity verification",body:"Before sharing health information, Jordan confirms identity — consenting to a fast, wallet-based check."},
+        method:{eyebrow:"Method",title:"Use the ID already on the phone",body:"Instead of a clipboard or photo, Jordan picks the mobile driver's license in Apple Wallet."},
+        method2:{eyebrow:"Method",title:"Mobile driver's license selected",body:"No document upload, no selfie — the credential is already verified by the state."},
+        wallet:{eyebrow:"Apple Wallet",title:"Only what's needed is shared",body:"Apple Wallet shows exactly which fields Docusign will receive — legal name and date of birth."},
+        faceid:{eyebrow:"Face ID",title:"Confirmed biometrically",body:"Jordan approves with Face ID — HIPAA-friendly assurance with almost no friction."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 mDL result attaches to the consent and writes back to Epic."} },
+      handoff:{h:"Verified — straight into consent",p:"The Apple Wallet mDL result attaches to the consent and writes back to the Epic chart."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#aw-cobrand").textContent=p.cobrand; root.querySelector(".cob2").textContent=p.cobrand;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    let k="consent"; this.timeline.beats.forEach(b=>{ if(b.sceneId==="device"&&b.t<=time+0.02)k=b.key; });
+    root.querySelectorAll(".screen").forEach(s=>s.style.display=(s.dataset.screen===k?(s.dataset.screen==="wallet"?"block":"block"):"none"));
+  }
+});
+</script>
+</body>
+</html>

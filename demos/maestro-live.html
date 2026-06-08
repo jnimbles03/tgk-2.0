@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maestro workflow — interactive</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/orchestration.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IC={ form:'<svg viewBox="0 0 24 24"><path d="M8 3h8v2h2v16H6V5h2zm0 2H8v14h8V5h-2v1H8zM9 9h6v1.6H9zM9 13h6v1.6H9zM9 17h4v1.6H9z"/></svg>',
+  branch:'<svg viewBox="0 0 24 24"><path d="M6 3a3 3 0 0 0-1 5.83V11a3 3 0 0 0 3 3h2v2.17A3 3 0 1 0 13 16h-3a1 1 0 0 1-1-1V8.83A3 3 0 0 0 6 3zm12 11a3 3 0 0 0-2.83 2H13v2h2.17A3 3 0 1 0 18 14z"/></svg>',
+  id:'<svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM7 9.5a2 2 0 1 1 4 0 2 2 0 0 1-4 0zM5 16c0-1.7 1.8-3 4-3s4 1.3 4 3zM14 9h5v1.6h-5zM14 12h5v1.6h-5z"/></svg>',
+  db:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  pen:'<svg viewBox="0 0 24 24"><path d="M3 17.2V21h3.8L18 9.8 14.2 6zM20.7 7.3a1 1 0 0 0 0-1.4l-2.6-2.6a1 1 0 0 0-1.4 0L15 5l3.8 3.8z"/></svg>' };
+const PERSON='<svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg>';
+
+function card(id,x,y,hdr,icon,title){
+  return '<div class="mcard" id="'+id+'" style="left:'+x+'px;top:'+y+'px">'+
+    '<div class="phdr">'+(hdr?PERSON+'<span class="cnt">1</span>'+hdr:'<span style="color:#8a8398">Conditional rule</span>')+'</div>'+
+    '<div class="body"><span class="ico">'+IC[icon]+'</span><span class="dots">⋯</span>'+
+      '<div class="ttl" data-ttl></div><span class="edit">Edit</span></div></div>'; }
+
+const NAVTOP='<div class="mae-top"><span class="back">←</span><span class="wf" id="ml-title"></span><span class="draft">Draft (Unpublished)</span>'+
+  '<div class="right"><span class="appc"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>App Center</span>'+
+    '<span class="save">Save Draft</span>'+
+    '<span class="clab" id="ml-clab"></span><div class="seg" id="ml-seg"></div>'+
+    '<span class="pub off" id="ml-run"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>Run</span></div></div>';
+
+const SCENES='<div class="mae">'+NAVTOP+
+  '<div class="mae-canvas">'+
+    '<svg class="medges" viewBox="0 0 1280 670" preserveAspectRatio="none">'+
+      '<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="3" orient="auto"><path class="ar" d="M0 0 L7 3 L0 6 z"/></marker></defs>'+
+      '<line x1="640" y1="130" x2="640" y2="150" marker-end="url(#ar)"/>'+
+      '<path d="M640 260 L640 286" />'+
+      '<path id="e-true" class="et" d="M640 286 L434 286 L434 316" marker-end="url(#ar)"/>'+
+      '<path id="e-false" class="ef" d="M640 286 L846 286 L846 316" marker-end="url(#ar)"/>'+
+      '<path d="M434 426 L434 442 L640 442 L640 450" marker-end="url(#ar)"/>'+
+      '<path d="M846 426 L846 442 L640 442" />'+
+      '<line x1="640" y1="560" x2="640" y2="578" marker-end="url(#ar)"/></svg>'+
+    '<div class="mpill t" id="p-true" style="left:556px;top:274px">True</div>'+
+    '<div class="mpill f" id="p-false" style="left:660px;top:274px">False</div>'+
+    card("c-webform",506,22,"Applicant","form")+
+    card("c-branch",506,152,"","branch")+
+    card("c-idv",300,318,"Applicant","id")+
+    card("c-standard",712,318,"Applicant","db")+
+    card("c-esign",506,452,"Applicant","pen")+
+    '<div class="madd" style="left:623px;top:580px">+</div>'+
+    '<div class="mzoom"><span>⊕ 100%</span><span>⊖</span><span style="color:var(--tenant-accent)">Give Feedback</span></div>'+
+    '<div class="mpan">✋</div>'+
+    '<div class="mae-outcome" id="ml-outcome"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+      '<h2 id="ml-oh"></h2><p id="ml-op"></p><div class="route" id="ml-oroute"></div></div>'+
+  '</div></div>';
+
+DemoEngine.interactive({
+  meta:{ title:"Maestro workflow — interactive", productTag:"Maestro · Live", home:"index.html",
+    footnote:'<b>This one is real, and looks like the builder.</b> Choose the branch input, then Run — Maestro genuinely evaluates the condition and routes down the True or False path (the other dims). The outcome shows where it routed and the write-back. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
+  packs:{
+    banking:{ label:"Banking · Tally",
+      theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Maestro", role:"Orchestration engine", side:"system" },
+      title:"Account Opening Orchestration", sor:"nCino core",
+      clab:"If loan amount", options:["Under $250k","Over $250k"],
+      cards:{ "c-webform":"Collect Data with Web Forms","c-branch":"Is the loan amount over $250k?",
+        "c-idv":"Verify Someone's Identity (IAL2)","c-standard":"Run standard Data Verification","c-esign":"Send Documents for Signature" },
+      routes:{ high:"Routed down True → step-up IAL2 identity verification", low:"Routed down False → standard data verification" },
+      say:{ configure:{eyebrow:"Configure",title:"Set the branch condition",body:"Choose the loan amount. Maestro's conditional rule decides how the application is verified — then press Run."},
+        run:{eyebrow:"Run",title:"Maestro executes the workflow",body:"The web-form step runs first and Maestro routes automatically — no human hand-offs."},
+        branch:{eyebrow:"Conditional rule",title:"The rule evaluates your input",body:"Maestro checks the loan amount against the $250k threshold and picks the True or False branch."},
+        stepup:{eyebrow:"True branch",title:"Routed to step-up verification",body:"Over $250k — Maestro takes the True path to IAL2 identity verification. The False branch is skipped."},
+        standard:{eyebrow:"False branch",title:"Routed to standard verification",body:"Under the threshold — Maestro takes the False path to standard data verification. Step-up is skipped."},
+        sign:{eyebrow:"Execute",title:"Straight to signing",body:"Verification done, Maestro sends the documents for eSignature."},
+        complete:{eyebrow:"Outcome",title:"Orchestrated end to end",body:"One workflow ran the whole process and wrote the result back to the core."} },
+      outcome:{h:"Workflow complete"} },
+    healthcare:{ label:"Healthcare · Riverside",
+      theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Maestro", role:"Orchestration engine", side:"system" },
+      title:"Patient Intake Orchestration", sor:"Epic chart",
+      clab:"If patient is", options:["Returning","New patient"],
+      cards:{ "c-webform":"Collect Data with Web Forms","c-branch":"Is this a new patient?",
+        "c-idv":"Verify Someone's Identity (IAL2)","c-standard":"Run returning-patient fast-track","c-esign":"Send Consents for Signature" },
+      routes:{ high:"Routed down True → full IAL2 identity verification", low:"Routed down False → returning-patient fast-track" },
+      say:{ configure:{eyebrow:"Configure",title:"Set the branch condition",body:"Choose the patient status. Maestro's conditional rule decides the verification path — then press Run."},
+        run:{eyebrow:"Run",title:"Maestro executes the workflow",body:"The intake step runs first and Maestro routes automatically — no front-desk hand-offs."},
+        branch:{eyebrow:"Conditional rule",title:"The rule evaluates your input",body:"Maestro checks whether this is a new patient and picks the True or False branch."},
+        stepup:{eyebrow:"True branch",title:"Routed to full verification",body:"New patient — Maestro takes the True path to IAL2 identity verification. The False branch is skipped."},
+        standard:{eyebrow:"False branch",title:"Routed to fast-track",body:"Returning patient — Maestro takes the False path to a returning-patient fast-track. Full IDV is skipped."},
+        sign:{eyebrow:"Execute",title:"Straight to consent",body:"Verification done, Maestro sends the consents for eSignature."},
+        complete:{eyebrow:"Outcome",title:"Orchestrated end to end",body:"One workflow ran the whole intake and wrote the result back to the chart."} },
+      outcome:{h:"Workflow complete"} }
+  },
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#ml-title").textContent=p.title; $("#ml-clab").textContent=p.clab;
+    Object.entries(p.cards).forEach(([id,t])=>$("#"+id).querySelector("[data-ttl]").textContent=t);
+    root.querySelectorAll(".mcard").forEach(n=>n.classList.remove("active","done","dim"));
+    ["p-true","p-false","e-true","e-false"].forEach(id=>$("#"+id).classList.remove("dim"));
+    $("#e-true").style.opacity=$("#e-false").style.opacity=1;
+    $("#ml-outcome").classList.remove("on");
+    let choice=null, running=false;
+    $("#ml-seg").innerHTML=p.options.map((o,i)=>'<button data-i="'+i+'">'+o+'</button>').join("");
+    $("#ml-seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(running)return; choice=+b.dataset.i;
+      $("#ml-seg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+      $("#ml-run").classList.remove("off"); api.narrate("configure"); api.progress(0); });
+    const A=id=>{ const e=$("#"+id); e.classList.add("active"); e.classList.remove("dim"); };
+    const D=id=>{ const e=$("#"+id); e.classList.remove("active"); e.classList.add("done"); };
+    function run(){ if(running||choice===null)return; running=true; $("#ml-run").classList.add("off");
+      const high=choice===1;
+      [[0,()=>{A("c-webform");api.narrate("run");api.progress(1);}],
+       [800,()=>{D("c-webform");A("c-branch");api.narrate("branch");api.progress(2);}],
+       [2000,()=>{ D("c-branch");
+         if(high){ A("c-idv"); $("#c-standard").classList.add("dim"); $("#p-false").classList.add("dim"); $("#e-false").style.opacity=.3; api.narrate("stepup"); }
+         else { A("c-standard"); $("#c-idv").classList.add("dim"); $("#p-true").classList.add("dim"); $("#e-true").style.opacity=.3; api.narrate("standard"); } }],
+       [3300,()=>{ D(high?"c-idv":"c-standard"); A("c-esign"); api.narrate("sign"); api.progress(3); }],
+       [4300,()=>{ D("c-esign");
+         $("#ml-oh").textContent=p.outcome.h; $("#ml-op").textContent=p.say.complete.body;
+         $("#ml-oroute").textContent=(high?p.routes.high:p.routes.low)+" · written to "+p.sor;
+         $("#ml-outcome").classList.add("on"); api.done("complete"); running=false; }]
+      ].forEach(([t,fn])=>setTimeout(fn,t));
+    }
+    $("#ml-run").onclick=run;
+    api.narrate("configure"); api.progress(0);
+    if(api.auto){ api.after(700,()=>$("#ml-seg").querySelector('[data-i="1"]').click()); api.after(1500,run); }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Re-skinnable demo — Docusign Web Form intake</title>
+<style>
+  /* ===================================================================
+     PROOF OF THE FOUR-FILE CONTRACT (see docs/reskinnable-demo-spec.md)
+     STRUCTURE + TIMELINE = shared spine. PACKS.{banking,healthcare} =
+     content.json + theme.json. The stage replicates the real Docusign
+     signing/review web-form chrome (ref: flipbooks Web_Forms_Demo_Tally_Bank).
+     Cursor coords normalized to 1280x720 (matches assets/demo-stage).
+  =================================================================== */
+  :root{
+    --chrome-ink:#1A0A3A; --chrome-ink-2:#2A1257; --muted:#8A8398; --muted-2:#B9B3C7;
+    --tenant-accent:#2557D6; --tenant-accent-soft:#EAF0FE; --tenant-ink:#0B1F4D;
+    --font-brand:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    background:#0E0524;color:#fff;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1320px;margin:0 auto;padding:20px}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .topbar h1{font-size:15px;font-weight:600;color:#EDE7FB;display:flex;align-items:center;gap:10px}
+  .topbar h1 .tag{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--tenant-accent);background:rgba(255,255,255,.06);padding:4px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.10)}
+  .picker{display:flex;align-items:center;gap:8px}
+  .picker .lbl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted-2)}
+  .vbtn{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);
+    color:#D9D2EC;font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:9px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;transition:all .18s ease}
+  .vbtn:hover{background:rgba(255,255,255,.09)}
+  .vbtn .dot{width:9px;height:9px;border-radius:50%;background:var(--vd,#888)}
+  .vbtn.is-active{background:var(--tenant-accent-soft);border-color:transparent;color:var(--tenant-ink);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+
+  .shell{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
+  @media(max-width:880px){.shell{grid-template-columns:1fr}}
+
+  /* ---- left sidebar (narration) ---- */
+  .sidebar{background:linear-gradient(180deg,var(--chrome-ink),var(--chrome-ink-2));
+    border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 20px;min-height:560px;
+    display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .sidebar:before{content:"";position:absolute;inset:0;background:radial-gradient(120% 60% at 0% 0%,var(--tenant-accent-soft),transparent 42%);opacity:.10;pointer-events:none}
+  .brand-slot{display:flex;align-items:center;gap:10px;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,.10)}
+  .brand-slot .mark{width:30px;height:30px;border-radius:8px;background:var(--tenant-accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex:0 0 auto}
+  .brand-slot .bn{font-family:var(--font-brand);font-weight:700;font-size:16px;color:#fff;line-height:1.1}
+  .brand-slot .pb{font-size:10px;color:var(--muted-2)}
+  .persona{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+  .persona .avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex:0 0 auto;background:var(--tenant-accent)}
+  .persona[data-side="client"] .avatar{background:#6C4BD8}
+  .persona[data-side="advisor"] .avatar{background:var(--tenant-accent)}
+  .persona .nm{font-size:13.5px;font-weight:600;color:#fff;line-height:1.2}
+  .persona .rl{font-size:11.5px;color:var(--muted-2)}
+  .step-label{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tenant-accent);margin-bottom:9px}
+  .headline{font-size:21px;line-height:1.22;font-weight:600;color:#fff;margin-bottom:11px;letter-spacing:-.2px;min-height:52px}
+  .lede{font-size:13.5px;line-height:1.55;color:#C9C2DC}
+  .sb-spacer{flex:1 1 auto;min-height:18px}
+  .pips{display:flex;gap:6px;margin-bottom:13px}
+  .pip{height:4px;flex:1;border-radius:3px;background:rgba(255,255,255,.13);transition:background .25s}
+  .pip.on{background:var(--tenant-accent)} .pip.done{background:rgba(255,255,255,.42)}
+  .meta-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted-2);margin-bottom:12px}
+  .transport{display:flex;align-items:center;gap:8px}
+  .tbtn{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#E6E0F2;width:38px;height:34px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+  .tbtn:hover{background:rgba(255,255,255,.11)} .tbtn svg{width:16px;height:16px;fill:currentColor}
+  .tbtn.play{flex:1;width:auto;gap:8px;font:inherit;font-size:12.5px;font-weight:600}
+
+  /* ---- right stage ---- */
+  .stage-frame{background:#15082E;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;position:relative}
+  .stage-bar{display:flex;align-items:center;gap:8px;padding:0 4px 12px;color:var(--muted-2);font-size:11.5px}
+  .stage-bar .dots{display:flex;gap:6px} .stage-bar .dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .stage-bar .sor{margin-left:auto;font-size:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);padding:4px 10px;border-radius:20px}
+  .stage{position:relative;width:100%;aspect-ratio:1280/720;border-radius:10px;overflow:hidden;background:#E3E3E6}
+  .canvas{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left}
+  .scene{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease}
+  .scene.is-active{opacity:1}
+
+  /* ====== DOCUSIGN SIGNING/REVIEW CHROME (matches frame_001) ====== */
+  .ds{position:absolute;inset:0;background:#E3E3E6;font-family:Arial,Helvetica,sans-serif}
+  /* top signing bar — brand-colored (account branding) */
+  .ds-bar{position:absolute;top:0;left:0;right:0;height:34px;background:var(--tenant-accent);
+    display:flex;align-items:center;padding:0 18px;color:#fff;font-size:13px}
+  .ds-bar .msg{opacity:.96}
+  .ds-bar .acts{margin-left:auto;display:flex;align-items:center;gap:18px;font-size:12.5px;font-weight:600;letter-spacing:.2px}
+  .ds-bar .finish{background:#fff;color:var(--tenant-accent);padding:5px 18px;border-radius:3px;font-weight:700}
+  .ds-bar .oa{display:flex;align-items:center;gap:5px}
+  /* toolbar */
+  .ds-tools{position:absolute;top:34px;left:0;right:0;height:30px;background:#ECECEC;border-bottom:1px solid #D6D6D6;
+    display:flex;align-items:center;justify-content:center;gap:20px}
+  .ds-tools svg{width:15px;height:15px;fill:#5b5b5b}
+  .ds-tools .right{position:absolute;right:14px;display:flex;gap:14px}
+  /* grey canvas + document page */
+  .ds-canvas{position:absolute;top:64px;left:0;right:0;bottom:22px;overflow:hidden}
+  .ds-scrollbar{position:absolute;top:64px;right:0;bottom:22px;width:14px;background:#F1F1F1;border-left:1px solid #DADADA}
+  .ds-scrollbar:after{content:"";position:absolute;top:6px;left:3px;width:8px;height:120px;border-radius:4px;background:#C2C2C2}
+  /* START tab */
+  .ds-start{position:absolute;left:248px;top:92px;height:22px;display:flex;align-items:center;z-index:6;transition:opacity .3s,transform .3s}
+  .ds-start .pill{background:#fff;border:1px solid var(--tenant-accent);color:var(--tenant-accent);font-weight:700;font-size:11px;letter-spacing:.5px;padding:3px 12px;border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+  .ds-start .pt{width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:8px solid var(--tenant-accent)}
+  .ds.started .ds-start{opacity:0;transform:translateX(-8px);pointer-events:none}
+  /* the document */
+  .doc{position:absolute;left:333px;top:74px;width:604px;background:#fff;border:1px solid #C8C8C8;box-shadow:0 1px 6px rgba(0,0,0,.14);padding:14px 30px 40px}
+  .doc-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .doc-eid{font-size:9px;color:#7a7a7a;font-family:'Courier New',monospace;letter-spacing:.2px;padding-top:4px}
+  .doc-demo{font-size:8px;color:#D62828;text-align:right;line-height:1.35}
+  .doc-logo{text-align:center;margin:10px 0 18px}
+  .doc-logo .lw{font-size:38px;font-weight:700;color:var(--tenant-accent);letter-spacing:-1px;display:inline-block;vertical-align:middle;font-family:Georgia,'Times New Roman',serif}
+  .doc-logo .sub{font-size:20px;color:#7a7a7a;border-left:1px solid #bbb;padding-left:10px;margin-left:10px;display:inline-block;vertical-align:middle}
+  .doc-radios{display:flex;gap:26px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .doc-radios .r{display:flex;align-items:center;gap:7px;font-size:12px;color:#333}
+  .doc-radios .rc{width:13px;height:13px;border:1.5px solid #D62828;border-radius:50%;flex:0 0 auto}
+  .doc-radios .r.sel .rc{border-color:var(--tenant-accent);box-shadow:inset 0 0 0 3px var(--tenant-accent)}
+  /* section + table */
+  .sec{background:var(--tenant-accent);color:#fff;font-weight:700;font-size:12.5px;padding:5px 12px;margin:18px 0 0}
+  .tbl{border:1px solid #9C9CA2;border-top:none}
+  .trow{display:flex;border-top:1px solid #C9C9CF;min-height:23px}
+  .trow:first-child{border-top:none}
+  .tlab{width:225px;flex:0 0 auto;border-right:1px solid #C9C9CF;padding:4px 9px;font-size:11.5px;color:#222;display:flex;align-items:center}
+  .tval{flex:1;padding:3px 7px;display:flex;align-items:center}
+  .box{min-height:17px;width:100%;font-size:11.5px;color:#1a1a26;display:flex;align-items:center;padding:0 5px}
+  .box.req{border:2px solid #E11D2A}
+  .box.req.narrow{width:78px;flex:0 0 78px}
+  .box.filled{border:1px solid transparent;color:#1a1a26}
+  .box.just{box-shadow:0 0 0 3px var(--tenant-accent-soft);border-color:var(--tenant-accent)}
+  .box .chev{margin-left:auto;color:#888;font-size:10px}
+  .box .ph{color:#9a9aa2}
+
+  .doc-foot{position:absolute;bottom:0;left:0;right:0;height:22px;background:#fff;border-top:1px solid #E3E3E3;
+    display:flex;align-items:center;padding:0 14px;font-size:10px;color:#8a8a8a}
+  .doc-foot .pb b{color:#444;font-weight:700}
+  .doc-foot .rt{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+  /* --- handoff scene --- */
+  .ho{position:absolute;inset:0;background:linear-gradient(160deg,#fff,var(--tenant-accent-soft) 130%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-brand);text-align:center;padding:0 60px}
+  .ho .chk{width:84px;height:84px;border-radius:50%;background:var(--tenant-accent);display:flex;align-items:center;justify-content:center;margin-bottom:26px;box-shadow:0 12px 34px var(--tenant-accent-soft)}
+  .ho .chk svg{width:42px;height:42px;stroke:#fff;stroke-width:3;fill:none}
+  .ho h2{font-size:30px;font-weight:600;color:#1a1a26;margin-bottom:14px;letter-spacing:-.3px}
+  .ho p{font-size:16px;color:#555;max-width:560px;line-height:1.5;margin-bottom:30px}
+  .ho .chain{display:flex;align-items:center;gap:14px}
+  .ho .node{background:#fff;border:1px solid #E5E5EC;border-radius:11px;padding:14px 20px;font-size:14px;font-weight:600;color:#333;box-shadow:0 6px 18px rgba(20,10,50,.06)}
+  .ho .node.lead{background:var(--tenant-accent);color:#fff;border-color:transparent}
+  .ho .arr{color:var(--tenant-accent);font-size:20px;font-weight:700}
+
+  /* cursor */
+  .cursor{position:absolute;width:24px;height:24px;left:0;top:0;pointer-events:none;z-index:50;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));opacity:0}
+  .cursor.show{opacity:1}
+  .cursor svg{width:100%;height:100%}
+  .cursor .ring{position:absolute;left:-10px;top:-10px;width:44px;height:44px;border-radius:50%;border:2px solid var(--tenant-accent);opacity:0;transform:scale(.4)}
+  .cursor.click .ring{animation:clk .5s ease-out}
+  @keyframes clk{0%{opacity:.7;transform:scale(.4)}100%{opacity:0;transform:scale(1.15)}}
+
+  .footnote{margin-top:16px;font-size:12px;color:var(--muted-2);line-height:1.6;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 18px}
+  .footnote b{color:#D9D2EC} .footnote code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;font-size:11.5px;color:#E8C9A0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <h1><span class="tag" id="tag">Web Forms intake</span> Re-skinnable demo block — one spine, two verticals</h1>
+    <div class="picker">
+      <span class="lbl">Vertical</span>
+      <button class="vbtn is-active" data-pack="banking" style="--vd:#2557D6"><span class="dot"></span> Banking · Tally</button>
+      <button class="vbtn" data-pack="healthcare" style="--vd:#0E8C7F"><span class="dot"></span> Healthcare · Riverside</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <!-- LEFT: narration sidebar -->
+    <aside class="sidebar">
+      <div class="brand-slot">
+        <div class="mark" id="sb-mark">T</div>
+        <div><div class="bn" id="sb-brand">Tally Bank</div><div class="pb" id="sb-pb">Powered by Docusign</div></div>
+      </div>
+      <div class="persona" id="sb-persona" data-side="advisor">
+        <div class="avatar" id="sb-av">SC</div>
+        <div><div class="nm" id="sb-nm">Sarah Connelly</div><div class="rl" id="sb-rl">Relationship Manager</div></div>
+      </div>
+      <div class="step-label" id="sb-step">WEB FORMS · 1 / 5</div>
+      <div class="headline" id="sb-head">Sam starts his application</div>
+      <div class="lede" id="sb-lede"><p>A branded Docusign web form, generated from the bank's PDF in one click.</p></div>
+      <div class="sb-spacer"></div>
+      <div class="pips" id="sb-pips"></div>
+      <div class="meta-row"><span id="sb-counter">Beat 1 of 5</span><span id="sb-timer">0:00 / 0:00</span></div>
+      <div class="transport">
+        <button class="tbtn" id="btn-restart" title="Restart"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
+        <button class="tbtn play" id="btn-play"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="6 4 20 12 6 20 6 4"/></svg><span id="play-lbl">Play</span></button>
+      </div>
+    </aside>
+
+    <!-- RIGHT: stage -->
+    <div class="stage-frame">
+      <div class="stage-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span id="stage-url">app.docusign.com — Tally Bank</span>
+        <span class="sor" id="stage-sor">System of record · nCino</span>
+      </div>
+      <div class="stage" id="stage">
+        <div class="canvas" id="canvas">
+
+          <!-- SCENE: docusign web form (signing/review) -->
+          <section class="scene is-active" data-scene="form">
+            <div class="ds" id="ds">
+              <div class="ds-bar">
+                <span class="msg">Please review the documents below.</span>
+                <span class="acts">
+                  <span class="finish">FINISH</span>
+                  <span>FINISH LATER</span>
+                  <span class="oa">OTHER ACTIONS <svg width="9" height="9" viewBox="0 0 10 10" fill="#fff"><path d="M0 2l5 6 5-6z"/></svg></span>
+                </span>
+              </div>
+              <div class="ds-tools">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM7 9h5v1H7z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM7 9h5v1H7z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-5h8v5z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M14 4l-1-1H5v18h2v-7h5l1 1h6V5h-5z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 17h-2v-2h2v2zm1.8-7.2l-.9.9c-.7.7-.9 1.1-.9 2.3h-2v-.5c0-1.2.5-1.8 1.2-2.5l1.2-1.2a2 2 0 1 0-3.4-1.4H8a4 4 0 1 1 6.8 2.9z"/></svg>
+                <span class="right"><svg viewBox="0 0 24 24"><path d="M6 2h9l3 3v17H6z" fill="none" stroke="#5b5b5b" stroke-width="1.6"/></svg></span>
+              </div>
+
+              <div class="ds-canvas">
+                <div class="ds-start"><span class="pill">START</span><span class="pt"></span></div>
+                <div class="doc">
+                  <div class="doc-meta">
+                    <div class="doc-eid">Docusign Envelope ID: 4F5BAA69-8285-480E-B6EF-15A3B46297FA</div>
+                    <div class="doc-demo">DEMONSTRATION DOCUMENT ONLY<br>PROVIDED BY DOCUSIGN ONLINE SIGNING SERVICE<br>999 3rd Ave, Suite 1700 • Seattle • Washington 98104 • (206) 219-0200<br>www.docusign.com</div>
+                  </div>
+                  <div class="doc-logo"><span class="lw" id="doc-lw">Tally</span><span class="sub" id="doc-sub">Bank</span></div>
+                  <div class="doc-radios" id="doc-radios"></div>
+                  <div class="sec" id="doc-sec">Primary Account Holder</div>
+                  <div class="tbl" id="doc-rows"></div>
+                </div>
+                <div class="doc-foot">
+                  <span class="pb">Powered by <b>Docusign</b></span>
+                  <span class="rt"><span>Change Language - English (US) ▾</span><span>|  Copyright © 2026 Docusign Inc.|  v2R</span></span>
+                </div>
+              </div>
+              <div class="ds-scrollbar"></div>
+            </div>
+          </section>
+
+          <!-- SCENE: handoff -->
+          <section class="scene" data-scene="handoff">
+            <div class="ho">
+              <div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>
+              <h2 id="ho-h">Straight into the agreement</h2>
+              <p id="ho-p">Clean, validated data hands off to eSignature and writes back to the core.</p>
+              <div class="chain">
+                <div class="node">Web Form</div><span class="arr">&rarr;</span>
+                <div class="node lead">eSignature</div><span class="arr">&rarr;</span>
+                <div class="node" id="ho-sor">nCino core</div>
+              </div>
+            </div>
+          </section>
+
+          <div class="cursor" id="cursor">
+            <div class="ring"></div>
+            <svg viewBox="0 0 24 24"><path d="M4 2 L4 18 L8.5 14 L11.5 21 L14 20 L11 13 L17 13 Z" fill="#fff" stroke="#130032" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <b>Faithful Docusign chrome, re-skinnable content.</b> The signing UI (top bar, toolbar, START tab, envelope ID,
+    demo notice, footer) and the cursor path + beats are the shared spine. Switching <b>Banking&nbsp;↔&nbsp;Healthcare</b>
+    swaps only <code>content.json</code> (logo, copy, persona, field labels/values, radios, narration) and
+    <code>theme.json</code> (accent color). Deep-links: <code>?pack=healthcare</code>, <code>?t=&lt;seconds&gt;</code>.
+  </div>
+</div>
+
+<script>
+/* ===== SHARED SPINE ================================================== */
+const TIMELINE = {
+  totalDuration: 34,
+  beats: [
+    { t: 0,  key:"open",     sceneId:"form" },
+    { t: 7,  key:"prefill",  sceneId:"form" },
+    { t: 14, key:"validate", sceneId:"form" },
+    { t: 20, key:"complete", sceneId:"form" },
+    { t: 27, key:"submit",   sceneId:"handoff" }
+  ],
+  // x/y normalized to 1280x720 (read off the real frame_001 layout)
+  cursorTrack: [
+    { t: 1.5, x: 470, y: 360, action:"move" },
+    { t: 6,   x: 300, y: 103, action:"move" },
+    { t: 7,   x: 300, y: 103, action:"click", sayKey:"prefill", fill:"prefill", start:true },
+    { t: 13,  x: 760, y: 366, action:"move" },
+    { t: 14,  x: 760, y: 366, action:"click", sayKey:"validate", fill:"required" },
+    { t: 19,  x: 730, y: 583, action:"move" },
+    { t: 20,  x: 730, y: 583, action:"click", sayKey:"complete", fill:"dropdown" },
+    { t: 25,  x: 888, y: 17,  action:"move" },
+    { t: 27,  x: 888, y: 17,  action:"click", sayKey:"submit" }
+  ]
+};
+const STRUCTURE = {
+  fieldOrder: ["fullName","email","phone","ssn","dob","marital","dependents"],
+  fillGroups: {
+    prefill:  ["fullName","email","phone","dob","marital"],
+    required: ["ssn"],
+    dropdown: ["dependents"]
+  }
+};
+
+/* ===== THE SKIN (content.json + theme.json per vertical) ============= */
+const PACKS = {
+  banking: {
+    theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+    brand:{ name:"Tally Bank", logoText:"Tally", logoSub:"Bank", mark:"T", poweredBy:"Powered by Docusign" },
+    url:"app.docusign.com — Tally Bank",
+    pointSolution:"Web Forms intake",
+    sorBadge:"System of record · nCino", sorNode:"nCino core",
+    persona:{ name:"Sarah Connelly", role:"Relationship Manager", side:"advisor" },
+    sectionTitle:"Primary Account Holder",
+    radios:["Individual","Joint Tenants","Tenants in Common","Community Property"],
+    fields:{
+      fullName:{label:"Full Name", val:"Sam Smith", req:true, narrow:true},
+      email:{label:"Email Address", val:"sam.smith@email.com", req:true},
+      phone:{label:"Phone Number", val:"(415) 555-0142", req:true},
+      ssn:{label:"SSN / TIN#", val:"•••-••-1234", req:true},
+      dob:{label:"Date of Birth", val:"11/15/1983"},
+      marital:{label:"Marital Status", val:"Married"},
+      dependents:{label:"# of Dependents", val:"1", req:true, dropdown:true}
+    },
+    say:{
+      open:    {eyebrow:"Web Forms", title:"Sam opens his application",
+                body:"A Docusign web form, branded for Tally and generated from the bank's account-opening PDF in one click."},
+      prefill: {eyebrow:"Docusign Iris", title:"Known fields pre-fill",
+                body:"Sam clicks START and his details flow in from the bank's records. No re-keying, fewer drop-offs."},
+      validate:{eyebrow:"Validation", title:"Only the gap is flagged",
+                body:"The required SSN field stays outlined in red until it's complete — Sam fills just that one."},
+      complete:{eyebrow:"Guided intake", title:"Smart fields finish the form",
+                body:"Dropdowns and conditional logic keep the rest accurate, then the form validates clean."},
+      submit:  {eyebrow:"Handoff", title:"FINISH hands off to signing",
+                body:"Clean, validated data flows to eSignature and writes back to nCino."}
+    },
+    handoff:{ h:"Straight into the agreement",
+              p:"Clean, validated data hands off to eSignature and writes back to the nCino core — no re-keying." }
+  },
+
+  healthcare: {
+    theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+    brand:{ name:"Riverside Health", logoText:"Riverside", logoSub:"Health", mark:"R", poweredBy:"Powered by Docusign" },
+    url:"app.docusign.com — Riverside Health",
+    pointSolution:"Web Forms intake",
+    sorBadge:"System of record · Epic", sorNode:"Epic chart",
+    persona:{ name:"Jordan Kim", role:"New Patient", side:"client" },
+    sectionTitle:"Patient Information",
+    radios:["Self","Spouse","Dependent","Other"],
+    fields:{
+      fullName:{label:"Patient Full Name", val:"Jordan Kim", req:true, narrow:true},
+      email:{label:"Email Address", val:"jordan.kim@email.com", req:true},
+      phone:{label:"Phone Number", val:"(415) 555-0199", req:true},
+      ssn:{label:"Insurance Member ID", val:"UNH-4471 2208", req:true},
+      dob:{label:"Date of Birth", val:"03/22/1991"},
+      marital:{label:"Primary Care Provider", val:"Dr. A. Reyes"},
+      dependents:{label:"Reason for Visit", val:"Annual physical", req:true, dropdown:true}
+    },
+    say:{
+      open:    {eyebrow:"Web Forms", title:"Jordan opens patient intake",
+                body:"A Docusign web form, branded for Riverside and generated from the clinic's intake PDF in one click."},
+      prefill: {eyebrow:"Docusign Iris", title:"Known details pre-fill",
+                body:"Jordan clicks START and returning-patient data flows in. Less typing on a phone in the waiting room."},
+      validate:{eyebrow:"Validation", title:"Only the gap is flagged",
+                body:"The required insurance member ID stays outlined in red until complete — Jordan fills just that one."},
+      complete:{eyebrow:"Guided intake", title:"Conditional questions adapt",
+                body:"Visit-reason and care fields branch on earlier answers, then the form validates clean."},
+      submit:  {eyebrow:"Handoff", title:"FINISH hands off to consent",
+                body:"Clean intake flows to eSignature consents and writes back to Epic."}
+    },
+    handoff:{ h:"Straight into consent & care",
+              p:"Clean, validated intake hands off to eSignature consents and writes back to the Epic chart — no clipboards." }
+  }
+};
+
+/* ===== PLAYER ======================================================== */
+const $ = s => document.querySelector(s);
+const Q = new URLSearchParams(location.search);
+let pack = (Q.get("pack")==="healthcare") ? "healthcare" : "banking";
+let t = 0, playing = false, raf = 0, last = 0;
+const DUR = TIMELINE.totalDuration;
+
+function renderRadios(){
+  const p=PACKS[pack], el=$("#doc-radios"); el.innerHTML="";
+  p.radios.forEach((r,i)=>{
+    const d=document.createElement("div"); d.className="r"+(i===0?" sel-target":"");
+    d.innerHTML=`<span class="rc"></span>${r}`; el.appendChild(d);
+  });
+}
+function renderFields(){
+  const p=PACKS[pack], rows=$("#doc-rows"); rows.innerHTML="";
+  STRUCTURE.fieldOrder.forEach(id=>{
+    const f=p.fields[id];
+    const r=document.createElement("div"); r.className="trow";
+    const boxCls = (f.req?"req":"") + (f.narrow?" narrow":"") + (f.dropdown?" dd":"");
+    r.innerHTML=`<div class="tlab">${f.label}</div><div class="tval">
+      <div class="box ${boxCls}" data-field="${id}">${f.dropdown?'<span class="ph">-- select --</span><span class="chev">▾</span>':''}</div></div>`;
+    rows.appendChild(r);
+  });
+  applyFillsUpTo(t);
+}
+function applyPack(){
+  const p=PACKS[pack], root=document.documentElement;
+  Object.entries(p.theme).forEach(([k,v])=>root.style.setProperty(k,v));
+  $("#tag").textContent=p.pointSolution;
+  $("#sb-mark").textContent=p.brand.mark; $("#sb-brand").textContent=p.brand.name; $("#sb-pb").textContent=p.brand.poweredBy;
+  $("#sb-persona").dataset.side=p.persona.side;
+  $("#sb-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+  $("#sb-nm").textContent=p.persona.name; $("#sb-rl").textContent=p.persona.role;
+  $("#stage-url").textContent=p.url; $("#stage-sor").textContent=p.sorBadge;
+  $("#doc-lw").textContent=p.brand.logoText; $("#doc-sub").textContent=p.brand.logoSub;
+  $("#doc-sec").textContent=p.sectionTitle;
+  $("#ho-h").textContent=p.handoff.h; $("#ho-p").textContent=p.handoff.p; $("#ho-sor").textContent=p.sorNode;
+  document.querySelectorAll(".vbtn").forEach(b=>b.classList.toggle("is-active",b.dataset.pack===pack));
+  renderRadios(); renderFields(); paintNarration(); paintScene();
+}
+
+function applyFillsUpTo(time){
+  const p=PACKS[pack];
+  // reset all value boxes to unfilled (required = red empty)
+  document.querySelectorAll(".box").forEach(b=>{
+    const f=p.fields[b.dataset.field]; if(!f)return;
+    b.classList.remove("filled","just");
+    if(f.req) b.classList.add("req"); else b.classList.remove("req");
+    b.innerHTML = f.dropdown ? '<span class="ph">-- select --</span><span class="chev">▾</span>' : '';
+  });
+  // started state (START tab hides after click)
+  const started = TIMELINE.cursorTrack.some(c=>c.start && time>=c.t);
+  $("#ds").classList.toggle("started", started);
+  // apply each fill event whose time has passed
+  TIMELINE.cursorTrack.forEach(c=>{
+    if(c.fill && time>=c.t){
+      STRUCTURE.fillGroups[c.fill].forEach(id=>{
+        const el=document.querySelector(`.box[data-field="${id}"]`); if(!el)return;
+        const f=p.fields[id];
+        el.classList.remove("req"); el.classList.add("filled");
+        el.innerHTML = f.val + (f.dropdown?'<span class="chev">▾</span>':'');
+      });
+    }
+  });
+  // radio selects first option once started
+  document.querySelectorAll(".doc-radios .r").forEach((r,i)=>r.classList.toggle("sel", started && i===0));
+}
+
+let _lastNarr="";
+function paintNarration(){
+  const p=PACKS[pack]; let say=null;
+  for(let i=TIMELINE.cursorTrack.length-1;i>=0;i--){
+    const c=TIMELINE.cursorTrack[i];
+    if(c.t<=t+0.02 && c.sayKey){ say=p.say[c.sayKey]; break; }
+  }
+  if(!say){ const b=currentBeat(); if(b) say=p.say[b.key]; }
+  if(!say)return;
+  const bi=currentBeatIdx();
+  $("#sb-step").textContent=(say.eyebrow||"DEMO").toUpperCase()+" · "+(bi+1)+" / "+TIMELINE.beats.length;
+  $("#sb-head").textContent=say.title||"";
+  $("#sb-lede").innerHTML="<p>"+(say.body||"")+"</p>";
+}
+function currentBeatIdx(){ let idx=0; TIMELINE.beats.forEach((b,i)=>{if(b.t<=t+0.02)idx=i;}); return idx; }
+function currentBeat(){ return TIMELINE.beats[currentBeatIdx()]; }
+function paintScene(){ const b=currentBeat(); if(!b)return;
+  document.querySelectorAll(".scene").forEach(s=>s.classList.toggle("is-active",s.dataset.scene===b.sceneId)); }
+
+let lastClickT=-1;
+function paintCursor(){
+  const tr=TIMELINE.cursorTrack, cur=$("#cursor");
+  let prev=null,next=null;
+  for(let i=0;i<tr.length;i++){ if(tr[i].t<=t)prev=tr[i]; else {next=tr[i];break;} }
+  if(!prev){cur.classList.remove("show");return;}
+  let x=prev.x,y=prev.y;
+  if(next){
+    const moveDur=Math.min(next.t-prev.t,0.55), moveStart=next.t-moveDur;
+    if(t>moveStart){ let k=Math.min(1,(t-moveStart)/Math.max(.05,moveDur)); k=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2; x=prev.x+(next.x-prev.x)*k; y=prev.y+(next.y-prev.y)*k; }
+  }
+  cur.classList.add("show"); cur.style.left=x+"px"; cur.style.top=y+"px";
+  if(prev.action==="click" && Math.abs(t-prev.t)<0.18 && lastClickT!==prev.t){
+    lastClickT=prev.t; cur.classList.remove("click"); void cur.offsetWidth; cur.classList.add("click");
+  }
+}
+function paintMeta(){
+  const pips=$("#sb-pips");
+  if(pips.children.length!==TIMELINE.beats.length){ pips.innerHTML=""; TIMELINE.beats.forEach(()=>pips.appendChild(Object.assign(document.createElement("span"),{className:"pip"}))); }
+  const idx=currentBeatIdx();
+  [...pips.children].forEach((n,i)=>{n.className="pip"+(i<idx?" done":i===idx?" on":"");});
+  $("#sb-counter").textContent="Beat "+(idx+1)+" of "+TIMELINE.beats.length;
+  $("#sb-timer").textContent=fmt(t)+" / "+fmt(DUR);
+}
+function fmt(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function paintAll(){ paintCursor(); paintNarration(); paintScene(); applyFillsUpTo(t); paintMeta(); }
+
+function step(now){ if(!playing)return; if(!last)last=now; t+=(now-last)/1000; last=now;
+  if(t>=DUR){ t=DUR; playing=false; setPlayUI(); paintAll(); return; } paintAll(); raf=requestAnimationFrame(step); }
+function play(){ if(playing)return; if(t>=DUR)t=0; playing=true; last=0; setPlayUI(); raf=requestAnimationFrame(step); }
+function pause(){ playing=false; cancelAnimationFrame(raf); last=0; setPlayUI(); }
+function restart(){ t=0; paintAll(); if(!playing)play(); }
+function setPlayUI(){ $("#play-lbl").textContent=playing?"Pause":"Play";
+  $("#play-icon").innerHTML=playing?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="6 4 20 12 6 20 6 4"/>'; }
+function rescale(){ const st=$("#stage"); $("#canvas").style.transform="scale("+(st.clientWidth/1280)+")"; }
+
+document.querySelectorAll(".vbtn").forEach(b=>b.addEventListener("click",()=>{ pack=b.dataset.pack; applyPack(); }));
+$("#btn-play").addEventListener("click",()=>playing?pause():play());
+$("#btn-restart").addEventListener("click",restart);
+window.addEventListener("resize",rescale);
+document.addEventListener("keydown",e=>{ if(e.code==="Space"){e.preventDefault();playing?pause():play();} });
+
+applyPack(); rescale(); paintAll();
+if(Q.has("t")){ t=Math.max(0,Math.min(DUR,parseFloat(Q.get("t"))||0)); paintAll(); }
+else { setTimeout(()=>play(), 700); }
+</script>
+</body>
+</html>

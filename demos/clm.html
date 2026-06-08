@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLM — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/clm.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const RAILIC={ info:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>',
+  attr:'<svg viewBox="0 0 24 24"><path d="M3 5h18v2H3zM3 11h18v2H3zM3 17h12v2H3z"/></svg>',
+  ana:'<svg viewBox="0 0 24 24"><path d="M4 20V10h3v10zM10.5 20V4h3v16zM17 20v-7h3v7z"/></svg>',
+  task:'<svg viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.4-1.4z"/></svg>',
+  act:'<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 8.9 10H19a7 7 0 1 1-6-8V8l5-3-5-3z"/></svg>',
+  obl:'<svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5zM14 4v4h4"/></svg>' };
+function rail(ic,lbl,on){ return '<div class="r'+(on?' on':'')+'">'+RAILIC[ic]+'<span>'+lbl+'</span></div>'; }
+const OPTS=["Unselected","Send for External Review","Send to Outside Counsel","Send to Finance for Approval","Choose Next Approver","Send for Signature","Cancel Contract Review"];
+
+const SCENES='<section class="de-scene is-active" data-scene="clm"><div class="clm">'+
+  '<div class="clm-top"><div class="crumb"><b style="color:#111">Docusign</b><span class="sep">›</span>Agreements<span class="sep">›</span><span id="clm-acct"></span><span class="sep">›</span><span class="cur" id="clm-doc"></span><span class="ver">(Version 2 · Current)</span></div>'+
+    '<div class="acts"><span class="b">Download</span><span class="b">Edit</span><span class="b pri">Send</span><span class="b">More ▾</span></div></div>'+
+  '<div class="clm-body">'+
+    '<div class="clm-rail">'+rail("info","Info")+rail("attr","Attributes")+rail("ana","AI")+rail("task","Tasks",1)+rail("act","Activity")+rail("obl","Obligations")+'</div>'+
+    '<div class="clm-task"><h3>Please make a choice</h3>'+
+      '<div class="lbl">Instructions</div><p>Review the contract and route it with a workflow decision.</p>'+
+      '<div class="lbl">Choose one of these options</div>'+
+      '<div class="clm-sel" id="clm-sel"><span id="clm-selval">Unselected</span><span class="chev">▾</span>'+
+        '<div class="clm-drop" id="clm-drop">'+OPTS.slice(1).map(o=>'<div class="o" data-opt="'+o+'">'+o+'</div>').join("")+'</div></div>'+
+      '<div class="clm-extract" id="clm-extract"><div class="h">✦ AI Extractions</div>'+
+        '<div class="row"><span class="k">Total spend</span><span class="v" id="clm-xspend"></span></div>'+
+        '<div class="row"><span class="k">Effective</span><span class="v" id="clm-xeff"></span></div>'+
+        '<div class="row"><span class="k">Expiration</span><span class="v" id="clm-xexp"></span></div></div>'+
+      '<div class="clm-complete" id="clm-complete">Complete</div></div>'+
+    '<div class="clm-doc"><div class="clm-docbar"><span>Compare with: Version 1</span><span class="pg">Page 1 / 10</span></div>'+
+      '<div class="clm-page"><h2 id="clm-title"></h2>'+
+        '<h4>1. Introduction</h4><p id="clm-p1"></p>'+
+        '<p>1.1 Total Agreement Spend <span class="clm-x" id="clm-x1"></span>.</p>'+
+        '<h4>2. Delivery &amp; Grant of Services</h4>'+
+        '<p>2.1 Delivery. Supplier will deliver the products and services to Buyer in accordance with the delivery terms set forth in the Order, if any. Otherwise, Supplier will deliver within ten (10) days of the effective date.</p>'+
+        '<p>2.2 Right to Use. Supplier grants and Buyer accepts a perpetual, fully paid-up, irrevocable, nonexclusive, transferable, worldwide right and license to use the products set forth in Schedule A.</p>'+
+        '<p>2.3 Authorized Users. The rights and licenses granted under this Agreement extend to Buyer’s affiliates and customers in the course of using Buyer products or services.</p></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">CLM workflow</div><span class="arr">&rarr;</span><div class="node lead">Routed for signature</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"CLM (Contract Lifecycle)", productTag:"CLM", home:"index.html",
+    footnote:'<b>Faithful Docusign CLM, re-skinnable content.</b> The lifecycle workspace — icon rail, workflow Task panel, AI Extractions and document viewer — is the shared spine. Switching vertical swaps the agreement, the parties, the extracted metadata and narration.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"clm"},{t:6,key:"extract",sceneId:"clm"},{t:11,key:"decide",sceneId:"clm"},{t:17,key:"complete",sceneId:"clm"},{t:22,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:700,y:300,action:"move"},
+      {t:6,target:"#clm-extract",action:"move",sayKey:"extract"},
+      {t:11,target:"#clm-sel",action:"click",sayKey:"decide"},
+      {t:15,target:"#clm-optsign",action:"click",sayKey:"decide2"},
+      {t:18,target:"#clm-complete",action:"click",sayKey:"complete"},
+      {t:22,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"atlas.springcm.com — CLM", sorBadge:"System of record · nCino",
+      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"nCino core",
+      acct:"Exterran Corporation", doc:"Purchase Agreement — Exterran Corp", title:"STANDARD PURCHASING AGREEMENT",
+      p1:"This Purchasing Agreement is made between Tally Bank, a Delaware corporation (“Buyer”), and Exterran Corporation (“Supplier”), with the Agreement effective November 30, 2026 and expiration November 29, 2029.",
+      spend:"$46,000.00", eff:"Nov 30, 2026", exp:"Nov 29, 2029",
+      say:{ open:{eyebrow:"CLM",title:"The full contract lifecycle, in one place",body:"The Exterran purchase agreement sits in CLM — version-controlled, with workflow tasks and obligations tracked."},
+        extract:{eyebrow:"AI Extractions",title:"Key terms pulled automatically",body:"Iris reads the document and extracts spend and dates — no manual metadata entry."},
+        decide:{eyebrow:"Workflow",title:"A guided review decision",body:"Priya's task: choose how to route the contract. CLM enforces the right path."},
+        decide2:{eyebrow:"Route",title:"Send for signature",body:"With review complete, she routes it straight to signature."},
+        complete:{eyebrow:"Complete",title:"The workflow advances",body:"Completing the task moves the agreement to the next step — every action logged and auditable."},
+        handoff:{eyebrow:"Closed loop",title:"Lifecycle, end to end",body:"Routed for signature and written back — the obligations clock starts automatically."} },
+      handoff:{h:"Routed through the lifecycle",p:"The Exterran agreement moved through CLM review to signature — extracted terms and obligations written back to nCino."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"medline.springcm.com — CLM", sorBadge:"System of record · Epic",
+      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"Epic chart",
+      acct:"Medline Industries", doc:"Supply Agreement — Medline", title:"MEDICAL SUPPLY AGREEMENT",
+      p1:"This Supply Agreement is made between Riverside Health (“Buyer”) and Medline Industries (“Supplier”), with the Agreement effective November 30, 2026 and expiration November 29, 2029.",
+      spend:"$84,000.00", eff:"Nov 30, 2026", exp:"Nov 29, 2029",
+      say:{ open:{eyebrow:"CLM",title:"The full contract lifecycle, in one place",body:"The Medline supply agreement sits in CLM — version-controlled, with workflow tasks and obligations tracked."},
+        extract:{eyebrow:"AI Extractions",title:"Key terms pulled automatically",body:"Iris reads the document and extracts spend and dates — no manual metadata entry."},
+        decide:{eyebrow:"Workflow",title:"A guided review decision",body:"Priya's task: choose how to route the contract. CLM enforces the right path."},
+        decide2:{eyebrow:"Route",title:"Send for signature",body:"With review complete, she routes it straight to signature."},
+        complete:{eyebrow:"Complete",title:"The workflow advances",body:"Completing the task moves the agreement to the next step — every action logged and auditable."},
+        handoff:{eyebrow:"Closed loop",title:"Lifecycle, end to end",body:"Routed for signature and written back — the obligations clock starts automatically."} },
+      handoff:{h:"Routed through the lifecycle",p:"The Medline agreement moved through CLM review to signature — extracted terms and obligations written back to Epic."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#clm-acct").textContent=p.acct; root.querySelector("#clm-doc").textContent=p.doc;
+    root.querySelector("#clm-title").textContent=p.title; root.querySelector("#clm-p1").textContent=p.p1;
+    root.querySelector("#clm-x1").textContent=p.spend; root.querySelector("#clm-xspend").textContent=p.spend;
+    root.querySelector("#clm-xeff").textContent=p.eff; root.querySelector("#clm-xexp").textContent=p.exp;
+    // build dropdown with an id on the "Send for Signature" option
+    root.querySelector("#clm-drop").innerHTML = OPTS.slice(1).map(o=>'<div class="o"'+(o==="Send for Signature"?' id="clm-optsign"':'')+' data-opt="'+o+'">'+o+'</div>').join("");
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    root.querySelector("#clm-extract").classList.toggle("on", time>=6);
+    root.querySelector("#clm-x1").classList.toggle("lit", time>=6 && time<11.5);
+    root.querySelector("#clm-drop").classList.toggle("on", time>=11 && time<15.5);
+    const chosen = time>=15;
+    root.querySelector("#clm-selval").textContent = chosen ? "Send for Signature" : "Unselected";
+    const sign=root.querySelector("#clm-optsign"); if(sign) sign.classList.toggle("hot", time>=11);
+    root.querySelector("#clm-complete").classList.toggle("on", chosen);
+  }
+});
+</script>
+</body>
+</html>

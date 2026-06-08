@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Verification (CLEAR) — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/idv.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IOS = '<div class="ios"><div class="time">08:19<small>◂ Gmail</small></div><div class="island"></div>'+
+  '<div class="right">▮▮▮ ⌃ <span class="batt">98</span></div></div>';
+const MBAR = '<div class="mbar"><div class="url"><svg viewBox="0 0 24 24"><path d="M4 4h16v14H4z" fill="none" stroke="#888" stroke-width="2"/></svg><span id="idv-url">demo.services.docusign.net</span> ⟳</div></div><div class="homebar"></div>';
+
+const SCENES =
+  '<section class="de-scene is-active" data-scene="device"><div class="idv"><div class="phone">'+IOS+
+    // consent
+    '<div class="scr screen" data-screen="consent">'+
+      '<div class="brandrow"><span class="dslogo"><span class="dsmark"></span>Docusign</span></div>'+
+      '<h2>Your consent</h2>'+
+      '<p>By selecting <b>I Agree</b>, you consent to the collection and use of your personal information by Docusign trusted partners for identity verification, including images of your identity document and biometric data.</p>'+
+      '<p><b>CLEAR</b> is a Docusign trusted verification partner and will process your data under its <a>Privacy Policy</a> and <a>Credential Policy</a>.</p>'+
+      '<div style="height:18px"></div><div class="btn-primary" data-cta="consent">I Agree</div><div class="btn-ghost">Back</div>'+
+    '</div>'+
+    // phone
+    '<div class="scr screen" data-screen="phone" style="display:none">'+
+      '<div class="brandrow"><span class="clear"><span class="o"></span>CLEAR</span></div>'+
+      '<div class="illus"><div class="arc"></div><div class="card"></div><div class="shield"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div></div>'+
+      '<h2 id="idv-ask">Docusign asks that you verify your identity with CLEAR</h2>'+
+      '<p>Enter your personal phone number to get a one-time verification code.</p>'+
+      '<div class="fldlab">Personal Phone</div><div class="phonein"><div class="cc">🇺🇸 +1 ▾</div><div class="num" id="idv-num"><span class="ph">(201) 555-0123</span></div></div>'+
+      '<div class="btn-primary disabled" id="idv-getstarted" data-cta="phone">Get Started</div>'+
+      '<div class="fineprint"><svg viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0z"/></svg><span>Standard message and data rates may apply. <a>Learn more</a> about the info we share on your behalf.</span></div>'+
+    '</div>'+
+    // otp
+    '<div class="scr screen" data-screen="otp" style="display:none">'+
+      '<div class="brandrow"><span class="clear"><span class="o"></span>CLEAR</span></div>'+
+      '<div style="height:18px"></div><h2>Enter the code</h2>'+
+      '<p>We texted a 6-digit code to <b id="idv-pmask">•••-•••-0123</b>.</p>'+
+      '<div class="otp" id="idv-otp"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="btn-primary" id="idv-verify" data-cta="otp">Verify</div>'+
+    '</div>'+
+    // verified
+    '<div class="scr screen" data-screen="verified" style="display:none">'+
+      '<div class="brandrow"><span class="clear"><span class="o"></span>CLEAR</span></div>'+
+      '<div class="verified"><div class="big"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+        '<h2 style="font-size:22px" id="idv-vname">You’re verified, Sam</h2>'+
+        '<p>Identity confirmed to a high-assurance standard.</p><span class="ial">IAL2 VERIFIED</span></div>'+
+    '</div>'+
+    '<div class="scr-foot">Powered by <b>&nbsp;Docusign</b></div>'+MBAR+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho">'+
+    '<div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p>'+
+    '<div class="chain"><div class="node">CLEAR IAL2</div><span class="arr">&rarr;</span>'+
+      '<div class="node lead">Verified identity</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+const URLS = { consent:"demo.services.docusign.net", phone:"verified.clearme.com", otp:"verified.clearme.com", verified:"verified.clearme.com" };
+
+DemoEngine.init({
+  meta:{ title:"ID Verification — CLEAR (IAL2)", productTag:"Identity", home:"index.html",
+    footnote:'<b>Faithful CLEAR mobile IDV, re-skinnable context.</b> The verification partner UI (CLEAR consent → phone → code → verified) and cursor taps are the shared spine. Switching vertical swaps the verifying person, data, accent and narration. Same archetype also drives ID.me, IDVerse, Apple Wallet and Risk-Based IDV.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:32,
+    beats:[ {t:0,key:"consent",sceneId:"device"},{t:7,key:"phone",sceneId:"device"},{t:14,key:"otp",sceneId:"device"},{t:20,key:"verified",sceneId:"device"},{t:26,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,target:"[data-cta='consent']",x:640,y:486,action:"click",sayKey:"consent"},
+      {t:9,target:"#idv-num",x:688,y:430,action:"move",sayKey:"phone"},
+      {t:13,target:"#idv-getstarted",x:640,y:516,action:"click",sayKey:"phone2"},
+      {t:14,target:"#idv-otp",x:640,y:360,action:"move",sayKey:"otp"},
+      {t:19,target:"#idv-verify",x:640,y:470,action:"click",sayKey:"otp2"},
+      {t:20,x:640,y:300,action:"move",sayKey:"verified"},
+      {t:26,x:640,y:300,action:"move",sayKey:"handoff"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally",
+      theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sam Smith", role:"Applicant", side:"client" },
+      data:{ phone:"(415) 555-0142", mask:"•••-•••-0142", first:"Sam" }, sorNode:"nCino core",
+      say:{ consent:{eyebrow:"Consent",title:"Sam consents to verification",body:"Before any ID check, Sam grants explicit consent — Docusign names CLEAR as the trusted partner."},
+        phone:{eyebrow:"CLEAR",title:"High-assurance, in seconds",body:"CLEAR asks for Sam's phone to start a one-time verification — no documents to mail, no branch visit."},
+        phone2:{eyebrow:"CLEAR",title:"Sam taps Get Started",body:"His number is recognized — CLEAR sends a one-time code."},
+        otp:{eyebrow:"One-time code",title:"Code confirms the device",body:"Sam enters the texted code, binding the verification to his own phone."},
+        otp2:{eyebrow:"Verify",title:"CLEAR matches the identity",body:"CLEAR confirms Sam against his existing verified credential."},
+        verified:{eyebrow:"IAL2",title:"Identity verified to IAL2",body:"A high-assurance result — exactly what a new bank account requires."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 result attaches to the envelope and writes back to nCino."} },
+      handoff:{h:"Verified — straight into signing",p:"The IAL2 result attaches to the agreement and writes back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside",
+      theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Jordan Kim", role:"New Patient", side:"client" },
+      data:{ phone:"(415) 555-0199", mask:"•••-•••-0199", first:"Jordan" }, sorNode:"Epic chart",
+      say:{ consent:{eyebrow:"Consent",title:"Jordan consents to verification",body:"Before identity checks, Jordan grants explicit consent — Docusign names CLEAR as the trusted partner."},
+        phone:{eyebrow:"CLEAR",title:"High-assurance, in seconds",body:"CLEAR asks for Jordan's phone to start verification — no clipboard, no front-desk wait."},
+        phone2:{eyebrow:"CLEAR",title:"Jordan taps Get Started",body:"The number is recognized — CLEAR sends a one-time code."},
+        otp:{eyebrow:"One-time code",title:"Code confirms the device",body:"Jordan enters the texted code, binding verification to their own phone."},
+        otp2:{eyebrow:"Verify",title:"CLEAR matches the identity",body:"CLEAR confirms Jordan against their existing verified credential."},
+        verified:{eyebrow:"IAL2",title:"Identity verified to IAL2",body:"High-assurance identity — supporting HIPAA-grade access without friction."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 result attaches to the consent and writes back to Epic."} },
+      handoff:{h:"Verified — straight into consent",p:"The IAL2 result attaches to the consent forms and writes back to the Epic chart."} },
+    pubsec:{ label:"Public Sector · Gov",
+      theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
+      brand:{ name:"State Agency", mark:"G" }, url:"app.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Jordan Rivera", role:"Constituent", side:"client" },
+      data:{ phone:"(415) 555-0173", mask:"•••-•••-0173", first:"Jordan" }, sorNode:"agency system of record",
+      say:{ consent:{eyebrow:"Consent",title:"The constituent consents to verification",body:"Before benefits access, the applicant grants explicit consent — Docusign names CLEAR as the trusted partner."},
+        phone:{eyebrow:"CLEAR",title:"IAL2 assurance, in seconds",body:"CLEAR asks for a phone number to start verification — no in-person office visit required."},
+        phone2:{eyebrow:"CLEAR",title:"Tap Get Started",body:"The number is recognized — CLEAR sends a one-time code."},
+        otp:{eyebrow:"One-time code",title:"Code confirms the device",body:"The applicant enters the texted code, binding verification to their own phone."},
+        otp2:{eyebrow:"Verify",title:"CLEAR matches the identity",body:"CLEAR confirms the applicant against their existing verified credential."},
+        verified:{eyebrow:"IAL2",title:"Identity verified to IAL2",body:"The federally-recognized standard for high-assurance, IAL2-compliant onboarding."},
+        handoff:{eyebrow:"Handoff",title:"Verified identity flows on",body:"The IAL2 result attaches to the application and writes back to the agency system of record."} },
+      handoff:{h:"Verified — straight into the application",p:"The IAL2 result attaches to the application and writes back to the agency's system of record."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#idv-num").innerHTML='<span class="ph">'+p.data.phone+'</span>';
+    root.querySelector("#idv-pmask").textContent=p.data.mask;
+    root.querySelector("#idv-vname").textContent="You’re verified, "+p.data.first;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    const keyAt=(tt)=>{ let k="consent"; this.timeline.beats.forEach(b=>{ if(b.sceneId==="device"&&b.t<=tt+0.02)k=b.key; }); return k; };
+    const screen=keyAt(time);
+    root.querySelectorAll(".screen").forEach(s=>s.style.display=(s.dataset.screen===screen?"block":"none"));
+    root.querySelector("#idv-url").textContent=URLS[screen]||"verified.clearme.com";
+    // phone field "typed" + Get Started enabled once on phone screen past t10
+    const numEl=root.querySelector("#idv-num"), gs=root.querySelector("#idv-getstarted");
+    if(screen==="phone"&&time>=10){ numEl.innerHTML=p.data.phone; gs.classList.remove("disabled"); }
+    else if(screen==="phone"){ numEl.innerHTML='<span class="ph">'+p.data.phone+'</span>'; gs.classList.add("disabled"); }
+    // OTP progressive fill
+    const otps=root.querySelectorAll("#idv-otp i"); const code="481•92".replace("•","6").split("");
+    const prog=Math.max(0,Math.min(6,Math.floor((time-14)/0.7)));
+    otps.forEach((el,i)=>{ if(screen==="otp"&&i<prog){ el.textContent=code[i]; el.classList.add("on"); } else { el.textContent=""; el.classList.remove("on"); } });
+  }
+});
+</script>
+</body>
+</html>

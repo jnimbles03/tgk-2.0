@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Center — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/marketplace.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+function appcard(a,target){ return '<div class="ac-card'+(target?' ':'')+'" '+(target?'id="ac-target"':'')+'>'+
+  (a.beta?'<span class="beta">Beta</span>':'')+
+  '<div class="logo" style="background:'+a.c+'">'+a.m+'</div>'+
+  '<div class="nm">'+a.n+'</div><div class="by">By Docusign</div><div class="ds">'+a.d+'</div>'+
+  (target?'<span class="connect" id="ac-connect">Connect</span>':'')+'</div>'; }
+
+const GENERIC=[
+  {m:"b",n:"Box",c:"#0061D5",d:"Archive signed documents in a Box folder."},
+  {m:"▼",n:"Dropbox",c:"#0061FF",d:"Archive signed documents in a Dropbox folder."},
+  {m:"sn",n:"ServiceNow",c:"#1F8476",d:"Create a ticket in ServiceNow after capturing signature.",beta:1},
+  {m:"△",n:"Google Drive",c:"#1A73E8",d:"Archive signed documents in a Google Drive folder."},
+  {m:"@",n:"Email Verification",c:"#E0202E",d:"Verify email addresses in real time from LexisNexis Risk Solutions."} ];
+
+const SCENES='<section class="de-scene is-active" data-scene="ac"><div class="ac">'+
+  '<div class="ac-hero"><h1>Work seamlessly with Docusign</h1><p>Connect all your apps into Docusign — without the hassle of switching tools</p>'+
+    '<div class="ac-search"><div class="inp"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>Search apps</div><div class="btn">Search</div></div></div>'+
+  '<div class="ac-body"><div class="ac-left">'+
+    '<div class="ac-promo"><h3>Want to build an app?</h3><p>Learn how to build extension apps.</p><span class="b">Start Building</span></div>'+
+    '<div class="ac-promo"><h3>Not seeing an app?</h3><p>Request an extension app you would like to see.</p><span class="b">Request App</span></div></div>'+
+    '<div class="ac-main">'+
+      '<div class="ac-filters"><span class="flbl">Filters</span>'+
+        '<span class="f" id="ac-filter" style="position:relative">Works with ▾'+
+          '<div class="ac-fdrop" id="ac-fdrop"><div class="ck" id="ck-esign"><i></i> eSignature</div><div class="ck"><i></i> Maestro Workflows</div><div class="ck"><i></i> Web Forms</div>'+
+            '<div class="row"><span style="font-size:12.5px;color:#888">Clear</span><span class="apply" id="ac-apply">Apply</span></div></div></span>'+
+        '<span class="f">Price ▾</span><span class="f">Approved for you</span>'+
+        '<span class="sort"><span class="flbl">Sort by</span><span class="f">Name (A–Z) ▾</span></span></div>'+
+      '<div class="ac-grid" id="ac-grid"></div></div></div>'+
+  '<div class="ac-outcome" id="ac-outcome"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ac-oh"></h2><p id="ac-op"></p>'+
+    '<div class="chain"><div class="node">Docusign</div><span class="arr">&rarr;</span><div class="node lead" id="ac-onode"></div><span class="arr">&rarr;</span><div class="node" id="ac-osor"></div></div></div>'+
+  '</div></section>';
+
+DemoEngine.init({
+  meta:{ title:"App Center", productTag:"App Center", home:"index.html",
+    footnote:'<b>Faithful App Center, re-skinnable content.</b> The marketplace hero, filters and app grid are the shared spine. Switching vertical swaps the relevant connector and where completed documents flow. App Center is the activation step in nearly every use-case scenario.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"ac"},{t:6,key:"filter",sceneId:"ac"},{t:11,key:"browse",sceneId:"ac"},{t:15,key:"connect",sceneId:"ac"},{t:21,key:"done",sceneId:"ac"} ],
+    cursorTrack:[ {t:1.5,x:640,y:430,action:"move"},
+      {t:6,target:"#ac-filter",action:"click",sayKey:"filter"},
+      {t:10,target:"#ck-esign",action:"click"},
+      {t:11,target:"#ac-apply",action:"click",sayKey:"browse"},
+      {t:15,target:"#ac-target",action:"move",sayKey:"connect"},
+      {t:17,target:"#ac-connect",action:"click"},
+      {t:21,x:640,y:360,action:"move",sayKey:"done"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"appcenter.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Priya Nair", role:"Platform Admin", side:"advisor" },
+      target:{m:"n",n:"nCino",c:"#1B7FC4",d:"Sync executed account agreements to the nCino banking core."}, osor:"nCino core",
+      say:{ open:{eyebrow:"App Center",title:"Connect Docusign to your stack",body:"App Center lets Tally plug Docusign into the systems it already runs — no custom build."},
+        filter:{eyebrow:"Filter",title:"Find apps that fit the workflow",body:"Priya filters for apps that work with eSignature and Maestro."},
+        browse:{eyebrow:"Browse",title:"Pre-built, Docusign-maintained",body:"Every connector is built and maintained by Docusign — install, don't integrate."},
+        connect:{eyebrow:"Connect",title:"Connect the banking core",body:"Priya connects nCino so executed agreements flow straight to the system of record."},
+        done:{eyebrow:"Outcome",title:"Activated — documents auto-flow",body:"Completed agreements now post to nCino automatically. No manual uploads, no rekeying."} },
+      outcome:{h:"nCino connected",p:"Completed agreements now flow automatically into the banking core — activation with zero custom integration."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"appcenter.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Priya Nair", role:"Platform Admin", side:"advisor" },
+      target:{m:"E",n:"Kno2 for Epic",c:"#0E8C7F",d:"Sync signed consents and records to the Epic chart via Kno2."}, osor:"Epic chart",
+      say:{ open:{eyebrow:"App Center",title:"Connect Docusign to your stack",body:"App Center lets Riverside plug Docusign into the systems it already runs — no custom build."},
+        filter:{eyebrow:"Filter",title:"Find apps that fit the workflow",body:"Priya filters for apps that work with eSignature and Web Forms."},
+        browse:{eyebrow:"Browse",title:"Pre-built, Docusign-maintained",body:"Every connector is built and maintained by Docusign — install, don't integrate."},
+        connect:{eyebrow:"Connect",title:"Connect the chart",body:"Priya connects Kno2 for Epic so signed consents flow straight to the patient chart."},
+        done:{eyebrow:"Outcome",title:"Activated — records auto-flow",body:"Signed consents now post to Epic automatically. No clipboards, no manual uploads."} },
+      outcome:{h:"Epic connected",p:"Signed consents now flow automatically into the patient chart — activation with zero custom integration."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#ac-grid").innerHTML = appcard(p.target,true) + GENERIC.map(a=>appcard(a,false)).join("");
+    root.querySelector("#ac-oh").textContent=p.outcome.h; root.querySelector("#ac-op").textContent=p.outcome.p;
+    root.querySelector("#ac-onode").textContent=p.target.n; root.querySelector("#ac-osor").textContent=p.osor;
+  },
+  onTime(time, p, root){
+    root.querySelector("#ac-fdrop").classList.toggle("on", time>=6 && time<11.4);
+    root.querySelector("#ac-filter").classList.toggle("on", time>=11);
+    const tgt=root.querySelector("#ac-target"); if(tgt) tgt.classList.toggle("hot", time>=15 && time<21);
+    const cn=root.querySelector("#ac-connect"); if(cn){ const done=time>=17; cn.classList.toggle("done",done); cn.textContent=done?"Connected ✓":"Connect"; }
+    root.querySelector("#ac-outcome").classList.toggle("on", time>=21);
+  }
+});
+</script>
+</body>
+</html>

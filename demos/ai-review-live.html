@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Assisted Review — interactive</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/review.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  .rv-panel{padding:0}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
+<script>
+const SCENES='<div class="rv">'+
+  '<div class="rv-top"><span class="dslogo"><span class="dsmark"></span>Docusign</span><span class="ttl" id="rv-ttl"></span><div class="right"><span class="send">Send for signature</span></div></div>'+
+  '<div class="rv-body">'+
+    '<div class="rv-doc"><div class="rv-page"><div class="h" id="rv-doctitle"></div>'+
+      '<p id="rv-p1"></p>'+
+      '<div class="rv-clause" id="rv-clause"><b id="rv-cnum"></b> <span id="rv-cbody"></span></div>'+
+      '<p id="rv-p2"></p><p id="rv-p3"></p></div></div>'+
+    '<div class="rv-panel"><div class="rv-phd"><span class="ai">✦</span> AI-Assisted Review</div>'+
+      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="rv-chat"></div><div class="agc-chips" id="rv-chips"></div>'+
+        '<div class="agc-input"><div class="box">Ask AI to redline, summarize, or draft…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div></div>'+
+  '</div></div>';
+
+DemoEngine.interactive({
+  meta:{ title:"AI-Assisted Review — interactive", productTag:"AI-Assisted Review · Live", home:"index.html",
+    footnote:'<b>This panel is live.</b> Ask AI to review against your playbook — it types its findings, then you click <b>Accept redline</b> and watch the clause change in the document. Switch vertical to re-skin.' },
+  defaultPack:"banking", steps:3, scenes:SCENES,
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Priya Raman", role:"Legal Counsel", side:"advisor" },
+      ttl:"Master Services Agreement — Atlas Corp · Review", doctitle:"MASTER SERVICES AGREEMENT",
+      p1:"This Master Services Agreement is entered into between Tally Bank (“Client”) and Atlas Corp (“Provider”) for the services described in the attached Statement of Work.",
+      cnum:"8. Limitation of Liability.", riskText:"unlimited for all claims arising hereunder", fixText:"capped at the fees paid in the preceding twelve (12) months",
+      cpre:"Provider's aggregate liability under this Agreement shall be ",
+      p2:"9. Term &amp; Renewal. This Agreement renews automatically for successive one-year terms unless either party provides notice of non-renewal.",
+      p3:"10. Governing Law. This Agreement shall be governed by the laws of the State of Delaware.",
+      say:{ intro:{eyebrow:"AI-Assisted Review",title:"Ask AI to review",body:"The Atlas MSA is open. Ask the assistant to review it against Tally's playbook — then accept its redline."},
+        fixed:{eyebrow:"Redlined",title:"Clause aligned to policy",body:"You accepted the redline — Section 8 now caps liability at 12 months of fees, matching the playbook."} },
+      exchanges:[
+        {label:"Review this MSA against our playbook", redline:true,
+         answer:"I reviewed it against your Vendor Contracting playbook. Two issues:\n\n• HIGH — Section 8 sets unlimited liability. Your playbook requires a 12-month fees cap.\n• MEDIUM — Section 9 auto-renews with no notice window.\n\nI've drafted the cap for Section 8.",
+         card:'<span class="agc-accept" data-accept>✦ Accept redline for Section 8</span>'},
+        {label:"Summarize the risks",
+         answer:"Two risks. The material one is Section 8 — uncapped liability exposes the bank to unlimited claims. The auto-renewal in Section 9 is minor. Capping Section 8 removes the primary exposure."},
+        {label:"Draft a tighter governing-law clause",
+         answer:"Suggested: “This Agreement shall be governed by the laws of the State of Delaware, without regard to its conflict-of-laws principles, and the parties consent to exclusive jurisdiction in the state and federal courts located therein.”"}
+      ] },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Priya Raman", role:"Compliance Counsel", side:"advisor" },
+      ttl:"Business Associate Agreement — Medline · Review", doctitle:"BUSINESS ASSOCIATE AGREEMENT",
+      p1:"This Business Associate Agreement is entered into between Riverside Health (“Covered Entity”) and Medline (“Business Associate”) governing Protected Health Information under HIPAA.",
+      cnum:"6. Breach Notification.", riskText:"ninety (90) days", fixText:"sixty (60) days",
+      cpre:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within ",
+      p2:"7. Subcontractors. Business Associate may engage subcontractors to perform services under this Agreement.",
+      p3:"8. Term &amp; Termination. This Agreement remains in effect until terminated in accordance with its terms.",
+      say:{ intro:{eyebrow:"AI-Assisted Review",title:"Ask AI to review",body:"The Medline BAA is open. Ask the assistant to review it against the HIPAA playbook — then accept its redline."},
+        fixed:{eyebrow:"Redlined",title:"Clause aligned to policy",body:"You accepted the redline — Section 6 now requires 60-day breach notification, meeting HIPAA."} },
+      exchanges:[
+        {label:"Review this BAA against our playbook", redline:true,
+         answer:"I reviewed it against your HIPAA Compliance playbook. Two issues:\n\n• HIGH — Section 6 allows 90 days for breach notice; HIPAA and your playbook require 60.\n• MEDIUM — Section 7 has no subcontractor flow-down clause.\n\nI've drafted the fix for Section 6.",
+         card:'<span class="agc-accept" data-accept>✦ Accept redline for Section 6</span>'},
+        {label:"Summarize the risks",
+         answer:"Two risks. The material one is Section 6 — a 90-day breach window violates HIPAA's 60-day rule. The missing subcontractor flow-down in Section 7 is secondary. Fixing Section 6 resolves the compliance gap."},
+        {label:"Draft a subcontractor flow-down clause",
+         answer:"Suggested: “Business Associate shall ensure that any subcontractor that creates, receives, maintains, or transmits PHI on its behalf agrees in writing to the same restrictions and conditions that apply to Business Associate under this Agreement.”"}
+      ] }
+  },
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#rv-ttl").textContent=p.ttl; $("#rv-doctitle").textContent=p.doctitle; $("#rv-p1").textContent=p.p1;
+    $("#rv-p2").innerHTML=p.p2; $("#rv-p3").innerHTML=p.p3; $("#rv-cnum").textContent=p.cnum;
+    $("#rv-cbody").innerHTML=p.cpre+'<span id="rv-risk">'+p.riskText+'</span>.'; $("#rv-clause").className="rv-clause";
+    api.narrate("intro"); api.progress(0); let done=0;
+    function applyRedline(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Redline accepted";
+      $("#rv-cbody").innerHTML=p.cpre+'<span class="rv-strike">'+p.riskText+'</span> <span class="rv-ins">'+p.fixText+'</span>.';
+      $("#rv-clause").classList.add("fixed");
+      AgentChat.bubble($("#rv-chat"),"ai","Done — the redline is applied to "+p.cnum.replace('.','')+". The clause now matches your playbook.");
+      api.narrate("fixed"); api.progress(Math.min(++done+1,3)); }
+    AgentChat.mount({ chatEl:$("#rv-chat"), chipsEl:$("#rv-chips"), hint:"Ask AI-Assisted Review", speed:13,
+      intro:"I can review this against your playbook, summarize risks, or draft language. What would you like?",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer.replace(/\n/g,"<br>"), card:ex.card,
+        after:()=>{ done++; api.progress(Math.min(done,3)); if(ex.redline){ const b=$("#rv-chat").querySelector("[data-accept]"); if(b) b.onclick=()=>applyRedline(b); } } })) });
+    if(api.auto){ api.after(900,()=>{ const c=$("#rv-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(5200,()=>{ const b=$("#rv-chat").querySelector("[data-accept]"); if(b && !b.classList.contains("done")) b.click(); }); }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maestro workflow — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/orchestration.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const IC={ form:'<svg viewBox="0 0 24 24"><path d="M8 3h8v2h2v16H6V5h2zm0 2H8v14h8V5h-2v1H8zM9 9h6v1.6H9zM9 13h6v1.6H9zM9 17h4v1.6H9z"/></svg>',
+  branch:'<svg viewBox="0 0 24 24"><path d="M6 3a3 3 0 0 0-1 5.83V11a3 3 0 0 0 3 3h2v2.17A3 3 0 1 0 13 16h-3a1 1 0 0 1-1-1V8.83A3 3 0 0 0 6 3zm12 11a3 3 0 0 0-2.83 2H13v2h2.17A3 3 0 1 0 18 14z"/></svg>',
+  id:'<svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM7 9.5a2 2 0 1 1 4 0 2 2 0 0 1-4 0zM5 16c0-1.7 1.8-3 4-3s4 1.3 4 3zM14 9h5v1.6h-5zM14 12h5v1.6h-5z"/></svg>',
+  db:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  pen:'<svg viewBox="0 0 24 24"><path d="M3 17.2V21h3.8L18 9.8 14.2 6zM20.7 7.3a1 1 0 0 0 0-1.4l-2.6-2.6a1 1 0 0 0-1.4 0L15 5l3.8 3.8z"/></svg>' };
+const PERSON='<svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0z"/></svg>';
+function card(id,x,y,hdr,icon){ return '<div class="mcard" id="'+id+'" style="left:'+x+'px;top:'+y+'px">'+
+  '<div class="phdr">'+(hdr?PERSON+'<span class="cnt">1</span>'+hdr:'<span style="color:#8a8398">Conditional rule</span>')+'</div>'+
+  '<div class="body"><span class="ico">'+IC[icon]+'</span><span class="dots">⋯</span><div class="ttl" data-ttl></div><span class="edit">Edit</span></div></div>'; }
+
+const TOP='<div class="mae-top"><span class="back">←</span><span class="wf" id="mae-title"></span><span class="draft">Draft (Unpublished)</span>'+
+  '<div class="right"><span class="appc"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>App Center</span>'+
+    '<span class="save">Save Draft</span><span class="pub" id="mae-run"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>Run</span></div></div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="mae"><div class="mae">'+TOP+
+  '<div class="mae-canvas">'+
+    '<svg class="medges" viewBox="0 0 1280 670" preserveAspectRatio="none">'+
+      '<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="3" orient="auto"><path class="ar" d="M0 0 L7 3 L0 6 z"/></marker></defs>'+
+      '<line x1="640" y1="130" x2="640" y2="150" marker-end="url(#ar)"/><path d="M640 260 L640 286"/>'+
+      '<path id="e-true" class="et" d="M640 286 L434 286 L434 316" marker-end="url(#ar)"/>'+
+      '<path id="e-false" class="ef" d="M640 286 L846 286 L846 316" marker-end="url(#ar)"/>'+
+      '<path d="M434 426 L434 442 L640 442 L640 450" marker-end="url(#ar)"/><path d="M846 426 L846 442 L640 442"/>'+
+      '<line x1="640" y1="560" x2="640" y2="578" marker-end="url(#ar)"/></svg>'+
+    '<div class="mpill t" id="p-true" style="left:556px;top:274px">True</div>'+
+    '<div class="mpill f" id="p-false" style="left:660px;top:274px">False</div>'+
+    card("c-webform",506,22,"Applicant","form")+card("c-branch",506,152,"","branch")+
+    card("c-idv",300,318,"Applicant","id")+card("c-standard",712,318,"Applicant","db")+card("c-esign",506,452,"Applicant","pen")+
+    '<div class="madd" style="left:623px;top:580px">+</div>'+
+    '<div class="mzoom"><span>⊕ 100%</span><span>⊖</span><span style="color:var(--tenant-accent)">Give Feedback</span></div><div class="mpan">✋</div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho">'+
+    '<div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div><h2 id="ho-h"></h2><p id="ho-p"></p>'+
+    '<div class="chain"><div class="node">Web Form</div><span class="arr">&rarr;</span><div class="node lead">Maestro orchestration</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+const SCHED=[ ["c-webform",7,9],["c-branch",9,12],["c-idv",12.5,16],["c-esign",18,21] ];
+
+DemoEngine.init({
+  meta:{ title:"Maestro workflow", productTag:"Maestro", home:"index.html",
+    footnote:'<b>Faithful Maestro builder, re-skinnable content.</b> The dark builder chrome, step cards, True/False branch and run animation are the shared spine. Switching vertical swaps the workflow, branch condition, step products, accent and narration. For a hands-on version see Maestro — Live.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:30,
+    beats:[ {t:0,key:"open",sceneId:"mae"},{t:7,key:"run",sceneId:"mae"},{t:11,key:"branch",sceneId:"mae"},{t:15,key:"verify",sceneId:"mae"},{t:19,key:"sign",sceneId:"mae"},{t:24,key:"complete",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:360,action:"move"},
+      {t:6,target:"#mae-run",action:"click",sayKey:"run"},
+      {t:10,target:"#c-branch",action:"move",sayKey:"branch"},
+      {t:14,target:"#c-idv",action:"move",sayKey:"verify"},
+      {t:18,target:"#c-esign",action:"move",sayKey:"sign"},
+      {t:23,target:"#c-esign",action:"move",sayKey:"complete"},
+      {t:26,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Maestro", role:"Orchestration engine", side:"system" }, title:"Account Opening Orchestration", sorNode:"nCino core",
+      cards:{ "c-webform":"Collect Data with Web Forms","c-branch":"Is the loan amount over $250k?","c-idv":"Verify Someone's Identity (IAL2)","c-standard":"Run standard Data Verification","c-esign":"Send Documents for Signature" },
+      say:{ open:{eyebrow:"Maestro",title:"One workflow, fully orchestrated",body:"Sam's account opening is a single Maestro workflow — every step and branch on one canvas."},
+        run:{eyebrow:"Run",title:"Maestro executes the steps",body:"The web-form step runs first and Maestro routes automatically — no hand-offs."},
+        branch:{eyebrow:"Conditional rule",title:"The workflow decides",body:"A rule checks the loan amount. Over $250k takes the True branch to step-up verification."},
+        verify:{eyebrow:"True branch",title:"Higher assurance only when needed",body:"Maestro routes Sam through IAL2 identity verification; the False branch is skipped."},
+        sign:{eyebrow:"Execute",title:"Straight to signing",body:"Identity confirmed, Maestro sends the documents for eSignature."},
+        complete:{eyebrow:"Write-back",title:"Closed loop to the core",body:"The executed agreement writes back to nCino and the workflow completes."} },
+      handoff:{h:"Orchestrated end to end",p:"Web Form, verification and signature ran as one Maestro workflow — the result writes back to the nCino core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Maestro", role:"Orchestration engine", side:"system" }, title:"Patient Intake Orchestration", sorNode:"Epic chart",
+      cards:{ "c-webform":"Collect Data with Web Forms","c-branch":"Is this a new patient?","c-idv":"Verify Someone's Identity (IAL2)","c-standard":"Run returning-patient fast-track","c-esign":"Send Consents for Signature" },
+      say:{ open:{eyebrow:"Maestro",title:"One workflow, fully orchestrated",body:"Jordan's intake is a single Maestro workflow — every step and branch on one canvas."},
+        run:{eyebrow:"Run",title:"Maestro executes the steps",body:"The intake step runs first and Maestro routes automatically — no front-desk hand-offs."},
+        branch:{eyebrow:"Conditional rule",title:"The workflow decides",body:"A rule checks patient status. New patients take the True branch to full verification."},
+        verify:{eyebrow:"True branch",title:"Higher assurance only when needed",body:"Maestro routes Jordan through IAL2 identity verification; the False branch is skipped."},
+        sign:{eyebrow:"Execute",title:"Straight to consent",body:"Identity confirmed, Maestro sends the consents for eSignature."},
+        complete:{eyebrow:"Write-back",title:"Closed loop to the chart",body:"The signed consents write back to Epic and the workflow completes."} },
+      handoff:{h:"Orchestrated end to end",p:"Web Form, verification and consent ran as one Maestro workflow — the result writes back to the Epic chart."} },
+    pubsec:{ label:"Public Sector · Gov", theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
+      brand:{ name:"State Agency", mark:"G" }, url:"app.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Maestro", role:"Orchestration engine", side:"system" }, title:"Constituent Application Orchestration", sorNode:"agency system of record",
+      cards:{ "c-webform":"Collect Data with Web Forms","c-branch":"Does it meet the threshold?","c-idv":"Verify Someone's Identity (IAL2)","c-standard":"Run standard Data Verification","c-esign":"Send Application for Signature" },
+      say:{ open:{eyebrow:"Maestro",title:"One workflow, fully orchestrated",body:"The constituent's application is a single Maestro workflow — every step and branch on one canvas."},
+        run:{eyebrow:"Run",title:"Maestro executes the steps",body:"The intake step runs first and Maestro routes automatically — no manual hand-offs between departments."},
+        branch:{eyebrow:"Conditional rule",title:"The workflow decides",body:"A rule checks the eligibility threshold. Higher-risk cases take the True branch to full verification."},
+        verify:{eyebrow:"True branch",title:"Higher assurance only when needed",body:"Maestro routes the applicant through IAL2 identity verification; the False branch is skipped."},
+        sign:{eyebrow:"Execute",title:"Straight to signing",body:"Identity confirmed, Maestro sends the application for eSignature."},
+        complete:{eyebrow:"Write-back",title:"Closed loop to the system of record",body:"The signed application writes back to the agency system and the workflow completes."} },
+      handoff:{h:"Orchestrated end to end",p:"Web Form, verification and signature ran as one Maestro workflow — the result writes back to the agency's system of record."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#mae-title").textContent=p.title;
+    Object.entries(p.cards).forEach(([id,t])=>root.querySelector("#"+id).querySelector("[data-ttl]").textContent=t);
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+  },
+  onTime(time, p, root){
+    root.querySelectorAll(".mcard").forEach(n=>n.classList.remove("active","done"));
+    SCHED.forEach(([id,a,d])=>{ const el=root.querySelector("#"+id); if(time>=d)el.classList.add("done"); else if(time>=a)el.classList.add("active"); });
+    // False branch dims once the rule has evaluated (True path taken)
+    const dim = time>=12.5; root.querySelector("#c-standard").classList.toggle("dim",dim);
+    root.querySelector("#p-false").classList.toggle("dim",dim); root.querySelector("#e-false").style.opacity=dim?.3:1;
+    root.querySelector("#mae-run").classList.toggle("off", time>=7);
+  }
+});
+</script>
+</body>
+</html>
