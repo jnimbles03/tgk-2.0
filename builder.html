@@ -2972,6 +2972,24 @@
       return '/story-templates/docusign-' + templateId + '.html?embed=1';
     }
 
+    /* Thumbnail freeze-frame (seconds) for demos whose opening beat is dark
+       (IDV scan/liveness scenes). The engine freezes on a representative still
+       when ?t=<sec> is present, so we point thumbnails at the bright "verified"
+       beat. Only affects pool/timeline thumbnails — the inspector preview still
+       plays live via previewUrlForTemplate(). */
+    const THUMB_T = {
+      'idv-clear': 20, 'idv-idme': 19, 'idv-apple-wallet': 19,
+      'idv-idverse': 19, 'idv-risk': 20
+    };
+    function thumbUrl(baseUrl) {
+      if (!baseUrl) return baseUrl;
+      const m = baseUrl.match(/\/demos\/([a-z0-9-]+)\.html/);
+      if (m && THUMB_T[m[1]] != null) {
+        return baseUrl + (baseUrl.includes('?') ? '&' : '?') + 't=' + THUMB_T[m[1]];
+      }
+      return baseUrl;
+    }
+
     let timeline    = [];
     let selectedUid = null;
     let nextUid     = 1;
@@ -3022,7 +3040,7 @@
       const scenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('demo:') && !s.id.startsWith('flipbook:'));
       const vignettes = SCENE_LIBRARY.filter(s =>  s.id.startsWith('flipbook:'));
       const tile = (s) => {
-        const purl = s.url || previewUrlForTemplate(s.id) || '';
+        const purl = thumbUrl(s.url || previewUrlForTemplate(s.id) || '');
         return `
         <div class="pool-tile" draggable="true" data-template="${s.id}" title="${escapeHtml(s.name)} — ${escapeHtml(s.role)}">
           <div class="pool-poster" data-poster="${s.poster}"${purl ? ` data-url="${escapeHtml(purl)}"` : ''}>
@@ -3109,7 +3127,7 @@
         if (!s) return '';
         const sel = item.uid === selectedUid ? ' is-selected' : '';
         const tagText = item.tag || s.role;
-        const purl = s.url || previewUrlForTemplate(item.templateId) || '';
+        const purl = thumbUrl(s.url || previewUrlForTemplate(item.templateId) || '');
         return `
           <div class="film-tile${sel}" data-uid="${item.uid}" draggable="true">
             <div class="film-poster" data-poster="${s.poster}"${purl ? ` data-url="${escapeHtml(purl)}"` : ''}>
