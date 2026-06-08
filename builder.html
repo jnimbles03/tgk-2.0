@@ -479,48 +479,53 @@
   }
   .pool-tile {
     position: relative;
-    background: var(--bg);
+    background: #fff;
     border: 1px solid var(--rule);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
     cursor: grab;
     transition: border-color .15s, transform .15s, box-shadow .15s;
     user-select: none;
   }
-  .pool-tile:hover { border-color: var(--ds-cobalt); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(19,0,50,.08); }
+  .pool-tile:hover { border-color: var(--ds-cobalt); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(19,0,50,.12); }
+  .pool-tile:hover .pool-add { opacity: 1; }
   .pool-tile.is-dragging { opacity: .45; cursor: grabbing; }
   .pool-poster {
     position: relative;
-    height: 64px;
+    aspect-ratio: 16 / 9;
+    width: 100%;
     background: var(--ds-deep-violet);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
   }
-  .pool-poster::before, .pool-poster::after {
-    content: "";
-    position: absolute; left: 0; right: 0; height: 6px;
-    background: repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 4px, transparent 4px 10px);
-    opacity: .5;
+  .pool-glyph { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--ds-ecru); letter-spacing: .06em; opacity: .85; }
+  /* live, scaled preview of the actual demo — iMovie-style real thumbnail */
+  .thumb-frame {
+    position: absolute; top: 0; left: 0;
+    width: 1280px; height: 720px;
+    border: 0;
+    transform: scale(var(--thumb-scale, .12));
+    transform-origin: top left;
+    pointer-events: none;
+    background: #fff;
   }
-  .pool-poster::before { top: 0; }
-  .pool-poster::after  { bottom: 0; }
-  .pool-glyph { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--ds-ecru); letter-spacing: .06em; }
   .pool-add {
     position: absolute;
-    top: 5px; right: 5px;
-    width: 20px; height: 20px;
+    top: 6px; right: 6px;
+    width: 22px; height: 22px;
     border-radius: 50%;
-    background: rgba(255,255,255,.9);
-    color: var(--ds-cobalt);
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 700;
+    background: var(--ds-cobalt);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
     line-height: 1;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 2px rgba(19,0,50,.15);
-    transition: transform .15s;
+    box-shadow: 0 2px 6px rgba(19,0,50,.35);
+    opacity: 0;
+    transition: transform .12s, opacity .15s;
+    z-index: 3;
   }
-  .pool-add:hover { transform: scale(1.1); }
+  .pool-add:hover { transform: scale(1.12); }
   .pool-meta { padding: 7px 9px 9px; }
   .pool-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.25; letter-spacing: -.01em; }
   .pool-role { font-size: 10px; font-style: italic; color: var(--muted); margin-top: 2px; line-height: 1.3; }
@@ -528,91 +533,60 @@
 
   /* ── iMovie-style filmstrip ── */
   .filmstrip-wrap {
-    background: #111827;
-    border-radius: 8px;
+    background: #1d1d1f;
+    border-radius: 10px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 18px 0;
+    padding: 14px 0;
     position: relative;
     min-height: 116px;
-    border: none;
+    border: 1px solid #000;
   }
-  /* sprocket rails — repeating hole pattern using radial-gradient trick */
-  .filmstrip-wrap::before,
-  .filmstrip-wrap::after {
-    content: "";
-    position: absolute;
-    left: 0; right: 0;
-    height: 18px;
-    z-index: 2;
-    pointer-events: none;
-    /* Dark rail with evenly spaced punched holes (white rectangles) */
-    background-color: #0c111d;
-    background-image: repeating-linear-gradient(
-      90deg,
-      transparent 0px,
-      transparent 10px,
-      #111827 10px,
-      #111827 16px,
-      transparent 16px,
-      transparent 32px
-    );
-    background-size: 32px 100%;
-  }
-  .filmstrip-wrap::before { top: 0; border-radius: 8px 8px 0 0; }
-  .filmstrip-wrap::after  { bottom: 0; border-radius: 0 0 8px 8px; }
-  .filmstrip-wrap::-webkit-scrollbar { height: 4px; }
-  .filmstrip-wrap::-webkit-scrollbar-track { background: #111827; }
-  .filmstrip-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+  .filmstrip-wrap::-webkit-scrollbar { height: 8px; }
+  .filmstrip-wrap::-webkit-scrollbar-track { background: transparent; }
+  .filmstrip-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 4px; }
   .filmstrip-track {
     display: flex;
-    gap: 2px;
+    gap: 6px;
     align-items: stretch;
-    min-height: 80px;
-    padding: 0 8px;
+    min-height: 84px;
+    padding: 0 12px;
     position: relative;
     z-index: 1;
   }
   .filmstrip-empty {
-    font-size: 13px; font-style: italic; color: rgba(255,255,255,.3);
+    font-size: 13px; font-style: italic; color: rgba(255,255,255,.35);
     text-align: center; padding: 20px 16px;
     position: absolute;
-    inset: 18px 0;
+    inset: 14px 0;
     display: flex; align-items: center; justify-content: center;
     z-index: 1;
     pointer-events: none;
   }
-  .filmstrip-wrap.is-dragging-over { background: #1a2235; }
+  .filmstrip-wrap.is-dragging-over { background: #26262a; }
   .film-tile {
     position: relative;
-    flex: 0 0 160px;
-    height: 80px;
+    flex: 0 0 150px;
+    height: 84px;
     background: var(--ds-deep-violet);
     border: none;
-    border-radius: 3px;
+    border-radius: 6px;
     overflow: hidden;
     cursor: grab;
-    transition: filter .15s, outline .1s;
+    transition: filter .15s, box-shadow .12s, transform .12s;
     user-select: none;
-    outline: 2px solid transparent;
-    outline-offset: 1px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.4);
   }
-  .film-tile:hover { filter: brightness(1.15); }
-  .film-tile.is-selected { outline-color: var(--ds-cobalt); filter: brightness(1.1); }
-  /* selected: yellow top accent bar like iMovie */
-  .film-tile.is-selected::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--ds-cobalt);
-    z-index: 10;
-    border-radius: 2px 2px 0 0;
+  .film-tile:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  /* iMovie selection: thick gold border around the clip */
+  .film-tile.is-selected {
+    box-shadow: 0 0 0 3px #FFC83D, 0 2px 8px rgba(0,0,0,.45);
+    z-index: 6;
   }
   .film-tile.is-dragging { opacity: .4; cursor: grabbing; }
-  .film-tile.is-drop-before { box-shadow: -3px 0 0 0 var(--ds-cobalt); }
-  .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 var(--ds-cobalt); }
+  .film-tile.is-drop-before { box-shadow: -3px 0 0 0 #FFC83D; }
+  .film-tile.is-drop-after  { box-shadow:  3px 0 0 0 #FFC83D; }
   /* film-poster fills entire tile */
   .film-poster {
     position: absolute;
@@ -626,39 +600,38 @@
   .film-poster::before, .film-poster::after { display: none; }
   .film-step {
     position: absolute;
-    top: 6px; left: 6px;
+    bottom: 5px; left: 6px;
     font-family: var(--mono); font-size: 8px; font-weight: 700;
-    color: rgba(255,255,255,.7);
-    background: rgba(0,0,0,.55);
-    padding: 1px 4px; border-radius: 2px; letter-spacing: .08em;
-    backdrop-filter: blur(2px);
+    color: rgba(255,255,255,.85);
+    background: rgba(0,0,0,.5);
+    padding: 1px 5px; border-radius: 3px; letter-spacing: .08em;
     z-index: 5;
   }
   .film-glyph {
-    font-family: var(--mono); font-size: 1.5rem; font-weight: 700;
-    color: rgba(255,255,255,.55); letter-spacing: .06em;
+    font-family: var(--mono); font-size: 1.4rem; font-weight: 700;
+    color: rgba(255,255,255,.5); letter-spacing: .06em;
   }
   .film-remove {
     position: absolute; top: 5px; right: 5px;
     width: 18px; height: 18px; border-radius: 50%;
-    background: rgba(0,0,0,.6); color: rgba(255,255,255,.85);
+    background: rgba(0,0,0,.6); color: rgba(255,255,255,.9);
     font-size: 12px; font-weight: 600; line-height: 1;
     display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(2px); transition: background .15s; opacity: 0;
-    z-index: 5;
+    transition: background .15s; opacity: 0;
+    z-index: 6;
   }
   .film-tile:hover .film-remove, .film-tile.is-selected .film-remove { opacity: 1; }
   .film-remove:hover { background: var(--ds-poppy); }
-  /* name + tag overlaid at bottom of frame */
+  /* iMovie shows the clip title in a bar across the TOP of the clip */
   .film-meta {
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    padding: 18px 7px 5px;
-    background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 100%);
+    top: 0; left: 0; right: 0;
+    padding: 5px 7px 16px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.72) 0%, transparent 100%);
     z-index: 4;
   }
   .film-name {
-    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.92);
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.95);
     line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     letter-spacing: .01em;
   }
@@ -2893,6 +2866,39 @@
       { id: 'portal-shell',       glyph: 'PS', name: 'Portal Shell',            role: 'Tenant portal frame',                poster: 'amber' },
       { id: 'agreement-desk-coc', glyph: 'CC', name: 'AD · Chain-of-Custody',   role: 'Variant for fraud-fabric',           poster: 'violet-poppy' }
     ];
+
+    /* The new re-skinnable demo library (/demos/<id>.html). These are the
+       current, high-fidelity versions — added to the pool as a "Product demos"
+       group, each draggable into the timeline. Preview/thumbnail loads the live
+       demo in embed mode. */
+    [
+      ['web-forms',        'Web Forms',          'Branded intake form',     'slate'],
+      ['esignature',       'eSignature',         'Signing ceremony',        'poppy'],
+      ['idv-clear',        'Identity · CLEAR',   'IAL2 verification',       'cobalt'],
+      ['idv-idme',         'Identity · ID.me',   'Government ID',           'cobalt'],
+      ['idv-apple-wallet', 'Identity · Wallet',  'Mobile ID tap',          'cobalt'],
+      ['idv-idverse',      'Identity · Scan',    'Document + liveness',     'cobalt'],
+      ['idv-risk',         'Risk-Based IDV',     'Adaptive step-up',        'cobalt-deep'],
+      ['navigator',        'Navigator',          'Agreement repository',    'mist'],
+      ['search',           'AI Search',          'Ask the repository',      'mist'],
+      ['workspaces',       'Workspaces',         'Collaboration room',      'mint'],
+      ['maestro',          'Maestro',            'Workflow orchestration',  'cobalt-deep'],
+      ['agreement-desk',   'Agreement Desk',     'The workflow proxy',      'violet'],
+      ['agreement-manager','Agreement Manager',  'Lifecycle + obligations', 'violet'],
+      ['monitor',          'Monitor',            'Compliance + alerts',     'amber'],
+      ['app-center',       'App Center',         'Integrations marketplace','glow'],
+      ['ai-review',        'AI Review',          'Clause + risk flags',     'teal'],
+      ['agentforce',       'Agentforce',         'Agentic actions',         'glow'],
+      ['clm',              'CLM',                'Contract lifecycle',      'violet'],
+    ].forEach(([id, name, role, poster]) => {
+      SCENE_LIBRARY.push({
+        id: 'demo:' + id,
+        glyph: id.replace(/[^a-z]/g, '').slice(0, 2).toUpperCase(),
+        name, role, poster,
+        url: '/demos/' + id + '.html?embed=1'
+      });
+    });
+
     const SCENE_BY_ID = Object.fromEntries(SCENE_LIBRARY.map(s => [s.id, s]));
 
     const SHELL_DEFAULTS = {
@@ -2942,9 +2948,21 @@
     // Map a SCENE_LIBRARY id to the URL the preview iframe should load.
     // For canonical scenes this is /story-templates/docusign-<id>.html;
     // for flipbooks it's the URL stored on the SCENE_LIBRARY entry.
+    /* Canonical scene ids now preview the new /demos/ versions where an
+       equivalent exists, so the timeline + inspector show current-fidelity
+       content. Ids without a new-demo equivalent fall back to story-templates. */
     const PREVIEW_URL_OVERRIDES = {
-      'agreement-desk-coc': '/story-templates/docusign-agreement-desk-chain-of-custody.html?embed=1',
-      'webform-intake':     '/story-templates/docusign-webform-intake.html?embed=1'
+      'agreement-desk':     '/demos/agreement-desk.html?embed=1',
+      'agreement-desk-coc': '/demos/agreement-desk.html?embed=1',
+      'clear-idv':          '/demos/idv-clear.html?embed=1',
+      'signing-ceremony':   '/demos/esignature.html?embed=1',
+      'navigator':          '/demos/navigator.html?embed=1',
+      'workspace':          '/demos/workspaces.html?embed=1',
+      'webform':            '/demos/web-forms.html?embed=1',
+      'webform-intake':     '/demos/web-forms.html?embed=1',
+      'maestro-loop':       '/demos/maestro.html?embed=1',
+      'maestro-package':    '/demos/maestro.html?embed=1',
+      'agents':             '/demos/agentforce.html?embed=1'
     };
     function previewUrlForTemplate(templateId) {
       if (!templateId) return null;
@@ -2963,15 +2981,51 @@
     const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c =>
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+    /* ── Live thumbnails (iMovie-style real frames) ──
+       Each pool tile / timeline clip carries data-url on its poster. We lazily
+       mount a scaled <iframe> of the actual demo only when the poster scrolls
+       near the viewport, so a pool of 30+ demos stays light. The glyph poster
+       shows underneath as a fallback until (or if) the frame loads. */
+    const _thumbIO = ('IntersectionObserver' in window)
+      ? new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) { _mountFrame(e.target); _thumbIO.unobserve(e.target); }
+          }
+        }, { rootMargin: '300px' })
+      : null;
+    function _mountFrame(poster) {
+      const url = poster.dataset.url;
+      if (!url || poster.querySelector('iframe.thumb-frame')) return;
+      const w = poster.clientWidth || 150;
+      poster.style.setProperty('--thumb-scale', (w / 1280).toFixed(4));
+      const f = document.createElement('iframe');
+      f.className = 'thumb-frame';
+      f.src = url;
+      f.loading = 'lazy';
+      f.setAttribute('scrolling', 'no');
+      f.setAttribute('tabindex', '-1');
+      f.setAttribute('aria-hidden', 'true');
+      poster.appendChild(f);
+    }
+    function mountThumbs(container) {
+      container.querySelectorAll('[data-url]').forEach(p => {
+        if (!p.dataset.url) return;
+        if (_thumbIO) _thumbIO.observe(p); else _mountFrame(p);
+      });
+    }
+
     function renderPool() {
-      // Two sections: canonical scene templates + dynamic flipbook vignettes.
-      // Flipbooks are appended at runtime by loadFlipbookManifest() and live
-      // alongside scene templates in the timeline. Their id is `flipbook:<slug>`.
-      const scenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('flipbook:'));
+      // Three sections: the new /demos/ library (current versions), the
+      // canonical scene templates, and dynamic flipbook vignettes (id
+      // `flipbook:<slug>`, appended at runtime by loadFlipbookManifest()).
+      const demos     = SCENE_LIBRARY.filter(s =>  s.id.startsWith('demo:'));
+      const scenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('demo:') && !s.id.startsWith('flipbook:'));
       const vignettes = SCENE_LIBRARY.filter(s =>  s.id.startsWith('flipbook:'));
-      const tile = (s) => `
+      const tile = (s) => {
+        const purl = s.url || previewUrlForTemplate(s.id) || '';
+        return `
         <div class="pool-tile" draggable="true" data-template="${s.id}" title="${escapeHtml(s.name)} — ${escapeHtml(s.role)}">
-          <div class="pool-poster" data-poster="${s.poster}">
+          <div class="pool-poster" data-poster="${s.poster}"${purl ? ` data-url="${escapeHtml(purl)}"` : ''}>
             <span class="pool-glyph">${s.glyph}</span>
             <button type="button" class="pool-add" data-action="add" aria-label="Add ${escapeHtml(s.name)} to timeline">+</button>
           </div>
@@ -2980,13 +3034,15 @@
             <div class="pool-role">${escapeHtml(s.role)}</div>
           </div>
         </div>`;
-      let html = scenes.map(tile).join('');
-      if (vignettes.length) {
-        html += `<div class="pool-divider" role="separator" aria-label="Demo vignettes (flipbooks)">vignettes</div>`;
-        html += vignettes.map(tile).join('');
-      }
-      elPool.innerHTML = html;
+      };
+      const group = (label, arr) =>
+        arr.length ? `<div class="pool-divider" role="separator">${label}</div>` + arr.map(tile).join('') : '';
+      elPool.innerHTML =
+        group('Product demos', demos) +
+        group('Scene templates', scenes) +
+        group('Flipbook vignettes', vignettes);
       if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
+      mountThumbs(elPool);
     }
 
     /* Load /flipbooks/manifest.json (written by _build_vignettes.py) and
@@ -3053,11 +3109,12 @@
         if (!s) return '';
         const sel = item.uid === selectedUid ? ' is-selected' : '';
         const tagText = item.tag || s.role;
+        const purl = s.url || previewUrlForTemplate(item.templateId) || '';
         return `
           <div class="film-tile${sel}" data-uid="${item.uid}" draggable="true">
-            <div class="film-poster" data-poster="${s.poster}">
-              <span class="film-step">SCENE ${idx + 1}</span>
+            <div class="film-poster" data-poster="${s.poster}"${purl ? ` data-url="${escapeHtml(purl)}"` : ''}>
               <span class="film-glyph">${s.glyph}</span>
+              <span class="film-step">SCENE ${idx + 1}</span>
               <button type="button" class="film-remove" data-action="remove" aria-label="Remove ${escapeHtml(s.name)}">×</button>
             </div>
             <div class="film-meta">
@@ -3069,6 +3126,17 @@
       }).join('');
       elEmpty.hidden = timeline.length > 0;
       updateCounts();
+      mountThumbs(elTimeline);
+      renderInspector();
+    }
+
+    /* Selection-only repaint: toggles the gold-border class + syncs the
+       inspector WITHOUT rebuilding the strip, so scrubbing/clicking doesn't
+       reload the clip thumbnails. Structural changes still call renderTimeline. */
+    function paintSelection() {
+      elTimeline.querySelectorAll('.film-tile').forEach(t => {
+        t.classList.toggle('is-selected', t.dataset.uid === selectedUid);
+      });
       renderInspector();
     }
 
@@ -3117,7 +3185,7 @@
       const idx = selectedUid ? timeline.findIndex(t => t.uid === selectedUid) : -1;
       const next = Math.max(0, Math.min(timeline.length - 1, (idx < 0 ? 0 : idx + direction)));
       selectedUid = timeline[next].uid;
-      renderTimeline();
+      paintSelection();
       requestAnimationFrame(() => {
         const tile = elTimeline.querySelector(`.film-tile[data-uid="${selectedUid}"]`);
         tile?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -3273,7 +3341,7 @@
       const tile = e.target.closest('.film-tile');
       if (!tile) return;
       selectedUid = tile.dataset.uid;
-      renderTimeline();
+      paintSelection();
     });
 
     function bindInspectorField(input, key, lintTargetId) {
@@ -3295,7 +3363,7 @@
     bindInspectorField(elInspTag,  'tag');
     bindInspectorField(elInspHead, 'headline', 'lintHead');
     bindInspectorField(elInspLede, 'lede',     'lintLede');
-    elInspClose.addEventListener('click', () => { selectedUid = null; renderTimeline(); });
+    elInspClose.addEventListener('click', () => { selectedUid = null; paintSelection(); });
 
     // Audit-mode hydration
     function inferTemplate(tag) {
