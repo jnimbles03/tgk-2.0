@@ -80,13 +80,18 @@ function rewrite(content) {
   //    arbitrary strings like regex patterns or unrelated content.
   const TOP_LEVEL = [
     'api', 'admin', 'assets', 'components', 'stories', 'story-templates',
+    // dirs whose paths get built in JS strings (NOT just HTML attrs) — must be
+    // listed here or pass-5 won't prefix them and they 404 under /tgk-2.0/.
+    'demos', 'flipbooks', 'headless-iam',
     'CANONICAL.md', 'picker.html', 'index-unified.html', 'index-playbook.html', 'landing.html',
     'feedback-widget.js', 'auto.html', '_template.html',
+    'builder.html', 'studio.html', 'audit.html', 'audit-grid.html', 'convert.html',
     'banking-deposits.html', 'hls-discovery-process-map.html', 'hls-roi.html',
-    'insurance-life.html', 'insurance-pc.html',
+    'insurance-life.html', 'insurance-pc.html', 'wealth-onboarding.html',
     'public-sector-311.html', 'public-sector-benefits.html',
     'public-sector-employee-onboarding.html', 'public-sector-licensing.html',
-    'public-sector-recertification.html',
+    'public-sector-recertification.html', 'public-sector-vendor-compliance.html',
+    'payor.html', 'lifesciences.html', 'fedgov.html', 'education.html', 'nonprofit.html',
   ];
   const segPattern = TOP_LEVEL.map(s => s.replace(/[.+*?^$()[\]{}|\\]/g, '\\$&')).join('|');
   const literalRe = new RegExp(`(["'\`])\\/(?!\\/)(${segPattern})(?=[\\s/'"\`?#&)\\\\$])`, 'g');
