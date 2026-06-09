@@ -1078,6 +1078,9 @@
 .start-open-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
 .start-open-body .maintenance-btn{font-family:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--ds-cobalt);background:var(--ds-cobalt);color:#fff;cursor:pointer;}
 .start-open-body .maintenance-status{font-size:11.5px;color:var(--muted);}
+.fb-badge{display:inline-block;margin-top:3px;font-size:9px;font-weight:700;letter-spacing:.02em;padding:1px 6px;border-radius:999px;}
+.fb-badge.has{background:#E2F5EC;color:#1A8E5C;}
+.fb-badge.no{background:#FDF2DC;color:#9A6B12;}
 </style>
 </head>
 <body>
@@ -2781,6 +2784,7 @@
       ['agreement-desk',   'Agreement Desk',     'The workflow proxy',      'violet'],
       ['agreement-manager','Agreement Manager',  'Lifecycle + obligations', 'violet'],
       ['monitor',          'Monitor',            'Compliance + alerts',     'amber'],
+      ['data-verification','Data Verification',  'Third-party checks',      'teal'],
       ['app-center',       'App Center',         'Integrations marketplace','glow'],
       ['ai-review',        'AI Review',          'Clause + risk flags',     'teal'],
       ['agentforce',       'Agentforce',         'Agentic actions',         'glow'],
@@ -2945,6 +2949,7 @@
           <div class="pool-meta">
             <div class="pool-name">${escapeHtml(s.name)}</div>
             <div class="pool-role">${escapeHtml(s.role)}</div>
+            ${s.id.startsWith('flipbook:') ? `<span class="fb-badge ${s.demoId ? 'has' : 'no'}">${s.demoId ? 'demo ✓' : 'no demo yet'}</span>` : ''}
           </div>
         </div>`;
       };
@@ -2953,10 +2958,23 @@
       elPool.innerHTML =
         group('Product demos', demos) +
         group('Scene templates', scenes) +
-        group('Flipbook vignettes', vignettes);
+        group('Flipbook vignettes · legacy · pixel fallback', vignettes);
       if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
       mountThumbs(elPool);
     }
+
+    /* Flipbook slug → re-skinnable demo id. Flipbooks are the legacy raster
+       (pixel-perfect, not re-skinnable) fallback; the demo is the canonical
+       high-fidelity counterpart. A null/missing entry means "no demo yet". */
+    const FLIPBOOK_DEMO = {
+      'Web_Forms_Demo_Tally_Bank':'web-forms', 'Maestro_Workflow_Templates':'maestro',
+      'CLEAR_IAL2_Returning_User':'idv-clear', 'ID_me_Member_Autenticaiton_IAL2':'idv-idme',
+      'IDVerse_Demo':'idv-idverse', 'Navigator_Demo_Video':'navigator',
+      'Docusign_AI_Assisted_Review_in_IAM_Promo_Video':'ai-review', 'Workspaces_Demo_Video':'workspaces',
+      'Docusign_Monitor':'monitor', 'Data_Verification_External_Demo':'data-verification',
+      'DocuSign_CLM_Procurement_Demo_Video':'clm', 'Vendor_Agreement_Management_Renewals_Demo':'agreement-manager',
+      'IAM_for_Sales_and_Agentforce_Demo':'agentforce', 'Search_Agent':'search', 'Search_Demo':'search'
+    };
 
     /* Load /flipbooks/manifest.json (written by _build_vignettes.py) and
        extend SCENE_LIBRARY with one tile per flipbook. Each becomes a
@@ -2994,7 +3012,8 @@
             name:   (fb.title || slug).slice(0, 40),
             role:   (fb.tag || 'Vignette') + ' · flipbook',
             poster: POSTER_BY_TAG[fb.tag] || 'amber',
-            url:    'flipbooks/' + slug + '.html?embed=1'
+            url:    'flipbooks/' + slug + '.html?embed=1',
+            demoId: FLIPBOOK_DEMO[slug] || null
           });
           SCENE_BY_ID['flipbook:' + slug] = SCENE_LIBRARY[SCENE_LIBRARY.length - 1];
         }

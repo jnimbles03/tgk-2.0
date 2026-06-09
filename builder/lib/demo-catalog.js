@@ -33,6 +33,7 @@ const CATALOG = {
   'agreement-desk':   { file: 'agreement-desk.html',   label: 'Agreement Desk',    keywords: ['agreement desk','queue','pending','approvals','desk','chain of custody'] },
   'agreement-manager':{ file: 'agreement-manager.html',label: 'Agreement Mgr',     keywords: ['manage agreements','obligations','renewals','lifecycle','manager'] },
   'monitor':          { file: 'monitor.html',          label: 'Monitor',           keywords: ['monitor','compliance','alerts','risk monitoring','anomaly','audit'] },
+  'data-verification':{ file: 'data-verification.html',label: 'Data Verification', keywords: ['data verification','verify','third-party','income','employment','identity check','kyc data','eligibility check'] },
   'app-center':       { file: 'app-center.html',       label: 'App Center',        keywords: ['app center','marketplace','integrations','apps','extensions','connectors'] },
   'ai-review':        { file: 'ai-review.html',        label: 'AI Review',         keywords: ['review','redline','clause','ai review','contract analysis','risk flag','obligations review'] },
   'agentforce':       { file: 'agentforce.html',       label: 'Agentforce',        keywords: ['agentforce','agent','salesforce','ai agent','copilot','assistant'] },

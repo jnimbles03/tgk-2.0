@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Verification — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/app-shell.css">
+<link rel="stylesheet" href="./archetypes/dashboard.css">
+<link rel="stylesheet" href="./archetypes/signing.css">
+<style>
+  .dv-panel{background:#fff;border:1px solid var(--de-line,#E6E8EC);border-radius:10px;overflow:hidden;margin-top:14px;}
+  .dv-head{display:grid;grid-template-columns:1.4fr 1fr 130px;gap:10px;padding:9px 16px;background:#F7F8FA;border-bottom:1px solid #ECEEF1;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8A8FA0;}
+  .dv-row{display:grid;grid-template-columns:1.4fr 1fr 130px;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid #F0F1F4;font-size:12.5px;}
+  .dv-row:last-child{border-bottom:none;}
+  .dv-row .attr{font-weight:600;color:#1B2330;}
+  .dv-row .src{color:#6A7080;font-size:11.5px;}
+  .dv-row .src b{color:var(--tenant-accent);font-weight:600;}
+  .dv-badge{justify-self:start;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:3px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;}
+  .dv-badge .dot{width:6px;height:6px;border-radius:50%;}
+  .dv-badge.checking{background:#F0F1F4;color:#8A8FA0;}
+  .dv-badge.checking .dot{background:#B7BCC8;animation:dvp 1s infinite;}
+  .dv-badge.ok{background:#E2F5EC;color:#1A8E5C;} .dv-badge.ok .dot{background:#1A8E5C;}
+  .dv-badge.clear{background:#E7EDFB;color:#2D55C9;} .dv-badge.clear .dot{background:#2D55C9;}
+  .dv-badge.pend{background:#FDF2DC;color:#9A6B12;} .dv-badge.pend .dot{background:#E0A92E;}
+  .dv-badge.flag{background:#FCE6E4;color:#C2362B;} .dv-badge.flag .dot{background:#C2362B;}
+  .dv-row.flagged{background:rgba(194,54,43,.05);box-shadow:inset 3px 0 0 #C2362B;}
+  @keyframes dvp{50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Admin</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="dv-cobrand"></span></span><span class="avatar" id="dv-av"></span></div></div>';
+const RAIL='<div class="app-rail"><div class="grp">Access management</div><div class="it">Domains</div><div class="it">Identity providers</div>'+
+  '<div class="grp">Data &amp; envelopes</div><div class="it on"><span class="ai">◆</span> Data Verification</div><div class="it">Monitor</div>'+
+  '<div class="grp">Security</div><div class="it">Alerts</div><div class="it">Activity log</div></div>';
+
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="dash">'+NAV+RAIL+
+  '<div class="dash-body"><div class="dash-head"><h2>Data Verification</h2><span class="badge">◆ THIRD-PARTY CHECKS</span></div>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="lab">Subject</div><div class="num" id="dv-subnum" style="font-size:15px;line-height:1.3" >—</div><div class="delta" id="dv-subsub"></div></div>'+
+      '<div class="kpi"><div class="lab">Data points checked</div><div class="num" id="dv-checked">0</div><div class="delta">authoritative sources</div></div>'+
+      '<div class="kpi alert" id="dv-kpi"><div class="lab">Needs review</div><div class="num" id="dv-reviewnum">0</div><div class="delta" id="dv-reviewlbl">verifying…</div></div></div>'+
+    '<div class="dv-panel"><div class="dv-head"><span>Attribute</span><span>Source</span><span>Result</span></div><div id="dv-rows"></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Third-party checks</div><span class="arr">&rarr;</span><div class="node lead">Verified &amp; bound</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+// rows: [attr, source(html), verdict class, verdict text, flagId?]
+DemoEngine.init({
+  meta:{ title:"Data Verification", productTag:"Data Verification", home:"index.html",
+    footnote:'<b>Faithful Data Verification surface, re-skinnable content.</b> The KPI cards, the attribute → source → result table, and the live verify-then-flag animation are the shared spine. Switching vertical swaps the subject, the third-party sources and the narration. Real-frame reference: Docusign Data Verification.' },
+  defaultPack:"banking", scenes:SCENES,
+  timeline:{ totalDuration:28,
+    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"run",sceneId:"app"},{t:13,key:"results",sceneId:"app"},{t:19,key:"flag",sceneId:"app"},{t:24,key:"bind",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
+      {t:6,x:640,y:320,action:"move",sayKey:"run"},
+      {t:13,x:640,y:320,action:"move",sayKey:"results"},
+      {t:19,target:"#dv-flag",action:"move",sayKey:"flag"},
+      {t:24,x:640,y:300,action:"move"} ] },
+  packs:{
+    banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"admin.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      persona:{ name:"Sarah Connelly", role:"Onboarding Analyst", side:"advisor" },
+      cobrand:"Tally", sorNode:"nCino", subject:"Sam Carter", subsub:"Premier Checking · new account",
+      reviewlbl:"income mismatch", checked:"6",
+      rows:[ ["Identity (name · DOB)","<b>LexisNexis</b> RiskView","ok","Verified",""],
+        ["SSN / TIN","<b>SSA</b> eCBSV","ok","Verified",""],
+        ["Address","<b>USPS</b> + credit header","ok","Verified",""],
+        ["Income / employment","<b>The Work Number</b> (Equifax)","flag","Review · $145k vs $128k","dv-flag"],
+        ["Sanctions / PEP","<b>OFAC</b> SDN list","clear","Clear",""],
+        ["Funding account","<b>Plaid</b> auth","ok","Verified",""] ],
+      say:{ open:{eyebrow:"Data Verification",title:"Check the data, not just collect it",body:"Before Tally opens Sam's account, every applicant-provided fact is checked against an authoritative source."},
+        run:{eyebrow:"Running",title:"Six checks, six sources",body:"Identity, SSN, address, income, sanctions and funding each verify against a third party in parallel."},
+        results:{eyebrow:"Results",title:"Five clean, one to review",body:"Most attributes verify instantly. One needs a human — the rest of the file moves on without waiting."},
+        flag:{eyebrow:"Mismatch",title:"Stated income doesn't match",body:"The Work Number returns $128k against a stated $145k — flagged for review instead of slipping through."},
+        bind:{eyebrow:"Bound",title:"Verified data, bound to the file",body:"Each result is bound to the application with its source and timestamp — no re-keying, no manual chase."} },
+      handoff:{h:"Verified at the front door",p:"Six third-party checks ran automatically; the one mismatch was flagged, and clean, sourced data flowed into the bank's core."} },
+    healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+      brand:{ name:"Riverside Health", mark:"R" }, url:"admin.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      persona:{ name:"Dana Okafor", role:"Patient Access", side:"advisor" },
+      cobrand:"Riverside", sorNode:"Epic", subject:"Jordan Kim", subsub:"New patient · intake",
+      reviewlbl:"coordination of benefits", checked:"6",
+      rows:[ ["Identity (name · DOB)","<b>LexisNexis</b> Instant ID","ok","Verified",""],
+        ["Insurance eligibility","<b>Availity</b> 270/271","ok","Active",""],
+        ["Coverage / copay","<b>Payer</b> response","ok","Verified",""],
+        ["Address","<b>USPS</b> CASS","ok","Verified",""],
+        ["Other coverage (COB)","<b>CMS</b> crossover","flag","Review · second plan found","dv-flag"],
+        ["Pharmacy benefit","<b>Surescripts</b>","ok","Verified",""] ],
+      say:{ open:{eyebrow:"Data Verification",title:"Check the data, not just collect it",body:"Before Riverside schedules Jordan, intake data is checked against authoritative sources."},
+        run:{eyebrow:"Running",title:"Six checks, six sources",body:"Identity, eligibility, coverage, address, COB and pharmacy each verify against a third party in parallel."},
+        results:{eyebrow:"Results",title:"Five clean, one to review",body:"Eligibility and coverage confirm instantly. One needs a human — the rest of intake moves on."},
+        flag:{eyebrow:"Mismatch",title:"A second plan turns up",body:"CMS crossover surfaces other coverage — flagged for coordination of benefits before billing, not after a denial."},
+        bind:{eyebrow:"Bound",title:"Verified data, bound to the chart",body:"Each result is bound to the encounter with its source and timestamp — no re-keying, no claim rework."} },
+      handoff:{h:"Verified at the front door",p:"Six third-party checks ran automatically; the COB exception was flagged, and clean, sourced data flowed into Epic."} },
+    pubsec:{ label:"Public Sector · Gov", theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E5ECFB","--tenant-ink":"#0B2A66" },
+      brand:{ name:"State Agency", mark:"G" }, url:"admin.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Jordan Rivera", role:"Eligibility Worker", side:"advisor" },
+      cobrand:"State", sorNode:"Salesforce PSS", subject:"Maria Cortez", subsub:"SNAP · application",
+      reviewlbl:"income to verify", checked:"6",
+      rows:[ ["Identity (name · DOB)","<b>ID proofing</b> IAL2","ok","Verified",""],
+        ["SSN","<b>SSA</b> verification","ok","Verified",""],
+        ["Citizenship / status","<b>SAVE</b> (USCIS)","ok","Eligible",""],
+        ["Residency / address","<b>GIS</b> + USPS","ok","In service area",""],
+        ["Income","<b>The Work Number</b>","flag","Review · paystubs needed","dv-flag"],
+        ["Household","<b>State records</b>","pend","Pending",""] ],
+      say:{ open:{eyebrow:"Data Verification",title:"Check the data, not just collect it",body:"Before the agency runs eligibility, Maria's application is checked against authoritative sources."},
+        run:{eyebrow:"Running",title:"Six checks, six sources",body:"Identity, SSN, citizenship, residency, income and household each verify against a system of record in parallel."},
+        results:{eyebrow:"Results",title:"Four clean, two to resolve",body:"Identity, SSN, status and residency confirm instantly. Income needs a human; household is pending a match."},
+        flag:{eyebrow:"Mismatch",title:"Income can't be auto-verified",body:"The Work Number returns no match — flagged for a paystub request instead of stalling the whole case."},
+        bind:{eyebrow:"Bound",title:"Verified data, bound to the case",body:"Each result is bound to the case with its source and timestamp — improper payments caught before they happen."} },
+      handoff:{h:"Verified at the front door",p:"Six third-party checks ran automatically; the income gap was flagged for documentation, and sourced data flowed into the case record."} }
+  },
+  paintContent(p, root){
+    root.querySelector("#dv-cobrand").textContent=p.cobrand;
+    root.querySelector("#dv-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    root.querySelector("#dv-subnum").textContent=p.subject; root.querySelector("#dv-subsub").textContent=p.subsub;
+    root.querySelector("#dv-checked").textContent=p.checked;
+    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
+    root.querySelector("#dv-rows").innerHTML=p.rows.map(r=>
+      '<div class="dv-row"'+(r[4]?' id="'+r[4]+'"':'')+' data-cls="'+r[2]+'" data-txt="'+r[3]+'">'+
+      '<span class="attr">'+r[0]+'</span><span class="src">'+r[1]+'</span>'+
+      '<span class="dv-badge checking"><span class="dot"></span>Checking…</span></div>').join("");
+  },
+  onTime(time, p, root){
+    const resolved=time>=13, flagged=time>=19;
+    root.querySelectorAll("#dv-rows .dv-row").forEach(row=>{
+      const b=row.querySelector(".dv-badge");
+      const isFlag=row.dataset.cls==="flag";
+      if(resolved && (!isFlag || flagged)){
+        b.className="dv-badge "+row.dataset.cls;
+        b.innerHTML='<span class="dot"></span>'+row.dataset.txt;
+        if(isFlag) row.classList.add("flagged");
+      } else {
+        b.className="dv-badge checking"; b.innerHTML='<span class="dot"></span>Checking…';
+        row.classList.remove("flagged");
+      }
+    });
+    const rev=root.querySelector("#dv-reviewnum"), lbl=root.querySelector("#dv-reviewlbl");
+    rev.textContent=flagged?"1":"0"; lbl.textContent=flagged?p.reviewlbl:(resolved?"complete":"verifying…");
+  }
+});
+</script>
+</body>
+</html>
