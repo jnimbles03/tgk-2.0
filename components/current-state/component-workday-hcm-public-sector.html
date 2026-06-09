@@ -4,99 +4,247 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Current State — Workday HCM (hire / onboarding) | TGK 2.0</title>
-<meta name="description" content="Stylized mock evoking Workday HCM (hire journey evocation) in a Public Sector workflow. Not a literal screenshot.">
+<meta name="description" content="High-fidelity reconstruction of the Workday HCM web UI (home chrome + Hire business-process detail) for a public-sector onboarding workflow. Reference-matched, not a literal screenshot.">
 <style>
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
-  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
+  --ds-ecru:#F8F3F0;--ink:#130032;--line:rgba(19,0,50,0.10);
   --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
-  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
-  --v-head:#0875E1;--v-accent:#F4AA00;--v-bg:#F4F7FB;--v-head-ink:#fff;
+  /* Workday palette pulled from the reference deck */
+  --wd-purple:#492A7C; --wd-purple-2:#5C3D8C; --wd-purple-deep:#3B1F6B;
+  --wd-band-a:#4A2A82; --wd-band-b:#5E3E92;
+  --wd-orange:#FF8B1F; --wd-orange-d:#E2780A;
+  --wd-link:#0875E1; --wd-text:#21262C; --wd-soft:#6A7178;
+  --wd-page:#F4F5F7; --wd-rule:#E0E2E5; --wd-card-rule:#D9DCDF;
+  --wd-red:#D6371C; --wd-due:#C0392B;
+  --wd-green:#2E7D46; --wd-amber:#B57400;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
 body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
 svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
-  border:1px solid var(--line-strong);border-radius:12px;
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--wd-page);
+  border:1px solid rgba(19,0,50,0.18);border-radius:12px;
   box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
-.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
-  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;}
-.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
-  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
-.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
-.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
-.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
-.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+  overflow:hidden;display:flex;flex-direction:column;position:relative;
+  font-size:10.5px;line-height:1.4;color:var(--wd-text);}
 
+/* ── Workday top bar ── */
+.wd-top{height:38px;background:#fff;border-bottom:1px solid var(--wd-rule);
+  display:flex;align-items:center;gap:0;padding:0 14px;flex-shrink:0;position:relative;z-index:2;}
+.wd-logo{display:flex;flex-direction:column;line-height:1;flex-shrink:0;width:148px;}
+.wd-logo .lk{font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--wd-purple);}
+.wd-logo .lk b{color:var(--wd-orange);}
+.wd-logo .sub{font-size:6px;font-weight:700;letter-spacing:.18em;color:var(--wd-purple);margin-top:2px;}
+.wd-search{flex:1;max-width:430px;height:24px;margin:0 auto;background:#fff;
+  border:1px solid #C7CBD0;border-radius:13px;display:flex;align-items:center;gap:7px;padding:0 12px;color:var(--wd-soft);font-size:10.5px;}
+.wd-search svg{width:12px;height:12px;color:#8A9098;}
+.wd-icons{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0;color:#3A3F45;}
+.wd-ic{position:relative;display:flex;}
+.wd-ic svg{width:15px;height:15px;}
+.wd-badge{position:absolute;top:-6px;right:-7px;min-width:13px;height:13px;padding:0 3px;border-radius:7px;
+  background:var(--wd-red);color:#fff;font-size:7.5px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;}
+.wd-avatar{width:18px;height:18px;border-radius:50%;background:#E6E1EF;border:1px solid #CFC6E0;
+  display:flex;align-items:center;justify-content:center;color:var(--wd-purple);}
+.wd-avatar svg{width:11px;height:11px;}
 
-.doss{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
-.d-head{height:38px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 14px;gap:18px;font-size:11.5px;flex-shrink:0;}
-.d-logo{font-family:var(--brand-font);font-weight:700;letter-spacing:0.03em;}
-.d-nav{display:flex;gap:18px;font-weight:500;opacity:0.9;font-size:10.5px;margin-left:14px;}
-.d-nav span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;font-weight:600;}
-.d-user{margin-left:auto;opacity:0.85;font-size:10px;}
-.d-title{padding:12px 18px 4px;display:flex;align-items:center;gap:12px;}
-.d-title h2{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ink);margin-right:auto;}
-.d-badges{display:inline-flex;gap:6px;}
-.d-grid{flex:1;padding:6px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden;}
-.d-col{display:flex;flex-direction:column;gap:10px;}
-.d-card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:10.5px;}
-.d-card h4{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
-.d-card .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
-.d-card .row:last-child{border-bottom:0;}
-.d-card .row .k{color:var(--ink-soft);}
-.d-card .row .v{font-weight:500;}
-.d-card .row .v.warn{color:#A93434;font-weight:600;}
-.d-card .row .v.ok{color:#276B36;font-weight:600;}
-.d-card .timeline{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-.d-card .tl-row{display:flex;gap:8px;font-size:10px;padding:2px 0;}
-.d-card .tl-date{width:62px;color:var(--ink-soft);flex-shrink:0;}
-.d-card .tl-text{color:var(--ink);}
-.d-card .tl-text.warn{color:#A93434;}
-.d-foot{padding:8px 18px 10px;background:transparent;flex-shrink:0;}
+/* ── purple photo-collage hero band ── */
+.wd-band{height:40px;background:linear-gradient(100deg,var(--wd-band-a),var(--wd-band-b));
+  position:relative;flex-shrink:0;overflow:hidden;display:flex;align-items:center;padding:0 22px;}
+.wd-band::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 14px,rgba(255,255,255,0) 14px 30px),
+   radial-gradient(circle at 20% 60%,rgba(255,255,255,.10),transparent 40%),
+   radial-gradient(circle at 55% 30%,rgba(255,255,255,.08),transparent 38%),
+   radial-gradient(circle at 82% 70%,rgba(255,255,255,.08),transparent 40%);}
+.wd-band .crumb{position:relative;display:flex;align-items:center;gap:8px;color:#EFE9F7;font-size:10px;}
+.wd-band .crumb a{color:#D9CEEB;}
+.wd-band .crumb b{color:#fff;font-weight:600;}
+.wd-band .crumb svg{width:9px;height:9px;color:#B9A8D6;}
 
+/* ── page content ── */
+.wd-page{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--wd-page);padding:11px 22px 0;overflow:hidden;}
+.wd-h{display:flex;align-items:flex-start;gap:12px;margin-bottom:9px;}
+.wd-h .title{margin-right:auto;}
+.wd-h h2{font-size:15px;font-weight:600;color:#1B2126;letter-spacing:-.01em;}
+.wd-h .meta{font-size:10px;color:var(--wd-soft);margin-top:2px;display:flex;align-items:center;gap:7px;}
+.wd-twinkle{width:13px;height:13px;color:var(--wd-orange);flex-shrink:0;}
+.wd-step{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--wd-card-rule);
+  border-radius:13px;padding:2px 9px;font-size:9px;font-weight:600;color:var(--wd-soft);}
+.wd-step .dot{width:7px;height:7px;border-radius:50%;background:var(--wd-orange);}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;
+  font-size:9px;font-weight:600;letter-spacing:.01em;border:1px solid transparent;}
+.chip.warn{background:rgba(214,55,28,0.08);color:#A53116;border-color:rgba(214,55,28,0.28);}
+.chip.stale{background:rgba(181,116,0,0.10);color:#8A5800;border-color:rgba(181,116,0,0.30);}
+.chip.ok{background:rgba(46,125,70,0.10);color:#236138;border-color:rgba(46,125,70,0.28);}
+
+/* card grid */
+.wd-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:11px;min-height:0;}
+.wd-col{display:flex;flex-direction:column;gap:11px;min-height:0;}
+.card{background:#fff;border:1px solid var(--wd-card-rule);border-radius:7px;
+  box-shadow:0 1px 2px rgba(19,0,50,.04);overflow:hidden;}
+.card h4{font-size:11px;font-weight:600;color:#2C3137;padding:8px 12px 7px;
+  border-bottom:1px solid var(--wd-rule);display:flex;align-items:center;gap:6px;}
+.card h4 .twk{width:11px;height:11px;color:var(--wd-orange);}
+.card .body{padding:6px 12px 9px;}
+.row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:10px;border-bottom:1px solid #F0F1F3;}
+.row:last-child{border-bottom:0;}
+.row .k{color:var(--wd-soft);}
+.row .v{font-weight:600;color:var(--wd-text);text-align:right;}
+.row .v a,.lnk{color:var(--wd-link);font-weight:600;text-decoration:none;}
+.row .v.warn{color:#A53116;}
+.row .v.ok{color:#236138;}
+.row .v.amber{color:#8A5800;}
+
+/* awaiting-your-action style task list */
+.task{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #F0F1F3;}
+.task:last-child{border-bottom:0;}
+.task .tic{width:22px;height:22px;border-radius:4px;background:#F1EDF8;color:var(--wd-purple);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.task .tic svg{width:13px;height:13px;}
+.task .tx{flex:1;min-width:0;}
+.task .tt{font-size:10px;font-weight:600;color:#23292F;}
+.task .ts{font-size:9px;color:var(--wd-soft);margin-top:1px;}
+.task .due{font-size:9px;font-weight:700;color:var(--wd-due);margin-top:2px;}
+.task .due.amber{color:var(--wd-amber);}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;
+  border-radius:14px;padding:4px 13px;}
+.btn.go{background:var(--wd-orange);color:#fff;border:1px solid var(--wd-orange-d);}
+.btn.ghost{background:#fff;color:var(--wd-purple);border:1px solid #C9BEDC;}
+
+/* footer / friction */
+.wd-foot{padding:8px 22px 10px;flex-shrink:0;}
+.friction{background:rgba(214,55,28,0.07);border:1px solid rgba(214,55,28,0.28);
+  color:#A53116;padding:6px 11px;border-radius:6px;font-size:10px;font-weight:600;
+  display:flex;align-items:center;gap:8px;}
+.friction svg{width:13px;height:13px;stroke:#A53116;stroke-width:2;flex-shrink:0;}
 </style>
 </head>
 <body>
 <div class="mock">
 
-<div class="doss">
-  <div class="d-head">
-    <span class="d-logo">TX-HHSC Workday</span>
-    <span class="d-nav"><span class="">Home</span><span class="">My Team</span><span class="on">Hire</span><span class="">Journeys</span><span class="">Talent</span><span class="">Pay</span></span>
-    <span class="d-user">Oyinlola, K. — HR Partner</span>
+  <!-- Workday top chrome -->
+  <div class="wd-top">
+    <div class="wd-logo">
+      <span class="lk">TX<b>&middot;</b>HHSC</span>
+      <span class="sub">TEXAS HEALTH &amp; HUMAN SERVICES</span>
+    </div>
+    <div class="wd-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+      <span>Search</span>
+    </div>
+    <div class="wd-icons">
+      <span class="wd-ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span>
+      <span class="wd-ic"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="wd-badge">9</span></span>
+      <span class="wd-ic"><svg viewBox="0 0 24 24"><path d="M3 8l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg><span class="wd-badge">5</span></span>
+      <span class="wd-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+    </div>
   </div>
-  <div class="d-title">
-    <h2>Hire · Eligibility Worker II — Travis Co.</h2>
-    <span class="d-badges"><span class="chip warn">Offer 04/18 · awaiting signature</span><span class="chip stale">Background check in progress</span></span>
+
+  <!-- purple hero band with breadcrumb -->
+  <div class="wd-band">
+    <div class="crumb">
+      <a>Recruiting</a>
+      <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      <a>Job Requisitions</a>
+      <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      <b>Hire &middot; Eligibility Worker II</b>
+    </div>
   </div>
-  <div class="d-grid">
-    <div class="d-col"><div class="d-card"><h4>Candidate</h4><div class="row"><span class="k">Name</span><span class="v">Okonkwo, Ifeoma</span></div><div class="row"><span class="k">Req #</span><span class="v">REQ-TX-HHSC-2026-00814</span></div><div class="row"><span class="k">Job Profile</span><span class="v">Eligibility Worker II</span></div><div class="row"><span class="k">Start Date</span><span class="v warn">Target 05/05 &middot; at risk</span></div><div class="row"><span class="k">Manager</span><span class="v">Delgado, A.</span></div></div><div class="d-card"><h4>Onboarding Journey</h4><div class="timeline"><div class="tl-row"><span class="tl-date">04/01</span><span class="tl-text">ATS → Workday candidate push</span></div><div class="tl-row"><span class="tl-date">04/08</span><span class="tl-text">Workday offer generated (manual signature)</span></div><div class="tl-row"><span class="tl-date">04/09</span><span class="tl-text warn">Offer emailed from outlook, not routed thru Workday</span></div><div class="tl-row"><span class="tl-date">04/12</span><span class="tl-text">Background screening order placed</span></div><div class="tl-row"><span class="tl-date">04/18</span><span class="tl-text warn">Still awaiting signed offer</span></div></div></div></div>
-    <div class="d-col"><div class="d-card"><h4>Background Screening</h4><div class="row"><span class="k">Provider</span><span class="v">VerifyWorks</span></div><div class="row"><span class="k">Order ID</span><span class="v">VW-2026-31941</span></div><div class="row"><span class="k">Status</span><span class="v warn">In-Review — 6 days</span></div><div class="row"><span class="k">Secondary Check</span><span class="v">AscendScreen · not yet ordered</span></div></div><div class="d-card"><h4>Forms / Tasks</h4><div class="row"><span class="k">I-9</span><span class="v warn">Not started</span></div><div class="row"><span class="k">W-4</span><span class="v stale">Sent — not signed</span></div><div class="row"><span class="k">Direct Deposit</span><span class="v stale">Not started</span></div><div class="row"><span class="k">FedRAMP Training</span><span class="v stale">Required — pending start</span></div></div></div>
+
+  <!-- detail page -->
+  <div class="wd-page">
+    <div class="wd-h">
+      <div class="title">
+        <h2>Hire: Eligibility Worker II — Travis County
+          <svg class="wd-twinkle" viewBox="0 0 24 24" style="display:inline-block;vertical-align:-1px"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></svg>
+        </h2>
+        <div class="meta">Business Process &middot; Hire &nbsp;&middot;&nbsp; Initiated 04/08/2026 &nbsp;&middot;&nbsp; <span class="wd-step"><span class="dot"></span>Step 3 of 6 &middot; Offer</span></div>
+      </div>
+      <span class="chip warn">Offer 04/18 &middot; awaiting signature</span>
+      <span class="chip stale">Background check in progress</span>
+    </div>
+
+    <div class="wd-grid">
+      <!-- left column -->
+      <div class="wd-col">
+        <div class="card">
+          <h4><svg class="twk" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 4-6 7-6s7 2 7 6"/></svg>Candidate &amp; Position</h4>
+          <div class="body">
+            <div class="row"><span class="k">Worker</span><span class="v">Okonkwo, Ifeoma</span></div>
+            <div class="row"><span class="k">Requisition</span><span class="v"><a>REQ-TX-HHSC-2026-00814</a></span></div>
+            <div class="row"><span class="k">Job Profile</span><span class="v">Eligibility Worker II</span></div>
+            <div class="row"><span class="k">Supervisory Org</span><span class="v">Travis Co. Eligibility (A. Delgado)</span></div>
+            <div class="row"><span class="k">Start Date</span><span class="v warn">Target 05/05 &middot; at risk</span></div>
+            <div class="row"><span class="k">HR Partner</span><span class="v">Oyinlola, K.</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h4><svg class="twk" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>Background Screening</h4>
+          <div class="body">
+            <div class="row"><span class="k">Provider</span><span class="v">VerifyWorks (integration)</span></div>
+            <div class="row"><span class="k">Order ID</span><span class="v">VW-2026-31941</span></div>
+            <div class="row"><span class="k">Status</span><span class="v warn">In Review — 6 days</span></div>
+            <div class="row"><span class="k">Secondary Check</span><span class="v amber">AscendScreen &middot; not yet ordered</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right column -->
+      <div class="wd-col">
+        <div class="card">
+          <h4><svg class="twk" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Onboarding Process History</h4>
+          <div class="body">
+            <div class="task">
+              <span class="tic"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="tx"><div class="tt">Candidate pushed from ATS</div><div class="ts">Completed &middot; 04/01 &middot; 7 days ago</div></span>
+            </div>
+            <div class="task">
+              <span class="tic"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="tx"><div class="tt">Offer generated (manual signature)</div><div class="ts">Completed &middot; 04/08</div></span>
+            </div>
+            <div class="task">
+              <span class="tic" style="background:rgba(214,55,28,.08);color:var(--wd-due)"><svg viewBox="0 0 24 24"><path d="M3 8l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span>
+              <span class="tx"><div class="tt">Offer emailed from Outlook — not routed through Workday</div><div class="ts">04/09 &middot; off-system</div><div class="due">Awaiting signed offer &middot; DUE 04/18</div></span>
+            </div>
+            <div class="task">
+              <span class="tic" style="background:rgba(181,116,0,.10);color:var(--wd-amber)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+              <span class="tx"><div class="tt">Background screening order placed</div><div class="ts">04/12 &middot; in progress</div><div class="due amber">Blocking Step 4 &middot; Onboarding</div></span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4><svg class="twk" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>Onboarding Tasks &amp; Forms</h4>
+          <div class="body">
+            <div class="row"><span class="k">Form I-9</span><span class="v warn">Not started</span></div>
+            <div class="row"><span class="k">Form W-4</span><span class="v amber">Sent — not signed</span></div>
+            <div class="row"><span class="k">Direct Deposit Elections</span><span class="v amber">Not started</span></div>
+            <div class="row"><span class="k">State Ethics / FedRAMP Training</span><span class="v amber">Required — pending start</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="d-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Offer letter emailed from Outlook, not routed through Workday. Start date is at risk while signature lives in an inbox.</div></div>
-</div>
+
+  <div class="wd-foot">
+    <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Offer letter emailed from Outlook, not routed through Workday. Start date is at risk while the signature lives in an inbox.</div>
+  </div>
 
 </div>
 <script id="component-config" type="application/json">
 {
   "component": "component-workday-hcm-public-sector.html",
-  "vendor": "Workday HCM (hire journey evocation)",
+  "vendor": "Workday HCM — Home chrome + Hire business-process detail (reference-matched reconstruction)",
   "scope": "Public Sector",
   "state": "Current",
   "useCase": "Benefits Eligibility / Recertification (SNAP)",
   "archetype": "dossier",
   "citizen": "Rodriguez, Maria A.",
   "caseId": "CCR-2026-047812",
-  "program": "SNAP"
+  "program": "SNAP",
+  "referenceSource": "Workday Core Concepts training deck (Home Page p.16, Workday form p.23)"
 }
 </script>
 </body>
