@@ -398,8 +398,8 @@
     filter:drop-shadow(0 1px 2px rgba(0,0,0,0.45));
     opacity:0;
     transition:
-      left 0.65s cubic-bezier(.4,0,.2,1),
-      top 0.65s cubic-bezier(.4,0,.2,1),
+      left 0.6s cubic-bezier(.3,.7,.25,1),
+      top 0.6s cubic-bezier(.3,.7,.25,1),
       opacity 0.35s ease;
   }
   .shell-cursor.is-visible{opacity:1;}
@@ -2812,15 +2812,31 @@ layer.appendChild(shellCursorEl);
 /* Move the cursor to mirror the active hotspot, fire a click pulse.
    Called from every code path that puts the dot into its final position
    (synchronous x/y fallback, async tgk:rect response, safety timeout). */
+let _scLastL = null, _scLastT = null, _scPulseTimer = 0;
 function syncShellCursor(left, top){
   if (!shellCursorEl) return;
+  const nl = parseFloat(left), nt = parseFloat(top);
+  // Distance-aware, slightly varied move duration so the cadence never repeats
+  // (a short nudge is snappy; a full-frame sweep takes longer). Clamped so weird
+  // unit mixes (% vs px) still land in a sane range.
+  let dur = 0.5;
+  if (_scLastL != null && isFinite(nl) && isFinite(nt)) {
+    const dist = Math.hypot(nl - _scLastL, nt - _scLastT);
+    dur = Math.min(0.85, Math.max(0.32, 0.32 + dist / 110 + Math.random() * 0.16));
+  }
+  shellCursorEl.style.transitionDuration = dur + 's, ' + dur + 's, 0.35s';
   shellCursorEl.style.left = left;
   shellCursorEl.style.top  = top;
   shellCursorEl.classList.add('is-visible');
-  // restart the click-pulse animation
-  shellCursorEl.classList.remove('is-clicking');
-  void shellCursorEl.offsetWidth;
-  shellCursorEl.classList.add('is-clicking');
+  if (isFinite(nl)) _scLastL = nl;
+  if (isFinite(nt)) _scLastT = nt;
+  // Click-pulse on ARRIVAL (when the cursor reaches the hotspot), not on departure.
+  clearTimeout(_scPulseTimer);
+  _scPulseTimer = setTimeout(() => {
+    shellCursorEl.classList.remove('is-clicking');
+    void shellCursorEl.offsetWidth;
+    shellCursorEl.classList.add('is-clicking');
+  }, Math.round(dur * 1000));
 }
 
 let idx = 0;
