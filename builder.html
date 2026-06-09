@@ -1066,6 +1066,19 @@
   /* Admin auth modal — load the small primitive's stylesheet for the prompt overlay */
 </style>
 <link rel="stylesheet" href="/assets/admin-auth/admin-auth.css">
+<style id="start-bar-css">
+.start-bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px;padding:11px 14px;background:var(--bg);border:1px solid var(--rule);border-radius:10px;}
+.start-field{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.start-field>span{font-weight:600;color:var(--text);}
+.start-field select{font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--rule);border-radius:6px;background:#fff;color:var(--text);cursor:pointer;}
+.start-open{font-size:12px;margin-left:auto;}
+.start-open>summary{cursor:pointer;color:var(--ds-cobalt);font-weight:600;list-style:none;}
+.start-open>summary::-webkit-details-marker{display:none;}
+.start-open[open]{flex:1 1 100%;margin-left:0;margin-top:4px;border-top:1px dashed var(--rule);padding-top:10px;}
+.start-open-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.start-open-body .maintenance-btn{font-family:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--ds-cobalt);background:var(--ds-cobalt);color:#fff;cursor:pointer;}
+.start-open-body .maintenance-status{font-size:11.5px;color:var(--muted);}
+</style>
 </head>
 <body>
 
@@ -1103,8 +1116,8 @@
       <button class="stage-btn is-active" type="button" data-stage="1" id="stageBtn1">
         <span class="stage-num">1</span>
         <span>
-          <div class="stage-label">Sequence</div>
-          <div class="stage-sub">Pick a starting point</div>
+          <div class="stage-label">Build</div>
+          <div class="stage-sub">Scenes &amp; timeline</div>
         </span>
       </button>
       <button class="stage-btn" type="button" data-stage="2" id="stageBtn2">
@@ -1114,15 +1127,8 @@
           <div class="stage-sub">Name it, color it</div>
         </span>
       </button>
-      <button class="stage-btn" type="button" data-stage="3" id="stageBtn3">
-        <span class="stage-num">3</span>
-        <span>
-          <div class="stage-label">Scenes</div>
-          <div class="stage-sub">Arrange &amp; narrate</div>
-        </span>
-      </button>
       <button class="stage-btn" type="button" data-stage="4" id="stageBtn4">
-        <span class="stage-num">4</span>
+        <span class="stage-num">·</span>
         <span>
           <div class="stage-label">Admin tools</div>
           <div class="stage-sub">MP4 pipeline + edits</div>
@@ -1143,145 +1149,10 @@
   <!-- ── MAIN PANEL ── -->
   <main class="main">
 
-    <!-- ══ STAGE 1: SEQUENCE ══ -->
-    <div class="stage-panel is-active" id="stage1">
-      <div class="stage-header">
-        <div class="stage-header-eyebrow">Step 1 of 3</div>
-        <h2>Choose a starting sequence</h2>
-        <p class="stage-header-sub">Select a pre-canned flow, start blank, or open an existing demo for maintenance.</p>
-      </div>
-
-      <!-- Maintenance: load an existing canonical demo into the timeline.
-           Uses the same audit-mode hydration as `?vertical=<key>` URL —
-           we just expose it as a UI affordance so authors don't need to
-           edit URL params. -->
-      <div class="stage-body" style="padding-bottom:0;">
-        <div class="maintenance-panel" id="maintenancePanel">
-          <div class="maintenance-head">
-            <span class="maintenance-tag">Maintain existing</span>
-            <span class="maintenance-sub">Open a canonical demo to edit narration in place.</span>
-          </div>
-          <div class="maintenance-row">
-            <label class="maintenance-field">
-              <span class="maintenance-label">Vertical</span>
-              <select id="loadVerticalSelect">
-                <option value="">— pick one —</option>
-              </select>
-            </label>
-            <label class="maintenance-field">
-              <span class="maintenance-label">Use case</span>
-              <select id="loadUsecaseSelect">
-                <option value="default">Onboarding (default)</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="fraud-fabric">Fraud Fabric</option>
-                <option value="workspaces">Workspaces</option>
-              </select>
-            </label>
-            <button type="button" class="maintenance-btn" id="loadVerticalBtn">Load for editing →</button>
-          </div>
-          <div class="maintenance-status" id="loadVerticalStatus"></div>
-        </div>
-      </div>
-
-      <div class="stage-body">
-        <div class="seq-grid" id="seqGrid">
-
-          <button class="seq-card is-selected" type="button" data-seq="default">
-            <div class="seq-card-head">
-              <span class="seq-card-name">5-Scene Canonical</span>
-              <span class="seq-card-badge">5 scenes</span>
-            </div>
-            <p class="seq-card-desc">The full Docusign story arc — identity, agreement, signing, data, workspace. Best for new-logo discovery.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">AD</span>
-              <span class="seq-scene-pill">ID</span>
-              <span class="seq-scene-pill">SG</span>
-              <span class="seq-scene-pill">NV</span>
-              <span class="seq-scene-pill">WS</span>
-            </div>
-          </button>
-
-          <button class="seq-card" type="button" data-seq="intake">
-            <div class="seq-card-head">
-              <span class="seq-card-name">Intake</span>
-              <span class="seq-card-badge">4 scenes</span>
-            </div>
-            <p class="seq-card-desc">Public webform → triaged queue → Agreement Desk → Navigator. Inbound-first journey.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">WF</span>
-              <span class="seq-scene-pill">WI</span>
-              <span class="seq-scene-pill">AD</span>
-              <span class="seq-scene-pill">NV</span>
-            </div>
-          </button>
-
-          <button class="seq-card" type="button" data-seq="fraud-fabric">
-            <div class="seq-card-head">
-              <span class="seq-card-name">Fraud Fabric</span>
-              <span class="seq-card-badge">3 scenes</span>
-            </div>
-            <p class="seq-card-desc">Chain-of-custody binding + CLEAR at the door + signing. High-value or high-risk transactions.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">CC</span>
-              <span class="seq-scene-pill">ID</span>
-              <span class="seq-scene-pill">SG</span>
-            </div>
-          </button>
-
-          <button class="seq-card" type="button" data-seq="maintenance">
-            <div class="seq-card-head">
-              <span class="seq-card-name">Maintenance</span>
-              <span class="seq-card-badge">3 scenes</span>
-            </div>
-            <p class="seq-card-desc">Post-onboarding change event — beneficiary update, address change, advisor reassignment.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">AD</span>
-              <span class="seq-scene-pill">ID</span>
-              <span class="seq-scene-pill">SG</span>
-            </div>
-          </button>
-
-          <button class="seq-card" type="button" data-seq="workspaces">
-            <div class="seq-card-head">
-              <span class="seq-card-name">Workspaces</span>
-              <span class="seq-card-badge">1 scene</span>
-            </div>
-            <p class="seq-card-desc">Single-scene spotlight on the Workspace collaboration room. Ideal as a synthesis closer.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">WS</span>
-            </div>
-          </button>
-
-          <button class="seq-card" type="button" data-seq="clm">
-            <div class="seq-card-head">
-              <span class="seq-card-name">CLM</span>
-              <span class="seq-card-badge">4 scenes</span>
-            </div>
-            <p class="seq-card-desc">Contract lifecycle — webform intake, Agreement Desk review, signing, Navigator extract.</p>
-            <div class="seq-card-scenes">
-              <span class="seq-scene-pill">WF</span>
-              <span class="seq-scene-pill">AD</span>
-              <span class="seq-scene-pill">SG</span>
-              <span class="seq-scene-pill">NV</span>
-            </div>
-          </button>
-
-          <button class="seq-card seq-blank-card" type="button" data-seq="blank">
-            <div class="seq-card-head">
-              <span class="seq-card-name">Start blank</span>
-              <span class="seq-card-badge" style="background:transparent;border:1px dashed var(--rule-strong);color:var(--muted);">0 scenes</span>
-            </div>
-            <p class="seq-card-desc">Empty timeline. Drag any scene block from the library in step 3.</p>
-          </button>
-
-        </div>
-      </div>
-    </div>
-
     <!-- ══ STAGE 2: BRAND ══ -->
     <div class="stage-panel" id="stage2">
       <div class="stage-header">
-        <div class="stage-header-eyebrow">Step 2 of 3</div>
+        <div class="stage-header-eyebrow">Step 2 of 2</div>
         <h2>Brand the demo</h2>
         <p class="stage-header-sub">Set the tenant name, customer context, and visual identity. Defaults auto-fill from the narration scaffold.</p>
       </div>
@@ -1423,13 +1294,44 @@
     </div>
 
     <!-- ══ STAGE 3: SCENES ══ -->
-    <div class="stage-panel" id="stage3">
+    <div class="stage-panel is-active" id="stage1">
       <div class="stage-header">
-        <div class="stage-header-eyebrow">Step 3 of 3</div>
-        <h2>Arrange scenes &amp; narrate</h2>
-        <p class="stage-header-sub">Drag blocks from the library into the timeline, then click any scene to edit its narration. Need 3+ scenes to generate.</p>
+        <div class="stage-header-eyebrow">Step 1 of 2</div>
+        <h2>Build your demo</h2>
+        <p class="stage-header-sub">Start from a sequence (or blank), or open an existing demo to maintain — then arrange scenes from the library on the timeline. Click any scene to edit its narration.</p>
       </div>
       <div class="stage-body">
+        <div class="start-bar">
+          <label class="start-field"><span>Start from</span>
+            <select id="seqSelect">
+              <option value="default">5-Scene Canonical</option>
+              <option value="intake">Intake</option>
+              <option value="fraud-fabric">Fraud Fabric</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="workspaces">Workspaces</option>
+              <option value="clm">CLM</option>
+              <option value="blank">Blank</option>
+            </select>
+          </label>
+          <details class="start-open">
+            <summary>Open existing demo for maintenance</summary>
+            <div class="start-open-body">
+              <label class="start-field"><span>Vertical</span>
+                <select id="loadVerticalSelect"><option value="">— pick one —</option></select>
+              </label>
+              <label class="start-field"><span>Use case</span>
+                <select id="loadUsecaseSelect">
+                  <option value="default">Onboarding (default)</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="fraud-fabric">Fraud Fabric</option>
+                  <option value="workspaces">Workspaces</option>
+                </select>
+              </label>
+              <button type="button" class="maintenance-btn" id="loadVerticalBtn">Load for editing →</button>
+              <span class="maintenance-status" id="loadVerticalStatus"></span>
+            </div>
+          </details>
+        </div>
         <div class="composer-wrap">
 
           <!-- Scene pool -->
@@ -1770,15 +1672,11 @@
 <footer class="bottombar">
   <div class="bottombar-progress" id="progressBar">
     <span class="progress-step is-active" id="prog1">
-      <span class="progress-dot"></span>Sequence
+      <span class="progress-dot"></span>Build
     </span>
     <span class="progress-connector"></span>
     <span class="progress-step" id="prog2">
       <span class="progress-dot"></span>Brand
-    </span>
-    <span class="progress-connector"></span>
-    <span class="progress-step" id="prog3">
-      <span class="progress-dot"></span>Scenes
     </span>
   </div>
   <div class="bottombar-actions">
@@ -2001,7 +1899,7 @@
   // Stage navigation
   // ============================================================
   let currentStage = 1;
-  const TOTAL_STAGES = 3;
+  const TOTAL_STAGES = 2;
 
   function goToStage(n, skipValidation) {
     if (n < 1 || n > TOTAL_STAGES) return;
@@ -2069,7 +1967,7 @@
   // ============================================================
   function enterAdminMode() {
     // Show stage4 panel, hide stages 1-3, mark stage4 button active
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
       document.getElementById('stage' + i).classList.remove('is-active');
       document.getElementById('stageBtn' + i).classList.remove('is-active');
     }
@@ -2093,7 +1991,7 @@
   // Wrap goToStage to exit admin when entering 1/2/3
   const _origGoToStage = goToStage;
   goToStage = function(n, allowBack) {
-    if (n >= 1 && n <= 3) exitAdminMode();
+    if (n >= 1 && n <= 2) exitAdminMode();
     return _origGoToStage(n, allowBack);
   };
 
@@ -2532,12 +2430,9 @@
   // ============================================================
   let _pendingSeq = null;
 
-  document.getElementById('seqGrid').addEventListener('click', (e) => {
-    const card = e.target.closest('.seq-card');
-    if (!card) return;
-    const seq = card.dataset.seq;
-    document.querySelectorAll('.seq-card').forEach(c => c.classList.remove('is-selected'));
-    card.classList.add('is-selected');
+  const _seqSelect = document.getElementById('seqSelect');
+  if (_seqSelect) _seqSelect.addEventListener('change', (e) => {
+    const seq = e.target.value;
     // Sync hidden f-shell
     $('f-shell').value = (seq === 'clm') ? 'default' : seq;
     if (window.__timeline && typeof window.__timeline.resetToShell === 'function') {
@@ -3664,8 +3559,8 @@
       banner.classList.add('is-active');
       bannerText.textContent = `Auditing ${verticalKey} · ${usecase}`;
     }
-    // Jump to stage 3 in audit mode
-    goToStage(3, true);
+    // Jump to the Build (Scenes) stage in audit mode
+    goToStage(1, true);
     fetch(`/api/verticals/${encodeURIComponent(verticalKey)}?usecase=${encodeURIComponent(usecase)}`, { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
