@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current State — Epic Hyperdrive · Release of Information | TGK 2.0</title>
+<meta name="description" content="High-fidelity reconstruction of Epic Hyperdrive (Storyboard + Chart Review / Release of Information) for a provider records-release workflow. Reference-matched, not a literal screenshot.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --ds-ecru:#F8F3F0; --ink:#130032; --line:rgba(19,0,50,0.10);
+    --ui:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+    /* Epic palette pulled from the reference deck */
+    --epic-blue:#1568A8; --epic-link:#1A6FB5; --epic-title:#16659E;
+    --epic-head-grad-a:#2C7CC0; --epic-head-grad-b:#1A5C97;
+    --epic-band:#EEF1F3; --epic-rule:#C9D3DA; --epic-soft:#5B6B77;
+    --epic-text:#2A2E33; --epic-yellow:#FFE8A3; --epic-green:#3E9B45;
+    --epic-red:#B3261E; --epic-magenta:#B0286B;
+    --sb-bg:#FBFCFD;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;font-family:var(--ui);color:var(--ink);}
+  body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .mock{width:100%;max-width:960px;aspect-ratio:16/10;background:#fff;
+    border:1px solid rgba(19,0,50,0.18);border-radius:12px;
+    box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+    font-size:10.5px;line-height:1.35;color:var(--epic-text);}
+
+  /* ── Hyperdrive top toolbar ── */
+  .hd-top{height:30px;background:linear-gradient(180deg,var(--epic-head-grad-a),var(--epic-head-grad-b));
+    color:#fff;display:flex;align-items:center;gap:14px;padding:0 10px;flex-shrink:0;font-size:11px;}
+  .hd-epic{font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+  .hd-epic .mark{width:15px;height:15px;border-radius:50%;background:#fff;color:var(--epic-blue);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;}
+  .hd-menu{display:flex;gap:13px;opacity:.92;font-weight:500;font-size:10.5px;}
+  .hd-right{margin-left:auto;display:flex;align-items:center;gap:12px;opacity:.92;font-size:10px;}
+
+  /* ── activity tab strip ── */
+  .hd-tabs{height:26px;background:#DDE6EC;border-bottom:1px solid var(--epic-rule);
+    display:flex;align-items:flex-end;gap:1px;padding:0 8px;flex-shrink:0;}
+  .hd-tabs .tab{padding:4px 12px;font-size:10px;color:#3C5563;background:#CDD8E0;
+    border:1px solid var(--epic-rule);border-bottom:none;border-radius:5px 5px 0 0;font-weight:500;}
+  .hd-tabs .tab.on{background:#fff;color:var(--epic-title);font-weight:700;position:relative;top:1px;}
+
+  .hd-body{flex:1;display:flex;min-height:0;}
+
+  /* ── Storyboard ── */
+  .sb{width:208px;flex-shrink:0;background:var(--sb-bg);border-right:1px solid var(--epic-rule);
+    display:flex;flex-direction:column;overflow:hidden;}
+  .sb-accent{height:4px;background:linear-gradient(90deg,var(--epic-head-grad-a),var(--epic-magenta));}
+  .sb-pt{padding:10px 12px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;border-bottom:1px solid var(--line);}
+  .sb-photo{width:48px;height:48px;border-radius:50%;background:#D8E2EA;border:2px solid #fff;
+    box-shadow:0 0 0 1px var(--epic-rule);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;color:#90A4B2;}
+  .sb-photo svg{width:40px;height:40px;stroke-width:1.4;}
+  .sb-name{font-weight:700;font-size:13px;color:#13344A;margin-top:6px;}
+  .sb-dem{font-size:9.5px;color:var(--epic-soft);margin-top:1px;line-height:1.4;}
+  .sb-allergy{margin-top:6px;font-size:9.5px;font-weight:700;color:var(--epic-red);
+    background:rgba(179,38,30,0.08);border:1px solid rgba(179,38,30,0.25);border-radius:3px;padding:2px 7px;}
+  .sb-row{padding:6px 12px;border-bottom:1px solid var(--line);font-size:9.5px;}
+  .sb-row .k{color:var(--epic-soft);font-size:9px;text-transform:uppercase;letter-spacing:.04em;}
+  .sb-row .v{color:var(--epic-text);font-weight:600;display:flex;align-items:center;gap:5px;margin-top:1px;}
+  .sb-row .v svg{width:11px;height:11px;color:var(--epic-blue);}
+  .sb-sec{padding:7px 12px;border-bottom:1px solid var(--line);}
+  .sb-sec h6{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--epic-title);font-weight:700;margin-bottom:4px;}
+  .sb-li{font-size:9.5px;color:var(--epic-text);padding:1.5px 0;display:flex;gap:5px;}
+  .sb-li b{color:var(--epic-red);font-weight:600;}
+
+  /* ── workspace ── */
+  .ws{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff;}
+  .ws-head{background:var(--epic-band);border-bottom:1px solid var(--epic-rule);padding:7px 12px 5px;flex-shrink:0;}
+  .ws-title{font-size:13px;font-weight:700;color:var(--epic-title);display:flex;align-items:center;gap:8px;}
+  .ws-title .icons{margin-left:auto;display:flex;gap:8px;color:#8A99A4;}
+  .ws-title .icons svg{width:13px;height:13px;}
+  .ws-filters{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:5px;}
+  .ck{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--epic-text);}
+  .ck i{width:11px;height:11px;border:1px solid var(--epic-blue);border-radius:2px;background:var(--epic-blue);
+    display:flex;align-items:center;justify-content:center;}
+  .ck i svg{width:8px;height:8px;stroke:#fff;stroke-width:2.6;}
+  .ws-scroll{flex:1;overflow:hidden;padding:8px 14px;position:relative;}
+  .yr{font-size:12px;font-weight:700;color:var(--epic-title);border-bottom:2px solid var(--epic-blue);padding-bottom:3px;margin-bottom:6px;}
+
+  /* timeline */
+  .tl{position:relative;padding-left:96px;}
+  .tl::before{content:"";position:absolute;left:78px;top:6px;bottom:4px;width:2px;background:var(--epic-rule);}
+  .ev{position:relative;padding:5px 0 9px;}
+  .ev .date{position:absolute;left:-96px;top:5px;width:52px;text-align:right;font-size:10px;font-weight:700;color:#3C4A54;}
+  .ev .node{position:absolute;left:-26px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;
+    border:2px solid var(--epic-rule);display:flex;align-items:center;justify-content:center;color:#9AA7B0;}
+  .ev .node svg{width:12px;height:12px;}
+  .ev.active .node{border-color:var(--epic-blue);color:var(--epic-green);border-width:2.5px;}
+  .ev.path .node{color:var(--epic-magenta);}
+  .ev .ttl{font-size:11.5px;font-weight:700;color:var(--epic-link);}
+  .ev .fld{font-size:10px;color:var(--epic-text);margin-top:1px;}
+  .ev .fld .k{color:var(--epic-soft);}
+  .hl{background:var(--epic-yellow);padding:0 4px;border-radius:2px;font-weight:700;color:#5A4A12;}
+  .chev{position:absolute;right:0;top:3px;width:18px;height:18px;border-radius:50%;border:1px solid var(--epic-rule);
+    color:#9AA7B0;display:flex;align-items:center;justify-content:center;background:#F6F8F9;}
+  .chev svg{width:10px;height:10px;}
+
+  /* expanded card */
+  .card{border:1px solid var(--epic-rule);border-radius:4px;margin:6px 0 2px;padding:9px 11px;background:#fff;box-shadow:0 1px 2px rgba(19,0,50,.04);}
+  .card h5{font-size:11px;font-weight:700;color:var(--epic-title);margin-bottom:5px;}
+  .card .links{display:flex;gap:14px;margin:3px 0 6px;font-size:10px;}
+  .card .links a{color:var(--epic-link);font-weight:600;display:flex;align-items:center;gap:4px;text-decoration:none;}
+  .card .links a svg{width:11px;height:11px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;font-size:10px;margin-top:3px;}
+  .grid3 .k{color:var(--epic-soft);font-size:9px;}
+  .grid3 .v{color:var(--epic-text);font-weight:600;}
+
+  .friction{margin:0;padding:8px 14px;background:rgba(179,38,30,0.06);border-top:1px solid rgba(179,38,30,0.2);
+    color:#9A2B23;font-size:10px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .friction svg{width:13px;height:13px;stroke:#9A2B23;stroke-width:2;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="mock">
+
+  <div class="hd-top">
+    <span class="hd-epic"><span class="mark">E</span>Hyperdrive</span>
+    <span class="hd-menu"><span>Epic</span><span>Patient</span><span>Chart</span><span>Tools</span></span>
+    <span class="hd-right"><span>Tan, Eric — 47 y.o. M</span><span>Catalina Medical</span><span>D. Okafor, MD</span></span>
+  </div>
+
+  <div class="hd-tabs">
+    <span class="tab">SnapShot</span><span class="tab">Chart Review</span><span class="tab">Results Review</span><span class="tab on">Release of Information</span><span class="tab">Media</span>
+  </div>
+
+  <div class="hd-body">
+    <!-- Storyboard -->
+    <div class="sb">
+      <div class="sb-accent"></div>
+      <div class="sb-pt">
+        <div class="sb-photo"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-5 4-7 8-7s8 2 8 7"/></svg></div>
+        <div class="sb-name">Eric Tan</div>
+        <div class="sb-dem">Male, 47 y.o., 03/14/1979<br>MRN: CAT-4471208</div>
+        <div class="sb-allergy">Allergies (2)</div>
+      </div>
+      <div class="sb-row"><div class="k">PCP</div><div class="v"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Dana Okafor, MD</div></div>
+      <div class="sb-row"><div class="k">Coverage</div><div class="v">Aetna PPO · Comm</div></div>
+      <div class="sb-row"><div class="k">ROI Request</div><div class="v" style="color:var(--epic-red)">Silver Mountain Disability</div></div>
+      <div class="sb-sec">
+        <h6>Since Last Visit</h6>
+        <div class="sb-li">Ortho follow-up · 03/18</div>
+        <div class="sb-li">MRI L-spine · 03/02</div>
+      </div>
+      <div class="sb-sec">
+        <h6>Problem List</h6>
+        <div class="sb-li"><b>•</b> Lumbar radiculopathy</div>
+        <div class="sb-li"><b>•</b> Post-laminectomy synd.</div>
+        <div class="sb-li"><b>•</b> Chronic low back pain</div>
+      </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="ws">
+      <div class="ws-head">
+        <div class="ws-title">Release of Information — Records Requested
+          <span class="icons"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.7-2 2-2 3.5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg></span>
+        </div>
+        <div class="ws-filters">
+          <span class="ck"><i><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></i>Office Visits</span>
+          <span class="ck"><i><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></i>Imaging</span>
+          <span class="ck"><i><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></i>Labs</span>
+          <span class="ck"><i><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></i>Op Notes</span>
+          <span class="ck"><i><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></i>Discharge</span>
+        </div>
+      </div>
+
+      <div class="ws-scroll">
+        <div class="yr">2026</div>
+        <div class="tl">
+
+          <div class="ev active">
+            <div class="date">Mar 18</div>
+            <div class="node"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></svg></div>
+            <div class="chev"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></div>
+            <div class="ttl">Office Visit — Orthopedics</div>
+            <div class="fld"><span class="k">Provider:</span> Dana Okafor, MD &nbsp;·&nbsp; <span class="k">Dept:</span> CAT ORTHO</div>
+            <div class="card">
+              <h5>Documents to release</h5>
+              <div class="links"><a><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>Progress Note</a><a><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>After Visit Summary</a><a><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Audit Trail</a></div>
+              <div class="grid3">
+                <div><div class="k">Encounter</div><div class="v">CSN 4471208-31</div></div>
+                <div><div class="k">Release status</div><div class="v"><span class="hl">Pending manual export</span></div></div>
+                <div><div class="k">Format</div><div class="v">Print → Fax</div></div>
+                <div><div class="k">Requested scope</div><div class="v">Ortho records 12 mo</div></div>
+                <div><div class="k">Authorization</div><div class="v">Paper · on file</div></div>
+                <div><div class="k">Chain of custody</div><div class="v"><span class="hl">Tracked in spreadsheet</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ev path">
+            <div class="date">Mar 02</div>
+            <div class="node"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+            <div class="chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+            <div class="ttl">MRI Lumbar Spine — Imaging</div>
+            <div class="fld"><span class="k">Status:</span> Final &nbsp;·&nbsp; <span class="k">Reading:</span> S. Krepal, MD &nbsp;·&nbsp; <span class="k">Release:</span> <span class="hl">Not started</span></div>
+          </div>
+
+          <div class="ev">
+            <div class="date">Feb 14</div>
+            <div class="node"><svg viewBox="0 0 24 24"><path d="M9 3v5l-4 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-4-9V3"/><path d="M8 3h8"/></svg></div>
+            <div class="chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+            <div class="ttl">CBC + Metabolic Panel — Labs</div>
+            <div class="fld"><span class="k">Status:</span> Final &nbsp;·&nbsp; <span class="k">Release:</span> <span class="hl">Not started</span></div>
+          </div>
+
+          <div class="ev">
+            <div class="date">Dec 11</div>
+            <div class="node"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 10l7-7 7 7"/></svg></div>
+            <div class="chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+            <div class="ttl">Operative Note — Lumbar Microdiscectomy</div>
+            <div class="fld"><span class="k">Surgeon:</span> R. Halsey, MD &nbsp;·&nbsp; <span class="k">Release:</span> <span class="hl">Not started</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r=".6" fill="currentColor"/></svg>Each ROI request is fulfilled by hand — the clinician walks Chart Review, exports records one document at a time, prints or faxes them, and tracks the release in a spreadsheet. No structured release, no chain of custody.</div>
+    </div>
+  </div>
+
+</div>
+<script id="component-config" type="application/json">
+{
+  "component": "component-epic-hyperdrive-roi-hls-roi.html",
+  "vendor": "Epic Hyperdrive — Storyboard + Release of Information (reference-matched reconstruction)",
+  "scope": "HLS · Provider / ROI",
+  "state": "Current",
+  "useCase": "Release of Information (records retrieval)",
+  "archetype": "ehr",
+  "patient": "Tan, Eric",
+  "referenceSource": "Epic Hyperdrive Storyboard Companion (pp. 14, 22, 34)"
+}
+</script>
+</body>
+</html>
