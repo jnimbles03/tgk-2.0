@@ -3549,9 +3549,13 @@
         }
         if (statusEl) statusEl.textContent = `${items.length} canonical demos loadable.`;
       })
-      .catch(err => {
-        if (statusEl) statusEl.textContent = `Could not list verticals: ${err.message}`;
-        btn.disabled = true;
+      .catch(() => {
+        // No backend (e.g., the static GitHub Pages mirror) — /api/verticals
+        // isn't available, so opening a saved demo can't work here. Hide the
+        // whole control rather than surface a 404. The "Start from" template
+        // picker is client-side and still works everywhere.
+        const det = document.querySelector('.start-open');
+        if (det) det.style.display = 'none';
       });
 
     btn.addEventListener('click', () => {
