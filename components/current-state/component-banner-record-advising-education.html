@@ -3,102 +3,269 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Current State — Banner SIS — Record & Advising | TGK 2.0</title>
-<meta name="description" content="Stylized mock evoking a student record scattered across Banner, aid, health, and advising spreadsheets. Not a literal screenshot.">
+<title>Current State — Ellucian Banner 9 — Record & Advising | TGK 2.0</title>
+<meta name="description" content="High-fidelity reconstruction of Ellucian Banner 9 (Application Navigator / Admin Pages — SGASTDN-style student record / advising) showing a record scattered across Banner, aid, health, and spreadsheets. Reference-matched, not a literal screenshot.">
 <style>
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
-:root{
-  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
-  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
-  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
-  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
-  --v-head:#1C2E4A;--v-accent:#5A7FC9;--v-bg:#F2F4F8;--v-head-ink:#fff;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
-body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
-svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
-  border:1px solid var(--line-strong);border-radius:12px;
-  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
-.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
-  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;}
-.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
-  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
-.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
-.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
-.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
-.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --ds-ecru:#F8F3F0; --ink:#130032;
+    --ui:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+    /* Banner 9 palette pulled from the Navigation Guide reference */
+    --b9-headband-a:#2C6E8C; --b9-headband-b:#1E5573;   /* dark teal page header */
+    --b9-section:#2C7DA8;        /* lighter teal section divider */
+    --b9-section-ink:#fff;
+    --b9-startover-a:#3E9B5E; --b9-startover-b:#2E7E48;  /* green Start Over */
+    --b9-keyblock:#ECF0F2;       /* key block light band */
+    --b9-field-bg:#FFFFFF;       /* entry field */
+    --b9-field-active:#D6E9F8;   /* active/focused field highlight */
+    --b9-field-ro:#EEF2F4;       /* read-only field */
+    --b9-label:#3A4A54;          /* field label ink */
+    --b9-link:#1A6FA8;
+    --b9-rule:#C9D3DA;
+    --b9-grid-head:#E4EAEE;
+    --b9-soft:#5B6B77;
+    --b9-text:#27323A;
+    --b9-navbar:#FFFFFF;
+    --b9-req:#B3261E;
+    --b9-warn-bg:#FFF3CD; --b9-warn-ink:#7A5A00;
+    --friction-red:#9A2B23;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;font-family:var(--ui);color:var(--ink);}
+  body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .mock{width:100%;max-width:960px;aspect-ratio:16/10;background:#fff;
+    border:1px solid rgba(19,0,50,0.18);border-radius:12px;
+    box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+    font-size:10.5px;line-height:1.3;color:var(--b9-text);}
 
+  /* ── Application Navigator top bar ── */
+  .b9-nav{height:30px;background:var(--b9-navbar);border-bottom:1px solid var(--b9-rule);
+    display:flex;align-items:center;gap:14px;padding:0 12px;flex-shrink:0;}
+  .b9-nav .ic{width:16px;height:16px;color:#4A5A64;stroke-width:1.9;}
+  .b9-nav .inst{font-size:12px;font-weight:600;color:#3A4750;letter-spacing:.01em;}
+  .b9-nav .right{margin-left:auto;display:flex;align-items:center;gap:16px;color:#4A5A64;}
+  .b9-nav .right .signout{font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;color:#3A4750;}
+  .b9-nav .right .signout svg{width:14px;height:14px;}
+  .b9-nav .avatar{width:18px;height:18px;border-radius:50%;border:1.5px solid #6A7A84;color:#6A7A84;display:flex;align-items:center;justify-content:center;}
+  .b9-nav .avatar svg{width:12px;height:12px;}
 
-.console{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
-.c-head{height:34px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:0.01em;}
-.c-logo{font-family:var(--brand-font);}
-.c-tabs{display:flex;gap:18px;font-weight:500;opacity:0.88;font-size:10.5px;margin-left:12px;}
-.c-tabs span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;}
-.c-user{margin-left:auto;opacity:0.85;font-size:10px;font-weight:400;}
-.c-crumb{height:26px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:10.5px;color:var(--ink-mid);flex-shrink:0;}
-.c-crumb b{color:var(--ink);font-weight:600;}
-.c-body{flex:1;display:grid;grid-template-columns:160px 1fr 200px;min-height:0;}
-.c-nav{background:#fff;border-right:1px solid var(--line);padding:10px 0;overflow:hidden;font-size:10.5px;}
-.c-nav .ni{padding:5px 14px;display:flex;align-items:center;gap:8px;color:var(--ink-mid);}
-.c-nav .ni svg{width:13px;height:13px;stroke:var(--ink-soft);}
-.c-nav .ni.on{color:var(--v-accent);font-weight:600;border-left:3px solid var(--v-accent);padding-left:11px;background:rgba(0,0,0,0.02);}
-.c-nav .ni.on svg{stroke:var(--v-accent);}
-.c-nav h6{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);padding:8px 14px 4px;font-weight:600;}
-.c-main{padding:12px 16px;overflow:hidden;}
-.c-main h2{font-family:var(--brand-font);font-size:14px;font-weight:600;margin-bottom:6px;}
-.c-main .kv{display:grid;grid-template-columns:140px 1fr;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
-.c-main .kv .k{color:var(--ink-soft);}
-.c-main .kv .v{color:var(--ink);font-weight:500;}
-.c-main .sec{margin-top:8px;}
-.c-main table{width:100%;border-collapse:collapse;font-size:10px;background:#fff;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
-.c-main th{background:rgba(0,0,0,0.04);text-align:left;padding:5px 8px;font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);border-bottom:1px solid var(--line);font-weight:600;}
-.c-main td{padding:5px 8px;border-bottom:1px solid var(--line);font-size:10px;}
-.c-main tr:last-child td{border-bottom:0;}
-.c-aside{background:#fff;border-left:1px solid var(--line);padding:10px 12px;font-size:10px;overflow:hidden;}
-.c-aside h5{font-size:10.5px;font-weight:600;color:var(--v-accent);margin-bottom:6px;}
-.c-aside .task{padding:5px 0;border-bottom:1px solid var(--line);}
-.c-aside .task:last-child{border-bottom:0;}
-.c-aside .task .due{font-size:9.5px;color:#A93434;font-weight:600;}
-.c-foot{padding:8px 12px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+  /* ── page header band (form title + action menu) ── */
+  .b9-head{height:28px;background:linear-gradient(180deg,var(--b9-headband-a),var(--b9-headband-b));
+    color:#fff;display:flex;align-items:center;padding:0 4px 0 0;flex-shrink:0;font-size:11px;}
+  .b9-head .x{width:26px;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;border-right:1px solid rgba(255,255,255,.18);}
+  .b9-head .x svg{width:13px;height:13px;stroke-width:2.2;}
+  .b9-head .ttl{padding-left:9px;font-weight:600;font-size:11px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .b9-head .acts{margin-left:auto;display:flex;align-items:center;gap:13px;font-size:10px;font-weight:600;letter-spacing:.03em;}
+  .b9-head .acts a{color:#fff;display:flex;align-items:center;gap:4px;opacity:.95;}
+  .b9-head .acts a svg{width:11px;height:11px;stroke-width:2;}
+  .b9-head .startover{margin-left:13px;background:linear-gradient(180deg,var(--b9-startover-a),var(--b9-startover-b));
+    color:#fff;font-weight:700;font-size:10px;padding:5px 12px;border-radius:3px;letter-spacing:.02em;
+    box-shadow:0 1px 0 rgba(0,0,0,.12) inset;}
 
+  /* ── ID strip + Key Block ── */
+  .b9-idstrip{background:#fff;border-bottom:1px solid var(--b9-rule);padding:3px 12px;font-size:10.5px;color:var(--b9-text);display:flex;gap:18px;align-items:center;flex-shrink:0;}
+  .b9-idstrip b{font-weight:700;color:#1E5573;}
+  .b9-key{background:var(--b9-keyblock);border-bottom:2px solid var(--b9-rule);padding:7px 12px;flex-shrink:0;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:5px 18px;}
+  .b9-key .f{display:grid;grid-template-columns:78px 1fr;align-items:center;gap:8px;}
+  .b9-key .f label{font-size:10px;color:var(--b9-label);text-align:right;}
+  .b9-key .f label .req{color:var(--b9-req);font-weight:700;}
+  .b9-key .f .inp{height:18px;background:var(--b9-field-bg);border:1px solid var(--b9-rule);border-radius:1px;
+    padding:0 5px;display:flex;align-items:center;font-size:10px;color:var(--b9-text);font-weight:600;position:relative;}
+  .b9-key .f .inp.active{background:var(--b9-field-active);border-color:#6FA8CC;box-shadow:0 0 0 1px rgba(111,168,204,.4);}
+  .b9-key .f .inp.ro{background:var(--b9-field-ro);color:var(--b9-soft);font-weight:500;}
+  .b9-key .f .inp .lov{position:absolute;right:0;top:0;bottom:0;width:16px;border-left:1px solid var(--b9-rule);
+    display:flex;align-items:center;justify-content:center;color:#7A8A94;font-size:11px;background:#F4F7F8;}
+
+  /* ── body: section + form ── */
+  .b9-body{flex:1;display:flex;flex-direction:column;min-height:0;background:#fff;overflow:hidden;}
+
+  .b9-sec{height:22px;background:var(--b9-section);color:var(--b9-section-ink);display:flex;align-items:center;
+    padding:0 4px 0 8px;font-size:10px;font-weight:700;letter-spacing:.05em;flex-shrink:0;}
+  .b9-sec .tri{width:9px;height:9px;margin-right:7px;stroke-width:2.4;}
+  .b9-sec .tools{margin-left:auto;display:flex;align-items:center;gap:13px;font-weight:600;letter-spacing:.02em;font-size:9.5px;}
+  .b9-sec .tools span{display:flex;align-items:center;gap:3px;opacity:.95;}
+  .b9-sec .tools svg{width:10px;height:10px;stroke-width:2;}
+
+  .b9-form{padding:9px 14px 7px;display:grid;grid-template-columns:1fr 1fr;gap:5px 26px;flex-shrink:0;}
+  .b9-f{display:grid;grid-template-columns:108px 1fr;align-items:center;gap:9px;}
+  .b9-f label{font-size:10px;color:var(--b9-label);text-align:right;}
+  .b9-f label .req{color:var(--b9-req);font-weight:700;}
+  .b9-f .inp{height:18px;background:var(--b9-field-bg);border:1px solid var(--b9-rule);border-radius:1px;
+    padding:0 5px;display:flex;align-items:center;font-size:10px;color:var(--b9-text);position:relative;}
+  .b9-f .inp.active{background:var(--b9-field-active);border-color:#6FA8CC;box-shadow:0 0 0 1px rgba(111,168,204,.4);}
+  .b9-f .inp.ro{background:var(--b9-field-ro);color:var(--b9-soft);}
+  .b9-f .inp .lov{position:absolute;right:0;top:0;bottom:0;width:16px;border-left:1px solid var(--b9-rule);
+    display:flex;align-items:center;justify-content:center;color:#7A8A94;font-size:11px;background:#F4F7F8;}
+
+  /* ── records-location grid (data block) ── */
+  .b9-grid-sec{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .b9-grid-wrap{flex:1;overflow:hidden;border-top:1px solid var(--b9-rule);}
+  table.b9-grid{width:100%;border-collapse:collapse;font-size:10px;}
+  table.b9-grid th{background:var(--b9-grid-head);text-align:left;padding:4px 9px;font-size:9.5px;font-weight:700;
+    color:var(--b9-label);border-right:1px solid var(--b9-rule);border-bottom:1px solid var(--b9-rule);white-space:nowrap;}
+  table.b9-grid td{padding:4px 9px;border-right:1px solid #E4EAEE;border-bottom:1px solid #E9EEF1;font-size:10px;color:var(--b9-text);}
+  table.b9-grid tr.sel td{background:var(--b9-field-active);}
+  table.b9-grid tr:nth-child(even) td{background:#FAFCFD;}
+  table.b9-grid tr.sel:nth-child(even) td{background:var(--b9-field-active);}
+  .pill{display:inline-block;font-size:9px;font-weight:700;padding:1px 7px;border-radius:9px;letter-spacing:.02em;}
+  .pill.ok{background:rgba(48,140,72,.14);color:#246B36;}
+  .pill.warn{background:rgba(179,38,30,.12);color:#A93434;}
+  .pill.stale{background:rgba(255,165,0,.16);color:#7A5200;}
+  .hl{background:var(--b9-warn-bg);padding:0 4px;border-radius:2px;font-weight:700;color:var(--b9-warn-ink);}
+
+  /* ── bottom button/record bar ── */
+  .b9-bbar{height:24px;background:#F1F4F6;border-top:1px solid var(--b9-rule);display:flex;align-items:center;
+    padding:0 10px;gap:10px;flex-shrink:0;font-size:9.5px;color:var(--b9-soft);}
+  .b9-bbar .navbtns{display:flex;align-items:center;gap:2px;color:#6A7A84;}
+  .b9-bbar .navbtns svg{width:11px;height:11px;stroke-width:2;}
+  .b9-bbar .pg{border:1px solid var(--b9-rule);background:#fff;border-radius:2px;padding:1px 6px;font-size:9.5px;color:var(--b9-text);}
+  .b9-bbar .perpage{display:flex;align-items:center;gap:5px;}
+  .b9-bbar .perpage .sel{border:1px solid var(--b9-rule);background:#fff;border-radius:2px;padding:1px 14px 1px 6px;position:relative;}
+  .b9-bbar .perpage .sel::after{content:"\25BE";position:absolute;right:4px;color:#7A8A94;font-size:8px;}
+  .b9-bbar .rec{margin-left:auto;font-size:9.5px;color:var(--b9-soft);}
+  .b9-save{position:absolute;right:8px;bottom:30px;width:42px;height:42px;border-radius:50%;
+    background:linear-gradient(180deg,var(--b9-headband-a),var(--b9-headband-b));color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    box-shadow:0 4px 10px -2px rgba(30,85,115,.55),0 1px 0 rgba(255,255,255,.25) inset;z-index:5;}
+  .b9-save svg{width:14px;height:14px;stroke-width:2.4;}
+  .b9-save span{font-size:7.5px;font-weight:700;letter-spacing:.02em;}
+
+  /* ── friction banner ── */
+  .friction{margin:0;padding:7px 14px;background:rgba(179,38,30,0.06);border-top:1px solid rgba(179,38,30,0.2);
+    color:var(--friction-red);font-size:10px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .friction svg{width:13px;height:13px;stroke:var(--friction-red);stroke-width:2;flex-shrink:0;}
 </style>
 </head>
 <body>
 <div class="mock">
-<div class="console">
-  <div class="c-head">
-    <span class="c-logo">Banner SIS · Advising (evocative)</span>
-    <span class="c-tabs"><span class="on">Student</span><span class="">Records</span><span class="">Advising</span><span class="">Notes</span></span>
-    <span class="c-user">Advising · Front Desk</span>
+
+  <!-- Application Navigator bar -->
+  <div class="b9-nav">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="inst">Maple Ridge University</span>
+    <span class="right">
+      <span class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+      <span class="signout"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 12h10M16 9l3 3-3 3"/></svg>Sign Out</span>
+      <span style="font-weight:700;color:#6A7A84;">?</span>
+    </span>
   </div>
-  <div class="c-crumb"><b>Student</b> &nbsp;&gt;&nbsp; MRU-2026-44817 &nbsp;&gt;&nbsp; Advising Profile <span class="chip warn">Scattered record</span></div>
-  <div class="c-body">
-    <div class="c-nav"><div class="ni on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Student · MRU-2026-44817</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg> Enrollment Record</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/></svg> Advising Notes<span style="margin-left:auto;color:#A93434;font-weight:600;">3</span></div><h6>Records live in</h6><div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/></svg> Banner · Aid · Health · Sheets</div></div>
-    <div class="c-main">
-<h2>Student Record — Shah, Priya N.</h2>
-<div class="kv"><span class="k">Student ID</span><span class="v">MRU-2026-44817</span></div><div class="kv"><span class="k">Enrollment</span><span class="v">Banner SIS</span></div><div class="kv"><span class="k">Aid status</span><span class="v">Separate aid portal</span></div><div class="kv"><span class="k">Health / housing</span><span class="v">Services portal + paper</span></div><div class="kv"><span class="k">Record location</span><span class="v"><span class="chip warn">Banner + aid + health + spreadsheets</span></span></div>
-<div class="sec"><table><thead><tr><th>Artifact</th><th>System</th><th>Reachable at advising?</th></tr></thead><tbody><tr><td>Enrollment + courses</td><td>Banner SIS</td><td><span class='chip warn'>Tab-hunt</span></td></tr><tr><td>Aid award + acceptance</td><td>Aid portal</td><td><span class='chip warn'>Separate login</span></td></tr><tr><td>Immunization / housing</td><td>Health portal</td><td><span class='chip stale'>Not linked</span></td></tr><tr><td>Advising history</td><td>Spreadsheets</td><td><span class='chip warn'>Free text</span></td></tr></tbody></table></div>
-</div>
-    <div class="c-aside"><h5>This Meeting</h5><div class="task"><div>Pull record in Banner</div><div class="due">2 min</div></div><div class="task"><div>Check aid portal</div><div class="due">3 min</div></div><div class="task"><div>Read advising sheet</div><div class="due">2 min</div></div><h5 style="margin-top:8px;">Fragmentation</h5><div style="font-size:9.5px;color:var(--ink-mid);">No single student record. The advisor stitches <b>Banner, aid, health, and spreadsheets</b> live while the student waits.</div></div>
+
+  <!-- Page header band -->
+  <div class="b9-head">
+    <span class="x"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+    <span class="ttl">General Student SGASTDN 9.3.13 (MRU9)</span>
+    <span class="acts">
+      <a><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>ADD</a>
+      <a><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 12V7M4 12h5"/></svg>RETRIEVE</a>
+      <a><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6 8v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8M12 13v3"/></svg>RELATED</a>
+      <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M18.5 5.5l-2 2M7.5 16.5l-2 2"/></svg>TOOLS</a>
+      <span class="startover">Start Over</span>
+    </span>
   </div>
-  <div class="c-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>The complete student picture is scattered across Banner, the aid portal, the health portal, and advising spreadsheets — stitched together live at each meeting.</div></div>
-</div>
+
+  <!-- ID strip -->
+  <div class="b9-idstrip">
+    <span>ID: <b>MRU-2026-44817</b> &nbsp;Shah, Priya N.</span>
+    <span>Term: <b>202610</b> &nbsp;Fall 2026</span>
+    <span>View: <b>Curriculum</b></span>
+    <span style="margin-left:auto;color:#A93434;font-weight:700;">Record scattered across systems</span>
+  </div>
+
+  <!-- Key Block -->
+  <div class="b9-key">
+    <div class="f"><label><span class="req">*</span> ID</label><div class="inp active">MRU-2026-44817<span class="lov">…</span></div></div>
+    <div class="f"><label><span class="req">*</span> Term</label><div class="inp">202610<span class="lov">…</span></div></div>
+    <div class="f"><label>Name</label><div class="inp ro">Shah, Priya N.</div></div>
+    <div class="f"><label>View Current</label><div class="inp ro">Curriculum<span class="lov">…</span></div></div>
+    <div class="f"><label>Level</label><div class="inp ro">UG — Undergraduate</div></div>
+    <div class="f"><label>Student Status</label><div class="inp ro">AS — Active</div></div>
+  </div>
+
+  <div class="b9-body">
+
+    <!-- Section: student record summary -->
+    <div class="b9-sec">
+      <svg class="tri" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>
+      LEARNER / STUDENT RECORD
+      <span class="tools">
+        <span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Insert</span>
+        <span><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7v13h10V7"/></svg>Delete</span>
+        <span><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5h10"/></svg>Copy</span>
+        <span><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>Filter</span>
+      </span>
+    </div>
+
+    <div class="b9-form">
+      <div class="b9-f"><label>Student ID</label><div class="inp ro">MRU-2026-44817</div></div>
+      <div class="b9-f"><label>Enrollment</label><div class="inp ro">Banner 9 — SFAREGS</div></div>
+      <div class="b9-f"><label>Program</label><div class="inp ro">BS-NURS — Nursing<span class="lov">…</span></div></div>
+      <div class="b9-f"><label>Aid Status</label><div class="inp ro" style="color:#A93434;font-weight:700;">Separate aid portal</div></div>
+      <div class="b9-f"><label>Health / Housing</label><div class="inp ro" style="color:#A93434;font-weight:700;">Services portal + paper</div></div>
+      <div class="b9-f"><label>Advising Hold</label><div class="inp ro">AH — Pre-reg advising</div></div>
+      <div class="b9-f"><label>Advising Notes</label><div class="inp ro" style="color:#A93434;font-weight:700;">3 — in spreadsheets</div></div>
+      <div class="b9-f"><label>Record Location</label><div class="inp ro"><span class="hl">Banner + aid + health + sheets</span></div></div>
+    </div>
+
+    <!-- Section: where the record lives -->
+    <div class="b9-grid-sec">
+      <div class="b9-sec">
+        <svg class="tri" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>
+        RECORD ARTIFACTS — SOURCE SYSTEMS
+        <span class="tools">
+          <span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Insert</span>
+          <span><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7v13h10V7"/></svg>Delete</span>
+          <span><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5h10"/></svg>Copy</span>
+          <span><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>Filter</span>
+        </span>
+      </div>
+      <div class="b9-grid-wrap">
+        <table class="b9-grid">
+          <thead>
+            <tr><th>Artifact</th><th>System</th><th>Reachable at advising?</th><th>Access</th></tr>
+          </thead>
+          <tbody>
+            <tr class="sel"><td>Enrollment + courses</td><td>Banner 9 SIS</td><td><span class="pill warn">Tab-hunt</span></td><td>SFAREGS / SGASTDN</td></tr>
+            <tr><td>Aid award + acceptance</td><td>Aid portal</td><td><span class="pill warn">Separate login</span></td><td><span class="hl">Different credentials</span></td></tr>
+            <tr><td>Immunization / housing</td><td>Health portal</td><td><span class="pill stale">Not linked</span></td><td>Paper + scan</td></tr>
+            <tr><td>Advising history</td><td>Spreadsheets</td><td><span class="pill warn">Free text</span></td><td><span class="hl">Shared drive</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bottom record/button bar -->
+    <div class="b9-bbar">
+      <span class="navbtns">
+        <svg viewBox="0 0 24 24"><path d="M18 6l-6 6 6 6M11 6l-6 6 6 6"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        <span class="pg">1 of 4</span>
+        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M6 6l6 6-6 6M13 6l6 6-6 6"/></svg>
+      </span>
+      <span class="perpage"><span class="sel">10</span> Per Page</span>
+      <span class="rec">Record 1 of 4</span>
+    </div>
+  </div>
+
+  <!-- round Save button -->
+  <div class="b9-save"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg><span>Save</span></div>
+
+  <!-- friction -->
+  <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r=".6" fill="currentColor"/></svg>The complete student picture is scattered across Banner, the aid portal, the health portal, and advising spreadsheets — stitched together live at each meeting.</div>
+
 </div>
 <script id="component-config" type="application/json">
 {
-  "vendor": "Banner SIS + Spreadsheets (evocative)",
-  "scope": "PubSec \u00b7 Education",
+  "vendor": "Ellucian Banner 9 — Application Navigator / Admin Pages + spreadsheets (reference-matched reconstruction)",
+  "scope": "PubSec · Education",
   "state": "Current",
   "useCase": "Student record / advising",
-  "archetype": "console"
+  "archetype": "console",
+  "referenceSource": "Banner 9 Navigation Guide (Application Navigator, Key Block, Sections, Button Bar)"
 }
 </script>
 </body>

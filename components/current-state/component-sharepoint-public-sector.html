@@ -3,100 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Current State — SharePoint (agency shared drives) | TGK 2.0</title>
-<meta name="description" content="Stylized mock evoking SharePoint (shared-drive evidence grid) in a Public Sector workflow. Not a literal screenshot.">
+<title>Current State — SharePoint Online (agency document library) | TGK 2.0</title>
+<meta name="description" content="High-fidelity reconstruction of SharePoint Online (modern document library) for a Public Sector benefits-recertification evidence drop. Reference-matched, not a literal screenshot.">
 <style>
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root{
-  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
-  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
-  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
-  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
-  --v-head:#036C70;--v-accent:#0078D4;--v-bg:#F6F7F9;--v-head-ink:#fff;
+  --ds-ecru:#F8F3F0;--ink:#130032;--line-strong:rgba(19,0,50,0.18);
+  --ui:"Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  /* SharePoint Online (modern) palette — matched to the reference deck */
+  --sp-suite:#0a7c66;      /* Office 365 / SharePoint suite bar green */
+  --sp-teal:#03787c;       /* command-bar / accent teal */
+  --sp-link:#0364b8;       /* modern hyperlink blue */
+  --sp-rail:#f3f2f1;       /* left-nav neutral */
+  --sp-rail-line:#edebe9;
+  --sp-text:#323130;       /* Fluent neutralPrimary */
+  --sp-soft:#605e5c;       /* neutralSecondary */
+  --sp-faint:#a19f9d;      /* neutralTertiary */
+  --sp-sel:#deecf9;        /* selected row */
+  --sp-hover:#f3f2f1;      /* hover row */
+  --word:#2b579a;--excel:#217346;--pdf:#d13438;--folder:#ffd24d;--img:#038387;
+  --warn:#a4262c;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
+html,body{min-height:100%;font-family:var(--ui);color:var(--ink);}
 body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
 svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
+.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:#fff;
   border:1px solid var(--line-strong);border-radius:12px;
   box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
-.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
-  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;}
-.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
-  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
-.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
-.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
-.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
-.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+  overflow:hidden;display:flex;flex-direction:column;position:relative;
+  font-size:11px;line-height:1.4;color:var(--sp-text);}
 
+/* ── Microsoft 365 suite bar ── */
+.suite{height:34px;background:var(--sp-suite);color:#fff;display:flex;align-items:center;
+  gap:0;flex-shrink:0;font-size:12px;}
+.suite .waffle{width:46px;height:34px;display:flex;align-items:center;justify-content:center;}
+.suite .waffle .grid{display:grid;grid-template-columns:repeat(3,4px);grid-template-rows:repeat(3,4px);gap:2px;}
+.suite .waffle .grid span{width:4px;height:4px;background:#fff;border-radius:.5px;}
+.suite .o365{padding:0 12px;font-weight:400;}
+.suite .div{width:1px;height:18px;background:rgba(255,255,255,0.4);}
+.suite .app{padding:0 14px;font-weight:600;}
+.suite .right{margin-left:auto;display:flex;align-items:center;}
+.suite .right .ic{width:38px;height:34px;display:flex;align-items:center;justify-content:center;opacity:.95;}
+.suite .right .ic svg{width:15px;height:15px;stroke:#fff;}
+.suite .right .av{width:26px;height:26px;border-radius:50%;background:#c19c00;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;margin:0 10px 0 4px;}
 
-.fg{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
-.f-head{height:36px;background:var(--v-head);color:#fff;display:flex;align-items:center;padding:0 12px;gap:14px;flex-shrink:0;font-size:11px;}
-.f-waffle{display:grid;grid-template-columns:repeat(3,4px);grid-gap:2px;}
-.f-waffle span{width:4px;height:4px;background:#fff;border-radius:1px;}
-.f-logo{font-family:var(--brand-font);font-weight:600;}
-.f-search{background:rgba(255,255,255,0.18);padding:4px 10px;border-radius:3px;font-size:10.5px;color:#E6EEF5;flex:1;max-width:320px;}
-.f-user{margin-left:auto;width:24px;height:24px;border-radius:50%;background:var(--v-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;}
-.f-subhead{height:32px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;color:var(--ink);flex-shrink:0;}
-.f-cmd{display:inline-flex;align-items:center;gap:5px;font-weight:500;}
-.f-cmd svg{width:12px;height:12px;color:var(--v-head);}
-.f-cmd.ghost{color:var(--ink-soft);}
-.f-crumb{padding:8px 14px;font-size:11px;color:var(--ink-mid);flex-shrink:0;}
-.f-crumb b{color:var(--ink);font-weight:600;}
-.f-table{width:100%;border-collapse:collapse;font-size:10.5px;background:#fff;}
-.f-table th{background:#F6F7F9;text-align:left;padding:6px 10px;font-size:10px;color:var(--ink-mid);font-weight:600;border-bottom:1px solid var(--line);border-top:1px solid var(--line);}
-.f-table td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
-.f-table td.icon{text-align:center;}
-.f-table td.icon svg{width:14px;height:14px;color:var(--v-head);}
-.f-table tr:hover td{background:#F2F6FA;}
-.f-foot{padding:8px 14px 10px;flex-shrink:0;margin-top:auto;}
+.body{flex:1;display:flex;min-height:0;}
 
+/* ── left rail (search + site nav) ── */
+.rail{width:176px;flex-shrink:0;background:var(--sp-rail);border-right:1px solid var(--sp-rail-line);
+  display:flex;flex-direction:column;}
+.rail .search{display:flex;align-items:center;gap:7px;padding:9px 12px;color:var(--sp-soft);
+  border-bottom:1px solid var(--sp-rail-line);font-size:11px;}
+.rail .search svg{width:13px;height:13px;}
+.rail .nav{padding:8px 0;flex:1;overflow:hidden;}
+.rail .nav a{display:block;padding:6px 16px;font-size:11.5px;color:var(--sp-text);text-decoration:none;}
+.rail .nav a.on{font-weight:700;border-left:2px solid var(--sp-teal);padding-left:14px;background:#fff;}
+.rail .nav a.edit{color:var(--sp-link);display:flex;align-items:center;gap:6px;margin-top:6px;}
+.rail .nav a.edit svg{width:12px;height:12px;color:var(--sp-link);}
+.rail .nav .gap{height:9px;}
+
+/* ── content pane ── */
+.pane{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff;}
+
+/* site header */
+.sitehead{padding:9px 18px 8px;border-bottom:1px solid var(--sp-rail-line);flex-shrink:0;}
+.sitehead .top{font-size:10.5px;color:var(--sp-link);display:flex;gap:18px;margin-bottom:5px;}
+.sitehead .title{display:flex;align-items:center;gap:10px;}
+.sitehead .logo{width:34px;height:34px;border-radius:3px;background:var(--sp-teal);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.sitehead .name{font-size:17px;font-weight:600;color:var(--sp-text);}
+.sitehead .name small{display:block;font-size:10px;font-weight:400;color:var(--sp-soft);margin-top:1px;}
+
+/* command bar */
+.cmd{height:40px;display:flex;align-items:center;gap:2px;padding:0 12px;flex-shrink:0;
+  border-bottom:1px solid var(--sp-rail-line);}
+.cmd .b{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;font-size:12px;color:var(--sp-text);border-radius:2px;}
+.cmd .b svg{width:14px;height:14px;color:var(--sp-teal);}
+.cmd .b .car{width:8px;height:8px;color:var(--sp-soft);margin-left:-2px;}
+.cmd .sp{flex:1;}
+.cmd .vr{display:inline-flex;align-items:center;gap:5px;color:var(--sp-soft);padding:6px 8px;font-size:11.5px;}
+.cmd .vr svg{width:14px;height:14px;}
+
+/* breadcrumb above list */
+.crumb{padding:7px 18px;font-size:11px;color:var(--sp-soft);flex-shrink:0;}
+.crumb b{color:var(--sp-text);font-weight:600;}
+.crumb svg{width:9px;height:9px;color:var(--sp-faint);vertical-align:middle;margin:0 4px;}
+
+/* document list */
+.list{flex:1;overflow:hidden;}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl thead th{position:sticky;top:0;background:#fff;text-align:left;padding:7px 10px;font-size:11px;
+  font-weight:600;color:var(--sp-text);border-bottom:1px solid var(--sp-rail-line);white-space:nowrap;}
+.tbl thead th.c-sel{width:34px;padding-left:14px;}
+.tbl thead th.c-ic{width:30px;}
+.tbl thead th .car{width:9px;height:9px;color:var(--sp-soft);margin-left:3px;vertical-align:middle;}
+.tbl thead th.add{color:var(--sp-soft);font-weight:400;}
+.tbl tbody td{padding:6px 10px;border-bottom:1px solid #f5f4f3;vertical-align:middle;color:var(--sp-text);}
+.tbl tbody tr:hover td{background:var(--sp-hover);}
+.tbl tbody tr.sel td{background:var(--sp-sel);}
+.tbl td.c-sel{padding-left:14px;}
+.ckc{width:16px;height:16px;border-radius:50%;border:1px solid var(--sp-faint);display:block;}
+tr.sel .ckc{background:var(--sp-teal);border-color:var(--sp-teal);position:relative;}
+tr.sel .ckc::after{content:"";position:absolute;left:4.5px;top:2px;width:4px;height:8px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.tbl td.c-ic svg{width:17px;height:17px;stroke-width:1.6;}
+.fi-word{color:var(--word);} .fi-excel{color:var(--excel);} .fi-pdf{color:var(--pdf);}
+.fi-folder{color:var(--folder);} .fi-img{color:var(--img);}
+.nm{color:var(--sp-text);}
+.nm a{color:var(--sp-text);text-decoration:none;font-weight:400;}
+.nm .meta{display:block;font-size:9.5px;color:var(--sp-faint);margin-top:1px;}
+.dots{color:var(--sp-faint);font-weight:700;letter-spacing:1px;font-size:13px;}
+.pill{display:inline-block;margin-left:7px;font-size:9px;font-weight:600;padding:1px 7px;border-radius:10px;vertical-align:middle;}
+.pill.warn{background:rgba(164,38,44,0.10);color:var(--warn);}
+.muted{color:var(--sp-faint);}
+
+/* friction banner */
+.friction{margin:0;padding:8px 16px;background:rgba(164,38,44,0.07);border-top:1px solid rgba(164,38,44,0.22);
+  color:#8c1f24;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.friction svg{width:13px;height:13px;stroke:#8c1f24;stroke-width:2;flex-shrink:0;}
 </style>
 </head>
 <body>
 <div class="mock">
 
-<div class="fg">
-  <div class="f-head">
-    <span class="f-waffle"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
-    <span class="f-logo">TX-HHSC &nbsp;&nbsp; > &nbsp; Eligibility_Evidence</span>
-    <span class="f-search">Search this library</span>
-    <span class="f-user">RR</span>
+  <!-- Microsoft 365 suite bar -->
+  <div class="suite">
+    <span class="waffle"><span class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></span>
+    <span class="o365">Office 365</span>
+    <span class="div"></span>
+    <span class="app">SharePoint</span>
+    <span class="right">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+      <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.6.1-1z"/></svg></span>
+      <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.7-2 2-2 3.5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></span>
+      <span class="av">RR</span>
+    </span>
   </div>
-  <div class="f-subhead">
-    <span class="f-cmd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New</span>
-    <span class="f-cmd"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg> Upload</span>
-    <span class="f-cmd"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg> Sync</span>
-    <span class="f-cmd"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 4v5h-5"/></svg> Automate</span>
-    <span class="f-cmd ghost">Integrate</span>
+
+  <div class="body">
+    <!-- left rail -->
+    <div class="rail">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>Search</div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#" class="on">Documents</a>
+        <a href="#">Pages</a>
+        <a href="#">Site Contents</a>
+        <a href="#">Recycle bin</a>
+        <a href="#" class="edit"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</a>
+      </nav>
+    </div>
+
+    <!-- content pane -->
+    <div class="pane">
+      <div class="sitehead">
+        <div class="top"><span>Eligibility &amp; Enrollment</span><span>Case Documents</span></div>
+        <div class="title">
+          <span class="logo">TX</span>
+          <span class="name">TX-HHSC — Eligibility Evidence
+            <small>Texas Health &amp; Human Services Commission · Document library</small>
+          </span>
+        </div>
+      </div>
+
+      <div class="cmd">
+        <span class="b"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New<svg class="car" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="b"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg> Upload<svg class="car" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="b"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> Sync</span>
+        <span class="b"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg> Export to Excel</span>
+        <span class="b muted"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+        <span class="sp"></span>
+        <span class="vr"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg> All Documents <svg viewBox="0 0 24 24" style="width:8px;height:8px"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="vr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.7-2 2-2 3.5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></span>
+      </div>
+
+      <div class="crumb"><b>Eligibility_Evidence</b><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>CCR-2026-047812</div>
+
+      <div class="list">
+        <table class="tbl">
+          <thead><tr>
+            <th class="c-sel"></th>
+            <th class="c-ic"></th>
+            <th>Name<svg class="car" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></th>
+            <th>Modified</th>
+            <th>Modified By</th>
+            <th class="add">+ Add column</th>
+          </tr></thead>
+          <tbody>
+            <tr class="sel">
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-folder" viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z" fill="currentColor" stroke="#caa400"/></svg></td>
+              <td class="nm"><a>Rodriguez_Maria_CCR-2026-047812</a><span class="pill warn">Needs review</span><span class="meta">Folder · CONFIDENTIAL — PII</span></td>
+              <td>April 17, 2026</td><td>Delgado, A.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>SNAP_Recert_Application_scanned.pdf</a><span class="meta">Scanned intake · kiosk</span></td>
+              <td>March 4, 2026</td><td>kiosk_ingest</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>Paystub_Bluebonnet_01-31-2026.pdf</a><span class="meta">Uploaded by applicant</span></td>
+              <td>March 5, 2026</td><td>Rodriguez, M.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>Paystub_Bluebonnet_02-14-2026 (MISSING).pdf</a><span class="meta" style="color:var(--warn)">NOT YET UPLOADED</span></td>
+              <td class="muted">—</td><td class="muted">—</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>Paystub_Bluebonnet_02-28-2026 (MISSING).pdf</a><span class="meta" style="color:var(--warn)">NOT YET UPLOADED</span></td>
+              <td class="muted">—</td><td class="muted">—</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>Utility_Bill_AEnergy_Feb2026.pdf</a><span class="meta">Uploaded by applicant</span></td>
+              <td>March 5, 2026</td><td>Rodriguez, M.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-img" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" stroke="#026066"/><circle cx="9" cy="10" r="1.6" fill="#fff" stroke="none"/><path d="m5 18 5-5 4 4 2-2 4 5" stroke="#fff"/></svg></td>
+              <td class="nm"><a>DriverLicense_front.jpg</a></td>
+              <td>March 5, 2026</td><td>Rodriguez, M.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-img" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" stroke="#026066"/><circle cx="9" cy="10" r="1.6" fill="#fff" stroke="none"/><path d="m5 18 5-5 4 4 2-2 4 5" stroke="#fff"/></svg></td>
+              <td class="nm"><a>DriverLicense_back.jpg</a></td>
+              <td>March 5, 2026</td><td>Rodriguez, M.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>BirthCert_AnaRodriguez.pdf</a><span class="meta">Minor dependent</span></td>
+              <td>March 5, 2026</td><td>Rodriguez, M.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-excel" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#1b5e3a"/><path d="M14 3v5h4" stroke="#fff"/><path d="M8.5 12l3 5M11.5 12l-3 5" stroke="#fff"/></svg></td>
+              <td class="nm"><a>Income_Calc_Worksheet_v4.xlsx</a><span class="meta">Internal — working file</span></td>
+              <td>April 9, 2026</td><td>Delgado, A.</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-pdf" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#a82a2d"/><path d="M14 3v5h4" stroke="#fff"/><text x="7" y="17" font-size="5.5" fill="#fff" stroke="none" font-family="Segoe UI" font-weight="700">PDF</text></svg></td>
+              <td class="nm"><a>SSA-89_Rodriguez_signed.pdf</a><span class="pill warn">Needs review</span><span class="meta">Faxed signature p.3 cropped</span></td>
+              <td>April 8, 2026</td><td>fax_ingest</td><td><span class="dots">···</span></td>
+            </tr>
+            <tr>
+              <td class="c-sel"><span class="ckc"></span></td>
+              <td class="c-ic"><svg class="fi-word" viewBox="0 0 24 24"><path d="M14 3H6v18h12V8z" fill="currentColor" stroke="#1e3f6e"/><path d="M14 3v5h4" stroke="#fff"/><path d="M8 12h8M8 15h8M8 18h5" stroke="#fff"/></svg></td>
+              <td class="nm"><a>Interview_Notes_03-28.docx</a></td>
+              <td>March 28, 2026</td><td>Huang, P.</td><td><span class="dots">···</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>PII evidence for 14,000 open cases lives in shared libraries with no DLP, no versioning policy, and no access audit.</div>
+    </div>
   </div>
-  <div class="f-crumb"><b>Eligibility_Evidence</b> &nbsp;&gt;&nbsp; CCR-2026-047812</div>
-  <table class="f-table">
-    <thead><tr><th style="width:30px"></th><th>Name</th><th>Modified</th><th>Modified By</th><th>+ Add column</th></tr></thead>
-    <tbody><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg></td><td><b>Rodriguez_Maria_CCR-2026-047812</b> <span class="chip warn" style="margin-left:6px;">Needs review</span><br><span style="font-size:9.5px;color:var(--ink-soft);">Folder <span style="color:var(--ink-soft);font-size:9.5px;">CONFIDENTIAL — PII</span></span></td><td>04/17/2026 14:02</td><td>Delgado, A.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>SNAP_Recert_Application_scanned.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Scanned intake</span></span></td><td>03/04/2026 11:18</td><td>kiosk_ingest</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>Paystub_Bluebonnet_01-31-2026.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Uploaded by applicant</span></span></td><td>03/05/2026 09:22</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>Paystub_Bluebonnet_02-14-2026 (MISSING).pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">NOT YET UPLOADED</span></span></td><td>—</td><td>—</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>Paystub_Bluebonnet_02-28-2026 (MISSING).pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">NOT YET UPLOADED</span></span></td><td>—</td><td>—</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>Utility_Bill_AEnergy_Feb2026.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Uploaded by applicant</span></span></td><td>03/05/2026 09:25</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>Lease_3412_Elmridge_2025-09.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF</span></td><td>03/05/2026 09:26</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m5 18 5-5 4 4 2-2 4 5"/></svg></td><td><b>DriverLicense_front.jpg</b><br><span style="font-size:9.5px;color:var(--ink-soft);">JPG</span></td><td>03/05/2026 09:27</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m5 18 5-5 4 4 2-2 4 5"/></svg></td><td><b>DriverLicense_back.jpg</b><br><span style="font-size:9.5px;color:var(--ink-soft);">JPG</span></td><td>03/05/2026 09:27</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>BirthCert_AnaRodriguez.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Minor dependent</span></span></td><td>03/05/2026 09:28</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>BirthCert_LuisRodriguez.pdf</b><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Minor dependent</span></span></td><td>03/05/2026 09:28</td><td>Rodriguez, M.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg></td><td><b>Income_Calc_Worksheet_v4.xlsx</b><br><span style="font-size:9.5px;color:var(--ink-soft);">XLSX <span style="color:var(--ink-soft);font-size:9.5px;">Internal — working file</span></span></td><td>04/09/2026 16:41</td><td>Delgado, A.</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><text x="8.5" y="16" font-size="6" font-family="Inter" fill="currentColor" stroke="none">PDF</text></svg></td><td><b>SSA-89_Rodriguez_signed.pdf</b> <span class="chip warn" style="margin-left:6px;">Needs review</span><br><span style="font-size:9.5px;color:var(--ink-soft);">PDF <span style="color:var(--ink-soft);font-size:9.5px;">Faxed signature p.3 cropped</span></span></td><td>04/08/2026 08:12</td><td>fax_ingest</td><td>&nbsp;</td></tr><tr><td class="icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h6M9 14h6M9 17h4"/></svg></td><td><b>Interview_Notes_03-28.docx</b><br><span style="font-size:9.5px;color:var(--ink-soft);">DOCX</span></td><td>03/28/2026 15:02</td><td>Huang, P.</td><td>&nbsp;</td></tr></tbody>
-  </table>
-  <div class="f-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>PII evidence for 14,000 open cases lives in shared libraries with no DLP, no versioning policy, and no access audit.</div></div>
-</div>
 
 </div>
 <script id="component-config" type="application/json">
 {
   "component": "component-sharepoint-public-sector.html",
-  "vendor": "SharePoint (shared-drive evidence grid)",
+  "vendor": "SharePoint Online — modern document library (reference-matched reconstruction)",
   "scope": "Public Sector",
   "state": "Current",
   "useCase": "Benefits Eligibility / Recertification (SNAP)",
   "archetype": "filegrid",
   "citizen": "Rodriguez, Maria A.",
   "caseId": "CCR-2026-047812",
-  "program": "SNAP"
+  "program": "SNAP",
+  "referenceSource": "SharePoint Online Basics Training (modern team-site library, pp. 5-12)"
 }
 </script>
 </body>

@@ -3,93 +3,326 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Current State — Oracle Public Sector Compliance & Regulation | TGK 2.0</title>
-<meta name="description" content="Stylized mock evoking Oracle PSCR (compliance workbench evocation) in a Public Sector workflow. Not a literal screenshot.">
+<title>Current State — Oracle E-Business Suite · Public Sector Licensing &amp; Permitting | TGK 2.0</title>
+<meta name="description" content="High-fidelity reconstruction of Oracle E-Business Suite (OA Framework self-service + Forms-style detail) for a Public Sector compliance / permitting case. Reference-matched, not a literal screenshot.">
 <style>
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
-:root{
-  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
-  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
-  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
-  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
-  --v-head:#C74634;--v-accent:#E06B46;--v-bg:#F6F3F1;--v-head-ink:#fff;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
-body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
-svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
-  border:1px solid var(--line-strong);border-radius:12px;
-  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
-.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
-  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;}
-.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
-  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
-.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
-.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
-.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
-.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --ds-ecru:#F8F3F0; --ink:#130032; --line:rgba(19,0,50,0.10);
+    --ui:"Tahoma","Segoe UI","Inter",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+    /* Oracle E-Business Suite (OA Framework / R12.2) palette pulled from the reference guide */
+    --o-link:#3A5BA8;          /* OAF hyperlink blue */
+    --o-title:#1B2A6B;         /* page-title / active-tab navy */
+    --o-band:#F2F2F0;          /* gray section-header band */
+    --o-band2:#E8E8E4;
+    --o-rule:#C6C6BE;          /* table / field hairline */
+    --o-text:#333333;
+    --o-soft:#6B6B63;
+    --o-row:#FCFCFB;
+    --o-rowalt:#F4F4F0;
+    --o-thead:#E9E9E3;
+    --o-tip:#2F6F2F;           /* TIP green */
+    --o-req:#C74634;           /* required / Oracle red */
+    --o-train-on:#2C5AA8;
+    --o-train-off:#B9B9B0;
+    /* Forms-block chrome */
+    --f-title-a:#5C7BC4;       /* Forms window titlebar gradient */
+    --f-title-b:#33508F;
+    --f-bg:#E6EAF4;            /* lavender forms canvas */
+    --f-field:#FFFFFF;
+    --f-fieldline:#9AA3B5;
+    --f-marker:#2C3E78;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;font-family:var(--ui);color:var(--ink);}
+  body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .mock{width:100%;max-width:960px;aspect-ratio:16/10;background:#fff;
+    border:1px solid rgba(19,0,50,0.18);border-radius:12px;
+    box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+    font-size:10.5px;line-height:1.35;color:var(--o-text);}
 
+  /* OAF global header banner */
+  .o-brand{height:30px;background:#FFFFFF;border-bottom:1px solid var(--o-rule);
+    display:flex;align-items:center;gap:10px;padding:0 12px;flex-shrink:0;}
+  .o-logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px;color:#3A3A36;letter-spacing:.01em;}
+  .o-logo .oo{width:42px;height:14px;background:var(--o-req);border-radius:1px;display:flex;
+    align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:8.5px;letter-spacing:.10em;
+    font-family:"Times New Roman",Georgia,serif;}
+  .o-glob{margin-left:auto;display:flex;gap:14px;font-size:10px;color:var(--o-link);}
 
-.doss{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
-.d-head{height:38px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 14px;gap:18px;font-size:11.5px;flex-shrink:0;}
-.d-logo{font-family:var(--brand-font);font-weight:700;letter-spacing:0.03em;}
-.d-nav{display:flex;gap:18px;font-weight:500;opacity:0.9;font-size:10.5px;margin-left:14px;}
-.d-nav span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;font-weight:600;}
-.d-user{margin-left:auto;opacity:0.85;font-size:10px;}
-.d-title{padding:12px 18px 4px;display:flex;align-items:center;gap:12px;}
-.d-title h2{font-family:var(--brand-font);font-size:15px;font-weight:600;color:var(--ink);margin-right:auto;}
-.d-badges{display:inline-flex;gap:6px;}
-.d-grid{flex:1;padding:6px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden;}
-.d-col{display:flex;flex-direction:column;gap:10px;}
-.d-card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:10.5px;}
-.d-card h4{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;}
-.d-card .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
-.d-card .row:last-child{border-bottom:0;}
-.d-card .row .k{color:var(--ink-soft);}
-.d-card .row .v{font-weight:500;}
-.d-card .row .v.warn{color:#A93434;font-weight:600;}
-.d-card .row .v.ok{color:#276B36;font-weight:600;}
-.d-card .timeline{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-.d-card .tl-row{display:flex;gap:8px;font-size:10px;padding:2px 0;}
-.d-card .tl-date{width:62px;color:var(--ink-soft);flex-shrink:0;}
-.d-card .tl-text{color:var(--ink);}
-.d-card .tl-text.warn{color:#A93434;}
-.d-foot{padding:8px 18px 10px;background:transparent;flex-shrink:0;}
+  /* horizontal responsibility tabs */
+  .o-tabs{height:24px;background:linear-gradient(180deg,#FBFBF9,#EDEDE7);
+    border-bottom:1px solid var(--o-rule);display:flex;align-items:flex-end;gap:0;padding:0 12px;flex-shrink:0;}
+  .o-tabs .tab{padding:4px 14px 5px;font-size:10.5px;color:var(--o-link);font-weight:500;border-bottom:2px solid transparent;}
+  .o-tabs .tab.on{color:var(--o-title);font-weight:700;border-bottom:2px solid var(--o-title);}
 
+  /* breadcrumb */
+  .o-crumb{padding:4px 12px;font-size:10px;color:var(--o-soft);background:#fff;border-bottom:1px solid var(--line);flex-shrink:0;}
+  .o-crumb a{color:var(--o-link);}
+
+  /* train / progress stepper */
+  .o-train{display:flex;align-items:flex-start;padding:8px 14px 4px;background:#fff;flex-shrink:0;}
+  .o-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+  .o-step::before{content:"";position:absolute;top:7px;left:-50%;width:100%;height:2px;background:var(--o-train-off);z-index:0;}
+  .o-step:first-child::before{display:none;}
+  .o-step .dot{width:15px;height:15px;border-radius:50%;background:#fff;border:2px solid var(--o-train-off);z-index:1;}
+  .o-step.done .dot{background:var(--o-train-on);border-color:var(--o-train-on);}
+  .o-step.cur .dot{background:var(--o-train-on);border-color:var(--o-train-on);box-shadow:0 0 0 2px rgba(44,90,168,.25);}
+  .o-step.cur::before,.o-step.done::before{background:var(--o-train-on);}
+  .o-step .lbl{font-size:9px;margin-top:3px;color:var(--o-soft);text-align:center;max-width:96px;line-height:1.25;}
+  .o-step.cur .lbl{color:var(--o-title);font-weight:700;}
+  .o-step.done .lbl{color:var(--o-text);}
+
+  /* page title row */
+  .o-ptitle{display:flex;align-items:center;gap:10px;padding:4px 14px 8px;background:#fff;border-bottom:1px solid var(--o-rule);flex-shrink:0;}
+  .o-ptitle h1{font-size:15px;font-weight:700;color:var(--o-title);margin-right:auto;}
+  .o-btns{display:flex;align-items:center;gap:6px;}
+  .o-btn{font-size:10px;padding:3px 10px;border:1px solid #9A9A90;border-radius:3px;
+    background:linear-gradient(180deg,#FCFCFB,#E4E4DC);color:#2C2C28;font-weight:600;}
+  .o-btn.prim{background:linear-gradient(180deg,#5C7BC4,#3A5BA8);border-color:#33508F;color:#fff;}
+  .o-step-of{font-size:10px;color:var(--o-soft);padding:0 4px;}
+
+  .o-body{flex:1;display:flex;min-height:0;background:#fff;}
+
+  /* left context column (Forms-style read-only header block) */
+  .o-side{width:268px;flex-shrink:0;background:var(--f-bg);border-right:1px solid var(--o-rule);
+    display:flex;flex-direction:column;overflow:hidden;}
+  .f-title{height:20px;background:linear-gradient(180deg,var(--f-title-a),var(--f-title-b));
+    color:#fff;display:flex;align-items:center;gap:6px;padding:0 6px;font-size:10px;font-weight:600;flex-shrink:0;}
+  .f-title .oico{width:13px;height:13px;border-radius:50%;background:var(--o-req);display:flex;
+    align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:8px;font-family:Georgia,serif;}
+  .f-title .wbtns{margin-left:auto;display:flex;gap:3px;}
+  .f-title .wbtns i{width:11px;height:9px;background:#C9D2E6;border:1px solid #8492B5;border-radius:1px;display:inline-block;}
+  .f-region{padding:7px 9px 4px;}
+  .f-region .rh{font-size:10px;font-weight:700;color:var(--f-marker);border-bottom:1px solid #B7C0D6;padding-bottom:2px;margin-bottom:5px;}
+  .f-fld{display:flex;align-items:center;margin-bottom:5px;gap:6px;}
+  .f-fld label{width:96px;text-align:right;font-size:9.5px;color:#33405E;flex-shrink:0;}
+  .f-fld .box{flex:1;background:var(--f-field);border:1px solid var(--f-fieldline);border-radius:1px;
+    padding:1.5px 4px;font-size:9.5px;color:#1B2440;min-height:15px;display:flex;align-items:center;gap:4px;}
+  .f-fld .box.lov::after{content:"";width:11px;height:11px;margin-left:auto;flex-shrink:0;
+    background:#D7DEEC;border:1px solid #8492B5;border-radius:1px;}
+  .f-fld .box.warn{color:var(--o-req);font-weight:600;}
+  .f-fld .box.flag{background:#FBF2C9;border-color:#D8C36A;color:#6A5510;font-weight:600;}
+
+  /* main content (OAF table region) */
+  .o-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+  .o-subtabs{display:flex;gap:1px;padding:7px 14px 0;background:#fff;flex-shrink:0;}
+  .o-subtabs .st{font-size:10px;padding:4px 12px;border:1px solid var(--o-rule);border-bottom:none;
+    border-radius:4px 4px 0 0;background:linear-gradient(180deg,#F6F6F2,#E6E6DE);color:var(--o-link);font-weight:500;}
+  .o-subtabs .st.on{background:#fff;color:var(--o-title);font-weight:700;position:relative;top:1px;border-bottom:1px solid #fff;}
+  .o-region{margin:0 14px;border:1px solid var(--o-rule);border-top:none;background:#fff;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+  .o-rband{background:linear-gradient(180deg,#F4F4F0,#E4E4DC);border-bottom:1px solid var(--o-rule);
+    padding:4px 9px;font-size:11px;font-weight:700;color:var(--o-title);display:flex;align-items:center;gap:8px;}
+  .o-rband .rb-right{margin-left:auto;display:flex;gap:6px;}
+  .o-rband .mini{font-size:9.5px;padding:2px 8px;border:1px solid #9A9A90;border-radius:3px;
+    background:linear-gradient(180deg,#FCFCFB,#E4E4DC);color:#2C2C28;font-weight:600;}
+  .o-tip{display:flex;align-items:center;gap:6px;padding:4px 9px;font-size:9.5px;color:#2F4F2F;
+    background:#fff;border-bottom:1px solid var(--line);}
+  .o-tip .tipmark{font-weight:700;color:var(--o-tip);display:flex;align-items:center;gap:3px;}
+  .o-tip .tipmark svg{width:11px;height:11px;color:var(--o-tip);stroke-width:2.4;}
+
+  table.oaf{width:100%;border-collapse:collapse;font-size:10px;}
+  table.oaf thead th{background:var(--o-thead);border:1px solid var(--o-rule);
+    padding:4px 7px;text-align:left;font-weight:700;color:#3A3A34;font-size:9.5px;white-space:nowrap;}
+  table.oaf td{border:1px solid var(--o-rule);padding:3px 7px;color:var(--o-text);vertical-align:middle;}
+  table.oaf tbody tr:nth-child(even) td{background:var(--o-rowalt);}
+  table.oaf tbody tr:nth-child(odd) td{background:var(--o-row);}
+  .lk{color:var(--o-link);font-weight:600;cursor:default;}
+  .ck{width:11px;height:11px;border:1px solid #8492B5;border-radius:1px;background:#fff;display:inline-block;vertical-align:middle;}
+  .ck.on{background:#3A5BA8;border-color:#33508F;position:relative;}
+  .ck.on::after{content:"";position:absolute;left:2px;top:0;width:4px;height:7px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(40deg);}
+  .lovcell{display:flex;align-items:center;gap:4px;}
+  .lovcell .mg{width:11px;height:11px;border:1px solid #9AA3B5;border-radius:1px;background:#EEF0F6;
+    display:inline-flex;align-items:center;justify-content:center;color:#6577A0;}
+  .lovcell .mg svg{width:8px;height:8px;stroke-width:2.4;}
+  .drill{color:var(--o-link);display:inline-flex;}
+  .drill svg{width:12px;height:12px;}
+  td.warnv{color:var(--o-req);font-weight:700;}
+  td.okv{color:#2F6F2F;font-weight:700;}
+  .stat{display:inline-block;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:2px;color:#fff;}
+  .stat.pend{background:#C9842B;} .stat.block{background:#B23A2E;} .stat.ok{background:#3E8E48;}
+
+  .o-pager{display:flex;align-items:center;gap:6px;padding:5px 9px;font-size:9.5px;color:var(--o-soft);
+    border-top:1px solid var(--o-rule);background:#FBFBF9;flex-shrink:0;}
+  .o-pager .pg{color:var(--o-link);font-weight:600;padding:0 3px;}
+  .o-pager .pg.on{color:#222;border:1px solid #9A9A90;border-radius:2px;padding:0 5px;background:#fff;}
+  .o-pager .sel{margin-left:auto;display:flex;align-items:center;gap:5px;color:#333;}
+
+  .friction{margin:0;padding:8px 14px;background:rgba(199,70,52,0.07);border-top:1px solid rgba(199,70,52,0.28);
+    color:#A0382B;font-size:10px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .friction svg{width:13px;height:13px;stroke:#A0382B;stroke-width:2;flex-shrink:0;}
 </style>
 </head>
 <body>
 <div class="mock">
 
-<div class="doss">
-  <div class="d-head">
-    <span class="d-logo">PSCR &middot; Oracle Cloud (evocative)</span>
-    <span class="d-nav"><span class="">Workbench</span><span class="">Parcels</span><span class="">Permits</span><span class="on">Cases</span><span class="">Inspections</span></span>
-    <span class="d-user">Delgado, A. — Caseworker</span>
+  <!-- OAF global brand banner -->
+  <div class="o-brand">
+    <span class="o-logo"><span class="oo">ORACLE</span> E-Business Suite</span>
+    <span class="o-glob"><span>Home</span><span>Worklist (7)</span><span>Diagnostics</span><span>Logout</span><span>Preferences</span></span>
   </div>
-  <div class="d-title">
-    <h2>Parcel 044-216-091 · 3412 Elmridge Ln, Austin, TX 78745 · Compliance Case</h2>
-    <span class="d-badges"><span class="chip warn">Permit pending</span><span class="chip stale">Inspection due 04/22</span></span>
+
+  <!-- responsibility tabs -->
+  <div class="o-tabs">
+    <span class="tab">Workbench</span>
+    <span class="tab">Parcels</span>
+    <span class="tab">Permits</span>
+    <span class="tab on">Cases</span>
+    <span class="tab">Inspections</span>
+    <span class="tab">Setup</span>
   </div>
-  <div class="d-grid">
-    <div class="d-col"><div class="d-card"><h4>Parcel</h4><div class="row"><span class="k">Parcel ID</span><span class="v">044-216-091</span></div><div class="row"><span class="k">Owner</span><span class="v">Rodriguez, Maria A.</span></div><div class="row"><span class="k">Land Use</span><span class="v">Residential — Single Family</span></div><div class="row"><span class="k">District</span><span class="v">Travis Co. · Austin City Council Dist. 3</span></div></div><div class="d-card"><h4>Case Activity</h4><div class="timeline"><div class="tl-row"><span class="tl-date">03/04</span><span class="tl-text">SNAP-tied case opened (links to CCR-2026-047812)</span></div><div class="tl-row"><span class="tl-date">03/10</span><span class="tl-text">Address proof verified via GeoCheck</span></div><div class="tl-row"><span class="tl-date">03/28</span><span class="tl-text warn">Inspection scheduling gap — re-send task</span></div><div class="tl-row"><span class="tl-date">04/11</span><span class="tl-text">Permit renewal flag (residential exemption)</span></div></div></div></div>
-    <div class="d-col"><div class="d-card"><h4>Code / Rule Engine</h4><div class="row"><span class="k">Rule Set</span><span class="v">TX.HHSC.SNAP.2026.R4</span></div><div class="row"><span class="k">Last Deploy</span><span class="v">03/15/2026 04:00 CT</span></div><div class="row"><span class="k">Override Count</span><span class="v warn">11 this quarter</span></div><div class="row"><span class="k">Shadow Rules</span><span class="v warn">3 pending review</span></div></div><div class="d-card"><h4>Linked Obligations</h4><div class="row"><span class="k">SNAP Recert</span><span class="v warn">Due 04/30</span></div><div class="row"><span class="k">Property Tax</span><span class="v ok">Current</span></div><div class="row"><span class="k">Sanitation Fee</span><span class="v ok">Current</span></div><div class="row"><span class="k">Eligibility Run</span><span class="v warn">Blocked — income</span></div></div></div>
+
+  <!-- breadcrumb -->
+  <div class="o-crumb"><a>Public Sector Compliance &amp; Regulation</a> &gt; <a>Cases</a> &gt; Compliance Case CCR-2026-047812</div>
+
+  <!-- train / stepper -->
+  <div class="o-train">
+    <div class="o-step done"><span class="dot"></span><span class="lbl">Case Intake</span></div>
+    <div class="o-step done"><span class="dot"></span><span class="lbl">Parcel &amp; Owner</span></div>
+    <div class="o-step done"><span class="dot"></span><span class="lbl">Eligibility Run</span></div>
+    <div class="o-step cur"><span class="dot"></span><span class="lbl">Inspection &amp; Obligations</span></div>
+    <div class="o-step"><span class="dot"></span><span class="lbl">Determination</span></div>
+    <div class="o-step"><span class="dot"></span><span class="lbl">Review</span></div>
   </div>
-  <div class="d-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Rule engine has 11 overrides this quarter. Each one is a manual row in a spreadsheet. No audit of 'why'.</div></div>
-</div>
+
+  <!-- page title -->
+  <div class="o-ptitle">
+    <h1>Compliance Case: Inspection &amp; Linked Obligations</h1>
+    <div class="o-btns">
+      <span class="o-btn">Save</span>
+      <span class="o-btn">Cancel</span>
+      <span class="o-btn">Back</span>
+      <span class="o-step-of">Step 4 of 6</span>
+      <span class="o-btn prim">Next</span>
+    </div>
+  </div>
+
+  <div class="o-body">
+
+    <!-- Forms-style read-only context block -->
+    <div class="o-side">
+      <div class="f-title"><span class="oico">O</span>Case Header (CCR)
+        <span class="wbtns"><i></i><i></i><i></i></span>
+      </div>
+      <div class="f-region">
+        <div class="rh">Parcel &amp; Owner</div>
+        <div class="f-fld"><label>Parcel ID</label><div class="box lov">044-216-091</div></div>
+        <div class="f-fld"><label>Site Address</label><div class="box">3412 Elmridge Ln, Austin TX</div></div>
+        <div class="f-fld"><label>Owner</label><div class="box lov">Rodriguez, Maria A.</div></div>
+        <div class="f-fld"><label>Land Use</label><div class="box">Residential — Single Family</div></div>
+        <div class="f-fld"><label>District</label><div class="box">Travis Co. · Council Dist. 3</div></div>
+      </div>
+      <div class="f-region" style="padding-top:0;">
+        <div class="rh">Case Status</div>
+        <div class="f-fld"><label>Case ID</label><div class="box">CCR-2026-047812</div></div>
+        <div class="f-fld"><label>Caseworker</label><div class="box lov">Delgado, A.</div></div>
+        <div class="f-fld"><label>Permit</label><div class="box warn">Pending — not issued</div></div>
+        <div class="f-fld"><label>Inspection</label><div class="box flag">Due 04/22 — unscheduled</div></div>
+        <div class="f-fld"><label>Rule Set</label><div class="box">TX.HHSC.SNAP.2026.R4</div></div>
+      </div>
+    </div>
+
+    <!-- OAF table region -->
+    <div class="o-main">
+      <div class="o-subtabs">
+        <span class="st on">Linked Obligations &amp; Inspections</span>
+        <span class="st">Rule Overrides</span>
+        <span class="st">Case Activity</span>
+      </div>
+
+      <div class="o-region">
+        <div class="o-rband">Obligation Lines
+          <span class="rb-right"><span class="mini">Add Row</span><span class="mini">Re-send Task</span><span class="mini">Export</span></span>
+        </div>
+        <div class="o-tip"><span class="tipmark"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>TIP</span>&nbsp;Each obligation is reconciled by hand. Eligibility cannot run until the blocked income line clears and the inspection is scheduled.</div>
+
+        <table class="oaf">
+          <thead>
+            <tr>
+              <th style="width:24px;"><span class="ck"></span></th>
+              <th style="width:38px;">Line</th>
+              <th style="width:34px;">Open</th>
+              <th>Obligation</th>
+              <th>Reference</th>
+              <th style="width:78px;">Due</th>
+              <th style="width:84px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="ck on"></span></td>
+              <td><span class="lk">1</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>SNAP Recertification</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>CCR-2026-047812</div></td>
+              <td>04/30/2026</td>
+              <td class="warnv">Due</td>
+            </tr>
+            <tr>
+              <td><span class="ck"></span></td>
+              <td><span class="lk">2</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>Eligibility Run</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>Income verification</div></td>
+              <td>—</td>
+              <td><span class="stat block">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><span class="ck on"></span></td>
+              <td><span class="lk">3</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>Site Inspection</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>INSP-Residential</div></td>
+              <td>04/22/2026</td>
+              <td><span class="stat pend">Unsched.</span></td>
+            </tr>
+            <tr>
+              <td><span class="ck"></span></td>
+              <td><span class="lk">4</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>Permit Renewal</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>Residential exemption</div></td>
+              <td>04/11/2026</td>
+              <td class="warnv">Pending</td>
+            </tr>
+            <tr>
+              <td><span class="ck"></span></td>
+              <td><span class="lk">5</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>Property Tax</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>TCAD-044216091</div></td>
+              <td>—</td>
+              <td class="okv">Current</td>
+            </tr>
+            <tr>
+              <td><span class="ck"></span></td>
+              <td><span class="lk">6</span></td>
+              <td><span class="drill"><svg viewBox="0 0 24 24"><path d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10M15 9l2.5-2.5a3.5 3.5 0 0 1 5 5L20 14M9 15l6-6"/></svg></span></td>
+              <td>Sanitation Fee</td>
+              <td><div class="lovcell"><span class="mg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>UTIL-SAN-3412</div></td>
+              <td>—</td>
+              <td class="okv">Current</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="o-pager">
+          <span>Rule overrides this quarter: <b style="color:var(--o-req)">11</b> · Shadow rules pending review: <b style="color:var(--o-req)">3</b></span>
+          <span class="sel">Page <span class="pg on">1</span><span class="pg">2</span>&nbsp;(1-6 of 6 lines)</span>
+        </div>
+      </div>
+
+      <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Rule engine has 11 overrides this quarter. Each one is a manual row in a spreadsheet. No audit of 'why'.</div>
+    </div>
+  </div>
 
 </div>
 <script id="component-config" type="application/json">
 {
   "component": "component-oracle-public-sector-compliance-and-regulation-public-sector.html",
-  "vendor": "Oracle PSCR (compliance workbench evocation)",
+  "vendor": "Oracle E-Business Suite — OA Framework self-service + Forms detail block (reference-matched reconstruction)",
   "scope": "Public Sector",
   "state": "Current",
   "useCase": "Benefits Eligibility / Recertification (SNAP)",

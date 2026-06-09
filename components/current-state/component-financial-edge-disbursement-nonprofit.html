@@ -3,102 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Current State — Blackbaud Financial Edge — Disbursement | TGK 2.0</title>
-<meta name="description" content="Stylized mock evoking a nonprofit accounting system handling disbursement and reporting milestones. Not a literal screenshot.">
+<title>Current State — Blackbaud Raiser's Edge 7 — Grant Disbursement | TGK 2.0</title>
+<meta name="description" content="High-fidelity reconstruction of the Blackbaud Raiser's Edge 7 Windows record shell for a nonprofit grant disbursement schedule. Reference-matched, not a literal screenshot.">
 <style>
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap;}
-@font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap;}
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
-:root{
-  --ds-ecru:#F8F3F0;--ink:#130032;--ink-mid:#4A3E6B;--ink-soft:#6E6189;
-  --line:rgba(19,0,50,0.10);--line-strong:rgba(19,0,50,0.18);
-  --ui-font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
-  --brand-font:"DSIndigo","Inter",-apple-system,sans-serif;
-  --v-head:#1B2E4A;--v-accent:#4A7FC0;--v-bg:#F1F4F8;--v-head-ink:#fff;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{min-height:100%;font-family:var(--ui-font);color:var(--ink);}
-body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
-svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--v-bg);
-  border:1px solid var(--line-strong);border-radius:12px;
-  box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
-  overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:10.5px;line-height:1.4;}
-.friction{background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.32);
-  color:#A93434;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;}
-.friction svg{width:12px;height:12px;stroke:#A93434;stroke-width:2;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
-  font-size:9.5px;font-weight:600;letter-spacing:0.02em;border:1px solid transparent;}
-.chip.warn{background:rgba(255,82,82,0.10);color:#A93434;border-color:rgba(255,82,82,0.28);}
-.chip.stale{background:rgba(255,165,0,0.12);color:#7A4A00;border-color:rgba(255,165,0,0.30);}
-.chip.ok{background:rgba(48,140,72,0.10);color:#276B36;border-color:rgba(48,140,72,0.28);}
-.chip.neutral{background:rgba(19,0,50,0.06);color:var(--ink-mid);border-color:var(--line);}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --ds-ecru:#F8F3F0; --ink:#130032; --line:rgba(19,0,50,0.10);
+    --ui:"Tahoma","Segoe UI","Inter",-apple-system,Helvetica,Arial,sans-serif;
+    /* Raiser's Edge 7 / Windows-classic palette pulled from the reference deck */
+    --re-title-a:#0A246A; --re-title-b:#3A6EA5; --re-title-c:#A6CAF0;
+    --re-gray:#ECE9D8; --re-gray-d:#D4D0C8; --re-gray-dd:#B5B1A8;
+    --re-shadow:#808074; --re-3d-hi:#FFFFFF;
+    --re-navy:#1A1A8C; --re-link:#0000CC; --re-rule:#919B9C;
+    --re-hdr-band-a:#B7B7DD; --re-hdr-band-b:#8A8AC0; --re-hdr-ink:#FFFFFF;
+    --re-field:#FFFFFF; --re-field-dis:#ECE9D8;
+    --re-tab:#ECE9D8; --re-tab-on:#FFFFFF; --re-check:#C8102E;
+    --re-grid-sel:#0A246A; --re-text:#1A1A1A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;font-family:var(--ui);color:var(--ink);}
+  body{background:var(--ds-ecru);padding:24px;display:flex;align-items:center;justify-content:center;}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .mock{width:100%;max-width:960px;aspect-ratio:16/10;background:var(--re-gray);
+    border:1px solid rgba(19,0,50,0.30);border-radius:12px;
+    box-shadow:0 24px 64px -32px rgba(19,0,50,0.35),0 2px 8px rgba(19,0,50,0.06);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+    font-size:11px;line-height:1.3;color:var(--re-text);}
 
+  /* ── Win2k title bar ── */
+  .tbar{height:22px;background:linear-gradient(180deg,var(--re-title-b) 0%,var(--re-title-a) 8%,var(--re-title-a) 86%,#08205C 100%);
+    color:#fff;display:flex;align-items:center;gap:6px;padding:0 4px 0 6px;flex-shrink:0;font-size:11px;font-weight:700;}
+  .tbar .ico{width:15px;height:15px;border-radius:2px;background:#D24726;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:9px;font-weight:800;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);}
+  .tbar .winbtns{margin-left:auto;display:flex;gap:3px;}
+  .tbar .wb{width:18px;height:17px;background:var(--re-gray);border:1px solid;border-color:#fff #404040 #404040 #fff;
+    display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;}
 
-.console{flex:1;display:flex;flex-direction:column;background:var(--v-bg);}
-.c-head{height:34px;background:var(--v-head);color:var(--v-head-ink);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:0.01em;}
-.c-logo{font-family:var(--brand-font);}
-.c-tabs{display:flex;gap:18px;font-weight:500;opacity:0.88;font-size:10.5px;margin-left:12px;}
-.c-tabs span.on{border-bottom:2px solid var(--v-accent);padding-bottom:3px;opacity:1;}
-.c-user{margin-left:auto;opacity:0.85;font-size:10px;font-weight:400;}
-.c-crumb{height:26px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:10.5px;color:var(--ink-mid);flex-shrink:0;}
-.c-crumb b{color:var(--ink);font-weight:600;}
-.c-body{flex:1;display:grid;grid-template-columns:160px 1fr 200px;min-height:0;}
-.c-nav{background:#fff;border-right:1px solid var(--line);padding:10px 0;overflow:hidden;font-size:10.5px;}
-.c-nav .ni{padding:5px 14px;display:flex;align-items:center;gap:8px;color:var(--ink-mid);}
-.c-nav .ni svg{width:13px;height:13px;stroke:var(--ink-soft);}
-.c-nav .ni.on{color:var(--v-accent);font-weight:600;border-left:3px solid var(--v-accent);padding-left:11px;background:rgba(0,0,0,0.02);}
-.c-nav .ni.on svg{stroke:var(--v-accent);}
-.c-nav h6{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);padding:8px 14px 4px;font-weight:600;}
-.c-main{padding:12px 16px;overflow:hidden;}
-.c-main h2{font-family:var(--brand-font);font-size:14px;font-weight:600;margin-bottom:6px;}
-.c-main .kv{display:grid;grid-template-columns:140px 1fr;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:10.5px;}
-.c-main .kv .k{color:var(--ink-soft);}
-.c-main .kv .v{color:var(--ink);font-weight:500;}
-.c-main .sec{margin-top:8px;}
-.c-main table{width:100%;border-collapse:collapse;font-size:10px;background:#fff;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
-.c-main th{background:rgba(0,0,0,0.04);text-align:left;padding:5px 8px;font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);border-bottom:1px solid var(--line);font-weight:600;}
-.c-main td{padding:5px 8px;border-bottom:1px solid var(--line);font-size:10px;}
-.c-main tr:last-child td{border-bottom:0;}
-.c-aside{background:#fff;border-left:1px solid var(--line);padding:10px 12px;font-size:10px;overflow:hidden;}
-.c-aside h5{font-size:10.5px;font-weight:600;color:var(--v-accent);margin-bottom:6px;}
-.c-aside .task{padding:5px 0;border-bottom:1px solid var(--line);}
-.c-aside .task:last-child{border-bottom:0;}
-.c-aside .task .due{font-size:9.5px;color:#A93434;font-weight:600;}
-.c-foot{padding:8px 12px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+  /* ── menu bar ── */
+  .menu{height:20px;background:var(--re-gray);border-bottom:1px solid var(--re-gray-d);
+    display:flex;align-items:center;gap:0;padding:0 2px;flex-shrink:0;font-size:11px;}
+  .menu span{padding:2px 8px;color:#000;}
+  .menu span u{text-decoration:underline;}
 
+  /* ── toolbar ── */
+  .tools{min-height:30px;background:var(--re-gray);border-bottom:1px solid var(--re-shadow);
+    display:flex;align-items:center;gap:4px;padding:3px 6px;flex-shrink:0;
+    box-shadow:inset 0 1px 0 #fff;}
+  .tbtn{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--re-gray);
+    border:1px solid transparent;border-radius:3px;font-size:11px;color:#000;font-weight:600;}
+  .tbtn.raised{border-color:#fff var(--re-shadow) var(--re-shadow) #fff;}
+  .tbtn .di{width:7px;height:7px;border-left:1px solid #555;border-bottom:1px solid #555;transform:rotate(-45deg);margin-left:2px;}
+  .ticon{width:18px;height:18px;border:1px solid var(--re-gray-d);background:#fff;border-radius:2px;
+    display:flex;align-items:center;justify-content:center;color:var(--re-navy);}
+  .ticon svg{width:13px;height:13px;}
+  .tsep{width:1px;height:20px;background:var(--re-shadow);box-shadow:1px 0 0 #fff;margin:0 3px;}
+  .navset{display:flex;gap:1px;}
+  .navset .ticon{color:#0A246A;}
+
+  /* ── tab strip (double row of red-check tabs) ── */
+  .tabs{background:var(--re-gray);padding:5px 8px 0;flex-shrink:0;}
+  .trow{display:flex;gap:2px;margin-bottom:2px;}
+  .tab{display:flex;align-items:center;gap:4px;padding:3px 9px 4px;font-size:10.5px;color:#000;
+    background:var(--re-gray);border:1px solid var(--re-shadow);border-bottom:none;border-radius:4px 4px 0 0;
+    box-shadow:inset 1px 1px 0 #fff;white-space:nowrap;}
+  .tab.on{background:var(--re-tab-on);font-weight:700;color:var(--re-navy);position:relative;z-index:2;
+    box-shadow:inset 1px 1px 0 #fff;border-bottom:1px solid #fff;margin-bottom:-1px;padding-bottom:5px;}
+  .tab .ck{color:var(--re-check);font-weight:800;font-size:10px;line-height:1;}
+
+  /* record body */
+  .rbody{flex:1;background:var(--re-tab-on);border-top:1px solid var(--re-shadow);
+    display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .rscroll{flex:1;min-height:0;overflow:hidden;padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
+
+  /* fielded constituent-style header block */
+  .ghead{display:grid;grid-template-columns:1fr 300px;gap:12px;}
+  .fgroup{border:1px solid var(--re-rule);border-radius:2px;padding:8px 10px 9px;background:var(--re-gray);
+    box-shadow:inset 0 0 0 1px #fff;}
+  .fgroup .gt{font-size:11px;font-weight:700;color:var(--re-navy);margin:-16px 0 6px 4px;
+    background:var(--re-tab-on);display:inline-block;padding:0 5px;}
+  .frow{display:grid;grid-template-columns:96px 1fr;gap:7px;align-items:center;margin-bottom:5px;}
+  .frow label{color:#000;text-align:right;font-size:10.5px;}
+  .fld{background:var(--re-field);border:1px solid;border-color:var(--re-shadow) #fff #fff var(--re-shadow);
+    padding:2px 5px;font-size:10.5px;color:#000;min-height:18px;display:flex;align-items:center;}
+  .fld.dis{background:var(--re-field-dis);color:#333;}
+  .fld.drop{justify-content:space-between;}
+  .fld.drop::after{content:"";width:14px;height:16px;margin:-2px -4px -2px 6px;background:var(--re-gray);
+    border-left:1px solid var(--re-shadow);background-image:linear-gradient(135deg,transparent 45%,#333 45%,#333 55%,transparent 55%);
+    background-size:9px 9px;background-position:center;background-repeat:no-repeat;}
+  .warnchip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;color:#A60000;
+    background:#FFF0F0;border:1px solid #E8B0B0;border-radius:2px;padding:1px 6px;}
+  .stalechip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;color:#7A4A00;
+    background:#FFF6E0;border:1px solid #E0C690;border-radius:2px;padding:1px 6px;}
+
+  /* gift-grid style data table */
+  .gridwrap{flex:1;min-height:0;border:1px solid var(--re-shadow);background:#fff;
+    box-shadow:inset 1px 1px 0 #fff;display:flex;flex-direction:column;}
+  .gridbar{height:21px;background:var(--re-gray);border-bottom:1px solid var(--re-shadow);
+    display:flex;align-items:center;gap:10px;padding:0 7px;font-size:10.5px;flex-shrink:0;}
+  .gridbar .gb{display:flex;align-items:center;gap:4px;color:var(--re-navy);font-weight:600;}
+  .gridbar .gb svg{width:11px;height:11px;color:var(--re-navy);}
+  .gridbar .gr{margin-left:auto;color:#555;}
+  table{width:100%;border-collapse:collapse;font-size:10.5px;}
+  thead th{background:var(--re-gray);text-align:left;padding:3px 7px;color:#000;font-weight:700;font-size:10.5px;
+    border-right:1px solid var(--re-shadow);border-bottom:1px solid var(--re-shadow);box-shadow:inset 0 1px 0 #fff;white-space:nowrap;}
+  thead th:last-child{border-right:none;}
+  tbody td{padding:3px 7px;border-bottom:1px solid #E8E8E0;border-right:1px solid #EDEDE6;color:#000;white-space:nowrap;}
+  tbody td:last-child{border-right:none;}
+  tbody tr.sel td{background:var(--re-grid-sel);color:#fff;}
+  tbody tr.sel td .stalechip,tbody tr.sel td .warnchip{filter:none;}
+  .amt{text-align:right;font-variant-numeric:tabular-nums;}
+
+  /* status footer */
+  .sfoot{height:18px;background:var(--re-gray);border-top:1px solid #fff;box-shadow:inset 0 1px 0 var(--re-shadow);
+    display:flex;align-items:center;padding:0 8px;font-size:10px;color:#333;flex-shrink:0;gap:8px;}
+  .sfoot .seg{border:1px solid;border-color:var(--re-shadow) #fff #fff var(--re-shadow);padding:0 8px;height:14px;display:flex;align-items:center;}
+
+  .friction{margin:0;padding:8px 12px;background:rgba(179,38,30,0.07);border-top:1px solid rgba(179,38,30,0.25);
+    color:#9A2B23;font-size:10px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .friction svg{width:13px;height:13px;stroke:#9A2B23;stroke-width:2;flex-shrink:0;}
 </style>
 </head>
 <body>
 <div class="mock">
-<div class="console">
-  <div class="c-head">
-    <span class="c-logo">Financial Edge NXT · Blackbaud (evocative)</span>
-    <span class="c-tabs"><span class="">Vendors</span><span class="on">Payments</span><span class="">Schedules</span><span class="">Reports</span></span>
-    <span class="c-user">Accounting · Harbor</span>
+
+  <!-- Windows title bar -->
+  <div class="tbar">
+    <span class="ico">RE</span>
+    <span>Grant — Safe Streets Initiative · Harbor Foundation</span>
+    <span class="winbtns"><span class="wb">_</span><span class="wb">▢</span><span class="wb">✕</span></span>
   </div>
-  <div class="c-crumb"><b>Payments</b> &nbsp;&gt;&nbsp; Safe Streets · $120k &nbsp;&gt;&nbsp; Disbursement schedule <span class="chip warn">Keyed by hand</span></div>
-  <div class="c-body">
-    <div class="c-nav"><div class="ni on"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg> Disbursement · Safe Streets</div><div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg> Payment Schedule</div><div class="ni"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg> Reporting Milestones<span style="margin-left:auto;color:#A93434;font-weight:600;">manual</span></div><h6>Keyed from</h6><div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/></svg> Grant agreement PDF</div><div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/></svg> Officer email</div></div>
-    <div class="c-main">
-<h2>Disbursement Schedule — Safe Streets</h2>
-<div class="kv"><span class="k">Grant</span><span class="v">Community Safety · $120,000</span></div><div class="kv"><span class="k">Tranches</span><span class="v">3 payments — keyed by hand</span></div><div class="kv"><span class="k">Reporting</span><span class="v">Quarterly · reminders manual</span></div><div class="kv"><span class="k">Source</span><span class="v">Re-typed from the agreement PDF</span></div><div class="kv"><span class="k">Status</span><span class="v"><span class="chip warn">Manual entry — reminders ad hoc</span></span></div>
-<div class="sec"><table><thead><tr><th>Milestone</th><th>Amount</th><th>State</th><th>Reminder</th></tr></thead><tbody><tr><td>Tranche 1 — on execution</td><td>$60,000</td><td><span class='chip warn'>Keyed manually</span></td><td>Calendar note</td></tr><tr><td>Q2 report → tranche 2</td><td>$30,000</td><td><span class='chip stale'>Pending report</span></td><td>Manual email</td></tr><tr><td>Final report → tranche 3</td><td>$30,000</td><td><span class='chip stale'>Pending report</span></td><td>Manual email</td></tr><tr><td>Close-out</td><td>—</td><td><span class='chip stale'>Not scheduled</span></td><td>—</td></tr></tbody></table></div>
-</div>
-    <div class="c-aside"><h5>Manual Work</h5><div class="task"><div>Key tranches into FE NXT</div><div class="due">By hand</div></div><div class="task"><div>Set quarterly reminders</div><div class="due">Calendar</div></div><div class="task"><div>Chase reports for release</div><div class="due">Email</div></div><h5 style="margin-top:8px;">Gap</h5><div style="font-size:9.5px;color:var(--ink-mid);">Disbursement and reporting milestones are <b>keyed into accounting by hand</b> and reminders are sent manually — release stalls when a report slips.</div></div>
+
+  <!-- menu bar -->
+  <div class="menu">
+    <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>G</u>rant</span>
+    <span><u>F</u>unds</span><span>F<u>a</u>vorites</span><span><u>T</u>ools</span><span><u>H</u>elp</span>
   </div>
-  <div class="c-foot"><div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>Disbursement and reporting milestones are keyed into accounting by hand, and reminders to release each tranche are sent manually.</div></div>
-</div>
+
+  <!-- toolbar -->
+  <div class="tools">
+    <span class="tbtn raised"><span class="ticon" style="background:#D8E6D8;"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><path d="M8 4v5h7"/></svg></span>Save and Close<span class="di"></span></span>
+    <span class="ticon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v5h8"/></svg></span>
+    <span class="ticon"><svg viewBox="0 0 24 24"><path d="M6 9V4h12v5M6 18h12v2H6z"/><rect x="6" y="11" width="12" height="6"/></svg></span>
+    <span class="tsep"></span>
+    <span class="navset">
+      <span class="ticon"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7M4 12h16"/></svg></span>
+      <span class="ticon"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></span>
+      <span class="ticon"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+      <span class="ticon"><svg viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M20 12H4"/></svg></span>
+    </span>
+    <span class="tsep"></span>
+    <span class="ticon" style="color:#1B7A2E;"><svg viewBox="0 0 24 24"><path d="M12 22V8M12 8c0-3 2-5 5-5M12 8C12 5 10 3 7 3"/></svg></span>
+    <span class="ticon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 1 1-3.6-6.9"/><path d="M21 4v4h-4"/></svg></span>
+    <span class="ticon"><svg viewBox="0 0 24 24"><path d="M21 8.5 13.5 16a3 3 0 0 1-4.2-4.2L16 5"/></svg></span>
+    <span class="ticon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/><path d="m4 7 8 6 8-6"/></svg></span>
+    <span class="tsep"></span>
+    <span class="ticon" style="color:#C8102E;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h0"/></svg></span>
+  </div>
+
+  <!-- double tab row -->
+  <div class="tabs">
+    <div class="trow">
+      <span class="tab"><span class="ck">✓</span>Attributes</span>
+      <span class="tab"><span class="ck">✓</span>Media</span>
+      <span class="tab"><span class="ck">✓</span>Actions</span>
+      <span class="tab"><span class="ck">✓</span>Notes</span>
+      <span class="tab"><span class="ck">✓</span>Requirements</span>
+      <span class="tab"><span class="ck">✓</span>Budget</span>
+      <span class="tab"><span class="ck">✓</span>Documents</span>
+    </div>
+    <div class="trow">
+      <span class="tab"><span class="ck">✓</span>Grant 1</span>
+      <span class="tab"><span class="ck">✓</span>Grant 2</span>
+      <span class="tab on"><span class="ck">✓</span>Disbursements</span>
+      <span class="tab"><span class="ck">✓</span>Payment Schedule</span>
+      <span class="tab"><span class="ck">✓</span>Funds/GL Distribution</span>
+      <span class="tab"><span class="ck">✓</span>Appeals</span>
+      <span class="tab"><span class="ck">✓</span>Reporting</span>
+    </div>
+  </div>
+
+  <div class="rbody">
+    <div class="rscroll">
+
+      <!-- fielded header in two RE7 panels -->
+      <div class="ghead">
+        <div class="fgroup">
+          <span class="gt">Disbursement</span>
+          <div class="frow"><label>Grant:</label><div class="fld dis">Safe Streets Initiative — Community Safety</div></div>
+          <div class="frow"><label>Award amount:</label><div class="fld">$120,000.00</div></div>
+          <div class="frow"><label>Fund:</label><div class="fld drop">2026 Community Safety Program</div></div>
+          <div class="frow"><label>Tranches:</label><div class="fld">3 payments — keyed by hand</div></div>
+          <div class="frow"><label>GL post:</label><div class="fld">Financial Edge — manual journal</div></div>
+          <div class="frow"><label>Source doc:</label><div class="fld dis">Re-typed from grant agreement PDF</div></div>
+        </div>
+        <div class="fgroup">
+          <span class="gt">Reporting Triggers</span>
+          <div class="frow"><label>Cadence:</label><div class="fld drop">Quarterly</div></div>
+          <div class="frow"><label>Reminders:</label><div class="fld"><span class="warnchip">Sent by hand</span></div></div>
+          <div class="frow"><label>Q2 report:</label><div class="fld"><span class="stalechip">Pending</span></div></div>
+          <div class="frow"><label>Final report:</label><div class="fld"><span class="stalechip">Pending</span></div></div>
+          <div class="frow" style="grid-template-columns:18px 1fr;"><label style="text-align:left;">☐</label><div style="font-size:10px;color:#333;">Hold release until report received</div></div>
+          <div class="frow" style="grid-template-columns:18px 1fr;"><label style="text-align:left;">☑</label><div style="font-size:10px;color:#333;">Tracked on the program calendar</div></div>
+        </div>
+      </div>
+
+      <!-- gift-grid style disbursement schedule -->
+      <div class="gridwrap">
+        <div class="gridbar">
+          <span class="gb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New Disbursement</span>
+          <span class="gb"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v5h8"/></svg>Open</span>
+          <span class="gb"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Delete</span>
+          <span class="gr">Show: &lt;All milestones&gt; &nbsp;·&nbsp; Filters: &lt;No Filter&gt;</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Milestone</th><th>Type</th><th>Fund</th><th class="amt">Amount</th><th class="amt">Balance</th><th>Reminder</th>
+          </tr></thead>
+          <tbody>
+            <tr class="sel"><td>02/14/2026</td><td>Tranche 1 — on execution</td><td>Cash</td><td>Community Safety</td><td class="amt">$60,000.00</td><td class="amt">$60,000.00</td><td>Keyed manually</td></tr>
+            <tr><td>06/30/2026</td><td>Q2 report → tranche 2</td><td>Pledge</td><td>Community Safety</td><td class="amt">$30,000.00</td><td class="amt">$30,000.00</td><td><span class="stalechip">Pending report</span></td></tr>
+            <tr><td>12/15/2026</td><td>Final report → tranche 3</td><td>Pledge</td><td>Community Safety</td><td class="amt">$30,000.00</td><td class="amt">$30,000.00</td><td><span class="stalechip">Pending report</span></td></tr>
+            <tr><td>—</td><td>Close-out / final GL true-up</td><td>—</td><td>Community Safety</td><td class="amt">—</td><td class="amt">$0.00</td><td>Not scheduled</td></tr>
+            <tr><td>—</td><td>Calendar note: chase Q2 report</td><td>Action</td><td>—</td><td class="amt">—</td><td class="amt">—</td><td>Manual email</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="friction"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r=".6" fill="currentColor"/></svg>Disbursement and reporting milestones are keyed into accounting by hand, and reminders to release each tranche are sent manually — release stalls every time a report slips.</div>
+
+    <div class="sfoot"><span>Welcome to The Raiser's Edge 7</span><span class="seg" style="margin-left:auto;">Disbursements</span><span class="seg">NUM</span></div>
+  </div>
+
 </div>
 <script id="component-config" type="application/json">
 {
-  "vendor": "Blackbaud Financial Edge (evocative)",
-  "scope": "Cross-org \u00b7 Nonprofit",
+  "component": "component-financial-edge-disbursement-nonprofit.html",
+  "vendor": "Blackbaud Raiser's Edge 7 — Grant Record / Disbursements (reference-matched reconstruction)",
+  "scope": "Cross-org · Nonprofit",
   "state": "Current",
   "useCase": "Disbursement schedule",
-  "archetype": "console"
+  "archetype": "windows-record",
+  "case": "Harbor Foundation × Safe Streets",
+  "referenceSource": "Blackbaud Raiser's Edge Program Basics deck (constituent/gift record shell)"
 }
 </script>
 </body>
