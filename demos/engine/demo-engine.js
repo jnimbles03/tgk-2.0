@@ -63,7 +63,7 @@
     const beats = TL.beats.slice().sort((a,b)=>a.t-b.t);
     const track = TL.cursorTrack.slice().sort((a,b)=>a.t-b.t);
     const DUR = TL.totalDuration;
-    let t = 0, playing = false, raf = 0, lastTick = 0, lastClick = -1;
+    let t = 0, playing = false, raf = 0, lastTick = 0, lastClick = -1, lastPos = null;
 
     // ---- build chrome ----
     const root = document.getElementById("demo-root");
@@ -140,24 +140,47 @@
           const cr = canvas.getBoundingClientRect(), er = el.getBoundingClientRect(), sc = (cr.width/1280)||1;
           if(er.width||er.height) return { x:(er.left+er.width/2-cr.left)/sc, y:(er.top+er.height/2-cr.top)/sc };
         }
+        return null; // named target not resolvable this frame → hold last position (no 0,0 snap)
       }
-      return { x:(kf&&kf.x)||0, y:(kf&&kf.y)||0 };
+      if(kf && (kf.x!=null || kf.y!=null)) return { x:kf.x||0, y:kf.y||0 };
+      return null;
     }
+    // smootherstep / minimum-jerk — the canonical natural human-reach curve
+    const ease5 = k => k*k*k*(k*(k*6-15)+10);
+    // stable 0..1 value from a keyframe time → per-move variation that's identical on every replay
+    const rand01 = s => { const v=Math.sin(s*127.1+0.137)*43758.5453; return v-Math.floor(v); };
     function paintCursor(){
       const cur=$("de-cursor"); let prev=null,next=null;
       for(let i=0;i<track.length;i++){ if(track[i].t<=t) prev=track[i]; else { next=track[i]; break; } }
       if(!prev){ cur.classList.remove("show"); return; }
-      const pp=posOf(prev); let x=pp.x,y=pp.y;
-      // Dwell at the current target, then glide to the next over ~0.55s (eased),
-      // arriving right as the next keyframe/click fires. Avoids slow drift.
+      const pp = posOf(prev) || lastPos;
+      if(!pp){ cur.classList.remove("show"); return; }
+      let x=pp.x, y=pp.y, moving=false;
       if(next){
-        const np=posOf(next), moveDur=Math.min(next.t-prev.t,0.55), moveStart=next.t-moveDur;
-        if(t>moveStart){
-          let k=Math.min(1,(t-moveStart)/Math.max(.05,moveDur));
-          k = k<0.5 ? 2*k*k : 1-Math.pow(-2*k+2,2)/2; // easeInOutQuad
-          x=pp.x+(np.x-pp.x)*k; y=pp.y+(np.y-pp.y)*k;
+        const np = posOf(next);
+        if(np){
+          const dx=np.x-pp.x, dy=np.y-pp.y, dist=Math.hypot(dx,dy), r=rand01(next.t);
+          // duration scales with distance + a per-move jitter, so the rhythm never repeats
+          let moveDur=Math.min(next.t-prev.t, 0.28 + dist/2200 + r*0.20);
+          moveDur=Math.max(0.22, moveDur);
+          const moveStart=next.t-moveDur;
+          if(t>moveStart){
+            moving=true;
+            const k=Math.min(1,(t-moveStart)/Math.max(.05,moveDur)), e=ease5(k);
+            x=pp.x+dx*e; y=pp.y+dy*e;
+            // gentle path bow (side alternates per move) so motion isn't ruler-straight
+            const len=dist||1, bow=Math.min(26,dist*0.07)*Math.sin(Math.PI*k)*(r<0.5?1:-1);
+            x += -dy/len*bow; y += dx/len*bow;
+          }
         }
       }
+      // alive at rest: tiny varied drift while dwelling, fading to zero right at a click
+      if(!moving){
+        const settle=Math.min(1,Math.abs(t-prev.t)/0.25), ph=prev.t*3.3;
+        x += Math.sin(t*2.0+ph)*1.4*settle;
+        y += Math.cos(t*1.6+ph*1.7)*1.1*settle;
+      }
+      lastPos={x,y};
       cur.classList.add("show"); cur.style.left=x+"px"; cur.style.top=y+"px";
       if(prev.action==="click" && Math.abs(t-prev.t)<0.18 && lastClick!==prev.t){ lastClick=prev.t; cur.classList.remove("click"); void cur.offsetWidth; cur.classList.add("click"); }
     }
