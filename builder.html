@@ -457,6 +457,14 @@
   }
   .panel-section-meta { font-size: 12px; color: var(--muted); }
   .panel-section-body { padding: 16px 18px; }
+  /* Scene library: bounded + scrollable so it never pushes the timeline off
+     the bottom (iMovie keeps the media browser and timeline both on screen). */
+  .ph-right { display: flex; align-items: center; gap: 12px; }
+  .pool-collapse { background: none; border: 1px solid var(--rule); border-radius: 6px; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex-shrink: 0; transition: color .15s, border-color .15s, transform .2s; }
+  .pool-collapse:hover { color: var(--ds-cobalt); border-color: var(--ds-cobalt); }
+  .pool-section .panel-section-body { max-height: 46vh; overflow-y: auto; }
+  .pool-section.is-collapsed .panel-section-body { display: none; }
+  .pool-section.is-collapsed .pool-collapse { transform: rotate(-90deg); }
 
   /* pool */
   .pool-row {
@@ -1338,13 +1346,18 @@
         <div class="composer-wrap">
 
           <!-- Scene pool -->
-          <div class="panel-section">
+          <div class="panel-section pool-section" id="poolSection">
             <div class="panel-section-head">
               <span class="panel-section-title">
                 Scene library
                 <span class="scene-count-pill" id="poolCount">13</span>
               </span>
-              <span class="panel-section-meta" id="poolMeta">Scene templates · loading flipbook vignettes…</span>
+              <span class="ph-right">
+                <span class="panel-section-meta" id="poolMeta">Scene templates · loading flipbook vignettes…</span>
+                <button type="button" class="pool-collapse" id="poolCollapse" aria-label="Collapse / expand the scene library" title="Collapse / expand">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </span>
             </div>
             <div class="panel-section-body">
               <div class="pool-row" id="pool" aria-label="Scene pool"></div>
@@ -2018,6 +2031,13 @@
       if (window.AdminAuth) window.AdminAuth.prompt().then(ok => { if (ok) goAdmin(); });
     });
   }
+
+  // Scene library collapse toggle — shrinks the pool to give the timeline room.
+  (function () {
+    const sec = document.getElementById('poolSection');
+    const btn = document.getElementById('poolCollapse');
+    if (sec && btn) btn.addEventListener('click', () => sec.classList.toggle('is-collapsed'));
+  })();
 
   // Topbar Admin button: prompt for password, on unlock enter admin mode
   document.getElementById('adminBtn').addEventListener('click', () => {
