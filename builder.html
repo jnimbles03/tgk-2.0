@@ -462,9 +462,20 @@
   .ph-right { display: flex; align-items: center; gap: 12px; }
   .pool-collapse { background: none; border: 1px solid var(--rule); border-radius: 6px; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex-shrink: 0; transition: color .15s, border-color .15s, transform .2s; }
   .pool-collapse:hover { color: var(--ds-cobalt); border-color: var(--ds-cobalt); }
-  .pool-section .panel-section-body { max-height: 46vh; overflow-y: auto; }
+  .pool-section .panel-section-body { display: flex; align-items: stretch; padding: 0; }
   .pool-section.is-collapsed .panel-section-body { display: none; }
   .pool-section.is-collapsed .pool-collapse { transform: rotate(-90deg); }
+  /* library sidebar (filter rail) + scrollable grid area */
+  .pool-sidebar { width: 158px; flex-shrink: 0; border-right: 1px solid var(--rule); padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; background: var(--bg); }
+  .pool-filter { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; border: none; background: none; border-radius: 6px; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; text-align: left; transition: background .12s, color .12s; }
+  .pool-filter:hover { background: rgba(19,0,50,.04); color: var(--text); }
+  .pool-filter.is-active { background: rgba(76,0,255,.10); color: var(--ds-cobalt); font-weight: 600; }
+  .pool-filter .pf-ct { font-family: var(--mono); font-size: 10px; color: var(--muted); background: rgba(19,0,50,.06); border-radius: 999px; padding: 1px 7px; flex-shrink: 0; }
+  .pool-filter.is-active .pf-ct { background: rgba(76,0,255,.16); color: var(--ds-cobalt); }
+  .pool-main { flex: 1; min-width: 0; max-height: 46vh; overflow-y: auto; padding: 14px 16px; }
+  .pool-search { width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 7px 11px; font: inherit; font-size: 13px; border: 1px solid var(--rule); border-radius: 7px; background: #fff; color: var(--text); }
+  .pool-search:focus { outline: none; border-color: var(--ds-cobalt); }
+  .pool-empty { grid-column: 1 / -1; padding: 22px 4px; color: var(--muted); font-size: 13px; }
 
   /* pool */
   .pool-row {
@@ -1360,14 +1371,23 @@
               </span>
             </div>
             <div class="panel-section-body">
-              <div class="pool-row" id="pool" aria-label="Scene pool"></div>
-              <p class="pool-hint">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Tap any block to append · drag to place at a specific position
-                <span style="margin-left:auto;font-size:10.5px;color:var(--muted);">
-                  Need a new vignette? <a href="#" id="poolMp4Link" style="color:var(--ds-cobalt);text-decoration:none;">Upload an MP4 →</a>
-                </span>
-              </p>
+              <div class="pool-sidebar" id="poolSidebar">
+                <button type="button" class="pool-filter is-active" data-filter="all"><span>All</span><span class="pf-ct" id="pfct-all">0</span></button>
+                <button type="button" class="pool-filter" data-filter="demo"><span>Product demos</span><span class="pf-ct" id="pfct-demo">0</span></button>
+                <button type="button" class="pool-filter" data-filter="scene"><span>Scene templates</span><span class="pf-ct" id="pfct-scene">0</span></button>
+                <button type="button" class="pool-filter" data-filter="flip"><span>Flipbooks</span><span class="pf-ct" id="pfct-flip">0</span></button>
+              </div>
+              <div class="pool-main">
+                <input class="pool-search" id="poolSearch" type="search" placeholder="Search the library…" aria-label="Search scene library">
+                <div class="pool-row" id="pool" aria-label="Scene pool"></div>
+                <p class="pool-hint">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  Tap any block to append · drag to place at a specific position
+                  <span style="margin-left:auto;font-size:10.5px;color:var(--muted);">
+                    Need a new vignette? <a href="#" id="poolMp4Link" style="color:var(--ds-cobalt);text-decoration:none;">Upload an MP4 →</a>
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
 
@@ -2952,13 +2972,16 @@
       });
     }
 
+    let poolFilter = 'all', poolQuery = '';
     function renderPool() {
-      // Three sections: the new /demos/ library (current versions), the
-      // canonical scene templates, and dynamic flipbook vignettes (id
-      // `flipbook:<slug>`, appended at runtime by loadFlipbookManifest()).
-      const demos     = SCENE_LIBRARY.filter(s =>  s.id.startsWith('demo:'));
-      const scenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('demo:') && !s.id.startsWith('flipbook:'));
-      const vignettes = SCENE_LIBRARY.filter(s =>  s.id.startsWith('flipbook:'));
+      // Sidebar filter (all / demo / scene / flip) + free-text search drive what
+      // the grid shows; the three source sections still render with their headers.
+      const q = poolQuery.trim().toLowerCase();
+      const m = s => !q || s.name.toLowerCase().includes(q) || (s.role || '').toLowerCase().includes(q);
+      const allDemos     = SCENE_LIBRARY.filter(s =>  s.id.startsWith('demo:'));
+      const allScenes    = SCENE_LIBRARY.filter(s => !s.id.startsWith('demo:') && !s.id.startsWith('flipbook:'));
+      const allVignettes = SCENE_LIBRARY.filter(s =>  s.id.startsWith('flipbook:'));
+      const demos = allDemos.filter(m), scenes = allScenes.filter(m), vignettes = allVignettes.filter(m);
       const tile = (s) => {
         const purl = thumbUrl(s.url || previewUrlForTemplate(s.id) || '');
         return `
@@ -2976,16 +2999,33 @@
       };
       const group = (label, desc, arr) =>
         arr.length ? `<div class="pool-divider" role="separator"><span class="pd-label">${label}</span><span class="pd-desc">${desc}</span></div>` + arr.map(tile).join('') : '';
-      elPool.innerHTML =
-        group('Product demos',
-          'Self-contained, animated demos of <b>one Docusign product</b> — re-skinned independently. Use to spotlight a single capability.', demos) +
-        group('Scene templates',
-          'The narrative scenes of the <b>IAM story arc</b> (Sender → Identity → Signing → Data → Workspace) — branded together as one journey. Use to tell an end-to-end story; the "Start from" sequences are built from these.', scenes) +
-        group('Flipbook vignettes',
+      const F = poolFilter;
+      let html = '';
+      if (F === 'all' || F === 'demo')
+        html += group('Product demos',
+          'Self-contained, animated demos of <b>one Docusign product</b> — re-skinned independently. Use to spotlight a single capability.', demos);
+      if (F === 'all' || F === 'scene')
+        html += group('Scene templates',
+          'The narrative scenes of the <b>IAM story arc</b> (Sender → Identity → Signing → Data → Workspace) — branded together as one journey. Use to tell an end-to-end story; the "Start from" sequences are built from these.', scenes);
+      if (F === 'all' || F === 'flip')
+        html += group('Flipbook vignettes',
           'Legacy screen recordings — pixel-perfect but <b>not re-skinnable</b>. Fallback only; prefer the matching demo (tagged "demo ✓").', vignettes);
+      elPool.innerHTML = html || `<div class="pool-empty">No matches${q ? ` for “${escapeHtml(poolQuery)}”` : ''}.</div>`;
+      // sidebar counts (totals, not search-filtered) + active state
+      const setCt = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n; };
+      setCt('pfct-all', SCENE_LIBRARY.length); setCt('pfct-demo', allDemos.length);
+      setCt('pfct-scene', allScenes.length); setCt('pfct-flip', allVignettes.length);
+      document.querySelectorAll('#poolSidebar .pool-filter').forEach(b => b.classList.toggle('is-active', b.dataset.filter === F));
       if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
       mountThumbs(elPool);
     }
+    // sidebar filter + search wiring
+    (function () {
+      const sb = document.getElementById('poolSidebar');
+      if (sb) sb.addEventListener('click', e => { const b = e.target.closest('.pool-filter'); if (!b) return; poolFilter = b.dataset.filter; renderPool(); });
+      const se = document.getElementById('poolSearch');
+      if (se) se.addEventListener('input', () => { poolQuery = se.value; renderPool(); });
+    })();
 
     /* Flipbook slug → re-skinnable demo id. Flipbooks are the legacy raster
        (pixel-perfect, not re-skinnable) fallback; the demo is the canonical
