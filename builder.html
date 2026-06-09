@@ -476,15 +476,13 @@
      vignettes. Spans the whole row so the two groups read as separate. */
   .pool-divider {
     grid-column: 1 / -1;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 6px 0 2px;
+    padding: 10px 0 4px;
     border-top: 1px dashed var(--rule);
     margin-top: 4px;
   }
+  .pool-divider .pd-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .pool-divider .pd-desc { display: block; margin-top: 3px; font-size: 11.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); line-height: 1.45; max-width: 96ch; }
+  .pool-divider .pd-desc b { color: var(--text); font-weight: 600; }
   .pool-tile {
     position: relative;
     background: #fff;
@@ -647,6 +645,8 @@
     font-size: 9px; font-style: italic; color: rgba(255,255,255,.5);
     margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .timeline-hint { margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .timeline-hint b { color: var(--text); font-weight: 600; }
   .timeline-foot { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .timeline-foot-note { font-size: 12px; color: var(--muted); }
   .timeline-foot-note .scene-count-txt { font-weight: 600; color: var(--text); }
@@ -1385,6 +1385,7 @@
                 <div class="filmstrip-track" id="timeline"></div>
               </div>
               <div class="filmstrip-empty" id="timelineEmpty" hidden>Tap + on any scene block above, or drag blocks here to build your demo.</div>
+              <p class="timeline-hint">Build the spine from <b>Scene templates</b> (or a Start-from sequence); drop in a <b>Product demo</b> to spotlight one capability.</p>
 
               <!-- Inspector -->
               <div class="inspector" id="inspector" hidden aria-live="polite">
@@ -2973,12 +2974,15 @@
           </div>
         </div>`;
       };
-      const group = (label, arr) =>
-        arr.length ? `<div class="pool-divider" role="separator">${label}</div>` + arr.map(tile).join('') : '';
+      const group = (label, desc, arr) =>
+        arr.length ? `<div class="pool-divider" role="separator"><span class="pd-label">${label}</span><span class="pd-desc">${desc}</span></div>` + arr.map(tile).join('') : '';
       elPool.innerHTML =
-        group('Product demos', demos) +
-        group('Scene templates', scenes) +
-        group('Flipbook vignettes · legacy · pixel fallback', vignettes);
+        group('Product demos',
+          'Self-contained, animated demos of <b>one Docusign product</b> — re-skinned independently. Use to spotlight a single capability.', demos) +
+        group('Scene templates',
+          'The narrative scenes of the <b>IAM story arc</b> (Sender → Identity → Signing → Data → Workspace) — branded together as one journey. Use to tell an end-to-end story; the "Start from" sequences are built from these.', scenes) +
+        group('Flipbook vignettes',
+          'Legacy screen recordings — pixel-perfect but <b>not re-skinnable</b>. Fallback only; prefer the matching demo (tagged "demo ✓").', vignettes);
       if (elPoolCount) elPoolCount.textContent = SCENE_LIBRARY.length;
       mountThumbs(elPool);
     }
