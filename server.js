@@ -1702,6 +1702,11 @@ const DISCO_LANES = [
   { lane: 'slgov-licensing',         file: 'public-sector-licensing.html',          block: 'steps-data',         story: 'slgov-licensing',           label: 'Licensing' },
   { lane: 'slgov-recertification',   file: 'public-sector-recertification.html',    block: 'steps-data',         story: 'slgov-recertification',     label: 'Annual recertification' },
   { lane: 'slgov-vendor-compliance', file: 'public-sector-vendor-compliance.html',  block: 'steps-data',         story: 'slgov-vendor-compliance',   label: 'Vendor compliance' },
+  { lane: 'payor',                   file: 'payor.html',                            block: 'steps-data',         story: 'payor',                     label: 'Member onboarding' },
+  { lane: 'lifesciences',            file: 'lifesciences.html',                     block: 'steps-data',         story: 'lifesciences',              label: 'Site activation' },
+  { lane: 'fedgov',                  file: 'fedgov.html',                           block: 'steps-data',         story: 'fedgov',                    label: 'UI claim' },
+  { lane: 'education',               file: 'education.html',                        block: 'steps-data',         story: 'education',                 label: 'Student onboarding' },
+  { lane: 'nonprofit',               file: 'nonprofit.html',                        block: 'steps-data',         story: 'nonprofit',                 label: 'Grantee onboarding' },
 ];
 
 function loadDiscovery() {
