@@ -4,7 +4,79 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web Forms intake — re-skinnable demo</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
+<style>
+/* ---- Docusign Web Forms product UI (NOT the signing/PowerForm chrome) ---- */
+.wf-page{position:absolute;inset:0;background:#EEF0F4;display:flex;flex-direction:column;align-items:center;
+  font-family:'Inter',Arial,Helvetica,sans-serif;overflow:hidden}
+.wf-top{width:100%;height:34px;flex:0 0 auto;background:#fff;border-bottom:1px solid #E4E4EC;display:flex;align-items:center;
+  gap:8px;padding:0 16px;font-size:11.5px;color:#7c7a88}
+.wf-top .lock{width:11px;height:11px;fill:#19b36b}
+.wf-top .url{color:#56535f}
+.wf-top .right{margin-left:auto;display:flex;align-items:center;gap:6px;color:#9a98a6}
+.wf-scroll{flex:1 1 auto;width:100%;display:flex;justify-content:center;overflow:hidden;padding:26px 0}
+.wf-card{width:780px;background:#fff;border-radius:14px;box-shadow:0 14px 44px rgba(20,12,50,.13);
+  overflow:hidden;display:flex;flex-direction:column;align-self:flex-start}
+/* branded header band */
+.wf-band{background:var(--tenant-accent);color:#fff;padding:17px 30px;display:flex;align-items:center;gap:13px}
+.wf-band .mk{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.20);display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:17px;flex:0 0 auto}
+.wf-band .lw{font-weight:800;font-size:20px;letter-spacing:-.4px}
+.wf-band .lw .sub{font-weight:400;opacity:.85;margin-left:2px}
+.wf-band .secure{margin-left:auto;font-size:11px;opacity:.92;display:flex;align-items:center;gap:6px}
+.wf-band .secure svg{width:12px;height:12px;fill:#fff}
+/* title / intro */
+.wf-hero{padding:22px 30px 4px;display:flex;align-items:flex-start;gap:18px}
+.wf-hero .htext{flex:1}
+.wf-hero h1{font-size:21px;font-weight:700;color:#1a1622;margin:0 0 5px;letter-spacing:-.3px}
+.wf-hero p{font-size:13px;color:#5d5969;margin:0;line-height:1.5}
+.wf-prefill{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;
+  border:1.5px solid var(--tenant-accent);color:var(--tenant-accent);background:var(--tenant-accent-soft);
+  font-size:12px;font-weight:700;padding:8px 14px;border-radius:22px;margin-top:2px}
+.wf-prefill svg{width:14px;height:14px;fill:var(--tenant-accent)}
+/* progress / step */
+.wf-step{padding:14px 30px 2px;display:flex;align-items:center;gap:12px;font-size:11.5px;color:#8a8896}
+.wf-step .lab{font-weight:600;color:#6a6776;flex:0 0 auto}
+.wf-bar{height:5px;flex:1;background:#E7E5EF;border-radius:4px;overflow:hidden}
+.wf-bar > i{display:block;height:100%;width:34%;background:var(--tenant-accent);border-radius:4px;transition:width .5s ease}
+/* body */
+.wf-body{padding:14px 30px 6px}
+.wf-q{font-size:13px;font-weight:600;color:#2c2838;margin:4px 0 10px}
+.wf-q .req{color:#E11D2A;margin-left:3px}
+.wf-radios{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:20px}
+.wf-radios .r{display:flex;align-items:center;gap:9px;border:1.5px solid #E2E1EB;border-radius:10px;
+  padding:9px 15px;font-size:12.5px;color:#3c3848;background:#fff;cursor:pointer;transition:all .18s}
+.wf-radios .r .rc{width:15px;height:15px;border-radius:50%;border:2px solid #C7C5D4;flex:0 0 auto;transition:all .18s}
+.wf-radios .r.sel{border-color:var(--tenant-accent);background:var(--tenant-accent-soft);color:var(--tenant-ink)}
+.wf-radios .r.sel .rc{border-color:var(--tenant-accent);box-shadow:inset 0 0 0 3px var(--tenant-accent)}
+.wf-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px 22px}
+.wf-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.wf-field.full{grid-column:1 / -1}
+.wf-field label{font-size:12px;font-weight:600;color:#48444f}
+.wf-field label .req{color:#E11D2A;margin-left:3px}
+.box{height:39px;border:1.5px solid #D9D8E2;border-radius:9px;padding:0 13px;display:flex;align-items:center;
+  font-size:13px;color:#1a1a26;background:#fff;transition:border-color .2s,background .2s}
+.box.req{border-color:#E6A2A8;background:#FDF6F6}
+.box.filled{border-color:#D2D0DD;background:#fff;color:#1a1a26}
+.box.dropdown{justify-content:space-between;color:#9a96a6}
+.box .ph{color:#a3a0b0}
+.box .chev{color:#a3a0b0;font-size:12px}
+/* footer */
+.wf-foot{margin-top:6px;border-top:1px solid #EEEDF4;padding:15px 30px;display:flex;align-items:center;gap:14px}
+.wf-foot .pb{font-size:11.5px;color:#8a8896}
+.wf-foot .pb b{color:#5d5969}
+.wf-submit{margin-left:auto;background:var(--tenant-accent);color:#fff;border:none;border-radius:9px;
+  padding:12px 30px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 7px 18px var(--tenant-accent-soft);
+  letter-spacing:.2px}
+/* handoff scene (unchanged spirit) */
+.ho{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;background:linear-gradient(165deg,#fff,var(--tenant-accent-soft) 150%);font-family:'Inter',sans-serif;padding:0 60px}
+.ho h2{font-size:30px;font-weight:700;color:#16121f;margin:0 0 10px;letter-spacing:-.4px}
+.chain{display:flex;align-items:center;gap:14px;margin-top:30px}
+.chain .node{background:#fff;border:1.5px solid #E3E1EE;border-radius:11px;padding:12px 20px;font-size:13.5px;
+  font-weight:600;color:#3a3648;box-shadow:0 6px 16px rgba(20,12,50,.06)}
+.chain .node.lead{border-color:var(--tenant-accent);color:var(--tenant-ink);background:var(--tenant-accent-soft)}
+.chain .arr{color:var(--tenant-accent);font-size:20px;font-weight:700}
+</style>
 </head>
 <body>
 <div id="demo-root"></div>
@@ -12,122 +84,137 @@
 <script>
 /* ---- shared spine: field structure + fill groups ---- */
 const FIELD_ORDER = ["fullName","email","phone","ssn","dob","marital","dependents"];
+const FULL_WIDTH  = { fullName:true };
 const FILLS = { prefill:["fullName","email","phone","dob","marital"], required:["ssn"], dropdown:["dependents"] };
 
 const SCENES =
-  '<section class="de-scene is-active" data-scene="form"><div class="ds" id="ds">'+
-    '<div class="ds-bar"><span class="msg">Please review the documents below.</span>'+
-      '<span class="acts"><span class="finish">FINISH</span><span>FINISH LATER</span>'+
-      '<span class="oa">OTHER ACTIONS <svg width="9" height="9" viewBox="0 0 10 10" fill="#fff"><path d="M0 2l5 6 5-6z"/></svg></span></span></div>'+
-    '<div class="ds-tools">'+
-      '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM7 9h5v1H7z"/></svg>'+
-      '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM7 9h5v1H7z"/></svg>'+
-      '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>'+
-      '<svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-5h8v5z"/></svg>'+
-      '<svg viewBox="0 0 24 24"><path d="M14 4l-1-1H5v18h2v-7h5l1 1h6V5h-5z"/></svg>'+
-      '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 17h-2v-2h2v2zm1.8-7.2l-.9.9c-.7.7-.9 1.1-.9 2.3h-2v-.5c0-1.2.5-1.8 1.2-2.5l1.2-1.2a2 2 0 1 0-3.4-1.4H8a4 4 0 1 1 6.8 2.9z"/></svg>'+
-      '<span class="right"><svg viewBox="0 0 24 24"><path d="M6 2h9l3 3v17H6z" fill="none" stroke="#5b5b5b" stroke-width="1.6"/></svg></span></div>'+
-    '<div class="ds-canvas"><div class="ds-start"><span class="pill">START</span><span class="pt"></span></div>'+
-      '<div class="doc"><div class="doc-meta">'+
-        '<div class="doc-eid">Docusign Envelope ID: 4F5BAA69-8285-480E-B6EF-15A3B46297FA</div>'+
-        '<div class="doc-demo">DEMONSTRATION DOCUMENT ONLY<br>PROVIDED BY DOCUSIGN ONLINE SIGNING SERVICE<br>999 3rd Ave, Suite 1700 • Seattle • Washington 98104 • (206) 219-0200<br>www.docusign.com</div></div>'+
-        '<div class="doc-logo"><span class="lw" id="doc-lw"></span><span class="sub" id="doc-sub"></span></div>'+
-        '<div class="doc-radios" id="doc-radios"></div>'+
-        '<div class="sec" id="doc-sec"></div><div class="tbl" id="doc-rows"></div></div>'+
-      '<div class="doc-foot"><span class="pb">Powered by <b>Docusign</b></span>'+
-        '<span class="rt"><span>Change Language - English (US) ▾</span><span>|  Copyright © 2026 Docusign Inc.|  v2R</span></span></div></div>'+
-    '<div class="ds-scrollbar"></div></div></section>'+
+  '<section class="de-scene is-active" data-scene="form"><div class="wf-page">'+
+    '<div class="wf-top"><svg class="lock" viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0v3z"/></svg>'+
+      '<span class="url" id="wf-url"></span><span class="right">Secure web form</span></div>'+
+    '<div class="wf-scroll"><div class="wf-card" id="wf">'+
+      '<div class="wf-band"><span class="mk" id="wf-mk"></span>'+
+        '<span class="lw" id="wf-logo"></span>'+
+        '<span class="secure"><svg viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0v3z"/></svg> Powered by Docusign</span></div>'+
+      '<div class="wf-hero"><div class="htext"><h1 id="wf-title"></h1><p id="wf-desc"></p></div>'+
+        '<span class="wf-prefill" id="wf-prefill"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.9L21 9l-5.4 4 2 7-5.6-4.2L6.4 20l2-7L3 9l6.6-.1z"/></svg> Pre-fill with AI</span></div>'+
+      '<div class="wf-step"><span class="lab" id="wf-steplab"></span><span class="wf-bar"><i id="wf-barfill"></i></span></div>'+
+      '<div class="wf-body">'+
+        '<div class="wf-q" id="wf-qlabel"></div><div class="wf-radios" id="wf-radios"></div>'+
+        '<div class="wf-grid" id="wf-rows"></div></div>'+
+      '<div class="wf-foot"><span class="pb">Your responses are encrypted · <b>Powered by Docusign</b></span>'+
+        '<button class="wf-submit" id="wf-submit">Submit</button></div>'+
+    '</div></div></div></section>'+
   '<section class="de-scene" data-scene="handoff"><div class="ho">'+
-    '<div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p>'+
+    '<div class="chk" style="width:84px;height:84px;border-radius:50%;background:var(--tenant-accent);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 12px 34px var(--tenant-accent-soft)">'+
+      '<svg viewBox="0 0 24 24" style="width:42px;height:42px;stroke:#fff;stroke-width:3;fill:none"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p" style="font-size:16px;color:#555;max-width:560px;line-height:1.5;margin:0"></p>'+
     '<div class="chain"><div class="node">Web Form</div><span class="arr">&rarr;</span>'+
       '<div class="node lead">eSignature</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
 
 DemoEngine.init({
   meta:{ title:"Web Forms intake", productTag:"Web Forms", home:"index.html",
-    footnote:'<b>Faithful Docusign chrome, re-skinnable content.</b> The signing UI + cursor path + beats are the shared spine. Switching vertical swaps only <code>content</code> (logo, copy, persona, field labels/values, radios, narration) and <code>theme</code> (accent). Deep-links: <code>?pack=</code>, <code>?t=&lt;seconds&gt;</code>.' },
+    footnote:'<b>Real Docusign Web Forms — a branded, responsive form, not a signing PDF.</b> The form UI + cursor path + beats are the shared spine. Switching vertical swaps only <code>content</code> (logo, copy, persona, field labels/values, options, narration) and <code>theme</code> (accent). It ends by handing clean data to eSignature. Deep-links: <code>?pack=</code>, <code>?t=&lt;seconds&gt;</code>.' },
   defaultPack:"banking",
   scenes:SCENES,
   timeline:{ totalDuration:34,
     beats:[ {t:0,key:"open",sceneId:"form"},{t:7,key:"prefill",sceneId:"form"},{t:14,key:"validate",sceneId:"form"},{t:20,key:"complete",sceneId:"form"},{t:27,key:"submit",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:470,y:360,action:"move"},
-      {t:6,target:".ds-start",x:300,y:103,action:"move"},
-      {t:7,target:".ds-start",x:300,y:103,action:"click",sayKey:"prefill",fill:"prefill",start:true},
-      {t:13,target:".box[data-field='ssn']",x:760,y:366,action:"move"},
-      {t:14,target:".box[data-field='ssn']",x:760,y:366,action:"click",sayKey:"validate",fill:"required"},
-      {t:19,target:".box[data-field='dependents']",x:730,y:583,action:"move"},
-      {t:20,target:".box[data-field='dependents']",x:730,y:583,action:"click",sayKey:"complete",fill:"dropdown"},
-      {t:25,target:".ds-bar .finish",x:888,y:17,action:"move"},
-      {t:27,target:".ds-bar .finish",x:888,y:17,action:"click",sayKey:"submit"} ] },
+    cursorTrack:[ {t:1.5,x:560,y:380,action:"move"},
+      {t:6,target:"#wf-prefill",x:930,y:150,action:"move"},
+      {t:7,target:"#wf-prefill",x:930,y:150,action:"click",sayKey:"prefill",fill:"prefill",start:true},
+      {t:13,target:".box[data-field='ssn']",x:470,y:430,action:"move"},
+      {t:14,target:".box[data-field='ssn']",x:470,y:430,action:"click",sayKey:"validate",fill:"required"},
+      {t:19,target:".box[data-field='dependents']",x:800,y:512,action:"move"},
+      {t:20,target:".box[data-field='dependents']",x:800,y:512,action:"click",sayKey:"complete",fill:"dropdown"},
+      {t:25,target:"#wf-submit",x:880,y:632,action:"move"},
+      {t:27,target:"#wf-submit",x:880,y:632,action:"click",sayKey:"submit"} ] },
   packs:{
     banking:{ label:"Banking · Tally",
       theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T", poweredBy:"Powered by Docusign" },
-      url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
+      url:"forms.tallybank.com/account-opening", sorBadge:"System of record · nCino",
       persona:{ name:"Sarah Connelly", role:"Relationship Manager", side:"advisor" },
-      logo:{lw:"Tally",sub:"Bank"}, sectionTitle:"Primary Account Holder", sorNode:"nCino core",
+      logo:{lw:"Tally",sub:"Bank"}, mark:"T", sorNode:"nCino core",
+      form:{ title:"Open your account", desc:"A few details and your application is on its way — most fields are already known.", step:"Step 1 of 2 · Your information" },
+      question:"How will this account be held?",
       radios:["Individual","Joint Tenants","Tenants in Common","Community Property"],
-      fields:{ fullName:{label:"Full Name",val:"Sam Smith",req:true,narrow:true}, email:{label:"Email Address",val:"sam.smith@email.com",req:true},
+      fields:{ fullName:{label:"Full Name",val:"Sam Smith",req:true}, email:{label:"Email Address",val:"sam.smith@email.com",req:true},
         phone:{label:"Phone Number",val:"(415) 555-0142",req:true}, ssn:{label:"SSN / TIN#",val:"•••-••-1234",req:true},
         dob:{label:"Date of Birth",val:"11/15/1983"}, marital:{label:"Marital Status",val:"Married"}, dependents:{label:"# of Dependents",val:"1",req:true,dropdown:true} },
       say:{ open:{eyebrow:"Web Forms",title:"Sam opens his application",body:"A Docusign web form, branded for Tally and generated from the bank's account-opening PDF in one click."},
-        prefill:{eyebrow:"Docusign Iris",title:"Known fields pre-fill",body:"Sam clicks START and his details flow in from the bank's records. No re-keying, fewer drop-offs."},
+        prefill:{eyebrow:"Docusign Iris",title:"Known fields pre-fill",body:"Sam taps Pre-fill and his details flow in from the bank's records. No re-keying, fewer drop-offs."},
         validate:{eyebrow:"Validation",title:"Only the gap is flagged",body:"The required SSN field stays outlined in red until it's complete — Sam fills just that one."},
         complete:{eyebrow:"Guided intake",title:"Smart fields finish the form",body:"Dropdowns and conditional logic keep the rest accurate, then the form validates clean."},
-        submit:{eyebrow:"Handoff",title:"FINISH hands off to signing",body:"Clean, validated data flows to eSignature and writes back to nCino."} },
+        submit:{eyebrow:"Handoff",title:"Submit hands off to signing",body:"Clean, validated data flows to eSignature and writes back to nCino."} },
       handoff:{h:"Straight into the agreement",p:"Clean, validated data hands off to eSignature and writes back to the nCino core — no re-keying."} },
     healthcare:{ label:"Healthcare · Riverside",
       theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R", poweredBy:"Powered by Docusign" },
-      url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
+      url:"forms.riversidehealth.org/patient-intake", sorBadge:"System of record · Epic",
       persona:{ name:"Jordan Kim", role:"New Patient", side:"client" },
-      logo:{lw:"Riverside",sub:"Health"}, sectionTitle:"Patient Information", sorNode:"Epic chart",
+      logo:{lw:"Riverside",sub:"Health"}, mark:"R", sorNode:"Epic chart",
+      form:{ title:"New patient intake", desc:"Tell us a little about you before your visit — returning details are already filled in.", step:"Step 1 of 2 · Patient details" },
+      question:"Who is this visit for?",
       radios:["Self","Spouse","Dependent","Other"],
-      fields:{ fullName:{label:"Patient Full Name",val:"Jordan Kim",req:true,narrow:true}, email:{label:"Email Address",val:"jordan.kim@email.com",req:true},
+      fields:{ fullName:{label:"Patient Full Name",val:"Jordan Kim",req:true}, email:{label:"Email Address",val:"jordan.kim@email.com",req:true},
         phone:{label:"Phone Number",val:"(415) 555-0199",req:true}, ssn:{label:"Insurance Member ID",val:"UNH-4471 2208",req:true},
         dob:{label:"Date of Birth",val:"03/22/1991"}, marital:{label:"Primary Care Provider",val:"Dr. A. Reyes"}, dependents:{label:"Reason for Visit",val:"Annual physical",req:true,dropdown:true} },
       say:{ open:{eyebrow:"Web Forms",title:"Jordan opens patient intake",body:"A Docusign web form, branded for Riverside and generated from the clinic's intake PDF in one click."},
-        prefill:{eyebrow:"Docusign Iris",title:"Known details pre-fill",body:"Jordan clicks START and returning-patient data flows in. Less typing on a phone in the waiting room."},
+        prefill:{eyebrow:"Docusign Iris",title:"Known details pre-fill",body:"Jordan taps Pre-fill and returning-patient data flows in. Less typing on a phone in the waiting room."},
         validate:{eyebrow:"Validation",title:"Only the gap is flagged",body:"The required insurance member ID stays outlined in red until complete — Jordan fills just that one."},
         complete:{eyebrow:"Guided intake",title:"Conditional questions adapt",body:"Visit-reason and care fields branch on earlier answers, then the form validates clean."},
-        submit:{eyebrow:"Handoff",title:"FINISH hands off to consent",body:"Clean intake flows to eSignature consents and writes back to Epic."} },
+        submit:{eyebrow:"Handoff",title:"Submit hands off to consent",body:"Clean intake flows to eSignature consents and writes back to Epic."} },
       handoff:{h:"Straight into consent & care",p:"Clean, validated intake hands off to eSignature consents and writes back to the Epic chart — no clipboards."} },
     pubsec:{ label:"Public Sector · Gov",
       theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
       brand:{ name:"State Agency", mark:"G", poweredBy:"Powered by Docusign" },
-      url:"app.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
+      url:"forms.service.gov/apply", sorBadge:"System of record · Salesforce",
       persona:{ name:"Jordan Rivera", role:"Applicant", side:"client" },
-      logo:{lw:"State",sub:"Agency"}, sectionTitle:"Applicant Information", sorNode:"agency system of record",
+      logo:{lw:"State",sub:"Agency"}, mark:"G", sorNode:"agency system of record",
+      form:{ title:"Start your application", desc:"Apply online for benefits and services — prior records are pre-filled to save you time.", step:"Step 1 of 2 · Applicant information" },
+      question:"What best describes you?",
       radios:["New applicant","Returning","Household","Business"],
-      fields:{ fullName:{label:"Full Legal Name",val:"Jordan Rivera",req:true,narrow:true}, email:{label:"Email Address",val:"jordan.rivera@email.com",req:true},
+      fields:{ fullName:{label:"Full Legal Name",val:"Jordan Rivera",req:true}, email:{label:"Email Address",val:"jordan.rivera@email.com",req:true},
         phone:{label:"Phone Number",val:"(415) 555-0173",req:true}, ssn:{label:"SSN (last 4)",val:"•••• 6802",req:true},
         dob:{label:"Date of Birth",val:"07/19/1985"}, marital:{label:"Household size",val:"3"}, dependents:{label:"Program / service",val:"Benefits",req:true,dropdown:true} },
       say:{ open:{eyebrow:"Web Forms",title:"A constituent starts an application",body:"A Docusign web form, branded for the agency and generated from an existing PDF form in one click."},
-        prefill:{eyebrow:"Docusign Iris",title:"Known details pre-fill",body:"The applicant clicks START and prior-record data flows in — no re-keying on a phone."},
+        prefill:{eyebrow:"Docusign Iris",title:"Known details pre-fill",body:"The applicant taps Pre-fill and prior-record data flows in — no re-keying on a phone."},
         validate:{eyebrow:"Validation",title:"Only the gap is flagged",body:"The required identity field stays outlined in red until complete — the applicant fills just that one."},
         complete:{eyebrow:"Guided intake",title:"Conditional questions adapt",body:"Program and eligibility fields branch on earlier answers, then the form validates clean."},
-        submit:{eyebrow:"Handoff",title:"FINISH hands off to signing",body:"Clean data flows to eSignature and writes back to the agency system of record."} },
+        submit:{eyebrow:"Handoff",title:"Submit hands off to signing",body:"Clean data flows to eSignature and writes back to the agency system of record."} },
       handoff:{h:"Straight into the application",p:"Clean, validated data hands off to eSignature and writes back to the agency's system of record — no paper."} }
   },
   paintContent(p, root){
-    root.querySelector("#doc-lw").textContent=p.logo.lw; root.querySelector("#doc-sub").textContent=p.logo.sub;
-    root.querySelector("#doc-sec").textContent=p.sectionTitle;
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-    root.querySelector("#doc-radios").innerHTML=p.radios.map(r=>'<div class="r"><span class="rc"></span>'+r+'</div>').join("");
-    root.querySelector("#doc-rows").innerHTML=FIELD_ORDER.map(id=>{ const f=p.fields[id];
-      const c=(f.req?"req":"")+(f.narrow?" narrow":"");
-      return '<div class="trow"><div class="tlab">'+f.label+'</div><div class="tval"><div class="box '+c+'" data-field="'+id+'">'+(f.dropdown?'<span class="ph">-- select --</span><span class="chev">▾</span>':'')+'</div></div></div>'; }).join("");
+    const $ = s => root.querySelector(s);
+    $("#wf-url").textContent = p.url || "";
+    $("#wf-mk").textContent = p.mark || (p.logo.lw||"")[0] || "";
+    $("#wf-logo").innerHTML = p.logo.lw + ' <span class="sub">'+p.logo.sub+'</span>';
+    $("#wf-title").textContent = p.form.title;
+    $("#wf-desc").textContent = p.form.desc;
+    $("#wf-steplab").textContent = p.form.step;
+    $("#wf-qlabel").innerHTML = p.question + '<span class="req">*</span>';
+    $("#ho-h").textContent = p.handoff.h; $("#ho-p").textContent = p.handoff.p; $("#ho-sor").textContent = p.sorNode;
+    $("#wf-radios").innerHTML = p.radios.map(r=>'<div class="r"><span class="rc"></span>'+r+'</div>').join("");
+    $("#wf-rows").innerHTML = FIELD_ORDER.map(id=>{ const f=p.fields[id];
+      const cls = "wf-field"+(FULL_WIDTH[id]?" full":"");
+      const box = '<div class="box'+(f.dropdown?" dropdown":"")+'" data-field="'+id+'">'+(f.dropdown?'<span class="ph">— select —</span><span class="chev">▾</span>':'')+'</div>';
+      return '<div class="'+cls+'"><label>'+f.label+(f.req?'<span class="req">*</span>':'')+'</label>'+box+'</div>'; }).join("");
   },
   onTime(time, p, root){
-    const TLfills = this.timeline.cursorTrack;
+    const TL = this.timeline.cursorTrack;
+    // reset every field, flag required-empty in red
     root.querySelectorAll(".box").forEach(b=>{ const f=p.fields[b.dataset.field]; if(!f)return;
-      b.classList.remove("filled"); if(f.req)b.classList.add("req"); else b.classList.remove("req");
-      b.innerHTML=f.dropdown?'<span class="ph">-- select --</span><span class="chev">▾</span>':''; });
-    const started=TLfills.some(c=>c.start&&time>=c.t);
-    root.querySelector("#ds").classList.toggle("started",started);
-    TLfills.forEach(c=>{ if(c.fill&&time>=c.t){ FILLS[c.fill].forEach(id=>{ const el=root.querySelector('.box[data-field="'+id+'"]'); if(!el)return; const f=p.fields[id];
-      el.classList.remove("req"); el.classList.add("filled"); el.innerHTML=f.val+(f.dropdown?'<span class="chev">▾</span>':''); }); } });
-    root.querySelectorAll(".doc-radios .r").forEach((r,i)=>r.classList.toggle("sel",started&&i===0));
+      b.classList.remove("filled"); b.classList.toggle("req", !!f.req);
+      b.innerHTML = f.dropdown?'<span class="ph">— select —</span><span class="chev">▾</span>':''; });
+    const started = TL.some(c=>c.start && time>=c.t);
+    root.querySelector("#wf").classList.toggle("started", started);
+    // progress bar: open 34% → prefill 60% → validate 80% → complete/submit 100%
+    let pct = 34; if(time>=27) pct=100; else if(time>=20) pct=100; else if(time>=14) pct=80; else if(time>=7) pct=60;
+    const bar = root.querySelector("#wf-barfill"); if(bar) bar.style.width = pct+"%";
+    // apply fills as their beats pass
+    TL.forEach(c=>{ if(c.fill && time>=c.t){ FILLS[c.fill].forEach(id=>{ const el=root.querySelector('.box[data-field="'+id+'"]'); if(!el)return; const f=p.fields[id];
+      el.classList.remove("req"); el.classList.add("filled"); el.innerHTML = f.val+(f.dropdown?'<span class="chev">▾</span>':''); }); } });
+    // first option selects once the form is engaged
+    root.querySelectorAll(".wf-radios .r").forEach((r,i)=>r.classList.toggle("sel", started && i===0));
   }
 });
 </script>
