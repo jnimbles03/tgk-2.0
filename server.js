@@ -1439,7 +1439,9 @@ app.post('/api/verticals/:key', requireEditor, verticalsWriteJson, async (req, r
 // GET /api/builder/:token — fetch a saved config (used by shell async path / inspection)
 app.get('/api/builder/:token', async (req, res) => {
   try {
-    const cfg = await db.get(BUILDER_KEY_PREFIX + req.params.token);
+    const _r = await db.get(BUILDER_KEY_PREFIX + req.params.token);
+    // @replit/database v3 wraps reads as {ok, value}; older versions returned the bare value.
+    const cfg = (_r && typeof _r === 'object' && 'ok' in _r) ? (_r.ok ? _r.value : null) : _r;
     if (!cfg) return res.status(404).json({ error: 'not found or expired' });
     res.json(cfg);
   } catch (e) {
@@ -1454,7 +1456,9 @@ app.get('/api/builder/:token', async (req, res) => {
 app.get(['/stories/custom-:token', '/stories/custom-:token/'], async (req, res) => {
   try {
     const token = req.params.token;
-    const cfg = await db.get(BUILDER_KEY_PREFIX + token);
+    const _r = await db.get(BUILDER_KEY_PREFIX + token);
+    // @replit/database v3 wraps reads as {ok, value}; older versions returned the bare value.
+    const cfg = (_r && typeof _r === 'object' && 'ok' in _r) ? (_r.ok ? _r.value : null) : _r;
     if (!cfg) {
       return res.status(404).type('html').send(
         '<!doctype html><meta charset="utf-8"><title>Demo not found</title>' +
