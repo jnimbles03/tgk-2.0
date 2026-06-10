@@ -949,6 +949,18 @@ app.post('/api/builder/save', builderJson, async (req, res) => {
   }
 });
 
+// Documented, agent-callable /demos surface (POST /demos, GET /demos/:id,
+// GET /openapi.json). Thin facade over the same builder store this file uses,
+// so demos created via the API share the same 30-day /stories/custom-<token>/
+// URLs. Logic lives in builder/lib/demos-api.js to keep this file's diff small.
+require('./builder/lib/demos-api').register(app, {
+  db,
+  keyPrefix: BUILDER_KEY_PREFIX,
+  newToken: newBuilderToken,
+  ttlDays: BUILDER_TTL_DAYS,
+  json: builderJson,
+});
+
 /* =========================================================================
    VERTICALS REGISTRY READER + EDITOR
    -------------------------------------------------------------------------

@@ -100,3 +100,62 @@ All inbound references in picker.html, server.js (redirects), admin/index.html (
 - **Hotspots are scene-keyed, not vertical-keyed.** Visual furniture is shared.
 - **Shell is the only place narration lives.** Scene templates are visual furniture.
 - **Patrick's code has redundancy** (hard-coded CSS per file). Don't refactor day one — harvest valuable components first.
+
+## Demo API (headless `/demos`)
+
+Agent-callable surface for creating demos without the UI. It's a thin facade over
+the existing builder store, so a demo created here gets the same 30-day
+`/stories/custom-<token>/` share URL and plays in the same custom-player. Logic
+lives in `builder/lib/demos-api.js`; the OpenAPI 3.1 contract is served live at
+`GET /openapi.json` and the source of truth for request/response shapes.
+
+**Live this session:** `POST /demos`, `GET /demos/{id}`, `GET /openapi.json`.
+**Planned (return nothing yet — not faked):** `PATCH`/`DELETE /demos/{id}`,
+`GET /vignettes(/{id})`, `GET /tenants/resolve`, `POST /audits/run`, `GET /audits/latest`.
+
+**Auth.** JSON endpoints require a static API key. Set `TGK_API_KEY` in the server
+environment (Replit Secrets). Send it as `X-API-Key: <key>` or
+`Authorization: Bearer <key>`. The server fails closed (503) if the key is unset,
+so tenant data is never exposed by an unconfigured deploy. The rendered HTML share
+URL stays public by design — only the JSON config is gated.
+
+**Create a demo** (`POST /demos`) — vignette ids come from the demo catalog
+(`builder/lib/demo-catalog.js`):
+
+```bash
+curl -s -X POST https://tgk-deux.replit.app/demos \
+  -H "X-API-Key: $TGK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vertical": "fins",
+    "tenant": { "name": "Hillside", "customerName": "Aster Capital",
+                "colors": { "primary": "#3FDA99" },
+                "systemsOfRecord": ["Salesforce FSC", "nCino"] },
+    "story": {
+      "scaffold": "onboarding",
+      "vignettes": ["idv-clear", "web-forms", "esignature"],
+      "narration": { "idv-clear": { "tag": "Identity", "headline": "Verified once",
+                                     "lede": "CLEAR binds identity to every downstream doc." } }
+    },
+    "capabilities": { "idv": true, "workspaces": false },
+    "mode": "demo"
+  }'
+# -> 201 { "id": "ab3kmp9q", "shareUrl": ".../stories/custom-ab3kmp9q/", "expiresAt": "2026-07-10T..." }
+```
+
+`vertical` ∈ `fins|hls|pubsec|manufacturing`; `story.scaffold` ∈
+`onboarding|maintenance|fraud`; `mode` ∈ `demo` (discovery share URLs are not yet
+wired and are rejected with a structured error). Validation failures return
+`422 { error:"validation_failed", details:[{field,message}] }` — structured, never
+a silent fallback.
+
+**Fetch a demo** (`GET /demos/{id}`) — returns the full assembled config:
+
+```bash
+curl -s https://tgk-deux.replit.app/demos/ab3kmp9q -H "X-API-Key: $TGK_API_KEY"
+# -> { "id", "shareUrl", "expiresAt", "config": { ...the config you POSTed... } }
+```
+
+**Tests.** `node builder/lib/demos-api.test.js` (dependency-free) covers validation
+and the config→player mapping. A Postman collection is at repo root:
+`postman_collection.json`.

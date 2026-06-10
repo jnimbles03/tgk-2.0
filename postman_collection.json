@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "TGK 2.0 Demo API",
+    "description": "Headless /demos surface for the TGK 2.0 demo portal. Set collection variables `baseUrl` and `apiKey`. Contract: GET {{baseUrl}}/openapi.json",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://tgk-deux.replit.app" },
+    { "key": "apiKey", "value": "" },
+    { "key": "demoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create demo (POST /demos)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('demoId', pm.response.json().id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-API-Key", "value": "{{apiKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/demos", "host": ["{{baseUrl}}"], "path": ["demos"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vertical\": \"fins\",\n  \"tenant\": {\n    \"name\": \"Hillside\",\n    \"customerName\": \"Aster Capital\",\n    \"colors\": { \"primary\": \"#3FDA99\" },\n    \"systemsOfRecord\": [\"Salesforce FSC\", \"nCino\"]\n  },\n  \"story\": {\n    \"scaffold\": \"onboarding\",\n    \"vignettes\": [\"idv-clear\", \"web-forms\", \"esignature\"],\n    \"narration\": {\n      \"idv-clear\": { \"tag\": \"Identity\", \"headline\": \"Verified once\", \"lede\": \"CLEAR binds identity to every downstream doc.\" }\n    }\n  },\n  \"capabilities\": { \"idv\": true, \"workspaces\": false },\n  \"mode\": \"demo\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Fetch demo (GET /demos/:id)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "X-API-Key", "value": "{{apiKey}}" } ],
+        "url": { "raw": "{{baseUrl}}/demos/{{demoId}}", "host": ["{{baseUrl}}"], "path": ["demos", "{{demoId}}"] }
+      }
+    },
+    {
+      "name": "OpenAPI contract (GET /openapi.json)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/openapi.json", "host": ["{{baseUrl}}"], "path": ["openapi.json"] }
+      }
+    }
+  ]
+}
