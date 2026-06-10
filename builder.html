@@ -1312,6 +1312,21 @@
           </div>
 
         </div>
+
+        <!-- Result panel — lives on the Brand stage so Generate URL feedback is visible -->
+        <div class="result-panel" id="resultPanel">
+          <div class="result-tag">DEMO URL · LIVE NOW</div>
+          <h3 class="result-h" id="resultHeadline"></h3>
+          <div class="result-url-row">
+            <span class="result-url" id="resultUrl"></span>
+            <button class="result-action" id="btnCopy">Copy</button>
+            <button class="result-action ghost" id="btnOpen">Open</button>
+          </div>
+          <div class="result-meta" id="resultMeta"></div>
+        </div>
+
+        <!-- Error panel — shared by Generate URL + logo validation, both on this stage -->
+        <div class="error-panel" id="errorPanel"></div>
       </div>
     </div>
 
@@ -1458,20 +1473,7 @@
             </div>
           </div>
 
-          <!-- Result panel -->
-          <div class="result-panel" id="resultPanel">
-            <div class="result-tag">DEMO URL · LIVE NOW</div>
-            <h3 class="result-h" id="resultHeadline"></h3>
-            <div class="result-url-row">
-              <span class="result-url" id="resultUrl"></span>
-              <button class="result-action" id="btnCopy">Copy</button>
-              <button class="result-action ghost" id="btnOpen">Open</button>
-            </div>
-            <div class="result-meta" id="resultMeta"></div>
-          </div>
-
-          <!-- Error / save-result -->
-          <div class="error-panel" id="errorPanel"></div>
+          <!-- Canonical save-result (admin "Save to canonical" flow) -->
           <div class="save-result" id="saveResult" hidden>
             <div class="save-result-head">
               <span class="save-result-tag" id="saveResultTag">Saved</span>
@@ -2680,7 +2682,7 @@
     const ep = $('errorPanel');
     ep.textContent = msg;
     ep.classList.add('active');
-    // Make sure we're on stage 3 if error is timeline-related
+    try { ep.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
   }
   function clearError() { $('errorPanel').classList.remove('active'); }
 
@@ -2760,7 +2762,12 @@
       $('submitStatus').textContent = 'Saved.';
       setTimeout(() => $('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
     } catch (e) {
-      showError('Save failed: ' + (e.message || e));
+      const m = String((e && e.message) || e);
+      if (/HTTP (404|405|501)|Failed to fetch|NetworkError|Load failed/i.test(m)) {
+        showError('Generating a shareable URL needs the live server — it mints a short link and serves the demo. This looks like the static GitHub Pages mirror or a local file, which has no backend. Open the builder on the Replit deploy to generate a URL.');
+      } else {
+        showError('Save failed: ' + m);
+      }
       $('submitStatus').textContent = '';
     } finally {
       $('btnGenerate').disabled = false;
