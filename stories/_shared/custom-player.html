@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom demo · TGK</title>
+<!--
+  custom-player.html — plays the exact timeline a rep assembled in builder.html.
+  The server injects <script id="tgk-custom-vertical" type="application/json">
+  with the saved config (tenant/customer/color/logo + scenes[]). Each scene is
+  one timeline item: a Scene template, a Product demo, or a Flipbook vignette.
+  We resolve each to its embed URL (mirroring builder's previewUrlForTemplate,
+  but absolute-pathed since this page lives at /stories/custom-<token>/), re-skin
+  the engine demos via brand params, and step through them with the narration the
+  rep wrote. The canonical 5-scene story-shell is intentionally NOT used here.
+-->
+<style>
+  :root{ --tenant-accent:#4C00FF; --ink:#130032; --paper:#F8F6FB; --rule:#E7E2F1; --muted:#6b6678; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:var(--ink);
+    background:var(--paper);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  a{color:var(--tenant-accent)}
+
+  /* ---- top brand bar ---- */
+  .pl-top{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px 22px;background:#fff;border-bottom:1px solid var(--rule)}
+  .pl-logo{height:30px;max-width:180px;object-fit:contain;display:block}
+  .pl-mark{width:32px;height:32px;border-radius:8px;background:var(--tenant-accent);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:0 0 auto}
+  .pl-brand{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  .pl-brand .nm{font-weight:700;font-size:15px;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-brand .sub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-moment{margin-left:8px;font-size:12px;color:var(--muted);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-count{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pl-pb{font-size:10.5px;color:#9a96a6;display:flex;align-items:center;gap:5px;white-space:nowrap}
+
+  /* ---- body: stage + narration ---- */
+  .pl-body{flex:1 1 auto;display:grid;grid-template-columns:1fr 330px;min-height:0}
+  .pl-stagewrap{position:relative;background:#15082E;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden}
+  .pl-stage{position:relative;width:100%;height:100%}
+  .pl-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#E3E3E6}
+  .pl-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#cfc7e6;font-size:13px;pointer-events:none;opacity:0;transition:opacity .2s}
+  .pl-loading.on{opacity:1}
+
+  .pl-side{background:#fff;border-left:1px solid var(--rule);padding:22px 22px 16px;display:flex;flex-direction:column;min-height:0}
+  .pl-tag{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tenant-accent);margin-bottom:10px}
+  .pl-head{font-size:19px;font-weight:700;line-height:1.28;letter-spacing:-.3px;margin:0 0 10px}
+  .pl-lede{font-size:13.5px;line-height:1.55;color:#403c4d}
+  .pl-lede p{margin:0 0 9px}
+  .pl-beats{margin:14px 0 0;padding:0;list-style:none;overflow-y:auto}
+  .pl-beats li{position:relative;padding:7px 0 7px 18px;font-size:12.5px;line-height:1.45;color:#4a4658;border-top:1px solid #F0EDF6}
+  .pl-beats li:before{content:"";position:absolute;left:2px;top:13px;width:6px;height:6px;border-radius:50%;background:var(--tenant-accent)}
+  .pl-beats li b{color:var(--ink);font-weight:600}
+  .pl-beats li .bl{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+
+  /* ---- bottom controls ---- */
+  .pl-foot{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px 22px;background:#fff;border-top:1px solid var(--rule)}
+  .pl-dots{display:flex;gap:7px;flex-wrap:wrap}
+  .pl-dot{width:auto;height:26px;padding:0 11px;border-radius:13px;border:1px solid var(--rule);background:#fff;
+    color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+  .pl-dot .n{width:16px;height:16px;border-radius:50%;background:#EFECF6;color:var(--muted);font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .pl-dot:hover{border-color:#cfc8e0}
+  .pl-dot.on{border-color:var(--tenant-accent);color:var(--tenant-accent);background:color-mix(in srgb,var(--tenant-accent) 8%,#fff)}
+  .pl-dot.on .n{background:var(--tenant-accent);color:#fff}
+  .pl-nav{margin-left:auto;display:flex;gap:8px}
+  .pl-btn{appearance:none;border:1px solid var(--rule);background:#fff;color:var(--ink);font:inherit;font-size:13px;font-weight:600;
+    padding:9px 18px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s}
+  .pl-btn:hover:not(:disabled){border-color:#cfc8e0}
+  .pl-btn:disabled{opacity:.4;cursor:default}
+  .pl-btn.primary{background:var(--tenant-accent);border-color:var(--tenant-accent);color:#fff}
+  .pl-btn.primary:hover:not(:disabled){filter:brightness(1.05)}
+  .pl-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  .pl-empty{margin:auto;text-align:center;color:var(--muted);font-size:14px;padding:40px}
+  @media(max-width:880px){ .pl-body{grid-template-columns:1fr} .pl-side{display:none} }
+</style>
+</head>
+<body>
+<div class="pl-top">
+  <span id="brandSlot"></span>
+  <div class="pl-brand"><span class="nm" id="brandName">Custom demo</span><span class="sub" id="brandSub"></span></div>
+  <span class="pl-moment" id="brandMoment"></span>
+  <span class="pl-count" id="stepCount"></span>
+  <span class="pl-pb" style="margin-left:14px">Powered by <b>&nbsp;Docusign</b></span>
+</div>
+
+<div class="pl-body" id="body">
+  <div class="pl-stagewrap">
+    <div class="pl-stage"><iframe id="stage" title="Demo step" allow="clipboard-read; clipboard-write"></iframe></div>
+    <div class="pl-loading" id="loading">Loading…</div>
+  </div>
+  <aside class="pl-side">
+    <div class="pl-tag" id="sTag"></div>
+    <h1 class="pl-head" id="sHead"></h1>
+    <div class="pl-lede" id="sLede"></div>
+    <ul class="pl-beats" id="sBeats"></ul>
+  </aside>
+</div>
+
+<div class="pl-foot">
+  <div class="pl-dots" id="dots"></div>
+  <div class="pl-nav">
+    <button class="pl-btn" id="prev"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Prev</button>
+    <button class="pl-btn primary" id="next">Next <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---- read injected config ----------------------------------------------
+  var cfg = {};
+  try {
+    var el = document.getElementById('tgk-custom-vertical');
+    if (el) cfg = JSON.parse(el.textContent) || {};
+  } catch(e){ console.warn('[player] config parse failed:', e); }
+
+  var scenes = (cfg.scenes || []).filter(function(s){ return s && s.template; });
+
+  // ---- brand chrome -------------------------------------------------------
+  var accent = (cfg.tenantColor && /^#[0-9a-fA-F]{6}$/.test(cfg.tenantColor)) ? cfg.tenantColor : '#4C00FF';
+  document.documentElement.style.setProperty('--tenant-accent', accent);
+  var tenant = cfg.tenant || 'Custom demo';
+  var customer = (cfg.customer || '').replace(/^×\s*/, '');
+  $('brandName').textContent = tenant;
+  $('brandSub').textContent = customer ? ('× ' + customer) : '';
+  if (cfg.signatureMoment) $('brandMoment').textContent = '“' + cfg.signatureMoment + '”';
+  document.title = tenant + (customer ? ' × ' + customer : '') + ' · custom demo';
+  (function(){
+    var slot = $('brandSlot');
+    if (cfg.tenantLogo) {
+      var img = document.createElement('img'); img.className = 'pl-logo'; img.alt = tenant; img.src = cfg.tenantLogo;
+      slot.appendChild(img);
+    } else {
+      var m = document.createElement('span'); m.className = 'pl-mark';
+      m.textContent = (tenant.trim()[0] || 'D').toUpperCase(); slot.appendChild(m);
+    }
+  })();
+
+  // ---- URL resolution (mirrors builder previewUrlForTemplate, absolute) ----
+  var OVERRIDES = {
+    'agreement-desk':     '/demos/agreement-desk.html?embed=1',
+    'agreement-desk-coc': '/demos/agreement-desk.html?embed=1',
+    'clear-idv':          '/demos/idv-clear.html?embed=1',
+    'signing-ceremony':   '/demos/esignature.html?embed=1',
+    'navigator':          '/demos/navigator.html?embed=1',
+    'workspace':          '/demos/workspaces.html?embed=1',
+    'webform':            '/demos/web-forms.html?embed=1',
+    'webform-intake':     '/demos/web-forms.html?embed=1',
+    'maestro-loop':       '/demos/maestro.html?embed=1',
+    'maestro-package':    '/demos/maestro.html?embed=1',
+    'agents':             '/demos/agentforce.html?embed=1'
+  };
+  // sourceVertical → engine pack (banking / healthcare / pubsec) for re-skin
+  function packFor(v){
+    v = String(v || '').toLowerCase();
+    if (/health|payor|lifescience|clinic|provider|hospital/.test(v)) return 'healthcare';
+    if (/pubsec|public|gov|fed|state|agency|education|nonprofit/.test(v)) return 'pubsec';
+    if (/wealth|bank|insur|fins|deposit|lending|mortgage|capital/.test(v)) return 'banking';
+    return '';
+  }
+  var BRAND_PARAMS = (function(){
+    var p = new URLSearchParams();
+    p.set('accent', accent);
+    if (tenant) { p.set('brand', tenant); p.set('lw', tenant); p.set('mark', (tenant.trim()[0]||'').toUpperCase()); }
+    if (customer) p.set('sub', customer);
+    var pack = packFor(cfg.sourceVertical); if (pack) p.set('pack', pack);
+    return p.toString();
+  })();
+  function embedUrl(s){
+    var id = s.template, base;
+    if (id.indexOf('demo:') === 0)          base = '/demos/' + id.slice(5) + '.html?embed=1';
+    else if (id.indexOf('flipbook:') === 0) base = '/flipbooks/' + id.slice(9) + '.html?embed=1';
+    else                                    base = OVERRIDES[id] || ('/story-templates/docusign-' + id + '.html?embed=1');
+    return base + '&' + BRAND_PARAMS;
+  }
+
+  // ---- empty state --------------------------------------------------------
+  if (!scenes.length) {
+    $('body').innerHTML = '<div class="pl-empty">This custom demo has no scenes in its timeline.<br>' +
+      '<a href="/builder.html">Build one →</a></div>';
+    $('prev').disabled = $('next').disabled = true;
+    $('stepCount').textContent = '';
+    return;
+  }
+
+  // ---- render -------------------------------------------------------------
+  var idx = -1;
+  // build dots
+  var dotsWrap = $('dots');
+  scenes.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'pl-dot';
+    var label = (s.headline || s.name || ('Step ' + (i+1))).slice(0, 22);
+    b.innerHTML = '<span class="n">' + (i+1) + '</span><span>' + escapeHtml(label) + '</span>';
+    b.addEventListener('click', function(){ go(i); });
+    dotsWrap.appendChild(b);
+  });
+
+  function escapeHtml(t){ var d = document.createElement('div'); d.textContent = String(t==null?'':t); return d.innerHTML; }
+
+  function go(i){
+    if (i < 0 || i >= scenes.length || i === idx) return;
+    idx = i;
+    var s = scenes[i];
+    // stage
+    var ld = $('loading'); ld.classList.add('on');
+    var fr = $('stage');
+    fr.onload = function(){ ld.classList.remove('on'); };
+    fr.src = embedUrl(s);
+    // narration
+    $('sTag').textContent = s.tag || ('Step ' + (i+1) + ' of ' + scenes.length);
+    $('sHead').textContent = s.headline || s.name || ('Step ' + (i+1));
+    $('sLede').innerHTML = s.lede || '';
+    var beats = Array.isArray(s.beats) ? s.beats : [];
+    $('sBeats').innerHTML = beats.map(function(b){
+      var head = b && b.head ? '<b>' + escapeHtml(b.head) + '</b>' : '';
+      var lede = b && b.lede ? '<span class="bl">' + stripTags(b.lede) + '</span>' : '';
+      return (head || lede) ? ('<li>' + head + lede + '</li>') : '';
+    }).join('');
+    // chrome
+    $('stepCount').textContent = 'Step ' + (i+1) + ' of ' + scenes.length;
+    Array.prototype.forEach.call(dotsWrap.children, function(d, di){ d.classList.toggle('on', di === i); });
+    $('prev').disabled = (i === 0);
+    $('next').disabled = (i === scenes.length - 1);
+    var on = dotsWrap.children[i]; if (on && on.scrollIntoView) on.scrollIntoView({block:'nearest', inline:'nearest'});
+  }
+  function stripTags(h){ var d = document.createElement('div'); d.innerHTML = String(h==null?'':h); return d.textContent || ''; }
+
+  $('prev').addEventListener('click', function(){ go(idx - 1); });
+  $('next').addEventListener('click', function(){ go(idx + 1); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

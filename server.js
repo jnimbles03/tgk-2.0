@@ -1465,26 +1465,21 @@ app.get(['/stories/custom-:token', '/stories/custom-:token/'], async (req, res) 
       );
     }
 
+    // Serve the sequential custom-player — it plays the exact timeline the rep
+    // assembled in builder.html (cfg.scenes), re-skinned to the tenant. The
+    // canonical 5-scene story-shell is intentionally NOT used here: it ignores
+    // cfg.scenes and only reskins a scaffold vertical, which is not what the
+    // rep built.
     let html = await fs.promises.readFile(
-      path.join(__dirname, 'stories', '_shared', 'story-shell.html'),
+      path.join(__dirname, 'stories', '_shared', 'custom-player.html'),
       'utf8'
     );
 
     // Sanitize for safe embedding inside <script> — escape closing tags
     const safeJson = JSON.stringify(cfg).replace(/</g, '\\u003c');
-    const usecase = cfg.usecase || 'default';
 
     const injection =
-      `<script id="tgk-custom-vertical" type="application/json">${safeJson}</script>\n` +
-      `<script>(function(){` +
-        `var u = new URL(location.href);` +
-        // tell the shell to render under vertical=custom (and the chosen usecase)
-        `u.searchParams.set('vertical','custom');` +
-        (usecase !== 'default' ? `u.searchParams.set('usecase','${usecase}');` : '') +
-        // rewrite URL in-place so query is visible to the shell's URLSearchParams
-        // but the rep's address bar still shows the friendly /stories/custom-XXX/ path
-        `history.replaceState(null,'',location.pathname + u.search + location.hash);` +
-      `})();</script>\n`;
+      `<script id="tgk-custom-vertical" type="application/json">${safeJson}</script>\n`;
 
     html = html.replace(/<head>/i, '<head>\n' + injection);
     res.type('html').send(applyWidgetInjection(html));
