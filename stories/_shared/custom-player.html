@@ -72,6 +72,22 @@
   .pl-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
   .pl-empty{margin:auto;text-align:center;color:var(--muted);font-size:14px;padding:40px}
+
+  /* ---- auto-advance title card (ported from builder assemble.js) ---- */
+  .pl-splash{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:40px;color:#fff;
+    background:radial-gradient(circle at 30% 20%,color-mix(in srgb,var(--tenant-accent) 24%,#15082E),#15082E);
+    opacity:1;transition:opacity .4s}
+  .pl-splash.hidden{opacity:0;pointer-events:none}
+  .pl-splash-inner{max-width:560px}
+  .pl-splash-eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--tenant-accent);margin-bottom:18px}
+  .pl-splash-title{font-size:38px;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin:0 0 24px}
+  .pl-splash-bar{width:200px;height:3px;border-radius:3px;background:rgba(255,255,255,.18);margin:0 auto;overflow:hidden}
+  .pl-splash-fill{height:100%;width:0;background:var(--tenant-accent);border-radius:3px}
+  .pl-splash-skip{margin-top:24px;background:transparent;border:1px solid rgba(255,255,255,.3);
+    color:#cfc7e6;font:inherit;font-size:12px;font-weight:600;padding:7px 16px;border-radius:999px;cursor:pointer}
+  .pl-splash-skip:hover{border-color:#fff;color:#fff}
   @media(max-width:880px){ .pl-body{grid-template-columns:1fr} .pl-side{display:none} }
 </style>
 </head>
@@ -88,6 +104,12 @@
   <div class="pl-stagewrap">
     <div class="pl-stage"><iframe id="stage" title="Demo step" allow="clipboard-read; clipboard-write"></iframe></div>
     <div class="pl-loading" id="loading">Loading…</div>
+    <div class="pl-splash hidden" id="splash"><div class="pl-splash-inner">
+      <div class="pl-splash-eyebrow" id="splashEyebrow"></div>
+      <h2 class="pl-splash-title" id="splashTitle"></h2>
+      <div class="pl-splash-bar"><div class="pl-splash-fill" id="splashFill"></div></div>
+      <button class="pl-splash-skip" id="splashSkip" type="button">Skip</button>
+    </div></div>
   </div>
   <aside class="pl-side">
     <div class="pl-tag" id="sTag"></div>
@@ -201,10 +223,33 @@
 
   function escapeHtml(t){ var d = document.createElement('div'); d.textContent = String(t==null?'':t); return d.innerHTML; }
 
+  // ---- auto-advance title card (shown before every step) ------------------
+  // Reuses each scene's own narration as card copy, so it works for every
+  // template type (scene / demo: / flipbook:) without a separate blurb map.
+  var SPLASH_MS = 1400, splashTimer = null;  // quick beat between slides; raise/lower this one number to taste
+  function revealSplash(){
+    if (splashTimer){ clearTimeout(splashTimer); splashTimer = null; }
+    var sp = $('splash'); if (sp) sp.classList.add('hidden');
+  }
+  function showSplash(i){
+    var sp = $('splash'); if (!sp) return;
+    var s = scenes[i] || {};
+    $('splashEyebrow').textContent = 'Up next · Step ' + (i+1) + ' of ' + scenes.length;
+    $('splashTitle').textContent   = s.headline || s.name || ('Step ' + (i+1));
+    sp.classList.remove('hidden');
+    var fill = $('splashFill');
+    fill.style.transition = 'none'; fill.style.width = '0%'; void fill.offsetWidth;
+    fill.style.transition = 'width ' + SPLASH_MS + 'ms linear'; fill.style.width = '100%';
+    if (splashTimer) clearTimeout(splashTimer);
+    splashTimer = setTimeout(revealSplash, SPLASH_MS);
+  }
+
   function go(i){
     if (i < 0 || i >= scenes.length || i === idx) return;
     idx = i;
     var s = scenes[i];
+    // title card first; the iframe loads behind it
+    showSplash(i);
     // stage
     var ld = $('loading'); ld.classList.add('on');
     var fr = $('stage');
@@ -231,6 +276,7 @@
 
   $('prev').addEventListener('click', function(){ go(idx - 1); });
   $('next').addEventListener('click', function(){ go(idx + 1); });
+  $('splashSkip').addEventListener('click', revealSplash);
   document.addEventListener('keydown', function(e){
     if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
