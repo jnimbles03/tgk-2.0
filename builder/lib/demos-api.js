@@ -359,7 +359,12 @@ function register(app, deps) {
   });
 
   // GET /demos/{id} — full assembled config (auth: tenant data).
-  app.get('/demos/:id', requireApiKey, async (req, res) => {
+  // Constrain :id to the builder-token charset (letters/digits/-/_, NO dot) so
+  // this route does NOT shadow the static vignette files at /demos/*.html. Those
+  // stay public by design — custom-player iframes them (e.g. /demos/web-forms.html
+  // ?embed=1). Without this guard, GET /demos/web-forms.html matched :id and the
+  // API-key gate returned {"error":"unauthorized"} into the player's main panel.
+  app.get('/demos/:id([a-zA-Z0-9_-]+)', requireApiKey, async (req, res) => {
     try {
       const record = unwrap(await db.get(keyPrefix + req.params.id));
       if (!record) return res.status(404).json({ error: 'not_found' });
