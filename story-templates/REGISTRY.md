@@ -239,6 +239,65 @@ calibrator can pin shell-level hotspots to elements inside the iframe.
 
 ---
 
+### 8. `docusign-hierarchy.html` — canonical animated template / callable vignette
+
+**Covers:** Contract Hierarchy inside the agreement repository, modeled
+frame-for-frame on the product design export at repo root
+(`Contract Hierarchy - Share - [Navigator] Contract Hierarchy 2025 04.zip`,
+Milestone 1 · CY25.Q4 builder experience). Seven scenes, ~48s loop:
+
+1. **Party page** — combined agreements list on one party (AI-extracted
+   names, parties, types, dates), Hierarchies tab in the page tabs.
+2. **Hierarchies tab** — empty state + "View related agreements in one
+   place" coach card + Create Hierarchy entry point.
+3. **Wizard · Define** — party (read-only), title, description type-in.
+4. **Wizard · Add** — search + party-filter pill, rows join the hierarchy
+   card, "Agreements added" counter, Primary chip + explainer tooltip.
+5. **Wizard · Relate** — drag-to-nest with two levels, violet drag
+   outline, Arrange documents kebab (Move Up/Down · Move to Level 1/2).
+6. **Saved hierarchy detail** — title card + pencil, Share button,
+   tree with ↳ child rows, "You accepted the suggested hierarchy" toast.
+7. **Share these agreements** — modal with access banner, user/group
+   chips, Notify by email, per-person Can View / Can Edit and Share.
+
+**Best for:** any M&A / diligence / "how does the inherited paper relate"
+moment — the two-bank acquisition story (every supplier agreement
+inherited in the acquisition, related under the governing MSA), legal
+search/storage beats, and any repository beat that needs more than a flat
+list. Pairs with `demos/agreement-manager.html` (Change-of-Control
+worksheet) — the worksheet finds the at-risk paper, the hierarchy shows
+how it hangs together.
+
+**URL params:** `?preset=banking-ma|generic` (default `banking-ma`) ·
+`?scene=party|hier-empty|wiz-define|wiz-add|wiz-relate|detail|share` ·
+`?hold=1` freeze on that scene · `?embed=1` flat edges, no caption ribbon ·
+`?interactive=1` click-to-advance via `_interactive.js`.
+
+**Presets ship today:**
+- `banking-ma` — two-bank M&A lens: Meridian has acquired Tally Bank;
+  Fontara Inc. is the shared supplier. The hierarchy assembles both banks'
+  Fontara paper (inherited SOWs, assignment & change-of-control amendment,
+  POs, NDA) under the governing Meridian MSA. Persona: Dana Whit (Legal
+  Operations); share targets Lloyd Blankfine + M&A Integration Office.
+- `generic` — design-verbatim: Fontara party, MSA-Fontara/FONTARA_* files,
+  Joe + Stacy share recipients, exactly as the product design frames.
+
+**postMessage protocol:** `tgk:lockToBeat {sceneId, target}` ·
+`tgk:setPreset {preset}` · `tgk:queryRect {target}` → `tgk:rect` ·
+`tgk:resumeAuto`; announces `tgk:ready {template:"hierarchy"}`.
+
+**Hotspot anchors:** `hs_tab_hierarchies`, `hs_create_btn`, `hs_stepper`,
+`hs_wizard_card`, `hs_primary_chip`, `hs_relate_tree`, `hs_nested_row`,
+`hs_share_btn`, `hs_share_modal`, `hs_perm_dropdown`, `hs_toast`.
+
+**Adaptation slots:**
+- Add a preset to the `PRESETS` map — party, rows, added set, tree
+  (levels + `m1..m5` animation classes), share people, captions.
+- Scene timings live in the `SCENES` array (at/dur over a 48s loop).
+- Cursor choreography per scene in the `PATHS` map (% coordinates).
+
+---
+
 ## SoR badge kits
 
 A badge kit is a tiny per-vendor recipe — primary color, secondary color,
@@ -405,6 +464,12 @@ below as they're authored so newcomers can grep and follow.
   Availability Agent" + Agent Studio screen recording.
 - EHR Desktop template — modeled on real Epic Hyperspace frames and Cerner
   Reporting Portal frames from the YouTube demos folder.
+- Hierarchy template — modeled frame-for-frame on the Contract Hierarchy
+  product design export at repo root (`Contract Hierarchy - Share -
+  [Navigator] Contract Hierarchy 2025 04.zip`, Milestone 1 · CY25.Q4
+  builder experience: party view → wizard → bulk access → share →
+  edit/view access), the same AMEX/M&A demo context that fed the
+  Navigator and CLEAR IDV templates.
 
 Badge kits reference the demos stored under
 `/Users/patrickmeyer/Documents/Claude/Projects/TGK 2.0/Youtube demos/`.
