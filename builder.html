@@ -4011,9 +4011,16 @@ body.is-gb #gbPanel{display:block;}
     }
     function renderImmersiveLaunch(shape, s) {
       const headless = shape === 'headless';
+      /* Workspaces: prefer the click-interactive workspace template where a
+         preset exists (fins + hls casts); PubSec/nonprofit casts only live
+         in the shell's synthesized workspaces scene. Headless portals are
+         click-interactive throughout (drilldowns carry ?interactive=1). */
+      const WS_PRESETS = ['wealth', 'banking', 'insurance', 'provider', 'lifesciences', 'payor'];
       const url = headless
         ? `/headless-iam/${s.clu}.html?vertical=${encodeURIComponent(s.key)}`
-        : `/stories/_shared/story-shell.html?vertical=${encodeURIComponent(s.key)}&usecase=workspaces`;
+        : (WS_PRESETS.includes(s.key)
+            ? `/story-templates/docusign-workspace.html?preset=${encodeURIComponent(s.key)}`
+            : `/stories/_shared/story-shell.html?vertical=${encodeURIComponent(s.key)}&usecase=workspaces`);
       body.innerHTML = '';
       const row = el('div', 'gb-headrow');
       row.appendChild(el('div', 'ootb-eyebrow', 'Bespoke · Guided · ' + (headless ? 'Headless IAM' : 'Workspaces')));
