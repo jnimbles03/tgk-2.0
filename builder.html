@@ -1112,13 +1112,50 @@
 .mode-switch-btn.is-active{background:var(--ds-cobalt);color:#fff;}
 /* Suppress the Bespoke app shell: left rail, stage panels, the .mid grid's
    fixed 228px sidebar track, and the bottombar (Build → Brand stepper +
-   Next/Generate). OOTB renders full-bleed like picker.html. */
-body.is-ootb .sidebar{display:none;}
-body.is-ootb .stage-panel{display:none !important;}
-body.is-ootb .bottombar{display:none;}
-body.is-ootb .mid{display:block;}
-.ootb-panel{display:none;}
-body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48px 64px 100px;width:100%;}
+   Next/Generate). Applies to OOTB and to guided Bespoke (body.is-gb) —
+   both render full-bleed like picker.html. The shell is the Advanced view. */
+body.is-ootb .sidebar,body.is-gb .sidebar{display:none;}
+body.is-ootb .stage-panel,body.is-gb .stage-panel{display:none !important;}
+body.is-ootb .bottombar,body.is-gb .bottombar{display:none;}
+body.is-ootb .mid,body.is-gb .mid{display:block;}
+.ootb-panel{display:none;max-width:1180px;margin:0 auto;padding:48px 64px 100px;width:100%;}
+body.is-ootb #ootbPanel{display:block;}
+body.is-gb #gbPanel{display:block;}
+/* ── Guided Bespoke (wizard over the real builder state) ── */
+.gb-headrow{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.gb-progress{display:flex;gap:6px;}
+.gb-dot{width:26px;height:4px;border-radius:99px;background:var(--rule-strong);}
+.gb-dot.on{background:var(--ds-cobalt);}
+.gb-advlink{margin-left:auto;font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 0;}
+.gb-advlink:hover{color:var(--ds-cobalt);}
+.gb-return{font-size:12px;font-weight:600;color:var(--ds-cobalt);text-decoration:none;white-space:nowrap;}
+.gb-return:hover{text-decoration:underline;}
+.gb-rows{max-width:760px;}
+.gb-row{display:flex;align-items:center;flex-wrap:wrap;gap:14px;background:#fff;border:1px solid var(--rule-strong);border-radius:12px;padding:16px 20px;margin-bottom:10px;}
+.gb-row-num{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--ds-cobalt);text-transform:uppercase;white-space:nowrap;}
+.gb-row-meta{flex:1;min-width:200px;}
+.gb-row-name{font-size:15.5px;font-weight:600;color:var(--text);}
+.gb-row-role{font-size:12.5px;color:var(--muted);}
+.gb-row-actions{display:flex;gap:8px;}
+.gb-mini{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid var(--rule-strong);background:#fff;color:var(--text);cursor:pointer;transition:border-color .15s,color .15s;}
+.gb-mini:hover{border-color:var(--ds-cobalt);color:var(--ds-cobalt);}
+.gb-mini[disabled]{opacity:.4;cursor:not-allowed;}
+.gb-add{width:100%;text-align:center;font-family:var(--font);font-size:13px;font-weight:600;color:var(--ds-cobalt);background:none;border:1px dashed var(--rule-strong);border-radius:12px;padding:13px;cursor:pointer;}
+.gb-add:hover{border-color:var(--ds-cobalt);background:rgba(76,0,255,.03);}
+.gb-chooser{flex-basis:100%;border-top:1px dashed var(--rule);margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:2px;}
+.gb-choice{display:flex;gap:10px;align-items:baseline;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);background:none;border:none;text-align:left;font-family:var(--font);}
+.gb-choice:hover{background:var(--ds-mist-soft);}
+.gb-choice .role{color:var(--muted);font-size:12px;font-weight:400;}
+.gb-choice.is-current{opacity:.45;cursor:default;}
+.gb-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;max-width:760px;}
+.gb-field{display:flex;flex-direction:column;gap:6px;}
+.gb-label{font-size:12px;font-weight:600;color:var(--text);}
+.gb-input,.gb-select{font-family:var(--font);font-size:13.5px;padding:9px 12px;border:1px solid var(--rule-strong);border-radius:8px;background:#fff;color:var(--text);}
+.gb-input:focus,.gb-select:focus{outline:2px solid var(--ds-mist);border-color:var(--ds-cobalt);}
+.gb-cta-row{display:flex;gap:10px;margin-top:26px;align-items:center;}
+.gb-summary{font-size:13.5px;color:var(--muted);margin-bottom:18px;}
+.gb-error{color:#B23B3B;font-size:13px;margin-top:14px;max-width:640px;line-height:1.5;}
+@media (max-width:900px){.gb-fields{grid-template-columns:1fr;}}
 .ootb-eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ds-cobalt);margin-bottom:14px;}
 .ootb-q{font-family:var(--font);font-size:clamp(28px,3.2vw,38px);font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1.15;margin:0 0 10px;}
 .ootb-sub{font-size:15px;color:var(--muted);margin:0 0 30px;max-width:640px;line-height:1.5;}
@@ -1220,6 +1257,11 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
     <!-- ══ OUT OF THE BOX: guided wizard (visible only with body.is-ootb) ══ -->
     <div class="ootb-panel" id="ootbPanel" role="region" aria-label="Out of the Box guided demo selection">
       <div id="ootbBody"></div>
+    </div>
+
+    <!-- ══ GUIDED BESPOKE: wizard over the real builder state (body.is-gb) ══ -->
+    <div class="ootb-panel" id="gbPanel" role="region" aria-label="Guided Bespoke demo builder">
+      <div id="gbBody"></div>
     </div>
 
     <!-- ══ STAGE 2: BRAND ══ -->
@@ -1390,6 +1432,7 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
       </div>
       <div class="stage-body">
         <div class="start-bar">
+          <a href="#" class="gb-return" id="gbReturnLink" title="Back to the guided builder">&#8592; Guided mode</a>
           <label class="start-field"><span>Start from</span>
             <select id="seqSelect">
               <option value="default">5-Scene Canonical</option>
@@ -3554,6 +3597,19 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
       buildEditsFromTimeline,
       resetToUsecaseDefault,
       resetToShell,
+      /* Guided-Bespoke surface (additive, 2026-06-12): index-based edits +
+         the template list, so the wizard can drive the same timeline state
+         the Advanced view renders. */
+      appendTemplate,
+      replaceAt: (idx, templateId) => {
+        const it = newItem(templateId);
+        if (!it || idx < 0 || idx >= timeline.length) return;
+        timeline.splice(idx, 1, it);
+        selectedUid = it.uid;
+        renderTimeline();
+      },
+      removeAt: (idx) => { const t = timeline[idx]; if (t) removeUid(t.uid); },
+      listTemplates: () => SCENE_LIBRARY.map(s => ({ id: s.id, name: s.name, role: s.role || '', glyph: s.glyph })),
       length: () => timeline.length
     };
 
@@ -3798,6 +3854,320 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
   })();
 
   // ============================================================
+  // Guided Bespoke (additive, 2026-06-12)
+  // ============================================================
+  // The default Bespoke surface: a 4-step wizard (Start → Scenes → Brand →
+  // Generate) that drives the SAME state the Advanced view edits — timeline
+  // via window.__timeline, branding via the real f-* fields, output via the
+  // real #btnGenerate handler. The full timeline/pool shell survives as the
+  // "Advanced timeline" view (tgkBespokeView=advanced; audit deep-links
+  // default to it). Exposes window.__guidedBespoke {apply, setView} which
+  // the mode-switch below calls.
+  (function initGuidedBespoke() {
+    const body = document.getElementById('gbBody');
+    if (!body) return;
+    const VIEW_KEY = 'tgkBespokeView';
+    const params = new URLSearchParams(location.search);
+    const auditLocked = params.has('vertical');
+    const START_OPTS = [
+      { shell: 'default',      label: 'Onboarding',            desc: 'The end-to-end arc — intake, identity, signature, routing, and analysis.' },
+      { shell: 'maintenance',  label: 'Maintenance',           desc: 'An existing relationship changes — beneficiaries, signers, account updates.' },
+      { shell: 'fraud-fabric', label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.' },
+      { shell: 'intake',       label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' },
+      { shell: 'workspaces',   label: 'Workspaces',            desc: 'The persistent, multi-party workspace moment.' },
+      { action: 'vertical',    label: 'A vertical story',      desc: 'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' }
+    ];
+    const state = { step: 1, chooser: null, chooserMode: 'swap' };
+    let active = false, urlView = params.get('view');
+    if (urlView !== 'guided' && urlView !== 'advanced') urlView = null;
+
+    function tl() { return window.__timeline || null; }
+    function el(tag, cls, html) { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function real(id) { return document.getElementById(id); }
+    function setReal(id, val) {
+      const n = real(id); if (!n || val == null) return;
+      n.value = val;
+      n.dispatchEvent(new Event('input', { bubbles: true }));
+      n.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function header(step, q, sub) {
+      const row = el('div', 'gb-headrow');
+      row.appendChild(el('div', 'ootb-eyebrow', 'Bespoke · Guided'));
+      const prog = el('div', 'gb-progress');
+      for (let i = 1; i <= 4; i++) prog.appendChild(el('span', 'gb-dot' + (i <= step ? ' on' : '')));
+      row.appendChild(prog);
+      const adv = el('button', 'gb-advlink', 'Advanced timeline &#8594;');
+      adv.type = 'button';
+      adv.addEventListener('click', () => setView('advanced'));
+      row.appendChild(adv);
+      body.appendChild(row);
+      body.appendChild(el('h2', 'ootb-q', esc(q)));
+      if (sub) body.appendChild(el('p', 'ootb-sub', esc(sub)));
+    }
+    function ctaRow(nextLabel, onNext, backStep) {
+      const row = el('div', 'gb-cta-row');
+      if (onNext) {
+        const nb = el('button', 'ootb-btn', esc(nextLabel)); nb.type = 'button';
+        nb.addEventListener('click', onNext); row.appendChild(nb);
+      }
+      if (backStep) {
+        const bb = el('button', 'ootb-btn ghost', 'Back'); bb.type = 'button';
+        bb.addEventListener('click', () => renderStep(backStep)); row.appendChild(bb);
+      }
+      body.appendChild(row);
+    }
+
+    // ── Step 1: Start ──
+    function renderStart() {
+      header(1, 'How do you want to begin?', 'Pick the story shape. You will tune scenes, brand it, and get a link — one step at a time.');
+      const grid = el('div', 'ootb-grid');
+      START_OPTS.forEach(o => {
+        const c = el('button', 'ootb-card'); c.type = 'button';
+        c.appendChild(el('div', 'ootb-card-label', esc(o.label)));
+        c.appendChild(el('div', 'ootb-card-desc', esc(o.desc)));
+        c.addEventListener('click', () => {
+          if (o.action === 'vertical') return renderVerticalPick();
+          const t = tl(); if (!t) return;
+          const fs = real('f-shell'); if (fs) fs.value = o.shell;
+          const seq = real('seqSelect'); if (seq) seq.value = o.shell;
+          t.resetToShell(o.shell);
+          renderStep(2);
+        });
+        grid.appendChild(c);
+      });
+      body.appendChild(grid);
+    }
+    function renderVerticalPick() {
+      body.innerHTML = '';
+      header(1, 'Which vertical story?', 'Scenes, tenant, brand color, and customer cast come prefilled from the canonical demo.');
+      const ind = real('f-industry');
+      const grid = el('div', 'ootb-grid');
+      Array.from(ind ? ind.options : []).forEach(opt => {
+        if (!opt.value) return;
+        const parts = opt.textContent.split('—');
+        const c = el('button', 'ootb-card'); c.type = 'button';
+        c.appendChild(el('div', 'ootb-card-label', esc(parts[0].trim())));
+        c.appendChild(el('div', 'ootb-card-desc', esc((parts[1] || '').trim())));
+        c.addEventListener('click', () => loadVertical(opt.value, c));
+        grid.appendChild(c);
+      });
+      body.appendChild(grid);
+      const back = el('button', 'ootb-back', 'Back'); back.type = 'button';
+      back.addEventListener('click', () => renderStep(1));
+      body.appendChild(back);
+    }
+    function loadVertical(key, card) {
+      card.style.opacity = '.5';
+      fetch(`/api/verticals/${encodeURIComponent(key)}?usecase=default`, { cache: 'no-cache' })
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then(data => {
+          const meta = data.meta || {};
+          const ind = real('f-industry');
+          if (ind && Array.from(ind.options).some(o => o.value === key)) setReal('f-industry', key);
+          if (meta.tenant) setReal('f-tenant', meta.tenant);
+          if (meta.subtitle) setReal('f-customer', meta.subtitle.replace(/^×\s*/, ''));
+          if (meta.tenantColor && /^#[0-9A-Fa-f]{6}$/.test(meta.tenantColor)) setReal('f-color', meta.tenantColor);
+          const fs = real('f-shell'); if (fs) fs.value = 'default';
+          const t = tl();
+          if (t && Array.isArray(data.scenes)) t.hydrateFromCanonical(data.scenes);
+          renderStep(2);
+        })
+        .catch(() => {
+          card.style.opacity = '';
+          const existing = body.querySelector('.gb-error');
+          if (!existing) body.insertBefore(el('p', 'gb-error', 'Could not load that story here (no backend on this mirror). Pick a story shape instead, or use Out of the Box.'), body.querySelector('.ootb-grid'));
+        });
+    }
+
+    // ── Step 2: Scenes ──
+    function renderScenes() {
+      header(2, 'Tune the scenes', 'Swap or remove — the order stays locked to the story spine. Click Continue when it reads right.');
+      const t = tl();
+      const scenes = t ? t.getScenes() : [];
+      const lib = t ? t.listTemplates() : [];
+      const roleById = Object.fromEntries(lib.map(s => [s.id, s.role]));
+      const rows = el('div', 'gb-rows');
+      scenes.forEach((s, idx) => {
+        const row = el('div', 'gb-row');
+        row.appendChild(el('span', 'gb-row-num', 'Scene ' + (idx + 1)));
+        const meta = el('div', 'gb-row-meta');
+        meta.appendChild(el('div', 'gb-row-name', esc(s.name)));
+        meta.appendChild(el('div', 'gb-row-role', esc(roleById[s.template] || s.tag || '')));
+        row.appendChild(meta);
+        const acts = el('div', 'gb-row-actions');
+        const swap = el('button', 'gb-mini', 'Swap'); swap.type = 'button';
+        swap.addEventListener('click', () => { state.chooser = (state.chooser === idx && state.chooserMode === 'swap') ? null : idx; state.chooserMode = 'swap'; renderStep(2); });
+        acts.appendChild(swap);
+        const rem = el('button', 'gb-mini', 'Remove'); rem.type = 'button';
+        if (scenes.length <= 3) { rem.disabled = true; rem.title = 'A demo needs at least 3 scenes.'; }
+        else rem.addEventListener('click', () => { tl().removeAt(idx); state.chooser = null; renderStep(2); });
+        acts.appendChild(rem);
+        row.appendChild(acts);
+        if (state.chooser === idx && state.chooserMode === 'swap') {
+          const ch = el('div', 'gb-chooser');
+          lib.forEach(opt => {
+            const o = el('button', 'gb-choice' + (opt.id === s.template ? ' is-current' : ''),
+              esc(opt.name) + ' <span class="role">' + esc(opt.role) + (opt.id === s.template ? ' · current' : '') + '</span>');
+            o.type = 'button';
+            if (opt.id !== s.template) o.addEventListener('click', () => { tl().replaceAt(idx, opt.id); state.chooser = null; renderStep(2); });
+            ch.appendChild(o);
+          });
+          row.appendChild(ch);
+        }
+        rows.appendChild(row);
+      });
+      const add = el('button', 'gb-add', state.chooser === 'add' ? 'Pick a scene to add below' : '+ Add a scene'); add.type = 'button';
+      add.addEventListener('click', () => { state.chooser = (state.chooser === 'add') ? null : 'add'; state.chooserMode = 'add'; renderStep(2); });
+      rows.appendChild(add);
+      if (state.chooser === 'add') {
+        const wrap = el('div', 'gb-row'); const ch = el('div', 'gb-chooser');
+        lib.forEach(opt => {
+          const o = el('button', 'gb-choice', esc(opt.name) + ' <span class="role">' + esc(opt.role) + '</span>'); o.type = 'button';
+          o.addEventListener('click', () => { tl().appendTemplate(opt.id); state.chooser = null; renderStep(2); });
+          ch.appendChild(o);
+        });
+        wrap.appendChild(ch); rows.appendChild(wrap);
+      }
+      body.appendChild(rows);
+      ctaRow('Continue to branding', () => renderStep(3), 1);
+    }
+
+    // ── Step 3: Brand ──
+    function field(label, node) { const f = el('div', 'gb-field'); f.appendChild(el('label', 'gb-label', esc(label))); f.appendChild(node); return f; }
+    function renderBrand() {
+      header(3, 'Brand it for the customer', 'Tenant and customer are required. Everything else has sensible defaults.');
+      const grid = el('div', 'gb-fields');
+      const ind = el('select', 'gb-select'); ind.id = 'gb-industry';
+      Array.from(real('f-industry') ? real('f-industry').options : []).forEach(o => ind.appendChild(o.cloneNode(true)));
+      ind.value = real('f-industry') ? real('f-industry').value : '';
+      grid.appendChild(field('Preset cast', ind));
+      const ten = el('input', 'gb-input'); ten.id = 'gb-tenant'; ten.maxLength = 60; ten.placeholder = 'e.g. Highland Bank';
+      ten.value = real('f-tenant') ? real('f-tenant').value : '';
+      grid.appendChild(field('Tenant (the customer’s brand)', ten));
+      const cus = el('input', 'gb-input'); cus.id = 'gb-customer'; cus.maxLength = 120; cus.placeholder = 'e.g. Atlas Mfg — $2.5M facility';
+      cus.value = real('f-customer') ? real('f-customer').value : '';
+      grid.appendChild(field('Customer line (who’s in the story)', cus));
+      const col = el('input', 'gb-input'); col.id = 'gb-color'; col.maxLength = 7; col.placeholder = '#RRGGBB';
+      col.value = real('f-color') ? real('f-color').value : '#4C00FF';
+      grid.appendChild(field('Brand color (#RRGGBB)', col));
+      const sor = el('input', 'gb-input'); sor.id = 'gb-sor'; sor.maxLength = 80; sor.setAttribute('list', 'sor-list'); sor.placeholder = 'e.g. nCino on Salesforce';
+      sor.value = real('f-sor') ? real('f-sor').value : '';
+      grid.appendChild(field('System of record (optional)', sor));
+      const mom = el('input', 'gb-input'); mom.id = 'gb-moment'; mom.maxLength = 160; mom.placeholder = '"$5M household opened in 15 minutes."';
+      mom.value = real('f-moment') ? real('f-moment').value : '';
+      grid.appendChild(field('Signature moment (optional)', mom));
+      body.appendChild(grid);
+      ctaRow('Continue', () => {
+        const t = ten.value.trim(), c = cus.value.trim(), h = col.value.trim();
+        const err = body.querySelector('.gb-error'); if (err) err.remove();
+        if (!t || !c || !/^#[0-9A-Fa-f]{6}$/.test(h)) {
+          body.insertBefore(el('p', 'gb-error', 'Tenant, customer line, and a valid #RRGGBB brand color are required.'), body.querySelector('.gb-cta-row'));
+          return;
+        }
+        setReal('f-industry', ind.value); setReal('f-tenant', t); setReal('f-customer', c);
+        setReal('f-color', h); setReal('f-sor', sor.value.trim()); setReal('f-moment', mom.value.trim());
+        renderStep(4);
+      }, 2);
+    }
+
+    // ── Step 4: Generate ──
+    function renderGenerate() {
+      header(4, 'Generate the demo link', 'One link, ready to present or send. The exact build stays editable in Advanced timeline.');
+      const t = tl();
+      const n = t ? t.length() : 0;
+      const ten = real('f-tenant') ? real('f-tenant').value : '';
+      const cus = real('f-customer') ? real('f-customer').value : '';
+      body.appendChild(el('p', 'gb-summary', esc(`${n} scenes · ${ten} × ${cus}`)));
+      if (n < 3) {
+        body.appendChild(el('p', 'gb-error', `The timeline needs at least 3 scenes (currently ${n}).`));
+        ctaRow('Back to scenes', () => renderStep(2), null);
+        return;
+      }
+      const out = el('div'); body.appendChild(out);
+      ctaRow('Generate URL', function onGen() {
+        const genB = body.querySelector('.gb-cta-row .ootb-btn');
+        const realBtn = real('btnGenerate'); if (!realBtn) return;
+        const urlEl = real('resultUrl'), errEl = real('errorPanel');
+        const baseline = urlEl ? urlEl.textContent : '';
+        out.innerHTML = ''; genB.disabled = true; genB.textContent = 'Generating…';
+        realBtn.click();
+        let ticks = 0;
+        const iv = setInterval(() => {
+          ticks++;
+          if (errEl && errEl.classList.contains('active')) {
+            clearInterval(iv); genB.disabled = false; genB.textContent = 'Generate URL';
+            out.appendChild(el('p', 'gb-error', esc(errEl.textContent || 'Generation failed.')));
+            return;
+          }
+          const url = urlEl ? urlEl.textContent : '';
+          if (url && url !== baseline) {
+            clearInterval(iv); genB.disabled = false; genB.textContent = 'Regenerate';
+            out.appendChild(el('div', 'ootb-url', esc(url)));
+            const acts = el('div', 'ootb-actions');
+            const openB = el('button', 'ootb-btn', 'Open demo'); openB.type = 'button';
+            openB.addEventListener('click', () => window.open(url, '_blank'));
+            const copyB = el('button', 'ootb-btn ghost', 'Copy link'); copyB.type = 'button';
+            copyB.addEventListener('click', () => {
+              (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+                () => { copyB.textContent = 'Copied'; setTimeout(() => { copyB.textContent = 'Copy link'; }, 1600); },
+                () => { window.prompt('Copy the demo link:', url); });
+            });
+            acts.appendChild(openB); acts.appendChild(copyB);
+            out.appendChild(acts);
+            return;
+          }
+          if (ticks > 100) { clearInterval(iv); genB.disabled = false; genB.textContent = 'Generate URL';
+            out.appendChild(el('p', 'gb-error', 'Timed out waiting for the demo URL. Try again, or use Advanced timeline.')); }
+        }, 300);
+      }, 3);
+    }
+
+    function renderStep(step) {
+      state.step = step;
+      if (step !== 2) state.chooser = null;
+      body.innerHTML = '';
+      if (step === 1) renderStart();
+      else if (step === 2) renderScenes();
+      else if (step === 3) renderBrand();
+      else renderGenerate();
+    }
+
+    // ── View wiring ──
+    function storedView() { try { return localStorage.getItem(VIEW_KEY) || 'guided'; } catch (e) { return 'guided'; } }
+    function effectiveView() { if (urlView) return urlView; if (auditLocked) return 'advanced'; return storedView(); }
+    let hydrationWaited = false;
+    function apply(on) {
+      active = !!on;
+      const guided = active && effectiveView() === 'guided';
+      document.body.classList.toggle('is-gb', guided);
+      if (!guided) return;
+      if (auditLocked && !hydrationWaited) {
+        // Audit-mode hydration (initAuditMode) is fetching this vertical;
+        // wait for it, then land on the Scenes step with content in place.
+        hydrationWaited = true;
+        let ticks = 0;
+        const iv = setInterval(() => {
+          ticks++;
+          if (window.__auditContext || ticks > 27) { clearInterval(iv); renderStep(2); }
+        }, 300);
+        renderStep(1);
+        return;
+      }
+      renderStep(state.step || 1);
+    }
+    function setView(v, persist) {
+      urlView = v;
+      if (persist !== false) { try { localStorage.setItem(VIEW_KEY, v); } catch (e) {} }
+      apply(active);
+    }
+    const ret = document.getElementById('gbReturnLink');
+    if (ret) ret.addEventListener('click', (e) => { e.preventDefault(); setView('guided'); });
+    window.__guidedBespoke = { apply, setView };
+  })();
+
+  // ============================================================
   // Out of the Box guided mode (additive, 2026-06-11)
   // ============================================================
   // TurboTax-style 3-question wizard for AEs: Vertical → Sub-vertical →
@@ -3962,7 +4332,7 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
       let uc = q.get('usecase') || 'default';
       if (uc === 'auth-fabric') uc = 'fraud-fabric';
       const custB = el('button', 'ootb-btn ghost', 'Customize in Bespoke'); custB.type = 'button';
-      custB.dataset.target = location.pathname + '?vertical=' + encodeURIComponent(q.get('vertical')) + '&usecase=' + encodeURIComponent(uc);
+      custB.dataset.target = location.pathname + '?vertical=' + encodeURIComponent(q.get('vertical')) + '&usecase=' + encodeURIComponent(uc) + '&view=guided';
       custB.addEventListener('click', () => { location.href = custB.dataset.target; });
       const restartB = el('button', 'ootb-btn ghost', 'Start over'); restartB.type = 'button';
       restartB.addEventListener('click', () => { state.vertical = null; state.sub = null; renderStep(1); });
@@ -3988,6 +4358,10 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
       ootbBtn.setAttribute('aria-selected', String(ootb));
       bespokeBtn.setAttribute('aria-selected', String(!ootb));
       if (persist) { try { localStorage.setItem('tgkBuilderMode', ootb ? 'ootb' : 'bespoke'); } catch (e) {} }
+      /* Bespoke now defaults to the guided wizard; the timeline shell is the
+         Advanced view. __guidedBespoke decides which based on stored view +
+         ?view= param (audit links stay Advanced unless &view=guided). */
+      if (window.__guidedBespoke) window.__guidedBespoke.apply(!ootb);
       if (ootb && !body.childElementCount) renderStep(1);
     }
     ootbBtn.addEventListener('click', () => setMode('ootb', true));
