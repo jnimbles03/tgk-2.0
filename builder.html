@@ -1132,6 +1132,11 @@ body.is-gb #gbPanel{display:block;}
 .gb-return:hover{text-decoration:underline;}
 .gb-rows{max-width:760px;}
 .gb-row{display:flex;align-items:center;flex-wrap:wrap;gap:14px;background:#fff;border:1px solid var(--rule-strong);border-radius:12px;padding:16px 20px;margin-bottom:10px;}
+.gb-row[draggable="true"]{cursor:grab;}
+.gb-row.is-dragging{opacity:.45;}
+.gb-row.is-drop-target{border-color:var(--ds-cobalt);box-shadow:0 0 0 1px var(--ds-cobalt);}
+.gb-handle{display:flex;align-items:center;color:var(--rule-strong);flex-shrink:0;}
+.gb-row:hover .gb-handle{color:var(--muted);}
 .gb-row-num{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--ds-cobalt);text-transform:uppercase;white-space:nowrap;}
 .gb-row-meta{flex:1;min-width:200px;}
 .gb-row-name{font-size:15.5px;font-weight:600;color:var(--text);}
@@ -3609,6 +3614,13 @@ body.is-gb #gbPanel{display:block;}
         renderTimeline();
       },
       removeAt: (idx) => { const t = timeline[idx]; if (t) removeUid(t.uid); },
+      moveTo: (from, to) => {
+        if (from === to || from < 0 || to < 0 || from >= timeline.length || to >= timeline.length) return;
+        const [it] = timeline.splice(from, 1);
+        timeline.splice(to, 0, it);
+        selectedUid = it.uid;
+        renderTimeline();
+      },
       listTemplates: () => SCENE_LIBRARY.map(s => ({ id: s.id, name: s.name, role: s.role || '', glyph: s.glyph })),
       length: () => timeline.length
     };
@@ -3874,8 +3886,25 @@ body.is-gb #gbPanel{display:block;}
       { shell: 'maintenance',  label: 'Maintenance',           desc: 'An existing relationship changes — beneficiaries, signers, account updates.' },
       { shell: 'fraud-fabric', label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.' },
       { shell: 'intake',       label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' },
-      { shell: 'workspaces',   label: 'Workspaces',            desc: 'The persistent, multi-party workspace moment.' },
+      { immersive: 'workspaces', label: 'Workspaces',          desc: 'One immersive screen — the shared multi-party workspace, drill-downs included.' },
+      { immersive: 'headless', label: 'Headless IAM',          desc: 'One immersive screen — the portal this sub-vertical lives in every day, product vignettes behind every drill-down.' },
       { action: 'vertical',    label: 'A vertical story',      desc: 'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' }
+    ];
+    /* Immersive single-screen targets. Headless = the cluster portal pages
+       (a familiar daily-driver UI with IAM vignettes as in-context
+       drilldowns); Workspaces = the synthesized Scene-5 workspace. Both are
+       canonically tenant-branded pages — no timeline or brand steps. */
+    const IMMERSIVE_SUBS = [
+      { key: 'wealth',       label: 'Wealth',            clu: 'fins', hdesc: 'The advisor desktop — identity and agreement drill-downs in context.',          wdesc: 'Hillside × TGK Capital — sub-advisor onboarding workspace.' },
+      { key: 'banking',      label: 'Banking',           clu: 'fins', hdesc: 'Origination and step-up identity inside the bank’s native digital shell.',      wdesc: 'Meridian × TGK Holdings — working-capital facility workspace.' },
+      { key: 'insurance',    label: 'Insurance',         clu: 'fins', hdesc: 'Bind, claim, endorsement — step-up identity inside the carrier portal.',        wdesc: 'Sentinel × Ramirez family — HO3 policy binding workspace.' },
+      { key: 'provider',     label: 'Provider',          clu: 'hls',  hdesc: 'Patient intake and consent inside the EHR’s native UX.',                        wdesc: 'Riverside × Jordan Kim — new-patient onboarding workspace.' },
+      { key: 'payor',        label: 'Payer',             clu: 'hls',  hdesc: 'Member enrollment and plan-change identity inside the payer portal.',           wdesc: 'Unity × Marcus Chen — Silver HMO enrollment workspace.' },
+      { key: 'lifesciences', label: 'Life Sciences',     clu: 'hls',  hdesc: 'Site activation and protocol amendments inside the sponsor’s eTMF.',            wdesc: 'Helix × Austin Research Clinic — site activation workspace.' },
+      { key: 'fedgov',       label: 'Federal',           clu: 'ps',   hdesc: 'Agency-controlled identity and agreements inside the agency portal.',           wdesc: 'DOL × Taylor Cheney — unemployment claim workspace.' },
+      { key: 'slgov',        label: 'State & Local',     clu: 'ps',   hdesc: 'Permit, license, benefits intake inside the agency’s native portal.',           wdesc: 'Springfield × 1420 Oak Street — building permit workspace.' },
+      { key: 'education',    label: 'Education',         clu: 'ps',   hdesc: 'Transcript release, financial aid, FERPA consent inside the student portal.',   wdesc: 'Maple Ridge × Priya Shah — student onboarding workspace.' },
+      { key: 'nonprofit',    label: 'Nonprofit',         clu: 'ps',   hdesc: 'Grantee onboarding and reporting consent inside the funder’s portal.',          wdesc: 'Harbor × Safe Streets — grantee onboarding workspace.' }
     ];
     const state = { step: 1, chooser: null, chooserMode: 'swap' };
     let active = false, urlView = params.get('view');
@@ -3929,6 +3958,7 @@ body.is-gb #gbPanel{display:block;}
         c.appendChild(el('div', 'ootb-card-desc', esc(o.desc)));
         c.addEventListener('click', () => {
           if (o.action === 'vertical') return renderVerticalPick();
+          if (o.immersive) return renderImmersivePick(o.immersive);
           const t = tl(); if (!t) return;
           const fs = real('f-shell'); if (fs) fs.value = o.shell;
           const seq = real('seqSelect'); if (seq) seq.value = o.shell;
@@ -3958,6 +3988,67 @@ body.is-gb #gbPanel{display:block;}
       back.addEventListener('click', () => renderStep(1));
       body.appendChild(back);
     }
+    // ── Immersive single-screen branch (Workspaces / Headless IAM) ──
+    function renderImmersivePick(shape) {
+      body.innerHTML = '';
+      const headless = shape === 'headless';
+      header(2, headless ? 'Whose portal are we standing in?' : 'Whose workspace is it?',
+        headless
+          ? 'One screen, no Docusign chrome — the portal this sub-vertical already lives in, with product vignettes behind every drill-down.'
+          : 'One screen — the shared, persistent workspace where every party and artifact lands.');
+      const grid = el('div', 'ootb-grid');
+      IMMERSIVE_SUBS.forEach(s => {
+        const c = el('button', 'ootb-card'); c.type = 'button';
+        c.appendChild(el('div', 'ootb-card-label', esc(s.label)));
+        c.appendChild(el('div', 'ootb-card-desc', esc(headless ? s.hdesc : s.wdesc)));
+        c.addEventListener('click', () => renderImmersiveLaunch(shape, s));
+        grid.appendChild(c);
+      });
+      body.appendChild(grid);
+      const back = el('button', 'ootb-back', 'Back'); back.type = 'button';
+      back.addEventListener('click', () => renderStep(1));
+      body.appendChild(back);
+    }
+    function renderImmersiveLaunch(shape, s) {
+      const headless = shape === 'headless';
+      const url = headless
+        ? `/headless-iam/${s.clu}.html?vertical=${encodeURIComponent(s.key)}`
+        : `/stories/_shared/story-shell.html?vertical=${encodeURIComponent(s.key)}&usecase=workspaces`;
+      body.innerHTML = '';
+      const row = el('div', 'gb-headrow');
+      row.appendChild(el('div', 'ootb-eyebrow', 'Bespoke · Guided · ' + (headless ? 'Headless IAM' : 'Workspaces')));
+      const prog = el('div', 'gb-progress');
+      for (let i = 1; i <= 4; i++) prog.appendChild(el('span', 'gb-dot on'));
+      row.appendChild(prog);
+      body.appendChild(row);
+      const card = el('div', 'ootb-launch');
+      card.appendChild(el('div', 'ootb-launch-kicker',
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.5L4.8 9 10 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Your immersive demo is ready'));
+      card.appendChild(el('h2', 'ootb-launch-title', esc((headless ? 'Headless IAM — ' : 'Workspaces — ') + s.label)));
+      card.appendChild(el('p', 'ootb-launch-cast', esc(headless ? s.hdesc : s.wdesc)));
+      card.appendChild(el('div', 'ootb-url', esc(location.origin + url)));
+      const acts = el('div', 'ootb-actions');
+      const openB = el('button', 'ootb-btn', 'Open demo'); openB.type = 'button';
+      openB.addEventListener('click', () => window.open(url, '_blank'));
+      const copyB = el('button', 'ootb-btn ghost', 'Copy link'); copyB.type = 'button';
+      copyB.addEventListener('click', () => {
+        const full = location.origin + url;
+        (navigator.clipboard ? navigator.clipboard.writeText(full) : Promise.reject()).then(
+          () => { copyB.textContent = 'Copied'; setTimeout(() => { copyB.textContent = 'Copy link'; }, 1600); },
+          () => { window.prompt('Copy the demo link:', full); });
+      });
+      const pickB = el('button', 'ootb-btn ghost', 'Pick another'); pickB.type = 'button';
+      pickB.addEventListener('click', () => renderImmersivePick(shape));
+      const restartB = el('button', 'ootb-btn ghost', 'Start over'); restartB.type = 'button';
+      restartB.addEventListener('click', () => renderStep(1));
+      acts.appendChild(openB); acts.appendChild(copyB); acts.appendChild(pickB); acts.appendChild(restartB);
+      card.appendChild(acts);
+      card.appendChild(el('p', 'ootb-note', headless
+        ? 'Every drill-down inside the portal opens a product vignette in context — present from this one screen, no timeline needed.'
+        : 'The workspace is the single screen — drill into documents, parties, and the audit trail live.'));
+      body.appendChild(card);
+    }
+
     function loadVertical(key, card) {
       card.style.opacity = '.5';
       fetch(`/api/verticals/${encodeURIComponent(key)}?usecase=default`, { cache: 'no-cache' })
@@ -3982,8 +4073,9 @@ body.is-gb #gbPanel{display:block;}
     }
 
     // ── Step 2: Scenes ──
+    let dragIdx = null;
     function renderScenes() {
-      header(2, 'Tune the scenes', 'Swap or remove — the order stays locked to the story spine. Click Continue when it reads right.');
+      header(2, 'Tune the scenes', 'Drag to reorder. Swap or remove — Continue when it reads right.');
       const t = tl();
       const scenes = t ? t.getScenes() : [];
       const lib = t ? t.listTemplates() : [];
@@ -3991,6 +4083,25 @@ body.is-gb #gbPanel{display:block;}
       const rows = el('div', 'gb-rows');
       scenes.forEach((s, idx) => {
         const row = el('div', 'gb-row');
+        row.draggable = true;
+        row.dataset.idx = idx;
+        row.addEventListener('dragstart', (e) => {
+          dragIdx = idx; row.classList.add('is-dragging');
+          if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(idx)); } catch (_) {} }
+        });
+        row.addEventListener('dragend', () => { dragIdx = null; rows.querySelectorAll('.gb-row').forEach(r => r.classList.remove('is-dragging', 'is-drop-target')); });
+        row.addEventListener('dragover', (e) => { e.preventDefault(); if (dragIdx !== null && dragIdx !== idx) row.classList.add('is-drop-target'); });
+        row.addEventListener('dragleave', () => row.classList.remove('is-drop-target'));
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          if (dragIdx === null || dragIdx === idx) return;
+          tl().moveTo(dragIdx, idx);
+          dragIdx = null; state.chooser = null;
+          renderStep(2);
+        });
+        const handle = el('span', 'gb-handle',
+          '<svg width="10" height="16" viewBox="0 0 10 16" fill="none" aria-hidden="true"><circle cx="2.5" cy="3" r="1.4" fill="currentColor"/><circle cx="7.5" cy="3" r="1.4" fill="currentColor"/><circle cx="2.5" cy="8" r="1.4" fill="currentColor"/><circle cx="7.5" cy="8" r="1.4" fill="currentColor"/><circle cx="2.5" cy="13" r="1.4" fill="currentColor"/><circle cx="7.5" cy="13" r="1.4" fill="currentColor"/></svg>');
+        row.appendChild(handle);
         row.appendChild(el('span', 'gb-row-num', 'Scene ' + (idx + 1)));
         const meta = el('div', 'gb-row-meta');
         meta.appendChild(el('div', 'gb-row-name', esc(s.name)));
