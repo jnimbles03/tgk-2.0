@@ -1148,7 +1148,9 @@ body.is-gb #gbPanel{display:block;}
 .gb-mini[disabled]{opacity:.4;cursor:not-allowed;}
 .gb-add{width:100%;text-align:center;font-family:var(--font);font-size:13px;font-weight:600;color:var(--ds-cobalt);background:none;border:1px dashed var(--rule-strong);border-radius:12px;padding:13px;cursor:pointer;}
 .gb-add:hover{border-color:var(--ds-cobalt);background:rgba(76,0,255,.03);}
-.gb-chooser{flex-basis:100%;border-top:1px dashed var(--rule);margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:2px;}
+.gb-chooser{flex-basis:100%;border-top:1px dashed var(--rule);margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:2px;max-height:320px;overflow-y:auto;}
+.gb-choice-group{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 10px 3px;}
+.gb-choice-group:first-child{padding-top:2px;}
 .gb-choice{display:flex;gap:10px;align-items:baseline;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);background:none;border:none;text-align:left;font-family:var(--font);}
 .gb-choice:hover{background:var(--ds-mist-soft);}
 .gb-choice .role{color:var(--muted);font-size:12px;font-weight:400;}
@@ -3954,8 +3956,7 @@ body.is-gb #gbPanel{display:block;}
     // ── Step 1: Start ──
     function renderStart() {
       header(1, 'How do you want to begin?', 'Pick the story shape. You will tune scenes, brand it, and get a link — one step at a time.');
-      const grid = el('div', 'ootb-grid');
-      START_OPTS.forEach(o => {
+      const startCard = (o) => {
         const c = el('button', 'ootb-card'); c.type = 'button';
         c.appendChild(el('div', 'ootb-card-label', esc(o.label)));
         c.appendChild(el('div', 'ootb-card-desc', esc(o.desc)));
@@ -3968,9 +3969,19 @@ body.is-gb #gbPanel{display:block;}
           t.resetToShell(o.shell);
           renderStep(2);
         });
-        grid.appendChild(c);
+        return c;
+      };
+      [
+        ['Start prefilled — fastest path', START_OPTS.filter(o => o.action === 'vertical')],
+        ['Build a story arc',              START_OPTS.filter(o => o.shell)],
+        ['One immersive screen',           START_OPTS.filter(o => o.immersive)]
+      ].forEach(g => {
+        if (!g[1].length) return;
+        body.appendChild(el('div', 'ootb-group-label', esc(g[0])));
+        const grid = el('div', 'ootb-grid');
+        g[1].forEach(o => grid.appendChild(startCard(o)));
+        body.appendChild(grid);
       });
-      body.appendChild(grid);
     }
     function renderVerticalPick() {
       body.innerHTML = '';
@@ -4015,15 +4026,21 @@ body.is-gb #gbPanel{display:block;}
         headless
           ? 'One screen, no Docusign chrome — the portal this sub-vertical already lives in, with product vignettes behind every drill-down.'
           : 'One screen — the shared, persistent workspace where every party and artifact lands.');
-      const grid = el('div', 'ootb-grid');
-      IMMERSIVE_SUBS.forEach(s => {
-        const c = el('button', 'ootb-card'); c.type = 'button';
-        c.appendChild(el('div', 'ootb-card-label', esc(s.label)));
-        c.appendChild(el('div', 'ootb-card-desc', esc(headless ? s.hdesc : s.wdesc)));
-        c.addEventListener('click', () => renderImmersiveLaunch(shape, s));
-        grid.appendChild(c);
+      const CLU_LABELS = { fins: 'Financial Services', hls: 'Healthcare & Life Sciences', ps: 'Public Sector & Education' };
+      ['fins', 'hls', 'ps'].forEach(clu => {
+        const items = IMMERSIVE_SUBS.filter(s => s.clu === clu);
+        if (!items.length) return;
+        body.appendChild(el('div', 'ootb-group-label', esc(CLU_LABELS[clu])));
+        const grid = el('div', 'ootb-grid');
+        items.forEach(s => {
+          const c = el('button', 'ootb-card'); c.type = 'button';
+          c.appendChild(el('div', 'ootb-card-label', esc(s.label)));
+          c.appendChild(el('div', 'ootb-card-desc', esc(headless ? s.hdesc : s.wdesc)));
+          c.addEventListener('click', () => renderImmersiveLaunch(shape, s));
+          grid.appendChild(c);
+        });
+        body.appendChild(grid);
       });
-      body.appendChild(grid);
       const back = el('button', 'ootb-back', 'Back'); back.type = 'button';
       back.addEventListener('click', () => renderStep(1));
       body.appendChild(back);
@@ -4099,6 +4116,27 @@ body.is-gb #gbPanel{display:block;}
     }
 
     // ── Step 2: Scenes ──
+    // Grouped chooser: 40+ library entries read as three labeled bands
+    // (scenes / product demos / flipbooks) instead of one flat list.
+    function groupedChooser(ch, lib, currentId, onPick) {
+      [
+        ['Scene templates',    s => s.id.indexOf(':') === -1],
+        ['Product demos',      s => s.id.indexOf('demo:') === 0],
+        ['Flipbook vignettes', s => s.id.indexOf('flipbook:') === 0]
+      ].forEach(g => {
+        const items = lib.filter(g[1]);
+        if (!items.length) return;
+        ch.appendChild(el('div', 'gb-choice-group', esc(g[0])));
+        items.forEach(opt => {
+          const cur = opt.id === currentId;
+          const o = el('button', 'gb-choice' + (cur ? ' is-current' : ''),
+            esc(opt.name) + ' <span class="role">' + esc(opt.role) + (cur ? ' · current' : '') + '</span>');
+          o.type = 'button';
+          if (!cur) o.addEventListener('click', () => onPick(opt));
+          ch.appendChild(o);
+        });
+      });
+    }
     let dragIdx = null;
     function renderScenes() {
       header(2, 'Tune the scenes', 'Drag to reorder. Swap or remove — Continue when it reads right.');
@@ -4144,13 +4182,7 @@ body.is-gb #gbPanel{display:block;}
         row.appendChild(acts);
         if (state.chooser === idx && state.chooserMode === 'swap') {
           const ch = el('div', 'gb-chooser');
-          lib.forEach(opt => {
-            const o = el('button', 'gb-choice' + (opt.id === s.template ? ' is-current' : ''),
-              esc(opt.name) + ' <span class="role">' + esc(opt.role) + (opt.id === s.template ? ' · current' : '') + '</span>');
-            o.type = 'button';
-            if (opt.id !== s.template) o.addEventListener('click', () => { tl().replaceAt(idx, opt.id); state.chooser = null; renderStep(2); });
-            ch.appendChild(o);
-          });
+          groupedChooser(ch, lib, s.template, opt => { tl().replaceAt(idx, opt.id); state.chooser = null; renderStep(2); });
           row.appendChild(ch);
         }
         rows.appendChild(row);
@@ -4160,11 +4192,7 @@ body.is-gb #gbPanel{display:block;}
       rows.appendChild(add);
       if (state.chooser === 'add') {
         const wrap = el('div', 'gb-row'); const ch = el('div', 'gb-chooser');
-        lib.forEach(opt => {
-          const o = el('button', 'gb-choice', esc(opt.name) + ' <span class="role">' + esc(opt.role) + '</span>'); o.type = 'button';
-          o.addEventListener('click', () => { tl().appendTemplate(opt.id); state.chooser = null; renderStep(2); });
-          ch.appendChild(o);
-        });
+        groupedChooser(ch, lib, null, opt => { tl().appendTemplate(opt.id); state.chooser = null; renderStep(2); });
         wrap.appendChild(ch); rows.appendChild(wrap);
       }
       body.appendChild(rows);
