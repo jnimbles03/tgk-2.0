@@ -58,6 +58,11 @@
 
   /* ============ Mobile portrait phone frame ============ */
   .phone {
+    /* Scaled down uniformly when the viewport (e.g. a story-shell scene
+       iframe) is shorter than the frame — see the fit-scale script at the
+       bottom of this file. */
+    transform: scale(var(--fit-scale, 1));
+    transform-origin: center;
     width: var(--phone-w);
     height: var(--phone-h);
     background: #fff;
@@ -958,6 +963,19 @@
 
   const initialScene = params.get('scene');
   if (initialScene && /^s[1-5]$/.test(initialScene)) showState(initialScene);
+</script>
+
+<script>
+/* Fit the 384x780 phone inside short viewports (story-shell scene iframes,
+   portal drilldowns) by scaling uniformly — inner layout stays pixel-true. */
+(function () {
+  function fit() {
+    var s = Math.min(1, (window.innerHeight - 32) / 780, (window.innerWidth - 32) / 384);
+    document.documentElement.style.setProperty('--fit-scale', String(Math.max(s, 0.4)));
+  }
+  window.addEventListener('resize', fit);
+  fit();
+})();
 </script>
 
 </body>
