@@ -88,6 +88,19 @@
   .pl-splash-skip{margin-top:24px;background:transparent;border:1px solid rgba(255,255,255,.3);
     color:#cfc7e6;font:inherit;font-size:12px;font-weight:600;padding:7px 16px;border-radius:999px;cursor:pointer}
   .pl-splash-skip:hover{border-color:#fff;color:#fff}
+  /* bridge mode: presenter-paced story stitch between vignettes */
+  .pl-splash-prev{display:none;align-items:center;justify-content:center;gap:7px;font-size:13px;color:#b9b0d6;margin-bottom:16px}
+  .pl-splash-prev b{color:#fff;font-weight:600}
+  .pl-splash-prev svg{width:13px;height:13px;flex:0 0 auto;color:var(--tenant-accent)}
+  .pl-splash-lede{display:none;font-size:15px;line-height:1.6;color:#d9d3ea;max-width:480px;margin:0 auto 28px}
+  .pl-splash-go{display:none;background:var(--tenant-accent);border:1px solid var(--tenant-accent);color:#fff;
+    font:inherit;font-size:13.5px;font-weight:700;padding:11px 28px;border-radius:999px;cursor:pointer}
+  .pl-splash-go:hover{filter:brightness(1.08)}
+  .pl-splash.bridge .pl-splash-prev{display:flex}
+  .pl-splash.bridge .pl-splash-lede{display:block}
+  .pl-splash.bridge .pl-splash-go{display:inline-block}
+  .pl-splash.bridge .pl-splash-title{margin:0 0 16px;font-size:34px}
+  .pl-splash.bridge .pl-splash-bar,.pl-splash.bridge .pl-splash-skip{display:none}
   @media(max-width:880px){ .pl-body{grid-template-columns:1fr} .pl-side{display:none} }
 </style>
 </head>
@@ -106,8 +119,11 @@
     <div class="pl-loading" id="loading">Loading…</div>
     <div class="pl-splash hidden" id="splash"><div class="pl-splash-inner">
       <div class="pl-splash-eyebrow" id="splashEyebrow"></div>
+      <div class="pl-splash-prev" id="splashPrev"></div>
       <h2 class="pl-splash-title" id="splashTitle"></h2>
+      <p class="pl-splash-lede" id="splashLede"></p>
       <div class="pl-splash-bar"><div class="pl-splash-fill" id="splashFill"></div></div>
+      <button class="pl-splash-go" id="splashGo" type="button">Continue</button>
       <button class="pl-splash-skip" id="splashSkip" type="button">Skip</button>
     </div></div>
   </div>
@@ -223,33 +239,55 @@
 
   function escapeHtml(t){ var d = document.createElement('div'); d.textContent = String(t==null?'':t); return d.innerHTML; }
 
-  // ---- auto-advance title card (shown before every step) ------------------
+  // ---- title card / bridge card (shown before every step) -----------------
   // Reuses each scene's own narration as card copy, so it works for every
   // template type (scene / demo: / flipbook:) without a separate blurb map.
+  // Sequential forward moves get a presenter-paced BRIDGE card that stitches
+  // the story (that was X -> up next Y, plus the next scene's lede); first
+  // load and jumps (dots / prev) keep the quick auto-dismissing beat.
   var SPLASH_MS = 1400, splashTimer = null;  // quick beat between slides; raise/lower this one number to taste
+  var CHECK_SVG = '<svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.5L4.8 9 10 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function revealSplash(){
     if (splashTimer){ clearTimeout(splashTimer); splashTimer = null; }
     var sp = $('splash'); if (sp) sp.classList.add('hidden');
   }
-  function showSplash(i){
+  function splashVisible(){
+    var sp = $('splash'); return sp && !sp.classList.contains('hidden');
+  }
+  function firstSentence(html){
+    var t = stripTags(html).trim(); if (!t) return '';
+    var m = t.match(/^[\s\S]{0,220}?[.!?](?=\s|$)/);
+    return (m ? m[0] : t.slice(0, 180)).trim();
+  }
+  function showSplash(i, bridge){
     var sp = $('splash'); if (!sp) return;
     var s = scenes[i] || {};
-    $('splashEyebrow').textContent = 'Up next · Step ' + (i+1) + ' of ' + scenes.length;
+    sp.classList.toggle('bridge', !!bridge);
+    $('splashEyebrow').textContent = (bridge ? '' : 'Up next · ') + 'Step ' + (i+1) + ' of ' + scenes.length;
     $('splashTitle').textContent   = s.headline || s.name || ('Step ' + (i+1));
+    if (bridge) {
+      var prev = scenes[i-1] || {};
+      var prevLabel = prev.headline || prev.name || 'the last step';
+      $('splashPrev').innerHTML = CHECK_SVG + '<span>That was — <b>' + escapeHtml(prevLabel) + '</b></span>';
+      $('splashLede').textContent = firstSentence(s.lede);
+    }
     sp.classList.remove('hidden');
-    var fill = $('splashFill');
-    fill.style.transition = 'none'; fill.style.width = '0%'; void fill.offsetWidth;
-    fill.style.transition = 'width ' + SPLASH_MS + 'ms linear'; fill.style.width = '100%';
-    if (splashTimer) clearTimeout(splashTimer);
-    splashTimer = setTimeout(revealSplash, SPLASH_MS);
+    if (splashTimer){ clearTimeout(splashTimer); splashTimer = null; }
+    if (!bridge) {
+      var fill = $('splashFill');
+      fill.style.transition = 'none'; fill.style.width = '0%'; void fill.offsetWidth;
+      fill.style.transition = 'width ' + SPLASH_MS + 'ms linear'; fill.style.width = '100%';
+      splashTimer = setTimeout(revealSplash, SPLASH_MS);
+    }
   }
 
   function go(i){
     if (i < 0 || i >= scenes.length || i === idx) return;
+    var bridge = (idx >= 0 && i === idx + 1);
     idx = i;
     var s = scenes[i];
     // title card first; the iframe loads behind it
-    showSplash(i);
+    showSplash(i, bridge);
     // stage
     var ld = $('loading'); ld.classList.add('on');
     var fr = $('stage');
@@ -277,8 +315,14 @@
   $('prev').addEventListener('click', function(){ go(idx - 1); });
   $('next').addEventListener('click', function(){ go(idx + 1); });
   $('splashSkip').addEventListener('click', revealSplash);
+  $('splashGo').addEventListener('click', revealSplash);
   document.addEventListener('keydown', function(e){
-    if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1); }
+    if (e.key === 'ArrowRight' || e.key === 'Enter') {
+      // while a bridge card is up, advance dismisses the card, not the scene
+      if (splashVisible()) { e.preventDefault(); revealSplash(); return; }
+      if (e.key === 'Enter') return;
+      e.preventDefault(); go(idx + 1);
+    }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
   });
 
