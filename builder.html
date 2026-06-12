@@ -1167,6 +1167,8 @@ body.is-gb #gbPanel{display:block;}
 .ootb-sub{font-size:14px;color:var(--muted);margin:0 0 24px;max-width:640px;line-height:1.5;}
 .ootb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .ootb-grid.c4{grid-template-columns:repeat(4,1fr);}
+.ootb-group-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;}
+.ootb-grid+.ootb-group-label{margin-top:26px;}
 .ootb-card{text-align:left;font-family:var(--font);background:#fff;border:1px solid var(--rule-strong);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px;}
 .ootb-card:hover{border-color:var(--ds-cobalt);box-shadow:0 2px 16px rgba(76,0,255,.12);transform:translateY(-1px);}
 .ootb-card-label{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.01em;}
@@ -3974,17 +3976,33 @@ body.is-gb #gbPanel{display:block;}
       body.innerHTML = '';
       header(1, 'Which vertical story?', 'Scenes, tenant, brand color, and customer cast come prefilled from the canonical demo.');
       const ind = real('f-industry');
-      const grid = el('div', 'ootb-grid');
-      Array.from(ind ? ind.options : []).forEach(opt => {
-        if (!opt.value) return;
+      const opts = {};
+      Array.from(ind ? ind.options : []).forEach(o => { if (o.value) opts[o.value] = o; });
+      const GROUPS = [
+        ['Financial Services', ['wealth', 'wealth-discovery', 'banking', 'banking-deposits', 'insurance', 'insurance-life', 'insurance-pc']],
+        ['Healthcare & Life Sciences', ['provider', 'provider-roi', 'lifesciences', 'payor']],
+        ['Public Sector & Education', ['fedgov', 'slgov', 'slgov-311', 'slgov-benefits', 'slgov-licensing', 'education', 'nonprofit']]
+      ];
+      const seen = new Set();
+      const card = (opt) => {
         const parts = opt.textContent.split('—');
         const c = el('button', 'ootb-card'); c.type = 'button';
         c.appendChild(el('div', 'ootb-card-label', esc(parts[0].trim())));
         c.appendChild(el('div', 'ootb-card-desc', esc((parts[1] || '').trim())));
         c.addEventListener('click', () => loadVertical(opt.value, c));
-        grid.appendChild(c);
-      });
-      body.appendChild(grid);
+        return c;
+      };
+      const section = (label, keys) => {
+        const present = keys.filter(k => opts[k]);
+        if (!present.length) return;
+        present.forEach(k => seen.add(k));
+        body.appendChild(el('div', 'ootb-group-label', esc(label)));
+        const grid = el('div', 'ootb-grid');
+        present.forEach(k => grid.appendChild(card(opts[k])));
+        body.appendChild(grid);
+      };
+      GROUPS.forEach(g => section(g[0], g[1]));
+      section('More', Object.keys(opts).filter(k => !seen.has(k)));
       const back = el('button', 'ootb-back', 'Back'); back.type = 'button';
       back.addEventListener('click', () => renderStep(1));
       body.appendChild(back);
