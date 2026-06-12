@@ -244,7 +244,7 @@ calibrator can pin shell-level hotspots to elements inside the iframe.
 **Covers:** Contract Hierarchy inside the agreement repository, modeled
 frame-for-frame on the product design export at repo root
 (`Contract Hierarchy - Share - [Navigator] Contract Hierarchy 2025 04.zip`,
-Milestone 1 · CY25.Q4 builder experience). Seven scenes, ~48s loop:
+Milestone 1 · CY25.Q4 builder experience). Seven scenes, ~42s loop:
 
 1. **Party page** — combined agreements list on one party (AI-extracted
    names, parties, types, dates), Hierarchies tab in the page tabs.
@@ -293,8 +293,11 @@ how it hangs together.
 **Adaptation slots:**
 - Add a preset to the `PRESETS` map — party, rows, added set, tree
   (levels + `m1..m5` animation classes), share people, captions.
-- Scene timings live in the `SCENES` array (at/dur over a 48s loop).
-- Cursor choreography per scene in the `PATHS` map (% coordinates).
+- Scene timings live in the `SCENES` array (at/dur over a ~42s loop).
+- Cursor choreography per scene in the `CURSOR` map — steps fire at
+  t seconds into the scene and target CSS selectors resolved at fire
+  time (move duration scales with distance; `dx`/`dy` nudge, `click:1`
+  pulses + presses).
 
 ---
 

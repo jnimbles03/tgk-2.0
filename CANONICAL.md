@@ -618,7 +618,7 @@ JSON references them per-beat as drill-downs or scene replacements.
 | Vignette | File | URL params | First-wired verticals |
 |---|---|---|---|
 | **Connected Forms** (Maestro · Add Connected Forms wizard + App Center · Field Mapping) | `/story-templates/docusign-connected-forms.html` | `?embed=1` (hide chrome) · `?view=maestro\|appcenter` · `?preset=wealth\|wealth-discovery\|insurance\|insurance-life\|insurance-pc\|generic` · `?step=1\|2\|3\|done` | wealth, wealth-discovery, insurance, insurance-life, insurance-pc |
-| **Contract Hierarchy** (agreement repository · party page → Define/Add/Relate wizard → two-level tree → share with access levels; ~48s loop modeled on the CY25.Q4 product design export at repo root) | `/story-templates/docusign-hierarchy.html` | `?embed=1` (flat, no caption) · `?preset=banking-ma\|generic` · `?scene=party\|hier-empty\|wiz-define\|wiz-add\|wiz-relate\|detail\|share` · `?hold=1` (freeze scene) · `?interactive=1` | banking (two-bank M&A lens), procurement; details in `story-templates/REGISTRY.md` §8 |
+| **Contract Hierarchy** (agreement repository · party page → Define/Add/Relate wizard → two-level tree → share with access levels; ~42s loop modeled on the CY25.Q4 product design export at repo root) | `/story-templates/docusign-hierarchy.html` | `?embed=1` (flat, no caption) · `?preset=banking-ma\|generic` · `?scene=party\|hier-empty\|wiz-define\|wiz-add\|wiz-relate\|detail\|share` · `?hold=1` (freeze scene) · `?interactive=1` | banking (two-bank M&A lens), procurement; details in `story-templates/REGISTRY.md` §8 |
 
 ### Connected Forms — calling pattern
 
