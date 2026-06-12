@@ -22,13 +22,13 @@
   and moves in short distance-scaled hops — see the CURSOR map.
 
      0.0s  S1  party        combined agreements list on one party
-     5.5s  S2  hier-empty   Hierarchies tab, coach card + create
-    10.0s  S3  wiz-define   step 1 · Define — title + description
-    15.5s  S4  wiz-add      step 2 · Add — rows join, Primary chip
-    23.0s  S5  wiz-relate   step 3 · Relate — drag-to-nest levels
-    31.0s  S6  detail       saved tree + accepted-suggestion toast
-    36.5s  S7  share        Share these agreements + access levels
-    42.5s  Loop
+     5.0s  S2  hier-empty   Hierarchies tab, coach card + create
+     9.1s  S3  wiz-define   step 1 · Define — title + description
+    14.5s  S4  wiz-add      step 2 · Add — rows join, Primary chip
+    21.3s  S5  wiz-relate   step 3 · Relate — drag-to-nest levels
+    29.15s S6  detail       saved tree + accepted-suggestion toast
+    34.55s S7  share        Share these agreements + access levels
+    40.55s Loop
 
   URL params
     ?preset=banking-ma|generic     data pack (default banking-ma)
@@ -1013,15 +1013,15 @@ function applyPreset(key){
    Scene engine — ~48s loop, lockable
    ============================================================= */
 const SCENES = [
-  { id:"party",      at:0,    dur:5.5 },
-  { id:"hier-empty", at:5.5,  dur:4.5 },
-  { id:"wiz-define", at:10,   dur:5.5 },
-  { id:"wiz-add",    at:15.5, dur:7.5 },
-  { id:"wiz-relate", at:23,   dur:8   },
-  { id:"detail",     at:31,   dur:5.5 },
-  { id:"share",      at:36.5, dur:6   }
+  { id:"party",      at:0,     dur:5.0 },
+  { id:"hier-empty", at:5.0,   dur:4.1 },
+  { id:"wiz-define", at:9.1,   dur:5.4 },
+  { id:"wiz-add",    at:14.5,  dur:6.8 },
+  { id:"wiz-relate", at:21.3,  dur:7.85 },
+  { id:"detail",     at:29.15, dur:5.4 },
+  { id:"share",      at:34.55, dur:6   }
 ];
-const TOTAL = 42.5;
+const TOTAL = 40.55;
 SCENES.forEach(s => { s.el = document.querySelector('[data-scene="' + s.id + '"]'); });
 
 const capEl = document.getElementById("cap-tx");
@@ -1038,22 +1038,24 @@ function setCaption(id){
    Cursor — element-targeted, human-paced.
    Each step fires at t seconds into the scene and resolves its
    selector AT FIRE TIME (so rows that moved or appeared are hit
-   where they actually are). Moves are short hops: duration scales
-   with distance (240–620ms), fast-out/soft-landing easing with a
-   slight overshoot — the cursor is parked between actions, like a
-   real hand. click:1 pulses the ring + presses the pointer.
+   where they actually are). Moves are quick hops (170–440ms,
+   distance-scaled, ±6% jitter) along a bowed arc with a
+   minimal-jerk velocity profile (Flash–Hogan — how real hands
+   move), tiny off-axis overshoot, sub-pixel tremor mid-flight.
+   Move steps fire just-in-time so the cursor lands ~0.2s before
+   the click. click:1 pulses the ring + presses the pointer.
    ============================================================= */
 const cursor = document.getElementById("cursor");
 const CURSOR = {
   "party": [
     {t:0.8,  sel:"#s1-rows .trow:nth-child(1) .nm"},
     {t:2.2,  sel:"#s1-rows .trow:nth-child(3) .nm"},
-    {t:3.9,  sel:"#s1-hier-tab"},
+    {t:4.05, sel:"#s1-hier-tab"},
     {t:4.5,  sel:"#s1-hier-tab", click:1}
   ],
   "hier-empty": [
     {t:0.8,  sel:".s2 .empty .btn-vio"},
-    {t:2.3,  sel:".s2 .coach .cbtn"},
+    {t:3.1,  sel:".s2 .coach .cbtn"},
     {t:3.6,  sel:".s2 .coach .cbtn", click:1}
   ],
   "wiz-define": [
@@ -1061,7 +1063,7 @@ const CURSOR = {
     {t:0.85, click:1},
     {t:2.1,  sel:".s3 .fld-desc .in", dx:-150},
     {t:2.35, click:1},
-    {t:4.4,  sel:"#s3-next"},
+    {t:4.5,  sel:"#s3-next"},
     {t:4.9,  sel:"#s3-next", click:1}
   ],
   "wiz-add": [
@@ -1069,8 +1071,8 @@ const CURSOR = {
     {t:1.45, click:1},
     {t:2.9,  sel:"#s4-rows .trow.src2 .btn-add"},
     {t:3.25, click:1},
-    {t:5.7,  sel:"#s4-next"},
-    {t:6.2,  sel:"#s4-next", click:1}
+    {t:6.0,  sel:"#s4-next"},
+    {t:6.45, sel:"#s4-next", click:1}
   ],
   "wiz-relate": [
     {t:0.9,  sel:"#s5-tree .rrow.m1 .grip"},
@@ -1078,7 +1080,7 @@ const CURSOR = {
     {t:1.9,  sel:"#s5-tree .rrow.m1 .grip", dx:26, dur:560},
     {t:2.7,  sel:"#s5-tree .rrow.m2 .rc-tail svg"},
     {t:3.05, click:1},
-    {t:4.3,  sel:"#s5-kmenu .mi.hl"},
+    {t:4.4,  sel:"#s5-kmenu .mi.hl"},
     {t:4.75, click:1},
     {t:6.9,  sel:"#s5-create"},
     {t:7.4,  sel:"#s5-create", click:1}
@@ -1100,20 +1102,38 @@ const CURSOR = {
     {t:5.75, sel:".s7 .btn-purple", click:1}
   ]
 };
-let cursorAnim = null, cursorTimers = [], curPos = { x: 480, y: 300 };
+let cursorAnim = null, cursorTimers = [], curPos = { x: 480, y: 300 }, cursorBow = 1;
 function moveCursorTo(x, y, durOverride){
-  const dx = x - curPos.x, dy = y - curPos.y;
+  const x0 = curPos.x, y0 = curPos.y;
+  const dx = x - x0, dy = y - y0;
   const dist = Math.hypot(dx, dy);
   if (dist < 2) return;
-  const dur = durOverride || Math.max(240, Math.min(620, dist * 1.05));
-  const over = Math.min(8, dist * 0.04); /* slight overshoot, then settle */
-  const ux = dx / dist, uy = dy / dist;
+  const dur = (durOverride || Math.max(170, Math.min(440, 120 + dist * 0.55)))
+              * (0.94 + Math.random() * 0.12);
+  const ux = dx / dist, uy = dy / dist, px = -uy, py = ux;
+  /* bowed arc — side alternates per hop, magnitude varies */
+  cursorBow = -cursorBow;
+  const bow = Math.min(20, dist * 0.085) * cursorBow * (0.55 + Math.random() * 0.9);
+  const cx = x0 + dx * (0.42 + Math.random() * 0.16) + px * bow;
+  const cy = y0 + dy * (0.42 + Math.random() * 0.16) + py * bow;
+  /* small overshoot, slightly off the travel axis */
+  const over = Math.min(6, dist * 0.03);
+  const oj = (Math.random() - 0.5) * 1.4;
+  const ox = x + (ux * Math.cos(oj) - uy * Math.sin(oj)) * over;
+  const oy = y + (ux * Math.sin(oj) + uy * Math.cos(oj)) * over;
+  /* sample a quadratic bezier with minimal-jerk progress baked in */
+  const frames = [], N = 11;
+  for (let i = 0; i <= N; i++){
+    const t = i / N;
+    const e = t * t * t * (10 - 15 * t + 6 * t * t); /* minimal jerk */
+    const ix = (1-e)*(1-e)*x0 + 2*(1-e)*e*cx + e*e*ox;
+    const iy = (1-e)*(1-e)*y0 + 2*(1-e)*e*cy + e*e*oy;
+    const wob = (i > 1 && i < N - 1) ? Math.sin(t * 9.4) * 0.6 : 0; /* tremor */
+    frames.push({ left: (ix + px * wob) + "px", top: (iy + py * wob) + "px", offset: t * 0.86 });
+  }
+  frames.push({ left: x + "px", top: y + "px", offset: 1, easing: "ease-out" });
   if (cursorAnim) { cursorAnim.cancel(); }
-  cursorAnim = cursor.animate([
-    { left: curPos.x + "px", top: curPos.y + "px", offset: 0, easing: "cubic-bezier(.3,.62,.34,1)" },
-    { left: (x + ux * over) + "px", top: (y + uy * over) + "px", offset: .82, easing: "ease-out" },
-    { left: x + "px", top: y + "px", offset: 1 }
-  ], { duration: dur, fill: "forwards" });
+  cursorAnim = cursor.animate(frames, { duration: dur, fill: "forwards" });
   curPos = { x, y };
 }
 function runCursor(scene){
