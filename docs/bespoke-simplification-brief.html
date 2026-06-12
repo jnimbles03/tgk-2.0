@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bespoke Mode, Made Safe — Research Brief</title>
+  <style>
+    :root {
+      --ds-cobalt: #4C00FF;
+      --ds-deep-violet: #26065D;
+      --ds-ecru: #F8F3F0;
+      --ds-mist: #CBC2FF;
+      --ds-inkwell: #130032;
+      --ds-poppy: #FF5252;
+      --ds-mint: #3FDA99;
+      --rule: rgba(19,0,50,.12);
+      --muted: rgba(19,0,50,.58);
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--ds-ecru); color: var(--ds-inkwell); line-height: 1.65;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 56px 32px 120px; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ds-cobalt); margin-bottom: 14px; }
+    h1 { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 10px; }
+    .standfirst { font-size: 16px; color: var(--muted); max-width: 640px; margin-bottom: 8px; }
+    .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 48px; }
+    h2 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; margin: 52px 0 14px; padding-top: 28px; border-top: 1px solid var(--rule); }
+    h3 { font-size: 15px; font-weight: 700; margin: 26px 0 6px; }
+    p { font-size: 14.5px; margin-bottom: 14px; max-width: 720px; }
+    a { color: var(--ds-cobalt); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0 22px; background: #fff; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+    th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--rule); background: #fff; font-weight: 600; }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .pill { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .04em; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+    .pill.low { background: #E2F5EC; color: #1A8E5C; }
+    .pill.med { background: #FDF2DC; color: #9A6B12; }
+    .pill.high { background: #FDE4E4; color: #B23B3B; }
+    .pill.impact { background: var(--ds-mist); color: var(--ds-deep-violet); }
+    .rec { background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 22px 24px 18px; margin: 16px 0; }
+    .rec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .rec-num { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ds-cobalt); }
+    .rec-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+    .rec p { font-size: 13.5px; margin-bottom: 10px; }
+    .rec .reuses { font-size: 12.5px; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; margin-top: 4px; }
+    .rec .reuses code { font-family: var(--mono); font-size: 11px; background: var(--ds-ecru); padding: 1px 5px; border-radius: 4px; }
+    code { font-family: var(--mono); font-size: 12px; background: rgba(19,0,50,.05); padding: 1px 5px; border-radius: 4px; }
+    .callout { background: var(--ds-deep-violet); color: #fff; border-radius: 12px; padding: 22px 26px; margin: 24px 0; }
+    .callout p { color: rgba(255,255,255,.92); margin-bottom: 0; font-size: 14.5px; }
+    .callout .kicker { color: var(--ds-mist); margin-bottom: 8px; }
+    ol.seq { margin: 14px 0 20px 20px; font-size: 14px; max-width: 700px; }
+    ol.seq li { margin-bottom: 10px; }
+    .src { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; max-width: 760px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">TGK 2.0 · Research Brief · Internal</div>
+  <h1>Bespoke mode, made safe</h1>
+  <p class="standfirst">Out of the Box now protects AEs with a three-question guided path. This brief covers the second half of the ask: how to make the iMovie-style Bespoke builder easy enough that an AE can assemble and pitch a custom demo without getting into trouble.</p>
+  <div class="meta">2026-06-11 · Prepared for Jimmy · Companion to the Out of the Box mode shipped in builder.html</div>
+
+  <h2>The problem, precisely</h2>
+  <p>A 30–45 year-old SaaS AE can absolutely narrate a story over a staged, animated demo. What they cannot reliably do is <em>compose</em> one from raw parts: pick 5 coherent scenes from a pool of 13+, order them into an arc, name the tenant, pick a brand color, and know what to say on every beat. The risk isn't capability — it's that free composition has too many ways to produce something incoherent, off-brand, or story-broken in front of a customer.</p>
+  <p>The market has converged on a consistent answer, and it's the same answer iMovie Trailers shipped in 2010: <strong>don't reduce the power, reduce the degrees of freedom.</strong></p>
+
+  <h2>What the market does</h2>
+  <p>Six patterns recur across the demo-platform category (Storylane, Walnut, Reprise, Consensus, Demostack, Navattic, Supademo) and adjacent guided-creation tools:</p>
+  <table>
+    <tr><th>Pattern</th><th>Who does it</th><th>The move</th></tr>
+    <tr><td><strong>Template-first, never blank</strong></td><td>Reprise, Guideflow, iMovie</td><td>Creation always starts from a vetted template; "blank canvas" isn't an entry point. Reps personalize, they don't originate.</td></tr>
+    <tr><td><strong>Fixed storyboard, swappable slots</strong></td><td>iMovie Trailers</td><td>The arc is locked (the trailer's beats); the user only fills placeholders that say what belongs there ("action shot," "closeup"). Duration, transitions, and music are automatic.</td></tr>
+    <tr><td><strong>Token personalization</strong></td><td>Walnut, Demostack, Trupeer</td><td>Logo, prospect name, colors, and data are variables swapped across the whole demo in one action — a brand kit, not per-screen edits.</td></tr>
+    <tr><td><strong>Vetted library + governance</strong></td><td>Consensus, Guideflow, Demostack</td><td>Reps assemble from a curated library; approval workflows gate what becomes customer-facing. Without governance, "demo libraries drift" — one-off versions, stale messaging.</td></tr>
+    <tr><td><strong>Presenter mode with talk track</strong></td><td>Storylane, Demostack</td><td>Live-demo view pairs each step with talking points and navigation guardrails so the rep "stays in control without going off-script."</td></tr>
+    <tr><td><strong>AI assembly within boundaries</strong></td><td>Walnut, Demostack, Supademo</td><td>AI drafts the personalized demo (by industry, persona, use case) but only inside approved messaging and visual standards; the rep reviews a draft, not a blank page.</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="kicker">The unfair advantage</div>
+    <p>Every one of these patterns has a half-built counterpart already in this repo. The recommendations below are mostly <em>wiring</em>, not new construction — the lego thesis (blocks × verticals, content/theme split) is exactly the architecture these products charge per-seat for.</p>
+  </div>
+
+  <h2>What TGK already has on the shelf</h2>
+  <table>
+    <tr><th>Market pattern</th><th>Existing TGK asset</th></tr>
+    <tr><td>Template-first</td><td>OOTB wizard map (32 vetted launch URLs); builder audit mode already hydrates a timeline from <code>?vertical=&lt;key&gt;&amp;usecase=&lt;x&gt;</code></td></tr>
+    <tr><td>Fixed storyboard</td><td>The canonical 5-scene spine; <code>USECASE_SCENE_KEYS</code> scene-slot sets; demo-stage primitive with beat-snap scrubbing and a virtual clock</td></tr>
+    <tr><td>Token personalization</td><td>Stage 2 "Brand the demo" (tenant, customer, color, logos, SoR, moment line); studio pipeline's <code>content.json</code> / <code>theme.json</code> split</td></tr>
+    <tr><td>Vetted library</td><td><code>demos/</code> catalog via <code>builder/lib/demo-catalog.js</code>; headless <code>/demos</code> API; audit queue (<code>audit.html</code> → Replit DB → <code>/admin/audit</code>)</td></tr>
+    <tr><td>Talk track</td><td>Every beat of every vertical already has an authored narration lede — tightened in the 2026-05-06 sweep. The talk track is <em>written</em>; it just isn't surfaced to the presenter.</td></tr>
+    <tr><td>AI assembly</td><td>Studio pipeline (decode → triage → classify → match → assemble) wired to Gemini with a fake-mode fallback; match + assemble already embed <code>demos/</code> blocks via engine override URLs</td></tr>
+  </table>
+
+  <h2>Recommendations, ranked</h2>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R1</span><span class="rec-title">Talk-track presenter view</span><span class="pill low">Low effort</span><span class="pill impact">Highest impact</span></div>
+    <p>A presenter strip (or second-window view) that shows the current beat's narration lede plus a one-line "why this matters" as the AE scrubs. The AE's job collapses from "compose and narrate" to "advance and read ahead." This is the single biggest de-risking move because it fixes the live-pitch moment, which is where trouble actually surfaces.</p>
+    <p class="reuses">Reuses: authored beat ledes in the shell's VERTICALS map · demo-stage virtual clock + beat-snap keyboard scrubbing. Net-new: one overlay panel.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R2</span><span class="rec-title">Template-first Bespoke (kill the blank canvas)</span><span class="pill low">Low effort</span><span class="pill impact">High impact</span></div>
+    <p>Entering Bespoke should open a "start from…" sheet: the same 3-question OOTB picker, but landing in the editable timeline instead of the launch card. Free-build from empty remains available behind a "start empty" link for Steven/Jesse-class users. Reps personalize a working demo; they never originate from zero.</p>
+    <p class="reuses">Reuses: the OOTB map just shipped · existing audit-mode hydration (<code>?vertical=&amp;usecase=</code>). Net-new: one handoff button ("Customize in Bespoke") on the OOTB launch card.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R3</span><span class="rec-title">Storyboard slots instead of free timeline</span><span class="pill med">Medium effort</span><span class="pill impact">High impact</span></div>
+    <p>The iMovie move, and the UX realization of the lego thesis. For AEs, replace drag-anything-anywhere with five fixed slots labeled by narrative function (Hook · Identity at the door · The work · The signature moment · The workspace). Each slot offers only the catalog blocks valid for that slot × the chosen vertical. Order is not editable; content within a slot is. Power users keep the free timeline behind the same "advanced" flag as R2.</p>
+    <p class="reuses">Reuses: 5-scene spine · <code>USECASE_SCENE_KEYS</code> slot semantics · <code>demo-catalog.js</code> (needs a <code>slot</code> + <code>vertical</code> tag per block — the per-vertical-block-files → one-block-plus-skin gap is the same work).</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R4</span><span class="rec-title">Timeline lint (guardrails as validation)</span><span class="pill low">Low effort</span><span class="pill impact">Medium impact</span></div>
+    <p>Whatever the AE assembles, lint it before Generate URL: must end in an executed agreement or Workspace moment; an identity-verification scene can't dangle without a downstream action; warn when scene count exceeds the spine. Friendly one-line fixes, not blocks. This also closes a known thesis gap: a lint rule "fraud-fabric story should surface the Certificate of Completion" forces the CoC artifact into view.</p>
+    <p class="reuses">Reuses: timeline state in the builder store. Net-new: ~a dozen rules and a message strip.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R5</span><span class="rec-title">Brand packs + one-touch token sweep</span><span class="pill low">Low–medium effort</span><span class="pill impact">Medium impact</span></div>
+    <p>Stage 2 already has the right fields; the friction is filling them credibly. Ship named packs per sub-vertical (tenant, palette, SoR, customer line — e.g. "Cedar Federal · nCino" or "Sentinel · Guidewire") so branding is one click, and apply the swap across every scene at once. Optional later: paste a customer URL and prefill name + palette server-side.</p>
+    <p class="reuses">Reuses: stage-2 fields + scaffold defaults + SoR datalist · SoR badge treatment (Guidewire/nCino) · <code>theme.json</code> split. Net-new: a packs array.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R6</span><span class="rec-title">Vetted team library with a promotion loop</span><span class="pill med">Medium effort</span><span class="pill impact">Medium–high impact</span></div>
+    <p>Saved bespoke builds (already persisted via the builder store / <code>/demos</code> API) get a team library view: AEs browse and remix each other's demos rather than raw blocks. A "vetted" badge is granted through the existing audit queue — the same submit → review → apply loop <code>audit.html</code> already runs for content edits. This is the governance answer to demo drift, and it compounds: every good bespoke demo becomes tomorrow's template.</p>
+    <p class="reuses">Reuses: <code>/demos</code> API (GET/POST live; PATCH/DELETE planned) · audit queue + <code>/admin/audit</code> review surface · custom-player share links.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><span class="rec-num">R7</span><span class="rec-title">"Describe the customer" AI draft</span><span class="pill high">Higher effort</span><span class="pill impact">High ceiling</span></div>
+    <p>A textarea in Bespoke: paste discovery notes or a customer one-liner; classify → match → assemble drafts a timeline from catalog blocks, pre-branded via R5, landing in the slot view (R3) for review. This is Walnut's "AI personalization within approved boundaries" — and the boundary system (canonical blocks, lint, vetted library) is exactly what R1–R6 build. Sequence it last so the AI composes inside guardrails rather than around them.</p>
+    <p class="reuses">Reuses: studio pipeline stages + verbatim prompts (<code>builder/prompts/v1/</code>) · Gemini wiring + fake mode · <code>/demos</code> API for persistence. Net-new: one prompt + one endpoint + glue.</p>
+  </div>
+
+  <h2>Suggested sequence</h2>
+  <ol class="seq">
+    <li><strong>Now (days):</strong> R2 template-first handoff button, R1 presenter talk-track strip, R4 lint rules. Together these make today's Bespoke pitch-safe without touching the timeline mechanics.</li>
+    <li><strong>Next (1–2 weeks):</strong> R5 brand packs, then R3 storyboard slots — R3 is the structural change, and it's also the forcing function to finish the block-tagging work the lego thesis already calls for.</li>
+    <li><strong>Later:</strong> R6 library + promotion loop, then R7 AI drafting on top of everything.</li>
+  </ol>
+  <p>A useful test for every change: <em>an AE should never face a decision the catalog could have made for them, and never present a screen nobody vetted.</em> OOTB satisfies that today; R1–R7 extend the same property into Bespoke.</p>
+
+  <h2>Sources</h2>
+  <p class="src"><a href="https://www.storylane.io/">Storylane — interactive product demo software</a> · presenter mode, personalized hubs</p>
+  <p class="src"><a href="https://www.walnut.io/blog/product-demos/how-ai-powered-demo-personalization-is-transforming-b2b-sales-conversions/">Walnut — AI-powered demo personalization</a> · AI within approved messaging boundaries</p>
+  <p class="src"><a href="https://www.reprise.com/resources/blog/demo-automation">Reprise — demo automation</a> · shared demo templates, leave-behinds</p>
+  <p class="src"><a href="https://goconsensus.com/blog/best-demo-automation-software-tools">Consensus — demo automation tools</a> · demo library + DemoBoards tracking</p>
+  <p class="src"><a href="https://www.guideflow.com/blog/sales-demo-library-features">Guideflow — sales demo library features</a> · governance, approval workflows, drift</p>
+  <p class="src"><a href="https://www.demostack.com/post/ai-sales-tools">Demostack — AI sales tools</a> · persona/industry demo libraries, playbooks with talking points + navigation guardrails</p>
+  <p class="src"><a href="https://support.apple.com/guide/imovie-iphone/create-a-storyboard-project-knad42dc8b8/ios">Apple — iMovie storyboard projects</a> · fixed shot lists with placeholder semantics, automatic duration/transitions/music</p>
+  <p class="src"><a href="https://learninginhand.com/blog/2014/8/6/plan-a-better-imovie-trailer-with-these-pdfs">Learning in Hand — planning iMovie trailers</a> · the constraint/creativity tension in template design</p>
+
+</div>
+</body>
+</html>
