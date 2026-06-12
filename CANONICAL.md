@@ -495,6 +495,17 @@ the destination of Scene 3 drill-downs?
 
 In dependency order. Don't skip ahead — each step de-risks the next.
 
+### P-new — Document Intelligence story (added 2026-06-11)
+
+The builder's new **Out of the Box guided mode** (`builder.html`, mode
+toggle in the topbar; `?mode=ootb` deep-link) offers a 4th archetype,
+**Document Intelligence**, currently wired to `?usecase=intake` as a
+stand-in. Per Jimmy: build a dedicated Navigator / agreement-AI story
+(extraction, obligations, repository intelligence) and swap the
+`docintel` URLs in builder.html's `OOTB_MAP` when it lands. Agentic
+source material: `story-templates/docusign-agents.html` + the 4
+"Docusign Agentic Experiences" component demos.
+
 ### ~~P0 — lock the canonical shape in docs~~ ✓ Done 2026-04-26
 
 1. ~~Rewrite `VERTICAL_PORTALS.md` "Story shells on disk" + "Authoring order".~~ ✓

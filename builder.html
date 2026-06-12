@@ -1101,6 +1101,41 @@
 .fb-badge.has{background:#E2F5EC;color:#1A8E5C;}
 .fb-badge.no{background:#FDF2DC;color:#9A6B12;}
 </style>
+<style id="ootb-css">
+/* ── Out of the Box guided mode (additive, 2026-06-11) ──
+   Everything namespaced .ootb-* / .mode-switch*. Bespoke mode is the
+   existing builder untouched; body.is-ootb hides the bespoke chrome
+   and shows the guided wizard panel instead. */
+.mode-switch{display:flex;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:2px;gap:2px;}
+.mode-switch-btn{font-family:var(--font);font-size:11.5px;font-weight:600;letter-spacing:.02em;color:rgba(203,194,255,.65);background:none;border:none;border-radius:999px;padding:4px 12px;cursor:pointer;transition:color .15s,background .15s;}
+.mode-switch-btn:hover{color:var(--ds-mist);}
+.mode-switch-btn.is-active{background:var(--ds-cobalt);color:#fff;}
+body.is-ootb .sidebar{display:none;}
+body.is-ootb .stage-panel{display:none !important;}
+.ootb-panel{display:none;}
+body.is-ootb .ootb-panel{display:block;max-width:840px;margin:0 auto;padding:46px 28px 90px;width:100%;}
+.ootb-eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ds-cobalt);margin-bottom:12px;}
+.ootb-q{font-family:var(--font);font-size:27px;font-weight:700;color:var(--text);letter-spacing:-.015em;margin:0 0 8px;}
+.ootb-sub{font-size:13.5px;color:var(--muted);margin:0 0 28px;max-width:580px;line-height:1.55;}
+.ootb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px;}
+.ootb-card{text-align:left;font-family:var(--font);background:#fff;border:1px solid var(--rule-strong);border-radius:12px;padding:18px 18px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;display:flex;flex-direction:column;gap:6px;}
+.ootb-card:hover{border-color:var(--ds-cobalt);transform:translateY(-1px);box-shadow:0 6px 18px rgba(19,0,50,.08);}
+.ootb-card-label{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em;}
+.ootb-card-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.ootb-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--ds-cobalt);background:none;border:none;padding:0;margin:30px 0 0;cursor:pointer;}
+.ootb-back:hover{text-decoration:underline;}
+.ootb-launch{background:#fff;border:1px solid var(--rule-strong);border-radius:14px;padding:28px;}
+.ootb-launch-kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ds-mint);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.ootb-launch-title{font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:0 0 4px;}
+.ootb-launch-cast{font-size:13px;color:var(--muted);margin:0 0 16px;line-height:1.5;}
+.ootb-url{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--rule);border-radius:7px;padding:9px 12px;word-break:break-all;line-height:1.5;}
+.ootb-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.ootb-btn{font-family:var(--font);font-size:12.5px;font-weight:600;padding:9px 18px;border-radius:8px;border:1px solid var(--ds-cobalt);background:var(--ds-cobalt);color:#fff;cursor:pointer;transition:opacity .15s;}
+.ootb-btn:hover{opacity:.88;}
+.ootb-btn.ghost{background:#fff;color:var(--ds-cobalt);}
+.ootb-btn.ghost:hover{background:var(--ds-mist-soft);opacity:1;}
+.ootb-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;}
+</style>
 </head>
 <body>
 
@@ -1114,6 +1149,10 @@
   </a>
   <div class="topbar-sep"></div>
   <span class="topbar-badge">Demo Builder</span>
+  <div class="mode-switch" id="modeSwitch" role="tablist" aria-label="Builder mode">
+    <button class="mode-switch-btn" type="button" id="modeOotb" role="tab" aria-selected="false">Out of the Box</button>
+    <button class="mode-switch-btn is-active" type="button" id="modeBespoke" role="tab" aria-selected="true">Bespoke</button>
+  </div>
   <div class="topbar-spacer"></div>
   <a class="topbar-link" href="/">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1170,6 +1209,11 @@
 
   <!-- ── MAIN PANEL ── -->
   <main class="main">
+
+    <!-- ══ OUT OF THE BOX: guided wizard (visible only with body.is-ootb) ══ -->
+    <div class="ootb-panel" id="ootbPanel" role="region" aria-label="Out of the Box guided demo selection">
+      <div id="ootbBody"></div>
+    </div>
 
     <!-- ══ STAGE 2: BRAND ══ -->
     <div class="stage-panel" id="stage2">
@@ -3744,6 +3788,198 @@
       } catch (e) { showResult({ ok: false, message: `Network error: ${e.message}` }); }
       finally { btn.disabled = false; btn.textContent = origText; }
     });
+  })();
+
+  // ============================================================
+  // Out of the Box guided mode (additive, 2026-06-11)
+  // ============================================================
+  // TurboTax-style 3-question wizard for AEs: Vertical → Sub-vertical →
+  // Demo archetype → launch card. Entirely client-side (static map below,
+  // mirrored from picker.html's thinned canonical catalog +
+  // _audits/sub-vertical-mapping.md) so it works on the GitHub Pages
+  // mirror with no backend. Bespoke mode = the existing builder, untouched.
+  //
+  // NOTE: "Document Intelligence" currently maps to ?usecase=intake
+  // (webform + document intake). A dedicated Navigator / agreement-AI
+  // story is on the build queue — see CANONICAL.md punch list. Swap the
+  // docintel URLs here when that lands.
+  (function initOotbMode() {
+    const SHELL = '/stories/_shared/story-shell.html';
+    const OOTB_MAP = [
+      { key: 'fins', label: 'Financial Services', desc: 'Banking and credit unions, insurance carriers, wealth and asset management.',
+        subs: [
+          { key: 'banking', label: 'Banking / Credit Union', desc: 'Commercial lending, deposits, consumer accounts.',
+            demos: {
+              full:      { url: SHELL + '?vertical=banking', title: 'Commercial Lending — Working Capital Facility', cast: 'Meridian × Atlas Manufacturing — $2.5M facility origination' },
+              maintenance:{ url: SHELL + '?vertical=banking-deposits&usecase=maintenance', title: 'Account Maintenance', cast: 'Cedar Federal × Williams Household — joint-account beneficiary update' },
+              fraud:     { url: SHELL + '?vertical=banking&usecase=auth-fabric', title: 'Commercial Fraud / Risk Management', cast: 'Meridian × Atlas Manufacturing — $850k working-capital draw · identity verification' },
+              docintel:  { url: SHELL + '?vertical=banking&usecase=intake', title: 'Document Intelligence — Credit Facility Intake', cast: 'Meridian × TGK Holdings — credit facility origination from intake webform' } } },
+          { key: 'insurance', label: 'Insurance', desc: 'P&C and Commercial — binding, claims, endorsements.',
+            demos: {
+              full:      { url: SHELL + '?vertical=insurance', title: 'Homeowners Insurance Policy Binding', cast: 'Sentinel × Ramirez Family — HO3 binder' },
+              maintenance:{ url: SHELL + '?vertical=insurance-life&usecase=maintenance', title: 'Life Claims Account Maintenance', cast: 'Beacon Mutual × Whitfield Family — contingent beneficiary update' },
+              fraud:     { url: SHELL + '?vertical=insurance-pc&usecase=auth-fabric', title: 'P&C Fraud / Risk Management', cast: 'Northgate Mutual × Patel Logistics — supplemental damage evidence' },
+              docintel:  { url: SHELL + '?vertical=insurance&usecase=intake', title: 'Document Intelligence — Binder Intake', cast: 'Sentinel × Ramirez Family — HO3 binder origination from intake webform' } } },
+          { key: 'wealth', label: 'Wealth', desc: 'Asset management, planning, brokerage, life/annuity.',
+            demos: {
+              full:      { url: SHELL + '?vertical=wealth', title: 'Wealth Management Onboarding', cast: 'Hillside × Aster Capital — institutional new-client onboarding' },
+              maintenance:{ url: SHELL + '?vertical=wealth&usecase=maintenance', title: 'Account Maintenance', cast: 'Hillside × Aster Capital — authorized-signer roster update' },
+              fraud:     { url: SHELL + '?vertical=wealth&usecase=auth-fabric', title: 'Fraud / Risk Management', cast: 'Hillside × Aster Capital — high-value wire · identity verification' },
+              docintel:  { url: SHELL + '?vertical=wealth&usecase=intake', title: 'Document Intelligence — IMA Intake', cast: 'Hillside × TGK Capital — IMA webform intake' } } }
+        ] },
+      { key: 'hls', label: 'Healthcare & Life Sciences', desc: 'Payers, providers, and pharma / life sciences.',
+        subs: [
+          { key: 'payor', label: 'Payer', desc: 'Member enrollment, plan changes, prior auth.',
+            demos: {
+              full:      { url: SHELL + '?vertical=payor', title: 'Member Enrollment', cast: 'Unity × Marcus Chen — Silver HMO enrollment' },
+              maintenance:{ url: SHELL + '?vertical=payor&usecase=maintenance', title: 'Member Account Maintenance', cast: 'Unity × Marcus Chen — PCP change request after move' },
+              fraud:     { url: SHELL + '?vertical=payor&usecase=auth-fabric', title: 'Member Fraud / Risk Management', cast: 'Unity × Marcus Chen — prior-auth request for specialty drug' },
+              docintel:  { url: SHELL + '?vertical=payor&usecase=intake', title: 'Document Intelligence — Enrollment Intake', cast: 'Unity × Marcus Chen — Silver HMO enrollment via marketplace' } } },
+          { key: 'provider', label: 'Provider', desc: 'Patient intake, consent, records release.',
+            demos: {
+              full:      { url: SHELL + '?vertical=provider', title: 'New Patient Onboarding', cast: 'Riverside × Jordan Kim — new patient intake' },
+              maintenance:{ url: SHELL + '?vertical=provider&usecase=maintenance', title: 'Patient Account Maintenance', cast: 'Riverside × Jordan Kim — insurance card update after plan change' },
+              fraud:     { url: SHELL + '?vertical=provider&usecase=auth-fabric', title: 'Patient Fraud / Risk Management', cast: 'Riverside × Jordan Kim — Schedule II refill request · DEA-grade identity' },
+              docintel:  { url: SHELL + '?vertical=provider&usecase=intake', title: 'Document Intelligence — Pre-Registration', cast: 'Riverside × Jordan Kim — new-patient pre-registration' } } },
+          { key: 'lifesciences', label: 'Pharma / Life Sciences', desc: 'Clinical trials, site activation, protocol work.',
+            demos: {
+              full:      { url: SHELL + '?vertical=lifesciences', title: 'Clinical Trial Site Activation', cast: 'Helix × Austin Research Clinic — site activation for HX-2104' },
+              maintenance:{ url: SHELL + '?vertical=lifesciences&usecase=maintenance', title: 'Site Account Maintenance', cast: 'Helix × Austin Research Clinic — sub-investigator addition' },
+              fraud:     { url: SHELL + '?vertical=lifesciences&usecase=auth-fabric', title: 'Fraud / Risk Management', cast: 'Helix × Austin Research Clinic — mid-trial Serious Adverse Event' },
+              docintel:  { url: SHELL + '?vertical=lifesciences&usecase=intake', title: 'Document Intelligence — Site Activation Intake', cast: 'Helix × Austin Research Clinic — site activation configuration' } } }
+        ] },
+      { key: 'pubsec', label: 'Public Sector', desc: 'Federal agencies plus state, local, and education.',
+        subs: [
+          { key: 'fedgov', label: 'Federal', desc: 'Claims, certifications, citizen services.',
+            demos: {
+              full:      { url: SHELL + '?vertical=fedgov', title: 'Unemployment Insurance Claim', cast: 'DOL × Taylor Nguyen — UI claim adjudication' },
+              maintenance:{ url: SHELL + '?vertical=fedgov&usecase=maintenance', title: 'UI Claim Account Maintenance', cast: 'DOL × Taylor Nguyen — direct-deposit account change mid-claim' },
+              fraud:     { url: SHELL + '?vertical=fedgov&usecase=auth-fabric', title: 'UI Claim Fraud / Risk Management', cast: 'DOL × Taylor Nguyen — weekly availability certification · identity' },
+              docintel:  { url: SHELL + '?vertical=fedgov&usecase=intake', title: 'Document Intelligence — Claim Self-File', cast: 'DOL × Taylor Nguyen — initial UI claim self-file' } } },
+          { key: 'slgov', label: 'SLED', desc: 'State, local & education — permits, licenses, benefits.',
+            demos: {
+              full:      { url: SHELL + '?vertical=slgov', title: 'Residential Building Permit', cast: 'Springfield × 1420 Oak Street — residential building permit' },
+              maintenance:{ url: SHELL + '?vertical=slgov&usecase=maintenance', title: 'Permit Account Maintenance', cast: 'Springfield × 1420 Oak Street — permit modification request' },
+              fraud:     { url: SHELL + '?vertical=slgov-311&usecase=auth-fabric', title: '311 Fraud / Risk Management', cast: 'Greenhaven × Maria Cortez — citizen follow-up + light-touch identity' },
+              docintel:  { url: SHELL + '?vertical=slgov&usecase=intake', title: 'Document Intelligence — Permit Self-File', cast: 'Springfield × Marissa Rivera — residential permit application self-file' } } }
+        ] }
+    ];
+    const ARCHETYPES = [
+      { key: 'full',       label: 'Full Story',            desc: 'The canonical five-scene arc — from first touch to executed agreement.' },
+      { key: 'maintenance',label: 'Maintenance',           desc: 'An existing relationship changes — beneficiaries, signers, account updates.' },
+      { key: 'fraud',      label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.' },
+      { key: 'docintel',   label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' }
+    ];
+
+    const body = document.getElementById('ootbBody');
+    const ootbBtn = document.getElementById('modeOotb');
+    const bespokeBtn = document.getElementById('modeBespoke');
+    if (!body || !ootbBtn || !bespokeBtn) return;
+
+    const state = { vertical: null, sub: null };
+
+    function el(tag, cls, html) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (html != null) n.innerHTML = html;
+      return n;
+    }
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function header(step, q, sub) {
+      body.appendChild(el('div', 'ootb-eyebrow', 'Out of the Box · Question ' + step + ' of 3'));
+      body.appendChild(el('h2', 'ootb-q', esc(q)));
+      if (sub) body.appendChild(el('p', 'ootb-sub', esc(sub)));
+    }
+    function cards(items, onPick) {
+      const grid = el('div', 'ootb-grid');
+      items.forEach(it => {
+        const c = el('button', 'ootb-card');
+        c.type = 'button';
+        c.appendChild(el('div', 'ootb-card-label', esc(it.label)));
+        c.appendChild(el('div', 'ootb-card-desc', esc(it.desc)));
+        c.addEventListener('click', () => onPick(it));
+        grid.appendChild(c);
+      });
+      body.appendChild(grid);
+    }
+    function backBtn(toStep) {
+      const b = el('button', 'ootb-back');
+      b.type = 'button';
+      b.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Back';
+      b.addEventListener('click', () => renderStep(toStep));
+      body.appendChild(b);
+    }
+
+    function renderStep(step) {
+      body.innerHTML = '';
+      if (step === 1) {
+        header(1, 'Which vertical are you selling into?', 'Pick the customer’s industry. Everything downstream — cast, tenant brand, system of record — is already staged for it.');
+        cards(OOTB_MAP, it => { state.vertical = it; state.sub = null; renderStep(2); });
+      } else if (step === 2) {
+        header(2, 'Which sub-vertical fits ' + state.vertical.label + '?', 'Each sub-vertical has its own tenant, customer cast, and storyline.');
+        cards(state.vertical.subs, it => { state.sub = it; renderStep(3); });
+        backBtn(1);
+      } else if (step === 3) {
+        header(3, 'What story do you want to tell?', 'Four demo experiences, all staged on the ' + state.sub.label + ' cast.');
+        cards(ARCHETYPES.map(a => ({ label: a.label, desc: a.desc, key: a.key })), it => renderLaunch(it.key));
+        backBtn(2);
+      }
+    }
+
+    function renderLaunch(archetypeKey) {
+      const demo = state.sub.demos[archetypeKey];
+      const arch = ARCHETYPES.find(a => a.key === archetypeKey);
+      body.innerHTML = '';
+      body.appendChild(el('div', 'ootb-eyebrow', 'Out of the Box · ' + esc(state.vertical.label) + ' · ' + esc(state.sub.label)));
+      const card = el('div', 'ootb-launch');
+      card.appendChild(el('div', 'ootb-launch-kicker',
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.5L4.8 9 10 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Your demo is ready'));
+      card.appendChild(el('h2', 'ootb-launch-title', esc(demo.title)));
+      card.appendChild(el('p', 'ootb-launch-cast', esc(demo.cast) + '<br>' + esc(arch.label) + ' — ' + esc(arch.desc)));
+      card.appendChild(el('div', 'ootb-url', esc(location.origin + demo.url)));
+      const actions = el('div', 'ootb-actions');
+      const openB = el('button', 'ootb-btn', 'Open demo'); openB.type = 'button';
+      openB.addEventListener('click', () => window.open(demo.url, '_blank'));
+      const copyB = el('button', 'ootb-btn ghost', 'Copy link'); copyB.type = 'button';
+      copyB.addEventListener('click', () => {
+        const full = location.origin + demo.url;
+        (navigator.clipboard ? navigator.clipboard.writeText(full) : Promise.reject()).then(
+          () => { copyB.textContent = 'Copied'; setTimeout(() => { copyB.textContent = 'Copy link'; }, 1600); },
+          () => { window.prompt('Copy the demo link:', full); });
+      });
+      const restartB = el('button', 'ootb-btn ghost', 'Start over'); restartB.type = 'button';
+      restartB.addEventListener('click', () => { state.vertical = null; state.sub = null; renderStep(1); });
+      actions.appendChild(openB); actions.appendChild(copyB); actions.appendChild(restartB);
+      card.appendChild(actions);
+      card.appendChild(el('p', 'ootb-note', 'Need to tailor it — different scenes, tenant name, brand color? Flip to Bespoke in the top bar to build on the timeline.'));
+      body.appendChild(card);
+      backBtn(3);
+    }
+
+    // ── Mode switch wiring ──
+    // Default = Bespoke (existing behavior). ?mode=ootb deep-links AEs
+    // straight to the guided path; last choice is remembered. Audit
+    // deep-links (?vertical=) always load Bespoke so timeline hydration
+    // keeps working.
+    const params = new URLSearchParams(location.search);
+    const auditLock = params.has('vertical');
+    function setMode(mode, persist) {
+      const ootb = mode === 'ootb' && !auditLock;
+      document.body.classList.toggle('is-ootb', ootb);
+      ootbBtn.classList.toggle('is-active', ootb);
+      bespokeBtn.classList.toggle('is-active', !ootb);
+      ootbBtn.setAttribute('aria-selected', String(ootb));
+      bespokeBtn.setAttribute('aria-selected', String(!ootb));
+      if (persist) { try { localStorage.setItem('tgkBuilderMode', ootb ? 'ootb' : 'bespoke'); } catch (e) {} }
+      if (ootb && !body.childElementCount) renderStep(1);
+    }
+    ootbBtn.addEventListener('click', () => setMode('ootb', true));
+    bespokeBtn.addEventListener('click', () => setMode('bespoke', true));
+    let initial = 'bespoke';
+    const urlMode = params.get('mode');
+    if (urlMode === 'ootb' || urlMode === 'bespoke') initial = urlMode;
+    else { try { initial = localStorage.getItem('tgkBuilderMode') || 'bespoke'; } catch (e) {} }
+    setMode(initial, false);
   })();
 </script>
 </body>
