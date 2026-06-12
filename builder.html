@@ -3954,11 +3954,21 @@ body.is-ootb .ootb-panel{display:block;max-width:1180px;margin:0 auto;padding:48
           () => { copyB.textContent = 'Copied'; setTimeout(() => { copyB.textContent = 'Copy link'; }, 1600); },
           () => { window.prompt('Copy the demo link:', full); });
       });
+      /* R2 bridge: open this exact demo on the Bespoke timeline via the
+         existing audit-mode hydration (?vertical=&usecase=). The API uses
+         canonical usecase names, so auth-fabric translates to fraud-fabric;
+         unknown ones (intake) fall back server-side to default scenes. */
+      const q = new URLSearchParams(demo.url.split('?')[1]);
+      let uc = q.get('usecase') || 'default';
+      if (uc === 'auth-fabric') uc = 'fraud-fabric';
+      const custB = el('button', 'ootb-btn ghost', 'Customize in Bespoke'); custB.type = 'button';
+      custB.dataset.target = location.pathname + '?vertical=' + encodeURIComponent(q.get('vertical')) + '&usecase=' + encodeURIComponent(uc);
+      custB.addEventListener('click', () => { location.href = custB.dataset.target; });
       const restartB = el('button', 'ootb-btn ghost', 'Start over'); restartB.type = 'button';
       restartB.addEventListener('click', () => { state.vertical = null; state.sub = null; renderStep(1); });
-      actions.appendChild(openB); actions.appendChild(copyB); actions.appendChild(restartB);
+      actions.appendChild(openB); actions.appendChild(copyB); actions.appendChild(custB); actions.appendChild(restartB);
       card.appendChild(actions);
-      card.appendChild(el('p', 'ootb-note', 'Need to tailor it — different scenes, tenant name, brand color? Flip to Bespoke in the top bar to build on the timeline.'));
+      card.appendChild(el('p', 'ootb-note', 'Customize in Bespoke opens this exact demo on the editable timeline — swap scenes, rename the tenant, rebrand it for the customer.'));
       body.appendChild(card);
       backBtn(3);
     }
