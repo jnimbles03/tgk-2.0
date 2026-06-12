@@ -23,6 +23,7 @@
   'use strict';
   var params = new URLSearchParams(location.search);
   if (params.get('interactive') !== '1') return;
+  if (window._tgkIaHandled) return;  // template has its own interactive mode
 
   function onReady(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
