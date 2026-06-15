@@ -38,6 +38,8 @@ const CATALOG = {
   'ai-review':        { file: 'ai-review.html',        label: 'AI Review',         keywords: ['review','redline','clause','ai review','contract analysis','risk flag','obligations review'] },
   'agentforce':       { file: 'agentforce.html',       label: 'Agentforce',        keywords: ['agentforce','agent','salesforce','ai agent','copilot','assistant'] },
   'clm':              { file: 'clm.html',              label: 'CLM',               keywords: ['contract lifecycle','clm','authoring','negotiation','redlining'] },
+  'agreement-intel-ma':       { file: 'agreement-intel-ma.html',       label: 'Agreement Intel · M&A', keywords: ['m&a','due diligence','acquisition','inherited contracts','assignment','change of control','revenue at risk','iris','portfolio risk','prevailing terms'] },
+  'agreement-intel-sf-draft': { file: 'agreement-intel-sf-draft.html', label: 'Agreement Intel · CRM', keywords: ['salesforce','crm','chat with agreements','prevailing terms','summarize','related agreements','draft msa','agentic','flow of work','agreement intelligence'] },
 };
 
 // Previous story-templates ids → new catalog ids (back-compat for old match.json)

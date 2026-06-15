@@ -4157,7 +4157,9 @@ body.is-gb #gbPanel{display:block;}
       { shell: 'intake',       label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' },
       { immersive: 'workspaces', label: 'Workspaces',          desc: 'One immersive screen — the shared multi-party workspace, drill-downs included.' },
       { immersive: 'headless', label: 'Headless IAM',          desc: 'One immersive screen — the portal this sub-vertical lives in every day, product vignettes behind every drill-down.' },
-      { action: 'vertical',    label: 'A vertical story',      desc: 'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' }
+      { action: 'vertical',    label: 'A vertical story',      desc: 'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' },
+      { link: '/demos/agreement-intel-ma.html',       label: 'Agreement Intelligence — M&A',        desc: 'Open the M&A due-diligence demo — Iris structures inherited contracts and surfaces risk at portfolio scale.' },
+      { link: '/demos/agreement-intel-sf-draft.html', label: 'Agreement Intelligence — Salesforce', desc: 'Open the in-CRM agreement-AI demo — summarize prevailing terms, interrogate, and draft a new MSA.' }
     ];
     /* Immersive single-screen targets. Headless = the cluster portal pages
        (a familiar daily-driver UI with IAM vignettes as in-context
@@ -4225,6 +4227,7 @@ body.is-gb #gbPanel{display:block;}
         c.appendChild(el('div', 'ootb-card-label', esc(o.label)));
         c.appendChild(el('div', 'ootb-card-desc', esc(o.desc)));
         c.addEventListener('click', () => {
+          if (o.link) return window.open(o.link, '_blank');
           if (o.action === 'vertical') return renderVerticalPick();
           if (o.immersive) return renderImmersivePick(o.immersive);
           const t = tl(); if (!t) return;
@@ -4238,7 +4241,8 @@ body.is-gb #gbPanel{display:block;}
       [
         ['Start prefilled — fastest path', START_OPTS.filter(o => o.action === 'vertical')],
         ['Build a story arc',              START_OPTS.filter(o => o.shell)],
-        ['One immersive screen',           START_OPTS.filter(o => o.immersive)]
+        ['One immersive screen',           START_OPTS.filter(o => o.immersive)],
+        ['Agreement Intelligence',         START_OPTS.filter(o => o.link)]
       ].forEach(g => {
         if (!g[1].length) return;
         body.appendChild(el('div', 'ootb-group-label', esc(g[0])));

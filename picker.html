@@ -703,6 +703,24 @@
             "category": "headless",
             "archetype": "developer",
             "storyImplemented": true
+          },
+          {
+            "title": "Agreement Intelligence — M&A Diligence",
+            "subtitle": "AMEX × Center — inherited-contract diligence with Iris: assignment, change-of-control, revenue at risk",
+            "discoveryUrl": "/demos/agreement-intel-ma.html",
+            "storyUrl": "/demos/agreement-intel-ma.html",
+            "category": "agreementintelligence",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Agreement Intelligence — In Salesforce",
+            "subtitle": "Chat with 16 agreements in the CRM — summarize prevailing terms, interrogate, draft a new MSA",
+            "discoveryUrl": "/demos/agreement-intel-sf-draft.html",
+            "storyUrl": "/demos/agreement-intel-sf-draft.html",
+            "category": "agreementintelligence",
+            "archetype": "sender-led",
+            "storyImplemented": true
           }
         ]
       },
@@ -768,6 +786,24 @@
             },
             "category": "headless",
             "archetype": "developer",
+            "storyImplemented": true
+          },
+          {
+            "title": "Agreement Intelligence — M&A Diligence",
+            "subtitle": "Meridian × acquired fintech — inherited-contract diligence with Iris: assignment, change-of-control, revenue at risk",
+            "discoveryUrl": "/demos/agreement-intel-ma.html",
+            "storyUrl": "/demos/agreement-intel-ma.html",
+            "category": "agreementintelligence",
+            "archetype": "sender-led",
+            "storyImplemented": true
+          },
+          {
+            "title": "Agreement Intelligence — In Salesforce",
+            "subtitle": "Chat with 16 agreements in the CRM — summarize prevailing terms, interrogate, draft a new MSA",
+            "discoveryUrl": "/demos/agreement-intel-sf-draft.html",
+            "storyUrl": "/demos/agreement-intel-sf-draft.html",
+            "category": "agreementintelligence",
+            "archetype": "sender-led",
             "storyImplemented": true
           }
         ]
@@ -1317,9 +1353,9 @@ const HEADLESS_PORTALS = {
 
 const CLUSTER_TO_VERTICAL = { fins: 'financial-services', hls: 'hls', ps: 'public-sector', pubsec: 'public-sector' };
 
-const CATEGORY_LABELS    = { onboarding:'Onboarding', maintenance:'Maintenance', auth:'Fraud Fabric', workspaces:'Workspaces', headless:'Headless IAM', other:'Other' };
-const CATEGORY_SUBTITLES = { onboarding:'New customer / new relationship onboarding', maintenance:'Customer-initiated change in the authenticated portal', auth:'Identity verification-at-the-door + chain-of-custody binding', workspaces:'Multi-party persistent collaboration surface', headless:'Tenant-branded employee desktop with embedded IAM moments', other:'Adjacent flows' };
-const CATEGORY_ORDER     = ['onboarding','maintenance','auth','workspaces','other','headless'];
+const CATEGORY_LABELS    = { onboarding:'Onboarding', maintenance:'Maintenance', auth:'Fraud Fabric', workspaces:'Workspaces', agreementintelligence:'Agreement Intelligence', headless:'Headless IAM', other:'Other' };
+const CATEGORY_SUBTITLES = { onboarding:'New customer / new relationship onboarding', maintenance:'Customer-initiated change in the authenticated portal', auth:'Identity verification-at-the-door + chain-of-custody binding', workspaces:'Multi-party persistent collaboration surface', agreementintelligence:'AI over the agreement repository — diligence, prevailing-terms summarization & in-CRM drafting', headless:'Tenant-branded employee desktop with embedded IAM moments', other:'Adjacent flows' };
+const CATEGORY_ORDER     = ['onboarding','maintenance','auth','workspaces','agreementintelligence','other','headless'];
 
 // ─── STATE ───
 const wiz = { mode: 'story', vertical: null, subvertical: null, category: null, useCase: null, stage: 1 };
@@ -1440,7 +1476,7 @@ function renderCategories(vKey, svKey) {
   categoryGrid.innerHTML = '';
   const sv = CATALOG[vKey].subverticals[svKey];
   if (!sv.useCases || sv.useCases.length === 0) { categoryGrid.innerHTML = '<div style="color:var(--muted);font-size:.875rem">No use cases authored yet.</div>'; return; }
-  const counts = { onboarding:0, maintenance:0, auth:0, workspaces:0, other:0 };
+  const counts = { onboarding:0, maintenance:0, auth:0, workspaces:0, agreementintelligence:0, other:0 };
   sv.useCases.forEach(uc => { const c = (uc.category && counts.hasOwnProperty(uc.category)) ? uc.category : 'other'; counts[c]++; });
   const hasPortal = !!HEADLESS_PORTALS[vKey];
   CATEGORY_ORDER.forEach(catKey => {
@@ -1483,7 +1519,7 @@ function renderUseCases(vKey, svKey, catFilter) {
     }
   } else {
     (sv.useCases || []).forEach((uc, i) => {
-      const knownCats = ['onboarding','maintenance','auth','workspaces'];
+      const knownCats = ['onboarding','maintenance','auth','workspaces','agreementintelligence'];
       const cat = (uc.category && knownCats.includes(uc.category)) ? uc.category : 'other';
       if (catFilter && cat !== catFilter) return;
       const supported = ucSupported(uc);
