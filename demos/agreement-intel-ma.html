@@ -7,76 +7,108 @@
 <link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./archetypes/dashboard.css">
 <style>
-  /* repository table (M&A risk columns) */
+  /* Authentic Docusign IAM / Navigator chrome — palette + type from the real
+     product frames (Vendor Renewals + IAM-for-Sales stage). */
+  @font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2");font-weight:400;font-display:swap}
+  @font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2");font-weight:500;font-display:swap}
+  @font-face{font-family:"DSIndigo";src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2");font-weight:600;font-display:swap}
+  .de-canvas{--ds-cobalt:#4C00FF;--ds-ink:#130032;--ds-navy:#1a3d6e;--ds-poppy:#FF5252;--ds-mist:#CBC2FF;--ds-lilac:#f0ecf7}
+  .de-canvas .app,.de-canvas .dash{font-family:"DSIndigo","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;color:#130032}
+  /* real Docusign loop logomark */
+  .dsloop{width:22px;height:22px;flex:0 0 auto;display:inline-block}
+  .app-nav .dslogo{font-weight:600;color:#130032;font-size:16px;letter-spacing:-.01em}
+  .app-nav .waffle{display:grid;grid-template-columns:repeat(3,3px);grid-auto-rows:3px;gap:2px;margin-right:4px}
+  .app-nav .waffle i{width:3px;height:3px;background:#6c5f8c;border-radius:1px}
+  .app-nav .tabs .tb{font-size:14px;color:#3e3e3c}
+  .app-nav .tabs .tb.on{color:#1a3d6e;font-weight:600}
+  .app-nav .tabs .tb.on:after{background:#1a3d6e;height:3px}
+  .app-nav .cobrand{color:var(--tenant-accent)}
+  /* left rail — real Navigator items */
+  .app-rail .startbtn{margin:2px 14px 10px;height:34px;border-radius:6px;background:var(--ds-cobalt);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+  .app-rail .shared{margin:0 14px 12px;height:32px;border-radius:6px;border:1px solid #d4cee2;color:#130032;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .app-rail .it .ai{color:var(--ds-cobalt)}
+  .app-rail .it.on{background:var(--ds-lilac);color:#130032;box-shadow:inset -2px 0 0 var(--ds-cobalt)}
+  .app-rail .badge{margin-left:auto;font-size:8.5px;font-weight:700;letter-spacing:.4px;color:var(--ds-cobalt);background:var(--ds-mist);padding:1px 5px;border-radius:4px}
+  /* AI-extracted pill = Iris purple, never tenant colour */
+  .ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--ds-cobalt);background:#efe9ff;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+  /* Iris AI diamond marker (real Navigator file glyph) */
+  .dia{width:13px;height:13px;flex:0 0 auto;transform:rotate(45deg);border-radius:2px;background:linear-gradient(135deg,#9d50ff 0%,#6e3aff 50%,#4C00FF 100%);box-shadow:0 1px 2px rgba(76,0,255,.25)}
+  /* repository table (M&A risk columns) — Navigator nav-table styling */
   .mi-th,.mi-row{display:flex;align-items:center}
-  .mi-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
-  .mi-row{padding:12px;border-bottom:1px solid #F1F1F4;transition:background .2s,box-shadow .2s}
+  .mi-th{font-size:11px;font-weight:600;color:#130032;padding:0 12px 12px;border-bottom:1px solid #e8e3f5}
+  .mi-row{padding:14px 12px;border-bottom:1px solid #f0ecf7;transition:background .2s,box-shadow .2s}
+  .mi-row:hover{background:#fafaff}
   .mi-row.hot{background:var(--tenant-accent-soft)}
-  .mi-row.risk{background:#FEF6F6;box-shadow:inset 3px 0 0 #C0392B}
-  .c-ag{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
-  .c-ag .fi{width:21px;height:25px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto;position:relative}
-  .c-ag .fi:after{content:"";position:absolute;left:4px;right:4px;top:6px;height:2px;background:#C7C7D2;box-shadow:0 4px #C7C7D2,0 8px #C7C7D2}
-  .c-cp{width:118px;flex:0 0 auto;font-size:12.5px;color:#555}
-  .c-vl{width:78px;flex:0 0 auto;font-size:12.5px;color:#1a1a26;font-weight:600}
-  .c-as{width:150px;flex:0 0 auto;font-size:12px}
-  .c-coc{width:178px;flex:0 0 auto;font-size:12px}
-  .c-rk{width:58px;flex:0 0 auto;text-align:right}
-  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:#EFEFF3;color:#555}
+  .mi-row.risk{background:#FEF6F6;box-shadow:inset 3px 0 0 var(--ds-poppy)}
+  .c-ag{flex:1;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#130032}
+  .c-cp{width:120px;flex:0 0 auto}
+  .party{color:#1a3d6e;text-decoration:underline;text-decoration-color:rgba(26,61,110,.35);text-underline-offset:3px;text-decoration-thickness:.5px;font-size:12.5px;background:#f0ecf7;padding:1px 6px;border-radius:3px}
+  .c-vl{width:78px;flex:0 0 auto;font-size:13px;font-weight:600}
+  .c-as{width:148px;flex:0 0 auto;font-size:12px}
+  .c-coc{width:176px;flex:0 0 auto;font-size:12px}
+  .c-rk{width:56px;flex:0 0 auto;text-align:right}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:#eef0f4;color:#54698d}
   .tag.bad{background:#FDECEC;color:#C0392B;font-weight:600}
   .rk{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.3px;padding:2px 8px;border-radius:20px}
   .rk.hi{background:#FDECEC;color:#C0392B}.rk.md{background:#FBF0DD;color:#B07A1E}
-  .ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:3px 9px;border-radius:20px;letter-spacing:.3px}
   /* dashboard chart + staggered alerts */
   #mi-alerts .alert-row{opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
   #mi-alerts .alert-row.show{opacity:1;transform:none}
   #mi-alerts .alert-row{padding:11px 16px}
-  .alert-row .who b{font-weight:600;color:#1a1a26}
-  .alert-row .who .sub{display:block;font-weight:400;color:#8a8a93;font-size:11px;margin-top:1px}
+  .alert-row .who b{font-weight:600;color:#130032}
+  .alert-row .who .sub{display:block;font-weight:400;color:#6e6189;font-size:11px;margin-top:1px}
+  .dash-body{background:#faf9fd}
+  .kpi .num{color:var(--ds-cobalt)}
+  .dash-head .badge{color:var(--ds-cobalt);background:#efe9ff}
   .bars{display:flex;align-items:flex-end;gap:18px;height:96px;padding:6px 4px 0}
   .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
-  .bars .b i{width:100%;max-width:46px;border-radius:4px 4px 0 0;background:var(--tenant-accent)}
-  .bars .b.risk i{background:#C0392B}
-  .bars .b span{font-size:10.5px;color:#8a8a93;text-align:center;line-height:1.2}
-  /* relationships hierarchy + prompt library */
+  .bars .b i{width:100%;max-width:46px;border-radius:4px 4px 0 0;background:var(--ds-cobalt)}
+  .bars .b.risk i{background:var(--ds-poppy)}
+  .bars .b span{font-size:10.5px;color:#6e6189;text-align:center;line-height:1.2}
+  /* relationships hierarchy + Iris prompt library */
   .mi-rel{display:flex;gap:22px;height:100%}
   .mi-tree{flex:1;min-width:0}
-  .tnode{background:#fff;border:1px solid #E6E6EC;border-radius:9px;padding:10px 14px;margin-bottom:8px}
-  .tnode .ti{font-size:13px;font-weight:600;color:#1a1a26}
-  .tnode .tsub{display:block;font-size:11.5px;color:#8a8a93;margin-top:2px}
-  .tnode.root{border-color:var(--tenant-accent);box-shadow:inset 3px 0 0 var(--tenant-accent)}
-  .tkids{margin:0 0 10px 26px;border-left:1.5px dashed #DcDce4;padding-left:16px}
+  .tnode{background:#fff;border:1px solid #e8e3f5;border-radius:9px;padding:10px 14px;margin-bottom:8px}
+  .tnode .ti{font-size:13px;font-weight:600;color:#130032;display:flex;align-items:center;gap:9px}
+  .tnode .tsub{display:block;font-size:11.5px;color:#6e6189;margin-top:2px;padding-left:22px}
+  .tnode.root{border-color:var(--ds-cobalt);box-shadow:inset 3px 0 0 var(--ds-cobalt)}
+  .tkids{margin:0 0 10px 26px;border-left:1.5px dashed #d4cee2;padding-left:16px}
   .tnode.flag{border-color:#F3C9C9;background:#FEF6F6}
-  .mi-prevail{background:var(--tenant-accent-soft);border-radius:9px;padding:11px 14px;margin-top:4px}
-  .mi-prevail .pvh{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--tenant-accent);text-transform:uppercase;margin-bottom:4px}
+  .mi-prevail{background:#efe9ff;border-radius:9px;padding:11px 14px;margin-top:4px}
+  .mi-prevail .pvh{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--ds-cobalt);text-transform:uppercase;margin-bottom:4px}
   .mi-prevail .pv{font-size:12px;color:#3a3a47;line-height:1.5}
-  .mi-prompt{width:352px;flex:0 0 auto;background:#fff;border:1px solid #E6E6EC;border-radius:11px;padding:14px 15px;display:flex;flex-direction:column}
-  .mp-h{font-size:13px;font-weight:700;color:var(--tenant-accent);display:flex;align-items:center;gap:7px;margin-bottom:11px}
-  .mp-chip{border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;line-height:1.4}
+  .mi-prompt{width:352px;flex:0 0 auto;background:linear-gradient(180deg,#fafbff 0%,#f0ecff 100%);border:1px solid #e0dcef;border-radius:11px;padding:14px 15px;display:flex;flex-direction:column}
+  .mp-h{font-size:13px;font-weight:600;color:#1a1a3a;display:flex;align-items:center;gap:7px;margin-bottom:11px}
+  .mp-h .spark{color:#7c3aed}
+  .mp-chip{border:1px solid #c9bdf2;color:var(--ds-cobalt);background:#fff;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;line-height:1.4}
   .mp-list{margin-top:9px;display:flex;flex-direction:column;gap:6px}
-  .mp-list .q{border:1px solid #E2E2E8;border-radius:9px;padding:8px 11px;font-size:11.5px;color:#777}
-  .mp-result{margin-top:12px;background:#F7F7FA;border:1px solid #E6E6EC;border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.55;color:#2a2a36;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+  .mp-list .q{border:1px solid #e0dcef;border-radius:9px;padding:8px 11px;font-size:11.5px;color:#7a7a92;background:#fff}
+  .mp-result{margin-top:12px;background:#fff;border:1px solid #e0dcef;border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.55;color:#252423;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
   .mp-result.on{opacity:1;transform:none}
-  .mp-result .src{display:block;margin-top:7px;font-size:10.5px;color:#9a9aa2}
+  .mp-result .src{display:block;margin-top:7px;font-size:10.5px;color:#7c3aed;font-style:italic}
 </style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
 <script>
-const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
-  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Navigator</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
+const LOOP = '<svg class="dsloop" viewBox="0 0 32 32"><rect x="4" y="12" width="13" height="13" rx="3" fill="#4C00FF"/><path d="M15 4a11.5 11.5 0 0 1 0 23 V18.5 a6.5 6.5 0 0 0 0-13Z" fill="#FF5252"/><rect x="11.5" y="11.5" width="6" height="6" rx="1" fill="#130032"/></svg>';
+const NAV = '<div class="app-nav"><span class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>'+
+  '<span class="dslogo">'+LOOP+'Docusign</span>'+
+  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreements</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Admin</span></div>'+
   '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span class="mi-cobrand"></span></span><span class="avatar mi-av"></span></div></div>';
-const RAIL = '<div class="app-rail"><div class="grp">Insights</div>'+
-  '<div class="it"><span class="ai">✦</span> Agreements</div>'+
-  '<div class="it on"><span class="ai">✦</span> M&amp;A Diligence <span class="ct">214</span></div>'+
+const RAIL = '<div class="app-rail"><div class="startbtn">Start ▾</div><div class="shared">Shared Access ▾</div>'+
+  '<div class="grp">Agreements</div>'+
+  '<div class="it">Inbox</div><div class="it">Sent</div>'+
+  '<div class="it">Completed <span class="badge">NEW</span></div><div class="it">Action Required</div>'+
+  '<div class="grp">Reports</div>'+
+  '<div class="it on"><span class="ai">✦</span> M&amp;A Diligence</div>'+
   '<div class="it"><span class="ai">✦</span> Renewals <span class="ct">12</span></div>'+
-  '<div class="grp">Reports</div><div class="it">Assignment rights <span class="ct">24</span></div>'+
-  '<div class="it">Change of control <span class="ct">38</span></div><div class="it">Revenue at risk</div>'+
-  '<div class="it">+ New report</div></div>';
+  '<div class="it">Maestro Workflows <span class="badge">NEW</span></div><div class="it">PowerForms</div></div>';
 
 function row(r){
-  return '<div class="mi-row" id="'+r[0]+'"><div class="c-ag"><span class="fi"></span>'+r[1]+'</div>'+
-    '<div class="c-cp">'+r[2]+'</div><div class="c-vl">'+r[3]+'</div>'+
+  return '<div class="mi-row" id="'+r[0]+'"><div class="c-ag"><span class="dia"></span>'+r[1]+'</div>'+
+    '<div class="c-cp"><span class="party">'+r[2]+'</span></div><div class="c-vl">'+r[3]+'</div>'+
     '<div class="c-as"><span class="tag'+(r[5]?' bad':'')+'">'+r[4]+'</span></div>'+
     '<div class="c-coc"><span class="tag'+(r[7]?' bad':'')+'">'+r[6]+'</span></div>'+
     '<div class="c-rk">'+(r[8]?'<span class="rk '+r[8]+'">'+(r[8]==='hi'?'HIGH':'MED')+'</span>':'')+'</div></div>';
@@ -89,9 +121,9 @@ function alertRow(a){
 const SCENES =
   // ---- repository ----
   '<section class="de-scene is-active" data-scene="repo"><div class="app has-rail">'+NAV+RAIL+
-    '<div class="app-body"><div class="app-head"><h2 id="mi-title"></h2><span class="ai-pill">✦ AI-EXTRACTED</span>'+
+    '<div class="app-body"><div class="app-head"><h2 id="mi-title"></h2><span class="ai-pill">✦ AI-EXTRACTED BY IRIS</span>'+
         '<div class="acts"><span class="add">Custom report</span></div></div>'+
-      '<div class="mi-th"><span class="c-ag" style="padding-left:32px">Agreement</span><span class="c-cp">Counterparty</span>'+
+      '<div class="mi-th"><span class="c-ag" style="padding-left:25px">Agreement</span><span class="c-cp">Counterparty</span>'+
         '<span class="c-vl">Value</span><span class="c-as">Assignment</span><span class="c-coc">Change of control</span><span class="c-rk"></span></div>'+
       '<div id="mi-rows"></div>'+
     '</div>'+
@@ -115,21 +147,21 @@ const SCENES =
       '</div>'+
     '</div>'+
   '</div></section>'+
-  // ---- parties & relationships + prompt library ----
+  // ---- parties & relationships + Iris prompt library ----
   '<section class="de-scene" data-scene="relate"><div class="app has-rail">'+NAV+RAIL+
     '<div class="app-body"><div class="app-head"><h2>Parties &amp; relationships</h2><span class="ai-pill">✦ AI-BUILT HIERARCHY</span></div>'+
       '<div class="mi-rel">'+
         '<div class="mi-tree">'+
-          '<div class="tnode root"><span class="ti" id="mi-t-root"></span><span class="tsub" id="mi-t-rootsub"></span></div>'+
+          '<div class="tnode root"><span class="ti"><span class="dia"></span><span id="mi-t-root"></span></span><span class="tsub" id="mi-t-rootsub"></span></div>'+
           '<div class="tkids">'+
-            '<div class="tnode"><span class="ti">Order Form — 2023</span><span class="tsub" id="mi-t-c1"></span></div>'+
-            '<div class="tnode"><span class="ti">Amendment #2 — Pricing</span><span class="tsub" id="mi-t-c2"></span></div>'+
-            '<div class="tnode flag"><span class="ti">Amendment #3 — Assignment</span><span class="tsub" id="mi-t-c3"></span></div>'+
-            '<div class="tnode"><span class="ti">Data Processing Addendum</span><span class="tsub" id="mi-t-c4"></span></div>'+
+            '<div class="tnode"><span class="ti"><span class="dia"></span>Order Form — 2023</span><span class="tsub" id="mi-t-c1"></span></div>'+
+            '<div class="tnode"><span class="ti"><span class="dia"></span>Amendment #2 — Pricing</span><span class="tsub" id="mi-t-c2"></span></div>'+
+            '<div class="tnode flag"><span class="ti"><span class="dia"></span>Amendment #3 — Assignment</span><span class="tsub" id="mi-t-c3"></span></div>'+
+            '<div class="tnode"><span class="ti"><span class="dia"></span>Data Processing Addendum</span><span class="tsub" id="mi-t-c4"></span></div>'+
           '</div>'+
           '<div class="mi-prevail"><div class="pvh">Prevailing terms</div><div class="pv" id="mi-prevail"></div></div>'+
         '</div>'+
-        '<div class="mi-prompt"><div class="mp-h">✦ Iris Prompt Library</div>'+
+        '<div class="mi-prompt"><div class="mp-h"><span class="spark">✦</span> Iris Prompt Library</div>'+
           '<div class="mp-chip" id="mi-prompt-chip"></div>'+
           '<div class="mp-list"><div class="q">Summarize prevailing terms</div><div class="q">Extract key dates</div></div>'+
           '<div class="mp-result" id="mi-prompt-result"></div>'+
@@ -145,7 +177,7 @@ const SCENES =
 
 DemoEngine.init({
   meta:{ title:"Agreement Intelligence — M&A Diligence", productTag:"Navigator · Iris", home:"index.html",
-    footnote:'<b>Faithful Docusign IAM / Iris diligence flow, re-skinnable content.</b> The agreement repository, the M&amp;A risk dashboard, the AI-built contract hierarchy and the prompt-library analysis are the shared spine. Switching vertical swaps the acquisition, the inherited contracts and the narration — the same app-shell archetype drives Navigator, CLM and Monitor.' },
+    footnote:'<b>Faithful Docusign IAM / Navigator + Iris diligence flow, re-skinnable content.</b> The agreement repository, the M&amp;A risk dashboard, the AI-built contract hierarchy and the Iris prompt-library analysis are the shared spine. Switching vertical swaps the acquisition, the inherited contracts and the narration — the same app-shell archetype drives Navigator, CLM and Monitor.' },
   defaultPack:"amex", scenes:SCENES,
   timeline:{ totalDuration:40,
     beats:[ {t:0,key:"open",sceneId:"repo"},{t:6,key:"structure",sceneId:"dash"},{t:13,key:"prioritize",sceneId:"dash"},
@@ -176,7 +208,7 @@ DemoEngine.init({
       tc1:"$12.4M annual commitment", tc2:"+8% uplift, effective 2024", tc3:"Consent-to-assign language added", tc4:"GDPR / CCPA processing terms",
       prevail:"Liability capped at 12 months' fees · acquirer consent required to assign · counterparty may terminate on change of control.",
       promptChip:"Run: annual pricing analysis across Center's vendor MSAs",
-      promptResult:"Across 41 vendor MSAs, blended annual uplift is 6.9%. Three contracts carry auto-renew with >7% escalators — about $4.2M of avoidable spend if renegotiated pre-close.<span class=\"src\">Sources: Cloudscale OF-2024, NorthPay MSA §5, DataVault Amendment #1</span>",
+      promptResult:"Across 41 vendor MSAs, blended annual uplift is 6.9%. Three contracts carry auto-renew with >7% escalators — about $4.2M of avoidable spend if renegotiated pre-close.<span class=\"src\">✦ Sources: Cloudscale OF-2024, NorthPay MSA §5, DataVault Amendment #1</span>",
       handoff:{ h:"Diligence findings, in AMEX's own stack", p:"Iris extractions — assignment, change-of-control and value at risk — push to AMEX's data lake and BI tools through the API, so the integration team works from structured data, not PDFs.", sor:"AMEX data lake" },
       say:{ open:{eyebrow:"Agreement Intelligence",title:"Center's contracts, no longer a black box",body:"American Express just closed Center. Every inherited agreement is centralized in Docusign IAM — and Iris has already read and structured them."},
         structure:{eyebrow:"Docusign Iris",title:"Unstructured agreements become a diligence dashboard",body:"Assignment rights, change-of-control and revenue at risk, extracted across 214 agreements. Center's portfolio totals $53M in contract value."},
@@ -204,7 +236,7 @@ DemoEngine.init({
       tc1:"$8.6M annual commitment", tc2:"+6% uplift, effective 2024", tc3:"Consent-to-assign language added", tc4:"HIPAA / PHI processing terms",
       prevail:"Liability capped at 12 months' fees · payer consent required to assign · counterparty may terminate on change of control.",
       promptChip:"Run: annual pricing analysis across Summit's payer & vendor contracts",
-      promptResult:"Across 29 contracts, blended annual uplift is 5.8%. Two payer agreements carry auto-renew with >7% escalators — about $2.1M of avoidable spend if renegotiated pre-close.<span class=\"src\">Sources: Unity OF-2024, Cerner MSA §5, Medline Amendment #1</span>",
+      promptResult:"Across 29 contracts, blended annual uplift is 5.8%. Two payer agreements carry auto-renew with >7% escalators — about $2.1M of avoidable spend if renegotiated pre-close.<span class=\"src\">✦ Sources: Unity OF-2024, Cerner MSA §5, Medline Amendment #1</span>",
       handoff:{ h:"Diligence findings, in Riverside's own stack", p:"Iris extractions — assignment, change-of-control and value at risk — push to Riverside's data lake and BI tools through the API, so the integration team works from structured data, not PDFs.", sor:"Riverside data lake" },
       say:{ open:{eyebrow:"Agreement Intelligence",title:"Summit's contracts, no longer a black box",body:"Riverside just closed Summit Clinics. Every inherited agreement is centralized in Docusign IAM — and Iris has already read and structured them."},
         structure:{eyebrow:"Docusign Iris",title:"Unstructured agreements become a diligence dashboard",body:"Assignment rights, change-of-control and revenue at risk, extracted across 138 agreements. Summit's portfolio totals $31.4M in contract value."},
@@ -233,11 +265,8 @@ DemoEngine.init({
     root.querySelector("#mi-ho-sor").textContent=p.handoff.sor;
   },
   onTime(time, p, root){
-    // draw the eye to the two high-risk rows while the repository is on screen
     ["mi-r1","mi-r5"].forEach(id=>{ const el=root.querySelector("#"+id); if(el) el.classList.toggle("risk", time>=3 && time<6); });
-    // stagger the high-risk alert list in as the dashboard prioritizes
     root.querySelectorAll("#mi-alerts .alert-row").forEach((n,i)=>n.classList.toggle("show", time>=13 + i*0.5));
-    // reveal the prompt-library analysis after the prompt is run
     const pr=root.querySelector("#mi-prompt-result"); if(pr) pr.classList.toggle("on", time>=28);
   }
 });
