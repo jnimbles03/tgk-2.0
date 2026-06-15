@@ -34,6 +34,8 @@
   const RESTART = '<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>';
   const PLAY = '<polygon points="6 4 20 12 6 20 6 4"/>';
   const PAUSE = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  const SPK_ON  = '<path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8.5a4.5 4.5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+  const SPK_OFF = '<path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
 
   function fmt(s){ s=Math.max(0,Math.floor(s)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
   function initials(n){ return (n||"·").split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"·"; }
@@ -81,7 +83,8 @@
           '<div class="de-pips" id="de-pips"></div>'+
           '<div class="de-meta"><span id="de-counter"></span><span id="de-timer"></span></div>'+
           '<div class="de-trans"><button class="de-tbtn" id="de-restart" title="Restart">'+RESTART+'</button>'+
-            '<button class="de-tbtn play" id="de-play"><svg viewBox="0 0 24 24" id="de-playicon">'+PLAY+'</svg><span id="de-playlbl">Play</span></button></div>'+
+            '<button class="de-tbtn play" id="de-play"><svg viewBox="0 0 24 24" id="de-playicon">'+PLAY+'</svg><span id="de-playlbl">Play</span></button>'+
+            '<button class="de-tbtn de-sound" id="de-sound" title="Sound off" style="display:none"><svg viewBox="0 0 24 24" id="de-spk">'+SPK_OFF+'</svg></button></div>'+
         '</aside>'+
         '<div class="de-stageframe"><div class="de-stagebar">'+
             '<span class="dots"><i></i><i></i><i></i></span><span id="de-url"></span><span class="sor" id="de-sor"></span></div>'+
@@ -103,8 +106,27 @@
     }).join("");
     document.querySelectorAll(".de-vbtn").forEach(b=>b.addEventListener("click",()=>{ pack=b.dataset.pack; applyPack(); }));
 
+    // ---- optional voice narration (manifest from bin/generate-narration.mjs) ----
+    let AUDIO=null, soundOn=false, curAudioKey=null;
+    const audioEl = (typeof Audio!=="undefined") ? new Audio() : null;
+    if(audioEl) audioEl.preload="none";
+    const demoSlug = (location.pathname.split("/").pop()||"").replace(/\.html$/,"");
+    if(audioEl && typeof fetch==="function"){
+      fetch("audio/manifest.json").then(r=>r.ok?r.json():null).then(m=>{ AUDIO=(m&&m[demoSlug])?m[demoSlug]:null; updateSoundBtn(); }).catch(()=>{});
+    }
+    function updateSoundBtn(){ const b=$("de-sound"); if(!b) return;
+      b.style.display=AUDIO?"":"none"; b.classList.toggle("on",soundOn); b.title=soundOn?"Sound on":"Sound off";
+      const ic=$("de-spk"); if(ic) ic.innerHTML=soundOn?SPK_ON:SPK_OFF; }
+    function playClip(key){ if(!audioEl||!AUDIO||!soundOn||!key) return;
+      const rel=AUDIO[pack]&&AUDIO[pack][key]; if(!rel){ try{audioEl.pause();}catch(_){} return; }
+      try{ audioEl.src="audio/"+rel; const pr=audioEl.play(); if(pr&&pr.catch)pr.catch(()=>{}); }catch(_){} }
+    function maybeAudio(key){ if(key===curAudioKey) return; curAudioKey=key; if(soundOn&&playing) playClip(key); }
+    if($("de-sound")) $("de-sound").addEventListener("click",()=>{ soundOn=!soundOn;
+      if(!soundOn){ if(audioEl){ try{audioEl.pause();}catch(_){} } } else playClip(curAudioKey); updateSoundBtn(); });
+
     // ---- painters ----
     function applyPack(){
+      curAudioKey=null; if(audioEl){ try{ audioEl.pause(); }catch(_){} }
       const p = overridePack(DEMO.packs[pack]), rs = document.documentElement;
       Object.entries(p.theme).forEach(([k,v])=>rs.style.setProperty(k,v));
       $("de-mark").textContent = p.brand.mark; $("de-brand").textContent = p.brand.name; $("de-pb").textContent = p.brand.poweredBy || "Powered by Docusign";
@@ -118,13 +140,14 @@
     function beatIdx(){ let i=0; beats.forEach((b,k)=>{ if(b.t<=t+0.02) i=k; }); return i; }
     function curBeat(){ return beats[beatIdx()]; }
     function paintNarr(){
-      const p = DEMO.packs[pack]; let say=null;
-      for(let i=track.length-1;i>=0;i--){ const c=track[i]; if(c.t<=t+0.02 && c.sayKey){ say=p.say[c.sayKey]; break; } }
-      if(!say){ const b=curBeat(); if(b) say=p.say[b.key]; }
+      const p = DEMO.packs[pack]; let say=null, sayKey=null;
+      for(let i=track.length-1;i>=0;i--){ const c=track[i]; if(c.t<=t+0.02 && c.sayKey){ say=p.say[c.sayKey]; sayKey=c.sayKey; break; } }
+      if(!say){ const b=curBeat(); if(b){ say=p.say[b.key]; sayKey=b.key; } }
       if(!say) return;
       const bi=beatIdx();
       $("de-step").textContent=(say.eyebrow||"DEMO").toUpperCase()+" · "+(bi+1)+" / "+beats.length;
       $("de-head").textContent=say.title||""; $("de-lede").innerHTML="<p>"+(say.body||"")+"</p>";
+      maybeAudio(sayKey);
     }
     function paintScene(){ const b=curBeat(); if(!b) return;
       document.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active",s.dataset.scene===b.sceneId)); }
@@ -199,9 +222,9 @@
     const EMBED=Q.get("embed")==="1", LOOP=EMBED||Q.get("loop")==="1";
     function step(now){ if(!playing) return; if(!lastTick) lastTick=now; t+=(now-lastTick)/1000; lastTick=now;
       if(t>=DUR){ if(LOOP){ t=0; lastTick=now; paintAll(); raf=requestAnimationFrame(step); return; } t=DUR; playing=false; setUI(); paintAll(); return; } paintAll(); raf=requestAnimationFrame(step); }
-    function play(){ if(playing) return; if(t>=DUR) t=0; playing=true; lastTick=0; setUI(); raf=requestAnimationFrame(step); }
-    function pause(){ playing=false; cancelAnimationFrame(raf); lastTick=0; setUI(); }
-    function restart(){ t=0; paintAll(); if(!playing) play(); }
+    function play(){ if(playing) return; if(t>=DUR) t=0; playing=true; lastTick=0; setUI(); if(soundOn) playClip(curAudioKey); raf=requestAnimationFrame(step); }
+    function pause(){ playing=false; cancelAnimationFrame(raf); lastTick=0; setUI(); if(audioEl){ try{ audioEl.pause(); }catch(_){} } }
+    function restart(){ curAudioKey=null; t=0; paintAll(); if(!playing) play(); }
     function rescale(){ const st=$("de-stage"); $("de-canvas").style.transform="scale("+(st.clientWidth/1280)+")"; }
 
     $("de-play").addEventListener("click",()=>playing?pause():play());
