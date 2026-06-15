@@ -257,6 +257,10 @@
     border-top: 1px solid var(--rule);
     animation: ootb-fadein .2s ease;
   }
+  .ootb-subsector {
+    margin-top: 16px;
+    animation: ootb-fadein .2s ease;
+  }
   @keyframes ootb-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .ootb-sub-label {
     font-size: 11px;
@@ -1446,20 +1450,39 @@ body.is-gb #gbPanel{display:block;}
     <!-- Sub-questions — revealed on selection -->
     <div class="ootb-sub" id="ootbSub" hidden>
 
-      <!-- Vertical sub-questions -->
+      <!-- Vertical: sector → sub-vertical (two hops, never mixed) -->
       <div class="ootb-sub-section" id="subVertical" hidden>
-        <div class="ootb-sub-label">Which vertical?</div>
-        <div class="ootb-options ootb-options-sm">
-          <div class="ootb-option" onclick="finsBets()">Financial Services</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','healthcare')">Healthcare</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','government')">Government</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','legal')">Legal</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','hr')">HR / Benefits</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','insurance')">Insurance</div>
+        <div class="ootb-sub-label">Which industry?</div>
+        <div class="ootb-options ootb-options-sm" id="subVerticalSectors">
+          <div class="ootb-option" onclick="ootbSector('fins')">Financial Services</div>
+          <div class="ootb-option" onclick="ootbSector('hls')">Healthcare &amp; Life Sciences</div>
+          <div class="ootb-option" onclick="ootbSector('pubsec')">Public Sector</div>
+        </div>
+        <div class="ootb-subsector" id="subsectorFins" hidden>
+          <div class="ootb-sub-label">Financial Services</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','banking')">Banking · Credit Union</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','insurance')">Insurance</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','wealth')">Wealth Management</div>
+          </div>
+        </div>
+        <div class="ootb-subsector" id="subsectorHls" hidden>
+          <div class="ootb-sub-label">Healthcare &amp; Life Sciences</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','payor')">Payer</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','provider')">Provider</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','lifesciences')">Life Sciences</div>
+          </div>
+        </div>
+        <div class="ootb-subsector" id="subsectorPubsec" hidden>
+          <div class="ootb-sub-label">Public Sector</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','fedgov')">Federal</div>
+          </div>
         </div>
       </div>
 
-      <!-- Product sub-questions -->
+      <!-- Product spotlight -->
       <div class="ootb-sub-section" id="subProduct" hidden>
         <div class="ootb-sub-label">Which product?</div>
         <div class="ootb-options ootb-options-sm">
@@ -1472,7 +1495,7 @@ body.is-gb #gbPanel{display:block;}
         </div>
       </div>
 
-      <!-- Use case sub-questions -->
+      <!-- Use case -->
       <div class="ootb-sub-section" id="subUsecase" hidden>
         <div class="ootb-sub-label">Which workflow?</div>
         <div class="ootb-options ootb-options-sm">
@@ -1482,24 +1505,6 @@ body.is-gb #gbPanel{display:block;}
           <div class="ootb-option" onclick="ootbSubSelect('usecase','intake')">Intake</div>
           <div class="ootb-option" onclick="ootbSubSelect('usecase','maintenance')">Maintenance</div>
           <div class="ootb-option" onclick="ootbSubSelect('usecase','workspaces')">Workspaces</div>
-        </div>
-      </div>
-
-      <!-- FINS BETS — revealed when Financial Services is picked -->
-      <div class="ootb-sub-section" id="subFinsBets" hidden>
-        <div class="ootb-sub-label">FINS BETS</div>
-        <div class="ootb-options ootb-options-sm">
-          <div class="ootb-option" onclick="finsBetLaunch('cx5')">BET 1 · Best-in-class CX — the 5-part story</div>
-          <div class="ootb-option" onclick="finsBetLaunch('fraud')">BET 2 · Fraud Fabric</div>
-          <div class="ootb-option" onclick="finsBetExpand()">BET 3 · Agreement Intelligence</div>
-        </div>
-        <div id="subAgi" hidden style="margin-top:10px">
-          <div class="ootb-sub-label">BET 3 · Agreement Intelligence — Navigator · Hierarchy · AI-Assisted</div>
-          <div class="ootb-options ootb-options-sm">
-            <div class="ootb-option" onclick="finsBetOpen('/demos/navigator.html')">Navigator</div>
-            <div class="ootb-option" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">Hierarchy</div>
-            <div class="ootb-option" onclick="finsBetOpen('/demos/ai-review.html')">AI-Assisted</div>
-          </div>
         </div>
       </div>
 
@@ -4904,6 +4909,18 @@ window.ootbSelect = function(category) {
   subPanel.style.animation = 'none';
   subPanel.offsetHeight; // reflow
   subPanel.style.animation = '';
+};
+
+window.ootbSector = function(sector) {
+  // Mark sector selected
+  document.querySelectorAll('#subVerticalSectors .ootb-option').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  // Hide all subsectors, show the picked one
+  ['subsectorFins','subsectorHls','subsectorPubsec'].forEach(id => {
+    document.getElementById(id).hidden = true;
+  });
+  const map = { fins: 'subsectorFins', hls: 'subsectorHls', pubsec: 'subsectorPubsec' };
+  document.getElementById(map[sector]).hidden = false;
 };
 
 window.ootbSubSelect = function(category, value) {
