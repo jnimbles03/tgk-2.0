@@ -651,7 +651,7 @@
    because they target Docusign template UI, which does not
    shift by preset. Only the per-vertical narration varies.
    ========================================================= */
-const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="currentColor" opacity="0.12"/><rect x="1" y="1" width="22" height="22" rx="4.5" stroke="currentColor" stroke-width="1.5"/></svg>`;
 
 /* Hotspot anchors. `target` references a [data-hotspot="..."] tagged element
    inside the iframe template — that's the authoritative position. x/y are
@@ -2723,8 +2723,14 @@ if (v.tenantLogo) {
     `<img src="${v.tenantLogo}" alt="${(v.tenant || '').replace(/"/g, '&quot;')}" ` +
     `style="width:100%;height:100%;object-fit:contain;display:block;">`;
 } else {
-  $('tn-mark').style.color = v.tenantColor;
-  $('tn-mark').innerHTML = MARK_SVG;
+  const _initial = (v.tenant || '?').trim().charAt(0).toUpperCase();
+  $('tn-mark').style.color = '';
+  $('tn-mark').innerHTML =
+    `<svg viewBox="0 0 40 40" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">` +
+    `<rect width="40" height="40" rx="8" fill="${v.tenantColor || '#4C00FF'}"/>` +
+    `<text x="20" y="27" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" ` +
+    `font-size="22" font-weight="700" fill="white">${_initial}</text>` +
+    `</svg>`;
 }
 $('tn-wm').textContent = v.tenant;
 /* Render the subtitle text into the inner span so the customer-mark
