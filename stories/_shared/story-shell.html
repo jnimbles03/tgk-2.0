@@ -2723,13 +2723,79 @@ if (v.tenantLogo) {
     `<img src="${v.tenantLogo}" alt="${(v.tenant || '').replace(/"/g, '&quot;')}" ` +
     `style="width:100%;height:100%;object-fit:contain;display:block;">`;
 } else {
-  const _initial = (v.tenant || '?').trim().charAt(0).toUpperCase();
+  const _c   = v.tenantColor || '#4C00FF';
+  const _init = (v.tenant || '?').trim().charAt(0).toUpperCase();
+  const _bankMark =
+    `<rect x="8" y="10" width="24" height="2.5" rx="1" fill="white"/>` +
+    `<rect x="10" y="13.5" width="3" height="11" fill="white"/>` +
+    `<rect x="15.5" y="13.5" width="3" height="11" fill="white"/>` +
+    `<rect x="21" y="13.5" width="3" height="11" fill="white"/>` +
+    `<rect x="26.5" y="13.5" width="3" height="11" fill="white"/>` +
+    `<rect x="8" y="25.5" width="24" height="2.5" rx="1" fill="white"/>` +
+    `<rect x="6" y="29" width="28" height="3" rx="1" fill="white"/>`;
+  const _shieldMark =
+    `<path d="M20 7 L33 12 L33 21 C33 27.5 27 32.5 20 35.5 C13 32.5 7 27.5 7 21 L7 12 Z" fill="white" opacity=".9"/>` +
+    `<path d="M20 12 L28 15.5 L28 21 C28 25.5 24.5 29 20 31.5 C15.5 29 12 25.5 12 21 L12 15.5 Z" fill="${_c}"/>`;
+  const _domesMark =
+    `<ellipse cx="20" cy="14" rx="9" ry="6" fill="white"/>` +
+    `<rect x="10" y="14" width="2.5" height="15" fill="white"/>` +
+    `<rect x="27.5" y="14" width="2.5" height="15" fill="white"/>` +
+    `<rect x="13.5" y="17" width="13" height="12" fill="white"/>` +
+    `<rect x="7" y="29" width="26" height="3" rx="1" fill="white"/>` +
+    `<rect x="17" y="19" width="6" height="7" rx="1" fill="${_c}"/>`;
+  const _marks = {
+    'wealth':
+      `<path d="M6 30 L15 14 L21 21 L27 11 L34 30 Z" fill="white" opacity=".92"/>`,
+    'banking':          _bankMark,
+    'banking-deposits': _bankMark,
+    'insurance':        _shieldMark,
+    'insurance-life':   _shieldMark,
+    'insurance-pc':     _shieldMark,
+    'provider':
+      `<rect x="16.5" y="8" width="7" height="24" rx="3.5" fill="white"/>` +
+      `<rect x="8" y="16.5" width="24" height="7" rx="3.5" fill="white"/>`,
+    'provider-roi':
+      `<rect x="16.5" y="8" width="7" height="24" rx="3.5" fill="white"/>` +
+      `<rect x="8" y="16.5" width="24" height="7" rx="3.5" fill="white"/>`,
+    'lifesciences':
+      `<circle cx="14" cy="10" r="3.5" fill="white"/>` +
+      `<circle cx="26" cy="15" r="3.5" fill="white"/>` +
+      `<circle cx="14" cy="20" r="3.5" fill="white"/>` +
+      `<circle cx="26" cy="25" r="3.5" fill="white"/>` +
+      `<circle cx="14" cy="30" r="3.5" fill="white"/>` +
+      `<line x1="14" y1="10" x2="26" y2="15" stroke="white" stroke-width="1.5" opacity=".45"/>` +
+      `<line x1="26" y1="15" x2="14" y2="20" stroke="white" stroke-width="1.5" opacity=".45"/>` +
+      `<line x1="14" y1="20" x2="26" y2="25" stroke="white" stroke-width="1.5" opacity=".45"/>` +
+      `<line x1="26" y1="25" x2="14" y2="30" stroke="white" stroke-width="1.5" opacity=".45"/>`,
+    'payor':
+      `<circle cx="20" cy="20" r="13" fill="none" stroke="white" stroke-width="2.5"/>` +
+      `<circle cx="20" cy="20" r="8"  fill="none" stroke="white" stroke-width="2.5"/>` +
+      `<circle cx="20" cy="20" r="3"  fill="white"/>`,
+    'fedgov':
+      `<polygon points="20,7 23.5,16.5 33.5,16.5 25.5,22.5 28.5,32 20,26 11.5,32 14.5,22.5 6.5,16.5 16.5,16.5" fill="white"/>`,
+    'slgov':                        _domesMark,
+    'slgov-311':                    _domesMark,
+    'slgov-benefits':               _domesMark,
+    'slgov-licensing':              _domesMark,
+    'slgov-recertification':        _domesMark,
+    'slgov-vendor-compliance':      _domesMark,
+    'slgov-employee-onboarding':    _domesMark,
+    'education':
+      `<polygon points="20,9 33,15 20,21 7,15" fill="white"/>` +
+      `<path d="M28 18 L28 26 C28 26 24 30 20 30 C16 30 12 26 12 26 L12 18" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `<circle cx="32" cy="15" r="2" fill="white"/>` +
+      `<line x1="32" y1="17" x2="32" y2="24" stroke="white" stroke-width="2"/>`,
+    'nonprofit':
+      `<path d="M12 28 C12 22 8 18 8 14 C8 11 10 9 13 9 C14.5 9 16 10 17 11 C17.5 10 19 9 20 9 C21 9 22.5 10 23 11 C24 10 25.5 9 27 9 C30 9 32 11 32 14 C32 18 28 22 28 28" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+      `<path d="M12 28 L20 35 L28 28" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  };
+  const _paths = _marks[v.preset] ||
+    `<text x="20" y="27" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="22" font-weight="700" fill="white">${_init}</text>`;
   $('tn-mark').style.color = '';
   $('tn-mark').innerHTML =
     `<svg viewBox="0 0 40 40" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">` +
-    `<rect width="40" height="40" rx="8" fill="${v.tenantColor || '#4C00FF'}"/>` +
-    `<text x="20" y="27" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" ` +
-    `font-size="22" font-weight="700" fill="white">${_initial}</text>` +
+    `<rect width="40" height="40" rx="8" fill="${_c}"/>` +
+    _paths +
     `</svg>`;
 }
 $('tn-wm').textContent = v.tenant;
