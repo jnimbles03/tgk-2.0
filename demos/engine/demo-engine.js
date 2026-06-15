@@ -106,7 +106,7 @@
     }).join("");
     document.querySelectorAll(".de-vbtn").forEach(b=>b.addEventListener("click",()=>{ pack=b.dataset.pack; applyPack(); }));
 
-    // ---- optional voice narration (manifest from scripts/generate-narration.mjs) ----
+    // ---- optional voice narration (manifest from bin/generate-narration.mjs) ----
     let AUDIO=null, soundOn=false, curAudioKey=null;
     const audioEl = (typeof Audio!=="undefined") ? new Audio() : null;
     if(audioEl) audioEl.preload="none";

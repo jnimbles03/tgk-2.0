@@ -12,9 +12,9 @@ export ELEVENLABS_API_KEY=sk-...                 # required
 #   export ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM   # default (Rachel)
 #   export ELEVENLABS_MODEL=eleven_multilingual_v2
 
-node scripts/generate-narration.mjs              # all scripted demos
-node scripts/generate-narration.mjs navigator    # just one (by slug)
-node scripts/generate-narration.mjs --dry navigator   # print the scripts, write nothing
+node bin/generate-narration.mjs              # all scripted demos
+node bin/generate-narration.mjs navigator    # just one (by slug)
+node bin/generate-narration.mjs --dry navigator   # print the scripts, write nothing
 ```
 
 Writes:
