@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agreement Intelligence in Salesforce — re-skinnable demo</title>
+<link rel="stylesheet" href="./engine/demo-engine.css">
+<link rel="stylesheet" href="./archetypes/agent.css">
+<style>
+  /* related-agreements hierarchy on the account record */
+  .ra{background:#fff;border:1px solid #e5e5ea;border-radius:8px;padding:13px 16px}
+  .ra .hd{font-size:13px;font-weight:700;color:#080707;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .ra .hd .dm{width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);flex:0 0 auto}
+  .ra .hd .ct{margin-left:auto;font-size:11px;color:#706e6b;font-weight:600}
+  .ra-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid #f0f0f3;font-size:12.5px;color:#16325c;transition:background .2s}
+  .ra-row:first-of-type{border-top:none}
+  .ra-row .fi{width:15px;height:18px;border:1.4px solid #b9c2d0;border-radius:2px;flex:0 0 auto}
+  .ra-row.child{padding-left:20px}
+  .ra-row.child .fi{border-color:#cdd4df}
+  .ra-row .pv{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.2px;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 7px;border-radius:20px}
+  .ra-row.hot{background:var(--tenant-accent-soft);border-radius:6px;padding-left:6px;padding-right:6px}
+  .ra-more{font-size:11.5px;color:#706e6b;padding:8px 0 0}
+  /* assistant header → Docusign agreement intelligence */
+  .af-hd .dm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);flex:0 0 auto}
+  .af-hd .sub{font-size:10.5px;font-weight:600;color:#706e6b;margin-top:1px}
+  .af-chat{overflow-y:auto}
+  .af-chat::-webkit-scrollbar{width:6px}.af-chat::-webkit-scrollbar-thumb{background:#d8d8e0;border-radius:4px}
+  /* reveal messages by occupying space only when shown (clean auto-scroll) */
+  #di-chat .af-msg{display:none}
+  #di-chat .af-msg.on{display:block;animation:di-in .25s ease}
+  @keyframes di-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* key-terms summary card */
+  .kt{margin-top:9px;border:1px solid #e5e5ea;border-radius:8px;overflow:hidden;background:#fff}
+  .kt .ktt{background:#f6f8fb;font-weight:700;font-size:10px;letter-spacing:.3px;color:#54698d;text-transform:uppercase;padding:6px 11px}
+  .ktr{display:flex;justify-content:space-between;gap:10px;padding:7px 11px;border-top:1px solid #f0f0f3;font-size:11.5px}
+  .ktr .k{color:#54698d}
+  .ktr .v{font-weight:700;color:#16325c;text-align:right;white-space:nowrap}
+  .ktr .v .src{display:block;color:#9aa;font-weight:400;font-size:9.5px;margin-top:1px}
+  .kc{padding:7px 11px;border-top:1px solid #f0f0f3;font-size:11px;color:#3a3a47;line-height:1.5}
+  .kc b{color:#1a7a44}
+  /* generated-MSA card */
+  .af-card .bul{margin-top:6px;font-size:11px;color:#3a3a47;line-height:1.6}
+  .af-card .dis{margin-top:7px;font-size:10px;color:#9a7b1e;background:#FBF6E7;border-radius:6px;padding:6px 8px;line-height:1.4}
+  .af-prompt.gen{display:none}
+  .af-prompt.gen.show{display:block}
+</style>
+</head>
+<body>
+<div id="demo-root"></div>
+<script src="./engine/demo-engine.js"></script>
+<script>
+function raRow(r){ // [label, isChild, prevails]
+  return '<div class="ra-row'+(r[1]?' child':'')+'" '+(r[3]?'id="'+r[3]+'"':'')+'><span class="fi"></span><span>'+r[0]+'</span>'+
+    (r[2]?'<span class="pv">PREVAILS</span>':'')+'</div>';
+}
+function ktRow(k){ return '<div class="ktr"><span class="k">'+k[0]+'</span><span class="v">'+k[1]+'<span class="src">'+k[2]+'</span></span></div>'; }
+
+const SCENES =
+  '<section class="de-scene is-active" data-scene="sf"><div class="sf">'+
+    '<div class="sf-top"><span class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="app">Sales</span>'+
+      '<span class="search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>Search Salesforce</span>'+
+      '<span class="ic">★ ? ⚙ ▤</span><span class="av"></span></div>'+
+    '<div class="sf-tabs"><span class="t">Home</span><span class="t">Opportunities</span><span class="t on">Accounts</span><span class="t">Contacts</span><span class="t">Reports</span></div>'+
+    '<div class="sf-body"><div class="sf-main">'+
+      '<div class="sf-rec"><div class="eyebrow">Account</div><div class="nm" id="di-acct"></div>'+
+        '<div class="sf-fields"><div class="f"><div class="k">Industry</div><div class="v" id="di-f1"></div></div>'+
+          '<div class="f"><div class="k">Account owner</div><div class="v" id="di-f2"></div></div>'+
+          '<div class="f"><div class="k">Annual contract value</div><div class="v" id="di-f3"></div></div>'+
+          '<div class="f"><div class="k">Renewal date</div><div class="v" id="di-f4"></div></div></div></div>'+
+      '<div class="ra"><div class="hd"><span class="dm"></span> Related agreements <span class="ct" id="di-racount"></span></div>'+
+        '<div id="di-ra"></div><div class="ra-more" id="di-ramore"></div></div>'+
+    '</div>'+
+    '<div class="af"><div class="af-hd"><span class="dm"></span><div><div>Agreement Intelligence</div><div class="sub" id="di-chatsub"></div></div></div>'+
+      '<div class="af-chat" id="di-chat">'+
+        '<div class="af-msg ai on" id="di-intro"></div>'+
+        '<div class="af-msg user" id="di-u1">Summarize the prevailing terms.</div>'+
+        '<div class="af-msg ai" id="di-a1"><span id="di-a1t"></span>'+
+          '<div class="kt"><div class="ktt">Key terms — in force</div><div id="di-kt"></div>'+
+            '<div class="kc" id="di-kc"></div></div></div>'+
+        '<div class="af-msg user" id="di-u2">Do we have an AI addendum in place?</div>'+
+        '<div class="af-msg ai" id="di-a2"></div>'+
+        '<div class="af-msg user" id="di-u3">Any special pricing applied?</div>'+
+        '<div class="af-msg ai" id="di-a3"></div>'+
+        '<div class="af-msg user" id="di-u4">Create a new MSA using the most favorable terms in place and our current template.</div>'+
+        '<div class="af-msg ai" id="di-a4"><span id="di-a4t"></span>'+
+          '<div class="af-card"><div class="t"><span class="dm"></span><span id="di-gentitle"></span></div>'+
+            '<div class="bul" id="di-genbul"></div><div class="s">✓ Drafted &amp; ready for review</div>'+
+            '<div class="dis">AI-generated from agreements in force — review required. Not legal advice.</div></div></div>'+
+      '</div>'+
+      '<div class="af-prompts" id="di-prompts"><div class="af-prompt" id="di-p1">Summarize prevailing terms</div>'+
+        '<div class="af-prompt gen" id="di-gen">Draft a new MSA from the best terms</div></div>'+
+      '<div class="af-input" id="di-input"><div class="box">Ask about these agreements…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+  '</div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="di-ho-h"></h2><p id="di-ho-p"></p><div class="chain"><div class="node">Chat with 16 agreements</div><span class="arr">&rarr;</span>'+
+      '<div class="node lead">New MSA drafted</div><span class="arr">&rarr;</span><div class="node" id="di-ho-sor"></div></div></div></section>';
+
+DemoEngine.init({
+  meta:{ title:"Agreement Intelligence in Salesforce", productTag:"Docusign × Salesforce", home:"index.html",
+    footnote:'<b>Faithful in-CRM agreement-intelligence flow, re-skinnable content.</b> The Salesforce account, the related-agreements hierarchy and the assistant that summarizes prevailing terms, answers follow-ups and drafts a new agreement are the shared spine. Switching vertical swaps the account, the contract terms and the narration.' },
+  defaultPack:"acme", scenes:SCENES,
+  timeline:{ totalDuration:37,
+    beats:[ {t:0,key:"open",sceneId:"sf"},{t:6,key:"summarize",sceneId:"sf"},{t:14,key:"interrogate",sceneId:"sf"},
+      {t:24,key:"generate",sceneId:"sf"},{t:31,key:"handoff",sceneId:"handoff"} ],
+    cursorTrack:[ {t:1.5,x:760,y:300,action:"move"},
+      {t:6,target:"#di-p1",action:"click",sayKey:"summarize"},
+      {t:14,target:"#di-chat",action:"move",sayKey:"interrogate"},
+      {t:24,target:"#di-gen",action:"click",sayKey:"generate"},
+      {t:31,x:640,y:300,action:"move"} ] },
+  packs:{
+    acme:{ label:"Acme Corp · placeholder",
+      theme:{ "--tenant-accent":"#5B35D6","--tenant-accent-soft":"#ECE7FB","--tenant-ink":"#1E1148" },
+      brand:{ name:"Acme Corporation", mark:"A" }, url:"acme.lightning.force.com — Accounts", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Mary Okonkwo", role:"Account Executive", side:"advisor" },
+      acct:"Acme Corporation", f1:"Manufacturing", f2:"Mary Okonkwo", f3:"$1.2M", f4:"Apr 30, 2026",
+      racount:"16", chatsub:"Chat with 16 agreements · Acme × Fontana Inc.",
+      related:[ ["Master Services Agreement — Fontana Inc.",0,1,"di-ra-msa"],
+        ["Order Form — 2024",1,0,""],["Statement of Work #1",1,0,""],
+        ["Amendment #2 — SLA",1,0,""],["Amendment #3 — Support",1,0,""],
+        ["Amendment #4 — AI Data Processing",1,1,"di-ra-aidpa"] ],
+      ramore:"…and 9 more order forms &amp; amendments",
+      intro:"I can see 16 related agreements for Acme Corporation — the MSA with Fontana, order forms, an SOW and four amendments. Ask me anything, or pick a prompt.",
+      a1t:"Here are the prevailing terms across the Acme × Fontana hierarchy:",
+      keyterms:[ ["Liability cap","$2M","MSA §8.1"],["Payment terms","Net 30","Order Form 2024"],
+        ["Volume discount","20% off","Order Form 2024"],["Annual minimum","$500K","MSA"] ],
+      keychanges:"<b>Key changes (2024):</b> SLA uptime → 99.9% · support → 24×7 · AI Data Processing addendum added.",
+      a2:"Yes — the <b>AI Data Processing Addendum</b> (Amendment #4, executed Mar 2024) governs model training, data residency and audit rights. It prevails over the base DPA.",
+      a3:"Yes — a <b>20% volume discount</b> (Order Form 2024) applies above the $500K annual minimum. At current run-rate you're tracking to qualify; recommend preserving this tier in any renewal.",
+      a4t:"Done — I drafted a new MSA on your current template, pulling the most favorable terms in force:",
+      gentitle:"Master Services Agreement — Acme Corporation (draft)",
+      genbul:"• Liability cap $2M &nbsp;• Net 30 &nbsp;• 20% volume discount<br>• 99.9% SLA &nbsp;• AI Data Processing addendum",
+      handoff:{ h:"From 16 agreements to a drafted contract", p:"Without leaving Salesforce, the account team moved from reading the hierarchy to a new MSA built on the most favorable terms — ready to review and send.", sor:"Review & send" },
+      say:{ open:{eyebrow:"Agreement Intelligence",title:"16 agreements, one conversation",body:"Mary is on the Acme Corporation account in Salesforce. Docusign reads every related agreement — MSA, order forms, SOW and amendments — right inside the record."},
+        summarize:{eyebrow:"Summarize",title:"Prevailing terms, rolled up with citations",body:"One prompt rolls the whole hierarchy into the terms in force — liability cap, payment terms, volume discount, annual minimum — each citing its source document."},
+        interrogate:{eyebrow:"Ask",title:"Follow-ups, grounded in the contracts",body:"“Do we have an AI addendum?” and “any special pricing?” — answered from the documents, with the governing amendment and order form cited."},
+        generate:{eyebrow:"Generate",title:"Draft the next agreement, agentically",body:"Mary asks for a new MSA built from the most favorable terms on the current template — Docusign drafts it on the spot, ready for review."},
+        handoff:{eyebrow:"In the flow of work",title:"Retrieval becomes a drafted contract",body:"Reading, interrogating and drafting — all inside the CRM record, without a single context switch."} },
+    },
+    banking:{ label:"Banking · Tally",
+      theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+      brand:{ name:"Tally Bank", mark:"T" }, url:"tally.lightning.force.com — Accounts", sorBadge:"System of record · Salesforce",
+      persona:{ name:"Mary Okonkwo", role:"Relationship Manager", side:"advisor" },
+      acct:"Tally Bank", f1:"Financial Services", f2:"Mary Okonkwo", f3:"$3.4M", f4:"Jun 15, 2026",
+      racount:"16", chatsub:"Chat with 16 agreements · Tally × Northwind Systems",
+      related:[ ["Master Services Agreement — Northwind Systems",0,1,"di-ra-msa"],
+        ["Order Form — 2024",1,0,""],["Statement of Work #1",1,0,""],
+        ["Amendment #2 — SLA",1,0,""],["Amendment #3 — Support",1,0,""],
+        ["Amendment #4 — AI Data Processing",1,1,"di-ra-aidpa"] ],
+      ramore:"…and 9 more order forms &amp; amendments",
+      intro:"I can see 16 related agreements for Tally Bank — the MSA with Northwind, order forms, an SOW and four amendments. Ask me anything, or pick a prompt.",
+      a1t:"Here are the prevailing terms across the Tally × Northwind hierarchy:",
+      keyterms:[ ["Liability cap","$5M","MSA §8.1"],["Payment terms","Net 45","Order Form 2024"],
+        ["Volume discount","15% off","Order Form 2024"],["Annual minimum","$750K","MSA"] ],
+      keychanges:"<b>Key changes (2024):</b> SLA uptime → 99.95% · support → 24×7 · AI Data Processing addendum added.",
+      a2:"Yes — the <b>AI Data Processing Addendum</b> (Amendment #4, executed Mar 2024) governs model training, data residency and audit rights. It prevails over the base DPA.",
+      a3:"Yes — a <b>15% volume discount</b> (Order Form 2024) applies above the $750K annual minimum. At current run-rate you're tracking to qualify; recommend preserving this tier in any renewal.",
+      a4t:"Done — I drafted a new MSA on your current template, pulling the most favorable terms in force:",
+      gentitle:"Master Services Agreement — Tally Bank (draft)",
+      genbul:"• Liability cap $5M &nbsp;• Net 45 &nbsp;• 15% volume discount<br>• 99.95% SLA &nbsp;• AI Data Processing addendum",
+      handoff:{ h:"From 16 agreements to a drafted contract", p:"Without leaving Salesforce, the relationship team moved from reading the hierarchy to a new MSA built on the most favorable terms — ready to review and send.", sor:"Review & send" },
+      say:{ open:{eyebrow:"Agreement Intelligence",title:"16 agreements, one conversation",body:"Mary is on the Tally Bank account in Salesforce. Docusign reads every related agreement — MSA, order forms, SOW and amendments — right inside the record."},
+        summarize:{eyebrow:"Summarize",title:"Prevailing terms, rolled up with citations",body:"One prompt rolls the whole hierarchy into the terms in force — liability cap, payment terms, volume discount, annual minimum — each citing its source document."},
+        interrogate:{eyebrow:"Ask",title:"Follow-ups, grounded in the contracts",body:"“Do we have an AI addendum?” and “any special pricing?” — answered from the documents, with the governing amendment and order form cited."},
+        generate:{eyebrow:"Generate",title:"Draft the next agreement, agentically",body:"Mary asks for a new MSA built from the most favorable terms on the current template — Docusign drafts it on the spot, ready for review."},
+        handoff:{eyebrow:"In the flow of work",title:"Retrieval becomes a drafted contract",body:"Reading, interrogating and drafting — all inside the CRM record, without a single context switch."} },
+    }
+  },
+  paintContent(p, root){
+    root.querySelector(".av").textContent="";
+    root.querySelector("#di-acct").textContent=p.acct;
+    root.querySelector("#di-f1").textContent=p.f1; root.querySelector("#di-f2").textContent=p.f2;
+    root.querySelector("#di-f3").textContent=p.f3; root.querySelector("#di-f4").textContent=p.f4;
+    root.querySelector("#di-racount").textContent="("+p.racount+")";
+    root.querySelector("#di-ra").innerHTML=p.related.map(raRow).join("");
+    root.querySelector("#di-ramore").innerHTML=p.ramore;
+    root.querySelector("#di-chatsub").textContent=p.chatsub;
+    root.querySelector("#di-intro").textContent=p.intro;
+    root.querySelector("#di-a1t").textContent=p.a1t;
+    root.querySelector("#di-kt").innerHTML=p.keyterms.map(ktRow).join("");
+    root.querySelector("#di-kc").innerHTML=p.keychanges;
+    root.querySelector("#di-a2").innerHTML=p.a2; root.querySelector("#di-a3").innerHTML=p.a3;
+    root.querySelector("#di-a4t").textContent=p.a4t;
+    root.querySelector("#di-gentitle").textContent=p.gentitle; root.querySelector("#di-genbul").innerHTML=p.genbul;
+    root.querySelector("#di-ho-h").textContent=p.handoff.h; root.querySelector("#di-ho-p").textContent=p.handoff.p;
+    root.querySelector("#di-ho-sor").textContent=p.handoff.sor;
+  },
+  onTime(time, p, root){
+    const on=(id,t)=>{ const el=root.querySelector(id); if(el) el.classList.toggle("on", time>=t); };
+    // prompt library fades after the first prompt is run; the generate follow-up appears mid-way
+    root.querySelector("#di-p1").style.opacity = time>=6 ? 0 : 1;
+    root.querySelector("#di-gen").classList.toggle("show", time>=18 && time<31);
+    // summarize
+    on("#di-u1",6.3); on("#di-a1",8);
+    // interrogate — addendum, then pricing
+    on("#di-u2",14); on("#di-a2",15.5); on("#di-u3",19); on("#di-a3",20.5);
+    // generate
+    on("#di-u4",24.3); on("#di-a4",27);
+    // highlight the cited agreements as they're referenced
+    const msa=root.querySelector("#di-ra-msa"), ai=root.querySelector("#di-ra-aidpa");
+    if(msa) msa.classList.toggle("hot", time>=8 && time<14);
+    if(ai)  ai.classList.toggle("hot", time>=15.5 && time<19);
+    // keep the conversation pinned to the latest message
+    const chat=root.querySelector("#di-chat"); if(chat && time>=6) chat.scrollTop=chat.scrollHeight;
+  }
+});
+</script>
+</body>
+</html>
