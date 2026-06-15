@@ -4925,7 +4925,7 @@ window.ootbSector = function(sector) {
 };
 
 window.ootbSubSelect = function(category, value) {
-  // Mark sub-option selected
+  // Mark selection
   const subMap = { vertical: 'subVertical', product: 'subProduct', usecase: 'subUsecase' };
   const subSection = document.getElementById(subMap[category]);
   if (subSection) {
@@ -4933,37 +4933,41 @@ window.ootbSubSelect = function(category, value) {
     event.currentTarget.classList.add('selected');
   }
 
-  // Route into the bespoke builder with the right pre-selection
-  const seqMap = {
-    // use-case sequences map to data-seq values
-    'default': 'default', 'clm': 'clm', 'fraud-fabric': 'fraud-fabric',
-    'intake': 'intake', 'maintenance': 'maintenance', 'workspaces': 'workspaces',
-    // products map to single-scene sequences where they exist
-    'esignature': 'blank', 'idv': 'blank', 'navigator': 'blank',
-    'maestro': 'blank', 'agentforce': 'blank',
-    // verticals pick the canonical sequence
-    'financial': 'default', 'healthcare': 'default', 'government': 'default',
-    'legal': 'default', 'hr': 'default', 'insurance': 'default',
+  // OotB = open the canned themed demo directly. No bespoke builder.
+  const VERTICAL_URLS = {
+    // FINS
+    'wealth':       '/stories/story-wealth/',
+    'banking':      '/stories/story-banking-deposits/',
+    'insurance':    '/stories/story-insurance/',
+    // HLS
+    'payor':        '/stories/story-payor/',
+    'provider':     '/stories/story-provider/',
+    'lifesciences': '/stories/story-lifesciences/',
+    // PubSec
+    'fedgov':       '/stories/story-fedgov/',
+  };
+  const PRODUCT_URLS = {
+    'esignature':   '/demos/esignature.html',
+    'idv':          '/demos/idv-clear.html',
+    'navigator':    '/demos/navigator.html',
+    'maestro':      '/demos/maestro.html',
+    'workspaces':   '/demos/workspaces.html',
+    'agentforce':   '/demos/agentforce.html',
+  };
+  const USECASE_URLS = {
+    'default':      '/stories/story-banking/',
+    'clm':          '/demos/clm.html',
+    'fraud-fabric': '/stories/story-banking/',
+    'intake':       '/demos/web-forms.html',
+    'maintenance':  '/stories/story-banking/',
+    'workspaces':   '/demos/workspaces.html',
   };
 
-  // Switch to bespoke mode
-  document.getElementById('modeBespoke').click();
-
-  // Pre-select sequence card
-  const seq = seqMap[value] || 'default';
-  setTimeout(function() {
-    const seqCard = document.querySelector('[data-seq="' + seq + '"]');
-    if (seqCard) {
-      document.querySelectorAll('.seq-card').forEach(c => c.classList.remove('is-selected'));
-      seqCard.classList.add('is-selected');
-      seqCard.click();
-    }
-    // Pre-fill vertical in brand step if it's a vertical pick
-    if (category === 'vertical') {
-      const vertSel = document.getElementById('f-vertical');
-      if (vertSel) vertSel.value = value;
-    }
-  }, 50);
+  const urlMap = category === 'vertical' ? VERTICAL_URLS
+               : category === 'product'  ? PRODUCT_URLS
+               : USECASE_URLS;
+  const url = urlMap[value];
+  if (url) window.location.href = url;
 };
 
 // ── FINS BETS — Financial Services reveals three strategic bets ──
