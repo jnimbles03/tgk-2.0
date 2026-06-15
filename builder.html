@@ -1448,7 +1448,7 @@ body.is-gb #gbPanel{display:block;}
       <div class="ootb-sub-section" id="subVertical" hidden>
         <div class="ootb-sub-label">Which vertical?</div>
         <div class="ootb-options ootb-options-sm">
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','financial')">Financial Services</div>
+          <div class="ootb-option" onclick="finsBets()">Financial Services</div>
           <div class="ootb-option" onclick="ootbSubSelect('vertical','healthcare')">Healthcare</div>
           <div class="ootb-option" onclick="ootbSubSelect('vertical','government')">Government</div>
           <div class="ootb-option" onclick="ootbSubSelect('vertical','legal')">Legal</div>
@@ -1480,6 +1480,24 @@ body.is-gb #gbPanel{display:block;}
           <div class="ootb-option" onclick="ootbSubSelect('usecase','intake')">Intake</div>
           <div class="ootb-option" onclick="ootbSubSelect('usecase','maintenance')">Maintenance</div>
           <div class="ootb-option" onclick="ootbSubSelect('usecase','workspaces')">Workspaces</div>
+        </div>
+      </div>
+
+      <!-- FINS BETS — revealed when Financial Services is picked -->
+      <div class="ootb-sub-section" id="subFinsBets" hidden>
+        <div class="ootb-sub-label">FINS BETS</div>
+        <div class="ootb-options ootb-options-sm">
+          <div class="ootb-option" onclick="finsBetLaunch('cx5')">BET 1 · Best-in-class CX — the 5-part story</div>
+          <div class="ootb-option" onclick="finsBetLaunch('fraud')">BET 2 · Fraud Fabric</div>
+          <div class="ootb-option" onclick="finsBetExpand()">BET 3 · Agreement Intelligence</div>
+        </div>
+        <div id="subAgi" hidden style="margin-top:10px">
+          <div class="ootb-sub-label">BET 3 · Agreement Intelligence — Navigator · Hierarchy · AI-Assisted</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="finsBetOpen('/demos/navigator.html')">Navigator</div>
+            <div class="ootb-option" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">Hierarchy</div>
+            <div class="ootb-option" onclick="finsBetOpen('/demos/ai-review.html')">AI-Assisted</div>
+          </div>
         </div>
       </div>
 
@@ -4926,6 +4944,30 @@ window.ootbSubSelect = function(category, value) {
       if (vertSel) vertSel.value = value;
     }
   }, 50);
+};
+
+// ── FINS BETS — Financial Services reveals three strategic bets ──
+function _finsMark() {
+  try { if (window.event && event.currentTarget) {
+    event.currentTarget.parentNode.querySelectorAll('.ootb-option').forEach(function (el) { el.classList.remove('selected'); });
+    event.currentTarget.classList.add('selected');
+  } } catch (e) {}
+}
+window.finsBets = function () {
+  document.querySelectorAll('.ootb-sub-section').forEach(function (el) { el.hidden = true; });
+  var s = document.getElementById('subFinsBets'); if (s) s.hidden = false;
+  var agi = document.getElementById('subAgi'); if (agi) agi.hidden = true;
+  var sp = document.getElementById('ootbSub'); if (sp) sp.hidden = false;
+};
+window.finsBetExpand = function () { _finsMark(); var agi = document.getElementById('subAgi'); if (agi) agi.hidden = false; };
+window.finsBetOpen = function (url) { _finsMark(); window.open(url, '_blank'); };
+window.finsBetLaunch = function (bet) {
+  _finsMark();
+  var urls = {
+    cx5:   '/stories/_shared/story-shell.html?vertical=banking',
+    fraud: '/stories/_shared/story-shell.html?vertical=banking&usecase=auth-fabric'
+  };
+  if (urls[bet]) window.open(urls[bet], '_blank');
 };
 </script>
 </body>
