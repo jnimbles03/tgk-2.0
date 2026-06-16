@@ -372,6 +372,21 @@
   .hint-row .speed-picker .sp{padding:3px 9px;font-size:11px;font-weight:600;color:var(--ink-mid);cursor:pointer;border:none;background:transparent;font-family:inherit;font-variant-numeric:tabular-nums;line-height:1.3;border-radius:4px;flex-shrink:0;}
   .hint-row .speed-picker .sp:hover{background:#F3F1EC;color:var(--ink);}
   .hint-row .speed-picker .sp.on{background:var(--ds-purple);color:#fff;}
+  /* ── Autopilot status pill (lives in the existing hint-row — no new chrome) ── */
+  .hint-row .ap-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:10.5px;}
+  .hint-row .ap-status .ap-dot{width:7px;height:7px;border-radius:50%;background:#4C00FF;flex-shrink:0;}
+  .hint-row .ap-status[data-state="gate"],.hint-row .ap-status[data-state="exploring"]{color:#B25A00;}
+  .hint-row .ap-status[data-state="gate"] .ap-dot,.hint-row .ap-status[data-state="exploring"] .ap-dot{background:#B25A00;}
+  .hint-row .ap-status[data-state="resuming"]{color:#4C00FF;}
+  .hint-row .ap-status[data-state="complete"]{color:#0A7A3A;}
+  .hint-row .ap-status[data-state="complete"] .ap-dot{background:#0A7A3A;}
+  .hint-row .ap-status .ap-continue{margin-left:4px;font:inherit;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#fff;background:#4C00FF;border:none;border-radius:5px;padding:3px 9px;cursor:pointer;}
+  .hint-row .ap-status .ap-continue:hover{background:#3a00c0;}
+  /* ── Autopilot hotspot detail (shown in the rail while exploring) ── */
+  .ap-detail{margin-top:14px;padding:12px 14px;border:1px solid rgba(76,0,255,0.20);border-left:3px solid #4C00FF;border-radius:8px;background:rgba(76,0,255,0.04);}
+  .ap-detail .ap-detail-eyebrow{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B25A00;margin-bottom:4px;}
+  .ap-detail .ap-detail-title{font-size:15px;font-weight:600;color:var(--ink);line-height:1.25;margin-bottom:4px;}
+  .ap-detail .ap-detail-body{font-size:12.5px;color:var(--ink-mid);line-height:1.5;}
 
   .stage{flex:1;position:relative;background:#EAE4DA;overflow:hidden;border-left:1px solid var(--hair);}
   .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:#fff;transition:opacity 0.35s ease;}
@@ -583,6 +598,7 @@
       <div class="step-label" id="step-label">SCENE 1 OF 5</div>
       <h1 class="headline" id="headline"></h1>
       <div class="lede" id="lede"></div>
+      <div class="ap-detail" id="ap-detail" hidden></div>
       <div class="lead-hint" id="lead-hint" aria-hidden="true">Press <kbd>Space</kbd> to begin</div>
       <!-- Persona-handoff cue retired 2026-05-06. Persona-break sweep
            replaces it; keyboard-only model (Space + arrows) drives navigation. -->
@@ -599,6 +615,7 @@
       <div class="hint-row">
         <span class="kb-hint"><kbd>Space</kbd> play/pause</span>
         <span class="kb-hint" id="kb-hint-arrows"><kbd>←</kbd><kbd>→</kbd> <span id="kb-hint-arrows-mode">scrub beats</span></span>
+        <span class="kb-hint ap-status" id="autopilot-status" hidden><span class="ap-dot"></span><span id="ap-label">AUTOPILOT</span><button type="button" id="ap-continue" class="ap-continue" hidden>Continue</button></span>
         <span class="speed-picker" id="speed-picker" role="group" aria-label="Autoplay speed" title="Autoplay speed (↑↓)">
           <button type="button" class="sp" data-rate="1">1×</button>
           <button type="button" class="sp" data-rate="1.5">1.5×</button>
@@ -1829,9 +1846,13 @@ const VERTICALS = {
       {tag:"SCENE 4 OF 5 · DATA", head:"The agreement repository extracts the account file into Cedar's core.",
        lede:`<p>16 fields pulled — account types, joint structure, beneficiaries, opening deposit, e-statement, product selections. The AI answers compliance's "what disclosures has this household received?" without a pivot.</p>`,
        beats:[
-         {head:"The agreement repository surfaces the executed account opening.", lede:`<p>The AI-Assisted banner confirms extraction. The Williams household's documents appear in Cedar's repository alongside Marcus's existing membership record.</p>`},
+         {head:"The agreement repository surfaces the executed account opening.", lede:`<p>The AI-Assisted banner confirms extraction. The Williams household's documents appear in Cedar's repository alongside Marcus's existing membership record.</p>`,
+          explore:true,
+          hotspots:[{sel:'[data-hotspot="ai_banner"]', eyebrow:'AI extraction', title:'Terms read automatically', body:'The repository extracted parties, dates, and account terms from the executed packet — searchable and filterable, with no manual tagging.'}]},
          {head:"16 fields extracted from the account opening.", lede:`<p>Account types, joint structure, beneficiaries, opening deposit, e-statement preferences, product selections — all visible in column view, ready for the core banking system.</p>`},
-         {head:"Account data ready for the core system.", lede:`<p>Every extracted field is ready to push into Cedar's core. Statement enrollment, e-stmt preferences, and overdraft opt-in routed automatically — no second form, no second signature.</p>`},
+         {head:"Account data ready for the core system.", lede:`<p>Every extracted field is ready to push into Cedar's core. Statement enrollment, e-stmt preferences, and overdraft opt-in routed automatically — no second form, no second signature.</p>`,
+          explore:true,
+          hotspots:[{sel:'[data-hotspot="fields_panel"]', eyebrow:'Extracted account file', title:'Every field, ready for the core', body:'Account types, joint structure, beneficiaries, and opening deposit — read straight off the signed packet, ready to push to the core banking system with no rekeying.'}]},
          {head:"Marcus's banker asks the AI assistant about cross-sell opportunities.", lede:`<p>The relationship banker types the question in the agreement repository. The AI assistant analyzes the household's product mix — they're missing an auto-loan and a CD ladder — and surfaces the next-best-product summary.</p>`},
          {head:"The AI assistant answers with the household opportunity map.", lede:`<p>Auto-loan likely match (Marcus financed his last car external), CD ladder opportunity for the high-yield balance, no credit card on file — surfaced from the executed account documents and prior membership data.</p>`}
        ]},
@@ -2937,6 +2958,10 @@ const SCENES = scenesSource.map((s, i) => {
     beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
     beatLede: s.beats && s.beats[j] ? s.beats[j].lede : null,
     beatPersona: s.beats && s.beats[j] ? s.beats[j].persona : null,
+    // Autopilot opt-in — absent ⇒ false/null ⇒ identical to today.
+    beatExplore:  s.beats && s.beats[j] ? !!s.beats[j].explore : false,
+    beatGateMs:   s.beats && s.beats[j] ? (s.beats[j].gateMs || null) : null,
+    beatHotspots: s.beats && s.beats[j] ? (s.beats[j].hotspots || null) : null,
   }));
   return {
     tag: s.tag,
@@ -3010,6 +3035,21 @@ let beatStart = 0;      // when the current beat began (drives autoplay advance)
 let pausedSceneMs = 0;  // scene-elapsed snapshot on pause (virtual ms, pre-scaled)
 let pausedBeatMs  = 0;  // beat-elapsed snapshot on pause (virtual ms, pre-scaled)
 let raf = null;
+/* ── AUTOPILOT (opt-in per beat via beatExplore / beatHotspots / beatGateMs) ──
+   A state machine layered on autoplay: a beat with explore:true holds at the
+   end of its dwell (gate), yields the wheel when the prospect clicks a live
+   hotspot (exploring), and forgivingly resumes after they go idle (resuming).
+   With NO explore beats, autopilotState stays 'auto' and none of this runs —
+   playback is byte-for-byte identical to before. */
+const AP_IDLE_MS = 5000, AP_RESUME_MS = 3000, AP_DEFAULT_GATE_MS = 6000;
+let autopilotState = 'auto';      // 'auto' | 'gate' | 'exploring' | 'resuming'
+let _apGateTimer = null, _apIdleTimer = null, _apResumeTimer = null, _apResumeN = 0;
+let _apLastGrab = null;
+/* The status pill + all autopilot behavior stay dormant unless THIS demo
+   (the loaded vertical) actually declares an explore beat. Demos with none
+   are visually + behaviorally byte-for-byte identical to before. */
+const _apEnabled = SCENES.some(sc => sc.hotspots && sc.hotspots.some(h => h && h.beatExplore));
+(function _apInitStatus(){ const w = document.getElementById('autopilot-status'); if (w && _apEnabled) w.hidden = false; })();
 /* Autoplay speed multiplier. Allowed values: 1, 1.5, 2. Persisted in
    localStorage so the choice survives vertical switches and page reloads.
    (Reduced from 4 options to 3 — the 1.25 increment was redundant with 1.5;
@@ -3136,6 +3176,8 @@ window.addEventListener("message", (ev) => {
   if (msg.type === "tgk:splashDismissed") {
     _splashWaiting = false;
   }
+  // AUTOPILOT: the prospect clicked a live hotspot inside the stage scene.
+  if (msg.type === "tgk:grabWheel" && autopilotState !== 'auto') enterExploring(msg);
   // tgk:beatDone is intentionally NOT wired to advance() under the
   // persona-locked model. The shell's autoplay tick is the single
   // authoritative clock — letting the iframe advance independently
@@ -3217,6 +3259,7 @@ function renderSidebar(scene, i){
   $('beat-counter').textContent = `Beat ${hotIdx + 1} of ${scene.hotspots.length}`;
   $('prev-btn').disabled = (i === 0 && hotIdx === 0);
   $('next-btn').textContent = (i === SCENES.length - 1 && hotIdx === scene.hotspots.length - 1) ? 'Restart' : 'Next';
+  if (autopilotState === 'auto') setAutopilotStatus('AUTOPILOT');
 }
 
 /* =========================================================
@@ -3477,6 +3520,7 @@ function goTo(i, opts = {}){
   holdingForGesture = false;
   _splashWaiting = false;
   setHoldVisuals(false);
+  _apReset();   // a scene jump must never strand a gate/idle/resume timer
   // Always tear down lead-mode before re-entering — prevents the "stuck
   // expanded" symptom when goTo lands while a previous lead-mode is still
   // running its auto-exit timer.
@@ -3680,6 +3724,7 @@ function exitLeadMode(){
   const stage = document.getElementById('stage');
   if (!stage) return;
   const onStageClick = () => {
+    if (onUserInteraction()) return;
     if (holdingForGesture) { releaseHoldAndResume(); return; }
     const shell = document.querySelector('.shell');
     if (shell && shell.classList.contains('lead-mode')) exitLeadMode();
@@ -3687,6 +3732,113 @@ function exitLeadMode(){
   stage.addEventListener('click', onStageClick);
   // No mouseenter dismiss — would accidentally trip the cold-open
   // hold the moment the user moves the cursor onto the stage.
+})();
+
+/* ════════════════════ AUTOPILOT STATE MACHINE ════════════════════
+   Wall-clock setTimeout/Interval timers, independent of the held beat clock.
+   enterGate → enterExploring → enterResuming → _apAdvanceFromAutopilot.
+   Every function is inert unless autopilotState has left 'auto', which only
+   happens after a beat with explore:true gates (see tickTimer). */
+function _apClearTimers(){
+  if (_apGateTimer)   { clearTimeout(_apGateTimer);    _apGateTimer = null; }
+  if (_apIdleTimer)   { clearTimeout(_apIdleTimer);    _apIdleTimer = null; }
+  if (_apResumeTimer) { clearInterval(_apResumeTimer); _apResumeTimer = null; }
+}
+function setAutopilotStatus(label, opts){
+  if (!_apEnabled) return;          // dormant for demos with no explore beats
+  opts = opts || {};
+  const wrap = document.getElementById('autopilot-status');
+  if (!wrap) return;
+  const lab = document.getElementById('ap-label');
+  if (lab) lab.textContent = label;
+  wrap.dataset.state = opts.state || autopilotState;
+  const cont = document.getElementById('ap-continue');
+  if (cont) cont.hidden = !opts.showContinue;
+}
+function _apDetail(show, h){
+  const box = document.getElementById('ap-detail');
+  if (!box) return;
+  box.innerHTML = '';
+  if (show && h){
+    const mk = (cls, txt) => { const d = document.createElement('div'); d.className = cls; d.textContent = txt; return d; };
+    if (h.eyebrow) box.appendChild(mk('ap-detail-eyebrow', h.eyebrow));
+    if (h.title)   box.appendChild(mk('ap-detail-title', h.title));
+    if (h.body)    box.appendChild(mk('ap-detail-body', h.body));
+    box.hidden = false;
+  } else {
+    box.hidden = true;
+  }
+}
+function postGateToFrame(on){
+  try {
+    if (!frame.contentWindow) return;
+    const beat = SCENES[idx] && SCENES[idx].hotspots[hotIdx];
+    frame.contentWindow.postMessage({
+      type: 'tgk:gate',
+      on: !!on,
+      hotspots: (on && beat && beat.beatHotspots) ? beat.beatHotspots : []
+    }, '*');
+  } catch (e) {}
+}
+function _apReset(){               // hard reset to plain autoplay (scene jumps)
+  _apClearTimers();
+  autopilotState = 'auto';
+  _apDetail(false);
+  if (_apEnabled) postGateToFrame(false);
+}
+function enterGate(){
+  if (_splashWaiting) return;                   // a splash hold takes precedence
+  _apClearTimers();
+  autopilotState = 'gate';
+  const beat = SCENES[idx] && SCENES[idx].hotspots[hotIdx];
+  postGateToFrame(true);                        // tell the stage to glow hotspots
+  setAutopilotStatus('YOUR MOVE', { showContinue: true });
+  const ms = ((beat && beat.beatGateMs) || AP_DEFAULT_GATE_MS) / Math.max(0.1, playbackRate);
+  _apGateTimer = setTimeout(_apAdvanceFromAutopilot, ms);   // hands-free advance
+}
+function enterExploring(msg){                    // prospect clicked a live hotspot
+  _apClearTimers();
+  autopilotState = 'exploring';
+  if (msg) _apLastGrab = msg;
+  _apDetail(true, _apLastGrab || {});
+  setAutopilotStatus('YOU HAVE THE WHEEL', { showContinue: true });
+  _apIdleTimer = setTimeout(enterResuming, AP_IDLE_MS);
+}
+function enterResuming(){
+  _apClearTimers();
+  autopilotState = 'resuming';
+  _apResumeN = Math.round(AP_RESUME_MS / 1000);
+  setAutopilotStatus('RESUMING IN ' + _apResumeN, { state: 'resuming', showContinue: true });
+  _apResumeTimer = setInterval(() => {
+    _apResumeN--;
+    if (_apResumeN > 0) setAutopilotStatus('RESUMING IN ' + _apResumeN, { state: 'resuming', showContinue: true });
+    else _apAdvanceFromAutopilot();
+  }, 1000);
+}
+function _apAdvanceFromAutopilot(){
+  _apClearTimers();
+  autopilotState = 'auto';                      // back to plain autoplay BEFORE advancing
+  _apDetail(false);
+  postGateToFrame(false);
+  advance({ fromTick: true, suppressScenePop: true });
+  if (playing) { cancelAnimationFrame(raf); raf = requestAnimationFrame(tickTimer); }
+}
+/* Reset idle (exploring) or cancel the countdown (resuming) on any real
+   interaction. Returns true when a held state consumed the interaction so
+   callers can swallow their normal action. Passive mousemove is NOT wired,
+   so cursor movement can never grab or hold the wheel. */
+function onUserInteraction(){
+  if (autopilotState === 'auto') return false;
+  if (autopilotState === 'exploring'){
+    if (_apIdleTimer) { clearTimeout(_apIdleTimer); _apIdleTimer = setTimeout(enterResuming, AP_IDLE_MS); }
+  } else if (autopilotState === 'resuming'){
+    enterExploring(_apLastGrab);
+  }
+  return true;
+}
+(function wireApContinue(){
+  const c = document.getElementById('ap-continue');
+  if (c) c.addEventListener('click', () => { if (autopilotState !== 'auto') _apAdvanceFromAutopilot(); });
 })();
 /* Beat-advance guard. A user click, an iframe tgk:beatDone, and the
    autoplay tick can all reach advance()/rewind() within a few ms of each
@@ -3703,6 +3855,7 @@ function _armNavGuard(){ _navGuardUntil = performance.now() + NAV_GUARD_MS; }
 function advance(opts){
   if (_navGuardActive()) return;
   _armNavGuard();
+  if (onUserInteraction()) return;   // swallowed by a held autopilot state
   opts = opts || {};
   // If we're holding for a forward gesture (cold open or persona
   // handoff) AND this isn't an internal autoplay-tick call (which
@@ -3739,6 +3892,7 @@ function advance(opts){
       _atEndOfStory = true;
       showToast('End of demo. Press Space to restart.', 2400);
       $('progress-fill').style.width = '100%';
+      setAutopilotStatus('COMPLETE', { state: 'complete' });
       return;
     }
     // Manual wraparound to S1/B1. Always treat as a fresh cold open — engage
@@ -3752,6 +3906,7 @@ function advance(opts){
 function rewind(){
   if (_navGuardActive()) return;
   _armNavGuard();
+  if (onUserInteraction()) return;
   // Backward navigation never engages the hold — the user is driving.
   // If we happened to be holding (e.g. user backed up at a handoff),
   // clear the hold visuals but DO NOT auto-resume autoplay. Let them
@@ -3896,7 +4051,7 @@ function showToast(msg, ms){
 }
 
 function tickTimer(){
-  if (!playing) return;
+  if (!playing || autopilotState !== 'auto') return;   // a held autopilot state stops the clock
   const scene = SCENES[idx];
   // Per-beat duration so autoplay distributes scene.duration across all
   // beats — used to advance one beat per (scene.duration / beats) ms.
@@ -3909,6 +4064,11 @@ function tickTimer(){
   const beatElapsed  = (performance.now() - beatStart)  * playbackRate * SPEED_MULTIPLIER;
   $('timer').textContent = `${fmt(sceneElapsed)} / ${fmt(scene.duration)}`;
   if (beatElapsed >= beatDur) {
+    // AUTOPILOT: a beat with explore:true holds at the end of its dwell
+    // instead of advancing — gate the wheel. Returns WITHOUT re-arming raf,
+    // so the beat clock is held until the gate/resume timer advances.
+    const _cb = scene.hotspots[hotIdx];
+    if (_cb && _cb.beatExplore) { enterGate(); return; }
     // Capture handoff intent against CURRENT cursor BEFORE advance
     // mutates idx/hotIdx. On a real handoff: pause autoplay IMMEDIATELY
     // so tickTimer doesn't re-fire, do the navigation, then defer the
@@ -4076,6 +4236,14 @@ document.getElementById('calib-copy').addEventListener('click', exportHotspots);
 
 window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  // AUTOPILOT: while gated, Space/Enter continues now; while exploring/resuming
+  // any key is an interaction (reset idle / cancel countdown), never advance.
+  if (autopilotState !== 'auto') {
+    e.preventDefault();
+    if (autopilotState === 'gate' && (e.key === ' ' || e.key === 'Enter')) _apAdvanceFromAutopilot();
+    else onUserInteraction();
+    return;
+  }
   // While holding for a gesture, ANY of the canonical "go" keys
   // (Space / Enter / →) release the hold and resume autoplay. ← still
   // rewinds (forward-only hold release per spec).
