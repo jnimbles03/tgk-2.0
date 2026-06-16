@@ -559,6 +559,7 @@
       <span class="t" data-i="2">signing</span>
       <span class="t" data-i="3">data</span>
       <span class="t" data-i="4">workspace</span>
+      <span class="t" data-i="5">record</span>
     </div>
     <div class="vertical-chip" id="vertical-chip">Wealth</div>
   </div>
@@ -696,6 +697,16 @@ const HOTSPOTS = {
     {target:"iris_rail",        x:"82%", y:"22%", tip:"Iris agent rail flips to Ask Iris",                sub:"Per-document Q&A · s3",           side:"left"},
     {target:"agent_status",     x:"78%", y:"42%", tip:"Drill into a task · the agent runs checks",       sub:"Live KYC pass · s4",              side:"left"},
     {target:"agent_summary",    x:"78%", y:"75%", tip:"Agent done — Approve & advance",                  sub:"Action taken · s5",               side:"left"}
+  ],
+
+  /* === System-of-Record beat (appended canonical scene) ===
+     Two quiet beats over the future-state "data lands in the system of
+     record" loop iframe. The loop runs its own 15s CSS clock and ignores
+     beat messages — these hotspots just drive the cursor + narration.
+     The loop has no tgk:rect listener, so the cursor uses these x/y. */
+  system_of_record: [
+    {target:"sor_record", x:"44%", y:"48%", tip:"Agreement record created",        sub:"Indexed automatically",   side:"left"},
+    {target:"sor_sync",   x:"44%", y:"66%", tip:"Synced to the system of record",  sub:"No rekeying, no batch",   side:"left"}
   ],
 
   /* === Hotspots for ?usecase=fraud-fabric (3 scenes) ===
@@ -2058,7 +2069,78 @@ const VERTICALS = {
 })();
 // [END BUILDER FEATURE B]
 
-const DURATIONS = [55000, 34000, 36000, 36000, 45000];
+/* =========================================================
+   System-of-Record beat — append a final "the data lands in the
+   system of record" scene to the canonical 5-scene story.
+
+   The visual is a self-contained future-state loop component
+   (/components/future-state/component-loop-*-<vertical>.html) whose
+   closing scene shows the executed package indexed in the agreement
+   record and synced to the external SoR. We map each vertical to its
+   loop here; verticals without a good loop are skipped and keep their
+   5-scene story untouched.
+
+   This runs once, BEFORE loadCustomVertical clones a source vertical's
+   scenes, so bespoke (custom) demos inherit the SoR beat for free. It
+   only mutates v.scenes (the canonical/default flow); ?usecase= sub-
+   flows build from their own scene-key arrays and are unaffected.
+   ========================================================= */
+const SOR_LOOP_MAP = {
+  "wealth":                    "component-loop-account-application-wealth-onboarding",
+  "banking-deposits":          "component-loop-account-setup-retail-banking-deposits",
+  "insurance-pc":              "component-loop-policy-issuance-insurance-pc-policy-generation",
+  "insurance-life":            "component-loop-policy-issuance-insurance-life-annuities-new-business",
+  "provider-roi":              "component-loop-retrieve-records-hls-roi",
+  "slgov-benefits":            "component-loop-determination-public-sector-benefits",
+  "slgov-licensing":           "component-loop-issuance-public-sector-licensing",
+  "slgov-employee-onboarding": "component-loop-workday-record-public-sector-employee-onboarding",
+  "slgov-recertification":     "component-loop-record-update-public-sector-recertification",
+  "slgov-311":                 "component-loop-track-close-public-sector-311",
+  "slgov-vendor-compliance":   "component-loop-approval-public-sector-vendor-compliance"
+};
+/* Vendor name shown in the beat tag + narration. Prefer the vertical's
+   own .sor when present (bespoke picker sets it); else this fallback. */
+const SOR_VENDOR = {
+  "wealth":                    "Salesforce FSC",
+  "banking-deposits":          "nCino",
+  "insurance-pc":              "Guidewire PolicyCenter",
+  "insurance-life":            "Guidewire",
+  "provider-roi":              "Epic",
+  "slgov-benefits":            "Salesforce Public Sector",
+  "slgov-licensing":           "Salesforce Public Sector",
+  "slgov-employee-onboarding": "Workday",
+  "slgov-recertification":     "Salesforce Public Sector",
+  "slgov-311":                 "Salesforce Public Sector",
+  "slgov-vendor-compliance":   "Salesforce Public Sector"
+};
+function makeSorScene(key, vertical){
+  const vendor = (vertical && vertical.sor) || SOR_VENDOR[key] || "the system of record";
+  return {
+    tag: "SYSTEM OF RECORD · " + vendor.toUpperCase(),
+    head: "The executed agreement lands in " + vendor + ".",
+    lede: "<p>No rekeying, no overnight batch. The completed package is captured as a structured agreement record and written straight back to <b>" + vendor + "</b>.</p>",
+    persona: { side: "system", name: "System of record", role: vendor },
+    sceneKey: "system_of_record",
+    sorLoop: SOR_LOOP_MAP[key],
+    beats: [
+      { head: "The executed package is indexed automatically.",
+        lede: "<p>Every field, signature, and obligation from the signing ceremony becomes a structured agreement record — not a flat PDF dropped in a folder.</p>" },
+      { head: "The data syncs to " + vendor + ".",
+        lede: "<p>The record writes back to <b>" + vendor + "</b> in sync — the system of record stays current with zero manual entry.</p>" }
+    ]
+  };
+}
+Object.keys(SOR_LOOP_MAP).forEach(function(key){
+  const vert = VERTICALS[key];
+  if (!vert || !Array.isArray(vert.scenes)) return;
+  const last = vert.scenes[vert.scenes.length - 1];
+  if (last && last.sorLoop) return;             // guard against a double-append
+  vert.scenes.push(makeSorScene(key, vert));
+});
+
+/* DURATIONS[5] is the autoplay dwell for the appended SoR scene (2 beats,
+   so ~12s/beat split → comfortably shows the 15s loop land its payload). */
+const DURATIONS = [55000, 34000, 36000, 36000, 45000, 24000];
 const SCENE_KEYS = ["agreement_desk","clear_idv","signing","navigator","workspace"];
 const TEMPLATE_FILES = [
   "/story-templates/docusign-agreement-desk.html",
@@ -2389,6 +2471,15 @@ function lookupSceneOverride(usecaseKey, i){
 }
 
 function srcForScene(i, vertical, splash){
+  /* 0. System-of-Record beat: the appended scene carries a sorLoop marker
+     pointing at a future-state loop component. Resolve it here, before the
+     positional TEMPLATE_FILES[i] lookup (which has no entry for this index
+     and would otherwise throw). ?preset= keeps the embedded SoR badge in
+     sync. scenesSource is module-scoped and assigned before any render. */
+  const sorScene = (typeof scenesSource !== "undefined") && scenesSource[i];
+  if (sorScene && sorScene.sorLoop) {
+    return "/components/future-state/" + sorScene.sorLoop + ".html?preset=" + vertical.preset;
+  }
   /* 1. Admin scene-template override (default usecase) wins over baseline. */
   const sceneOv = lookupSceneOverride("default", i);
   if (sceneOv) {
@@ -2834,7 +2925,7 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 // also override the hotspot key so click anchors target the override iframe's
 // data-hotspot attributes (webform-intake) rather than agreement_desk's.
 const SCENES = scenesSource.map((s, i) => {
-  let sceneKey = ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
+  let sceneKey = s.sceneKey || ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
   if (i === 0 && usecase === "default") {
     const o = SCENE1_TEMPLATE_OVERRIDE[v.preset];
     if (o && o.hotspots) sceneKey = o.hotspots;
