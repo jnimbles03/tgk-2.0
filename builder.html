@@ -1483,22 +1483,51 @@ body.is-gb #gbPanel{display:block;}
         </div>
       </div>
 
-      <!-- FINS BETS — revealed when Financial Services is picked -->
+      <!-- FINS BETS — revealed when Financial Services is picked.
+           Strategic bets render as cards (title + outcome); the regular FINS
+           demos are listed below so they're never hidden behind the bets. -->
       <div class="ootb-sub-section" id="subFinsBets" hidden>
-        <div class="ootb-sub-label">FINS BETS</div>
-        <div class="ootb-options ootb-options-sm">
-          <div class="ootb-option" onclick="finsBetLaunch('cx5')">BET 1 · Best-in-class CX — the 5-part story</div>
-          <div class="ootb-option" onclick="finsBetLaunch('fraud')">BET 2 · Fraud Fabric</div>
-          <div class="ootb-option" onclick="finsBetExpand()">BET 3 · Agreement Intelligence</div>
+        <div class="ootb-sub-label">Financial Services — pick a strategic bet</div>
+        <div class="ootb-grid">
+          <button class="ootb-card" type="button" onclick="finsBetLaunch('cx5')">
+            <div class="ootb-card-label">BET 1 · Best-in-class CX</div>
+            <div class="ootb-card-desc">The full 5-scene story — intake to workspace.</div>
+          </button>
+          <button class="ootb-card" type="button" onclick="finsBetLaunch('fraud')">
+            <div class="ootb-card-label">BET 2 · Fraud Fabric</div>
+            <div class="ootb-card-desc">Chain-of-custody + CLEAR at the door + signing.</div>
+          </button>
+          <button class="ootb-card" type="button" onclick="finsBetExpand()">
+            <div class="ootb-card-label">BET 3 · Agreement Intelligence</div>
+            <div class="ootb-card-desc">Navigator · Hierarchy · AI-Assisted Review.</div>
+          </button>
         </div>
-        <div id="subAgi" hidden style="margin-top:10px">
+
+        <!-- BET 3 expansion -->
+        <div id="subAgi" hidden style="margin-top:14px">
           <div class="ootb-sub-label">BET 3 · Agreement Intelligence — Navigator · Hierarchy · AI-Assisted</div>
-          <div class="ootb-options ootb-options-sm">
-            <div class="ootb-option" onclick="finsBetOpen('/demos/navigator.html')">Navigator</div>
-            <div class="ootb-option" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">Hierarchy</div>
-            <div class="ootb-option" onclick="finsBetOpen('/demos/ai-review.html')">AI-Assisted</div>
+          <div class="ootb-grid">
+            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/navigator.html')">
+              <div class="ootb-card-label">Navigator</div>
+              <div class="ootb-card-desc">Portfolio-scale obligation &amp; risk intelligence in the repository.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">
+              <div class="ootb-card-label">Hierarchy</div>
+              <div class="ootb-card-desc">M&amp;A diligence — inherited contracts, change-of-control, revenue at risk.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/ai-review.html')">
+              <div class="ootb-card-label">AI-Assisted Review</div>
+              <div class="ootb-card-desc">Iris compares redlines to the playbook and proposes counters.</div>
+            </button>
           </div>
         </div>
+
+        <!-- Regular FINS demos — the canonical vertical stories, populated from
+             the industry list in finsBets() so the two stay in sync. -->
+        <div class="ootb-sub-label" style="margin-top:24px">Regular FINS demos</div>
+        <div class="ootb-grid" id="finsDemoGrid"></div>
+
+        <button class="ootb-btn-back" type="button" onclick="ootbSelect('vertical')" style="margin-top:20px">&#8592; Back to verticals</button>
       </div>
 
     </div>
@@ -4958,7 +4987,32 @@ window.finsBets = function () {
   var s = document.getElementById('subFinsBets'); if (s) s.hidden = false;
   var agi = document.getElementById('subAgi'); if (agi) agi.hidden = true;
   var sp = document.getElementById('ootbSub'); if (sp) sp.hidden = false;
+  _finsRenderDemos();
 };
+// Regular FINS demos — built once from the industry <select> so the list stays
+// in sync with the canonical verticals; each card launches its story-shell demo.
+function _finsRenderDemos() {
+  var host = document.getElementById('finsDemoGrid');
+  if (!host || host.getAttribute('data-filled')) return;
+  var ind = document.getElementById('f-industry');
+  var FINS = ['wealth', 'wealth-discovery', 'banking', 'banking-deposits', 'insurance', 'insurance-life', 'insurance-pc'];
+  var labels = {};
+  if (ind) Array.prototype.forEach.call(ind.options, function (o) { if (o.value) labels[o.value] = o.textContent; });
+  FINS.forEach(function (key) {
+    var parts = String(labels[key] || key).split('—');
+    var card = document.createElement('button');
+    card.type = 'button'; card.className = 'ootb-card';
+    var t = document.createElement('div'); t.className = 'ootb-card-label'; t.textContent = parts[0].trim();
+    var d = document.createElement('div'); d.className = 'ootb-card-desc';
+    d.textContent = (parts[1] || 'Canonical Financial Services story').trim();
+    card.appendChild(t); card.appendChild(d);
+    card.addEventListener('click', function () {
+      window.open('/stories/_shared/story-shell.html?vertical=' + encodeURIComponent(key), '_blank');
+    });
+    host.appendChild(card);
+  });
+  host.setAttribute('data-filled', '1');
+}
 window.finsBetExpand = function () { _finsMark(); var agi = document.getElementById('subAgi'); if (agi) agi.hidden = false; };
 window.finsBetOpen = function (url) { _finsMark(); window.open(url, '_blank'); };
 window.finsBetLaunch = function (bet) {
