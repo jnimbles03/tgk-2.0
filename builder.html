@@ -154,9 +154,9 @@
     margin-bottom: 32px;
   }
   .ootb-option {
-    border: 1.5px solid var(--rule-strong);
+    border: 2px solid var(--rule-strong);
     border-radius: 10px;
-    padding: 16px 16px 14px;
+    padding: 28px 24px 26px;
     cursor: pointer;
     transition: border-color .15s, background .15s, box-shadow .15s;
     background: white;
@@ -179,25 +179,28 @@
     to { --ootb-angle: 360deg; }
   }
   #ootbPrimaryOptions .ootb-option {
-    border-color: transparent;
-    background:
-      linear-gradient(white, white) padding-box,
-      conic-gradient(from var(--ootb-angle), #4C00FF 0%, #FF5252 35%, #4C00FF 65%, #FF5252 85%, #4C00FF 100%) border-box;
+    border: none;
+    background: transparent;
+    position: relative;
+    min-height: 160px;
+  }
+  #ootbPrimaryOptions .ootb-option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    padding: 3px;
+    background: conic-gradient(from var(--ootb-angle), #4C00FF 0%, #FF5252 35%, #4C00FF 65%, #FF5252 85%, #4C00FF 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
     animation: ootb-border-spin 5s linear infinite;
+    pointer-events: none;
   }
-  #ootbPrimaryOptions .ootb-option:hover {
-    background:
-      linear-gradient(rgba(76,0,255,.04), rgba(76,0,255,.04)) padding-box,
-      conic-gradient(from var(--ootb-angle), #4C00FF 0%, #FF5252 35%, #4C00FF 65%, #FF5252 85%, #4C00FF 100%) border-box;
-  }
-  #ootbPrimaryOptions .ootb-option.selected {
-    background:
-      linear-gradient(rgba(76,0,255,.06), rgba(76,0,255,.06)) padding-box,
-      conic-gradient(from var(--ootb-angle), #4C00FF 0%, #FF5252 35%, #4C00FF 65%, #FF5252 85%, #4C00FF 100%) border-box;
-    box-shadow: 0 0 0 1px transparent;
-  }
-  .ootb-option-name { font-size: 13px; font-weight: 600; color: var(--ds-inkwell); margin-bottom: 3px; }
-  .ootb-option-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+  #ootbPrimaryOptions .ootb-option:hover { background: rgba(76,0,255,.03); }
+  #ootbPrimaryOptions .ootb-option.selected { background: rgba(76,0,255,.06); box-shadow: none; }
+  .ootb-option-name { font-size: 17px; font-weight: 700; color: var(--ds-inkwell); margin-bottom: 6px; letter-spacing: -.2px; }
+  .ootb-option-desc { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 
   .ootb-nav {
     display: flex;
@@ -253,6 +256,10 @@
     margin-top: 8px;
     padding-top: 24px;
     border-top: 1px solid var(--rule);
+    animation: ootb-fadein .2s ease;
+  }
+  .ootb-subsector {
+    margin-top: 16px;
     animation: ootb-fadein .2s ease;
   }
   @keyframes ootb-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -1406,6 +1413,7 @@ body.is-gb #gbPanel{display:block;}
     <button class="builder-mode-pill" id="modeBespoke" type="button">Bespoke</button>
   </div>
   <div class="topbar-spacer"></div>
+  <button class="topbar-link" type="button" id="adminBtn">Admin</button>
   <a class="topbar-link" href="/">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Picker
@@ -1444,20 +1452,82 @@ body.is-gb #gbPanel{display:block;}
     <!-- Sub-questions — revealed on selection -->
     <div class="ootb-sub" id="ootbSub" hidden>
 
-      <!-- Vertical sub-questions -->
+      <!-- Vertical: sector → sub-vertical (two hops, never mixed) -->
       <div class="ootb-sub-section" id="subVertical" hidden>
-        <div class="ootb-sub-label">Which vertical?</div>
-        <div class="ootb-options ootb-options-sm">
-          <div class="ootb-option" onclick="finsBets()">Financial Services</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','healthcare')">Healthcare</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','government')">Government</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','legal')">Legal</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','hr')">HR / Benefits</div>
-          <div class="ootb-option" onclick="ootbSubSelect('vertical','insurance')">Insurance</div>
+        <div class="ootb-sub-label">Which industry?</div>
+        <div class="ootb-options ootb-options-sm" id="subVerticalSectors">
+          <div class="ootb-option" onclick="ootbSector('fins')">Financial Services</div>
+          <div class="ootb-option" onclick="ootbSector('hls')">Healthcare &amp; Life Sciences</div>
+          <div class="ootb-option" onclick="ootbSector('pubsec')">Public Sector</div>
+        </div>
+        <div class="ootb-subsector" id="subsectorFins" hidden>
+          <div class="ootb-sub-label">Financial Services — pick a strategic bet</div>
+          <div class="ootb-grid">
+            <button class="ootb-card" type="button" onclick="finsBetLaunch('cx5')">
+              <div class="ootb-card-label">BET 1 · Best-in-class CX</div>
+              <div class="ootb-card-desc">The full 5-scene story — intake to workspace.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="finsBetLaunch('fraud')">
+              <div class="ootb-card-label">BET 2 · Fraud Fabric</div>
+              <div class="ootb-card-desc">Chain-of-custody + CLEAR at the door + signing.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="finsBetExpand()">
+              <div class="ootb-card-label">BET 3 · Agreement Intelligence</div>
+              <div class="ootb-card-desc">Navigator · Hierarchy · AI-Assisted Review.</div>
+            </button>
+          </div>
+          <div id="subAgi" hidden style="margin-top:14px">
+            <div class="ootb-sub-label">BET 3 · Agreement Intelligence</div>
+            <div class="ootb-grid">
+              <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/navigator.html')">
+                <div class="ootb-card-label">Navigator</div>
+                <div class="ootb-card-desc">Portfolio-scale obligation &amp; risk intelligence in the repository.</div>
+              </button>
+              <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">
+                <div class="ootb-card-label">Hierarchy</div>
+                <div class="ootb-card-desc">M&amp;A diligence — inherited contracts, change-of-control, revenue at risk.</div>
+              </button>
+              <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/ai-review.html')">
+                <div class="ootb-card-label">AI-Assisted Review</div>
+                <div class="ootb-card-desc">Iris compares redlines to the playbook and proposes counters.</div>
+              </button>
+            </div>
+          </div>
+          <!-- Regular FINS demos — the canonical FINS verticals, mirroring the
+               HLS / Public Sector subsectors so the bets sit alongside them. -->
+          <div class="ootb-sub-label" style="margin-top:22px">Regular FINS demos</div>
+          <div class="ootb-grid">
+            <button class="ootb-card" type="button" onclick="ootbSubSelect('vertical','wealth')">
+              <div class="ootb-card-label">Wealth Management</div>
+              <div class="ootb-card-desc">Hillside × Aster — institutional client onboarding.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="ootbSubSelect('vertical','banking')">
+              <div class="ootb-card-label">Banking — Deposits</div>
+              <div class="ootb-card-desc">Cedar Federal × Williams — deposits &amp; account servicing.</div>
+            </button>
+            <button class="ootb-card" type="button" onclick="ootbSubSelect('vertical','insurance')">
+              <div class="ootb-card-label">Insurance</div>
+              <div class="ootb-card-desc">Sentinel × Ramirez — homeowners policy binding.</div>
+            </button>
+          </div>
+        </div>
+        <div class="ootb-subsector" id="subsectorHls" hidden>
+          <div class="ootb-sub-label">Healthcare &amp; Life Sciences</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','payor')">Payer</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','provider')">Provider</div>
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','lifesciences')">Life Sciences</div>
+          </div>
+        </div>
+        <div class="ootb-subsector" id="subsectorPubsec" hidden>
+          <div class="ootb-sub-label">Public Sector</div>
+          <div class="ootb-options ootb-options-sm">
+            <div class="ootb-option" onclick="ootbSubSelect('vertical','fedgov')">Federal</div>
+          </div>
         </div>
       </div>
 
-      <!-- Product sub-questions -->
+      <!-- Product spotlight -->
       <div class="ootb-sub-section" id="subProduct" hidden>
         <div class="ootb-sub-label">Which product?</div>
         <div class="ootb-options ootb-options-sm">
@@ -1470,7 +1540,7 @@ body.is-gb #gbPanel{display:block;}
         </div>
       </div>
 
-      <!-- Use case sub-questions -->
+      <!-- Use case -->
       <div class="ootb-sub-section" id="subUsecase" hidden>
         <div class="ootb-sub-label">Which workflow?</div>
         <div class="ootb-options ootb-options-sm">
@@ -1481,53 +1551,6 @@ body.is-gb #gbPanel{display:block;}
           <div class="ootb-option" onclick="ootbSubSelect('usecase','maintenance')">Maintenance</div>
           <div class="ootb-option" onclick="ootbSubSelect('usecase','workspaces')">Workspaces</div>
         </div>
-      </div>
-
-      <!-- FINS BETS — revealed when Financial Services is picked.
-           Strategic bets render as cards (title + outcome); the regular FINS
-           demos are listed below so they're never hidden behind the bets. -->
-      <div class="ootb-sub-section" id="subFinsBets" hidden>
-        <div class="ootb-sub-label">Financial Services — pick a strategic bet</div>
-        <div class="ootb-grid">
-          <button class="ootb-card" type="button" onclick="finsBetLaunch('cx5')">
-            <div class="ootb-card-label">BET 1 · Best-in-class CX</div>
-            <div class="ootb-card-desc">The full 5-scene story — intake to workspace.</div>
-          </button>
-          <button class="ootb-card" type="button" onclick="finsBetLaunch('fraud')">
-            <div class="ootb-card-label">BET 2 · Fraud Fabric</div>
-            <div class="ootb-card-desc">Chain-of-custody + CLEAR at the door + signing.</div>
-          </button>
-          <button class="ootb-card" type="button" onclick="finsBetExpand()">
-            <div class="ootb-card-label">BET 3 · Agreement Intelligence</div>
-            <div class="ootb-card-desc">Navigator · Hierarchy · AI-Assisted Review.</div>
-          </button>
-        </div>
-
-        <!-- BET 3 expansion -->
-        <div id="subAgi" hidden style="margin-top:14px">
-          <div class="ootb-sub-label">BET 3 · Agreement Intelligence — Navigator · Hierarchy · AI-Assisted</div>
-          <div class="ootb-grid">
-            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/navigator.html')">
-              <div class="ootb-card-label">Navigator</div>
-              <div class="ootb-card-desc">Portfolio-scale obligation &amp; risk intelligence in the repository.</div>
-            </button>
-            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/agreement-intel-ma.html')">
-              <div class="ootb-card-label">Hierarchy</div>
-              <div class="ootb-card-desc">M&amp;A diligence — inherited contracts, change-of-control, revenue at risk.</div>
-            </button>
-            <button class="ootb-card" type="button" onclick="finsBetOpen('/demos/ai-review.html')">
-              <div class="ootb-card-label">AI-Assisted Review</div>
-              <div class="ootb-card-desc">Iris compares redlines to the playbook and proposes counters.</div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Regular FINS demos — the canonical vertical stories, populated from
-             the industry list in finsBets() so the two stay in sync. -->
-        <div class="ootb-sub-label" style="margin-top:24px">Regular FINS demos</div>
-        <div class="ootb-grid" id="finsDemoGrid"></div>
-
-        <button class="ootb-btn-back" type="button" onclick="ootbSelect('vertical')" style="margin-top:20px">&#8592; Back to verticals</button>
       </div>
 
     </div>
@@ -1920,6 +1943,12 @@ body.is-gb #gbPanel{display:block;}
       </div>
 
       <div class="stage-body">
+        <!-- Quick links -->
+        <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;">
+          <a href="/convert.html" class="admin-btn" style="text-decoration:none;">Add demo — MP4 → HTML</a>
+          <a href="/audit.html" class="admin-btn secondary" style="text-decoration:none;">Edit existing demo narration</a>
+        </div>
+
         <!-- A) Video/Figma → Vignette -->
         <div class="admin-card" id="admin-A">
           <h3>A) Video / Figma → Vignette</h3>
@@ -3475,7 +3504,7 @@ body.is-gb #gbPanel{display:block;}
     async function loadFlipbookManifest() {
       const meta = document.getElementById('poolMeta');
       try {
-        const r = await fetch('flipbooks/manifest.json', { cache: 'no-store' });
+        const r = await fetch('/flipbooks/manifest.json', { cache: 'no-store' });
         if (!r.ok) {
           if (meta) meta.textContent = 'Scene templates · flipbook manifest unavailable on this deploy';
           return;
@@ -4933,8 +4962,20 @@ window.ootbSelect = function(category) {
   subPanel.style.animation = '';
 };
 
+window.ootbSector = function(sector) {
+  // Mark sector selected
+  document.querySelectorAll('#subVerticalSectors .ootb-option').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  // Hide all subsectors, show the picked one
+  ['subsectorFins','subsectorHls','subsectorPubsec'].forEach(id => {
+    document.getElementById(id).hidden = true;
+  });
+  const map = { fins: 'subsectorFins', hls: 'subsectorHls', pubsec: 'subsectorPubsec' };
+  document.getElementById(map[sector]).hidden = false;
+};
+
 window.ootbSubSelect = function(category, value) {
-  // Mark sub-option selected
+  // Mark selection
   const subMap = { vertical: 'subVertical', product: 'subProduct', usecase: 'subUsecase' };
   const subSection = document.getElementById(subMap[category]);
   if (subSection) {
@@ -4942,37 +4983,41 @@ window.ootbSubSelect = function(category, value) {
     event.currentTarget.classList.add('selected');
   }
 
-  // Route into the bespoke builder with the right pre-selection
-  const seqMap = {
-    // use-case sequences map to data-seq values
-    'default': 'default', 'clm': 'clm', 'fraud-fabric': 'fraud-fabric',
-    'intake': 'intake', 'maintenance': 'maintenance', 'workspaces': 'workspaces',
-    // products map to single-scene sequences where they exist
-    'esignature': 'blank', 'idv': 'blank', 'navigator': 'blank',
-    'maestro': 'blank', 'agentforce': 'blank',
-    // verticals pick the canonical sequence
-    'financial': 'default', 'healthcare': 'default', 'government': 'default',
-    'legal': 'default', 'hr': 'default', 'insurance': 'default',
+  // OotB = open the canned themed demo directly. No bespoke builder.
+  const VERTICAL_URLS = {
+    // FINS
+    'wealth':       '/stories/story-wealth/',
+    'banking':      '/stories/story-banking-deposits/',
+    'insurance':    '/stories/story-insurance/',
+    // HLS
+    'payor':        '/stories/story-payor/',
+    'provider':     '/stories/story-provider/',
+    'lifesciences': '/stories/story-lifesciences/',
+    // PubSec
+    'fedgov':       '/stories/story-fedgov/',
+  };
+  const PRODUCT_URLS = {
+    'esignature':   '/demos/esignature.html',
+    'idv':          '/demos/idv-clear.html',
+    'navigator':    '/demos/navigator.html',
+    'maestro':      '/demos/maestro.html',
+    'workspaces':   '/demos/workspaces.html',
+    'agentforce':   '/demos/agentforce.html',
+  };
+  const USECASE_URLS = {
+    'default':      '/stories/story-banking/',
+    'clm':          '/demos/clm.html',
+    'fraud-fabric': '/stories/story-banking/',
+    'intake':       '/demos/web-forms.html',
+    'maintenance':  '/stories/story-banking/',
+    'workspaces':   '/demos/workspaces.html',
   };
 
-  // Switch to bespoke mode
-  document.getElementById('modeBespoke').click();
-
-  // Pre-select sequence card
-  const seq = seqMap[value] || 'default';
-  setTimeout(function() {
-    const seqCard = document.querySelector('[data-seq="' + seq + '"]');
-    if (seqCard) {
-      document.querySelectorAll('.seq-card').forEach(c => c.classList.remove('is-selected'));
-      seqCard.classList.add('is-selected');
-      seqCard.click();
-    }
-    // Pre-fill vertical in brand step if it's a vertical pick
-    if (category === 'vertical') {
-      const vertSel = document.getElementById('f-vertical');
-      if (vertSel) vertSel.value = value;
-    }
-  }, 50);
+  const urlMap = category === 'vertical' ? VERTICAL_URLS
+               : category === 'product'  ? PRODUCT_URLS
+               : USECASE_URLS;
+  const url = urlMap[value];
+  if (url) window.location.href = url;
 };
 
 // ── FINS BETS — Financial Services reveals three strategic bets ──
@@ -4987,32 +5032,7 @@ window.finsBets = function () {
   var s = document.getElementById('subFinsBets'); if (s) s.hidden = false;
   var agi = document.getElementById('subAgi'); if (agi) agi.hidden = true;
   var sp = document.getElementById('ootbSub'); if (sp) sp.hidden = false;
-  _finsRenderDemos();
 };
-// Regular FINS demos — built once from the industry <select> so the list stays
-// in sync with the canonical verticals; each card launches its story-shell demo.
-function _finsRenderDemos() {
-  var host = document.getElementById('finsDemoGrid');
-  if (!host || host.getAttribute('data-filled')) return;
-  var ind = document.getElementById('f-industry');
-  var FINS = ['wealth', 'wealth-discovery', 'banking', 'banking-deposits', 'insurance', 'insurance-life', 'insurance-pc'];
-  var labels = {};
-  if (ind) Array.prototype.forEach.call(ind.options, function (o) { if (o.value) labels[o.value] = o.textContent; });
-  FINS.forEach(function (key) {
-    var parts = String(labels[key] || key).split('—');
-    var card = document.createElement('button');
-    card.type = 'button'; card.className = 'ootb-card';
-    var t = document.createElement('div'); t.className = 'ootb-card-label'; t.textContent = parts[0].trim();
-    var d = document.createElement('div'); d.className = 'ootb-card-desc';
-    d.textContent = (parts[1] || 'Canonical Financial Services story').trim();
-    card.appendChild(t); card.appendChild(d);
-    card.addEventListener('click', function () {
-      window.open('/stories/_shared/story-shell.html?vertical=' + encodeURIComponent(key), '_blank');
-    });
-    host.appendChild(card);
-  });
-  host.setAttribute('data-filled', '1');
-}
 window.finsBetExpand = function () { _finsMark(); var agi = document.getElementById('subAgi'); if (agi) agi.hidden = false; };
 window.finsBetOpen = function (url) { _finsMark(); window.open(url, '_blank'); };
 window.finsBetLaunch = function (bet) {

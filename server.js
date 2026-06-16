@@ -94,7 +94,7 @@ function broadcast(event, payload) {
 }
 
 // --------- Default landing ---------
-app.get('/', (req, res) => res.redirect('/picker.html'));
+app.get('/', (req, res) => res.redirect('/builder.html'));
 
 // --------- Feedback store helpers (Replit KV-backed) ---------
 async function readStore() {
