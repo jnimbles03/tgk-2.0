@@ -115,6 +115,7 @@
     display: none;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     background: var(--ds-white);
     align-items: flex-start;
     justify-content: center;
@@ -256,13 +257,16 @@
     margin-top: 8px;
     padding-top: 24px;
     border-top: 1px solid var(--rule);
-    animation: ootb-fadein .2s ease;
+    animation: ootb-swipe-in .28s var(--ease) both;
   }
   .ootb-subsector {
     margin-top: 16px;
-    animation: ootb-fadein .2s ease;
   }
-  @keyframes ootb-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .ootb-subsector.swipe-in  { animation: ootb-swipe-in .28s var(--ease) both; }
+  .ootb-subsector.swipe-out { animation: ootb-swipe-out .2s var(--ease) both; pointer-events: none; }
+  @keyframes ootb-fadein    { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes ootb-swipe-in  { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+  @keyframes ootb-swipe-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-36px); } }
   .ootb-sub-label {
     font-size: 11px;
     font-weight: 600;
@@ -1376,10 +1380,12 @@ body.is-gb #gbPanel{display:block;}
 .ootb-grid.c4{grid-template-columns:repeat(4,1fr);}
 .ootb-group-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;}
 .ootb-grid+.ootb-group-label{margin-top:26px;}
-.ootb-card{text-align:left;font-family:var(--font);background:#fff;border:1px solid var(--rule-strong);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px;}
-.ootb-card:hover{border-color:var(--ds-cobalt);box-shadow:0 2px 16px rgba(76,0,255,.12);transform:translateY(-1px);}
-.ootb-card-label{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.01em;}
-.ootb-card-desc{font-size:13px;color:var(--muted);line-height:1.45;}
+.ootb-card{text-align:left;font-family:var(--font);background:#fff;border:2px solid rgba(19,0,50,.22);border-radius:12px;padding:22px 24px;cursor:pointer;transition:all .2s var(--ease);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.ootb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ds-glow);opacity:0;transition:opacity .2s;}
+.ootb-card:hover{border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,.12),0 8px 28px rgba(76,0,255,.14);transform:translateY(-3px);}
+.ootb-card:hover::before{opacity:1;}
+.ootb-card-label{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+.ootb-card-desc{font-size:13.5px;color:var(--muted);line-height:1.5;}
 @media (max-width:900px){.ootb-grid,.ootb-grid.c4{grid-template-columns:1fr;}body.is-ootb .ootb-panel{padding:36px 28px 80px;}}
 .ootb-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--ds-cobalt);background:none;border:none;padding:0;margin:30px 0 0;cursor:pointer;}
 .ootb-back:hover{text-decoration:underline;}
@@ -1425,7 +1431,7 @@ body.is-gb #gbPanel{display:block;}
 <div class="ootb-wizard" id="ootbWizard">
   <div class="ootb-inner">
     <div class="ootb-eyebrow">Out of the Box</div>
-    <h1 class="ootb-title">What are you building?</h1>
+    <h1 class="ootb-title">Which vertical are you selling to?</h1>
 
     <div class="ootb-options" id="ootbPrimaryOptions">
 
@@ -4953,25 +4959,40 @@ window.ootbSelect = function(category) {
   const sub = document.getElementById(subMap[category]);
   if (sub) sub.hidden = false;
 
-  // Show the sub panel
+  // Show the sub panel with swipe-in
   const subPanel = document.getElementById('ootbSub');
   subPanel.hidden = false;
-  // Re-trigger animation
   subPanel.style.animation = 'none';
-  subPanel.offsetHeight; // reflow
+  void subPanel.offsetWidth;
   subPanel.style.animation = '';
 };
 
 window.ootbSector = function(sector) {
-  // Mark sector selected
   document.querySelectorAll('#subVerticalSectors .ootb-option').forEach(el => el.classList.remove('selected'));
   event.currentTarget.classList.add('selected');
-  // Hide all subsectors, show the picked one
-  ['subsectorFins','subsectorHls','subsectorPubsec'].forEach(id => {
-    document.getElementById(id).hidden = true;
-  });
+
+  const ids = ['subsectorFins', 'subsectorHls', 'subsectorPubsec'];
   const map = { fins: 'subsectorFins', hls: 'subsectorHls', pubsec: 'subsectorPubsec' };
-  document.getElementById(map[sector]).hidden = false;
+  const targetEl = document.getElementById(map[sector]);
+  const currentEl = ids.map(id => document.getElementById(id)).find(el => !el.hidden);
+
+  if (currentEl && currentEl !== targetEl) {
+    currentEl.classList.add('swipe-out');
+    setTimeout(() => {
+      currentEl.hidden = true;
+      currentEl.classList.remove('swipe-out');
+      targetEl.hidden = false;
+      void targetEl.offsetWidth;
+      targetEl.classList.add('swipe-in');
+      setTimeout(() => targetEl.classList.remove('swipe-in'), 350);
+    }, 210);
+  } else {
+    ids.forEach(id => { const el = document.getElementById(id); el.hidden = true; el.classList.remove('swipe-out', 'swipe-in'); });
+    targetEl.hidden = false;
+    void targetEl.offsetWidth;
+    targetEl.classList.add('swipe-in');
+    setTimeout(() => targetEl.classList.remove('swipe-in'), 350);
+  }
 };
 
 window.ootbSubSelect = function(category, value) {
