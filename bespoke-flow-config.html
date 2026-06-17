@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bespoke Flow Configurator — TGK 2.0</title>
+<!--
+  Companion to guided-flow-config.html, for the GUIDED BESPOKE wizard in
+  builder.html (#gbPanel → renderStep 1/2/3/4: Start → Scenes → Brand →
+  Generate). Mirrors that flow: START_OPTS start cards (grouped), the brand
+  fields, and the live header() titles.
+
+  Use it to: edit each step's title/subtitle, toggle which start cards / brand
+  fields are visible, preview it, and Export a config to apply to builder.html
+  (titles → the gb renderStart/renderScenes/renderBrand/renderGenerate header()
+  calls; start cards → filtering START_OPTS; brand fields → the renderBrand
+  grid.appendChild(field(...)) lines).
+
+  Read-only planning surface. Tenant / Customer / Brand color are REQUIRED by
+  the builder's validation, so they're locked visible here.
+-->
+<style>
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+  :root{
+    --ds-inkwell:#130032; --ds-cobalt:#4C00FF; --ds-poppy:#FF5252; --ds-mint:#3FDA99;
+    --bg:#F3EEE9; --panel:#FFFFFF; --text:#130032; --muted:rgba(19,0,50,.55);
+    --rule:rgba(19,0,50,.10); --rule-strong:rgba(19,0,50,.18);
+    --font:"DSIndigo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --ease:cubic-bezier(.4,0,.2,1);
+    --ds-glow:linear-gradient(135deg,var(--ds-poppy) 0%,var(--ds-cobalt) 100%);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh;}
+
+  .top{background:var(--ds-inkwell);color:#fff;display:flex;align-items:center;gap:14px;padding:0 22px;height:54px;position:sticky;top:0;z-index:30;}
+  .top .mark{font-weight:700;font-size:15px;letter-spacing:-.01em;}
+  .top .sep{width:1px;height:18px;background:rgba(255,255,255,.18);}
+  .top .sub{font-size:12px;font-weight:600;color:#CBC2FF;letter-spacing:.03em;}
+  .top .sp{flex:1;}
+  .top button{font-family:var(--font);font-size:12.5px;font-weight:600;border:none;border-radius:7px;padding:8px 14px;cursor:pointer;}
+  .top .ghost{background:rgba(255,255,255,.10);color:#fff;}
+  .top .ghost:hover{background:rgba(255,255,255,.18);}
+  .top .primary{background:var(--ds-cobalt);color:#fff;}
+  .top .primary:hover{background:#3a00c0;}
+
+  .tabs{display:flex;gap:2px;padding:14px 22px 0;background:var(--bg);position:sticky;top:54px;z-index:20;flex-wrap:wrap;}
+  .tab{font-family:var(--font);font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 13px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .tab:hover{color:var(--text);}
+  .tab.on{color:var(--ds-cobalt);border-bottom-color:var(--ds-cobalt);}
+  .tab .n{width:20px;height:20px;border-radius:50%;background:var(--rule-strong);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+  .tab.on .n{background:var(--ds-cobalt);}
+
+  .wrap{display:grid;grid-template-columns:404px 1fr;gap:0;align-items:start;}
+  @media (max-width:1000px){ .wrap{grid-template-columns:1fr;} }
+  .controls{padding:22px;border-right:1px solid var(--rule);min-height:calc(100vh - 54px);}
+  .stage{padding:30px 34px 80px;}
+
+  .ctl-h{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .ctl-h:first-child{margin-top:0;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;}
+  .field input,.field textarea{width:100%;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;border:1px solid var(--rule-strong);border-radius:8px;padding:9px 11px;resize:vertical;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,.10);}
+  .field .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+  .tok{font-family:var(--mono);font-size:11px;background:rgba(76,0,255,.08);color:var(--ds-cobalt);padding:1px 5px;border-radius:4px;}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.5;background:#fff;border:1px dashed var(--rule-strong);border-radius:10px;padding:12px 14px;}
+
+  .toggles{display:flex;flex-direction:column;gap:7px;}
+  .tg{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--rule);border-radius:9px;padding:10px 12px;cursor:pointer;transition:border-color .15s,opacity .15s;}
+  .tg:hover{border-color:var(--rule-strong);}
+  .tg.off{opacity:.5;}
+  .tg.locked{cursor:not-allowed;}
+  .tg input{margin-top:2px;width:16px;height:16px;accent-color:var(--ds-cobalt);cursor:pointer;flex-shrink:0;}
+  .tg.locked input{cursor:not-allowed;}
+  .tg .lab{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .tg .dsc{font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px;}
+  .req{font-size:9px;font-weight:700;letter-spacing:.04em;background:rgba(255,82,82,.12);color:var(--ds-poppy);padding:2px 7px;border-radius:99px;text-transform:uppercase;}
+  .grouplab{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;}
+  .countnote{font-size:11.5px;color:var(--muted);margin-top:12px;}
+
+  /* preview — mirrors builder.html .ootb-* + gb-field */
+  .ootb-eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ds-cobalt);margin-bottom:10px;}
+  .ootb-q{font-family:var(--font);font-size:clamp(24px,2.4vw,32px);font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1.15;margin:0 0 8px;}
+  .ootb-sub{font-size:14px;color:var(--muted);margin:0 0 22px;max-width:640px;line-height:1.5;}
+  .ootb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .ootb-card{text-align:left;font-family:var(--font);background:#fff;border:2px solid rgba(19,0,50,.22);border-radius:12px;padding:22px 24px;cursor:default;transition:all .2s var(--ease);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+  .ootb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ds-glow);opacity:0;transition:opacity .2s;}
+  .ootb-card:hover{border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,.12),0 8px 28px rgba(76,0,255,.14);transform:translateY(-3px);}
+  .ootb-card:hover::before{opacity:1;}
+  .ootb-card-label{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+  .ootb-card-desc{font-size:13.5px;color:var(--muted);line-height:1.5;}
+  .ootb-group-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+  .ootb-group-label:first-of-type{margin-top:0;}
+  .gb-fields{display:flex;flex-direction:column;gap:14px;max-width:560px;}
+  .gb-field label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .gb-input{width:100%;font-family:var(--font);font-size:13.5px;color:var(--muted);background:#fff;border:1px solid var(--rule-strong);border-radius:9px;padding:11px 13px;}
+  .preview-frame{background:#fff;border:1px solid var(--rule);border-radius:14px;padding:40px 44px;max-width:1080px;box-shadow:0 1px 2px rgba(19,0,50,.04),0 12px 40px -24px rgba(19,0,50,.25);}
+  .preview-cap{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .empty{color:var(--muted);font-size:13px;padding:18px;border:1px dashed var(--rule-strong);border-radius:10px;text-align:center;}
+  .ph{background:var(--bg);border:1px solid var(--rule);border-radius:12px;padding:22px;color:var(--muted);font-size:13.5px;line-height:1.6;}
+  .ph b{color:var(--text);}
+
+  .scrim{position:fixed;inset:0;background:rgba(19,0,50,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:24px;}
+  .scrim.on{display:flex;}
+  .modal{background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:86vh;overflow:auto;padding:26px 28px;}
+  .modal h2{font-size:19px;font-weight:700;margin-bottom:4px;}
+  .modal .ms{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .modal pre{font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:14px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+  .modal .sumh{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;}
+  .modal .sum{font-size:13px;line-height:1.6;}
+  .modal .sum b{color:var(--ds-cobalt);}
+  .modal .sum .hid{color:var(--ds-poppy);}
+  .modal .row{display:flex;gap:10px;margin-top:18px;}
+  .modal button{font-family:var(--font);font-size:13px;font-weight:600;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .modal .primary{background:var(--ds-cobalt);color:#fff;}
+  .modal .ghost{background:var(--bg);color:var(--text);border:1px solid var(--rule-strong);}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span class="mark">TGK 2.0</span><span class="sep"></span>
+  <span class="sub">Bespoke Flow Configurator</span>
+  <span class="sp"></span>
+  <button class="ghost" id="btnReset" type="button">Reset to live defaults</button>
+  <button class="primary" id="btnExport" type="button">Export configuration</button>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab on" data-step="1" type="button"><span class="n">1</span> Start</button>
+  <button class="tab" data-step="2" type="button"><span class="n">2</span> Scenes</button>
+  <button class="tab" data-step="3" type="button"><span class="n">3</span> Brand</button>
+  <button class="tab" data-step="4" type="button"><span class="n">4</span> Generate</button>
+</div>
+
+<div class="wrap">
+  <aside class="controls" id="controls"></aside>
+  <main class="stage">
+    <div class="preview-cap" id="previewCap">Live preview · Step 1</div>
+    <div class="preview-frame" id="preview"></div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <h2>Configuration</h2>
+    <div class="ms">Your Guided Bespoke choices + a JSON config. Hand it back and I'll apply it to <span class="tok">builder.html</span> (titles → the gb <span class="tok">render*</span> header() calls; start cards → filtering <span class="tok">START_OPTS</span>; brand fields → the <span class="tok">renderBrand</span> field lines).</div>
+    <div class="sumh">Summary</div>
+    <div class="sum" id="sum"></div>
+    <div class="sumh">JSON</div>
+    <pre id="json"></pre>
+    <div class="row">
+      <button class="primary" id="btnCopy" type="button">Copy JSON</button>
+      <button class="ghost" id="btnClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — mirrored from builder.html guided-bespoke (__guidedBespoke):
+   START_OPTS (Step 1 cards) + the renderBrand fields + the header() titles.
+   ============================================================ */
+const START_GROUPS = ['Start prefilled — fastest path','Build a story arc','One immersive screen','Agreement Intelligence'];
+const START_OPTS = [
+  { key:'vertical-story', group:0, label:'A vertical story',                   desc:'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' },
+  { key:'onboarding',     group:1, label:'Onboarding',                          desc:'The end-to-end arc — intake, identity, signature, routing, and analysis.' },
+  { key:'maintenance',    group:1, label:'Maintenance',                         desc:'An existing relationship changes — beneficiaries, signers, account updates.' },
+  { key:'fraud-fabric',   group:1, label:'Fraud Fabric',                        desc:'Identity verification at the door — step-up auth on a high-risk request.' },
+  { key:'docintel',       group:1, label:'Document Intelligence',              desc:'Webform and document intake feeding the agreement workflow.' },
+  { key:'workspaces',     group:2, label:'Workspaces',                          desc:'One immersive screen — the shared multi-party workspace, drill-downs included.' },
+  { key:'headless',       group:2, label:'Headless IAM',                        desc:'One immersive screen — the portal this sub-vertical lives in every day, product vignettes behind every drill-down.' },
+  { key:'agi-ma',         group:3, label:'Agreement Intelligence — M&A',        desc:'Open the M&A due-diligence demo — Iris structures inherited contracts and surfaces risk at portfolio scale.' },
+  { key:'agi-sf',         group:3, label:'Agreement Intelligence — Salesforce', desc:'Open the in-CRM agreement-AI demo — summarize prevailing terms, interrogate, and draft a new MSA.' },
+];
+const BRAND_FIELDS = [
+  { key:'industry', label:'Preset cast',                              desc:'Dropdown — pick a canonical vertical to prefill cast + scenes.', required:false, ph:'Select a preset cast…' },
+  { key:'tenant',   label:'Brand you’re selling to (your prospect)',  desc:'The institution deploying Docusign.',                          required:true,  ph:'e.g. Highland Bank' },
+  { key:'customer', label:'Their customer (who’s in the story)',      desc:'The end customer being served.',                               required:true,  ph:'e.g. Atlas Mfg — $2.5M facility' },
+  { key:'color',    label:'Brand color (#RRGGBB)',                    desc:'Tenant accent color.',                                         required:true,  ph:'#4C00FF' },
+  { key:'sor',      label:'System of record (optional)',              desc:'The downstream system the data lands in.',                     required:false, ph:'e.g. nCino on Salesforce' },
+  { key:'moment',   label:'Signature moment (optional)',              desc:'The one-line value stat.',                                     required:false, ph:'“$5M household opened in 15 minutes.”' },
+];
+const DEFAULT_TITLES = {
+  s1q:'How do you want to begin?',
+  s1sub:'Pick the story shape. You will tune scenes, brand it, and get a link — one step at a time.',
+  s1vq:'Which vertical story?',
+  s1vsub:'Scenes, tenant, brand color, and customer cast come prefilled from the canonical demo.',
+  s2q:'Tune the scenes',
+  s2sub:'Drag to reorder. Swap or remove — Continue when it reads right.',
+  s3q:'Brand it for the customer',
+  s3sub:'The brand you’re selling to and their customer are required. Everything else has sensible defaults.',
+  s4q:'Generate the demo link',
+  s4sub:'One link, ready to present or send. The exact build stays editable in Advanced timeline.',
+};
+
+/* ============================================================ */
+const LS='tgkBespokeFlowConfig';
+function blankState(){ return { step:1, titles:{...DEFAULT_TITLES}, hidden:{ startCards:[], brandFields:[] } }; }
+let S=load();
+function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)); if(j&&j.titles)return Object.assign(blankState(),j);}catch(e){} return blankState(); }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }
+const isHidden=(bucket,key)=>S.hidden[bucket].includes(key);
+function toggle(bucket,key,vis){ const a=S.hidden[bucket]; const i=a.indexOf(key); if(vis&&i>=0)a.splice(i,1); if(!vis&&i<0)a.push(key); save(); render(); }
+
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n;};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function titleField(id,label,hint){
+  const f=el('div','field'); f.appendChild(el('label',null,esc(label)));
+  const ta=el('textarea'); ta.rows=(id.endsWith('sub')?2:1); ta.value=S.titles[id];
+  ta.addEventListener('input',()=>{ S.titles[id]=ta.value; save(); renderPreview(); });
+  f.appendChild(ta); if(hint) f.appendChild(el('div','hint',hint)); return f;
+}
+function toggleRow(bucket,item){
+  const locked=!!item.required;
+  const vis=locked?true:!isHidden(bucket,item.key);
+  const row=el('label','tg'+(vis?'':' off')+(locked?' locked':''));
+  const cb=el('input'); cb.type='checkbox'; cb.checked=vis; cb.disabled=locked;
+  if(!locked) cb.addEventListener('change',()=>toggle(bucket,item.key,cb.checked));
+  const txt=el('div');
+  const lab=el('div','lab'); lab.appendChild(document.createTextNode(item.label));
+  if(locked) lab.appendChild(el('span','req','required'));
+  txt.appendChild(lab);
+  if(item.desc) txt.appendChild(el('div','dsc',esc(item.desc)));
+  row.appendChild(cb); row.appendChild(txt); return row;
+}
+
+function renderControls(){
+  const c=$('#controls'); c.innerHTML='';
+  if(S.step===1){
+    c.appendChild(el('div','ctl-h','Step 1 · Title'));
+    c.appendChild(titleField('s1q','Question'));
+    c.appendChild(titleField('s1sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Start cards'));
+    START_GROUPS.forEach((g,gi)=>{
+      const items=START_OPTS.filter(o=>o.group===gi); if(!items.length)return;
+      c.appendChild(el('div','grouplab',esc(g)));
+      const t=el('div','toggles'); items.forEach(o=>t.appendChild(toggleRow('startCards',o))); c.appendChild(t);
+    });
+    c.appendChild(el('div','countnote', START_OPTS.filter(o=>!isHidden('startCards',o.key)).length+' of '+START_OPTS.length+' start cards shown'));
+    c.appendChild(el('div','ctl-h','Sub-screen · “A vertical story”'));
+    c.appendChild(el('div','note','Shown after clicking the <b>A vertical story</b> card — the canonical-vertical picker. Edit its title here.'));
+    c.appendChild(titleField('s1vq','Question'));
+    c.appendChild(titleField('s1vsub','Subtitle'));
+  } else if(S.step===2){
+    c.appendChild(el('div','ctl-h','Step 2 · Title'));
+    c.appendChild(titleField('s2q','Question'));
+    c.appendChild(titleField('s2sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Items'));
+    c.appendChild(el('div','note','This step is the <b>scene timeline</b> — drag to reorder, swap, or remove scenes from the library. There are no fixed cards to toggle, so only the title/subtitle are configurable here.'));
+  } else if(S.step===3){
+    c.appendChild(el('div','ctl-h','Step 3 · Title'));
+    c.appendChild(titleField('s3q','Question'));
+    c.appendChild(titleField('s3sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Brand fields'));
+    const t=el('div','toggles'); BRAND_FIELDS.forEach(f=>t.appendChild(toggleRow('brandFields',f))); c.appendChild(t);
+    c.appendChild(el('div','countnote','Tenant, customer, and brand color are required by the builder’s validation, so they stay visible.'));
+  } else {
+    c.appendChild(el('div','ctl-h','Step 4 · Title'));
+    c.appendChild(titleField('s4q','Question'));
+    c.appendChild(titleField('s4sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Items'));
+    c.appendChild(el('div','note','This step shows the generated <b>demo link</b> + actions (copy / open / customize). Title/subtitle only.'));
+  }
+}
+
+function card(item){
+  const d=el('button','ootb-card'); d.type='button';
+  d.appendChild(el('div','ootb-card-label',esc(item.label)));
+  if(item.desc) d.appendChild(el('div','ootb-card-desc',esc(item.desc)));
+  return d;
+}
+function gridOf(items){
+  if(!items.length) return el('div','empty','No cards visible — re-enable at least one on the left.');
+  const g=el('div','ootb-grid'); items.forEach(i=>g.appendChild(card(i))); return g;
+}
+function renderPreview(){
+  const p=$('#preview'); p.innerHTML='';
+  $('#previewCap').textContent='Live preview · Step '+S.step;
+  p.appendChild(el('div','ootb-eyebrow','Bespoke · Guided · Step '+S.step+' of 4'));
+  if(S.step===1){
+    p.appendChild(el('h2','ootb-q',esc(S.titles.s1q)));
+    p.appendChild(el('p','ootb-sub',esc(S.titles.s1sub)));
+    let any=false;
+    START_GROUPS.forEach((g,gi)=>{
+      const vis=START_OPTS.filter(o=>o.group===gi && !isHidden('startCards',o.key));
+      if(!vis.length)return; any=true;
+      p.appendChild(el('div','ootb-group-label',esc(g)));
+      p.appendChild(gridOf(vis));
+    });
+    if(!any) p.appendChild(el('div','empty','No start cards visible — re-enable at least one on the left.'));
+  } else if(S.step===2){
+    p.appendChild(el('h2','ootb-q',esc(S.titles.s2q)));
+    p.appendChild(el('p','ootb-sub',esc(S.titles.s2sub)));
+    p.appendChild(el('div','ph','<b>Scene timeline.</b> A draggable list of the demo’s scenes — reorder, swap from the scene library, or remove. Continue advances to Brand.'));
+  } else if(S.step===3){
+    p.appendChild(el('h2','ootb-q',esc(S.titles.s3q)));
+    p.appendChild(el('p','ootb-sub',esc(S.titles.s3sub)));
+    const wrap=el('div','gb-fields');
+    BRAND_FIELDS.forEach(f=>{
+      if(!f.required && isHidden('brandFields',f.key)) return;
+      const fw=el('div','gb-field');
+      const lab=el('label'); lab.appendChild(document.createTextNode(f.label));
+      if(f.required) lab.innerHTML += ' <span style="color:var(--ds-poppy)">*</span>';
+      fw.appendChild(lab);
+      const inp=el('div','gb-input',esc(f.ph)); fw.appendChild(inp);
+      wrap.appendChild(fw);
+    });
+    p.appendChild(wrap);
+  } else {
+    p.appendChild(el('h2','ootb-q',esc(S.titles.s4q)));
+    p.appendChild(el('p','ootb-sub',esc(S.titles.s4sub)));
+    p.appendChild(el('div','ph','<b>Generated demo link.</b> The shareable URL plus Copy / Open / “Customize in Advanced timeline” actions.'));
+  }
+}
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', Number(t.dataset.step)===S.step));
+  renderControls(); renderPreview();
+}
+$('#tabs').addEventListener('click',e=>{ const b=e.target.closest('.tab'); if(!b)return; S.step=Number(b.dataset.step); save(); render(); });
+$('#btnReset').addEventListener('click',()=>{ if(confirm('Reset titles and visibility back to the live builder defaults?')){ const step=S.step; S=blankState(); S.step=step; save(); render(); }});
+
+function buildConfig(){
+  return { flow:'guided-bespoke', titles:S.titles, hidden:{ startCards:S.hidden.startCards.slice(), brandFields:S.hidden.brandFields.slice() } };
+}
+function summary(){
+  const sVis=START_OPTS.filter(o=>!isHidden('startCards',o.key)), sHid=START_OPTS.filter(o=>isHidden('startCards',o.key));
+  const fHid=BRAND_FIELDS.filter(f=>!f.required && isHidden('brandFields',f.key));
+  const L=[];
+  L.push('<b>Step 1 · '+esc(S.titles.s1q)+'</b><br>Start cards shown: '+(sVis.map(o=>esc(o.label)).join(', ')||'—')+(sHid.length?'<br><span class="hid">Hidden: '+sHid.map(o=>esc(o.label)).join(', ')+'</span>':'')+'<br><span style="color:var(--muted)">Sub-screen title: “'+esc(S.titles.s1vq)+'”</span>');
+  L.push('<b>Step 2 · '+esc(S.titles.s2q)+'</b><br><span style="color:var(--muted)">Scene timeline — title only.</span>');
+  L.push('<b>Step 3 · '+esc(S.titles.s3q)+'</b><br>Brand fields: '+BRAND_FIELDS.filter(f=>f.required||!isHidden('brandFields',f.key)).map(f=>esc(f.label.replace(/\s*\(.*$/,''))).join(', ')+(fHid.length?'<br><span class="hid">Hidden: '+fHid.map(f=>esc(f.label)).join(', ')+'</span>':''));
+  L.push('<b>Step 4 · '+esc(S.titles.s4q)+'</b><br><span style="color:var(--muted)">Generate link — title only.</span>');
+  return L.join('<br><br>');
+}
+$('#btnExport').addEventListener('click',()=>{ $('#sum').innerHTML=summary(); $('#json').textContent=JSON.stringify(buildConfig(),null,2); $('#scrim').classList.add('on'); });
+$('#btnClose').addEventListener('click',()=>$('#scrim').classList.remove('on'));
+$('#scrim').addEventListener('click',e=>{ if(e.target===$('#scrim')) $('#scrim').classList.remove('on'); });
+$('#btnCopy').addEventListener('click',()=>{ navigator.clipboard.writeText($('#json').textContent).then(()=>{ const b=$('#btnCopy'); const o=b.textContent; b.textContent='Copied'; setTimeout(()=>b.textContent=o,1500); }); });
+
+render();
+</script>
+</body>
+</html>
