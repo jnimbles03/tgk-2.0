@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guided Flow Configurator — TGK 2.0</title>
+<!--
+  A planning tool for the Out-of-the-Box GUIDED experience in builder.html.
+  Mirrors the live wizard (#ootbPanel → renderStep 1/2/3): the same card data
+  (OOTB_MAP + ARCHETYPES), the same titles, the same .ootb-card styling.
+
+  Use it to: edit each step's title/subtitle, toggle which cards are visible,
+  preview it true-to-life, and Export a config. Hand the export back and the
+  changes get applied to builder.html (titles in the renderStep header() calls;
+  visibility by filtering OOTB_MAP / ARCHETYPES / the FINS Acceleration bets).
+
+  Nothing here writes to builder.html — it's a confirm/preview surface.
+-->
+<style>
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+  @font-face { font-family:"DSIndigo"; src:url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+  :root{
+    --ds-inkwell:#130032; --ds-cobalt:#4C00FF; --ds-poppy:#FF5252; --ds-mint:#3FDA99;
+    --bg:#F3EEE9; --panel:#FFFFFF; --text:#130032; --muted:rgba(19,0,50,.55);
+    --rule:rgba(19,0,50,.10); --rule-strong:rgba(19,0,50,.18);
+    --font:"DSIndigo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --ease:cubic-bezier(.4,0,.2,1);
+    --ds-glow:linear-gradient(135deg,var(--ds-poppy) 0%,var(--ds-cobalt) 100%);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh;}
+
+  /* top bar */
+  .top{background:var(--ds-inkwell);color:#fff;display:flex;align-items:center;gap:14px;padding:0 22px;height:54px;position:sticky;top:0;z-index:30;}
+  .top .mark{font-weight:700;font-size:15px;letter-spacing:-.01em;}
+  .top .sep{width:1px;height:18px;background:rgba(255,255,255,.18);}
+  .top .sub{font-size:12px;font-weight:600;color:#CBC2FF;letter-spacing:.03em;}
+  .top .sp{flex:1;}
+  .top button{font-family:var(--font);font-size:12.5px;font-weight:600;border:none;border-radius:7px;padding:8px 14px;cursor:pointer;}
+  .top .ghost{background:rgba(255,255,255,.10);color:#fff;}
+  .top .ghost:hover{background:rgba(255,255,255,.18);}
+  .top .primary{background:var(--ds-cobalt);color:#fff;}
+  .top .primary:hover{background:#3a00c0;}
+
+  /* step tabs */
+  .tabs{display:flex;gap:4px;padding:14px 22px 0;background:var(--bg);position:sticky;top:54px;z-index:20;}
+  .tab{font-family:var(--font);font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 14px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .tab:hover{color:var(--text);}
+  .tab.on{color:var(--ds-cobalt);border-bottom-color:var(--ds-cobalt);}
+  .tab .n{width:20px;height:20px;border-radius:50%;background:var(--rule-strong);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+  .tab.on .n{background:var(--ds-cobalt);}
+
+  /* layout */
+  .wrap{display:grid;grid-template-columns:404px 1fr;gap:0;align-items:start;}
+  @media (max-width:1000px){ .wrap{grid-template-columns:1fr;} }
+  .controls{padding:22px;border-right:1px solid var(--rule);min-height:calc(100vh - 54px);}
+  .stage{padding:30px 34px 80px;}
+
+  .ctl-h{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .ctl-h:first-child{margin-top:0;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;}
+  .field input,.field textarea{width:100%;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;border:1px solid var(--rule-strong);border-radius:8px;padding:9px 11px;resize:vertical;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,.10);}
+  .field .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+  .tok{font-family:var(--mono);font-size:11px;background:rgba(76,0,255,.08);color:var(--ds-cobalt);padding:1px 5px;border-radius:4px;}
+
+  /* vertical chooser for step 2 */
+  .seg{display:flex;gap:4px;background:#fff;border:1px solid var(--rule-strong);border-radius:9px;padding:3px;margin-bottom:14px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:90px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;border-radius:6px;padding:7px 8px;cursor:pointer;}
+  .seg button.on{background:var(--ds-cobalt);color:#fff;}
+
+  /* toggle list */
+  .toggles{display:flex;flex-direction:column;gap:7px;}
+  .tg{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--rule);border-radius:9px;padding:10px 12px;cursor:pointer;transition:border-color .15s,opacity .15s;}
+  .tg:hover{border-color:var(--rule-strong);}
+  .tg.off{opacity:.5;}
+  .tg input{margin-top:2px;width:16px;height:16px;accent-color:var(--ds-cobalt);cursor:pointer;flex-shrink:0;}
+  .tg .lab{font-size:13px;font-weight:600;color:var(--text);}
+  .tg .dsc{font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px;}
+  .grouplab{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;display:flex;align-items:center;gap:8px;}
+  .grouplab .pill{font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;background:rgba(76,0,255,.10);color:var(--ds-cobalt);padding:2px 7px;border-radius:99px;text-transform:none;}
+  .countnote{font-size:11.5px;color:var(--muted);margin-top:12px;}
+
+  /* ===== PREVIEW — mirrors builder.html .ootb-* exactly ===== */
+  .ootb-eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ds-cobalt);margin-bottom:10px;}
+  .ootb-q{font-family:var(--font);font-size:clamp(24px,2.4vw,32px);font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1.15;margin:0 0 8px;}
+  .ootb-sub{font-size:14px;color:var(--muted);margin:0 0 24px;max-width:640px;line-height:1.5;}
+  .ootb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .ootb-card{text-align:left;font-family:var(--font);background:#fff;border:2px solid rgba(19,0,50,.22);border-radius:12px;padding:22px 24px;cursor:default;transition:all .2s var(--ease);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+  .ootb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ds-glow);opacity:0;transition:opacity .2s;}
+  .ootb-card:hover{border-color:var(--ds-cobalt);box-shadow:0 0 0 3px rgba(76,0,255,.12),0 8px 28px rgba(76,0,255,.14);transform:translateY(-3px);}
+  .ootb-card:hover::before{opacity:1;}
+  .ootb-card-label{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+  .ootb-card-desc{font-size:13.5px;color:var(--muted);line-height:1.5;}
+  .ootb-group-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;}
+  .preview-frame{background:#fff;border:1px solid var(--rule);border-radius:14px;padding:40px 44px;max-width:1080px;box-shadow:0 1px 2px rgba(19,0,50,.04),0 12px 40px -24px rgba(19,0,50,.25);}
+  .preview-cap{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .empty{color:var(--muted);font-size:13px;padding:18px;border:1px dashed var(--rule-strong);border-radius:10px;text-align:center;}
+
+  /* export modal */
+  .scrim{position:fixed;inset:0;background:rgba(19,0,50,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:24px;}
+  .scrim.on{display:flex;}
+  .modal{background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:86vh;overflow:auto;padding:26px 28px;}
+  .modal h2{font-size:19px;font-weight:700;margin-bottom:4px;}
+  .modal .ms{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .modal pre{font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:14px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+  .modal .sumh{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;}
+  .modal .sum{font-size:13px;line-height:1.6;}
+  .modal .sum b{color:var(--ds-cobalt);}
+  .modal .sum .hid{color:var(--ds-poppy);}
+  .modal .row{display:flex;gap:10px;margin-top:18px;}
+  .modal button{font-family:var(--font);font-size:13px;font-weight:600;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .modal .primary{background:var(--ds-cobalt);color:#fff;}
+  .modal .ghost{background:var(--bg);color:var(--text);border:1px solid var(--rule-strong);}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span class="mark">TGK 2.0</span><span class="sep"></span>
+  <span class="sub">Guided Flow Configurator</span>
+  <span class="sp"></span>
+  <button class="ghost" id="btnReset" type="button">Reset to live defaults</button>
+  <button class="primary" id="btnExport" type="button">Export configuration</button>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab on" data-step="1" type="button"><span class="n">1</span> Vertical</button>
+  <button class="tab" data-step="2" type="button"><span class="n">2</span> Sub-vertical</button>
+  <button class="tab" data-step="3" type="button"><span class="n">3</span> Story</button>
+</div>
+
+<div class="wrap">
+  <aside class="controls" id="controls"></aside>
+  <main class="stage">
+    <div class="preview-cap" id="previewCap">Live preview · Step 1</div>
+    <div class="preview-frame" id="preview"></div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <h2>Configuration</h2>
+    <div class="ms">A summary of your guided-flow choices, plus a JSON config. Hand this back and I'll apply it to <span class="tok">builder.html</span> (titles → the <span class="tok">renderStep</span> header() calls; visibility → filtering OOTB_MAP / ARCHETYPES / the FINS bets).</div>
+    <div class="sumh">Summary</div>
+    <div class="sum" id="sum"></div>
+    <div class="sumh">JSON</div>
+    <pre id="json"></pre>
+    <div class="row">
+      <button class="primary" id="btnCopy" type="button">Copy JSON</button>
+      <button class="ghost" id="btnClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — mirrored verbatim from builder.html initOotbMode()
+   (OOTB_MAP + ARCHETYPES) and the live renderStep() titles.
+   ============================================================ */
+const OOTB_MAP = [
+  { key:'fins', label:'Financial Services', desc:'Banking and credit unions, insurance carriers, wealth and asset management.', subs:[
+    { key:'banking',   label:'Banking / Credit Union', desc:'Commercial lending, deposits, consumer accounts.' },
+    { key:'insurance', label:'Insurance',              desc:'P&C and Commercial — binding, claims, endorsements.' },
+    { key:'wealth',    label:'Wealth',                 desc:'Asset management, planning, brokerage, life/annuity.' },
+  ]},
+  { key:'hls', label:'Healthcare & Life Sciences', desc:'Payers, providers, and pharma / life sciences.', subs:[
+    { key:'payor',        label:'Payer',                 desc:'Member enrollment, plan changes, prior auth.' },
+    { key:'provider',     label:'Provider',              desc:'Patient intake, consent, records release.' },
+    { key:'lifesciences', label:'Pharma / Life Sciences', desc:'Clinical trials, site activation, protocol work.' },
+  ]},
+  { key:'pubsec', label:'Public Sector', desc:'Federal agencies plus state, local, and education.', subs:[
+    { key:'fedgov', label:'Federal', desc:'Claims, certifications, citizen services.' },
+    { key:'slgov',  label:'SLED',    desc:'State, local & education — permits, licenses, benefits.' },
+  ]},
+];
+const ARCHETYPES = [
+  { key:'full',        label:'Onboarding',            desc:'The end-to-end arc — intake, identity, signature, routing, and analysis.' },
+  { key:'maintenance', label:'Maintenance',           desc:'An existing relationship changes — beneficiaries, signers, account updates.' },
+  { key:'fraud',       label:'Fraud Fabric',          desc:'Identity verification at the door — step-up auth on a high-risk request.' },
+  { key:'docintel',    label:'Document Intelligence', desc:'Webform and document intake feeding the agreement workflow.' },
+  { key:'workspaces',  label:'Workspaces',            desc:'One immersive screen — the shared, persistent multi-party workspace.' },
+  { key:'headless',    label:'Headless IAM',          desc:'One immersive screen — the familiar portal, product vignettes behind every drill-down.' },
+];
+/* FINS Acceleration row — only shown on Step 3 when the vertical is Financial Services. */
+const FINS_BETS = [
+  { key:'cx5',   label:'BET 1 · Best-in-class CX',     desc:'The full 5-scene story — intake to workspace.' },
+  { key:'fraud', label:'BET 2 · Fraud Fabric',         desc:'Chain-of-custody + CLEAR at the door + signing.' },
+  { key:'agi',   label:'BET 3 · Agreement Intelligence', desc:'Navigator · Hierarchy · AI-Assisted Review.' },
+];
+const DEFAULT_TITLES = {
+  s1q:'Which vertical are you selling into?',
+  s1sub:'Pick the customer’s industry. Everything downstream — cast, tenant brand, system of record — is already staged for it.',
+  s2q:'Which sub-vertical fits {vertical}?',
+  s2sub:'Each sub-vertical has its own tenant, customer cast, and storyline.',
+  s3q:'What story do you want to tell?',
+  s3sub:'Six demo experiences, all staged on the {sub} cast.',
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const LS='tgkGuidedFlowConfig';
+function blankState(){
+  return {
+    step:1,
+    s2vertical:'fins',           // which vertical's subs we're editing/previewing on step 2
+    titles:{...DEFAULT_TITLES},
+    hidden:{ verticals:[], subs:{}, archetypes:[], bets:[] }, // arrays of hidden keys
+  };
+}
+let S = load();
+function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)); if(j&&j.titles)return Object.assign(blankState(),j);}catch(e){} return blankState(); }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }
+
+const isHidden=(bucket,key,sub)=>{ if(bucket==='subs'){ return (S.hidden.subs[sub]||[]).includes(key);} return S.hidden[bucket].includes(key); };
+function toggle(bucket,key,vis,sub){
+  if(bucket==='subs'){ const arr=S.hidden.subs[sub]||(S.hidden.subs[sub]=[]); const i=arr.indexOf(key);
+    if(vis&&i>=0)arr.splice(i,1); if(!vis&&i<0)arr.push(key); }
+  else { const arr=S.hidden[bucket]; const i=arr.indexOf(key);
+    if(vis&&i>=0)arr.splice(i,1); if(!vis&&i<0)arr.push(key); }
+  save(); render();
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n;};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const vertById=k=>OOTB_MAP.find(v=>v.key===k);
+
+function titleField(id,label,hint){
+  const f=el('div','field');
+  f.appendChild(el('label',null,esc(label)));
+  const ta=el('textarea'); ta.rows=(id.endsWith('sub')?2:1); ta.value=S.titles[id];
+  ta.addEventListener('input',()=>{ S.titles[id]=ta.value; save(); renderPreview(); });
+  f.appendChild(ta);
+  if(hint) f.appendChild(el('div','hint',hint));
+  return f;
+}
+function toggleRow(bucket,item,sub){
+  const vis=!isHidden(bucket,item.key,sub);
+  const row=el('label','tg'+(vis?'':' off'));
+  const cb=el('input'); cb.type='checkbox'; cb.checked=vis;
+  cb.addEventListener('change',()=>toggle(bucket,item.key,cb.checked,sub));
+  const txt=el('div');
+  txt.appendChild(el('div','lab',esc(item.label)));
+  if(item.desc) txt.appendChild(el('div','dsc',esc(item.desc)));
+  row.appendChild(cb); row.appendChild(txt);
+  return row;
+}
+
+function renderControls(){
+  const c=$('#controls'); c.innerHTML='';
+  if(S.step===1){
+    c.appendChild(el('div','ctl-h','Step 1 · Title'));
+    c.appendChild(titleField('s1q','Question'));
+    c.appendChild(titleField('s1sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Vertical cards'));
+    const t=el('div','toggles'); OOTB_MAP.forEach(v=>t.appendChild(toggleRow('verticals',v))); c.appendChild(t);
+    c.appendChild(el('div','countnote', visibleCount('verticals',OOTB_MAP)+' of '+OOTB_MAP.length+' shown'));
+  } else if(S.step===2){
+    c.appendChild(el('div','ctl-h','Step 2 · Title'));
+    c.appendChild(titleField('s2q','Question', 'Use <span class="tok">{vertical}</span> for the chosen vertical name.'));
+    c.appendChild(titleField('s2sub','Subtitle'));
+    c.appendChild(el('div','ctl-h','Editing sub-verticals for'));
+    const seg=el('div','seg'); OOTB_MAP.forEach(v=>{ const b=el('button',v.key===S.s2vertical?'on':null,esc(v.label)); b.addEventListener('click',()=>{S.s2vertical=v.key;save();render();}); seg.appendChild(b); }); c.appendChild(seg);
+    const v=vertById(S.s2vertical);
+    const t=el('div','toggles'); v.subs.forEach(s=>t.appendChild(toggleRow('subs',s,v.key))); c.appendChild(t);
+    c.appendChild(el('div','countnote', visibleSubCount(v)+' of '+v.subs.length+' shown for '+esc(v.label)));
+  } else {
+    c.appendChild(el('div','ctl-h','Step 3 · Title'));
+    c.appendChild(titleField('s3q','Question'));
+    c.appendChild(titleField('s3sub','Subtitle', 'Use <span class="tok">{sub}</span> for the chosen sub-vertical name.'));
+    c.appendChild(el('div','ctl-h','Story cards (all verticals)'));
+    const t=el('div','toggles'); ARCHETYPES.forEach(a=>t.appendChild(toggleRow('archetypes',a))); c.appendChild(t);
+    const gl=el('div','grouplab','FINS Acceleration <span class="pill">Financial Services only</span>'); c.appendChild(gl);
+    const t2=el('div','toggles'); FINS_BETS.forEach(b=>t2.appendChild(toggleRow('bets',b))); c.appendChild(t2);
+  }
+}
+
+function card(item){
+  const d=el('button','ootb-card'); d.type='button';
+  d.appendChild(el('div','ootb-card-label',esc(item.label)));
+  if(item.desc) d.appendChild(el('div','ootb-card-desc',esc(item.desc)));
+  return d;
+}
+function fillTitle(str){
+  const v=vertById(S.s2vertical);
+  const firstSub=(v.subs.find(s=>!isHidden('subs',s.key,v.key))||v.subs[0]);
+  return esc(str).replace('{vertical}','<b>'+esc(v.label)+'</b>').replace('{sub}','<b>'+esc(firstSub?firstSub.label:'')+'</b>');
+}
+function renderPreview(){
+  const p=$('#preview'); p.innerHTML='';
+  $('#previewCap').textContent='Live preview · Step '+S.step;
+  const q=el('div','ootb-eyebrow','Out of the Box · Question '+S.step+' of 3'); p.appendChild(q);
+  if(S.step===1){
+    p.appendChild(el('h2','ootb-q',esc(S.titles.s1q)));
+    p.appendChild(el('p','ootb-sub',esc(S.titles.s1sub)));
+    const vis=OOTB_MAP.filter(v=>!isHidden('verticals',v.key));
+    p.appendChild(gridOf(vis));
+  } else if(S.step===2){
+    p.appendChild(el('h2','ootb-q',fillTitle(S.titles.s2q)));
+    p.appendChild(el('p','ootb-sub',fillTitle(S.titles.s2sub)));
+    const v=vertById(S.s2vertical);
+    const vis=v.subs.filter(s=>!isHidden('subs',s.key,v.key));
+    p.appendChild(gridOf(vis));
+  } else {
+    p.appendChild(el('h2','ootb-q',fillTitle(S.titles.s3q)));
+    p.appendChild(el('p','ootb-sub',fillTitle(S.titles.s3sub)));
+    const vis=ARCHETYPES.filter(a=>!isHidden('archetypes',a.key));
+    p.appendChild(gridOf(vis));
+    const bets=FINS_BETS.filter(b=>!isHidden('bets',b.key));
+    if(bets.length){
+      p.appendChild(el('div','ootb-group-label','FINS Acceleration'));
+      p.appendChild(gridOf(bets));
+    }
+  }
+}
+function gridOf(items){
+  if(!items.length) return el('div','empty','No cards visible at this step — re-enable at least one on the left.');
+  const g=el('div','ootb-grid'); items.forEach(i=>g.appendChild(card(i))); return g;
+}
+function visibleCount(bucket,arr){ return arr.filter(x=>!isHidden(bucket,x.key)).length; }
+function visibleSubCount(v){ return v.subs.filter(s=>!isHidden('subs',s.key,v.key)).length; }
+
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', Number(t.dataset.step)===S.step));
+  renderControls(); renderPreview();
+}
+
+/* tabs */
+$('#tabs').addEventListener('click',e=>{ const b=e.target.closest('.tab'); if(!b)return; S.step=Number(b.dataset.step); save(); render(); });
+
+/* reset */
+$('#btnReset').addEventListener('click',()=>{ if(confirm('Reset titles and visibility back to the live builder defaults?')){ const step=S.step; S=blankState(); S.step=step; save(); render(); }});
+
+/* export */
+function buildConfig(){
+  const subsHidden={}; Object.keys(S.hidden.subs).forEach(k=>{ if((S.hidden.subs[k]||[]).length) subsHidden[k]=S.hidden.subs[k].slice(); });
+  return {
+    titles:S.titles,
+    hidden:{ verticals:S.hidden.verticals.slice(), subVerticals:subsHidden, storyCards:S.hidden.archetypes.slice(), finsBets:S.hidden.bets.slice() }
+  };
+}
+function nameList(arr,coll,sub){ return arr.map(x=>x.label).join(', '); }
+function summary(){
+  const lines=[];
+  const vVis=OOTB_MAP.filter(v=>!isHidden('verticals',v.key)), vHid=OOTB_MAP.filter(v=>isHidden('verticals',v.key));
+  lines.push('<b>Step 1 · '+esc(S.titles.s1q)+'</b><br>Verticals shown: '+(vVis.map(v=>esc(v.label)).join(', ')||'—')+(vHid.length?'<br><span class="hid">Hidden: '+vHid.map(v=>esc(v.label)).join(', ')+'</span>':''));
+  const s2=[]; OOTB_MAP.forEach(v=>{ const hid=v.subs.filter(s=>isHidden('subs',s.key,v.key)); if(hid.length) s2.push(esc(v.label)+' → hide '+hid.map(s=>esc(s.label)).join(', ')); });
+  lines.push('<b>Step 2 · '+esc(S.titles.s2q)+'</b><br>'+(s2.length?'<span class="hid">'+s2.join('<br>')+'</span>':'All sub-verticals shown.'));
+  const aVis=ARCHETYPES.filter(a=>!isHidden('archetypes',a.key)), aHid=ARCHETYPES.filter(a=>isHidden('archetypes',a.key));
+  const bHid=FINS_BETS.filter(b=>isHidden('bets',b.key));
+  lines.push('<b>Step 3 · '+esc(S.titles.s3q)+'</b><br>Story cards shown: '+(aVis.map(a=>esc(a.label)).join(', ')||'—')+(aHid.length?'<br><span class="hid">Hidden: '+aHid.map(a=>esc(a.label)).join(', ')+'</span>':'')+(bHid.length?'<br><span class="hid">FINS bets hidden: '+bHid.map(b=>esc(b.label)).join(', ')+'</span>':''));
+  return lines.join('<br><br>');
+}
+$('#btnExport').addEventListener('click',()=>{ $('#sum').innerHTML=summary(); $('#json').textContent=JSON.stringify(buildConfig(),null,2); $('#scrim').classList.add('on'); });
+$('#btnClose').addEventListener('click',()=>$('#scrim').classList.remove('on'));
+$('#scrim').addEventListener('click',e=>{ if(e.target===$('#scrim')) $('#scrim').classList.remove('on'); });
+$('#btnCopy').addEventListener('click',()=>{ navigator.clipboard.writeText($('#json').textContent).then(()=>{ const b=$('#btnCopy'); const o=b.textContent; b.textContent='Copied'; setTimeout(()=>b.textContent=o,1500); }); });
+
+render();
+</script>
+</body>
+</html>
