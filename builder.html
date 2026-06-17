@@ -1388,6 +1388,7 @@ body.is-gb #gbPanel{display:block;}
 .ootb-card:hover::before{opacity:1;}
 .ootb-card-label{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
 .ootb-card-desc{font-size:13.5px;color:var(--muted);line-height:1.5;}
+.ootb-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#7c3aed,#4c00ff);border-radius:20px;padding:3px 9px 3px 7px;margin-top:4px;align-self:flex-start;line-height:1;}
 @media (max-width:900px){.ootb-grid,.ootb-grid.c4{grid-template-columns:1fr;}body.is-ootb .ootb-panel{padding:36px 28px 80px;}}
 .ootb-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--ds-cobalt);background:none;border:none;padding:0;margin:30px 0 0;cursor:pointer;}
 .ootb-back:hover{text-decoration:underline;}
@@ -4222,6 +4223,14 @@ body.is-gb #gbPanel{display:block;}
     });
   })();
 
+  // Shared badge helper — used by both Guided Bespoke and OotB panels
+  function agenticBadge() {
+    const b = document.createElement('div');
+    b.className = 'ootb-badge';
+    b.innerHTML = '<svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0L7.45 4.55 12 6l-4.55 1.45L6 12 4.55 7.45 0 6l4.55-1.45z"/></svg> AI Agent';
+    return b;
+  }
+
   // ============================================================
   // Guided Bespoke (additive, 2026-06-12)
   // ============================================================
@@ -4239,15 +4248,15 @@ body.is-gb #gbPanel{display:block;}
     const params = new URLSearchParams(location.search);
     const auditLocked = params.has('vertical');
     const START_OPTS = [
-      { shell: 'default',      label: 'Onboarding',            desc: 'The end-to-end arc — intake, identity, signature, routing, and analysis.' },
+      { shell: 'default',      label: 'Onboarding',            desc: 'The end-to-end arc — intake, identity, signature, routing, and analysis.', agentic: true },
       { shell: 'maintenance',  label: 'Maintenance',           desc: 'An existing relationship changes — beneficiaries, signers, account updates.' },
-      { shell: 'fraud-fabric', label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.' },
-      { shell: 'intake',       label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' },
-      { immersive: 'workspaces', label: 'Workspaces',          desc: 'One immersive screen — the shared multi-party workspace, drill-downs included.' },
-      { immersive: 'headless', label: 'Headless IAM',          desc: 'One immersive screen — the portal this sub-vertical lives in every day, product vignettes behind every drill-down.' },
+      { shell: 'fraud-fabric', label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.', agentic: true },
+      { shell: 'intake',       label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.', agentic: true },
+      { immersive: 'workspaces', label: 'Workspaces',          desc: 'One immersive screen — the shared multi-party workspace, drill-downs included.', agentic: true },
+      { immersive: 'headless', label: 'Headless IAM',          desc: 'One immersive screen — the portal this sub-vertical lives in every day, product vignettes behind every drill-down.', agentic: true },
       { action: 'vertical',    label: 'A vertical story',      desc: 'Start from a canonical vertical demo — cast, tenant, and scenes prefilled.' },
-      { link: '/demos/agreement-intel-ma.html',       label: 'Agreement Intelligence — M&A',        desc: 'Open the M&A due-diligence demo — Iris structures inherited contracts and surfaces risk at portfolio scale.' },
-      { link: '/demos/agreement-intel-sf-draft.html', label: 'Agreement Intelligence — Salesforce', desc: 'Open the in-CRM agreement-AI demo — summarize prevailing terms, interrogate, and draft a new MSA.' }
+      { link: '/demos/agreement-intel-ma.html',       label: 'Agreement Intelligence — M&A',        desc: 'Open the M&A due-diligence demo — Iris structures inherited contracts and surfaces risk at portfolio scale.', agentic: true },
+      { link: '/demos/agreement-intel-sf-draft.html', label: 'Agreement Intelligence — Salesforce', desc: 'Open the in-CRM agreement-AI demo — summarize prevailing terms, interrogate, and draft a new MSA.', agentic: true }
     ];
     /* Immersive single-screen targets. Headless = the cluster portal pages
        (a familiar daily-driver UI with IAM vignettes as in-context
@@ -4314,6 +4323,7 @@ body.is-gb #gbPanel{display:block;}
         const c = el('button', 'ootb-card'); c.type = 'button';
         c.appendChild(el('div', 'ootb-card-label', esc(o.label)));
         c.appendChild(el('div', 'ootb-card-desc', esc(o.desc)));
+        if (o.agentic) c.appendChild(agenticBadge());
         c.addEventListener('click', () => {
           if (o.link) return window.open(o.link, '_blank');
           if (o.action === 'vertical') return renderVerticalPick();
@@ -4779,12 +4789,12 @@ body.is-gb #gbPanel{display:block;}
         ] }
     ];
     const ARCHETYPES = [
-      { key: 'full',       label: 'Onboarding',            desc: 'The end-to-end arc — intake, identity, signature, routing, and analysis.' },
+      { key: 'full',       label: 'Onboarding',            desc: 'The end-to-end arc — intake, identity, signature, routing, and analysis.', agentic: true },
       { key: 'maintenance',label: 'Maintenance',           desc: 'An existing relationship changes — beneficiaries, signers, account updates.' },
-      { key: 'fraud',      label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.' },
-      { key: 'docintel',   label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.' },
-      { key: 'workspaces', label: 'Workspaces',            desc: 'One immersive screen — the shared, persistent multi-party workspace.' },
-      { key: 'headless',   label: 'Headless IAM',          desc: 'One immersive screen — the familiar portal, product vignettes behind every drill-down.' }
+      { key: 'fraud',      label: 'Fraud Fabric',          desc: 'Identity verification at the door — step-up auth on a high-risk request.', agentic: true },
+      { key: 'docintel',   label: 'Document Intelligence', desc: 'Webform and document intake feeding the agreement workflow.', agentic: true },
+      { key: 'workspaces', label: 'Workspaces',            desc: 'One immersive screen — the shared, persistent multi-party workspace.', agentic: true },
+      { key: 'headless',   label: 'Headless IAM',          desc: 'One immersive screen — the familiar portal, product vignettes behind every drill-down.', agentic: true }
     ];
 
     const body = document.getElementById('ootbBody');
@@ -4813,6 +4823,7 @@ body.is-gb #gbPanel{display:block;}
         c.type = 'button';
         c.appendChild(el('div', 'ootb-card-label', esc(it.label)));
         c.appendChild(el('div', 'ootb-card-desc', esc(it.desc)));
+        if (it.agentic) c.appendChild(agenticBadge());
         c.addEventListener('click', () => onPick(it));
         grid.appendChild(c);
       });
@@ -4826,10 +4837,11 @@ body.is-gb #gbPanel{display:block;}
       body.appendChild(b);
     }
 
-    function finsBetCard(label, desc, onClick) {
+    function finsBetCard(label, desc, onClick, agentic) {
       const c = el('button', 'ootb-card'); c.type = 'button';
       c.appendChild(el('div', 'ootb-card-label', esc(label)));
       c.appendChild(el('div', 'ootb-card-desc', esc(desc)));
+      if (agentic) c.appendChild(agenticBadge());
       c.addEventListener('click', onClick);
       return c;
     }
@@ -4844,7 +4856,7 @@ body.is-gb #gbPanel{display:block;}
       grid.appendChild(finsBetCard('BET 2 · Fraud Fabric', 'Chain-of-custody + CLEAR at the door + signing.',
         () => window.open(SHELL + '?vertical=banking&usecase=auth-fabric', '_blank')));
       grid.appendChild(finsBetCard('BET 3 · Agreement Intelligence', 'Navigator · Hierarchy · AI-Assisted Review.',
-        () => window.open('/demos/navigator.html', '_blank')));
+        () => window.open('/demos/navigator.html', '_blank'), true));
       body.appendChild(grid);
     }
 
@@ -4859,7 +4871,7 @@ body.is-gb #gbPanel{display:block;}
         backBtn(1);
       } else if (step === 3) {
         header(3, 'What story will resonate with your customer?', 'Six demo experiences (and three FINS "Bets"), all staged on the ' + state.sub.label + ' cast.');
-        cards(ARCHETYPES.map(a => ({ label: a.label, desc: a.desc, key: a.key })), it => renderLaunch(it.key));
+        cards(ARCHETYPES.map(a => ({ label: a.label, desc: a.desc, key: a.key, agentic: a.agentic })), it => renderLaunch(it.key));
         if (state.vertical && state.vertical.key === 'fins') renderFinsAccel();
         backBtn(2);
       }
