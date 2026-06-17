@@ -4938,10 +4938,13 @@ body.is-gb #gbPanel{display:block;}
     }
     ootbBtn.addEventListener('click', () => setMode('ootb', true));
     bespokeBtn.addEventListener('click', () => setMode('bespoke', true));
-    let initial = 'bespoke';
+    // Default landing is Out of the Box (the guided picker). A ?mode= deep-link
+    // still overrides, and ?vertical= audit links force Bespoke (auditLock in
+    // setMode). We intentionally do NOT restore the last-used mode from
+    // localStorage, so the builder always opens on OotB.
+    let initial = 'ootb';
     const urlMode = params.get('mode');
     if (urlMode === 'ootb' || urlMode === 'bespoke') initial = urlMode;
-    else { try { initial = localStorage.getItem('tgkBuilderMode') || 'bespoke'; } catch (e) {} }
     setMode(initial, false);
   })();
 </script>
