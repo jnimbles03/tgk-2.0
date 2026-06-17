@@ -760,12 +760,15 @@ const HOTSPOTS = {
      audit-footer respectively). Cursor would land on the wrong element.
      Now: session_header → witness_auth → witness_txn → iris_attribution
      → audit_record, walking the actual chain-of-custody surface. */
+  /* fraud-fabric Scene 3 — the Maestro address-change vignette. The template is
+     a self-running loop with no rect responder, so these x/y just gesture the
+     cursor across submit → the 3 orchestration lanes → the result callout. */
   portal_submit: [
-    {target:"session_header",   x:"50%", y:"15%", tip:"Verified session — identity-bound customer",     sub:"Identity-bound from F1 proof",     side:"bottom"},
-    {target:"witness_auth",     x:"30%", y:"40%", tip:"Witness #1 — authenticated portal entry",     sub:"biometric identity verification · session-bound",  side:"right"},
-    {target:"witness_txn",      x:"70%", y:"40%", tip:"Witness #2 — in-session transaction",        sub:"Identity inherited from F1 proof", side:"left"},
-    {target:"iris_attribution", x:"50%", y:"68%", tip:"Iris confirms pattern + risk threshold",     sub:"Identity binding unbroken",        side:"top"},
-    {target:"audit_record",     x:"50%", y:"82%", tip:"Certificate of Completion — no signature required", sub:"The audit-grade record, decoupled from the signature", side:"top"}
+    {target:"ms_trigger", x:"50%", y:"22%", tip:"Submit fires the workflow — no signature",            sub:"Identity at the door is the authorization", side:"bottom"},
+    {target:"ms_lane1",   x:"22%", y:"55%", tip:"Identity binding — CLEAR session bound to the request", sub:"Witness event captured",                  side:"right"},
+    {target:"ms_lane2",   x:"40%", y:"55%", tip:"Address of record updated · USPS-validated",            sub:"Prior address archived, effective today", side:"top"},
+    {target:"ms_lane3",   x:"57%", y:"55%", tip:"Downstream sync — system of record + notifications",    sub:"Confirmation, statements, audit",         side:"top"},
+    {target:"ms_outcome", x:"82%", y:"50%", tip:"Updated in seconds — identity-bound, zero signature",   sub:"No re-keying, audit-complete",            side:"left"}
   ],
 
   /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
@@ -2251,7 +2254,7 @@ const USECASE_TEMPLATE_FILES = {
   "fraud-fabric": [
     "/story-templates/docusign-portal-shell.html",
     "/story-templates/docusign-webform-intake.html",
-    "/story-templates/docusign-agreement-desk-chain-of-custody.html"
+    "/story-templates/docusign-maestro-address-change.html"
   ],
   "intake-3": [
     "/story-templates/docusign-webform-intake.html",
@@ -2598,6 +2601,13 @@ function srcForUsecaseScene(i, vertical, usecaseKey, splash){
      drive the stage's own beats independently of the shell's beats. */
   if (usecaseKey === "sales-deepdive" || usecaseKey === "procurement-deepdive") {
     qp.set("embed", "1");
+  }
+  /* fraud-fabric Scene 3 (the Maestro address-change vignette) is tenant-branded
+     via swap.js — pass the vertical's name + accent color so the orchestration
+     reads as THIS institution's workflow. */
+  if (path.indexOf("maestro-address-change") !== -1) {
+    qp.set("t-name", vertical.tenant || "Your institution");
+    qp.set("tenant-color", vertical.tenantColor || "#4C00FF");
   }
   return path + "?" + qp.toString();
 }
@@ -6540,12 +6550,12 @@ loadIDBTemplateOverrides().then((count) => {
       "tenantColor": "#6BB6FF",
       "usecases": {
         "fraud-fabric": {
-          "subtitle": "× Meyer Household — High-Value Wire · Identity Verification at Entry",
+          "subtitle": "× Meyer Household — Change of Address on File · Identity Verification at Entry",
           "scenes": [
             {
               "tag": "SCENE 1 OF 3 · AUTHENTICATED PORTAL ENTRY · IDENTITY VERIFICATION AT ENTRY",
-              "head": "Patrick logs into Cedar's mobile banking app to send a $50k wire.",
-              "lede": "<p>Patrick Meyer opens Cedar Federal's mobile banking app to send a $50k wire to a new external account — saving toward a vacation-property down payment.</p><p>The workflow intercepts the app login and invokes identity verification. <em>Biometric proof of the account holder lands at the session level — before any high-value transaction is authorized.</em> Witness event #1 logged.</p>",
+              "head": "Patrick logs into Cedar's mobile banking app to update the address on his accounts.",
+              "lede": "<p>Patrick Meyer opens Cedar Federal's mobile banking app to change the mailing and statement address on the household accounts after a move.</p><p>The workflow intercepts the app login and invokes identity verification. <em>Biometric proof of the account holder lands at the session level — before any account change is made.</em> Witness event #1 logged.</p>",
               "beats": [
                 {
                   "head": "Patrick opens Cedar Federal's mobile banking app.",
@@ -6565,7 +6575,7 @@ loadIDBTemplateOverrides().then((count) => {
                 },
                 {
                   "head": "Authenticated session opens; Patrick sees his account dashboard.",
-                  "lede": "<p>Patrick is back in the app with biometric proof of identity bound to this session. His joint accounts are visible — checking balance, HYSA balance, recent transactions. No second verification required for the transfer setup.</p>"
+                  "lede": "<p>Patrick is back in the app with biometric proof of identity bound to this session. His joint accounts are visible — checking balance, HYSA balance, recent transactions. No second verification required to make the change.</p>"
                 }
               ],
               "persona": {
@@ -6575,29 +6585,29 @@ loadIDBTemplateOverrides().then((count) => {
               }
             },
             {
-              "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
-              "head": "Patrick initiates the $50k transfer; the form inherits the biometric proof from Scene 1.",
-              "lede": "<p>Patrick taps \"Transfer Money\" on his dashboard. The workflow serves a dynamic external-transfer webform inline — pre-filled with his account information and ready to accept new-payee details.</p><p><em>No second IDV.</em> The biometric proof from Scene 1 is inherited by this transaction. Witness event #2 logged when Patrick submits.</p>",
+              "tag": "SCENE 2 OF 3 · IN-SESSION ACTION · WORKFLOW SERVES THE WEBFORM",
+              "head": "Patrick initiates a change of address; the form inherits the biometric proof from Scene 1.",
+              "lede": "<p>Patrick taps \"Update address\" on his dashboard. The workflow serves a short address-change webform inline — current address pre-filled, ready for the new one.</p><p><em>No second IDV, and no signature.</em> The biometric proof from Scene 1 is inherited; Patrick just fills in the new address and submits. Witness event #2 logged when he does.</p>",
               "beats": [
                 {
-                  "head": "Patrick clicks \"Transfer Money\" on his account dashboard.",
-                  "lede": "<p>The app shows his HYSA balance ($87,500). Patrick wants to initiate a $50k wire to a new external account (new account setup at another bank for a down-payment fund).</p>"
+                  "head": "Patrick taps \"Update address\" on his account dashboard.",
+                  "lede": "<p>A routine account-maintenance action — but a fraud-target class, so it inherits the session's verified identity rather than asking Patrick to prove who he is all over again.</p>"
                 },
                 {
-                  "head": "the workflow serves the external-transfer webform inline.",
-                  "lede": "<p>Form opens in the app. Source account (HYSA) is pre-selected. Transfer amount ($50,000), transfer type (wire), and new payee details are ready for entry. Patrick enters: receiving bank (Bank of America), routing number, account number, and account holder name (Patrick Meyer).</p>"
+                  "head": "the workflow serves the address-change webform inline.",
+                  "lede": "<p>The form opens in the app. The current address is pre-filled from the record. Patrick enters the new street, city, state, and ZIP; USPS validates the address inline as he types.</p>"
                 },
                 {
-                  "head": "Patrick confirms the payee and transfer details.",
-                  "lede": "<p>Payee: \"Bank of America, account in name of Patrick Meyer.\" Amount: $50,000. Cedar's policy: one-time wire transfers over $10k require same-day processing — Patrick confirms timing (immediate) and reviews the wire fee ($25).</p>"
+                  "head": "Patrick reviews what the change touches.",
+                  "lede": "<p>New mailing + statement address confirmed. The form notes the downstream effects — paper statements, debit-card mailing, and account notices — all redirected on the effective date.</p>"
                 },
                 {
-                  "head": "The AI assistant pre-screens the transfer for fraud and compliance violations.",
-                  "lede": "<p>In the background, the AI assistant scans the transaction — receiving bank is legitimate (BofA routing number validates), destination account holder name matches the initiator (Patrick), transaction size is within historical patterns. No OFAC/AML matches. The transfer is clean.</p>"
+                  "head": "No signature — just a submission button.",
+                  "lede": "<p>There is no signing ceremony. Because the session is already identity-verified, the change is authorized by Patrick's bound biometric proof, not a wet signature. A single Submit button finishes the form.</p>"
                 },
                 {
-                  "head": "Patrick submits the transfer request.",
-                  "lede": "<p>One click submits the form. The request is bound to Patrick's biometric proof from the session login — <em>witness event #2 logged</em>. The transfer is queued for Treasury to process and execute same-day (funds wire the same afternoon if submitted before 2 PM CT).</p>"
+                  "head": "Patrick submits the address change.",
+                  "lede": "<p>One tap submits. The request is bound to Patrick's biometric proof from the session login — <em>witness event #2 logged</em> — and handed to the workflow to execute.</p>"
                 }
               ],
               "persona": {
@@ -6607,35 +6617,35 @@ loadIDBTemplateOverrides().then((count) => {
               }
             },
             {
-              "tag": "SCENE 3 OF 3 · CHAIN OF CUSTODY · AGREEMENT DESK VISUALIZES MAESTRO'S BINDING",
-              "head": "Agreement Desk surfaces the auth event and the transfer event as one continuous identity thread.",
-              "lede": "<p>Cedar's Treasury Operations team reviews the transfer request in the Agreement Desk. <em>the workflow has been binding the auth event to the transfer event in the orchestration layer the whole time</em> — Agreement Desk is the on-screen proxy that makes that invisible work visible.</p><p>Identity + transaction linked. Chain-of-custody gap closed. Transfer approved for same-day execution.</p>",
+              "tag": "SCENE 3 OF 3 · MAESTRO ORCHESTRATION · THE WORKFLOW KICKS OFF",
+              "head": "The workflow orchestrates the address change in parallel — identity-bound, no signature.",
+              "lede": "<p>The instant Patrick submits, a Docusign Workflow kicks off. <em>Three lanes run at once</em>: the identity binding from Scene 1 is attached, the address of record is updated and USPS-validated, and downstream systems are notified.</p><p>No signature, no re-keying — the change lands as one continuous, identity-bound event.</p>",
               "beats": [
                 {
-                  "head": "Treasury opens the Meyer transfer request in Agreement Desk.",
-                  "lede": "<p>The desk shows the new transfer with linked identity context. Session biometric (Patrick, time 14:22) connected to the transfer submission (14:29).</p>"
+                  "head": "Submit fires the workflow — no signature.",
+                  "lede": "<p>The submission triggers the orchestration. Identity at the door is the authorization: the verified session, the submit, and the record update share one unbroken chain.</p>"
                 },
                 {
-                  "head": "Agreement Desk shows the identity thread.",
-                  "lede": "<p>Two events visible in a single timeline: \"identity verified · Patrick Meyer · Biometric match · 14:22\" → \"Wire Transfer · $50,000 · New Payee (BofA) · 14:29\".</p>"
+                  "head": "Lane 1 — identity binding.",
+                  "lede": "<p>The biometric proof from session login is bound to this request. Step-up logged, session bound, witness event captured — the change is provably Patrick's.</p>"
                 },
                 {
-                  "head": "The AI assistant confirms no fraud or compliance violations.",
-                  "lede": "<p>Receiving bank validates as legitimate (BofA routing number confirmed). Account holder name matches the wire initiator. No OFAC/AML matches. Biometric binding confirms Patrick as the authorized initiator.</p>"
+                  "head": "Lane 2 — address of record updated.",
+                  "lede": "<p>The new address is written to the record, USPS-validated, effective today; the prior address is archived. No human re-keys anything.</p>"
                 },
                 {
-                  "head": "Treasury approves the transfer for same-day processing.",
-                  "lede": "<p>One click in Agreement Desk marks the transfer as approved. Wire processing is triggered — funds will post to Bank of America by 4 PM CT. Patrick's HYSA is debited $50,025 (including $25 fee). Receipt is queued for Patrick.</p>"
+                  "head": "Lane 3 — downstream sync.",
+                  "lede": "<p>Cedar's core system of record is updated in sync. Confirmation goes out by email + SMS, statements redirect next cycle, and an immutable audit event is written.</p>"
                 },
                 {
-                  "head": "Defensible record — both halves of the chain on file.",
-                  "lede": "<p>$50k wire to BofA posts by 4 PM. The complete chain — mobile app login (identity verification) → transfer setup (the workflow webform) → Treasury approval → same-day execution — is documented as a continuous identity thread. If the transaction is ever disputed, Cedar has the defensible record of Patrick's biometric identity binding him to this high-value transfer.</p>"
+                  "head": "Updated in seconds — a defensible, identity-bound record.",
+                  "lede": "<p>The complete chain — app login (identity verification) → in-portal address webform (submit, no signature) → workflow orchestration → record updated — is documented as a continuous identity thread. If ever disputed, Cedar has the defensible record binding Patrick's verified identity to the change.</p>"
                 }
               ],
               "persona": {
-                "side": "advisor",
-                "name": null,
-                "role": "Relationship Banker · Cedar Federal"
+                "side": "system",
+                "name": "Docusign Workflow",
+                "role": "Orchestration · Cedar Federal"
               }
             }
           ]
