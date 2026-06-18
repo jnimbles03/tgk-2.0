@@ -2,120 +2,81 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agreement Manager Agent (Search) — re-skinnable demo</title>
+<title>Agreement Manager Agent (Search) — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  .se-wrap{max-width:720px;margin:24px auto 0;text-align:center}
-  .se-ai{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.4px;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:5px 13px;border-radius:20px;margin-bottom:16px}
-  .se-h{font-size:24px;font-weight:600;color:#16121f;margin-bottom:20px;letter-spacing:-.3px}
-  .se-box{display:flex;align-items:center;gap:10px;border:1.5px solid #DcDce4;border-radius:12px;padding:0 8px 0 16px;height:54px;box-shadow:0 6px 22px rgba(20,10,50,.06);text-align:left}
-  .se-box.focus{border-color:var(--tenant-accent);box-shadow:0 0 0 3px var(--tenant-accent-soft)}
-  .se-box .q{flex:1;font-size:14.5px;color:#1a1a26}
-  .se-box .q .cur{display:inline-block;width:1.5px;height:18px;background:var(--tenant-accent);vertical-align:middle;margin-left:1px;animation:se-blink 1s steps(1) infinite}
-  .se-box .q .ph{color:#aaa}
-  @keyframes se-blink{50%{opacity:0}}
-  .se-send{width:38px;height:38px;border-radius:9px;background:var(--tenant-accent);color:#fff;display:flex;align-items:center;justify-content:center}
-  .se-send svg{width:17px;height:17px;fill:#fff}
-  .se-resp{margin-top:24px;text-align:left;opacity:0;transition:opacity .4s}
-  .se-resp.on{opacity:1}
-  .se-think{margin-top:24px;display:none;align-items:center;gap:10px;color:#888;font-size:13.5px;justify-content:center}
-  .se-think.on{display:flex}
-  .se-think .d{width:7px;height:7px;border-radius:50%;background:var(--tenant-accent);animation:se-bounce 1s infinite}
-  .se-think .d:nth-child(2){animation-delay:.15s}.se-think .d:nth-child(3){animation-delay:.3s}
-  @keyframes se-bounce{0%,100%{opacity:.3}50%{opacity:1}}
-  .se-card{border:1px solid #E8E8EE;border-radius:14px;padding:18px 20px;background:#fff;box-shadow:0 8px 26px rgba(20,10,50,.06)}
-  .se-card .hd{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--tenant-accent);margin-bottom:11px}
-  .se-card .ans{font-size:14.5px;line-height:1.6;color:#2a2a33}
-  .se-card .ans b{color:#16121f}
-  .se-cites{margin-top:15px;border-top:1px solid #F1F1F4;padding-top:13px}
-  .se-cites .cl{font-size:11px;font-weight:700;letter-spacing:.4px;color:#9a9aa2;text-transform:uppercase;margin-bottom:9px}
-  .se-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #E2E2E8;border-radius:8px;padding:7px 12px;font-size:12.5px;color:#333;margin:0 8px 8px 0}
-  .se-chip .fi{width:14px;height:17px;border:1.4px solid #C7C7D2;border-radius:2px}
-  .se-ws{margin-top:14px;display:inline-flex;align-items:center;gap:7px;color:var(--tenant-accent);font-size:13px;font-weight:600}
+  .nv-wrap{max-width:640px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+  .nv-hd{text-align:center;padding:14px 0 6px}
+  .nv-hd .ai{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:5px 13px;border-radius:20px}
+  .nv-hd h2{font-size:20px;font-weight:600;color:#16121f;margin-top:10px}
+  .agc-chat{background:#fff;border:1px solid #E8E8EE;border-radius:12px;margin-top:10px}
+  .agc-chips{border:none}
 </style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
   '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Manager</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
-  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="se-cobrand"></span></span><span class="avatar" id="se-av"></span></div></div>';
+  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="nv-cobrand"></span></span><span class="avatar" id="nv-av"></span></div></div>';
 const RAIL='<div class="app-rail"><div class="grp">Insights</div><div class="it">Agreements</div>'+
   '<div class="it on"><span class="ai">✦</span> Ask Agreement Manager</div><div class="it">Renewals <span class="ct">12</span></div>'+
   '<div class="grp">Reports</div><div class="it">All <span class="ct">52</span></div><div class="it">+ New report</div></div>';
 
-const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+RAIL+
-  '<div class="app-body"><div class="se-wrap">'+
-    '<span class="se-ai">✦ AGREEMENT MANAGER AGENT</span><div class="se-h">Ask your agreements anything</div>'+
-    '<div class="se-box" id="se-box"><div class="q" id="se-q"><span class="ph">e.g. which contracts renew next quarter?</span></div>'+
-      '<div class="se-send" id="se-send"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div>'+
-    '<div class="se-think" id="se-think"><span class="d"></span><span class="d"></span><span class="d"></span> Reading your agreements…</div>'+
-    '<div class="se-resp" id="se-resp"><div class="se-card"><div class="hd">✦ Agreement Manager</div>'+
-      '<div class="ans" id="se-ans"></div>'+
-      '<div class="se-cites"><div class="cl">Based on these agreements</div><div id="se-chips"></div>'+
-        '<div class="se-ws">✦ Turn this into a live worksheet &rarr;</div></div></div></div>'+
-  '</div></div></div></section>'+
-  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Plain-English question</div><span class="arr">&rarr;</span><div class="node lead">Cited answer</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+const SCENES='<div class="app has-rail">'+NAV+RAIL+
+  '<div class="app-body"><div class="nv-wrap"><div class="nv-hd"><span class="ai">✦ AGREEMENT MANAGER AGENT</span><h2>Ask your agreements anything</h2></div>'+
+    '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
+      '<div class="agc-input"><div class="box">Ask about your agreements…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+  '</div></div></div>';
 
-DemoEngine.init({
-  meta:{ title:"Agreement Manager Agent (Search)", productTag:"Agreement Manager Agent", home:"index.html",
-    footnote:'<b>Faithful ask-your-agreements, re-skinnable content.</b> The Agreement Manager Agent ask box, AI answer and citations are the shared spine. Switching vertical swaps the question, the synthesized answer and the cited agreements. The conversational front-end to the Agreement Manager worksheet.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:28,
-    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"ask",sceneId:"app"},{t:13,key:"think",sceneId:"app"},{t:16,key:"answer",sceneId:"app"},{t:23,key:"handoff",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
-      {t:6,target:"#se-box",action:"click",sayKey:"ask"},
-      {t:13,target:"#se-send",action:"click",sayKey:"think"},
-      {t:17,target:"#se-resp",action:"move",sayKey:"answer"},
-      {t:23,x:640,y:300,action:"move"} ] },
+function cites(arr){ return '<div style="font-size:10.5px;font-weight:700;letter-spacing:.3px;color:#9a9aa2;text-transform:uppercase;margin-bottom:6px">Cited agreements</div>'+arr.map(c=>'<span class="chip">📄 '+c+'</span>').join(""); }
+
+DemoEngine.interactive({
+  meta:{ title:"Agreement Manager Agent (Search) — interactive", productTag:"Agreement Manager Agent · Live", home:"index.html",
+    footnote:'<b>This is live.</b> Click a question (or imagine typing your own) and Agreement Manager types out a specific, cited answer drawn from the agreement portfolio. Switch vertical to re-skin.' },
+  defaultPack:"banking", steps:3, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
-      persona:{ name:"Dana Whit", role:"Legal Operations", side:"advisor" },
-      cobrand:"Tally", sorNode:"nCino core",
-      q:"Which vendor agreements auto-renew in the next 90 days and exceed $100k?",
-      ans:'<b>Three agreements</b> auto-renew in the next 90 days above $100k: the <b>Atlas SaaS Order Form</b> ($128k, renews Aug 30), the <b>TGK Master Loan Agreement</b> ($2.5M, Dec 1), and the <b>Beacon Custody Agreement</b> ($210k, Sep 12). Two contain an auto-renewal clause with no opt-out window — recommend review before Aug 15.',
-      chips:["Atlas — SaaS Order Form","TGK — Master Loan Agreement","Beacon — Custody Agreement"],
-      say:{ open:{eyebrow:"Agreement Manager Agent",title:"Ask your agreements in plain English",body:"No filters, no query language. Dana just asks Agreement Manager a question about the portfolio."},
-        ask:{eyebrow:"Ask",title:"A real question, plainly worded",body:"“Which vendor agreements auto-renew in 90 days and exceed $100k?”"},
-        think:{eyebrow:"Iris",title:"Reading the actual agreements",body:"Agreement Manager reads across the portfolio — not metadata, the agreements themselves."},
-        answer:{eyebrow:"Answer",title:"A cited, specific answer",body:"Three agreements, named and quantified — each answer cites the source contracts you can open."},
-        handoff:{eyebrow:"Act on it",title:"Answer becomes a worksheet",body:"One click turns the answer into a live worksheet — written back to nCino."} },
-      handoff:{h:"From question to answer to action",p:"A plain-English question returned a cited answer and a live worksheet — written back to the nCino core."} },
+      persona:{ name:"Dana Whit", role:"Legal Operations", side:"advisor" }, cobrand:"Tally",
+      say:{ intro:{eyebrow:"Agreement Manager Agent",title:"Ask your agreements",body:"No filters, no query language — pick a question and Agreement Manager answers from the actual contracts, with citations."} },
+      exchanges:[
+        {label:"Which vendor agreements auto-renew in 90 days over $100k?",
+         answer:"Three agreements auto-renew in the next 90 days above $100k: the Atlas SaaS Order Form ($128k, Aug 30), the TGK Master Loan Agreement ($2.5M, Dec 1), and the Beacon Custody Agreement ($210k, Sep 12). Two have no opt-out window — I'd review before Aug 15.",
+         card:cites(["Atlas — SaaS Order Form","TGK — Master Loan Agreement","Beacon — Custody Agreement"])},
+        {label:"Which contracts reference GDPR?",
+         answer:"Four agreements reference GDPR, all in your EU vendor set. The Fontara MSA and the Northwind DPA carry the strictest data-transfer obligations — both renew in Q4.",
+         card:cites(["Fontara — Vendor MSA","Northwind — DPA","Atlas — SaaS Order Form","Beacon — Custody Agreement"])},
+        {label:"Summarize the Atlas relationship",
+         answer:"Atlas Corp has 3 active agreements totaling about $156k/yr: a SaaS order form, an NDA, and a support addendum. The order form is the nearest renewal (Aug 30) and the only one with an auto-renew clause."}
+      ] },
     healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
-      persona:{ name:"Dana Whit", role:"Contracts Manager", side:"advisor" },
-      cobrand:"Riverside", sorNode:"Epic chart",
-      q:"Which vendor agreements are missing a signed Business Associate Agreement?",
-      ans:'<b>Two vendor agreements</b> lack a signed BAA: the <b>Medline Vendor MSA</b> and the <b>CareStaff Staffing Agreement</b>. Both handle PHI, so the gap is a HIPAA exposure — recommend issuing BAAs before the next audit window.',
-      chips:["Medline — Vendor MSA","CareStaff — Staffing Agreement","Quest — Lab Services"],
-      say:{ open:{eyebrow:"Agreement Manager Agent",title:"Ask your agreements in plain English",body:"No filters, no query language. Dana just asks Agreement Manager a question about the portfolio."},
-        ask:{eyebrow:"Ask",title:"A real question, plainly worded",body:"“Which vendor agreements are missing a signed Business Associate Agreement?”"},
-        think:{eyebrow:"Iris",title:"Reading the actual agreements",body:"Agreement Manager reads across the portfolio — not metadata, the agreements themselves."},
-        answer:{eyebrow:"Answer",title:"A cited, specific answer",body:"Two agreements, named — each answer cites the source contracts you can open."},
-        handoff:{eyebrow:"Act on it",title:"Answer becomes a worksheet",body:"One click turns the answer into a live worksheet — written back to Epic."} },
-      handoff:{h:"From question to answer to action",p:"A plain-English question returned a cited answer and a live worksheet — written back to the Epic chart."} }
+      persona:{ name:"Dana Whit", role:"Contracts Manager", side:"advisor" }, cobrand:"Riverside",
+      say:{ intro:{eyebrow:"Agreement Manager Agent",title:"Ask your agreements",body:"No filters, no query language — pick a question and Agreement Manager answers from the actual contracts, with citations."} },
+      exchanges:[
+        {label:"Which vendor agreements are missing a signed BAA?",
+         answer:"Two vendor agreements lack a signed BAA: the Medline Vendor MSA and the CareStaff Staffing Agreement. Both handle PHI, so the gap is a HIPAA exposure — I'd issue BAAs before the next audit window.",
+         card:cites(["Medline — Vendor MSA","CareStaff — Staffing Agreement","Quest — Lab Services"])},
+        {label:"Which payer contracts renew this quarter?",
+         answer:"Two payer contracts renew this quarter: Unity Health ($1.2M, Aug 30) and Aetna Regional ($940k, Sep 18). Unity auto-renews with a 3% escalator — worth reviewing before it locks.",
+         card:cites(["Unity Health — Payer Contract","Aetna — Regional Agreement"])},
+        {label:"Summarize the Medline relationship",
+         answer:"Medline has 2 active agreements: a vendor MSA ($84k/yr) and a lab-supply addendum. The MSA renews Sep 2 and is currently missing a BAA — flagged for compliance."}
+      ] }
   },
-  paintContent(p, root){
-    root.querySelector("#se-cobrand").textContent=p.cobrand;
-    root.querySelector("#se-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-    root.querySelector("#se-ans").innerHTML=p.ans;
-    root.querySelector("#se-chips").innerHTML=p.chips.map(c=>'<span class="se-chip"><span class="fi"></span>'+c+'</span>').join("");
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-  },
-  onTime(time, p, root){
-    const box=root.querySelector("#se-box"), q=root.querySelector("#se-q");
-    box.classList.toggle("focus", time>=6 && time<13);
-    // type the question between t6 and t12
-    if(time<6){ q.innerHTML='<span class="ph">e.g. which contracts renew next quarter?</span>'; }
-    else { const k=Math.max(0,Math.min(1,(time-6)/6)); const n=Math.round(p.q.length*k);
-      q.innerHTML=p.q.slice(0,n)+(time<13?'<span class="cur"></span>':''); }
-    root.querySelector("#se-think").classList.toggle("on", time>=13 && time<16);
-    root.querySelector("#se-resp").classList.toggle("on", time>=16);
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#nv-cobrand").textContent=p.cobrand; $("#nv-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    api.narrate("intro"); api.progress(0); let done=0;
+    AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), hint:"Ask a question", speed:13,
+      intro:"Ask me anything about your agreements — I read the actual documents and cite my sources.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card, after:()=>{ done++; api.progress(Math.min(done,3)); } })) });
+    if(api.auto) api.after(900,()=>{ const c=$("#nv-chips").querySelector(".agc-chip"); c&&c.click(); });
   }
 });
 </script>
