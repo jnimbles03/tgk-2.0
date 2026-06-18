@@ -12,7 +12,7 @@
 
 **Archetype** (subtitle metadata, not visualized):
 - **sender-led** — internal employee fills a webform on behalf of a customer (Archetype A)
-- **triggered** — Maestro fires from a system event, no human-initiated form (A-trig)
+- **triggered** — Workflow Builder fires from a system event, no human-initiated form (A-trig)
 - **self-service** — customer fills a webform inside their authenticated portal (B)
 - **inbound** — story opens with an inbound trigger event from outside the tenant (C — death notice, FNOL, ROI request)
 - **advisor-led** — opens in a Workspaces deal/relationship room (D)

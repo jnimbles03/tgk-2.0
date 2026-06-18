@@ -104,7 +104,7 @@ For each swim-lane step that pairs a current-state component (`step.current.medi
 - **Field parity** — if the vendor mock shows an applicant dossier with SSN-4, DOB, address, phone, email, device fingerprint — the Docusign mock should show the equivalent identifier set, even if consolidated into a single panel. Missing fields in the future state read as "this is a toy, not a product."
 - **Density parity** — one mock shouldn't be a skeletal wireframe while the other is a rich dashboard. Count the visible content regions; they should be within ~30% of each other.
 - **Friction → resolution** — `.friction` / `.warn` / `.stale` chips on the vendor side should have a corresponding resolution chip or absence on the Docusign side. If the vendor mock shows "NIGO — returned by ops" and the Docusign mock shows no validation story at all, the resolution is missing. Equally, don't claim resolution without showing it.
-- **Product name match** — the Docusign mock's title should name the IAM product(s) from `step.future.tags`. If `tags: ["Maestro", "Navigator"]` but the mock is titled "Docusign Web Forms", that's a drift.
+- **Product name match** — the Docusign mock's title should name the IAM product(s) from `step.future.tags`. If `tags: ["Workflow Builder", "Agreement Manager"]` but the mock is titled "Docusign Web Forms", that's a drift.
 - **Vendor name match** — the vendor mock's title should name the incumbent from `step.current.points`. If `points: ["Jumio", "Alloy"]` but the mock is titled "Generic KYC Vendor", fix the title.
 
 **How to run this pass efficiently:** for each step, Read both files and diff their `<title>`, visible headings, and visible field labels. You don't need pixel-perfect comparison — you need narrative consistency.

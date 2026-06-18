@@ -54,7 +54,7 @@
 ### nonprofit/intake (usecase, 4 scenes)
 
 **SCENE 1 — Sender webform**
-- No named persona in current state (marked "system" with Maestro). Add: Asha Morgan · Program Officer · Harbor · **advisor**.
+- No named persona in current state (marked "system" with Workflow Builder). Add: Asha Morgan · Program Officer · Harbor · **advisor**.
 
 **SCENE 3 — Envelope delivered**
 - Persona: Rosa Patel · Executive Director · Safe Streets Initiative · **client** (was: `side="advisor"`).
@@ -74,7 +74,7 @@
 
 **SCENE 3 — Agreement Desk review**
 - Persona (B1): Asha Morgan · Program Officer · Harbor · **advisor** (was not explicitly named; context shows Asha reviewing).
-- Persona (B2–B5): System (CLEAR, Maestro, Iris) — unchanged.
+- Persona (B2–B5): System (CLEAR, Workflow Builder, Iris) — unchanged.
 - Rosa should NOT be marked advisor on this scene; she's the past actor (her session is being reviewed). Asha is the current reviewer.
 
 ### nonprofit/maintenance (usecase, 3 scenes)

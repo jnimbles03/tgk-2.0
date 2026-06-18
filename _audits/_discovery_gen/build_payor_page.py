@@ -25,7 +25,7 @@ STEPS=[
    "points":["HealthRules Payor","270/271 EDI"]},
  "future":{"heading":"Verified identity, bound the moment they enroll",
    "items":["Member verifies identity once, in the flow","Identity binds to the member record and every downstream event","Eligibility is established without the batch lag","One verification, trusted across care and service"],
-   "tags":["Identity Verification","Maestro"],
+   "tags":["Identity Verification","Workflow Builder"],
    "media":fut("idv-clear","Identity → bound to the member — live loop")}},
 
 {"icon":"signature","label":"Plan Documents","heading":"Plan documents & HIPAA consent",
@@ -44,8 +44,8 @@ STEPS=[
    "items":["Card order held until eligibility flips active","Third-party vendor prints and mails — 7–10 business days","No digital card in the meantime","Member can't fill an Rx or see a PCP until it arrives"],
    "points":["Fulfillment vendor","USPS"]},
  "future":{"heading":"A digital member card the moment they're active",
-   "items":["Maestro issues a digital ID card on activation","Member transacts immediately — pharmacy, PCP, portal","Physical card still mails, but it's no longer the gate","Issuance orchestrated, tracked, and audit-logged"],
-   "tags":["Maestro","Agreement Repository"],
+   "items":["Workflow Builder issues a digital ID card on activation","Member transacts immediately — pharmacy, PCP, portal","Physical card still mails, but it's no longer the gate","Issuance orchestrated, tracked, and audit-logged"],
+   "tags":["Workflow Builder","Agreement Repository"],
    "media":fut("maestro","Orchestrated issuance — live loop")}},
 
 {"icon":"checklist","label":"Prior Authorization","heading":"First prior authorization",
@@ -55,7 +55,7 @@ STEPS=[
    "points":["Utilization Mgmt (MCG)","Fax intake"]},
  "future":{"heading":"A structured request with status both sides can see",
    "items":["Provider submits a structured, validated prior-auth form","Member identity and coverage already bound — no re-keying","Status visible to provider and member in real time","Clean hand-off into clinical review"],
-   "tags":["Web Forms","Maestro"],
+   "tags":["Web Forms","Workflow Builder"],
    "media":fut("web-forms","Structured prior-auth intake — live loop")}},
 
 {"icon":"database","label":"Claims & Record","heading":"First claim & member record",
@@ -65,7 +65,7 @@ STEPS=[
    "points":["TriZetto QNXT","Imaging / Call logs"]},
  "future":{"heading":"One queryable record, every event linked",
    "items":["Enrollment, consent, auth, and claim resolve to one record","Service reps answer from a single agreement view","Every event carries the identity binding and timestamps","Disputes resolve to one defensible chain"],
-   "tags":["Navigator","Workspaces"],
+   "tags":["Agreement Manager","Workspaces"],
    "media":fut("navigator","One member record — live loop")}},
 ]
 

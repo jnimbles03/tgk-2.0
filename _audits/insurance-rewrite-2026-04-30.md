@@ -99,7 +99,7 @@
 - Verdict: OK (no persona required; CLEAR is a system-driven gate)
 
 **Issues flagged**:
-- None. The system actor (Agreement Desk / Maestro proxy) handles the gate; human persona not needed.
+- None. The system actor (Agreement Desk / Workflow Builder proxy) handles the gate; human persona not needed.
 
 **Proposed fix**:
 - No change. Verdict stands: OK
@@ -157,7 +157,7 @@
 - Root cause: confusing "intake" (self-service applicant) with "advisor-issues quote" (advisor-initiated).
 
 **Proposed fix**:
-- **Clarify the archetype**: This is a **B (Self-service)** or **A (Sender-webform)** flow, not A-trig Maestro.
+- **Clarify the archetype**: This is a **B (Self-service)** or **A (Sender-webform)** flow, not A-trig Workflow Builder.
 - If **self-service (B)**: Patel Logistics' operations manager fills out the commercial auto application online. Verdict: Patel (client) at S1 and S3. OK.
 - If **advisor-initiates (A)**: Andre issues the application/endorsement from Northgate's desktop. Patel (client) reviews and signs at S3. OK.
 - **Recommended resolution**: Frame as **A (Sender-webform)**.

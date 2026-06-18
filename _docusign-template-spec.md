@@ -170,7 +170,7 @@ Clicking a node opens a centered modal over a blurred scrim.
 - **Header:** step number (`Step 03 of 07`) + panel title + prev/next arrows + close.
 - **Body:** two cards side-by-side.
   - `.state-card.current` — Poppy-tinted. Heading, 3–5 bullets (red dots), and a dashed-divider `card-point-solutions` block listing any non-displaceable vendors touched by this step.
-  - `.state-card.future` — Cobalt-tinted. Heading, 3–5 bullets (Cobalt dots), and a row of Mist `iam-tag` chips naming the IAM products in play (Web Forms, eSignature, Navigator, Maestro, Document Generation, Identify, Extract, Notary, App Center, CLM, Payments).
+  - `.state-card.future` — Cobalt-tinted. Heading, 3–5 bullets (Cobalt dots), and a row of Mist `iam-tag` chips naming the IAM products in play (Web Forms, eSignature, Agreement Manager, Workflow Builder, Document Generation, Identify, Extract, Notary, App Center, CLM, Payments).
 - **Footer:** `ESC` to close, `← →` to navigate, plus a dotted step indicator.
 - **Keyboard:** ESC closes, arrow keys navigate between steps, focus returns to the node on close.
 
@@ -215,7 +215,7 @@ The template is data-driven. All node + panel content lives in a `steps` JSON ar
   "future": {
     "heading": "Dynamic Web Form pre-filled from the LOS",
     "items":   ["...", "...", "..."],
-    "tags":    ["Web Forms", "Navigator"]
+    "tags":    ["Web Forms", "Agreement Manager"]
   }
 }
 ```
@@ -253,7 +253,7 @@ All icons are inline feather-style SVG:
 - **Current-state headings** describe the pain bluntly. `"Manual KYC across three systems"`, not `"Legacy verification workflow"`.
 - **Future-state headings** describe the lift concretely. `"Inline ID&V tied to the agreement"`, not `"AI-powered verification experience"`.
 - **Bullets** are outcome-oriented, ≤ 90 chars. No filler. No marketing adverbs ("seamlessly", "intelligently").
-- **IAM tags** match Docusign product names exactly. `Web Forms`, `eSignature`, `Maestro`, `Navigator`, `Document Generation`, `Identify`, `Notary`, `CLM`, `App Center`, `Payments`, `Extract`.
+- **IAM tags** match Docusign product names exactly. `Web Forms`, `eSignature`, `Workflow Builder`, `Agreement Manager`, `Document Generation`, `Identify`, `Notary`, `CLM`, `App Center`, `Payments`, `Extract`.
 
 ---
 

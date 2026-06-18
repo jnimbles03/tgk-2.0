@@ -22,7 +22,7 @@ COMPONENTS  →  SCENES  →  STORIES
 ~28 building   5 visual UI moments    5-scene arcs that
 blocks (Web    (Agreement Desk,        tell a complete
 Forms, IDV,    CLEAR, Signing,         end-to-end use
-Maestro,       Navigator, Workspace)   case
+Workflow Builder,       Agreement Manager, Workspace)   case
 Workspaces,
 Headless)
 ```
@@ -58,7 +58,7 @@ Add a new vertical                     → 3 edits: VERTICALS block, PRESETS blo
 /
 ├── stories/_shared/story-shell.html   ← the canonical 5-scene shell, holds VERTICALS map
 ├── story-templates/                    ← 5 scene templates (Agreement Desk, CLEAR, Signing,
-│                                          Navigator, Workspace) + callable vignettes
+│                                          Agreement Manager, Workspace) + callable vignettes
 ├── components/{current-state,future-state}/   ← ~200 component mocks for drill-downs
 ├── headless-iam/{fins,hls,ps}.html     ← tenant-branded portals (cluster-level)
 ├── flipbooks/                          ← MP4 → stills → HTML pipeline output (~17 vignettes)

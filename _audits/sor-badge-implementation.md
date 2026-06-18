@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implemented a persistent "System of record" badge across all 5 scene templates (Agreement Desk, Clear IDV, Signing Ceremony, Navigator, Workspace). The badge appears as a subtle pill in the top-right corner of each demo screen, displaying the vendor name per vertical.
+Implemented a persistent "System of record" badge across all 5 scene templates (Agreement Desk, Clear IDV, Signing Ceremony, Agreement Manager, Workspace). The badge appears as a subtle pill in the top-right corner of each demo screen, displaying the vendor name per vertical.
 
 ## Files Created
 

@@ -120,15 +120,15 @@
 
 **Beat corrections**: All beat-level personas showing "Priya Shah · advisor" → "Priya Shah · client"
 
-### SCENE 2 (Maestro Packages)
+### SCENE 2 (Workflow Builder Packages)
 
 **Personas — were**:
-> B1 · Maestro · system (correct)
+> B1 · Workflow Builder · system (correct)
 > B3 · Priya Shah · **advisor** ← INCORRECT
 > B5 · Priya Shah · **advisor** ← INCORRECT
 
 **Personas — now**:
-> B1 · Maestro · system (unchanged)
+> B1 · Workflow Builder · system (unchanged)
 > B3 · Priya Shah · **client**
 > B5 · Priya Shah · **client**
 
@@ -200,7 +200,7 @@
 **System personas** (unchanged):
 > B2 · CLEAR · system
 > B3 · CLEAR · system
-> B4 · Maestro · system
+> B4 · Workflow Builder · system
 
 ### SCENE 2 (In-Session Action)
 
@@ -215,7 +215,7 @@
 > B5 · Priya Shah · **client**
 
 **System personas** (unchanged):
-> B2 · Maestro · system
+> B2 · Workflow Builder · system
 > B4 · Iris · system
 
 ### SCENE 3 (Chain of Custody)

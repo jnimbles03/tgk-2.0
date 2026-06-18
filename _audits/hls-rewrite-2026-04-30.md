@@ -32,7 +32,7 @@
 **System actors**:
 - Iris · AI agent
 - CLEAR · Identity verification system
-- Maestro · Orchestration (if visible in chain-of-custody or maintenance flows)
+- Workflow Builder · Orchestration (if visible in chain-of-custody or maintenance flows)
 
 ---
 
@@ -48,7 +48,7 @@
 **System actors**:
 - Iris · AI agent
 - CLEAR · Identity verification system
-- Maestro · Orchestration (if visible in chain-of-custody or intake flows)
+- Workflow Builder · Orchestration (if visible in chain-of-custody or intake flows)
 
 ---
 
@@ -65,7 +65,7 @@
 **System actors**:
 - Iris · AI agent
 - CLEAR · Identity verification system (medical license verification)
-- Maestro · Orchestration (if visible in fraud-fabric or maintenance flows)
+- Workflow Builder · Orchestration (if visible in fraud-fabric or maintenance flows)
 
 ---
 
@@ -81,7 +81,7 @@
 **System actors**:
 - Iris · AI agent
 - CLEAR · Identity verification system
-- Maestro · Orchestration (if visible in chain-of-custody or intake flows)
+- Workflow Builder · Orchestration (if visible in chain-of-custody or intake flows)
 
 ---
 
@@ -131,9 +131,9 @@
 
 | Scene | Was | Now |
 |---|---|---|
-| **S1 head** | "Jordan logs into Riverside's patient portal; Maestro orchestrates DEA-grade CLEAR at login." | (unchanged) |
-| **S1 persona** | (missing) | **Jordan Kim · Patient · Riverside Health · client** (system: Maestro, CLEAR) |
-| **S2 persona** | (missing) | **Jordan Kim · client** (system: Maestro, Iris) |
+| **S1 head** | "Jordan logs into Riverside's patient portal; Workflow Builder orchestrates DEA-grade CLEAR at login." | (unchanged) |
+| **S1 persona** | (missing) | **Jordan Kim · Patient · Riverside Health · client** (system: Workflow Builder, CLEAR) |
+| **S2 persona** | (missing) | **Jordan Kim · client** (system: Workflow Builder, Iris) |
 | **S3 persona** | (missing) | **Dr. Sarah Chen · Primary Care Physician · Riverside Health · advisor** (prescriber verifying refill authorization) |
 
 **Notes**: Chain-of-custody flow. Jordan logs in (client), CLEAR establishes DEA-grade proof at session level. Dr. Chen (care team) confirms the refill authorization inline. No intermediary compliance role; clinical team signs off.
@@ -201,9 +201,9 @@
 
 | Scene | Was | Now |
 |---|---|---|
-| **S1 head** | "Marcus logs into Unity's member portal; Maestro orchestrates CLEAR at login." | (unchanged) |
-| **S1 persona** | (missing) | **Marcus Chen · Member · Unity Health Plan · client** (system: Maestro, CLEAR) |
-| **S2 persona** | (missing) | **Marcus Chen · client** (system: Maestro, Iris) |
+| **S1 head** | "Marcus logs into Unity's member portal; Workflow Builder orchestrates CLEAR at login." | (unchanged) |
+| **S1 persona** | (missing) | **Marcus Chen · Member · Unity Health Plan · client** (system: Workflow Builder, CLEAR) |
+| **S2 persona** | (missing) | **Marcus Chen · client** (system: Workflow Builder, Iris) |
 | **S3 persona** | (missing) | **Dr. Mitchell Torres · Network Operations Manager · Unity Health Plan · advisor** (medical director approving prior auth) |
 
 **Notes**: Chain-of-custody flow. Marcus logs in, CLEAR at door. Dr. Torres (medical director) reviews the specialty drug prior auth inline. No intermediary steps; clinical review embedded in the session.
@@ -273,9 +273,9 @@
 
 | Scene | Was | Now |
 |---|---|---|
-| **S1 head** | "Ethan logs into Helix's study portal; Maestro orchestrates CLEAR at login." | (unchanged) |
-| **S1 persona** | (missing) | **Ethan Park · Clinical Study Manager · Helix · advisor** (system: Maestro, CLEAR) |
-| **S2 persona** | (missing) | **Ethan Park · advisor** (system: Maestro, Iris) |
+| **S1 head** | "Ethan logs into Helix's study portal; Workflow Builder orchestrates CLEAR at login." | (unchanged) |
+| **S1 persona** | (missing) | **Ethan Park · Clinical Study Manager · Helix · advisor** (system: Workflow Builder, CLEAR) |
+| **S2 persona** | (missing) | **Ethan Park · advisor** (system: Workflow Builder, Iris) |
 | **S3 persona** | (missing) | **Dr. Rebecca Okonkwo · Helix Regulatory Affairs Lead · Helix · advisor** (regulatory review of SAE report) |
 
 **Notes**: Chain-of-custody flow. Ethan (sponsor-side) logs in, CLEAR at door establishes regulatory-grade proof. Dr. Okonkwo reviews the SAE inline in the chain. No external site actor here; internal sponsor workflow.
@@ -345,9 +345,9 @@
 
 | Scene | Was | Now |
 |---|---|---|
-| **S1 head** | "Eric logs into Catalina's patient portal; Maestro orchestrates CLEAR at login." | (unchanged) |
-| **S1 persona** | (missing) | **Eric Tan · Patient / Records Requestor · client** (system: Maestro, CLEAR) |
-| **S2 persona** | (missing) | **Eric Tan · client** (system: Maestro, Iris) |
+| **S1 head** | "Eric logs into Catalina's patient portal; Workflow Builder orchestrates CLEAR at login." | (unchanged) |
+| **S1 persona** | (missing) | **Eric Tan · Patient / Records Requestor · client** (system: Workflow Builder, CLEAR) |
+| **S2 persona** | (missing) | **Eric Tan · client** (system: Workflow Builder, Iris) |
 | **S3 persona** | (missing) | **Dr. James Kowalski · Privacy Officer · Catalina Medical Center · advisor** (HIPAA compliance review for the scope change) |
 
 **Notes**: Chain-of-custody flow. Eric logs in to revoke/modify his records release. CLEAR at door. Dr. Kowalski reviews the scope change inline for HIPAA compliance.

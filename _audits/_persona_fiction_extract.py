@@ -171,7 +171,7 @@ WORKFLOWS = {
         "maintenance":   "state benefits maintenance",
     },
     "slgov-recertification": {
-        "default":       "state benefits recertification (Maestro-triggered)",
+        "default":       "state benefits recertification (Workflow Builder-triggered)",
         "intake":        "recertification intake",
         "fraud-fabric":  "recertification CLEAR-at-the-door",
         "maintenance":   "recertification maintenance",

@@ -168,7 +168,7 @@ shared spine.
 | 1 | **Web Forms intake** | Scene-1 of nearly every onboarding flow. *(proof built)* |
 | 2 | **IDV** (CLEAR / ID.me / Apple Wallet) | FINS + HLS + PubSec onboarding; clean click moments |
 | 3 | **eSignature** | Universal across all 60 cells; simplest DOM |
-| 4 | **Maestro / Agreement Desk** | Orchestration spine; richest UI, convert once |
+| 4 | **Workflow Builder / Agreement Desk** | Orchestration spine; richest UI, convert once |
 | 5 | **Workspaces** | Scene-5 close; shared across verticals |
 
 Marketing-only clips (e.g. the Agentforce promo) are **not** reconstructed —

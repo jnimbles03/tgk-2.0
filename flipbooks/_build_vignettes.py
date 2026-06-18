@@ -37,16 +37,16 @@ DEMOS = [
         "tag": "Intake",
         "blurb": (
             "A customer-branded webform captures structured intake data, "
-            "validates it inline, and hands a clean payload to Maestro for "
+            "validates it inline, and hands a clean payload to Workflow Builder for "
             "downstream packaging. No PDF round-trips, no rekeying."
         ),
     },
     {
         "slug": "Maestro_Workflow_Templates",
-        "title": "Maestro Workflow Templates",
+        "title": "Workflow Builder Workflow Templates",
         "tag": "Orchestration",
         "blurb": (
-            "Maestro turns a sketched-out process into a live workflow: "
+            "Workflow Builder turns a sketched-out process into a live workflow: "
             "branching, fan-out, conditional steps, and audit-friendly "
             "templates that admins can clone instead of rebuild."
         ),
@@ -83,11 +83,11 @@ DEMOS = [
     },
     {
         "slug": "Navigator_Demo_Video",
-        "title": "Navigator — agreement intelligence",
+        "title": "Agreement Manager — agreement intelligence",
         "tag": "Search & Ask",
         "blurb": (
             "Every signed agreement becomes searchable and queryable. Ask "
-            "Navigator about a clause, an obligation, or a counterparty — "
+            "Agreement Manager about a clause, an obligation, or a counterparty — "
             "answers come back grounded in the actual documents."
         ),
     },
@@ -146,8 +146,8 @@ DEMOS = [
         "title": "Vendor agreement management & renewals",
         "tag": "CLM",
         "blurb": (
-            "Vendor renewals don't sneak up on you — Navigator surfaces "
-            "expiring agreements, Maestro routes them for review, and the "
+            "Vendor renewals don't sneak up on you — Agreement Manager surfaces "
+            "expiring agreements, Workflow Builder routes them for review, and the "
             "renewal closes inside the same workspace."
         ),
     },
@@ -163,8 +163,8 @@ DEMOS = [
     },
     {
         "slug": "Search_Agent",
-        "title": "Search Agent — natural-language discovery in Navigator",
-        "tag": "Navigator",
+        "title": "Search Agent — natural-language discovery in Agreement Manager",
+        "tag": "Agreement Manager",
         "blurb": (
             "An agentic search experience over an organization's agreement "
             "repository. Ask in natural language; the agent retrieves the "
@@ -175,7 +175,7 @@ DEMOS = [
     {
         "slug": "Search_Demo",
         "title": "Search — query the agreement repository",
-        "tag": "Navigator",
+        "tag": "Agreement Manager",
         "blurb": (
             "Searching across executed agreements to surface obligations, "
             "dates, and counter-parties on demand."
@@ -410,7 +410,7 @@ STAGES = [
         "blurb": (
             "9 HTML scenes — Salesforce opportunity → Agentforce panel → "
             "Workflow picker → cast hand-off → AI-Assisted Review → customer "
-            "Iris Q&A → Navigator → Seller Home → Agentforce renewal Q. "
+            "Iris Q&A → Agreement Manager → Seller Home → Agentforce renewal Q. "
             "4:15 of beat-by-beat product UI, no video."
         ),
         "beats": 9,
@@ -421,9 +421,9 @@ STAGES = [
         "title": "Drilling MSA — Black Mesa × Tritan",
         "tag": "Procurement",
         "blurb": (
-            "6 HTML scenes — Coupa supplier record → Maestro Agreement Desk "
+            "6 HTML scenes — Coupa supplier record → Workflow Builder Agreement Desk "
             "routing → AI-Assisted Review on the Drilling MSA Playbook → "
-            "multi-party signing → Navigator with obligations extracted → "
+            "multi-party signing → Agreement Manager with obligations extracted → "
             "Coupa receives renewal task. 3:00 of round-trip CLM."
         ),
         "beats": 6,

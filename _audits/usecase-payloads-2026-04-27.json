@@ -1,9 +1,9 @@
 {
   "audit": "usecase-extension-fins-hls-ps-2026-04-27",
   "scope": "Extends every FINS/HLS/PS/EDU/nonprofit vertical (21 total) with two new sub-flow use cases behind ?usecase=auth-fabric and ?usecase=intake. Default 5-scene canonical story unchanged.",
-  "rationale": "The canonical 5-scene story is the headline; auth-fabric and intake-mechanics are the focused shorts that show Maestro doing differentiated orchestration work. Auth-fabric reproduces the original eMoney/Steve fraud-risk demo's central move: CLEAR fires at PORTAL LOGIN to establish a biometric proof of identity at the session level, then in-portal actions inherit that proof — no second IDV. Agreement Desk re-emerges in Scene 3 as the chain-of-custody viewer that links the auth event and the transaction event into a continuous identity thread. Intake-mechanics replaces Agreement Desk inbound with a webform-and-package mechanic. Three demos per vertical, one shell, one URL parameter.",
-  "reference_demo": "Original fraud/risk demo (uploads/index.html). Key narrative beats from F0-F4 scenes preserved: (F0) The Chain of Custody Gap problem statement; (F1) Authenticated Portal Entry — CLEAR at login creates biometric proof of identity; (F2) In-portal action with Maestro-served webform that inherits the F1 proof; (F3) Agreement Desk shows auth+transaction linked as continuous identity thread; (F4 optional) IAM for Fraud — Risk-Scaling Auth Visual showing CLEAR/SMS/OTP/biometric spectrum.",
-  "agreement_desk_role": "Across ALL three demo modes, Agreement Desk functions as a PROXY INTERFACE for Maestro orchestration. The actual orchestration work (risk-detect, IDV-invoke, identity-bind, form-serve, audit-link, package-fan-out) happens invisibly in the Maestro layer. Agreement Desk is the on-screen surface that makes that invisible work visible to the demo audience. Same template, different Maestro lens per demo: canonical = intake fan-out lens; auth-fabric = chain-of-custody binding lens; intake-mechanics = package fan-out lens. This is why one template can play multiple narrative roles without breaking.",
+  "rationale": "The canonical 5-scene story is the headline; auth-fabric and intake-mechanics are the focused shorts that show Workflow Builder doing differentiated orchestration work. Auth-fabric reproduces the original eMoney/Steve fraud-risk demo's central move: CLEAR fires at PORTAL LOGIN to establish a biometric proof of identity at the session level, then in-portal actions inherit that proof — no second IDV. Agreement Desk re-emerges in Scene 3 as the chain-of-custody viewer that links the auth event and the transaction event into a continuous identity thread. Intake-mechanics replaces Agreement Desk inbound with a webform-and-package mechanic. Three demos per vertical, one shell, one URL parameter.",
+  "reference_demo": "Original fraud/risk demo (uploads/index.html). Key narrative beats from F0-F4 scenes preserved: (F0) The Chain of Custody Gap problem statement; (F1) Authenticated Portal Entry — CLEAR at login creates biometric proof of identity; (F2) In-portal action with Workflow Builder-served webform that inherits the F1 proof; (F3) Agreement Desk shows auth+transaction linked as continuous identity thread; (F4 optional) IAM for Fraud — Risk-Scaling Auth Visual showing CLEAR/SMS/OTP/biometric spectrum.",
+  "agreement_desk_role": "Across ALL three demo modes, Agreement Desk functions as a PROXY INTERFACE for Workflow Builder orchestration. The actual orchestration work (risk-detect, IDV-invoke, identity-bind, form-serve, audit-link, package-fan-out) happens invisibly in the Workflow Builder layer. Agreement Desk is the on-screen surface that makes that invisible work visible to the demo audience. Same template, different Workflow Builder lens per demo: canonical = intake fan-out lens; auth-fabric = chain-of-custody binding lens; intake-mechanics = package fan-out lens. This is why one template can play multiple narrative roles without breaking.",
   "architecture": {
     "url_pattern": "/stories/_shared/story-shell.html?vertical=<key>&usecase=<auth-fabric|intake|default>",
     "default_value": "default",
@@ -30,7 +30,7 @@
           "core_idea": "CLEAR establishes biometric proof of identity at session level — before any transaction.",
           "abstract_beats": [
             "Customer hits the vertical's portal login (username + password)",
-            "Maestro intercepts and invokes CLEAR — tenant-branded step-up modal",
+            "Workflow Builder intercepts and invokes CLEAR — tenant-branded step-up modal",
             "CLEAR session opens on customer's phone — no app download",
             "ID + selfie + biometric match runs",
             "Authenticated session opens; biometric proof bound to the session — witness event #1 logged"
@@ -38,13 +38,13 @@
         },
         {
           "scene": 2,
-          "tag_format": "SCENE 2 OF 3 · IN-SESSION ACTION · MAESTRO SERVES WEBFORM",
+          "tag_format": "SCENE 2 OF 3 · IN-SESSION ACTION · WORKFLOW BUILDER SERVES WEBFORM",
           "iframe": "docusign-portal-shell.html?mode=action-webform&vertical=<k>",
           "hotspot_key": "portal_webform",
-          "core_idea": "In-portal action triggers a Maestro-served webform — inherits the F1 proof, no second IDV.",
+          "core_idea": "In-portal action triggers a Workflow Builder-served webform — inherits the F1 proof, no second IDV.",
           "abstract_beats": [
             "Inside the authenticated session, customer initiates the sensitive action (vertical-specific)",
-            "Maestro renders a dynamic webform inline — pre-filled from IDV-bound identity and action context",
+            "Workflow Builder renders a dynamic webform inline — pre-filled from IDV-bound identity and action context",
             "Customer reviews/edits any policy-required fields",
             "Iris pre-screens for anomalies/policy violations",
             "Submit fires — bound to the existing biometric proof — witness event #2 logged"
@@ -84,16 +84,16 @@
             "Selections drive what fields/products appear (dynamic)",
             "Pre-fill from systems of record",
             "Configuration choices summarize the package shape",
-            "Submit triggers Maestro orchestration"
+            "Submit triggers Workflow Builder orchestration"
           ]
         },
         {
           "scene": 2,
-          "tag_format": "SCENE 2 OF <N> · MAESTRO PACKAGES",
+          "tag_format": "SCENE 2 OF <N> · WORKFLOW BUILDER PACKAGES",
           "iframe": "docusign-maestro-package.html?vertical=<k>",
           "hotspot_key": "maestro_package",
           "abstract_beats": [
-            "Maestro pulls the right document templates based on selections",
+            "Workflow Builder pulls the right document templates based on selections",
             "Documents pre-fill from systems of record",
             "Recipient routing built from configuration",
             "Optional sub-routes (compliance disclosures, custodian-specific docs) auto-attach",
@@ -122,7 +122,7 @@
           "abstract_beats": [
             "Customer/recipient gets Workspace invite",
             "Engagement summary visible to all parties",
-            "Iris in rail; activity log shows full Maestro fan-out",
+            "Iris in rail; activity log shows full Workflow Builder fan-out",
             "Background tasks (KYC, eligibility, etc.) running",
             "Relationship in motion"
           ]
@@ -412,7 +412,7 @@
         "package_contents": "Tailored recert packet with audit-reason verification questions",
         "workspaces_tail": true,
         "fully_baked": true,
-        "note": "Canonical IS Maestro-triggered; intake here is the exception path"
+        "note": "Canonical IS Workflow Builder-triggered; intake here is the exception path"
       }
     },
     "slgov-vendor-compliance": {
@@ -430,7 +430,7 @@
         "webform_purpose": "New-vendor onboarding via internal webform",
         "package_contents": "Onboarding packet + W-9 + COI request + DEI attestations",
         "workspaces_tail": true,
-        "note": "Canonical IS Maestro-triggered renewal; intake here is new-vendor path"
+        "note": "Canonical IS Workflow Builder-triggered renewal; intake here is new-vendor path"
       }
     },
     "slgov-employee-onboarding": {

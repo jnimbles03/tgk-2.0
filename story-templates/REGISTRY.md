@@ -112,7 +112,7 @@ refresh, high-value disbursement.
 
 ### 3. `docusign-maestro-loop.html`
 
-**Covers:** Docusign Maestro — parallel workflow orchestration. Three lanes
+**Covers:** Docusign Workflow Builder — parallel workflow orchestration. Three lanes
 streaming tokens into position, status chip flip from "Running" to
 "Complete", outcome callout on the right, SLA before/after card. Uses the
 standard Docusign topbar + tenant bar chrome so it slots into the same
@@ -135,7 +135,7 @@ pattern (88 of 100 future-state files as of 2026-04-26).
 
 ### 4. `docusign-navigator.html`
 
-**Covers:** Docusign Navigator — agreement repository with AI-extracted
+**Covers:** Docusign Agreement Manager — agreement repository with AI-extracted
 columns, document detail with AI-Assisted fields panel + citation
 highlights, and Docusign Iris AI chat panel with grounded summarization.
 Three-scene 20s loop.
@@ -143,7 +143,7 @@ Three-scene 20s loop.
 **Best for:** any "search across agreements + AI extraction" moment — M&A
 diligence, contract renewal portfolio, compliance review, assignment-clause
 audit. Also works for **any repository-style SoR** (Veeva Vault, Workday
-Navigator, Salesforce Contracts) via badge swap.
+Agreement Manager, Salesforce Contracts) via badge swap.
 
 **Adaptation slots:**
 - `.rail-custom-dashboards` list — vertical-specific dashboards
@@ -197,7 +197,7 @@ authorization signing for disability / workers' comp / claims.
 
 **Covers:** Two views in one file, toggleable by URL or shell postMessage:
 
-1. **Maestro · Add Connected Forms** — a 3-step wizard inside the workflow
+1. **Workflow Builder · Add Connected Forms** — a 3-step wizard inside the workflow
    builder canvas. The operator picks a forms vendor (Quik!, Dispatch,
    Fontara, Acme), chooses who selects the forms (participant), and wires
    up data sources (Salesforce, Wealthbox, Redtail, Guidewire, ServiceNow).
@@ -207,7 +207,7 @@ authorization signing for disability / workers' comp / claims.
    mappings, unsupported field types, search + paginated 100-row list.
 
 **Best for:** any beat where the demo needs to show *how forms get into
-Maestro* (Scene 1 drill-down) or *where the form data is mapped after
+Workflow Builder* (Scene 1 drill-down) or *where the form data is mapped after
 install* (Scene 4 admin tour). Strongest fit on form-heavy verticals —
 wealth onboarding (Quik! + CRM), L&A new business, P&C claims, FNOL.
 
@@ -243,7 +243,7 @@ calibrator can pin shell-level hotspots to elements inside the iframe.
 
 **Covers:** Contract Hierarchy inside the agreement repository, modeled
 frame-for-frame on the product design export at repo root
-(`Contract Hierarchy - Share - [Navigator] Contract Hierarchy 2025 04.zip`,
+(`Contract Hierarchy - Share - [Agreement Manager] Contract Hierarchy 2025 04.zip`,
 Milestone 1 · CY25.Q4 builder experience). Seven scenes, ~42s loop:
 
 1. **Party page** — combined agreements list on one party (AI-extracted
@@ -313,38 +313,38 @@ filename is noted so you can re-capture colors/logos directly.
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **nCino** | `#002B5C` navy | `#00A3E1` cyan | "nCino" wordmark, lowercase-n mark | `*.ncino.com` | Maestro LOOP + Navigator | needed |
-| **MeridianLink** | `#002B49` navy | `#00A7CF` aqua | Lowercase "meridianlink" | `*.meridianlink.com` | Maestro LOOP (loan orig) | ✓ FirstClose MeridianLink |
-| **Fiserv Premier / DNA** | `#FF6600` orange | `#002F5F` navy | "fiserv." wordmark | N/A (legacy client-server) | Maestro LOOP, Component-level tenant bar | ✓ Fiserv ACH Stop-Payments |
-| **Q2** | `#003057` navy | `#00BFB3` teal | "Q2" with dot | `*.q2.com` | Navigator (member 360) | needed |
+| **nCino** | `#002B5C` navy | `#00A3E1` cyan | "nCino" wordmark, lowercase-n mark | `*.ncino.com` | Workflow Builder LOOP + Agreement Manager | needed |
+| **MeridianLink** | `#002B49` navy | `#00A7CF` aqua | Lowercase "meridianlink" | `*.meridianlink.com` | Workflow Builder LOOP (loan orig) | ✓ FirstClose MeridianLink |
+| **Fiserv Premier / DNA** | `#FF6600` orange | `#002F5F` navy | "fiserv." wordmark | N/A (legacy client-server) | Workflow Builder LOOP, Component-level tenant bar | ✓ Fiserv ACH Stop-Payments |
+| **Q2** | `#003057` navy | `#00BFB3` teal | "Q2" with dot | `*.q2.com` | Agreement Manager (member 360) | needed |
 | **Symitar Episys** | `#003E7E` Jack-Henry blue | `#7FB539` green | "Symitar" + JH mark | legacy client UI | Component-level tenant bar only | needed |
 
 ### Wealth Management
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **Salesforce FSC** | `#0176D3` core blue | `#1B96FF` sky accent | Cloud mark + "Salesforce" | `*.lightning.force.com` | Navigator | ✓ FSC for Wealth |
-| **Charles Schwab Advisor Center** | `#00A0DF` Schwab blue | `#0C2340` navy | "charles SCHWAB" | `advisorservices.schwab.com` | Navigator | ✓ Schwab Dashboard |
-| **Fidelity Wealthscape** | `#00945F` Fidelity green | `#002147` navy | "Fidelity" pyramid mark | `wealthscape.fidelity.com` | Navigator (advisor view) + Web Forms (onboarding) | ✓ Wealthscape Onboard / Investor / Mobile |
-| **Redtail CRM** | `#C8102E` Redtail red | `#7A0B1E` darker red | "redtail" wordmark (lowercase) | `crm.redtailtechnology.com` | Web Forms + CLEAR + eSig + Navigator (material change, self-service) | needed (not yet captured) |
-| **Orion** | `#E03C31` red | `#231F20` black | "Orion" wordmark | `portal.orionadvisor.com` | Navigator (client portal) | ✓ JFL Orion Client Portal |
-| **Tamarac / Envestnet** | `#F26522` orange | `#2C2E35` near-black | "Tamarac" + Envestnet mark | `advisorxi.tamaracinc.com` | Navigator + Maestro (rebalance) | ✓ Tamarac Advisor Xi |
-| **Addepar** | `#003057` navy | `#F6A800` amber | "Addepar" wordmark | `*.addepar.com` | Navigator (HNW reporting) | needed |
+| **Salesforce FSC** | `#0176D3` core blue | `#1B96FF` sky accent | Cloud mark + "Salesforce" | `*.lightning.force.com` | Agreement Manager | ✓ FSC for Wealth |
+| **Charles Schwab Advisor Center** | `#00A0DF` Schwab blue | `#0C2340` navy | "charles SCHWAB" | `advisorservices.schwab.com` | Agreement Manager | ✓ Schwab Dashboard |
+| **Fidelity Wealthscape** | `#00945F` Fidelity green | `#002147` navy | "Fidelity" pyramid mark | `wealthscape.fidelity.com` | Agreement Manager (advisor view) + Web Forms (onboarding) | ✓ Wealthscape Onboard / Investor / Mobile |
+| **Redtail CRM** | `#C8102E` Redtail red | `#7A0B1E` darker red | "redtail" wordmark (lowercase) | `crm.redtailtechnology.com` | Web Forms + CLEAR + eSig + Agreement Manager (material change, self-service) | needed (not yet captured) |
+| **Orion** | `#E03C31` red | `#231F20` black | "Orion" wordmark | `portal.orionadvisor.com` | Agreement Manager (client portal) | ✓ JFL Orion Client Portal |
+| **Tamarac / Envestnet** | `#F26522` orange | `#2C2E35` near-black | "Tamarac" + Envestnet mark | `advisorxi.tamaracinc.com` | Agreement Manager + Workflow Builder (rebalance) | ✓ Tamarac Advisor Xi |
+| **Addepar** | `#003057` navy | `#F6A800` amber | "Addepar" wordmark | `*.addepar.com` | Agreement Manager (HNW reporting) | needed |
 
 ### Insurance P&C
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **Guidewire InsuranceSuite** | `#1A4E9E` navy rail | `#2469B8` Guidewire blue (action buttons, "Request" pills) | "PolicyCenter™" lowercase with blue square mark | on-prem / Citrix | Navigator (PolicyCenter — navy left rail, main canvas with tabs, status-dot data tables) + Maestro (ClaimCenter) | ✓ HazardHub in PolicyCenter (best capture); Day 2 still broken |
-| **Duck Creek** | `#003865` navy | `#FFCD00` yellow | "Duck Creek" with duck mark | `*.duckcreek.com` | Navigator + Maestro | ✓ Duck Creek Technologies |
+| **Guidewire InsuranceSuite** | `#1A4E9E` navy rail | `#2469B8` Guidewire blue (action buttons, "Request" pills) | "PolicyCenter™" lowercase with blue square mark | on-prem / Citrix | Agreement Manager (PolicyCenter — navy left rail, main canvas with tabs, status-dot data tables) + Workflow Builder (ClaimCenter) | ✓ HazardHub in PolicyCenter (best capture); Day 2 still broken |
+| **Duck Creek** | `#003865` navy | `#FFCD00` yellow | "Duck Creek" with duck mark | `*.duckcreek.com` | Agreement Manager + Workflow Builder | ✓ Duck Creek Technologies |
 
 ### Insurance L&A
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **Duck Creek Life** | `#003865` navy | `#FFCD00` yellow | "Duck Creek" with duck mark | `*.duckcreek.com` | Workspaces + Web Forms (death claim) + Maestro (LTD) | ✓ Duck Creek Technologies (shared with P&C) |
-| **FINEOS** | `#0033A0` royal blue | `#FFC20E` yellow | "FINEOS" all-caps | `*.fineos.com` | Maestro (claims) + Web Forms (FNOL) | needed |
-| **Majesco** | `#0093D0` cyan | `#6E2B8C` purple | "Majesco" wordmark | `*.majesco.com` | Navigator + Maestro | needed |
+| **Duck Creek Life** | `#003865` navy | `#FFCD00` yellow | "Duck Creek" with duck mark | `*.duckcreek.com` | Workspaces + Web Forms (death claim) + Workflow Builder (LTD) | ✓ Duck Creek Technologies (shared with P&C) |
+| **FINEOS** | `#0033A0` royal blue | `#FFC20E` yellow | "FINEOS" all-caps | `*.fineos.com` | Workflow Builder (claims) + Web Forms (FNOL) | needed |
+| **Majesco** | `#0093D0` cyan | `#6E2B8C` purple | "Majesco" wordmark | `*.majesco.com` | Agreement Manager + Workflow Builder | needed |
 | **Oracle OIPA** | `#C74634` Oracle red | `#312D2A` charcoal | "ORACLE" all-caps | on-prem | Component-level tenant bar (legacy) | needed |
 
 ### Payor
@@ -352,14 +352,14 @@ filename is noted so you can re-capture colors/logos directly.
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
 | **TriZetto Facets / QNXT** | `#005EA2` Cognizant blue | `#10069F` deeper blue | "TriZetto" wordmark | legacy client UI | Component-level tenant bar only (dense form era) | ✓ PracticeAdmin / TriZetto Claim |
-| **HealthEdge** | `#1B3E8B` navy | `#E87722` orange | "HealthEdge" wordmark | `*.healthedge.com` | Navigator + Maestro | needed |
+| **HealthEdge** | `#1B3E8B` navy | `#E87722` orange | "HealthEdge" wordmark | `*.healthedge.com` | Agreement Manager + Workflow Builder | needed |
 
 ### Healthcare Provider (HLS)
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
 | **Epic Hyperspace** (clinician desktop) | `#0B4D5F` teal | `#FFD54F` sticky-yellow | "Epic" + bug mark | citrix / thick client | EHR Desktop (default) | ✓ Epic Admit Patient |
-| **EpicCare Link** (external provider portal) | `#2D7FBC` lighter blue-teal | `#E2231A` Epic red logo top-right | "Epic" red wordmark + tenant box top-left ("xtensys" in the demo) | `*.carelinknp.*/EpicCareLink/` | Navigator (simpler layout) or a stripped-down EHR Desktop variant | ✓ EpicCare Link Tutorial |
+| **EpicCare Link** (external provider portal) | `#2D7FBC` lighter blue-teal | `#E2231A` Epic red logo top-right | "Epic" red wordmark + tenant box top-left ("xtensys" in the demo) | `*.carelinknp.*/EpicCareLink/` | Agreement Manager (simpler layout) or a stripped-down EHR Desktop variant | ✓ EpicCare Link Tutorial |
 | **Oracle Health (Cerner PowerChart)** | `#1976D2` blue | `#C74634` Oracle red | "Oracle Health" + "Cerner" | `*.oraclecerner.com` | EHR Desktop (swap title bar) | ✓ Cerner Fax / Cerner Training |
 | **Meditech Expanse** | `#F37021` coral-orange | `#00263A` navy | "Meditech" wordmark | web UI | EHR Desktop (swap title bar) | needed |
 
@@ -367,30 +367,30 @@ filename is noted so you can re-capture colors/logos directly.
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **Veeva Vault (eTMF / PromoMats / QualityDocs / RIM / Clinical Study Startup)** | `#172A42` navy top bar | `#F5A623` Veeva amber (active tab underline, highlight borders); `#2468A3` blue links | "V Vault {Suite}" (e.g. "V Vault Clinical") with a small square-V mark | `*.veevavault.com` | Navigator (heavy swap on column names per vault type; Vault Clinical shows 3-card dashboards with pie charts — use Maestro variant for progress dashboards) | ✓ Vault eTMF Series / Unified eTMF+CTMS / PromoMats / SiteVault / eTMF Homepage / Study Startup |
-| **Veeva CRM** | `#005CB9` Veeva blue | `#F5A623` amber | "VEEVA" + CRM subproduct label | `*.veevacrm.com` | Navigator (rep home) + Web Forms (call reporting) | ✓ Veeva CRM Homepage |
-| **Medidata Rave** | `#5A2D81` purple | `#F5A623` amber | "Medidata" + "Rave" | `*.mdsol.com` | Web Forms (CRF entry) + Maestro (study monitoring) | needed |
+| **Veeva Vault (eTMF / PromoMats / QualityDocs / RIM / Clinical Study Startup)** | `#172A42` navy top bar | `#F5A623` Veeva amber (active tab underline, highlight borders); `#2468A3` blue links | "V Vault {Suite}" (e.g. "V Vault Clinical") with a small square-V mark | `*.veevavault.com` | Agreement Manager (heavy swap on column names per vault type; Vault Clinical shows 3-card dashboards with pie charts — use Workflow Builder variant for progress dashboards) | ✓ Vault eTMF Series / Unified eTMF+CTMS / PromoMats / SiteVault / eTMF Homepage / Study Startup |
+| **Veeva CRM** | `#005CB9` Veeva blue | `#F5A623` amber | "VEEVA" + CRM subproduct label | `*.veevacrm.com` | Agreement Manager (rep home) + Web Forms (call reporting) | ✓ Veeva CRM Homepage |
+| **Medidata Rave** | `#5A2D81` purple | `#F5A623` amber | "Medidata" + "Rave" | `*.mdsol.com` | Web Forms (CRF entry) + Workflow Builder (study monitoring) | needed |
 
 ### Federal / State / Local Government
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **ServiceNow (GRC / ITSM / Public Sector)** | `#62D84E` SN green | `#10069F` deep blue | "servicenow" wordmark | `*.service-now.com` | Navigator (list view) + Maestro (flow) | ✓ ServiceNow GRC |
-| **Appian** | `#0F2B5C` navy | `#2563EB` blue | "appian" wordmark | `*.appiancloud.com` | Maestro (case) + Agent Studio (low-code) | ✓ Appian Case Studio / Investor Day |
-| **Pega (Blueprint / Customer Service / CDH)** | `#0F1E40` deep navy frame | `#C41E3A` Pega red (action buttons like "Go" pills); `#6B2D8E` purple for AI-agent ✦ star | "PEGA" wordmark + ✦ AI star for Agent surfaces | `*.pegacloud.net` | Agents (chat panel floating on right of workflow) + Maestro (case desk) | partial — Pega Blueprint shows real UI with navy+red+purple-agent palette; Pega Customer Service 8.5 still broken; Signature Aviation / Agentic Fabric are brand films (no UI) |
-| **Accela** | `#0087CE` blue | `#F15A22` orange | "Accela" wordmark | `*.accela.com` | Maestro (permitting) + Web Forms (application) | needed |
-| **Tyler (EnerGov / Odyssey / Munis)** | `#004990` Tyler blue | `#A8C4E3` sky blue | "Tyler Technologies" | `*.tylerhost.net` | Maestro + Navigator | needed |
+| **ServiceNow (GRC / ITSM / Public Sector)** | `#62D84E` SN green | `#10069F` deep blue | "servicenow" wordmark | `*.service-now.com` | Agreement Manager (list view) + Workflow Builder (flow) | ✓ ServiceNow GRC |
+| **Appian** | `#0F2B5C` navy | `#2563EB` blue | "appian" wordmark | `*.appiancloud.com` | Workflow Builder (case) + Agent Studio (low-code) | ✓ Appian Case Studio / Investor Day |
+| **Pega (Blueprint / Customer Service / CDH)** | `#0F1E40` deep navy frame | `#C41E3A` Pega red (action buttons like "Go" pills); `#6B2D8E` purple for AI-agent ✦ star | "PEGA" wordmark + ✦ AI star for Agent surfaces | `*.pegacloud.net` | Agents (chat panel floating on right of workflow) + Workflow Builder (case desk) | partial — Pega Blueprint shows real UI with navy+red+purple-agent palette; Pega Customer Service 8.5 still broken; Signature Aviation / Agentic Fabric are brand films (no UI) |
+| **Accela** | `#0087CE` blue | `#F15A22` orange | "Accela" wordmark | `*.accela.com` | Workflow Builder (permitting) + Web Forms (application) | needed |
+| **Tyler (EnerGov / Odyssey / Munis)** | `#004990` Tyler blue | `#A8C4E3` sky blue | "Tyler Technologies" | `*.tylerhost.net` | Workflow Builder + Agreement Manager | needed |
 | **CGI Advantage** | `#E1261C` red | `#003B5C` navy | "CGI" mark | legacy client UI | Component-level only | needed |
 
 ### Education
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **Slate by Technolutions** | `#2B5C8A` navy-blue | `#F5A623` amber | "slate" wordmark | `*.technolutions.net` | Navigator (admissions funnel) + Web Forms (app) | ✓ Slate Demo |
-| **Canvas (Instructure)** | `#D02B32` Canvas red | `#394B58` slate | "instructure" or "Canvas" logo | `*.instructure.com` | Navigator (course list) | ✓ Canvas First Time |
-| **Workday Student** | `#F38B00` Workday orange | `#000000` black | "workday" wordmark | `*.myworkday.com` | Navigator + Web Forms (enrollment) | ✓ Workday Student Experience |
+| **Slate by Technolutions** | `#2B5C8A` navy-blue | `#F5A623` amber | "slate" wordmark | `*.technolutions.net` | Agreement Manager (admissions funnel) + Web Forms (app) | ✓ Slate Demo |
+| **Canvas (Instructure)** | `#D02B32` Canvas red | `#394B58` slate | "instructure" or "Canvas" logo | `*.instructure.com` | Agreement Manager (course list) | ✓ Canvas First Time |
+| **Workday Student** | `#F38B00` Workday orange | `#000000` black | "workday" wordmark | `*.myworkday.com` | Agreement Manager + Web Forms (enrollment) | ✓ Workday Student Experience |
 | **Ellucian Banner** | `#007932` Ellucian green | `#1D1D1B` near-black | "Ellucian" wordmark | legacy Oracle-form UI | Component-level only (legacy) | needed |
-| **PowerSchool SIS** | `#1E4D8C` navy | `#F5A623` amber | "PowerSchool" stacked mark | `*.powerschool.com` | Navigator (K-12 gradebook) | needed |
+| **PowerSchool SIS** | `#1E4D8C` navy | `#F5A623` amber | "PowerSchool" stacked mark | `*.powerschool.com` | Agreement Manager (K-12 gradebook) | needed |
 
 ### Procurement / CLM (cross-vertical)
 
@@ -402,7 +402,7 @@ that a Docusign drill-down embeds into, not as a vertical of its own.
 
 | Vendor | Primary | Accent | Logo | URL pattern | Best template pair | Demo on file |
 |---|---|---|---|---|---|---|
-| **IBM Emptoris Contract Management** | `#054ADA` IBM blue (links, primary buttons, active tab underline) | `#EE5396` IBM magenta (env badge, "NEW" pills); legacy Carbon palette throughout | IBM 8-bar mark in white on `#161616` masthead, then "Emptoris" + "Contract Management" suite name | hosted Carbon UI (`*.ibm.com/Emptoris/`); IBM Plex Sans + Plex Mono | Portal: `portals/enterprise-emptoris.html` (Workbench / My Tasks + Contract record detail) + Doc Gen / Web Forms / Workspaces / eSign / AI Review / Navigator / Agreement Desk embeds | needed (no demo on file; built from IBM docs + reference imagery) |
+| **IBM Emptoris Contract Management** | `#054ADA` IBM blue (links, primary buttons, active tab underline) | `#EE5396` IBM magenta (env badge, "NEW" pills); legacy Carbon palette throughout | IBM 8-bar mark in white on `#161616` masthead, then "Emptoris" + "Contract Management" suite name | hosted Carbon UI (`*.ibm.com/Emptoris/`); IBM Plex Sans + Plex Mono | Portal: `portals/enterprise-emptoris.html` (Workbench / My Tasks + Contract record detail) + Doc Gen / Web Forms / Workspaces / eSign / AI Review / Agreement Manager / Agreement Desk embeds | needed (no demo on file; built from IBM docs + reference imagery) |
 | **Icertis CLM** | `#0A2540` deep navy | `#FF8C00` Icertis orange | "icertis" wordmark | `*.icertis.com` | Same as Emptoris portal — palette swap | needed |
 | **SAP Ariba Contracts** | `#0070F2` SAP blue | `#5B738B` slate | "SAP Ariba" stacked | `*.ariba.com` | Same as Emptoris portal — palette swap | needed |
 
@@ -415,21 +415,21 @@ below as they're authored so newcomers can grep and follow.
 
 | Vertical | Story arc | Scene 0 | Scene 1 | Scene 2 | Scene 3 | SoR badge |
 |---|---|---|---|---|---|---|
-| Wealth · Onboarding | Address change | Advisor modal (component-level) | Web Forms | CLEAR | Navigator | FSC + Northbridge (tenant) |
-| Insurance L&A · Death claims | Claim intake → investigation → payout | Component-level | Web Forms | Maestro | Navigator (audit) | FINEOS + carrier tenant |
-| Insurance P&C · FNOL | First notice of loss | Component-level | Web Forms (photo upload) | Maestro (evidence) | Navigator (subro) | Guidewire / Duck Creek |
-| Banking · Deposits | Account opening | Component-level | Web Forms | CLEAR (KYC refresh) | Maestro | nCino / Fiserv |
-| Banking · Lending | Loan origination | Component-level | Web Forms (application) | Maestro (decisioning) | Agents (risk scoring) | MeridianLink / nCino |
+| Wealth · Onboarding | Address change | Advisor modal (component-level) | Web Forms | CLEAR | Agreement Manager | FSC + Northbridge (tenant) |
+| Insurance L&A · Death claims | Claim intake → investigation → payout | Component-level | Web Forms | Workflow Builder | Agreement Manager (audit) | FINEOS + carrier tenant |
+| Insurance P&C · FNOL | First notice of loss | Component-level | Web Forms (photo upload) | Workflow Builder (evidence) | Agreement Manager (subro) | Guidewire / Duck Creek |
+| Banking · Deposits | Account opening | Component-level | Web Forms | CLEAR (KYC refresh) | Workflow Builder | nCino / Fiserv |
+| Banking · Lending | Loan origination | Component-level | Web Forms (application) | Workflow Builder (decisioning) | Agents (risk scoring) | MeridianLink / nCino |
 | HLS · Provider ROI | Records request | EHR Desktop (In Basket beat) | Web Forms (patient consent) | CLEAR | EHR Desktop (records posted) | Epic / Cerner |
-| Life Sciences · Clinical | Site agreement + informed consent | Component-level | Web Forms | CLEAR | Navigator (Vault eTMF) | Veeva Vault eTMF |
-| Life Sciences · Commercial | PromoMats MLR approval | Component-level | Navigator (queue) | Agents (reviewer) | Maestro (approval flow) | Veeva Vault PromoMats |
-| Payor · Prior auth | PA submission + decision | Component-level | Web Forms | Maestro | Navigator (decision record) | HealthEdge + TriZetto legacy |
-| Public Sector · Benefits | Constituent application | Component-level | Web Forms | CLEAR (identity proofing) | Maestro (determination) | Salesforce PSS / Tyler |
-| Public Sector · Licensing | Permit application | Component-level | Web Forms | Maestro | Navigator (issued permit) | Accela / Tyler EnerGov |
-| Federal · Case work | FOIA / benefits claim | Component-level | Web Forms | Maestro (case triage) | Agents (policy assistant) | ServiceNow / Appian / Pega |
-| Education · Admissions | Undergrad application + deposit | Component-level | Web Forms | CLEAR (identity verify) | Navigator (Slate pipeline) | Slate |
-| Education · Employee onboarding | New faculty I-9 + policies | Component-level | Web Forms | CLEAR | Maestro | Workday |
-| Procurement · CLM | Counterparty contract — author → negotiate → sign → activate | Emptoris Workbench (portal) | Web Forms (counterparty intake) | Workspaces / Agents (AI Review) | Web Forms (signing variant) → Navigator (executed) | IBM Emptoris |
+| Life Sciences · Clinical | Site agreement + informed consent | Component-level | Web Forms | CLEAR | Agreement Manager (Vault eTMF) | Veeva Vault eTMF |
+| Life Sciences · Commercial | PromoMats MLR approval | Component-level | Agreement Manager (queue) | Agents (reviewer) | Workflow Builder (approval flow) | Veeva Vault PromoMats |
+| Payor · Prior auth | PA submission + decision | Component-level | Web Forms | Workflow Builder | Agreement Manager (decision record) | HealthEdge + TriZetto legacy |
+| Public Sector · Benefits | Constituent application | Component-level | Web Forms | CLEAR (identity proofing) | Workflow Builder (determination) | Salesforce PSS / Tyler |
+| Public Sector · Licensing | Permit application | Component-level | Web Forms | Workflow Builder | Agreement Manager (issued permit) | Accela / Tyler EnerGov |
+| Federal · Case work | FOIA / benefits claim | Component-level | Web Forms | Workflow Builder (case triage) | Agents (policy assistant) | ServiceNow / Appian / Pega |
+| Education · Admissions | Undergrad application + deposit | Component-level | Web Forms | CLEAR (identity verify) | Agreement Manager (Slate pipeline) | Slate |
+| Education · Employee onboarding | New faculty I-9 + policies | Component-level | Web Forms | CLEAR | Workflow Builder | Workday |
+| Procurement · CLM | Counterparty contract — author → negotiate → sign → activate | Emptoris Workbench (portal) | Web Forms (counterparty intake) | Workspaces / Agents (AI Review) | Web Forms (signing variant) → Agreement Manager (executed) | IBM Emptoris |
 
 ---
 
@@ -458,21 +458,21 @@ below as they're authored so newcomers can grep and follow.
   `docu-sign-demo.replit.app`.
 - CLEAR IDV template — derived from the CLEAR modal pattern embedded in
   `index-unified.html` around line 3429, plus the AMEX/M&A demo footage.
-- Maestro LOOP template — modeled on
+- Workflow Builder LOOP template — modeled on
   `/components/future-state/component-loop-investigation-insurance-pc-claims.html`
   and 84 sibling components that share the archetype.
-- Navigator template — derived from the three AMEX M&A demo recordings
-  showing Navigator's list / detail / Iris surfaces.
+- Agreement Manager template — derived from the three AMEX M&A demo recordings
+  showing Agreement Manager's list / detail / Iris surfaces.
 - Agents template — derived from the "Exploring Docusign Regional
   Availability Agent" + Agent Studio screen recording.
 - EHR Desktop template — modeled on real Epic Hyperspace frames and Cerner
   Reporting Portal frames from the YouTube demos folder.
 - Hierarchy template — modeled frame-for-frame on the Contract Hierarchy
   product design export at repo root (`Contract Hierarchy - Share -
-  [Navigator] Contract Hierarchy 2025 04.zip`, Milestone 1 · CY25.Q4
+  [Agreement Manager] Contract Hierarchy 2025 04.zip`, Milestone 1 · CY25.Q4
   builder experience: party view → wizard → bulk access → share →
   edit/view access), the same AMEX/M&A demo context that fed the
-  Navigator and CLEAR IDV templates.
+  Agreement Manager and CLEAR IDV templates.
 
 Badge kits reference the demos stored under
 `/Users/patrickmeyer/Documents/Claude/Projects/TGK 2.0/Youtube demos/`.

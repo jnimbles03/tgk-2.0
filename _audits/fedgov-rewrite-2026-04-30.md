@@ -32,7 +32,7 @@ The fedgov vertical exhibits three coherence gaps:
 **Where**: All three use cases (default, intake, fraud-fabric, maintenance)  
 **Change**: Replace "identity verification" with "CLEAR" in `story-shell.html`
 
-- Sentence swap: "the workflow invokes identity verification at login" → "Maestro invokes CLEAR at login"
+- Sentence swap: "the workflow invokes identity verification at login" → "Workflow Builder invokes CLEAR at login"
 - Sentence swap: "Identity verification verifies Taylor's identity" → "CLEAR verifies Taylor's identity"
 - Sentence swap: "identity verification session opens" → "CLEAR session opens"
 
@@ -72,7 +72,7 @@ The fedgov vertical exhibits three coherence gaps:
 
 If approved:
 
-1. Edit `stories/_shared/story-shell.html` — replace "identity verification" with "CLEAR" and "the workflow" with "Maestro" throughout the fedgov block (lines 7378–7668).
+1. Edit `stories/_shared/story-shell.html` — replace "identity verification" with "CLEAR" and "the workflow" with "Workflow Builder" throughout the fedgov block (lines 7378–7668).
 2. Update `persona-sequence-data.json` line ~3349: change category from "maintenance" to "intake".
 3. Add explicit persona on Scene 1, Beat 1 of default flow: `"persona": { "side": "client", "name": "Taylor" }`.
 4. Re-run `_audits/_persona_audit_build.sh` to refresh verdicts.
@@ -86,4 +86,4 @@ No changes to narration substance — only terminology, category, and persona cl
 - All four flows (default, intake, fraud-fabric, maintenance) follow correct 3–4 scene + Workspace tail spine.
 - Tenant, customer, color, role vocabulary all pass domain audit.
 - No TGK Capital contamination detected.
-- CLEAR + Maestro + Iris system actor framing is coherent across beats.
+- CLEAR + Workflow Builder + Iris system actor framing is coherent across beats.

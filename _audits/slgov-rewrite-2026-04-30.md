@@ -81,7 +81,7 @@ Zero instances of TGK Capital in any slgov vertical — correct. All customer re
 
 | Flow | Usecase | Scenes | Audience | Persona fix |
 |------|---------|--------|----------|------------|
-| Recertification Intake (household re-verify + sign) | `intake` | SCENE 1-4: Intake questionnaire → Maestro packages → Envelope → Workspace | James = client; Caseworker = advisor | None needed — James is the applicant |
+| Recertification Intake (household re-verify + sign) | `intake` | SCENE 1-4: Intake questionnaire → Workflow Builder packages → Envelope → Workspace | James = client; Caseworker = advisor | None needed — James is the applicant |
 | Post-enrollment Workspace (shared client + agency view) | `workspaces` | SCENE 5: Shared Workspace for ongoing compliance | James = client; Caseworker/Eligibility Specialist = advisor | None needed |
 
 **Decision**: Both flows correct. James Park is recertifying (client side). Cascade staff (Caseworker, Eligibility Specialist) are advisor-side. No swaps needed.
@@ -97,7 +97,7 @@ Zero instances of TGK Capital in any slgov vertical — correct. All customer re
 
 | Flow | Usecase | Scenes | Audience | Persona fix |
 |------|---------|--------|----------|------------|
-| SNAP Application (self-service intake) | `intake` | SCENE 1-4: Intake form → Maestro assessment → Envelope → Workspace | Sylvia = client; Benefits Counselor = advisor | None needed |
+| SNAP Application (self-service intake) | `intake` | SCENE 1-4: Intake form → Workflow Builder assessment → Envelope → Workspace | Sylvia = client; Benefits Counselor = advisor | None needed |
 | Recertification/Change of Circumstances | `maintenance` | SCENE 1-3: Portal auth → Updated form → Eligibility review | Sylvia = client; Specialist = advisor | None needed |
 | Case Notes + Ongoing Support | `workspaces` | SCENE 5: Shared view for case management | Sylvia = client; Caseworker = advisor | None needed |
 
@@ -114,7 +114,7 @@ Zero instances of TGK Capital in any slgov vertical — correct. All customer re
 
 | Flow | Usecase | Scenes | Audience | Persona fix |
 |------|---------|--------|----------|------------|
-| I-9 & Tax Withholding (intake) | `intake` | SCENE 1-4: Form → Maestro documents → Envelope → Workspace | New hire = client; HR Specialist = advisor | **PERSONA MISSING** — name new hire realistically |
+| I-9 & Tax Withholding (intake) | `intake` | SCENE 1-4: Form → Workflow Builder documents → Envelope → Workspace | New hire = client; HR Specialist = advisor | **PERSONA MISSING** — name new hire realistically |
 | Identity Verification at Hire | `fraud-fabric` | SCENE 1-3: Auth at entry → I-9 verification → Chain-of-custody | New hire = client; HR = advisor | **PERSONA MISSING** — name new hire |
 | Ongoing Workspace (benefits, direct deposit, tax updates) | `workspaces` | SCENE 5 | New hire = client; HR = advisor | None needed for workspace concept |
 
@@ -148,7 +148,7 @@ Zero instances of TGK Capital in any slgov vertical — correct. All customer re
 
 | Flow | Usecase | Scenes | Audience | Persona fix |
 |------|---------|--------|----------|------------|
-| Vendor Registration + W-9 (intake) | `intake` | SCENE 1-4: Intake form → Maestro package → Envelope → Workspace | Vendor rep = client; Vendor Onboarding Specialist = advisor | **PERSONA MISSING** — name vendor contact realistically |
+| Vendor Registration + W-9 (intake) | `intake` | SCENE 1-4: Intake form → Workflow Builder package → Envelope → Workspace | Vendor rep = client; Vendor Onboarding Specialist = advisor | **PERSONA MISSING** — name vendor contact realistically |
 | Compliance Attestation (annual) | `maintenance` | SCENE 1-3: Portal auth → Attestation form → Procurement review | Vendor rep = client; Specialist = advisor | **PERSONA MISSING** — name vendor contact |
 | Relationship Workspace (performance tracking, invoicing) | `workspaces` | SCENE 5 | Vendor rep = client; Procurement Officer = advisor | None needed |
 

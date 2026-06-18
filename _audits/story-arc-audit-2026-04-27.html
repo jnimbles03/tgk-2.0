@@ -316,43 +316,43 @@
 
   <p class="lead">The shell hardwires Scene&nbsp;1 to <code>docusign-agreement-desk.html</code> and writes every story's opening as "internal user submits intake at the Agreement Desk." That metaphor is built for inbound mail-room work — paper, partner submissions, supplier docs arriving from outside. It is not the dominant pattern in B2C agreement work.</p>
 
-  <p>In FINS, HLS, and PS, the dominant patterns are two: an internal sender filling a webform that fires Maestro to dynamically assemble the package, or a customer self-serving the same webform from a portal/app. Agreement Desk does have a real role — it's just not the default. It's the right answer when something genuinely arrives <em>from outside</em>: a death notice from a funeral home, a records request from a disability carrier, a partner-submitted RFP. In those cases it earns its keep. Everywhere else, it's narrating a journey the work didn't take.</p>
+  <p>In FINS, HLS, and PS, the dominant patterns are two: an internal sender filling a webform that fires Workflow Builder to dynamically assemble the package, or a customer self-serving the same webform from a portal/app. Agreement Desk does have a real role — it's just not the default. It's the right answer when something genuinely arrives <em>from outside</em>: a death notice from a funeral home, a records request from a disability carrier, a partner-submitted RFP. In those cases it earns its keep. Everywhere else, it's narrating a journey the work didn't take.</p>
 
-  <p>The proposal is small in surface area and large in coherence: rename Scene&nbsp;1 from <code>SENDER · Agreement Desk</code> to <code>INTAKE</code>, and let Scene&nbsp;1 host four archetypes instead of one. The shell template can stay; the iframe target can stay where the archetype is genuinely Agreement-Desk-shaped, and otherwise swap to a Webforms+Maestro mock or a Workspaces deal-room mock.</p>
+  <p>The proposal is small in surface area and large in coherence: rename Scene&nbsp;1 from <code>SENDER · Agreement Desk</code> to <code>INTAKE</code>, and let Scene&nbsp;1 host four archetypes instead of one. The shell template can stay; the iframe target can stay where the archetype is genuinely Agreement-Desk-shaped, and otherwise swap to a Webforms+Workflow Builder mock or a Workspaces deal-room mock.</p>
 
-  <div class="marg">The spine itself isn't broken. The label and the default Scene&nbsp;1 iframe are. Every other scene (CLEAR, Signing, Navigator, Workspace) holds its position cleanly across all four archetypes — only the entry point varies.</div>
+  <div class="marg">The spine itself isn't broken. The label and the default Scene&nbsp;1 iframe are. Every other scene (CLEAR, Signing, Agreement Manager, Workspace) holds its position cleanly across all four archetypes — only the entry point varies.</div>
 
   <h2><span class="num">Part II · The four archetypes</span>What replaces "the Sender opens the Agreement Desk"</h2>
 
   <div class="archetypes">
     <div class="arc">
       <div class="tag">Archetype A · Default for B2C employees</div>
-      <h4>Sender Webform + Maestro</h4>
-      <p>An internal employee — RM, underwriter, eligibility specialist, advisor — fills out a webform. Maestro orchestrates dynamic packaging: pick products, make selections, pre-fill from system of record, generate a tailored envelope. Scene&nbsp;1 shows the webform and the Maestro fan-out, not an inbox.</p>
-      <p><strong>Sub-variant: Maestro-triggered.</strong> No human fills the form — a system event fires it (renewal date, expiring cert, BG-check clear, claim event). Same archetype, different ignition.</p>
-      <div class="scenes-mini">S1 Webform + Maestro · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+      <h4>Sender Webform + Workflow Builder</h4>
+      <p>An internal employee — RM, underwriter, eligibility specialist, advisor — fills out a webform. Workflow Builder orchestrates dynamic packaging: pick products, make selections, pre-fill from system of record, generate a tailored envelope. Scene&nbsp;1 shows the webform and the Workflow Builder fan-out, not an inbox.</p>
+      <p><strong>Sub-variant: Workflow Builder-triggered.</strong> No human fills the form — a system event fires it (renewal date, expiring cert, BG-check clear, claim event). Same archetype, different ignition.</p>
+      <div class="scenes-mini">S1 Webform + Workflow Builder · S2 CLEAR · S3 Signing · S4 Agreement Manager · S5 Workspace</div>
     </div>
     <div class="arc">
       <div class="tag">Archetype B · Default for customer-initiated</div>
-      <h4>Self-Service Webform + Maestro</h4>
-      <p>The customer hits a public-facing or embedded webform — patient portal pre-reg, mobile banking "open new account," state benefits portal, 311 QR scan, vendor compliance recert. Maestro receives, packages, and routes back. Scene&nbsp;1 shows the customer's experience of the webform; the sender side appears later (often in Workspaces) to triage and complete.</p>
-      <div class="scenes-mini">S1 Self-service Webform + Maestro · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+      <h4>Self-Service Webform + Workflow Builder</h4>
+      <p>The customer hits a public-facing or embedded webform — patient portal pre-reg, mobile banking "open new account," state benefits portal, 311 QR scan, vendor compliance recert. Workflow Builder receives, packages, and routes back. Scene&nbsp;1 shows the customer's experience of the webform; the sender side appears later (often in Workspaces) to triage and complete.</p>
+      <div class="scenes-mini">S1 Self-service Webform + Workflow Builder · S2 CLEAR · S3 Signing · S4 Agreement Manager · S5 Workspace</div>
     </div>
     <div class="arc archetype-c">
       <div class="tag">Archetype C · The genuine inbound case</div>
       <h4>Inbound Agreement Desk</h4>
       <p>Something actually arrives from outside — a death notice, an external party's records request, a partner-submitted document. The Agreement Desk inbox catches it, applies AI parsing, and routes. This is the original Agreement Desk story and it remains valid; it's just not the right scaffolding for sender-driven or self-service flows.</p>
-      <div class="scenes-mini">S1 Agreement Desk inbound · S2 CLEAR · S3 Signing · S4 Navigator · S5 Workspace</div>
+      <div class="scenes-mini">S1 Agreement Desk inbound · S2 CLEAR · S3 Signing · S4 Agreement Manager · S5 Workspace</div>
     </div>
     <div class="arc archetype-d">
       <div class="tag">Archetype D · When the work is non-linear</div>
       <h4>Workspaces-Led</h4>
       <p>The engagement is too parallel, multi-party, or iterative for a webform-and-package opening. A commercial loan with credit-officer back-and-forth. A discovery process for a wealth household. A complex permit with multiple inspections. Scene&nbsp;1 opens a Workspaces deal/relationship room; documents and signatures emerge from within it across scenes.</p>
-      <div class="scenes-mini">S1 Workspaces deal room · S2 Webforms+Maestro inside Workspace · S3 CLEAR · S4 Signing · S5 Navigator</div>
+      <div class="scenes-mini">S1 Workspaces deal room · S2 Webforms+Workflow Builder inside Workspace · S3 CLEAR · S4 Signing · S5 Agreement Manager</div>
     </div>
   </div>
 
-  <p style="margin-top: 18px; font-size: 13px; color: var(--ink-mid);">Note the scene-product order in Archetype&nbsp;D differs from A/B/C: Workspaces leads, Navigator trails. The shell can still render the same five scene slots; what changes is which iframe loads in slot&nbsp;1, and a small reordering of slot&nbsp;5 vs. slot&nbsp;4 narration.</p>
+  <p style="margin-top: 18px; font-size: 13px; color: var(--ink-mid);">Note the scene-product order in Archetype&nbsp;D differs from A/B/C: Workspaces leads, Agreement Manager trails. The shell can still render the same five scene slots; what changes is which iframe loads in slot&nbsp;1, and a small reordering of slot&nbsp;5 vs. slot&nbsp;4 narration.</p>
 
   <!-- ===================== ZONE BREAK ===================== -->
 
@@ -395,7 +395,7 @@
         <td><span class="vk">banking</span><br><span class="tenant">Meridian <span class="cust">× Atlas Mfg — $2.5M working-capital facility</span></span></td>
         <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
         <td><span class="archetype-pill pill-D">D · Workspaces-led</span><br><span class="change-yes">reorder S1↔S5 logic</span></td>
-        <td class="flags">$2.5M facility with parallel credit officer routing + four-doc package <em>is non-linear</em>. Workspaces deal room should open S1; Navigator extracts at S5.</td>
+        <td class="flags">$2.5M facility with parallel credit officer routing + four-doc package <em>is non-linear</em>. Workspaces deal room should open S1; Agreement Manager extracts at S5.</td>
         <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="warn"></span><span class="warn"></span></span></td>
         <td><span class="sev sev-high"></span>high</td>
       </tr>
@@ -430,8 +430,8 @@
       <tr>
         <td><span class="vk">banking-deposits</span><br><span class="tenant">Cedar Federal <span class="cust">× Williams — joint checking + HYSA</span></span></td>
         <td><span class="archetype-pill pill-B">B · Self-service</span><br><span class="change-yes">conflated with maintenance</span></td>
-        <td><span class="archetype-pill pill-A">A-trig · Maestro-triggered</span><br><span class="change-yes">re-anchor S1 + split flows</span></td>
-        <td class="flags">Reframed 2026-04-27: canonical = <em>Account Opening</em> (sender-led, marketing-funnel→Maestro fires the package); <em>Account Maintenance</em> moves to <code>?usecase=auth-fabric</code> as B (self-service step-up on a sensitive change — add wire payee + $50k transfer). Previous "Marcus taps Open New Account" framing conflated both flows; new S1 leads with Maestro's marketing-trigger composition and Adaeze's queued IDV.</td>
+        <td><span class="archetype-pill pill-A">A-trig · Workflow Builder-triggered</span><br><span class="change-yes">re-anchor S1 + split flows</span></td>
+        <td class="flags">Reframed 2026-04-27: canonical = <em>Account Opening</em> (sender-led, marketing-funnel→Workflow Builder fires the package); <em>Account Maintenance</em> moves to <code>?usecase=auth-fabric</code> as B (self-service step-up on a sensitive change — add wire payee + $50k transfer). Previous "Marcus taps Open New Account" framing conflated both flows; new S1 leads with Workflow Builder's marketing-trigger composition and Adaeze's queued IDV.</td>
         <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-high"></span>high</td>
       </tr>
@@ -440,7 +440,7 @@
         <td><span class="vk">wealth-discovery</span><br><span class="tenant">Cypress Wealth <span class="cust">× Holcomb — IRA + family trust</span></span></td>
         <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
         <td><span class="archetype-pill pill-D">D · Workspaces-led</span><br><span class="change-yes">reorder + reframe</span></td>
-        <td class="flags">"Discovery session" is collaborative + multi-account. Should open in a Workspaces relationship room (Holcombs + Reggie + co-trustee), with Webforms+Maestro firing the multi-account package <em>inside</em> the Workspace at S2 or S3.</td>
+        <td class="flags">"Discovery session" is collaborative + multi-account. Should open in a Workspaces relationship room (Holcombs + Reggie + co-trustee), with Webforms+Workflow Builder firing the multi-account package <em>inside</em> the Workspace at S2 or S3.</td>
         <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="warn"></span><span class="warn"></span></span></td>
         <td><span class="sev sev-high"></span>high</td>
       </tr>
@@ -460,7 +460,7 @@
         <td><span class="vk">lifesciences</span><br><span class="tenant">Helix <span class="cust">× ARC — site activation HX-2104</span></span></td>
         <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">label only</span></td>
         <td><span class="archetype-pill pill-A">A · Sender Webform</span><br><span class="change-yes">re-anchor S1</span></td>
-        <td class="flags">Sponsor-initiated site activation is exactly Archetype A — Ethan fills a study-config webform, Maestro fans out CTA + budget + 1572 + IRB. Just relabel.</td>
+        <td class="flags">Sponsor-initiated site activation is exactly Archetype A — Ethan fills a study-config webform, Workflow Builder fans out CTA + budget + 1572 + IRB. Just relabel.</td>
         <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-low"></span>low</td>
       </tr>
@@ -507,7 +507,7 @@
         <td><span class="vk">slgov-311</span><br><span class="tenant">Greenhaven <span class="cust">× 1124 Cedar — pothole report</span></span></td>
         <td><span class="archetype-pill pill-B">B · Self-service</span> (with confused S1 head)<br><span class="change-yes">tighten S1 head</span></td>
         <td><span class="archetype-pill pill-B">B · Self-service QR scan</span><br><span class="change-yes">lead with Maria, not Marisol</span></td>
-        <td class="flags">Body of S1 is right (Maria scans QR). Head says "Marisol opens" which contradicts the lede. Also: <em>Navigator at S4 is overweight</em> — pothole resolution lives in ServiceNow; Navigator scene reads forced.</td>
+        <td class="flags">Body of S1 is right (Maria scans QR). Head says "Marisol opens" which contradicts the lede. Also: <em>Agreement Manager at S4 is overweight</em> — pothole resolution lives in ServiceNow; Agreement Manager scene reads forced.</td>
         <td><span class="scene-strip"><span class="warn"></span><span class="warn"></span><span class="ok"></span><span class="warn"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-med"></span>med</td>
       </tr>
@@ -524,26 +524,26 @@
       <tr>
         <td><span class="vk">slgov-recertification</span><br><span class="tenant">Cascade Medicaid <span class="cust">× Diane Park — annual recert</span></span></td>
         <td><span class="archetype-pill pill-C">C · Agreement Desk</span><br><span class="change-yes">forced framing</span></td>
-        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">re-anchor on system event</span></td>
-        <td class="flags">Recert window auto-fires; no human "opens" anything. S1 should lead with Maestro detecting the renewal date, not Asha clicking. S2 already correctly uses OTP not CLEAR — keep.</td>
+        <td><span class="archetype-pill pill-A-trig">A · Workflow Builder-triggered</span><br><span class="change-yes">re-anchor on system event</span></td>
+        <td class="flags">Recert window auto-fires; no human "opens" anything. S1 should lead with Workflow Builder detecting the renewal date, not Asha clicking. S2 already correctly uses OTP not CLEAR — keep.</td>
         <td><span class="scene-strip"><span class="flag"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-high"></span>high</td>
       </tr>
 
       <tr>
         <td><span class="vk">slgov-vendor-compliance</span><br><span class="tenant">Ridgeview Procurement <span class="cust">× Apex Logistics — annual COI recert</span></span></td>
-        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-no">framing partially right</span></td>
-        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
-        <td class="flags">Beat 1 already says "Maestro detects Apex's expiring compliance certs" — <span class="ok">that's exactly right</span>. But scene head still says "Olivia opens" which softens the system-event framing. Lead with the Maestro detection.</td>
+        <td><span class="archetype-pill pill-A-trig">A · Workflow Builder-triggered</span><br><span class="change-no">framing partially right</span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Workflow Builder-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
+        <td class="flags">Beat 1 already says "Workflow Builder detects Apex's expiring compliance certs" — <span class="ok">that's exactly right</span>. But scene head still says "Olivia opens" which softens the system-event framing. Lead with the Workflow Builder detection.</td>
         <td><span class="scene-strip"><span class="warn"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-low"></span>low</td>
       </tr>
 
       <tr>
         <td><span class="vk">slgov-employee-onboarding</span><br><span class="tenant">Cascade County HR <span class="cust">× Marcus Lee — Caseworker I onboarding</span></span></td>
-        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-no">framing partially right</span></td>
-        <td><span class="archetype-pill pill-A-trig">A · Maestro-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
-        <td class="flags">Beat 1 already says "Background check clears — Marcus's onboarding triggers" — <span class="ok">that's the system event</span>. Scene head still leads with Karina "opening." Lead with the BG-check event firing Maestro.</td>
+        <td><span class="archetype-pill pill-A-trig">A · Workflow Builder-triggered</span><br><span class="change-no">framing partially right</span></td>
+        <td><span class="archetype-pill pill-A-trig">A · Workflow Builder-triggered</span><br><span class="change-yes">tighten S1 head</span></td>
+        <td class="flags">Beat 1 already says "Background check clears — Marcus's onboarding triggers" — <span class="ok">that's the system event</span>. Scene head still leads with Karina "opening." Lead with the BG-check event firing Workflow Builder.</td>
         <td><span class="scene-strip"><span class="warn"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ok"></span></span></td>
         <td><span class="sev sev-low"></span>low</td>
       </tr>
@@ -565,7 +565,7 @@
     Of those: <span class="em-sage">10 are pure relabel/reframe</span> (current product is right, copy is wrong);
     <span class="em-sage">3 modernize from sender-side to self-service</span> (provider, payor, fedgov, slgov, slgov-licensing — pick 3 to lead on);
     <span class="em-sage">2 reorder for non-linearity</span> (banking, wealth-discovery → Workspaces-led);
-    <span class="em-sage">3 sharpen the inbound/triggered framing</span> (insurance-life, provider-roi, slgov-recertification + the 2 already-partially-right Maestro-triggered ones).
+    <span class="em-sage">3 sharpen the inbound/triggered framing</span> (insurance-life, provider-roi, slgov-recertification + the 2 already-partially-right Workflow Builder-triggered ones).
     Scenes 2–5 are <strong>structurally clean across all 19</strong>; only slgov-311's S4 is genuinely overweight.
   </p>
 
@@ -583,7 +583,7 @@
     <div class="fix-item">
       <div>
         <div class="label">Re-anchor Scene 1 copy on the 10 stories where the archetype is right but the framing forces Agreement-Desk language.</div>
-        <div class="body">Pure copy job. No iframe changes, no spine changes. Each scene gets a new tag ("INTAKE · sender webform" or "INTAKE · self-service" or "INTAKE · Maestro-triggered"), a rewritten head, and a tightened lede that leads with the actual ignition (form submit, system event, customer tap).</div>
+        <div class="body">Pure copy job. No iframe changes, no spine changes. Each scene gets a new tag ("INTAKE · sender webform" or "INTAKE · self-service" or "INTAKE · Workflow Builder-triggered"), a rewritten head, and a tightened lede that leads with the actual ignition (form submit, system event, customer tap).</div>
         <div class="stories">wealth · insurance · lifesciences · slgov-vendor-compliance · slgov-employee-onboarding · slgov-311 (head fix) · slgov-benefits (tag fix) · insurance-life (lead with inbound) · provider-roi (lead with inbound)</div>
       </div>
     </div>
@@ -591,7 +591,7 @@
     <div class="fix-item">
       <div>
         <div class="label">Split banking-deposits into two demos: canonical = Account Opening (A-trig), <code>?usecase=auth-fabric</code> = Account Maintenance (B).</div>
-        <div class="body">Reframe 2026-04-27. The previous "Marcus opens an account from his phone" canonical was Archetype B and conflated <em>opening</em> (creating a new relationship) with <em>maintenance</em> (sensitive change to an existing one). The two demos play very differently: opening's CLEAR is full-strength on a stranger (Adaeze); maintenance's CLEAR is step-up on a known customer doing a fraud-target action. Canonical Scene 1 now leads with marketing-funnel→Maestro composing the package; the auth-fabric usecase covers add-wire-payee + $50k transfer. No spine change — same shell, same templates; only narration + archetype anchor.</div>
+        <div class="body">Reframe 2026-04-27. The previous "Marcus opens an account from his phone" canonical was Archetype B and conflated <em>opening</em> (creating a new relationship) with <em>maintenance</em> (sensitive change to an existing one). The two demos play very differently: opening's CLEAR is full-strength on a stranger (Adaeze); maintenance's CLEAR is step-up on a known customer doing a fraud-target action. Canonical Scene 1 now leads with marketing-funnel→Workflow Builder composing the package; the auth-fabric usecase covers add-wire-payee + $50k transfer. No spine change — same shell, same templates; only narration + archetype anchor.</div>
         <div class="stories">banking-deposits (canonical = A-trig · Account Opening) + banking-deposits?usecase=auth-fabric (B · Account Maintenance · sensitive change)</div>
       </div>
     </div>
@@ -607,15 +607,15 @@
     <div class="fix-item">
       <div>
         <div class="label">Reorder banking ($2.5M facility) and wealth-discovery to Workspaces-led.</div>
-        <div class="body">These two are not webform-shaped engagements. Open Scene 1 in a Workspaces deal/relationship room with all parties present. Webforms+Maestro fire <em>inside</em> the Workspace at the appropriate moment to generate the package. Navigator still anchors S5 for repository extraction. This is a real spine variant — the only two stories that need it.</div>
+        <div class="body">These two are not webform-shaped engagements. Open Scene 1 in a Workspaces deal/relationship room with all parties present. Webforms+Workflow Builder fire <em>inside</em> the Workspace at the appropriate moment to generate the package. Agreement Manager still anchors S5 for repository extraction. This is a real spine variant — the only two stories that need it.</div>
         <div class="stories">banking · wealth-discovery</div>
       </div>
     </div>
 
     <div class="fix-item">
       <div>
-        <div class="label">Sharpen the 3 Maestro-triggered stories so the system event is the visible ignition.</div>
-        <div class="body">slgov-recertification, slgov-vendor-compliance, and slgov-employee-onboarding are the cleanest examples of Maestro-as-orchestrator. The current shell head names a human "opening" the case. Lead with the trigger: "Cascade's recertification window fires for Diane Park." / "Maestro detects Apex's expiring COI." / "Marcus's background check clears — onboarding fires." This pattern alone sells Maestro better than any other single moment in the demo set.</div>
+        <div class="label">Sharpen the 3 Workflow Builder-triggered stories so the system event is the visible ignition.</div>
+        <div class="body">slgov-recertification, slgov-vendor-compliance, and slgov-employee-onboarding are the cleanest examples of Workflow Builder-as-orchestrator. The current shell head names a human "opening" the case. Lead with the trigger: "Cascade's recertification window fires for Diane Park." / "Workflow Builder detects Apex's expiring COI." / "Marcus's background check clears — onboarding fires." This pattern alone sells Workflow Builder better than any other single moment in the demo set.</div>
         <div class="stories">slgov-recertification · slgov-vendor-compliance · slgov-employee-onboarding</div>
       </div>
     </div>

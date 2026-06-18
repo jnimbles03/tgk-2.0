@@ -599,10 +599,10 @@
       idv: 'Docusign ID Verification',
       notary: 'Docusign Notary / IPEN',
       esig: 'Docusign eSignature',
-      maestro: 'Docusign Maestro',
+      maestro: 'Docusign Workflow Builder',
       docgen: 'Docusign Doc Generation',
       loop: 'Docusign Loop',
-      navigator: 'Docusign Navigator',
+      navigator: 'Docusign Agreement Manager',
       workspaces: 'Docusign Workspaces'
     };
     return MAP[key] || key;
