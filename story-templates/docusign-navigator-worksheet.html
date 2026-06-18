@@ -207,6 +207,39 @@ tbody td{padding:9px 10px;color:var(--ink);vertical-align:middle;}
 /* Pulse hotspot */
 @keyframes hotPulse{0%,100%{box-shadow:0 0 0 0 rgba(75,0,233,.35);}50%{box-shadow:0 0 0 6px rgba(75,0,233,0);}}
 .just-pulsed{animation:hotPulse .8s ease;}
+
+/* ============ Iris (Agreement Manager AI assistant) pre-canned Q&A ============ */
+.iris-qa{margin-top:22px;padding-top:18px;border-top:1px solid var(--hair);max-width:760px;}
+.iris-qa-head{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.iris-qa-head .mk{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.iris-qa-head .mk svg{width:11px;height:11px;stroke:#fff;stroke-width:2;fill:none;}
+.iris-qa-head .nm{font-size:13px;font-weight:700;color:var(--ink);}
+.iris-qa-title{font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 8px;}
+.iris-q{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border:1px solid var(--hair);border-radius:5px;font-family:inherit;font-size:11.5px;line-height:1.4;color:var(--ink);background:#fff;cursor:pointer;margin-bottom:6px;transition:all 0.15s ease;text-align:left;width:100%;}
+.iris-q:hover{border-color:var(--ds-purple-soft);background:#FAFAFF;}
+.iris-q.active{border-color:var(--ds-purple);background:linear-gradient(135deg,#F5F1FF,#FFFFFF);box-shadow:0 0 0 2px rgba(75,0,233,0.08);}
+.iris-q .q-ic{width:14px;height:14px;flex-shrink:0;color:var(--ds-purple);margin-top:1px;}
+.iris-q .q-ic svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+.iris-answer-panel{margin-top:12px;background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border:1px solid var(--ds-purple-soft);border-radius:6px;padding:14px 14px 12px;}
+.iris-answer-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.iris-answer-head .mk{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.iris-answer-head .mk svg{width:10px;height:10px;stroke:#fff;stroke-width:2;fill:none;}
+.iris-answer-head .lab{font-size:10.5px;color:var(--ds-purple);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}
+.iris-answer-text{font-size:12px;color:var(--ink);line-height:1.55;min-height:18px;}
+.iris-answer-text b{color:var(--ink);font-weight:600;}
+.iris-answer-text em{color:var(--ds-purple);font-style:normal;font-weight:500;}
+.iris-answer-text .src{display:inline-block;font-size:9.5px;background:rgba(75,0,233,0.08);color:var(--ds-purple);padding:1px 5px;border-radius:3px;margin:0 2px;font-weight:500;letter-spacing:0.02em;vertical-align:middle;}
+.iris-cursor{display:inline-block;width:7px;height:13px;background:var(--ds-purple);vertical-align:text-bottom;margin-left:1px;animation:irisCursor 0.85s steps(2) infinite;}
+@keyframes irisCursor{0%,50%{opacity:1;}51%,100%{opacity:0;}}
+.iris-thinking{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--ds-purple);font-style:italic;}
+.iris-thinking .d{width:4px;height:4px;border-radius:50%;background:var(--ds-purple);animation:irisThinking 1.2s ease-in-out infinite;}
+.iris-thinking .d:nth-child(2){animation-delay:0.15s;}
+.iris-thinking .d:nth-child(3){animation-delay:0.3s;}
+@keyframes irisThinking{0%,80%,100%{opacity:0.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-2px);}}
+.iris-answer-foot{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(75,0,233,0.15);display:flex;justify-content:space-between;align-items:center;font-size:10.5px;gap:10px;flex-wrap:wrap;}
+.iris-answer-foot .src-list{color:var(--ink-soft);}
+.iris-reset{color:var(--ds-purple);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;}
+.iris-reset:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -369,6 +402,27 @@ tbody td{padding:9px 10px;color:var(--ink);vertical-align:middle;}
           <div class="pg-arrows">
             <button><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
             <button><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+
+        <!-- Iris Q&A: clickable canned questions → typewriter answer cited from this worksheet -->
+        <div class="iris-qa">
+          <div class="iris-qa-head">
+            <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+            <div class="nm">Ask Iris about this worksheet</div>
+          </div>
+          <div class="iris-qa-title">Try asking</div>
+          <div id="iris-qa-list"></div>
+          <div id="iris-answer" class="iris-answer-panel" hidden>
+            <div class="iris-answer-head">
+              <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+              <div class="lab">Iris · Agreement Manager AI</div>
+            </div>
+            <div class="iris-answer-text" id="iris-answer-text"></div>
+            <div class="iris-answer-foot" id="iris-answer-foot" hidden>
+              <span class="src-list" id="iris-answer-src"></span>
+              <a class="iris-reset" id="iris-reset">Ask another &rsaquo;</a>
+            </div>
           </div>
         </div>
       </div>
@@ -890,6 +944,122 @@ const PRESETS = {
 const ORDER = ["financial-services","healthcare-provider","healthcare-payer","life-sciences","federal-govt","state-local-govt","higher-education"];
 
 /* ================================================================
+   IRIS Q&A — pre-canned questions whose answers are drawn from the
+   ACTIVE preset's own worksheetRows / aiColumns data. Each item is
+   { q:"question", a:"answer HTML with <b>, <em>, <span class='src'>",
+   src:["Worksheet column / agreement"] }. One set per preset; a
+   default ('financial-services') is used as a graceful fallback.
+   ================================================================ */
+const IRIS_QA = {
+
+"financial-services": [
+  { q:"Which agreements have the highest price-cap increase if renewed?",
+    a:"Three agreements carry caps at or above 7%: <b>Cyberdyne Systems Licensing</b> tops the list at <em>10%</em> (technology-fee escalation), followed by <b>Stark Industries MSA</b> at <em>8%</em> and <b>OCP Industrial Services MSA</b> at <em>7%</em>. These are the priority renegotiations on the renewal calendar. <span class='src'>Price Cap Increase %</span>",
+    src:["Price Cap Increase %","Has Price Increase Language"] },
+  { q:"What's the largest contract renewing next year, and does it escalate?",
+    a:"<b>Cyberdyne Systems Licensing Agreement</b> is the largest at <em>$310,000 USD</em>, and it does escalate — a <b>10% technology-fee cap</b> on auto-renew with a notice date of <em>2/1/2026</em>. <b>Hammer Industries MSA</b> ($204,000) is second and caps at 6% on manual renew. <span class='src'>Total Contract Value</span>",
+    src:["Total Contract Value","Price Increase Summary","Renewal Notice Date"] },
+  { q:"Which renewals have no price-increase language?",
+    a:"Three of the eleven have <em>no escalation</em>: <b>Wayne Enterprises MSA</b> (no escalation language found), <b>LexCorp Consulting</b> (rates fixed for term), and <b>Umbrella Corp IT MSA</b> (flat rate, no provision). All three are flagged <b>No</b> under price-increase language. <span class='src'>Has Price Increase Language</span>",
+    src:["Has Price Increase Language","Price Increase Summary"] },
+  { q:"Which renewal notice dates fall earliest in 2026?",
+    a:"The two soonest are <b>Parker Industries SOW Q2</b> on <em>1/15/2026</em> (fixed 3% increase) and <b>Cyberdyne Systems Licensing</b> on <em>2/1/2026</em> (10% cap). <b>Stark Industries MSA</b> follows on <em>3/2/2026</em>. These need notice action first. <span class='src'>Renewal Notice Date</span>",
+    src:["Renewal Notice Date","Renewal Type"] },
+],
+
+"healthcare-provider": [
+  { q:"Which payor contracts are most urgent to renegotiate?",
+    a:"Two are <b>Critical</b>: <b>Aetna Professional Services</b> expires <em>12/31/2025</em> (within 90 days, CPI-linked +3.1%) and <b>Centene Medicaid</b> ends <em>2/28/2026</em> with a state-indexed rate refresh required. Both should lead the renegotiation queue. <span class='src'>Negotiation Priority</span>",
+    src:["Negotiation Priority","Contract End Date"] },
+  { q:"Which contracts carry the biggest reimbursement-rate change?",
+    a:"<b>Highmark Blue Shield</b> shows the largest at <em>+4.0%</em> (market-basket, with a rate floor at 95% Medicare), just ahead of <b>BCBS Illinois</b> at <em>4.2%</em> annual escalator and <b>Anthem BlueCross</b> at <em>3.8%</em> CPI + quality. <span class='src'>Reimbursement Rate Change %</span>",
+    src:["Reimbursement Rate Change %","Rate Adjustment Type"] },
+  { q:"Which payors have rate-floor protection?",
+    a:"Five contracts include <b>rate-floor language</b> — <b>BCBS Illinois</b> (Medicare+5%), <b>UnitedHealth PSA</b>, <b>Humana Value-Based</b>, <b>Centene Medicaid</b>, <b>Anthem BlueCross</b>, and <b>Highmark</b> all flag <em>Yes</em>. <b>BCBS Illinois</b> also ties to ~$18M in revenue, making its floor the most material. <span class='src'>Has Rate Floor Language</span>",
+    src:["Has Rate Floor Language","Negotiation Priority"] },
+  { q:"What rate-adjustment mechanisms are in play across the portfolio?",
+    a:"The portfolio mixes several mechanisms: <b>annual escalators</b> (BCBS, Kaiser), <b>CPI-linked</b> (Aetna, Anthem), <b>market-rate/basket</b> (UnitedHealth, Highmark), a <b>quality bonus up to +5%</b> on the <em>Humana value-based</em> contract, and <b>state-indexed</b> Medicaid pricing at Centene. <span class='src'>Rate Adjustment Type</span>",
+    src:["Rate Adjustment Type","Reimbursement Rate Change %"] },
+],
+
+"healthcare-payer": [
+  { q:"Which provider agreements have the highest termination risk?",
+    a:"Two rank <b>High</b> with <em>without-cause</em> clauses: <b>Mercy Health System</b> (14,200 members in-panel) and <b>Rush University Medical Group</b>, whose <b>exclusivity carve-out</b> may limit a competing PSA. <b>Northwestern Medicine</b> is <em>Critical</em> — its 90-day notice window closes in December. <span class='src'>Network Risk Score</span>",
+    src:["Network Risk Score","Has Without Cause Clause"] },
+  { q:"Which agreements include exclusivity provisions?",
+    a:"Three carry exclusivity beyond non-exclusive: <b>Northwestern Medicine</b> and <b>Midwest Oncology Partners</b> have <em>Partial Exclusivity</em>, and <b>Rush University Medical Group</b> holds an <em>Exclusivity Carve-Out</em>. The Rush carve-out is the one most likely to constrain network strategy. <span class='src'>Exclusivity Type</span>",
+    src:["Exclusivity Type","Network Risk Score"] },
+  { q:"Which terminations could create a network-adequacy gap?",
+    a:"<b>Midwest Oncology Partners</b> is flagged <em>High — oncology network gap if terminated</em>, and <b>Mercy Health System</b> at <em>High</em> would pull 14,200 members out of panel. Both also carry <b>without-cause</b> clauses, so either side can exit on notice. <span class='src'>Network Risk Score</span>",
+    src:["Network Risk Score","Panel Status"] },
+  { q:"Whose termination-notice deadline comes first?",
+    a:"<b>Rush University Medical Group</b> is earliest at <em>11/30/2025</em>, immediately followed by <b>Northwestern Medicine</b> at <em>12/31/2025</em> — and Northwestern is also <em>Critical</em> priority. These two notice windows close before year-end. <span class='src'>Termination Notice Due</span>",
+    src:["Termination Notice Due","Network Risk Score"] },
+],
+
+"life-sciences": [
+  { q:"Which milestone payment is the largest, and when is it due?",
+    a:"<b>WuXi Biologics CMO</b> carries the largest trigger at <em>$3,200,000</em>, due on the <b>8/1/2026</b> phase milestone, with a regulatory-delay clause allowing a 60-day extension. <b>PPD Global Phase III</b> is next at <em>$1,400,000</em> due <b>7/31/2026</b>. <span class='src'>Payment Trigger Amount</span>",
+    src:["Payment Trigger Amount","Phase Milestone Date"] },
+  { q:"Which agreements are at risk of missing their phase milestone?",
+    a:"Two are flagged <b>At Risk</b>: <b>PPD Global Phase III CRO</b> (enrollment-delay clause with a penalty waiver, milestone <em>7/31/2026</em>) and <b>Catalent Biologics Fill-Finish CMO</b> (supply-chain clause, 45-day cure, milestone <em>6/30/2026</em>). Everything else reads <em>On Track</em>. <span class='src'>Phase Status</span>",
+    src:["Phase Status","Override Clause"] },
+  { q:"Which agreements assign IP, and do they have override clauses?",
+    a:"Five flag <b>IP assignment Yes</b> — <b>IQVIA Phase II</b>, <b>WuXi Biologics</b>, <b>Lonza Pharma</b>, <b>PPD Global</b>, and <b>Catalent</b>. Each also carries a tailored override: force-majeure (IQVIA), GMP-failure mutual termination (Lonza), and a regulatory-delay extension (WuXi). <span class='src'>Has IP Assignment</span>",
+    src:["Has IP Assignment","Override Clause"] },
+  { q:"What's the total of upcoming milestone payment triggers?",
+    a:"Summed across the nine agreements, the upcoming triggers total roughly <em>$8.37M</em>, dominated by <b>WuXi Biologics</b> at <b>$3.2M</b> and <b>PPD Global Phase III</b> at <b>$1.4M</b>. The two <em>At Risk</em> items (PPD, Catalent) account for ~$2.1M of that exposure. <span class='src'>Payment Trigger Amount</span>",
+    src:["Payment Trigger Amount","Phase Status"] },
+],
+
+"federal-govt": [
+  { q:"Which option period has the largest funding ceiling?",
+    a:"<b>GSA PBS Facilities Management</b> tops the list at <em>$22.1M</em> (option deadline <b>10/31/2026</b>), ahead of <b>DoD TRANSCOM Logistics Support</b> at <em>$18.4M</em> and the <b>GSA OASIS+ IT Modernization</b> task order at <em>$14.2M</em>. <span class='src'>Funding Ceiling</span>",
+    src:["Funding Ceiling","Option Exercise Deadline"] },
+  { q:"Which option decisions are due soonest?",
+    a:"The two earliest deadlines are <b>HHS NIH Research Services</b> on <em>11/30/2025</em> and <b>EPA Environmental Monitoring BPA</b> on <em>12/31/2025</em>. Missing either risks a service gap under FAR option-exercise notice rules, so both need a decision first. <span class='src'>Option Exercise Deadline</span>",
+    src:["Option Exercise Deadline","Funding Ceiling"] },
+  { q:"Which contracts have incremental funding?",
+    a:"Five flag <b>incremental funding Yes</b>: <b>GSA OASIS+ IT Modernization</b>, <b>DHS Data Analytics</b>, <b>HHS NIH Research Services</b>, <b>DoD TRANSCOM Logistics</b>, and <b>GSA PBS Facilities Management</b>. These require funding-action tracking alongside the option decision. <span class='src'>Has Incremental Funding</span>",
+    src:["Has Incremental Funding","Funding Ceiling"] },
+  { q:"Who is the contracting officer on the largest task orders?",
+    a:"On the <b>GSA OASIS+ IT Modernization</b> task order ($14.2M) the CO is <em>J. Ramirez, GSA Region 4</em>; on <b>DoD TRANSCOM Logistics</b> ($18.4M) it's <em>Lt. Col. A. Foster, TRANSCOM</em>; and on <b>GSA PBS Facilities Management</b> ($22.1M) it's <em>B. Rodriguez, GSA PBS</em>. <span class='src'>Contracting Officer</span>",
+    src:["Contracting Officer","Funding Ceiling"] },
+],
+
+"state-local-govt": [
+  { q:"Which contracts expire at fiscal year-end with no renewal option?",
+    a:"Only <b>Streetlight LED Retrofit</b> shows <em>No Renewal</em> — it expires <b>4/30/2026</b> at a $2.1M annual impact, so it must go back out to procurement. Every other contract in the worksheet carries a 1-, 2-, or 3-year option. <span class='src'>Renewal Option</span>",
+    src:["Renewal Option","FY Expiration Date"] },
+  { q:"Which expiring contracts have the biggest budget impact?",
+    a:"<b>Transit Operations & Maintenance</b> is the largest at <em>$12.4M</em> (3-year option, expires <b>5/31/2026</b>), followed by <b>Solid Waste Collection</b> at <em>$8.2M</em> (also a 3-year option). Both are high-dollar continuity risks if approvals slip. <span class='src'>Annual Budget Impact</span>",
+    src:["Annual Budget Impact","Renewal Option"] },
+  { q:"Which renewals need approval the soonest?",
+    a:"Five contracts hit an <b>approval-required date of 1/31/2026</b> — <b>Streetlight LED Retrofit</b> and <b>Emergency Dispatch Technology</b> among them. Because these precede the 6/30 fiscal year-end expirations, they set the real deadline for council or procurement action. <span class='src'>Approval Required By</span>",
+    src:["Approval Required By","FY Expiration Date"] },
+  { q:"Which contracts carry DBE provisions?",
+    a:"Five flag <b>DBE provision Yes</b>: <b>IT Infrastructure Support</b>, <b>Solid Waste Collection</b>, <b>Transit Operations & Maintenance</b>, <b>Streetlight LED Retrofit</b>, and <b>Public Health Nursing</b>. The two largest-dollar contracts (Transit, Solid Waste) both include the requirement. <span class='src'>Has DBE Provision</span>",
+    src:["Has DBE Provision","Annual Budget Impact"] },
+],
+
+"higher-education": [
+  { q:"Which grants apply the federal F&A rate, and which differ?",
+    a:"Most federal awards apply the negotiated <em>54.5%</em> rate — the <b>NIH R01</b>, <b>NSF CAREER</b>, <b>DARPA</b>, <b>DOE</b>, and others. The exceptions are private and industry sponsors: <b>Gates Foundation</b> at <em>15.0%</em>, <b>Simons Foundation</b> at <em>20.0%</em>, and <b>Pfizer</b> at <em>0% (fixed fee)</em>. <span class='src'>F&A Rate</span>",
+    src:["F&A Rate","Sponsor Type"] },
+  { q:"Which financial reports are due first?",
+    a:"The two earliest deadlines are the <b>NIH T32 Training Grant</b> on <em>4/15/2026</em> and the <b>NSF CAREER Award</b> on <em>4/30/2026</em>. Both are federal awards at the 54.5% F&A rate, so reporting accuracy affects indirect-cost recovery. <span class='src'>Report Due Date</span>",
+    src:["Report Due Date","F&A Rate"] },
+  { q:"Which agreements require subrecipient monitoring?",
+    a:"Five flag subrecipient monitoring: <b>NIH R01</b> (2 subawards >$25K), <b>DARPA</b> (annual audit), <b>DoD CDMRP</b> (site visit), and the <b>Gates Foundation</b> grant with <em>3 international subawards</em> — the most monitoring-intensive of the set. <span class='src'>Subrecipient Monitor Required</span>",
+    src:["Subrecipient Monitor Required","Sponsor Type"] },
+  { q:"Which grants both assign IP and have a near-term report?",
+    a:"<b>NIH R01 Alzheimer's Biomarkers</b> (IP <em>Yes</em>, report <b>6/1/2026</b>), <b>DARPA Explainable AI</b> (IP <em>Yes</em>, report <b>7/1/2026</b>), and <b>Pfizer Drug Discovery</b> (IP <em>Yes</em>, report <b>5/31/2026</b>) all combine IP assignment with an upcoming filing — the trio to watch for compliance. <span class='src'>Has IP Assignment</span>",
+    src:["Has IP Assignment","Report Due Date"] },
+],
+
+};
+
+/* ================================================================
    RENDER HELPERS
    ================================================================ */
 const sparkSVG = '<svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--ds-purple);width:9px;height:9px;"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5z"/></svg>';
@@ -997,6 +1167,9 @@ function applyPreset(key){
       ${cells}
     </tr>`;
   }).join('');
+
+  /* Iris Q&A — load the question set for the active preset (with fallback) */
+  renderIrisQA(IRIS_QA[key] || IRIS_QA['financial-services']);
 }
 
 /* ================================================================
@@ -1019,6 +1192,89 @@ function startTypewriter(text, el, charEl, btnEl){
     }
   }, 38);
 }
+
+/* ================================================================
+   IRIS Q&A — clickable canned questions → typewriter answer
+   (independent of autoplay; clicking a question always works)
+   ================================================================ */
+let _irisTypeTimer = null;
+function renderIrisQA(qa){
+  const list = document.getElementById('iris-qa-list');
+  const panel = document.getElementById('iris-answer');
+  if(!list || !panel) return;
+  if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+  panel.hidden = true;
+  if (!qa || !qa.length) { list.innerHTML = ''; list.style.display = 'none'; return; }
+  list.style.display = 'block';
+  list.innerHTML = qa.map((item, i) =>
+    `<button type="button" class="iris-q" data-i="${i}"><span class="q-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 4.5 1.5c-1 1-2 1-2 2.5"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg></span><span>${item.q}</span></button>`
+  ).join('');
+  list.querySelectorAll('.iris-q').forEach(btn => {
+    btn.addEventListener('click', () => askIris(qa[+btn.dataset.i]));
+  });
+}
+function askIris(item){
+  if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+  const list = document.getElementById('iris-qa-list');
+  const panel = document.getElementById('iris-answer');
+  const txt = document.getElementById('iris-answer-text');
+  const foot = document.getElementById('iris-answer-foot');
+  const srcEl = document.getElementById('iris-answer-src');
+  list.style.display = 'none';
+  panel.hidden = false;
+  foot.hidden = true;
+  /* Brief thinking dots, then begin typing the answer. */
+  txt.innerHTML = '<span class="iris-thinking"><span class="d"></span><span class="d"></span><span class="d"></span></span>';
+  _irisTypeTimer = setTimeout(() => typeIris(item.a, txt, () => {
+    if (item.src && item.src.length) {
+      srcEl.innerHTML = 'Sources: ' + item.src.map(s => `<span class="src">${s}</span>`).join(' ');
+    } else { srcEl.textContent = ''; }
+    foot.hidden = false;
+  }), 650);
+}
+function typeIris(answerHTML, target, done){
+  /* Simple char-by-char typewriter that respects HTML tags — when we hit
+     '<' we render the whole tag at once instead of revealing it letter by
+     letter, so <b>, <em>, and <span class="src"> render cleanly. */
+  target.innerHTML = '<span class="iris-stream"></span><span class="iris-cursor"></span>';
+  const stream = target.querySelector('.iris-stream');
+  let i = 0;
+  const tick = () => {
+    if (i >= answerHTML.length) {
+      const cur = target.querySelector('.iris-cursor');
+      if (cur) cur.remove();
+      _irisTypeTimer = null;
+      if (done) done();
+      return;
+    }
+    if (answerHTML[i] === '<') {
+      const close = answerHTML.indexOf('>', i);
+      stream.innerHTML += answerHTML.slice(i, close + 1);
+      i = close + 1;
+    } else {
+      stream.innerHTML += answerHTML[i];
+      i++;
+    }
+    /* Punctuation and structural characters get a longer pause to feel
+       more like reasoning prose than a stream of bytes. */
+    const ch = answerHTML[i - 1];
+    let delay = 14 + Math.random() * 10;
+    if (/[\.\?\!]/.test(ch)) delay = 220;
+    else if (ch === ',' || ch === ';' || ch === ':') delay = 120;
+    else if (ch === '\n') delay = 180;
+    _irisTypeTimer = setTimeout(tick, delay);
+  };
+  tick();
+}
+(function wireIrisReset(){
+  const reset = document.getElementById('iris-reset');
+  if (!reset) return;
+  reset.addEventListener('click', () => {
+    if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+    document.getElementById('iris-answer').hidden = true;
+    document.getElementById('iris-qa-list').style.display = 'block';
+  });
+})();
 
 /* ================================================================
    SCENE TIMELINE
