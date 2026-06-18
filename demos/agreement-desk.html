@@ -2,11 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agreement Desk — re-skinnable demo</title>
+<title>Agreement Desk — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./archetypes/signing.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
+  /* The Agreement Desk queue visual is intact; we add an "Ask the Desk Agent"
+     assistant as a right-hand column. Modeled on navigator.html
+     (.nv-agent / .phd / .agc-accept), adapted to the desk layout. */
+  .app.has-deskrail .app-body{padding:0}
+  .ad-wrap{display:flex;height:100%}
+  .ad-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
+  .ad-deskagent{width:344px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .ad-deskagent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
+  .ad-deskagent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
   .ad-agent{border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:18px}
   .ad-agent .hd{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--tenant-accent);margin-bottom:9px}
   .ad-email{background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #E8E8EE}
@@ -14,107 +24,162 @@
   .ad-email .su{font-size:13px;font-weight:600;color:#1a1a26;margin-bottom:4px}
   .ad-email .bd{font-size:12px;color:#555;line-height:1.45}
   .ad-status{margin-top:9px;font-size:12.5px;font-weight:600;color:var(--tenant-accent);display:flex;align-items:center;gap:7px}
-  .ad-status .sp{width:13px;height:13px;border:2px solid var(--tenant-accent);border-top-color:transparent;border-radius:50%;animation:ad-spin .7s linear infinite}
-  @keyframes ad-spin{to{transform:rotate(360deg)}}
-  .ad-status.done .sp{border:none;width:auto;height:auto;animation:none}
+  .ad-status .sp{width:auto;height:auto}
   .ad-th,.ad-row{display:flex;align-items:center}
   .ad-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
   .ad-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .3s}
   .ad-row.new{background:var(--tenant-accent-soft)}
-  .ad-row.appear{animation:ad-in .5s ease}
-  @keyframes ad-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .ad-row.hot{background:var(--tenant-accent-soft)}
   .c-req{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
   .c-req .fi{width:18px;height:22px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto}
   .c-typ{width:120px;flex:0 0 auto;font-size:12.5px;color:#555}
-  .c-stg{width:150px;flex:0 0 auto}
+  .c-stg{width:160px;flex:0 0 auto}
   .c-stg .pill{font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px}
-  .pill.intake{background:#FBF0DD;color:#B07A1E}.pill.review{background:#E7EDFB;color:#2D55C9}.pill.review2{background:var(--tenant-accent-soft);color:var(--tenant-ink)}.pill.appr{background:#E6F7EE;color:#1f9d57}
+  .pill.intake{background:#FBF0DD;color:#B07A1E}.pill.review{background:#E7EDFB;color:#2D55C9}.pill.review2{background:var(--tenant-accent-soft);color:var(--tenant-ink)}.pill.appr{background:#E6F7EE;color:#1f9d57}.pill.block{background:#FDECEC;color:#C0392B}
   .c-own{width:130px;flex:0 0 auto;font-size:12.5px;color:#555}
+  .ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:3px 9px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
 </style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
   '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Desk</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
   '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="ad-cobrand"></span></span><span class="avatar" id="ad-av"></span></div></div>';
 
-const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app">'+NAV+
-  '<div class="app-body"><div class="app-head"><h2>Agreement Desk</h2><span class="ai-pill" style="font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:3px 9px;border-radius:20px">✦ AI CONTRACT AGENT</span>'+
-    '<div class="acts"><span class="add">+ New request</span></div></div>'+
-    '<div class="ad-agent" id="ad-agent"><div class="hd">✦ AI Contract Agent · new inbound email</div>'+
-      '<div class="ad-email"><div class="fr" id="ad-from"></div><div class="su" id="ad-subj"></div><div class="bd" id="ad-body"></div></div>'+
-      '<div class="ad-status" id="ad-status"><span class="sp"></span><span id="ad-statustext">Reading the email…</span></div></div>'+
-    '<div class="ad-th"><span class="c-req" style="padding-left:29px">Request</span><span class="c-typ">Type</span><span class="c-stg">Stage</span><span class="c-own">Owner</span></div>'+
-    '<div id="ad-rows"></div>'+
-  '</div></div></section>'+
-  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Email</div><span class="arr">&rarr;</span><div class="node lead">AI-drafted request</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+function row(req,typ,stage,own,id,cls){
+  return '<div class="ad-row'+(cls?' '+cls:'')+'"'+(id?' id="'+id+'"':'')+'>'+
+    '<span class="c-req"><span class="fi"></span>'+req+'</span>'+
+    '<span class="c-typ">'+typ+'</span>'+
+    '<span class="c-stg">'+stage+'</span>'+
+    '<span class="c-own">'+own+'</span></div>'; }
+function stagePill(s){ return ({intake:'<span class="pill intake">Intake</span>',
+  review:'<span class="pill review">In review</span>',
+  review2:'<span class="pill review2">In review</span>',
+  appr:'<span class="pill appr">Approved</span>',
+  block:'<span class="pill block">Blocked</span>'}[s]||s); }
 
-DemoEngine.init({
-  meta:{ title:"Agreement Desk", productTag:"Agreement Desk", home:"index.html",
-    footnote:'<b>Faithful Agreement Desk, re-skinnable content.</b> The request hub + AI Contract Agent reading an email into a routed request are the shared spine. Switching vertical swaps the request, the parties and narration. Built on the app-shell archetype; hosts the AI-Assisted Review surface.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:28,
-    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"read",sceneId:"app"},{t:12,key:"create",sceneId:"app"},{t:17,key:"route",sceneId:"app"},{t:23,key:"handoff",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
-      {t:6,target:"#ad-agent",action:"move",sayKey:"read"},
-      {t:12,target:"#ad-newrow",action:"move",sayKey:"create"},
-      {t:17,target:"#ad-newrow",action:"move",sayKey:"route"},
-      {t:23,x:640,y:300,action:"move"} ] },
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app has-deskrail">'+NAV+
+  '<div class="app-body"><div class="ad-wrap">'+
+    '<div class="ad-main">'+
+      '<div class="app-head"><h2>Agreement Desk</h2><span class="ai-pill">✦ AI CONTRACT AGENT</span>'+
+        '<div class="acts"><span class="add">+ New request</span></div></div>'+
+      '<div class="ad-agent" id="ad-agent"><div class="hd">✦ AI Contract Agent · last inbound email</div>'+
+        '<div class="ad-email"><div class="fr" id="ad-from"></div><div class="su" id="ad-subj"></div><div class="bd" id="ad-body"></div></div>'+
+        '<div class="ad-status done" id="ad-status"><span class="sp" id="ad-statustext">✓ Request drafted from email and added to the queue below</span></div></div>'+
+      '<div class="ad-th"><span class="c-req" style="padding-left:29px">Request</span><span class="c-typ">Type</span><span class="c-stg">Stage</span><span class="c-own">Owner</span></div>'+
+      '<div id="ad-rows"></div>'+
+    '</div>'+
+    '<div class="ad-deskagent">'+
+      '<div class="phd"><span class="ai">✦</span> Ask the Desk Agent</div>'+
+      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="ad-chat"></div><div class="agc-chips" id="ad-chips"></div>'+
+        '<div class="agc-input"><div class="box">Ask about the queue, blockers, or custody…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '</div>'+
+  '</div></div></div></section>'+
+  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
+    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Desk queue</div><span class="arr">&rarr;</span><div class="node lead">Cleared &amp; routed</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+
+DemoEngine.interactive({
+  meta:{ title:"Agreement Desk — interactive", productTag:"Agreement Desk · Live", home:"index.html",
+    footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
-      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Tally", sorNode:"nCino core",
+      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Tally", sorNode:"nCino core", sorName:"nCino",
       from:"From: ops@atlascorp.com", subj:"Need the Atlas order form reviewed & signed ASAP",
       body:"Hey — can someone get the attached $128k order form reviewed and out for signature this week? Same terms as last time. Thanks!",
-      newReq:["Atlas Corp — Order Form","Order Form","Sam Patel (Legal)"],
-      rows:[ ["Black Mesa — Mutual NDA","NDA","review","Legal"], ["Fontara — Vendor MSA","MSA","appr","Procurement"], ["TGK — Custody Agreement","Agreement","intake","Unassigned"] ],
-      say:{ open:{eyebrow:"Agreement Desk",title:"One hub for every agreement request",body:"Intake, review and approvals for Tally live in one queue — no more requests lost in inboxes."},
-        read:{eyebrow:"AI Contract Agent",title:"It reads the email for you",body:"A vendor emails a vague ask. The AI Contract Agent reads it — sender, intent, the attached terms."},
-        create:{eyebrow:"Drafted",title:"A structured request, auto-created",body:"From a messy email, the agent drafts a complete Agreement Desk request — type, value, counterparty, all pre-filled."},
-        route:{eyebrow:"Routed",title:"Sent to the right reviewer",body:"The request routes straight to Legal for review — no manual triage, nothing dropped."},
-        handoff:{eyebrow:"Closed loop",title:"Email becomes action",body:"What used to be a forwarded email is now a tracked, routed request — logged to nCino."} },
-      handoff:{h:"From inbox to orchestrated request",p:"The AI Contract Agent turned a vague email into a structured, routed Agreement Desk request — logged to nCino."} },
+      // Queue: AI-drafted Atlas request (newest) + the three standing items.
+      rows:[
+        ["Atlas Corp — Order Form","Order Form","intake","Sam Patel (Legal)","ad-new","new"],
+        ["Black Mesa — Mutual NDA","NDA","review","Legal","",""],
+        ["Fontara — Vendor MSA","MSA","appr","Procurement","",""],
+        ["TGK — Custody Agreement","Agreement","block","Unassigned","ad-block","hot"] ],
+      blockItem:"TGK — Custody Agreement", blockReason:"it's missing a signed wire-instruction attestation and has no owner",
+      custodyItem:"Atlas Corp — Order Form",
+      custodyChain:"• <b>Inbound email</b> from ops@atlascorp.com — captured, sender verified<br>• <b>AI Contract Agent</b> drafted the request — type, $128k value and counterparty pre-filled<br>• <b>Assigned</b> to Sam Patel (Legal), stage Intake<br><br>Every hop is timestamped and immutable — nothing about this order form moved by hand.",
+      say:{ intro:{eyebrow:"Agreement Desk",title:"Ask the desk",body:"Tally's intake, reviews and approvals live in one queue. The AI Contract Agent already drafted the Atlas request from an email — ask Iris what's waiting, what's blocked, or what to act on."},
+        acted:{eyebrow:"Closed loop",title:"Queue cleared & routed",body:"The blocked TGK custody agreement got an owner and routed to Legal; the Atlas request advanced to review. The desk is clear — written back to nCino."} },
+      handoff:{h:"From inbox to a clear, routed desk",p:"The AI Contract Agent turned a vague email into a structured request, then cleared the blocker and routed every item — logged to nCino."},
+      exchanges:[
+        {label:"What's waiting in my queue?",
+         answer:"Four requests on the desk right now:<br><br>• <b>Atlas Corp — Order Form</b> — Intake, Sam Patel (Legal) <i>(just drafted from email)</i><br>• <b>Black Mesa — Mutual NDA</b> — In review, Legal<br>• <b>Fontara — Vendor MSA</b> — Approved, Procurement<br>• <b>TGK — Custody Agreement</b> — Blocked, Unassigned<br><br>One is blocked and one is brand-new — the rest are moving."},
+        {label:"Which items are blocked and why?", block:true,
+         answer:"One item is blocked:<br><br>• <b>TGK — Custody Agreement</b> — it's missing a signed wire-instruction attestation and has no owner, so it can't advance past Intake.<br><br>Everything else is in flight. Want me to assign it and clear the desk?"},
+        {label:"Summarize the chain of custody on the Atlas order form",
+         answer:"Here's the full chain of custody for the <b>Atlas Corp — Order Form</b>:<br><br>• <b>Inbound email</b> from ops@atlascorp.com — captured, sender verified<br>• <b>AI Contract Agent</b> drafted the request — type, $128k value and counterparty pre-filled<br>• <b>Assigned</b> to Sam Patel (Legal), stage Intake<br><br>Every hop is timestamped and immutable — nothing about this order form moved by hand."},
+        {label:"Approve & route the queue", clear:true,
+         answer:"Ready. I'll assign the <b>TGK custody agreement</b> to Legal to unblock it, and advance the <b>Atlas order form</b> from Intake to review. That clears the desk in one move. Confirm?",
+         card:'<span class="agc-accept" data-clear>✦ Approve &amp; route the queue</span>'}
+      ] },
     healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
-      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Riverside", sorNode:"Epic chart",
+      persona:{ name:"AI Contract Agent", role:"Agreement Desk", side:"system" }, cobrand:"Riverside", sorNode:"Epic chart", sorName:"Epic",
       from:"From: contracts@unityhealth.com", subj:"Payer amendment for review before quarter-end",
       body:"Please review the attached amendment to our payer agreement and route for signature. Needs to be done before the quarter closes.",
-      newReq:["Unity Health — Payer Amendment","Amendment","Sam Patel (Legal)"],
-      rows:[ ["Medline — BAA","BAA","review","Compliance"], ["Quest — Lab Services","MSA","appr","Legal"], ["CareStaff — Staffing","Agreement","intake","Unassigned"] ],
-      say:{ open:{eyebrow:"Agreement Desk",title:"One hub for every agreement request",body:"Intake, review and approvals for Riverside live in one queue — no more requests lost in inboxes."},
-        read:{eyebrow:"AI Contract Agent",title:"It reads the email for you",body:"A payer emails an amendment request. The AI Contract Agent reads it — sender, intent, the attached terms."},
-        create:{eyebrow:"Drafted",title:"A structured request, auto-created",body:"From a messy email, the agent drafts a complete Agreement Desk request — type, counterparty, deadline, all pre-filled."},
-        route:{eyebrow:"Routed",title:"Sent to the right reviewer",body:"The request routes straight to Legal for review — no manual triage, nothing dropped."},
-        handoff:{eyebrow:"Closed loop",title:"Email becomes action",body:"What used to be a forwarded email is now a tracked, routed request — logged to Epic."} },
-      handoff:{h:"From inbox to orchestrated request",p:"The AI Contract Agent turned a vague email into a structured, routed Agreement Desk request — logged to Epic."} }
+      rows:[
+        ["Unity Health — Payer Amendment","Amendment","intake","Sam Patel (Legal)","ad-new","new"],
+        ["Medline — BAA","BAA","review","Compliance","",""],
+        ["Quest — Lab Services","MSA","appr","Legal","",""],
+        ["CareStaff — Staffing","Agreement","block","Unassigned","ad-block","hot"] ],
+      blockItem:"CareStaff — Staffing", blockReason:"the counterparty's COI and license verification are still outstanding, and it has no owner",
+      custodyItem:"Unity Health — Payer Amendment",
+      custodyChain:"• <b>Inbound email</b> from contracts@unityhealth.com — captured, sender verified<br>• <b>AI Contract Agent</b> drafted the request — type, counterparty and quarter-end deadline pre-filled<br>• <b>Assigned</b> to Sam Patel (Legal), stage Intake<br><br>Every hop is timestamped and immutable — nothing about this amendment moved by hand.",
+      say:{ intro:{eyebrow:"Agreement Desk",title:"Ask the desk",body:"Riverside's intake, reviews and approvals live in one queue. The AI Contract Agent already drafted the Unity Health amendment from an email — ask Iris what's waiting, what's blocked, or what to act on."},
+        acted:{eyebrow:"Closed loop",title:"Queue cleared & routed",body:"The blocked CareStaff agreement got an owner and routed to Compliance; the Unity Health amendment advanced to review. The desk is clear — written back to Epic."} },
+      handoff:{h:"From inbox to a clear, routed desk",p:"The AI Contract Agent turned a vague email into a structured request, then cleared the blocker and routed every item — logged to Epic."},
+      exchanges:[
+        {label:"What's waiting in my queue?",
+         answer:"Four requests on the desk right now:<br><br>• <b>Unity Health — Payer Amendment</b> — Intake, Sam Patel (Legal) <i>(just drafted from email)</i><br>• <b>Medline — BAA</b> — In review, Compliance<br>• <b>Quest — Lab Services</b> — Approved, Legal<br>• <b>CareStaff — Staffing</b> — Blocked, Unassigned<br><br>One is blocked and one is brand-new — the rest are moving."},
+        {label:"Which items are blocked and why?", block:true,
+         answer:"One item is blocked:<br><br>• <b>CareStaff — Staffing</b> — the counterparty's COI and license verification are still outstanding, and it has no owner, so it can't advance past Intake.<br><br>Everything else is in flight. Want me to assign it and clear the desk?"},
+        {label:"Summarize the chain of custody on the Unity Health amendment",
+         answer:"Here's the full chain of custody for the <b>Unity Health — Payer Amendment</b>:<br><br>• <b>Inbound email</b> from contracts@unityhealth.com — captured, sender verified<br>• <b>AI Contract Agent</b> drafted the request — type, counterparty and quarter-end deadline pre-filled<br>• <b>Assigned</b> to Sam Patel (Legal), stage Intake<br><br>Every hop is timestamped and immutable — nothing about this amendment moved by hand."},
+        {label:"Approve & route the queue", clear:true,
+         answer:"Ready. I'll assign the <b>CareStaff staffing agreement</b> to Compliance to unblock it, and advance the <b>Unity Health amendment</b> from Intake to review. That clears the desk in one move. Confirm?",
+         card:'<span class="agc-accept" data-clear>✦ Approve &amp; route the queue</span>'}
+      ] }
   },
-  paintContent(p, root){
-    root.querySelector("#ad-cobrand").textContent=p.cobrand; root.querySelector("#ad-av").textContent="AI";
-    root.querySelector("#ad-from").textContent=p.from; root.querySelector("#ad-subj").textContent=p.subj; root.querySelector("#ad-body").textContent=p.body;
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-    const stageHtml=s=>({intake:'<span class="pill intake">Intake</span>',review:'<span class="pill review">In review</span>',appr:'<span class="pill appr">Approved</span>'}[s]);
-    let html=p.rows.map(r=>'<div class="ad-row"><span class="c-req"><span class="fi"></span>'+r[0]+'</span><span class="c-typ">'+r[1]+'</span><span class="c-stg">'+stageHtml(r[2])+'</span><span class="c-own">'+r[3]+'</span></div>').join("");
-    // the AI-created request row (hidden until create)
-    html = '<div class="ad-row new" id="ad-newrow" style="display:none"><span class="c-req"><span class="fi"></span>'+p.newReq[0]+'</span><span class="c-typ">'+p.newReq[1]+'</span><span class="c-stg" id="ad-newstage"></span><span class="c-own" id="ad-newown">Unassigned</span></div>' + html;
-    root.querySelector("#ad-rows").innerHTML=html;
-    root.querySelector("#ad-newrow")._own=p.newReq[2];
-  },
-  onTime(time, p, root){
-    const st=root.querySelector("#ad-status"), stx=root.querySelector("#ad-statustext");
-    const read=time>=6, drafted=time>=11.5;
-    st.classList.toggle("done",drafted);
-    if(stx) stx.innerHTML = drafted ? "✓ Request drafted from email and added to the queue" : (read?"Reading the email and attachment…":"Reading the email…");
-    const nr=root.querySelector("#ad-newrow");
-    if(nr){ if(time>=12){ if(nr.style.display==="none"){ nr.style.display="flex"; nr.classList.add("appear"); } }
-      else { nr.style.display="none"; nr.classList.remove("appear"); }
-      const routed=time>=17;
-      root.querySelector("#ad-newstage").innerHTML = routed?'<span class="pill review2">In review</span>':'<span class="pill intake">Intake</span>';
-      root.querySelector("#ad-newown").textContent = routed?nr._own:"Unassigned";
-      nr.classList.toggle("new", time<22);
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    // ---- render the Agreement Desk content (brand / email / queue) ----
+    $("#ad-cobrand").textContent=p.cobrand; $("#ad-av").textContent="AI";
+    $("#ad-from").textContent=p.from; $("#ad-subj").textContent=p.subj; $("#ad-body").textContent=p.body;
+    $("#ad-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],stagePill(r[2]),r[3],r[4],r[5])).join("");
+    // reset scene state (app scene active, nothing routed yet)
+    root.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active", s.dataset.scene==="app"));
+    // handoff scene content
+    $("#ho-h").textContent=p.handoff.h; $("#ho-p").textContent=p.handoff.p; $("#ho-sor").textContent=p.sorNode;
+
+    api.narrate("intro"); api.progress(0); let done=0;
+    function bump(){ api.progress(Math.min(++done,4)); if(done>=4) api.done(); }
+
+    function clearQueue(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Queue cleared & routed";
+      // drive the desk visual: unblock the blocked item, advance the new item
+      const blk=$("#ad-block");
+      if(blk){ blk.classList.remove("hot"); blk.querySelector(".c-stg").innerHTML=stagePill("review2"); blk.querySelector(".c-own").textContent=(p.label.indexOf("Healthcare")>-1?"Compliance":"Legal"); }
+      const nw=$("#ad-new");
+      if(nw){ nw.classList.remove("new"); nw.querySelector(".c-stg").innerHTML=stagePill("review2"); }
+      AgentChat.bubble($("#ad-chat"),"ai","Done — <b>"+p.blockItem+"</b> is assigned and routed, and <b>"+p.custodyItem+"</b> advanced to review. The desk is clear and every move writes back to "+p.sorName+".");
+      api.narrate("acted");
+      // advance to the closed-loop handoff scene
+      api.after(950,()=>{ root.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active", s.dataset.scene==="handoff")); });
     }
+
+    AgentChat.mount({ chatEl:$("#ad-chat"), chipsEl:$("#ad-chips"), hint:"Ask the Desk Agent", speed:13,
+      intro:"I'm Iris, running this desk. I've read all four requests in the queue and the chain of custody behind each — ask me what's waiting, what's blocked, or to clear and route the queue.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
+        after:()=>{ bump();
+          if(ex.block){ const r=$("#ad-block"); if(r){ r.classList.add("hot"); } }
+          if(ex.clear){ const b=$("#ad-chat").querySelector("[data-clear]"); if(b) b.onclick=()=>clearQueue(b); } } })) });
+
+    if(api.auto){ api.after(900,()=>{ const c=$("#ad-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(6000,()=>{ const chips=$("#ad-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
+      api.after(10500,()=>{ const b=$("#ad-chat").querySelector("[data-clear]"); if(b && !b.classList.contains("done")) b.click(); }); }
   }
 });
 </script>
