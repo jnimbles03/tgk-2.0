@@ -229,6 +229,45 @@
   .act-row.running{animation:rowArrive 0.5s ease;}
   @keyframes rowArrive{0%{background:var(--ds-purple-tint);}100%{background:#fff;}}
 
+  /* =========== S3 — Ask the agent (pre-canned Q&A typewriter) =========== */
+  /* Lives beside the activity feed; lets the viewer click a real question
+     and watch the agent type a cited answer about its runs/outcomes. The
+     typewriter is plain JS (event-driven), so it works independently of the
+     scripted autoplay even when _interactive.js freezes CSS animations. */
+  .s3-cols{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start;}
+  .agt-ask{background:linear-gradient(160deg,var(--chat-bg),#fff 46%);border:1px solid var(--hair);border-radius:8px;padding:16px 16px 14px;}
+  .agt-ask-head{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+  .agt-ask-head .mk{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--ds-purple),var(--ai-violet-deep));color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+  .agt-ask-head .mk svg{width:12px;height:12px;stroke:#fff;stroke-width:2;fill:none;}
+  .agt-ask-head .ttl{font-size:13px;font-weight:700;color:var(--ink);}
+  .agt-ask-sub{font-size:11px;color:var(--ink-soft);margin:2px 0 8px;padding-left:30px;}
+  .iris-qa-title{font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 8px;}
+  .iris-q{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border:1px solid var(--hair);border-radius:5px;font-family:inherit;font-size:11.5px;line-height:1.4;color:var(--ink);background:#fff;cursor:pointer;margin-bottom:6px;transition:all 0.15s ease;text-align:left;width:100%;}
+  .iris-q:hover{border-color:var(--ds-purple-soft);background:#FAFAFF;}
+  .iris-q.active{border-color:var(--ds-purple);background:linear-gradient(135deg,#F5F1FF,#FFFFFF);box-shadow:0 0 0 2px rgba(75,0,233,0.08);}
+  .iris-q .q-ic{width:14px;height:14px;flex-shrink:0;color:var(--ds-purple);margin-top:1px;}
+  .iris-q .q-ic svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+  .iris-answer-panel{margin-top:12px;background:linear-gradient(135deg,#F5F1FF,#EEE8FF);border:1px solid var(--ds-purple-soft);border-radius:6px;padding:14px 14px 12px;}
+  .iris-answer-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .iris-answer-head .mk{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,var(--ds-purple),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .iris-answer-head .mk svg{width:10px;height:10px;stroke:#fff;stroke-width:2;fill:none;}
+  .iris-answer-head .lab{font-size:10.5px;color:var(--ds-purple);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}
+  .iris-answer-text{font-size:12px;color:var(--ink);line-height:1.55;min-height:18px;}
+  .iris-answer-text b{color:var(--ink);font-weight:600;}
+  .iris-answer-text em{color:var(--ds-purple);font-style:normal;font-weight:500;}
+  .iris-answer-text .src{display:inline-block;font-size:9.5px;background:rgba(75,0,233,0.08);color:var(--ds-purple);padding:1px 5px;border-radius:3px;margin:0 2px;font-weight:500;letter-spacing:0.02em;vertical-align:middle;}
+  .iris-cursor{display:inline-block;width:7px;height:13px;background:var(--ds-purple);vertical-align:text-bottom;margin-left:1px;animation:irisCursor 0.85s steps(2) infinite;}
+  @keyframes irisCursor{0%,50%{opacity:1;}51%,100%{opacity:0;}}
+  .iris-thinking{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--ds-purple);font-style:italic;}
+  .iris-thinking .d{width:4px;height:4px;border-radius:50%;background:var(--ds-purple);animation:irisThinking 1.2s ease-in-out infinite;}
+  .iris-thinking .d:nth-child(2){animation-delay:0.15s;}
+  .iris-thinking .d:nth-child(3){animation-delay:0.3s;}
+  @keyframes irisThinking{0%,80%,100%{opacity:0.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-2px);}}
+  .iris-answer-foot{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(75,0,233,0.15);display:flex;justify-content:space-between;align-items:center;font-size:10.5px;}
+  .iris-answer-foot .src-list{color:var(--ink-soft);}
+  .iris-reset{color:var(--ds-purple);font-weight:600;cursor:pointer;text-decoration:none;}
+  .iris-reset:hover{text-decoration:underline;}
+
   /* Progress + preset */
   .scene-dots{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:7px;background:rgba(19,0,50,0.82);padding:8px 14px;border-radius:30px;z-index:20;}
   .scene-dots .d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.32);transition:all 0.3s ease;}
@@ -479,14 +518,39 @@
               <div class="kpi"><div class="l">Avg time to decision</div><div class="v" id="kpi-time">42s</div><div class="s">↓ from 3h 12m manual</div></div>
             </div>
 
-            <div class="activity">
-              <div class="activity-head">
-                <span class="t">Recent runs</span>
-                <div class="sp" style="flex:1;"></div>
-                <div class="filter">Risk <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-                <div class="filter">Last 7 days <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="s3-cols">
+              <div class="activity">
+                <div class="activity-head">
+                  <span class="t">Recent runs</span>
+                  <div class="sp" style="flex:1;"></div>
+                  <div class="filter">Risk <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                  <div class="filter">Last 7 days <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                </div>
+                <div id="act-rows"></div>
               </div>
-              <div id="act-rows"></div>
+
+              <!-- Ask the agent — clickable Q&A with typed, cited answers.
+                   Purely additive: independent of the autoplay timeline. -->
+              <div class="agt-ask">
+                <div class="agt-ask-head">
+                  <span class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></span>
+                  <span class="ttl">Ask the agent</span>
+                </div>
+                <div class="agt-ask-sub">Ask about a run in this feed — the agent answers with citations.</div>
+                <div class="iris-qa-title">Try asking</div>
+                <div id="iris-qa-list"></div>
+                <div id="iris-answer" class="iris-answer-panel" hidden>
+                  <div class="iris-answer-head">
+                    <div class="mk"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg></div>
+                    <div class="lab">Agent</div>
+                  </div>
+                  <div class="iris-answer-text" id="iris-answer-text"></div>
+                  <div class="iris-answer-foot" id="iris-answer-foot" hidden>
+                    <span class="src-list" id="iris-answer-src"></span>
+                    <a class="iris-reset" id="iris-reset">Ask another &rsaquo;</a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -519,7 +583,13 @@ const PRESETS = {
     ["Alt Fund Sub — Chen",        "Non-accredited cert missing",         "risk-hi",  "1h ago"],
     ["IAA — Singh Family Office",  "Standard · no issues",                "risk-low", "2h ago"],
     ["Form U4 amendment",          "Disclosure within 30-day window",     "risk-low", "3h ago"],
-  ], kpis:["47","39","8","42s"]},
+  ], kpis:["47","39","8","42s"],
+  qa:[
+    {q:"What did the Alt Fund Gatekeeper just do, and why is it high-risk?",a:"On the <span class=\"src\">Alt Fund Sub — Chen</span> run, <em>Alt Fund Gatekeeper</em> blocked routing: the subscription packet was missing the <b>accredited-investor certification</b>, so it couldn't confirm suitability. It flagged the run <b>High risk</b> and held the docs rather than forwarding them. <em>Next step:</em> collect the accreditation cert before the subscription can proceed.",src:["Alt Fund Sub — Chen","Alt Fund Gatekeeper"]},
+    {q:"Why did the Fee Reconciler flag the Alvarez Trust?",a:"The <span class=\"src\">Fee Schedule — Alvarez Trust</span> set advisory fees at <b>1.35%</b>, which exceeds the house cap of <em>1.25%</em>. <em>Fee Reconciler</em> compared the schedule against the advisory contract, caught the variance, and rated it <b>Med risk</b> for adviser review. No auto-route — it waits on a human to confirm or correct the rate.",src:["Fee Schedule — Alvarez Trust","Fee Reconciler"]},
+    {q:"What is the Renewal Tracker watching on the Morrison filing?",a:"On <span class=\"src\">13D — K. Morrison</span>, <em>Renewal Tracker</em> flagged a <b>late-filing risk</b> with <b>7 days remaining</b> in the window. It rated the run <b>Med risk</b> and would normally schedule a CRM task 60 days out — here the window is already tight, so it surfaced it for immediate attention.",src:["13D — K. Morrison","Renewal Tracker"]},
+    {q:"Which runs cleared with no issues?",a:"Three: <span class=\"src\">IAA — Amy Peters</span>, <span class=\"src\">IAA — Singh Family Office</span>, and the <span class=\"src\">Form U4 amendment</span> (disclosure within its 30-day window). <em>Suitability Checker</em> confirmed each recommendation fit the declared risk tolerance, rated them <b>Low risk</b>, and auto-routed them hands-off — part of the <b>83% auto-routed</b> shown above.",src:["IAA — Amy Peters","IAA — Singh Family Office","Suitability Checker"]}
+  ]},
 
   banking: {label:"Banking", yourAgents:[
     ["KYC Auditor", "pub", "MK", "Pulls KYC details, risk ratings, and flagged transactions from onboarding forms and audit reports."],
@@ -535,7 +605,13 @@ const PRESETS = {
     ["Wire Instruction — $2.1M",      "Beneficiary match to watchlist (low-conf)","risk-hi",  "2h ago"],
     ["Revolver Draw — ACME LLC",      "Within facility · no issues",               "risk-low", "4h ago"],
     ["Corr Bank — BNY renewal",       "Pricing unchanged · auto-route",            "risk-low", "5h ago"],
-  ], kpis:["63","54","9","38s"]},
+  ], kpis:["63","54","9","38s"],
+  qa:[
+    {q:"Why did the Holbrook Guaranty get flagged high-risk?",a:"On <span class=\"src\">Holbrook Guaranty</span>, the document came back with a <b>missing notary</b> — without it the guaranty <em>cannot be enforced</em>. The <em>Guarantor Continuation</em> agent caught the gap, rated the run <b>High risk</b>, and held it for re-execution rather than filing it. <em>Action:</em> obtain notarization before the guaranty is relied upon.",src:["Holbrook Guaranty","Guarantor Continuation"]},
+    {q:"What did the Covenant Tester find on the Atlas loan?",a:"The <span class=\"src\">Atlas Mfg. — Loan Agreement</span> run tested quarterly financials against the loan covenants. <em>Covenant Tester</em> computed a <b>DSCR of 1.28</b> — above the required floor — so it returned a <b>pass</b>, rated it <b>Low risk</b>, and auto-routed it with no breach to escalate to the credit officer.",src:["Atlas Mfg. — Loan Agreement","Covenant Tester"]},
+    {q:"Why did the $2.1M wire instruction get held?",a:"On <span class=\"src\">Wire Instruction — $2.1M</span>, the <em>Wire Rule</em> agent pattern-matched the beneficiary against the watchlist and got a <b>low-confidence match</b>. Because a hit — even uncertain — carries FinCEN exposure, it rated the run <b>High risk</b> and routed it for manual review instead of releasing the wire.",src:["Wire Instruction — $2.1M","Wire Rule"]},
+    {q:"What's the 60-day notice item on MidCoast?",a:"The <span class=\"src\">MidCoast Holdings — MSA</span> carries a <b>most-favored-lender obligation</b> that requires <b>60-day notice</b>. The <em>Covenant Tester</em> surfaced the clause, rated it <b>Med risk</b>, and flagged it so the notice clock can be tracked rather than missed.",src:["MidCoast Holdings — MSA","Covenant Tester"]}
+  ]},
 
   insurance: {label:"Insurance", yourAgents:[
     ["Underwriting Triage", "pub", "MK", "Auto-routes submissions to the right underwriter based on line, state, and appetite."],
@@ -551,7 +627,13 @@ const PRESETS = {
     ["Coastal MGA — cession",      "Policy over cat limit · manual allocate",      "risk-hi",  "2h ago"],
     ["Inspection — 412 Briar Ln",  "Asphalt roof 8y · OK",                         "risk-low", "3h ago"],
     ["Producer license — MV",      "Expires in 45 days · draft renewal packet",    "risk-med", "5h ago"],
-  ], kpis:["108","92","14","51s"]},
+  ], kpis:["108","92","14","51s"],
+  qa:[
+    {q:"What did the First Notice of Loss Clerk do on the hail claim?",a:"On <span class=\"src\">FNOL — hail claim #4402</span>, the <em>First Notice of Loss Clerk</em> intook the loss, confirmed the <b>coverage trigger</b>, opened the claim file, and <b>set a draft reserve at $7,500</b>. It rated the run <b>Low risk</b> and auto-routed it — no adjuster intervention needed to open the file.",src:["FNOL — hail claim #4402","First Notice of Loss Clerk"]},
+    {q:"Why did the Coastal MGA cession get flagged high-risk?",a:"On <span class=\"src\">Coastal MGA — cession</span>, the policy's limit pushed it <b>over the treaty's catastrophe limit</b>, so <em>Reinsurance Allocator</em> couldn't cede it automatically. It rated the run <b>High risk</b> and routed it for <b>manual allocation</b> rather than forcing it into a treaty without cat headroom.",src:["Coastal MGA — cession","Reinsurance Allocator"]},
+    {q:"What happened with the Lehrer submission?",a:"The <span class=\"src\">Submission — Lehrer Co.</span> fell <b>outside appetite</b> for the line/state, so <em>Underwriting Triage</em> recommended a <b>decline</b> rather than routing it to an underwriter. It rated the run <b>Med risk</b> — a deliberate non-bind decision, surfaced for sign-off.",src:["Submission — Lehrer Co.","Underwriting Triage"]},
+    {q:"Which run was cleared to bind?",a:"The <span class=\"src\">Ramirez HO3 — binder review</span>. <em>Binder Pre-Flight</em> confirmed <b>all precondition docs</b> — inspection, prior claims, MVR — were present, so it cleared the binder to <b>bind</b>, rated it <b>Low risk</b>, and routed it hands-off.",src:["Ramirez HO3 — binder review","Binder Pre-Flight"]}
+  ]},
 
   provider: {label:"Provider", yourAgents:[
     ["Prior Auth Triage", "pub", "MK", "Pre-fills prior authorizations from the chart and routes to the right payer portal."],
@@ -567,7 +649,13 @@ const PRESETS = {
     ["Referral — Ortho #6631",       "Missing chart notes · hold",               "risk-med", "2h ago"],
     ["Payer payment — BCBS",         "Paid at 92% of contracted rate · appeal", "risk-hi",  "3h ago"],
     ["Release of Info #2218",        "Authorization complete · release",         "risk-low", "4h ago"],
-  ], kpis:["214","176","22","28s"]},
+  ], kpis:["214","176","22","28s"],
+  qa:[
+    {q:"Why did the Payer Rate Benchmarker flag the BCBS payment?",a:"On <span class=\"src\">Payer payment — BCBS</span>, <em>Payer Rate Benchmarker</em> compared the remittance to the contracted rate and found it was <b>paid at only 92%</b> — a shortfall against the agreed schedule. It rated the run <b>High risk</b> and recommended an <b>appeal</b> rather than accepting the underpayment.",src:["Payer payment — BCBS","Payer Rate Benchmarker"]},
+    {q:"What did the Prior Auth Triage agent do for the J. Kim MRI?",a:"On <span class=\"src\">Prior auth — J. Kim MRI</span>, <em>Prior Auth Triage</em> pre-filled the authorization from the chart and submitted it to <b>Aetna</b>, which <b>approved</b> it with <em>no concurrent review</em> required. It rated the run <b>Low risk</b> and auto-routed it hands-off.",src:["Prior auth — J. Kim MRI","Prior Auth Triage"]},
+    {q:"Why was the encounter coding flagged for review?",a:"On <span class=\"src\">Encounter coding — visit 4321</span>, <em>Coding Assistant</em> suggested <b>99213 + Z00.00</b> from the encounter note but rated the run <b>Med risk</b> — the code pairing warranted a human check before billing rather than auto-submission.",src:["Encounter coding — visit 4321","Coding Assistant"]},
+    {q:"What's holding up the Ortho referral?",a:"The <span class=\"src\">Referral — Ortho #6631</span> is on <b>hold</b>: <em>Referral Completeness</em> checked it for required documentation and found <b>missing chart notes</b>, so it flagged the gap (<b>Med risk</b>) before scheduling rather than letting an incomplete referral through.",src:["Referral — Ortho #6631","Referral Completeness"]}
+  ]},
 
   lifesciences: {label:"Life Sciences", yourAgents:[
     ["Site Activation Gatekeeper", "pub", "MK", "Confirms IRB, 1572, CTA, and training are complete before activation."],
@@ -583,7 +671,13 @@ const PRESETS = {
     ["CRO Patheon invoice",          "Milestone 3 not complete · hold",         "risk-hi",  "3h ago"],
     ["AE report #0844",              "Serious · 7-day submission due",          "risk-hi",  "4h ago"],
     ["Safety letter acknowledgement","Site 7 pending after 48h · escalate",     "risk-med", "5h ago"],
-  ], kpis:["56","41","12","1m 08s"]},
+  ], kpis:["56","41","12","1m 08s"],
+  qa:[
+    {q:"What did the Pharmacovigilance Intake agent do with AE report #0844?",a:"On <span class=\"src\">AE report #0844</span>, <em>Pharmacovigilance Intake</em> intook the adverse-event report and pre-classified it as <b>serious</b> per ICH E2A. That triggers an expedited timeline — it flagged a <b>7-day submission</b> as due and rated the run <b>High risk</b> so the deadline can't slip.",src:["AE report #0844","Pharmacovigilance Intake"]},
+    {q:"Why did the CRO Patheon invoice get held high-risk?",a:"On <span class=\"src\">CRO Patheon invoice</span>, <em>CRO Contract Auditor</em> matched the invoice against milestone completion and found <b>Milestone 3 is not complete</b>. Because the billed work isn't done, it put the invoice on <b>hold</b> and rated it <b>High risk</b> rather than approving payment.",src:["CRO Patheon invoice","CRO Contract Auditor"]},
+    {q:"What cleared the ARC site for activation?",a:"On <span class=\"src\">ARC site activation</span>, <em>Site Activation Gatekeeper</em> confirmed the required gates — <b>IRB approval and Form 1572</b> — were complete, so it cleared the site to <b>activate</b>, rated it <b>Low risk</b>, and routed it hands-off.",src:["ARC site activation","Site Activation Gatekeeper"]},
+    {q:"What's the status of the IB v5 distribution?",a:"On <span class=\"src\">IB v5 distribution</span>, <em>Safety Letter Router</em> sent the Investigator's Brochure update to the sites and tracked acknowledgement — currently <b>9 of 10 sites</b> have acknowledged. It rated the run <b>Med risk</b> while the last site remains outstanding.",src:["IB v5 distribution","Safety Letter Router"]}
+  ]},
 
   payor: {label:"Payor", yourAgents:[
     ["Eligibility Verifier", "pub", "MK", "Real-time eligibility via 270/271 with payer and reconciles against member roster."],
@@ -599,7 +693,13 @@ const PRESETS = {
     ["Denial appeal — MRI (spine)",  "Draft ready · pending medical officer",    "risk-med", "1h ago"],
     ["Network adequacy — zip 94110", "Below 3-mile threshold · recruit 2 PCPs",  "risk-hi",  "2h ago"],
     ["Provider rate — Riverside",    "+3.2% proposed · within budget",           "risk-low", "4h ago"],
-  ], kpis:["312","266","28","22s"]},
+  ], kpis:["312","266","28","22s"],
+  qa:[
+    {q:"Why did the Network Adequacy Monitor flag zip 94110 high-risk?",a:"On <span class=\"src\">Network adequacy — zip 94110</span>, <em>Network Adequacy Monitor</em> measured access against the state threshold and found the area <b>below the 3-mile standard</b>. It rated the run <b>High risk</b> and recommended <b>recruiting 2 PCPs</b> to close the gap before it becomes a compliance issue.",src:["Network adequacy — zip 94110","Network Adequacy Monitor"]},
+    {q:"What did the Claims Edit Reviewer recommend on the bundling edit?",a:"On <span class=\"src\">Claim edit — bundling 99213</span>, <em>Claims Edit Reviewer</em> reviewed the engine's bundling edit and proposed an <b>override</b>, citing <b>payer policy X.4</b>. It rated the run <b>Med risk</b> so a human can confirm the override before it's applied.",src:["Claim edit — bundling 99213","Claims Edit Reviewer"]},
+    {q:"What did the Appeal Drafter prepare for the spine MRI denial?",a:"On <span class=\"src\">Denial appeal — MRI (spine)</span>, <em>Appeal Drafter</em> generated a first-level appeal letter from the denial reasons. The <b>draft is ready</b> but pending the <b>medical officer's</b> sign-off — rated <b>Med risk</b> until reviewed.",src:["Denial appeal — MRI (spine)","Appeal Drafter"]},
+    {q:"Which runs cleared with no issues?",a:"Two: <span class=\"src\">Member eligibility — Chen</span> (verified <b>active</b> via 270/271 with a <em>$30 copay</em>) and <span class=\"src\">Prior auth — MRI (shoulder)</span>, which the <em>Prior Auth Clerk</em> <b>approved</b> on medical necessity. Both rated <b>Low risk</b> and auto-routed.",src:["Member eligibility — Chen","Prior auth — MRI (shoulder)","Eligibility Verifier"]}
+  ]},
 
   fedgov: {label:"Federal Gov", yourAgents:[
     ["Fraud Pattern Detector", "pub", "MK", "Clusters UI claims by pattern and surfaces likely fraud rings."],
@@ -615,7 +715,13 @@ const PRESETS = {
     ["Weekly cert — Parallax ex",    "Availability attestation incomplete",      "risk-med", "2h ago"],
     ["Overpayment — claim 47221",    "$2,480 overpayment · recovery initiated",  "risk-med", "3h ago"],
     ["Hearing brief #118",           "Drafted · routed to hearing officer",       "risk-low", "5h ago"],
-  ], kpis:["1,248","1,102","84","19s"]},
+  ], kpis:["1,248","1,102","84","19s"],
+  qa:[
+    {q:"Why did the Fraud Pattern Detector flag cluster #04-12 high-risk?",a:"On <span class=\"src\">Fraud cluster #04-12</span>, <em>Fraud Pattern Detector</em> clustered claims by pattern and surfaced <b>8 claims from the same IP but different SSNs</b> — a classic fraud-ring signature. It rated the cluster <b>High risk</b> and surfaced it for investigation rather than letting the claims pay out.",src:["Fraud cluster #04-12","Fraud Pattern Detector"]},
+    {q:"What did the Overpayment Recovery agent do on claim 47221?",a:"On <span class=\"src\">Overpayment — claim 47221</span>, <em>Overpayment Recovery</em> detected a <b>$2,480 overpayment</b> and <b>initiated recovery</b> per state rules. It rated the run <b>Med risk</b> — recovery is in motion, surfaced so the claimant notice and timeline are tracked.",src:["Overpayment — claim 47221","Overpayment Recovery"]},
+    {q:"What happened on the Nguyen identity verification?",a:"On <span class=\"src\">ID verification — Nguyen</span>, the <em>Identity Verification Clerk</em> routed the claimant through verification and got a <b>pass</b> with a <b>biometric match</b>. It rated the run <b>Low risk</b> and processed the result hands-off.",src:["ID verification — Nguyen","Identity Verification Clerk"]},
+    {q:"Why was the weekly certification flagged?",a:"On <span class=\"src\">Weekly cert — Parallax ex</span>, the <em>Eligibility Auditor</em> found the <b>availability attestation incomplete</b>, so it couldn't confirm continued eligibility. It rated the run <b>Med risk</b> and held it for follow-up rather than certifying the week.",src:["Weekly cert — Parallax ex","Eligibility Auditor"]}
+  ]},
 
   slgov: {label:"State & Local", yourAgents:[
     ["Permit Intake Triage", "pub", "MK", "Routes permit applications to the right reviewer based on type and zoning."],
@@ -631,7 +737,13 @@ const PRESETS = {
     ["Contractor CA-48821",         "License expired 14d ago · reject",          "risk-hi",  "2h ago"],
     ["Plan check — 1420 Oak",       "2 comments returned · routed back",          "risk-med", "3h ago"],
     ["Election worker — precinct 7","Fully staffed for 11/5",                     "risk-low", "4h ago"],
-  ], kpis:["184","156","18","34s"]},
+  ], kpis:["184","156","18","34s"],
+  qa:[
+    {q:"Why did the Contractor License Verifier reject CA-48821?",a:"On <span class=\"src\">Contractor CA-48821</span>, <em>Contractor License Verifier</em> checked licensing in real time and found it <b>expired 14 days ago</b>. An expired license can't carry a permit, so it rated the run <b>High risk</b> and issued a <b>reject</b> rather than letting the application proceed.",src:["Contractor CA-48821","Contractor License Verifier"]},
+    {q:"What did the Plan Check Assistant find at 1420 Oak?",a:"On <span class=\"src\">Plan check — 1420 Oak</span>, <em>Plan Check Assistant</em> reviewed the plans against building code and returned <b>2 comments</b>, then <b>routed the application back</b> to the applicant. It rated the run <b>Med risk</b> — corrections are needed before approval.",src:["Plan check — 1420 Oak","Plan Check Assistant"]},
+    {q:"What did the Public Records Responder do on the Downtown LLC request?",a:"On <span class=\"src\">PRA request — Downtown LLC</span>, <em>Public Records Responder</em> drafted the response packet and applied exemption rules, <b>redacting 5 pages</b>. It rated the run <b>Low risk</b> — the response is drafted and ready for release.",src:["PRA request — Downtown LLC","Public Records Responder"]},
+    {q:"What's the zoning comment on permit BLD-2026-0412?",a:"On <span class=\"src\">Permit BLD-2026-0412</span>, <em>Permit Intake Triage</em> routed the application and a <b>zoning setback comment</b> came back, awaiting the <b>applicant's reply</b>. It rated the run <b>Med risk</b> while the setback question is open.",src:["Permit BLD-2026-0412","Permit Intake Triage"]}
+  ]},
 
   education: {label:"Education", yourAgents:[
     ["Application Triage", "pub", "MK", "Routes applications to admissions readers and flags completeness gaps."],
@@ -703,7 +815,99 @@ function applyPreset(key){
   document.getElementById('kpi-routed').textContent = p.kpis[1];
   document.getElementById('kpi-flagged').textContent = p.kpis[2];
   document.getElementById('kpi-time').textContent = p.kpis[3];
+
+  /* Swap the "Ask the agent" Q&A to this vertical's agents/outcomes. */
+  renderIrisQA(p.qa || []);
 }
+
+/* ============================================================
+   "Ask the agent" pre-canned Q&A — typewriter renderer
+   Ported verbatim from docusign-workspace.html (the Iris pattern).
+   Each preset declares qa = [{q, a, src?}, ...] whose answers cite
+   THIS template's agents, filed documents, and raised flags. Clicking
+   a question hides the list, shows brief "thinking" dots, then types
+   the cited answer character-by-character with a blinking cursor.
+   Event-driven and independent of the scripted scene autoplay.
+   ============================================================ */
+let _irisTypeTimer = null;
+function renderIrisQA(qa){
+  const list = document.getElementById('iris-qa-list');
+  const panel = document.getElementById('iris-answer');
+  if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+  panel.hidden = true;
+  if (!qa || !qa.length) { list.innerHTML = ''; list.style.display = 'none'; return; }
+  list.style.display = 'block';
+  list.innerHTML = qa.map((item, i) =>
+    `<button type="button" class="iris-q" data-i="${i}"><span class="q-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 4.5 1.5c-1 1-2 1-2 2.5"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg></span><span>${item.q}</span></button>`
+  ).join('');
+  list.querySelectorAll('.iris-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      list.querySelectorAll('.iris-q').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      askIris(qa[+btn.dataset.i]);
+    });
+  });
+}
+function askIris(item){
+  if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+  const list = document.getElementById('iris-qa-list');
+  const panel = document.getElementById('iris-answer');
+  const txt = document.getElementById('iris-answer-text');
+  const foot = document.getElementById('iris-answer-foot');
+  const srcEl = document.getElementById('iris-answer-src');
+  list.style.display = 'none';
+  panel.hidden = false;
+  foot.hidden = true;
+  /* Brief thinking dots, then begin typing the answer. */
+  txt.innerHTML = '<span class="iris-thinking"><span class="d"></span><span class="d"></span><span class="d"></span></span>';
+  _irisTypeTimer = setTimeout(() => typeIris(item.a, txt, () => {
+    if (item.src && item.src.length) {
+      srcEl.innerHTML = 'Sources: ' + item.src.map(s => `<span class="src">${s}</span>`).join(' ');
+    } else { srcEl.textContent = ''; }
+    foot.hidden = false;
+  }), 650);
+}
+function typeIris(answerHTML, target, done){
+  /* Simple char-by-char typewriter that respects HTML tags — when we hit
+     '<' we render the whole tag at once instead of revealing it letter by
+     letter, so <b>, <em>, and <span class="src"> render cleanly. */
+  target.innerHTML = '<span class="iris-stream"></span><span class="iris-cursor"></span>';
+  const stream = target.querySelector('.iris-stream');
+  let i = 0;
+  const tick = () => {
+    if (i >= answerHTML.length) {
+      const cur = target.querySelector('.iris-cursor');
+      if (cur) cur.remove();
+      _irisTypeTimer = null;
+      if (done) done();
+      return;
+    }
+    if (answerHTML[i] === '<') {
+      const close = answerHTML.indexOf('>', i);
+      stream.innerHTML += answerHTML.slice(i, close + 1);
+      i = close + 1;
+    } else {
+      stream.innerHTML += answerHTML[i];
+      i++;
+    }
+    /* Punctuation and structural characters get a longer pause to feel
+       more like reasoning prose than a stream of bytes. */
+    const ch = answerHTML[i - 1];
+    let delay = 14 + Math.random() * 10;
+    if (/[\.\?\!]/.test(ch)) delay = 220;
+    else if (ch === ',' || ch === ';' || ch === ':') delay = 120;
+    else if (ch === '\n') delay = 180;
+    _irisTypeTimer = setTimeout(tick, delay);
+  };
+  tick();
+}
+document.getElementById('iris-reset').addEventListener('click', () => {
+  if (_irisTypeTimer) { clearTimeout(_irisTypeTimer); _irisTypeTimer = null; }
+  document.getElementById('iris-answer').hidden = true;
+  const list = document.getElementById('iris-qa-list');
+  list.style.display = 'block';
+  list.querySelectorAll('.iris-q').forEach(b => b.classList.remove('active'));
+});
 
 /* Scene timeline */
 const SCENES = [{id:"s1", at:0, dur:8000},{id:"s2", at:8000, dur:8000},{id:"s3", at:16000, dur:8000}];
