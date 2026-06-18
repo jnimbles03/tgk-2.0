@@ -271,6 +271,32 @@
   .lede .em{font-weight:600;color:var(--ink-mid);}
   .sidebar.fade .step-label, .sidebar.fade .headline, .sidebar.fade .lede{opacity:0;}
 
+  /* ===================== Fraud-fabric thesis callout =====================
+     A persistent, can't-miss banner shown only on ?usecase=fraud-fabric.
+     The fraud-fabric story is a change-of-address — a transaction the
+     audience reads as LOW RISK (no signature, portal login "feels" enough).
+     This callout makes the actual point unmissable: low-risk-by-reputation
+     actions are a classic account-takeover vector, so you bind portal AUTH
+     to portal ACTION — the verified login and the change are one chain.
+     Sits at the top of the rail under the brand, above the persona, so it
+     never scrolls away as scenes advance. */
+  .ff-thesis{
+    margin:0 0 16px;
+    padding:11px 13px 12px;
+    border:1px solid rgba(75,0,233,0.28);
+    border-left:3px solid var(--ds-purple, #4B00E9);
+    border-radius:9px;
+    background:linear-gradient(180deg, rgba(75,0,233,0.07), rgba(75,0,233,0.03));
+  }
+  .ff-thesis .ff-kicker{
+    display:flex;align-items:center;gap:6px;
+    font-size:9.5px;font-weight:800;letter-spacing:0.13em;text-transform:uppercase;
+    color:var(--ds-purple, #4B00E9);margin-bottom:5px;
+  }
+  .ff-thesis .ff-kicker svg{width:11px;height:11px;flex:0 0 auto;}
+  .ff-thesis .ff-body{font-size:11.5px;line-height:1.5;color:var(--ink-mid);}
+  .ff-thesis .ff-body strong{color:var(--ink);font-weight:700;}
+
   /* Lead-mode hint — "Click anywhere to begin". Hidden until lead-mode is
      active AND the dwell delay (LEAD_HINT_DELAY_MS) has elapsed; fades out
      the moment the user interacts with the stage. Editorial typography in
@@ -485,6 +511,9 @@
     .step-label{margin-bottom:8px;font-size:12px;letter-spacing:0.16em;}
     .headline{font-size:26px;margin-bottom:16px;line-height:1.22;}
     .lede{font-size:15.5px;margin-bottom:18px;max-width:none;line-height:1.6;}
+    .ff-thesis{margin-bottom:14px;padding:12px 14px;}
+    .ff-thesis .ff-kicker{font-size:10.5px;}
+    .ff-thesis .ff-body{font-size:13px;}
     .lede p + p{margin-top:8px;}
     .foot-spacer{display:none;}
     .beat-pips{margin-bottom:10px;}
@@ -592,6 +621,13 @@
           <svg viewBox="0 0 96 96" fill="none"><path d="M69.15 69.1501V93.6001C69.15 94.9501 68.1 96.0001 66.75 96.0001H2.4C1.05 96.0001 0 94.9501 0 93.6001V29.2501C0 27.9001 1.05 26.8501 2.4 26.8501H26.85V66.6001C26.85 67.9501 27.9 69.0001 29.25 69.0001L69.15 69.1501Z" fill="#4C00FF"/><path d="M96.0016 34.5C96.0016 55.2 84.0016 69 69.1516 69.15V43.2C69.1516 42.45 68.8516 41.7 68.2516 41.25L54.7516 27.75C54.3016 27.3 53.5516 26.85 52.8016 26.85H26.8516V2.4C26.8516 1.05 27.9016 0 29.2516 0H65.5516C82.8016 0 96.0016 13.95 96.0016 34.5Z" fill="#FF5252"/><path d="M68.2516 41.1001C68.7016 41.5501 69.1516 42.3001 69.1516 43.0501V69.1501L29.2516 69.0001C27.9016 69.0001 26.8516 67.9501 26.8516 66.6001V26.8501H52.8016C53.5516 26.8501 54.3016 27.1501 54.7516 27.7501L68.2516 41.1001Z" fill="black"/></svg>
           docusign
         </a>
+      </div>
+      <div class="ff-thesis" id="ff-thesis" hidden>
+        <div class="ff-kicker">
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1.2 1.5 3v2.8c0 2.6 1.9 4.3 4.5 5 2.6-.7 4.5-2.4 4.5-5V3L6 1.2Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4.3 6.1 5.5 7.3 7.9 4.9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Why this matters
+        </div>
+        <div class="ff-body">An address change <em>reads</em> as low-risk — no signature, and a portal login feels like enough. But it's a classic account-takeover vector. So don't add friction — <strong>bind portal auth to portal action</strong>: the verified login and the change become one identity-linked chain.</div>
       </div>
       <div class="persona" id="persona" data-side="advisor">
         <span class="avatar" id="persona-avatar">·</span>
@@ -2989,6 +3025,11 @@ if (_custMark) {
 }
 $('vertical-chip').textContent = v.label;
 document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
+
+/* Fraud-fabric thesis callout — surface the can't-miss point (low-risk-by-
+   reputation actions still need portal auth bound to portal action) for the
+   whole fraud-fabric run. Hidden for every other usecase. */
+(function(){ const ff = $('ff-thesis'); if (ff) ff.hidden = (usecase !== 'fraud-fabric'); })();
 
 /* TGK Capital co-brand REMOVED 2026-04-30 — TGK Capital is now a
    character inside the wealth + banking storylines (the firm being
