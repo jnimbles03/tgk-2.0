@@ -609,7 +609,7 @@ const PRESETS = {
   qa:[
     {q:"Why did the Holbrook Guaranty get flagged high-risk?",a:"On <span class=\"src\">Holbrook Guaranty</span>, the document came back with a <b>missing notary</b> — without it the guaranty <em>cannot be enforced</em>. The <em>Guarantor Continuation</em> agent caught the gap, rated the run <b>High risk</b>, and held it for re-execution rather than filing it. <em>Action:</em> obtain notarization before the guaranty is relied upon.",src:["Holbrook Guaranty","Guarantor Continuation"]},
     {q:"What did the Covenant Tester find on the Atlas loan?",a:"The <span class=\"src\">Atlas Mfg. — Loan Agreement</span> run tested quarterly financials against the loan covenants. <em>Covenant Tester</em> computed a <b>DSCR of 1.28</b> — above the required floor — so it returned a <b>pass</b>, rated it <b>Low risk</b>, and auto-routed it with no breach to escalate to the credit officer.",src:["Atlas Mfg. — Loan Agreement","Covenant Tester"]},
-    {q:"Why did the $2.1M wire instruction get held?",a:"On <span class=\"src\">Wire Instruction — $2.1M</span>, the <em>Wire Rule</em> agent pattern-matched the beneficiary against the watchlist and got a <b>low-confidence match</b>. Because a hit — even uncertain — carries FinCEN exposure, it rated the run <b>High risk</b> and routed it for manual review instead of releasing the wire.",src:["Wire Instruction — $2.1M","Wire Rule"]},
+    {q:"Why did the $2.1M wire instruction get held?",a:"On <span class=\"src\">Wire Instruction — $2.1M</span>, the wire-screening agent pattern-matched the beneficiary against the watchlist and got a <b>low-confidence match</b>. Because a hit — even uncertain — carries FinCEN exposure, it rated the run <b>High risk</b> and routed it for manual review instead of releasing the wire.",src:["Wire Instruction — $2.1M"]},
     {q:"What's the 60-day notice item on MidCoast?",a:"The <span class=\"src\">MidCoast Holdings — MSA</span> carries a <b>most-favored-lender obligation</b> that requires <b>60-day notice</b>. The <em>Covenant Tester</em> surfaced the clause, rated it <b>Med risk</b>, and flagged it so the notice clock can be tracked rather than missed.",src:["MidCoast Holdings — MSA","Covenant Tester"]}
   ]},
 
@@ -759,7 +759,13 @@ const PRESETS = {
     ["Aid offer — Shah",            "Packaged · $38.2k offered",                  "risk-low", "3h ago"],
     ["Title IX report #018",        "Routed to coordinator · priority",           "risk-hi",  "4h ago"],
     ["Steward letter — Donor 472",  "Drafted for $25k gift · send",               "risk-low", "5h ago"],
-  ], kpis:["92","78","9","47s"]},
+  ], kpis:["92","78","9","47s"],
+  qa:[
+    {q:"Why did the Title IX report get flagged high-risk?",a:"On <span class=\"src\">Title IX report #018</span>, <em>Title IX Intake</em> intook the report and <b>routed it to the coordinator</b> as <b>priority</b>. These are time-sensitive and sensitive by nature, so it rated the run <b>High risk</b> to ensure immediate coordinator attention rather than queuing.",src:["Title IX report #018","Title IX Intake"]},
+    {q:"What did the Transcript Verifier find on the Garcia transcript?",a:"On <span class=\"src\">Transcript — Garcia</span>, <em>Transcript Verifier</em> checked the official transcript and found a <b>discrepancy</b>. It rated the run <b>Med risk</b> and requested <b>clarification</b> rather than accepting the record as-is.",src:["Transcript — Garcia","Transcript Verifier"]},
+    {q:"What did the Financial Aid Packager prepare for Shah?",a:"On <span class=\"src\">Aid offer — Shah</span>, <em>Financial Aid Packager</em> assembled the offer from cost of attendance and need calcs and <b>packaged a $38.2k offer</b>. It rated the run <b>Low risk</b> and routed it hands-off — consistent with Priya's application clearing intake earlier.",src:["Aid offer — Shah","Financial Aid Packager","Application — Priya Shah"]},
+    {q:"What's pending on the housing match?",a:"On <span class=\"src\">Housing — match pending</span>, <em>Housing Assignment</em> couldn't finalize the assignment because the <b>roommate questionnaire is incomplete</b>. It rated the run <b>Med risk</b> and held the match until the questionnaire is returned.",src:["Housing — match pending","Housing Assignment"]}
+  ]},
 
   nonprofit: {label:"Nonprofit", yourAgents:[
     ["Grantee Eligibility Checker", "pub", "MK", "Validates 501(c)(3) status and prior-cycle performance before award."],
@@ -775,7 +781,13 @@ const PRESETS = {
     ["Donor intent — gift #488",      "Unrestricted but tagged program · review", "risk-med", "3h ago"],
     ["990 filing reminder",           "Due in 45 days · accountant engaged",      "risk-low", "4h ago"],
     ["Board packet — May meeting",    "Drafted · circulated for edits",           "risk-low", "5h ago"],
-  ], kpis:["38","31","5","1m 12s"]},
+  ], kpis:["38","31","5","1m 12s"],
+  qa:[
+    {q:"What did the Grantee Eligibility Checker confirm for Safe Streets?",a:"On <span class=\"src\">Grantee — Safe Streets</span>, <em>Grantee Eligibility Checker</em> validated <b>501(c)(3) status</b> and confirmed the org is in <b>good standing</b> before any award. It rated the run <b>Low risk</b> and cleared it hands-off, which is what let the disbursement proceed.",src:["Grantee — Safe Streets","Grantee Eligibility Checker"]},
+    {q:"Why did the Impact Report Parser flag the GWC report?",a:"On <span class=\"src\">Impact report — GWC</span>, <em>Impact Report Parser</em> extracted KPIs for the program database and found <b>3 KPIs missing</b>. It rated the run <b>Med risk</b> and requested a <b>resubmit</b> rather than logging an incomplete report.",src:["Impact report — GWC","Impact Report Parser"]},
+    {q:"What did the Disbursement Scheduler release on tranche 1?",a:"On <span class=\"src\">Disbursement — tranche 1</span>, <em>Disbursement Scheduler</em> confirmed the <b>MOU was signed</b> against the grant agreement milestone and <b>released $40k</b>. It rated the run <b>Low risk</b> and routed it hands-off.",src:["Disbursement — tranche 1","Disbursement Scheduler"]},
+    {q:"Why is the donor-intent gift under review?",a:"On <span class=\"src\">Donor intent — gift #488</span>, <em>Donor Intent Clerk</em> matched the gift to restrictions and found it was marked <b>unrestricted but tagged to a program</b> — a potential conflict. It rated the run <b>Med risk</b> and flagged it for <b>review</b> before the funds are applied.",src:["Donor intent — gift #488","Donor Intent Clerk"]}
+  ]},
 };
 const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor","fedgov","slgov","education","nonprofit"];
 const ICON_CYCLE = ["ic-gen-1","ic-gen-2","ic-gen-3","ic-gen-4","ic-gen-5","ic-gen-6"];
