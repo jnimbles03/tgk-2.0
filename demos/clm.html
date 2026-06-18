@@ -2,14 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CLM — re-skinnable demo</title>
+<title>CLM (Contract Lifecycle) — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/clm.css">
 <link rel="stylesheet" href="./archetypes/signing.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  /* The CLM lifecycle visual is intact; we add an "Ask about this agreement"
+     AI-Extractions assistant as a right-hand column. Modeled on navigator.html
+     (.nv-agent / .phd / .agc-accept), adapted to the CLM layout. */
+  .clm-agent{width:322px;flex:0 0 auto;border-left:1px solid #E5E5EA;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .clm-agent .phd{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid #EFEFF1;font-size:12.5px;font-weight:700;color:#1a1a26}
+  .clm-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  .clm-doc{flex:1;min-width:0}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
+</style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const RAILIC={ info:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>',
   attr:'<svg viewBox="0 0 24 24"><path d="M3 5h18v2H3zM3 11h18v2H3zM3 17h12v2H3z"/></svg>',
@@ -30,7 +43,7 @@ const SCENES='<section class="de-scene is-active" data-scene="clm"><div class="c
       '<div class="lbl">Choose one of these options</div>'+
       '<div class="clm-sel" id="clm-sel"><span id="clm-selval">Unselected</span><span class="chev">▾</span>'+
         '<div class="clm-drop" id="clm-drop">'+OPTS.slice(1).map(o=>'<div class="o" data-opt="'+o+'">'+o+'</div>').join("")+'</div></div>'+
-      '<div class="clm-extract" id="clm-extract"><div class="h">✦ AI Extractions</div>'+
+      '<div class="clm-extract on" id="clm-extract"><div class="h">✦ AI Extractions</div>'+
         '<div class="row"><span class="k">Total spend</span><span class="v" id="clm-xspend"></span></div>'+
         '<div class="row"><span class="k">Effective</span><span class="v" id="clm-xeff"></span></div>'+
         '<div class="row"><span class="k">Expiration</span><span class="v" id="clm-xexp"></span></div></div>'+
@@ -43,67 +56,102 @@ const SCENES='<section class="de-scene is-active" data-scene="clm"><div class="c
         '<p>2.1 Delivery. Supplier will deliver the products and services to Buyer in accordance with the delivery terms set forth in the Order, if any. Otherwise, Supplier will deliver within ten (10) days of the effective date.</p>'+
         '<p>2.2 Right to Use. Supplier grants and Buyer accepts a perpetual, fully paid-up, irrevocable, nonexclusive, transferable, worldwide right and license to use the products set forth in Schedule A.</p>'+
         '<p>2.3 Authorized Users. The rights and licenses granted under this Agreement extend to Buyer’s affiliates and customers in the course of using Buyer products or services.</p></div></div>'+
+    '<div class="clm-agent">'+
+      '<div class="phd"><span class="ai">✦</span> Ask about this agreement</div>'+
+      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="clm-chat"></div><div class="agc-chips" id="clm-chips"></div>'+
+        '<div class="agc-input"><div class="box">Ask about spend, term, or clauses…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '</div>'+
   '</div></div></section>'+
   '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
     '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">CLM workflow</div><span class="arr">&rarr;</span><div class="node lead">Routed for signature</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
 
-DemoEngine.init({
-  meta:{ title:"CLM (Contract Lifecycle)", productTag:"CLM", home:"index.html",
-    footnote:'<b>Faithful Docusign CLM, re-skinnable content.</b> The lifecycle workspace — icon rail, workflow Task panel, AI Extractions and document viewer — is the shared spine. Switching vertical swaps the agreement, the parties, the extracted metadata and narration.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:28,
-    beats:[ {t:0,key:"open",sceneId:"clm"},{t:6,key:"extract",sceneId:"clm"},{t:11,key:"decide",sceneId:"clm"},{t:17,key:"complete",sceneId:"clm"},{t:22,key:"handoff",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:700,y:300,action:"move"},
-      {t:6,target:"#clm-extract",action:"move",sayKey:"extract"},
-      {t:11,target:"#clm-sel",action:"click",sayKey:"decide"},
-      {t:15,target:"#clm-optsign",action:"click",sayKey:"decide2"},
-      {t:18,target:"#clm-complete",action:"click",sayKey:"complete"},
-      {t:22,x:640,y:300,action:"move"} ] },
+DemoEngine.interactive({
+  meta:{ title:"CLM (Contract Lifecycle) — interactive", productTag:"CLM · Live", home:"index.html",
+    footnote:'<b>This panel is live.</b> Iris has read this agreement and its AI Extractions — click a question and it types a specific, cited answer from the contract, then routes it for signature. Switch vertical to re-skin the agreement, parties and terms.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"atlas.springcm.com — CLM", sorBadge:"System of record · nCino",
-      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"nCino core",
+      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"nCino core", sorName:"nCino",
       acct:"Exterran Corporation", doc:"Purchase Agreement — Exterran Corp", title:"STANDARD PURCHASING AGREEMENT",
+      buyer:"Tally Bank", supplier:"Exterran Corporation", docKind:"purchase agreement",
       p1:"This Purchasing Agreement is made between Tally Bank, a Delaware corporation (“Buyer”), and Exterran Corporation (“Supplier”), with the Agreement effective November 30, 2026 and expiration November 29, 2029.",
       spend:"$46,000.00", eff:"Nov 30, 2026", exp:"Nov 29, 2029",
-      say:{ open:{eyebrow:"CLM",title:"The full contract lifecycle, in one place",body:"The Exterran purchase agreement sits in CLM — version-controlled, with workflow tasks and obligations tracked."},
-        extract:{eyebrow:"AI Extractions",title:"Key terms pulled automatically",body:"Iris reads the document and extracts spend and dates — no manual metadata entry."},
-        decide:{eyebrow:"Workflow",title:"A guided review decision",body:"Priya's task: choose how to route the contract. CLM enforces the right path."},
-        decide2:{eyebrow:"Route",title:"Send for signature",body:"With review complete, she routes it straight to signature."},
-        complete:{eyebrow:"Complete",title:"The workflow advances",body:"Completing the task moves the agreement to the next step — every action logged and auditable."},
-        handoff:{eyebrow:"Closed loop",title:"Lifecycle, end to end",body:"Routed for signature and written back — the obligations clock starts automatically."} },
+      say:{ intro:{eyebrow:"CLM",title:"Ask about this agreement",body:"The Exterran purchase agreement sits in CLM — version-controlled, with AI Extractions and a workflow task. Ask Iris what it extracted, then route it for signature."},
+        routed:{eyebrow:"Closed loop",title:"Routed for signature",body:"The workflow decision became “Send for Signature” — the Exterran agreement advances and the obligations clock starts, written back to nCino."} },
+      exchanges:[
+        {label:"What did Iris extract from this agreement?",
+         answer:"Three terms, read straight from the document — no manual entry:<br><br>• <b>Total spend</b> — $46,000.00<br>• <b>Effective</b> — Nov 30, 2026<br>• <b>Expiration</b> — Nov 29, 2029<br><br>All three are on the AI Extractions card in the Task panel."},
+        {label:"What's the term and expiration?",
+         answer:"It's a <b>fixed three-year term</b>: effective <b>Nov 30, 2026</b> through <b>Nov 29, 2029</b>. There's no auto-renewal clause — it expires on that date unless a new agreement is signed."},
+        {label:"Are there any non-standard clauses?",
+         answer:"Two worth a look:<br><br>• <b>§2.2 Right to Use</b> grants a <b>perpetual, irrevocable, transferable</b> license — broader than a standard term license.<br>• <b>§2.3</b> extends the license to Buyer's <b>affiliates and customers</b>.<br><br>Both are favorable to Tally as Buyer; nothing here blocks signature."},
+        {label:"Route this for signature", route:true,
+         answer:"Review is complete and the terms check out. I can set the workflow decision to <b>Send for Signature</b> and route the Exterran agreement now. Confirm?",
+         card:'<span class="agc-accept" data-route>✦ Send for Signature</span>'}
+      ],
       handoff:{h:"Routed through the lifecycle",p:"The Exterran agreement moved through CLM review to signature — extracted terms and obligations written back to nCino."} },
     healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"medline.springcm.com — CLM", sorBadge:"System of record · Epic",
-      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"Epic chart",
+      persona:{ name:"Priya Raman", role:"Contract Manager", side:"advisor" }, sorNode:"Epic chart", sorName:"Epic",
       acct:"Medline Industries", doc:"Supply Agreement — Medline", title:"MEDICAL SUPPLY AGREEMENT",
+      buyer:"Riverside Health", supplier:"Medline Industries", docKind:"supply agreement",
       p1:"This Supply Agreement is made between Riverside Health (“Buyer”) and Medline Industries (“Supplier”), with the Agreement effective November 30, 2026 and expiration November 29, 2029.",
       spend:"$84,000.00", eff:"Nov 30, 2026", exp:"Nov 29, 2029",
-      say:{ open:{eyebrow:"CLM",title:"The full contract lifecycle, in one place",body:"The Medline supply agreement sits in CLM — version-controlled, with workflow tasks and obligations tracked."},
-        extract:{eyebrow:"AI Extractions",title:"Key terms pulled automatically",body:"Iris reads the document and extracts spend and dates — no manual metadata entry."},
-        decide:{eyebrow:"Workflow",title:"A guided review decision",body:"Priya's task: choose how to route the contract. CLM enforces the right path."},
-        decide2:{eyebrow:"Route",title:"Send for signature",body:"With review complete, she routes it straight to signature."},
-        complete:{eyebrow:"Complete",title:"The workflow advances",body:"Completing the task moves the agreement to the next step — every action logged and auditable."},
-        handoff:{eyebrow:"Closed loop",title:"Lifecycle, end to end",body:"Routed for signature and written back — the obligations clock starts automatically."} },
+      say:{ intro:{eyebrow:"CLM",title:"Ask about this agreement",body:"The Medline supply agreement sits in CLM — version-controlled, with AI Extractions and a workflow task. Ask Iris what it extracted, then route it for signature."},
+        routed:{eyebrow:"Closed loop",title:"Routed for signature",body:"The workflow decision became “Send for Signature” — the Medline agreement advances and the obligations clock starts, written back to Epic."} },
+      exchanges:[
+        {label:"What did Iris extract from this agreement?",
+         answer:"Three terms, read straight from the document — no manual entry:<br><br>• <b>Total spend</b> — $84,000.00<br>• <b>Effective</b> — Nov 30, 2026<br>• <b>Expiration</b> — Nov 29, 2029<br><br>All three are on the AI Extractions card in the Task panel."},
+        {label:"What's the term and expiration?",
+         answer:"It's a <b>fixed three-year term</b>: effective <b>Nov 30, 2026</b> through <b>Nov 29, 2029</b>. There's no auto-renewal clause — it expires on that date unless a new agreement is signed."},
+        {label:"Are there any non-standard clauses?",
+         answer:"Two worth a look:<br><br>• <b>§2.2 Right to Use</b> grants a <b>perpetual, irrevocable, transferable</b> license — broader than a standard term license.<br>• <b>§2.3</b> extends the license to Buyer's <b>affiliates and customers</b>.<br><br>Both are favorable to Riverside as Buyer; nothing here blocks signature."},
+        {label:"Route this for signature", route:true,
+         answer:"Review is complete and the terms check out. I can set the workflow decision to <b>Send for Signature</b> and route the Medline agreement now. Confirm?",
+         card:'<span class="agc-accept" data-route>✦ Send for Signature</span>'}
+      ],
       handoff:{h:"Routed through the lifecycle",p:"The Medline agreement moved through CLM review to signature — extracted terms and obligations written back to Epic."} }
   },
-  paintContent(p, root){
-    root.querySelector("#clm-acct").textContent=p.acct; root.querySelector("#clm-doc").textContent=p.doc;
-    root.querySelector("#clm-title").textContent=p.title; root.querySelector("#clm-p1").textContent=p.p1;
-    root.querySelector("#clm-x1").textContent=p.spend; root.querySelector("#clm-xspend").textContent=p.spend;
-    root.querySelector("#clm-xeff").textContent=p.eff; root.querySelector("#clm-xexp").textContent=p.exp;
-    // build dropdown with an id on the "Send for Signature" option
-    root.querySelector("#clm-drop").innerHTML = OPTS.slice(1).map(o=>'<div class="o"'+(o==="Send for Signature"?' id="clm-optsign"':'')+' data-opt="'+o+'">'+o+'</div>').join("");
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-  },
-  onTime(time, p, root){
-    root.querySelector("#clm-extract").classList.toggle("on", time>=6);
-    root.querySelector("#clm-x1").classList.toggle("lit", time>=6 && time<11.5);
-    root.querySelector("#clm-drop").classList.toggle("on", time>=11 && time<15.5);
-    const chosen = time>=15;
-    root.querySelector("#clm-selval").textContent = chosen ? "Send for Signature" : "Unselected";
-    const sign=root.querySelector("#clm-optsign"); if(sign) sign.classList.toggle("hot", time>=11);
-    root.querySelector("#clm-complete").classList.toggle("on", chosen);
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    // ---- render the CLM lifecycle content (brand/labels/values) ----
+    $("#clm-acct").textContent=p.acct; $("#clm-doc").textContent=p.doc;
+    $("#clm-title").textContent=p.title; $("#clm-p1").textContent=p.p1;
+    $("#clm-x1").textContent=p.spend; $("#clm-xspend").textContent=p.spend;
+    $("#clm-xeff").textContent=p.eff; $("#clm-xexp").textContent=p.exp;
+    // dropdown with an id on the "Send for Signature" option
+    $("#clm-drop").innerHTML = OPTS.slice(1).map(o=>'<div class="o"'+(o==="Send for Signature"?' id="clm-optsign"':'')+' data-opt="'+o+'">'+o+'</div>').join("");
+    // reset lifecycle state (Tasks scene active, nothing routed yet)
+    root.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active", s.dataset.scene==="clm"));
+    $("#clm-selval").textContent="Unselected";
+    $("#clm-complete").classList.remove("on");
+    $("#clm-x1").classList.remove("lit");
+    // handoff scene content
+    $("#ho-h").textContent=p.handoff?p.handoff.h:""; $("#ho-p").textContent=p.handoff?p.handoff.p:""; $("#ho-sor").textContent=p.sorNode;
+
+    api.narrate("intro"); api.progress(0); let done=0;
+    function bump(){ api.progress(Math.min(++done,4)); if(done>=4) api.done(); }
+
+    function routeForSignature(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Routed for signature";
+      // drive the CLM lifecycle visual: set the decision, light Complete, briefly flash the extracted spend
+      $("#clm-selval").textContent="Send for Signature";
+      $("#clm-complete").classList.add("on");
+      $("#clm-x1").classList.add("lit");
+      AgentChat.bubble($("#clm-chat"),"ai","Done — the workflow decision is set to <b>Send for Signature</b> and the "+p.supplier+" agreement is routed. The obligations clock starts and the extracted terms write back to "+p.sorName+".");
+      api.narrate("routed");
+      // advance to the closed-loop handoff scene
+      api.after(900,()=>{ root.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active", s.dataset.scene==="handoff")); });
+    }
+
+    AgentChat.mount({ chatEl:$("#clm-chat"), chipsEl:$("#clm-chips"), hint:"Ask about this agreement", speed:13,
+      intro:"I'm Iris. I've read this "+p.docKind+" and its AI Extractions — ask me about the spend, the term, the clauses, or route it for signature.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
+        after:()=>{ bump(); if(ex.route){ const b=$("#clm-chat").querySelector("[data-route]"); if(b) b.onclick=()=>routeForSignature(b); } } })) });
+
+    if(api.auto){ api.after(900,()=>{ const c=$("#clm-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(6000,()=>{ const chips=$("#clm-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
+      api.after(10500,()=>{ const b=$("#clm-chat").querySelector("[data-route]"); if(b && !b.classList.contains("done")) b.click(); }); }
   }
 });
 </script>
