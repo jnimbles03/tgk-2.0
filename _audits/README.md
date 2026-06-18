@@ -22,9 +22,9 @@ Two related passes on the FINS/HLS/PS demo set: (1) Scene 1 archetype audit on t
 The following live files now support `?usecase=fraud-fabric` and `?usecase=intake`:
 
 - **`stories/_shared/story-shell.html`** — added 6 new HOTSPOTS keys (portal_clear_idv, portal_webform, portal_submit, webform_intake, maestro_package, envelope_deliver), USECASE_SCENE_KEYS / USECASE_TEMPLATE_FILES / USECASE_TEMPLATE_MODES dispatch tables, srcForUsecaseScene() helper, async fetch of the narrations bundle when `?usecase=` is set, and usecase-aware SCENES build with re-render after fetch resolves. Default canonical 5-scene path is unchanged when `?usecase=` is not set.
-- **`story-templates/docusign-portal-shell.html`** (new) — customer-portal stub for fraud-fabric Scenes 1 + 2. Two modes: `?mode=clear-idv-login` (Maestro orchestrates CLEAR at the door) and `?mode=action-webform` (Maestro serves webform inside authenticated session). Per-vertical preset wiring for all 21 tenants/customers.
+- **`story-templates/docusign-portal-shell.html`** (new) — customer-portal stub for fraud-fabric Scenes 1 + 2. Two modes: `?mode=clear-idv-login` (Workflow Builder orchestrates CLEAR at the door) and `?mode=action-webform` (Workflow Builder serves webform inside authenticated session). Per-vertical preset wiring for all 21 tenants/customers.
 - **`story-templates/docusign-webform-intake.html`** (new) — webform-intake stub for intake-mechanics Scene 1. Renders archetype A (sender) or B (self-service) based on per-vertical preset.
-- **`story-templates/docusign-maestro-package.html`** (new) — Maestro fan-out visualizer for intake-mechanics Scene 2. Shows webform selections → packaged docs + recipient routing per vertical.
+- **`story-templates/docusign-maestro-package.html`** (new) — Workflow Builder fan-out visualizer for intake-mechanics Scene 2. Shows webform selections → packaged docs + recipient routing per vertical.
 - **`story-templates/docusign-agreement-desk-chain-of-custody.html`** (new) — chain-of-custody view for fraud-fabric Scene 3. Surfaces auth event + transaction event linked as a continuous identity thread, with per-vertical session/transaction context for all 21 tenants.
 
 URLs that work after this commit:

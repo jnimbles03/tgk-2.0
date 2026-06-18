@@ -15,7 +15,7 @@ to show what was considered and rejected as redundant/shoehorned.
 22 PDFs. The **H1 2026 Product Roadmap** is the spine; its "Use Case Scenarios"
 section (slides 65–77) is Docusign's *own* vertical→solution map and aligns
 almost 1:1 with the TGK grid. The other decks (eSignature, CLM, CLM+, Web Forms,
-Agreement Desk, Identify, Apple Wallet, Risk Assessment in Maestro, the IAM
+Agreement Desk, Identify, Apple Wallet, Risk Assessment in Workflow Builder, the IAM
 "TOP features" series, NYCRR-500 IDV, CLM connectors for Coupa/Workday) just
 confirm the individual capabilities exist and are sellable.
 
@@ -70,8 +70,8 @@ solution that *isn't* roadmap-backed. No corrections needed to the existing maps
 
 **Current baseline:** 15 flipbooks / 908 frames (`flipbooks/manifest.json`),
 frame-grounded from real product MP4s. Covered today: Web Forms (Tally Bank),
-Maestro Templates, CLM Procurement, Monitor, AI-Assisted Review (IAM), IAM for
-Sales + Agentforce, ID.me IAL2, IDVerse, Navigator, Search Agent, Search Demo,
+Workflow Builder Templates, CLM Procurement, Monitor, AI-Assisted Review (IAM), IAM for
+Sales + Agentforce, ID.me IAL2, IDVerse, Agreement Manager, Search Agent, Search Demo,
 Vendor Agreement Mgmt, Workspaces, CLEAR IAL2, Data Verification.
 
 The `demo/` folder holds 24 MP4s + 6 IDV clickthrough PDFs. Cross-referenced
@@ -84,7 +84,7 @@ against the 15 existing flipbooks and the roadmap, here is the verdict.
 | **App Center Demo.MP4** | App Center has **no** flipbook, yet it is the "activation & handoff" step in *every* roadmap use-case scenario (FINS, HLS, PubSec, CX). | The most-referenced product with zero product-accurate footage. |
 | **NDA demo 2x with Legal.MP4** | The **Legal Requests/Review/Redlining** motion (Agreement Desk + AI-Assisted Review redline) — currently only hand-built template, no flipbook. | Legal redlining is its own roadmap use-case (slide 72) and recurs in Sales/Procurement negotiation beats. |
 | **ID Verification: Apple Wallet – Clickthrough.PDF** | **Apple Wallet mDL** — headline Commit-pillar roadmap item; appears in FINS, HLS, CX & HR scenarios; today unbuilt. | Roadmap-confirmed (LA Jun '26). Clickthrough gives product-accurate frames instead of a guessed mock. *Flag US-only in copy.* |
-| **Maestro Workflow Start Methods.MP4** | Raises fidelity of **Scene 1 archetypes** (the 4 trigger methods) — the most-reused scene across all 60 cells. | Distinct from the existing Maestro *Templates* flipbook; it shows the trigger surface the archetype framework narrates. |
+| **Workflow Builder Workflow Start Methods.MP4** | Raises fidelity of **Scene 1 archetypes** (the 4 trigger methods) — the most-reused scene across all 60 cells. | Distinct from the existing Workflow Builder *Templates* flipbook; it shows the trigger surface the archetype framework narrates. |
 | **Docusign Agent in Microsoft 365 Copilot – Demo.MP4** | The **agentic** story (Custom Agents / Agent Studio / MCP, EA May '26) is hand-built today. | Real agent-in-Copilot footage backs the Headless-IAM / agentic vignette with product truth. |
 
 ### 🔧 Fidelity-only refs — extend existing IDV flipbooks, don't add scope
@@ -117,7 +117,7 @@ against the 15 existing flipbooks and the roadmap, here is the verdict.
   (TGK × Black Mesa MSA) and Banking-Atlas storylines — it could serve as a
   Scene-1 **cold-open hook**, which is a different job than the product demo.
 - **AI-Assisted Review for CLM Promo** — redundant with *AI-Assisted Review in IAM* flipbook.
-- **Maestro Demo Video / Maestro and App Center** — core Maestro already covered; *Start Methods* is the only distinct value.
+- **Workflow Builder Demo Video / Workflow Builder and App Center** — core Workflow Builder already covered; *Start Methods* is the only distinct value.
 - **DocuSign for Salesforce EFS** — eSignature integration is already pervasive across the spine.
 - **Comments Accessibility Demo** — minor Agreement Desk sub-feature.
 - **Docusign Momentum NYC Keynote (May 2026)** — keep as roadmap/narrative reference, not a flipbook.
@@ -126,7 +126,7 @@ against the 15 existing flipbooks and the roadmap, here is the verdict.
 
 ## Net effect
 
-Five new flipbooks (App Center, Legal/NDA redline, Apple Wallet mDL, Maestro
+Five new flipbooks (App Center, Legal/NDA redline, Apple Wallet mDL, Workflow Builder
 Start Methods, M365 Copilot agent) take the baseline from **15 → 20**, plus a
 small set of IDV clickthroughs to lift fidelity on flows that already exist.
 Everything recommended traces to a roadmap line item *and* an actual file in

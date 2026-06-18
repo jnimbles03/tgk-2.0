@@ -9,7 +9,7 @@
  * beats 2-5 which still describe Agreement Desk queue mechanics ("ticket
  * surfaces", "open the activity feed", "Documents tab", etc.) instead of
  * the webform journey ("select entity type", "configuration drives doc
- * set", "Maestro packaging preview", etc.).
+ * set", "Workflow Builder packaging preview", etc.).
  *
  * Source for the new beats: _audits/usecase-narrations-2026-04-27.json
  * → verticals[<key>].usecases.intake.scenes[0].beats

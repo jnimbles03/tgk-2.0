@@ -11,7 +11,7 @@
 * **Initiation Point:** Government Agency Public Portal (Webform).  
 * **Industry Vendor:** Salesforce (Public Sector Solutions).  
 * **Storyline:**  
-  * **Sender (Government Agency):** The agency maintains a public-facing portal. A Maestro Workflow is pre-configured to triage applications based on responses (e.g., fast-tracking emergency relief or veteran services).  
+  * **Sender (Government Agency):** The agency maintains a public-facing portal. A Workflow Builder Workflow is pre-configured to triage applications based on responses (e.g., fast-tracking emergency relief or veteran services).  
   * **Signer (Applicant/Constituent):** The applicant initiates the process from a mobile device, filling out a responsive webform. They verify their identity (IDV) via a government-issued ID scan to prevent fraud, and sign the application electronically.  
   * **Downstream:** The signed document and validated webform data are pushed directly into Salesforce Public Sector Solutions (the SOR). The applicant receives an automated email confirming receipt, and a workspace is automatically generated for the assigned caseworker to request additional documentation if needed.
 
@@ -22,7 +22,7 @@
 * **Storyline:**  
   * **Sender (Caseworker/System):** The agency's system automatically flags an individual or household due for annual recertification. It triggers a secure link sent via SMS or email.  
   * **Signer/User (Beneficiary):** *No signature is required.* The user clicks the link, undergoes Standalone Authentication (KBA or SMS OTP) to access a secure intake form, updates their financial/household data, and uploads recent paystubs or medical records to a secure Workspace.  
-  * **Downstream:** The uploaded data is routed directly into Dynamics 365 to update the constituent record, while the supporting documentation is securely routed to an agency SharePoint repository. A Maestro workflow auto-approves the recertification if the data falls within acceptable thresholds, bypassing manual review.
+  * **Downstream:** The uploaded data is routed directly into Dynamics 365 to update the constituent record, while the supporting documentation is securely routed to an agency SharePoint repository. A Workflow Builder workflow auto-approves the recertification if the data falls within acceptable thresholds, bypassing manual review.
 
 ---
 
@@ -46,7 +46,7 @@
 * **Storyline:**  
   * **Sender (Procurement Officer):** An agency has selected a vendor for a new contract but requires updated compliance documents (e.g., Certificate of Insurance, FedRAMP authorization, or diversity certifications) before contract generation.  
   * **Signer/User (Vendor Representative):** *No signature required.* The vendor authenticates into a secure Workspace via a provided link. They fill out a standardized webform detailing their compliance status and upload the required PDF certificates.  
-  * **Downstream:** The documents and data are pushed into ServiceNow. A Maestro Workflow triages the submission, verifying that all required fields and documents are present, and moves the vendor's status to "Approved" in ServiceNow, clearing the path for the final Agreement Desk task and Contract Gen.
+  * **Downstream:** The documents and data are pushed into ServiceNow. A Workflow Builder Workflow triages the submission, verifying that all required fields and documents are present, and moves the vendor's status to "Approved" in ServiceNow, clearing the path for the final Agreement Desk task and Contract Gen.
 
 ---
 
@@ -70,5 +70,5 @@
 * **Storyline:**  
   * **Sender (Agency Operations Center):** The agency needs to collect structured field data—either from a citizen reporting a community issue (like a pothole or code violation) or a contractor reporting a project milestone.  
   * **Signer/User (Citizen/Contractor):** *No signature required.* The user scans a QR code or clicks a link. They authenticate their identity (if required for contractors) or proceed as a guest (for citizens), fill out a dynamic Webform detailing the issue/milestone, and upload geolocated photos directly into a Workspace.  
-  * **Downstream:** The data and photos are pushed into ServiceNow, automatically creating a new case ticket. A Maestro workflow triages the request, assigns it to the appropriate field worker's queue, and dispatches an SMS confirmation to the user with their tracking number.
+  * **Downstream:** The data and photos are pushed into ServiceNow, automatically creating a new case ticket. A Workflow Builder workflow triages the request, assigns it to the appropriate field worker's queue, and dispatches an SMS confirmation to the user with their tracking number.
 

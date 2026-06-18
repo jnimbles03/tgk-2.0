@@ -234,7 +234,7 @@ Space, splash fades, autoplay resumes.
 - **SoR badge** — `System of record: <vendor>` pill in the chrome of
   every scene template. Mapping at `_audits/sor-mapping.md`. Wired via
   `/assets/sor-badge/{sor-badge.css, sor-badge.js}`.
-- **Navigator per-doc** — every preset now carries its own document
+- **Agreement Manager per-doc** — every preset now carries its own document
   content (docTitle / docHeading / docBody / docFields). No generic
   Master Services Agreement fallback.
 - **Workspace cast** — wealth preset rewritten from Amy Peters / Casey
@@ -416,7 +416,7 @@ inlined the splash. Notes preserved for historical traceability.
    by `?vertical=` + per-vertical preset." The chrome-alignment table
    referencing dead folders (payor-healthedge, federal-servicenow,
    insurance-la-duckcreek) was replaced with a brief historical note.
-   The Maestro template's "84 of 95 future-state components" claim was
+   The Workflow Builder template's "84 of 95 future-state components" claim was
    updated to "88 of 100 as of 2026-04-26."
 
 3. ~~**`mastercard-splash.css/.js` shared module**~~ — never existed.
@@ -483,10 +483,10 @@ total). Run an exact count when needed; this is the orientation.
 - `hls-roi`: 5
 - Cross-cutting (no scope suffix): 4 demo files
 
-The shell's Scene 4 (Navigator) doesn't currently surface these
+The shell's Scene 4 (Agreement Manager) doesn't currently surface these
 component mocks — the iframe loads `docusign-navigator.html` directly.
 **Question to resolve:** are future-state components meant to be
-Navigator surface variants, or do they live in the root samplers as
+Agreement Manager surface variants, or do they live in the root samplers as
 the destination of Scene 3 drill-downs?
 
 ---
@@ -500,7 +500,7 @@ In dependency order. Don't skip ahead — each step de-risks the next.
 The builder's new **Out of the Box guided mode** (`builder.html`, mode
 toggle in the topbar; `?mode=ootb` deep-link) offers a 4th archetype,
 **Document Intelligence**, currently wired to `?usecase=intake` as a
-stand-in. Per Jimmy: build a dedicated Navigator / agreement-AI story
+stand-in. Per Jimmy: build a dedicated Agreement Manager / agreement-AI story
 (extraction, obligations, repository intelligence) and swap the
 `docintel` URLs in builder.html's `OOTB_MAP` when it lands. Agentic
 source material: `story-templates/docusign-agents.html` + the 4
@@ -531,7 +531,7 @@ source material: `story-templates/docusign-agents.html` + the 4
 
 ### P3 — coverage matrix and SoR badge sweep (≤ 4 hours)
 
-9. **Wire future-state components into Navigator surfaces.** The
+9. **Wire future-state components into Agreement Manager surfaces.** The
    ~100 future-state files belong somewhere — the most natural slot
    is as Scene 3 (Signing) or Scene 4 (Data) drill-downs. Pick one
    vertical, prove the wiring, then sweep.
@@ -617,7 +617,7 @@ JSON references them per-beat as drill-downs or scene replacements.
 
 | Vignette | File | URL params | First-wired verticals |
 |---|---|---|---|
-| **Connected Forms** (Maestro · Add Connected Forms wizard + App Center · Field Mapping) | `/story-templates/docusign-connected-forms.html` | `?embed=1` (hide chrome) · `?view=maestro\|appcenter` · `?preset=wealth\|wealth-discovery\|insurance\|insurance-life\|insurance-pc\|generic` · `?step=1\|2\|3\|done` | wealth, wealth-discovery, insurance, insurance-life, insurance-pc |
+| **Connected Forms** (Workflow Builder · Add Connected Forms wizard + App Center · Field Mapping) | `/story-templates/docusign-connected-forms.html` | `?embed=1` (hide chrome) · `?view=maestro\|appcenter` · `?preset=wealth\|wealth-discovery\|insurance\|insurance-life\|insurance-pc\|generic` · `?step=1\|2\|3\|done` | wealth, wealth-discovery, insurance, insurance-life, insurance-pc |
 | **Contract Hierarchy** (agreement repository · party page → Define/Add/Relate wizard → two-level tree → share with access levels; ~42s loop modeled on the CY25.Q4 product design export at repo root) | `/story-templates/docusign-hierarchy.html` | `?embed=1` (flat, no caption) · `?preset=banking-ma\|generic` · `?scene=party\|hier-empty\|wiz-define\|wiz-add\|wiz-relate\|detail\|share` · `?hold=1` (freeze scene) · `?interactive=1` | banking (two-bank M&A lens), procurement; details in `story-templates/REGISTRY.md` §8 |
 
 ### Connected Forms — calling pattern
@@ -639,9 +639,9 @@ Hotspot anchors inside the vignette (queryable via `tgk:queryRect`):
 
 ### Why this lives outside the 5-scene spine
 
-The 5-scene spine (Agreement Desk · CLEAR · Signing · Navigator ·
+The 5-scene spine (Agreement Desk · CLEAR · Signing · Agreement Manager ·
 Workspace) is locked. Connected Forms isn't a sixth scene — it's a
-configuration moment that sits inside Maestro (visualized as Scene 1's
+configuration moment that sits inside Workflow Builder (visualized as Scene 1's
 Agreement Desk) and inside App Center (a Docusign admin surface, not
 part of any one scene). Treating it as a callable vignette lets:
 
@@ -677,7 +677,7 @@ reconciliation) gets executed.
   ROI in sampler). Sub-preset, or break out as a new vertical?
 - **Insurance has three stories** (HO3 binding in shell, L&A new-business
   in `insurance-life`, P&C in `insurance-pc`). Same question.
-- **Are future-state components meant to surface inside Navigator/Workspace
+- **Are future-state components meant to surface inside Agreement Manager/Workspace
   templates, or only as drill-downs from samplers?** This determines
   whether P3 step 9 wires components into iframe templates or into
   Scene 3 drill-down panels.

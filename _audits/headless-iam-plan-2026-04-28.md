@@ -39,16 +39,16 @@ Each portal needs ONE tenant whose product reasonably touches every IAM componen
 ### FINS — **Hillside Financial**
 Fictional unified financial-services tenant covering retail banking, commercial lending, and wealth management. Hillside is already in the existing shell as the wealth tenant; expand its scope here.
 - Customer onboarding (joint accounts) — touches webforms + identity + signing
-- Wealth management (Aster Capital relationship) — touches workspaces + Navigator
-- Commercial credit (Atlas working capital) — touches Maestro fan-out + signing
+- Wealth management (Aster Capital relationship) — touches workspaces + Agreement Manager
+- Commercial credit (Atlas working capital) — touches Workflow Builder fan-out + signing
 - Fraud monitoring (high-value wires) — touches Monitor + chain-of-custody
 - Sales agentic flow (Salesforce + Agentforce) — touches IAM for Sales
 
 ### HLS — **Riverside Health Network**
 Fictional integrated health system covering patient care, claims, and clinical research.
 - New patient intake — webforms + identity + signing
-- Records release (ROI to Silver Mountain) — Maestro + redaction
-- Site activation (HX-2104 trial via Helix as sub-tenant) — multi-party Maestro
+- Records release (ROI to Silver Mountain) — Workflow Builder + redaction
+- Site activation (HX-2104 trial via Helix as sub-tenant) — multi-party Workflow Builder
 - Member coordination (Unity HMO benefits) — workspaces
 - AI-assisted review of clinical agreements — AI-Assisted Review in IAM
 
@@ -57,8 +57,8 @@ Fictional county government covering citizen services, benefits, licensing, and 
 - Citizen 311 (Greenhaven adapted as a department) — webform + dispatch
 - Benefits intake (SNAP / Medicaid recert) — webform + auto-determination
 - Vendor compliance (Apex annual recert) — webform + identity + Monitor
-- New-hire onboarding (Marcus Lee as caseworker) — Maestro fan-out
-- Procurement (CLM-style vendor agreements) — Navigator + workspaces
+- New-hire onboarding (Marcus Lee as caseworker) — Workflow Builder fan-out
+- Procurement (CLM-style vendor agreements) — Agreement Manager + workspaces
 
 ---
 
@@ -68,10 +68,10 @@ Each portal shows the same six moments, themed per vertical. Visitor sees a tena
 
 | # | Moment | What IAM provides | Backing flipbook(s) |
 |---|---|---|---|
-| 1 | **Intake** | Webform + Maestro packaging | Web Forms (Tally Bank), Maestro Workflow Templates |
+| 1 | **Intake** | Webform + Workflow Builder packaging | Web Forms (Tally Bank), Workflow Builder Workflow Templates |
 | 2 | **Identity** | CLEAR / ID.me / IDVerse step-up | CLEAR IAL2, ID.me Member Authentication, IDVerse |
 | 3 | **Signing** | Tenant-branded signing ceremony | (already in `docusign-signing-ceremony.html`) |
-| 4 | **Search & Ask** | Navigator + Iris on past agreements | Navigator Demo, AI-Assisted Review in IAM |
+| 4 | **Search & Ask** | Agreement Manager + Iris on past agreements | Agreement Manager Demo, AI-Assisted Review in IAM |
 | 5 | **Workspace** | Multi-party persistent collaboration | Workspaces Demo |
 | 6 | **Audit & Monitor** | Risk surveillance, anomaly detection | Docusign Monitor, Data Verification External |
 
@@ -88,7 +88,7 @@ Optional 7th moment per vertical:
 
 Pick **FINS / Hillside Financial** as the first build. Justification:
 - The existing wealth + banking + insurance verticals already share Hillside-adjacent narrative
-- Most existing flipbook content (CLEAR, Maestro, Navigator, Workspaces, Web Forms, Monitor, IAM for Sales) maps cleanly
+- Most existing flipbook content (CLEAR, Workflow Builder, Agreement Manager, Workspaces, Web Forms, Monitor, IAM for Sales) maps cleanly
 - Highest demo-cycle ROI
 
 **Deliverables:**
@@ -104,7 +104,7 @@ Once FINS proves the pattern, copy to `hls.html` (Riverside Health Network) and 
 
 ### Phase 3 — Connect drill-downs to flipbook stills
 
-For moments where we have flipbooks (Navigator Demo, Monitor, AI-Assisted Review), use the flipbook stills as the drill-down content in addition to the existing iframe templates. Two-mode drill-downs: live iframe (interactive) or flipbook (high-fidelity stills walked through).
+For moments where we have flipbooks (Agreement Manager Demo, Monitor, AI-Assisted Review), use the flipbook stills as the drill-down content in addition to the existing iframe templates. Two-mode drill-downs: live iframe (interactive) or flipbook (high-fidelity stills walked through).
 
 ---
 

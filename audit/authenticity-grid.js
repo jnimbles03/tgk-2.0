@@ -74,9 +74,9 @@ function inferTemplate(tag) {
   if (/WORKSPACE|DEAL ROOM/.test(t)) return 'Workspace';
   if (/IDENTITY|IDV|CLEAR/.test(t)) return 'CLEAR';
   if (/SIGNING|SIGN/.test(t))      return 'Signing Ceremony';
-  if (/DATA|NAVIGATOR|EXTRACT/.test(t)) return 'Navigator';
+  if (/DATA|AGREEMENT MANAGER|EXTRACT/.test(t)) return 'Agreement Manager';
   if (/WEBFORM|TRIAGE|QUEUE/.test(t)) return 'Webform';
-  if (/MAESTRO/.test(t))           return 'Maestro';
+  if (/WORKFLOW BUILDER/.test(t))           return 'Workflow Builder';
   if (/AGENT/.test(t))             return 'Agents';
   if (/PORTAL/.test(t))            return 'Portal';
   if (/EHR|CLINICAL/.test(t))      return 'EHR';
@@ -89,7 +89,7 @@ function expectedPersonaSideForTag(tag) {
   const t = String(tag || '').toUpperCase();
   if (/IDENTITY|IDV|CLEAR/.test(t))                         return ['client', 'system'];
   if (/SIGNING/.test(t))                                    return ['client'];
-  if (/DATA|NAVIGATOR|EXTRACT/.test(t))                     return ['advisor', 'system'];
+  if (/DATA|AGREEMENT MANAGER|EXTRACT/.test(t))                     return ['advisor', 'system'];
   if (/WORKSPACE|DEAL ROOM/.test(t))                        return ['advisor', 'handoff'];
   if (/INTAKE|WEBFORM|TRIAGE|QUEUE|SENDER/.test(t))         return ['advisor'];
   if (/CHAIN[\s-]?OF[\s-]?CUSTODY|CUSTODY/.test(t))         return ['advisor', 'system'];

@@ -20,7 +20,7 @@ The capability palette:
 - **IDV / Authentication** — step-up identity verification (includes CLEAR)
 - **eSignature** — embedded signing session
 - **Click-to-Agree** — lightweight one-click attestation
-- **Navigator** — agreement search, AI-extracted fields, retrieval
+- **Agreement Manager** — agreement search, AI-extracted fields, retrieval
 - **AI Assisted Review** — Iris analyzing docs/clauses/forms
 - **Agreement Desk** — embedded post-signing record-of-truth surface
 - **Document Generation** — Doc Gen from host data on demand
@@ -42,16 +42,16 @@ Signature moment: **"New commercial deposit account opened, live, no paper."**
 1. **Deposit account opening.** In nCino, banker starts an account. *Web
    Forms* embedded as the intake on the business-entity details. *CLEAR IDV*
    for the signer. *Click-to-Agree* on the sub-T&Cs of the deposit product.
-   *eSignature* on the signature card. *Navigator* auto-writes the signed
+   *eSignature* on the signature card. *Agreement Manager* auto-writes the signed
    packet back to the customer's entity record.
 2. **Loan origination → closing.** *Doc Gen* assembles the loan packet from
    nCino data (note, guaranty, security agreement). *eSignature* in a
    single envelope. *AI Assisted Review* checks the packet against the
-   bank's credit policy before the booker approves. *Navigator* tracks the
+   bank's credit policy before the booker approves. *Agreement Manager* tracks the
    post-close covenant calendar.
 3. **KYC refresh cycle.** nCino flags accounts due. *SMS Delivery* of a
    short Web Forms link. *IDV step-up* if any material data changed.
-   *Navigator* writes the refreshed record and clears the flag.
+   *Agreement Manager* writes the refreshed record and clears the flag.
 4. **Commercial loan modification.** *Doc Gen* the amendment. *Workspaces*
    for the multi-party review (borrower + guarantor + relationship manager +
    credit officer + counsel). *eSignature* closes it out.
@@ -65,7 +65,7 @@ Signature moment: **"New commercial deposit account opened, live, no paper."**
    nCino. *AI Assisted Review* scans for fraud signals, routes low-risk
    directly to operations.
 8. **Vendor / fintech partner agreements.** *Agreement Desk* embedded as a
-   tab in the partner record. *eSignature* + *Navigator* for ongoing
+   tab in the partner record. *eSignature* + *Agreement Manager* for ongoing
    visibility into change-of-control / assignment clauses.
 
 ---
@@ -82,22 +82,22 @@ under 15 minutes from first touch."**
 1. **New household account opening.** *Web Forms* for client data. *CLEAR*
    for principal and joint signer. *Doc Gen* custodial agreements (Schwab /
    Fidelity / Pershing) from FSC data. *eSignature* in a single envelope.
-   *Navigator* writes the signed agreements back to the household record.
+   *Agreement Manager* writes the signed agreements back to the household record.
 2. **Account maintenance — material change.** Address, beneficiary, wire
    instructions, power-of-attorney. *Web Forms* pre-filled from FSC. *IDV
-   step-up* (CLEAR for high-material like POA). *eSignature* + *Navigator*.
+   step-up* (CLEAR for high-material like POA). *eSignature* + *Agreement Manager*.
 3. **Account maintenance — low-touch.** Auto-deposit changes, e-statement
    opt-in. *Click-to-Agree* inside the FSC client portal.
 4. **Investment Policy Statement refresh.** *Doc Gen* the IPS from CRM
    risk-profile data. *AI Assisted Review* flags language drift from the
-   firm's template. *eSignature* + *Navigator*.
+   firm's template. *eSignature* + *Agreement Manager*.
 5. **Quarterly client letters.** *Doc Gen* personalized market commentary.
    *SMS Delivery* with a short link; *Click-to-Agree* captures the "read &
    acknowledged" receipt.
 6. **Beneficiary update with spousal consent.** *Web Forms* client-facing.
-   Separate *eSignature* envelope to the spouse. *Navigator* stores the
+   Separate *eSignature* envelope to the spouse. *Agreement Manager* stores the
    paired record.
-7. **Compliance attestation cycle.** *Navigator* searches for stale
+7. **Compliance attestation cycle.** *Agreement Manager* searches for stale
    attestations. *AI Assisted Review* generates the list of outstanding
    reps. *Click-to-Agree* at scale for renewals.
 8. **RIA back-office ops.** *Workspaces* for advisor onboarding, succession
@@ -117,17 +117,17 @@ Four vignettes (use any as a signature depending on the prospect):
 
 1. **Material change at the kitchen table** — `material-change-address.html`
    — address update with CLEAR step-up IDV + Click-to-Agree + paired eSig +
-   Navigator write-back across CRM, Orion, and the custodian. 6-minute cycle.
+   Agreement Manager write-back across CRM, Orion, and the custodian. 6-minute cycle.
 2. **New account, end-to-end** — `new-account-end-to-end.html` — one
    envelope chain executes Web Forms → CLEAR → Doc Gen (14 docs) → eSig →
-   Navigator in a single advisor session. "Send" triggers the whole thing.
+   Agreement Manager in a single advisor session. "Send" triggers the whole thing.
 3. **Investor self-service from the phone** — `investor-mobile-selfservice.html`
    — 320px phone mockup. Investor completes an ACH routing change in 4 taps,
    94 seconds, zero advisor involvement. Device-bound CLEAR + attestation +
-   eSig + Navigator write-back.
+   eSig + Agreement Manager write-back.
 4. **Modular IAM showcase** — `modular-iam-showcase.html` — one household
    with 8 Docusign capabilities active in parallel (Web Forms, CLEAR, C2A,
-   Doc Gen, eSig, Maestro, Workspaces, Navigator). The "Why modular &gt;
+   Doc Gen, eSig, Workflow Builder, Workspaces, Agreement Manager). The "Why modular &gt;
    monolithic" argument, visualized.
 
 The legacy `stories/wealth-onboarding/` prototype is kept untouched as
@@ -146,7 +146,7 @@ audit trail."**
 
 1. **Quote → bind.** *Doc Gen* the policy + declarations from PolicyCenter
    data. *Click-to-Agree* on fraud acknowledgments. *eSignature* on the
-   application. *Navigator* books the bound policy to the account record.
+   application. *Agreement Manager* books the bound policy to the account record.
 2. **FNOL intake.** *Web Forms* embedded in the insured portal (statement +
    photo upload). *AI Assisted Review* auto-tags severity and subro
    potential. ClaimCenter opens a claim with the artifacts pre-attached.
@@ -154,7 +154,7 @@ audit trail."**
    sworn statement. Piped into the claim file.
 4. **Subrogation demand.** *Doc Gen* demand letter from the claim +
    recovery data. *SMS Delivery* or certified-email with tracking.
-   *Navigator* tracks responses, flags non-responders.
+   *Agreement Manager* tracks responses, flags non-responders.
 5. **Vendor collaboration.** Body shop / contractor / IA estimate
    collection. *Workspaces* is the shared room; estimates drop in, get
    reconciled, get signed off with *eSignature*.
@@ -162,7 +162,7 @@ audit trail."**
    renewals. *Doc Gen* renewal packages; *eSignature* where a signature
    is required.
 7. **Endorsement / policy change.** *Doc Gen* endorsement + short *Web
-   Form* for the change data. *eSignature* + *Navigator*.
+   Form* for the change data. *eSignature* + *Agreement Manager*.
 8. **Loss-run issuance.** *Web Forms* for broker requests. *Doc Gen* from
    ClaimCenter data. *SMS / email delivery* with a signed receipt.
 
@@ -208,7 +208,7 @@ Signature moment: **"Provider contract signed, loaded to Facets, and
 first claim priced against it — same day."**
 
 1. **Provider contracting.** *Doc Gen* the contract from rate tables in
-   the payor system. *eSignature* + *Navigator* tracks the effective-date
+   the payor system. *eSignature* + *Agreement Manager* tracks the effective-date
    calendar.
 2. **Prior authorization.** *Web Forms* submitted by the provider. *AI
    Assisted Review* scores medical-necessity language against clinical
@@ -223,7 +223,7 @@ first claim priced against it — same day."**
    it updates. Reduces calls to case managers.
 6. **Network credentialing.** *Workspaces* for the multi-doc credentialing
    packet. *Agreement Desk* embedded as the provider-facing record.
-7. **EOB delivery.** *SMS* short link + *Navigator* as the stored record
+7. **EOB delivery.** *SMS* short link + *Agreement Manager* as the stored record
    for member self-service.
 8. **HEDIS / STARS compliance outreach.** *Doc Gen* personalized letters
    explaining gaps. *SMS* with *Click-to-Agree* appointment scheduling.
@@ -241,21 +241,21 @@ honored, billed, and posted back to the chart — without leaving Epic."**
 
 1. **Release of Information (ROI).** *Web Forms* from the requester
    (carrier, attorney, another provider). *CLEAR IDV* for the patient
-   authorization. *Doc Gen* the compiled packet from the chart. *Navigator*
+   authorization. *Doc Gen* the compiled packet from the chart. *Agreement Manager*
    archives the authorization + release event on the patient record.
 2. **Patient pre-surgical consent.** *Click-to-Agree* embedded in MyChart
    on the informed-consent text; *eSignature* for procedure-specific
-   consent. *Navigator* stores the signed consent alongside the encounter.
+   consent. *Agreement Manager* stores the signed consent alongside the encounter.
 3. **Physician cosign queue.** *eSignature* directly in the Hyperspace In
    Basket. *AI Assisted Review* summarizes the co-signed note for the
    attending.
 4. **HIPAA authorization for third parties.** *Web Forms* + *CLEAR* +
-   *eSignature*. Stored to chart via *Navigator*.
+   *eSignature*. Stored to chart via *Agreement Manager*.
 5. **Financial counseling / estimates.** *Doc Gen* Good Faith Estimate
    from billing data. *eSignature* by the patient. *AI Assisted Review*
    flags variance against historical same-DRG claims.
 6. **Clinical trial enrollment.** *Web Forms* for consent content. *CLEAR*
-   if the trial is interventional. *eSignature* + *Navigator* stores the
+   if the trial is interventional. *eSignature* + *Agreement Manager* stores the
    ICF in both the chart and the sponsor's Veeva Vault.
 7. **Disability / return-to-work letters.** *Web Forms* from an employer
    or carrier. *eSignature* by the physician inside the In Basket. *SMS*
@@ -275,10 +275,10 @@ captured, and the first patient is randomized — audit chain intact."**
 
 1. **Clinical site agreement.** *Doc Gen* the site agreement from CTMS
    data. *Workspaces* for the multi-party review (sponsor, CRO, site PI,
-   legal). *eSignature* closes it. *Navigator* writes back to Vault eTMF.
+   legal). *eSignature* closes it. *Agreement Manager* writes back to Vault eTMF.
 2. **Informed consent (patient).** *Web Forms* patient-facing via MyVeeva.
    *CLEAR* optional depending on trial protocol. *eSignature* + Vault CDMS
-   + Navigator audit thread.
+   + Agreement Manager audit thread.
 3. **1572 Form.** *Doc Gen* from RIM + eTMF data. *eSignature* by the
    investigator. Auto-filed to eTMF.
 4. **PromoMats MLR approval.** *Workspaces* for the medical-legal-
@@ -286,7 +286,7 @@ captured, and the first patient is randomized — audit chain intact."**
    label. *Click-to-Agree* attestation from each reviewer.
 5. **CRO / supplier agreements.** *Agreement Desk* embedded in the Vault
    contracts library. *eSignature* + change-of-control / assignment
-   tracking via *Navigator*.
+   tracking via *Agreement Manager*.
 6. **Quality deviation / CAPA.** *Web Forms* for the deviation report.
    *Doc Gen* CAPA plan. *eSignature* by quality lead.
 7. **Adverse event reporting.** *Web Forms* (HCP or patient). *AI
@@ -315,16 +315,16 @@ NIST IAL2, determination letter is signed and delivered — same session."**
    deposit, EDL. *CLEAR IAL2* for security clearance. *eSignature* packet.
    *Workspaces* for benefits + insurance + retirement.
 4. **Contract modification (GovCon).** *Doc Gen* the mod from the contract
-   writing system. *eSignature* + *Navigator* for the CLIN-level delta.
+   writing system. *eSignature* + *Agreement Manager* for the CLIN-level delta.
 5. **Grant application.** *Workspaces* for multi-signatory PI + IRB +
    finance. *eSignature* + *Agreement Desk* for reporting milestones.
 6. **Security clearance reinvestigation.** *Web Forms* pre-filled from
    existing record. *CLEAR step-up*. *eSignature* on SF-86.
 7. **Procurement (vendor contracts).** *Agreement Desk* embedded in the
-   GWAC / BPA record. *eSignature* + *Navigator* for assignment and
+   GWAC / BPA record. *eSignature* + *Agreement Manager* for assignment and
    option-year tracking.
 8. **Policy acknowledgment distribution.** *Click-to-Agree* across
-   employee DL. *Navigator* for the attestation roster.
+   employee DL. *Agreement Manager* for the attestation roster.
 
 ---
 
@@ -337,7 +337,7 @@ Signature moment: **"A contractor pulls a building permit, pays the
 fee, and signs the permit — in one sitting from their truck."**
 
 1. **Building permit.** *Web Forms* application + *Doc Gen* permit
-   package. *eSignature* by applicant. *Agreement Desk* or *Navigator* for
+   package. *eSignature* by applicant. *Agreement Desk* or *Agreement Manager* for
    the permit record. *SMS* when inspection is ready.
 2. **Business license renewal.** *Click-to-Agree* on attestations. *Doc
    Gen* renewed certificate. *SMS Delivery* of the digital license.
@@ -347,13 +347,13 @@ fee, and signs the permit — in one sitting from their truck."**
    historical data. *AI Assisted Review* flags discrepancies for a human.
    *Doc Gen* determination. *eSignature* + *SMS*.
 5. **Court filing (civil).** *Web Forms* for pro se filers. *eSignature* +
-   *Navigator* to the court case management system.
+   *Agreement Manager* to the court case management system.
 6. **311 / constituent service.** *Web Forms* intake. *SMS* status
    updates. *Click-to-Agree* on resolution acknowledgment.
 7. **Voter registration.** *Web Forms* + *CLEAR IDV*. Written back to the
    state SoR.
 8. **Property tax appeal.** *Web Forms* evidence upload. *Doc Gen*
-   notice. *eSignature* + *Navigator*.
+   notice. *eSignature* + *Agreement Manager*.
 
 ---
 
@@ -367,11 +367,11 @@ contract, and enrolls in orientation — all from their phone."**
 
 1. **Admissions application.** *Web Forms* on the applicant portal.
    *eSignature* on the application + parental signature (minors) in a
-   paired envelope. *Navigator* feeds Slate / Workday.
+   paired envelope. *Agreement Manager* feeds Slate / Workday.
 2. **FAFSA support + award acceptance.** *Web Forms* (if any). *IDV* for
    parent-signer. *eSignature* on the award letter. *SMS* status.
 3. **Enrollment packet.** *Click-to-Agree* on the student code of
-   conduct, tech-use policy, health insurance waiver. *Navigator* for the
+   conduct, tech-use policy, health insurance waiver. *Agreement Manager* for the
    acceptance record.
 4. **Transcript / records request.** *Web Forms* from the requester.
    *eSignature* for the student consent. *Doc Gen* sealed transcript.
@@ -400,7 +400,7 @@ manufacturing, energy, and large federal contractors. The Workbench →
 Contract record flow is instantly recognizable to anyone in procurement
 or legal ops, and Emptoris's weak native authoring + signing make it a
 high-leverage host for headless Docusign embeds (Doc Gen + eSign +
-Navigator + Agreement Desk modernize the suite without ripping it out).
+Agreement Manager + Agreement Desk modernize the suite without ripping it out).
 
 Other CLM SoRs (Icertis, Ariba Contracts, SirionLabs) reuse the same
 portal — palette swap only.
@@ -434,7 +434,7 @@ attachment ever leaving email."**
 5. **Send for signature (eSignature).** *eSignature* ceremony fires
    from the record with one click. Signed envelope writes back as the
    contract document of record; Emptoris stage pill flips to *Active*.
-6. **Repository search (Navigator).** *Navigator* tab inside the record
+6. **Repository search (Agreement Manager).** *Agreement Manager* tab inside the record
    exposes an AI-extracted clause repository across the Emptoris book —
    "show me every MSA with a 3× liability cap signed in the last 18
    months." Outputs a ranked list with citations.
@@ -474,7 +474,7 @@ separate per-portal HTML.
 | 1 | Sender · Agreement Desk | `docusign-agreement-desk.html?preset=<v>` | `agreement_desk` |
 | 2 | Identity · CLEAR | `docusign-clear-idv.html?preset=<v>` | `clear_idv` |
 | 3 | Signing | `docusign-signing-ceremony.html?preset=<v>` | `signing` |
-| 4 | Data · Navigator | `docusign-navigator.html?preset=<v>` | `navigator` |
+| 4 | Data · Agreement Manager | `docusign-navigator.html?preset=<v>` | `navigator` |
 | 5 | Workspace | `docusign-workspace.html?preset=<v>[&splash=1]` | `workspace` |
 
 **Hotspot coordinates are shared across all 10 verticals** because they

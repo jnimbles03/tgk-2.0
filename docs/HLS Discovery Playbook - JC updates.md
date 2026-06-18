@@ -21,7 +21,7 @@ The current design phase is hindered by manual oversight and fragmented communic
 
 By implementing [Docusign IAM](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) (Intelligent Agreement Management), the organization transforms agreement data into a structured, automated workflow.
 
-* **Maestro Workflows automate routing with integrated conditional logic steps.**  
+* **Workflow Builder Workflows automate routing with integrated conditional logic steps.**  
 * **Digital checklists ensure all regulatory compliance standards are met.**  
 * **Standardized templates reduce document preparation time by fifty percent.**  
 * **AppCenter integrations sync program data directly with internal systems.**  
@@ -53,9 +53,9 @@ The transition from program design to operational requirements is often stalled 
 
 [Docusign IAM](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) centralizes the "Agreement" lifecycle, ensuring that enrollment processes are both compliant and rapid.
 
-* [**Maestro**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **orchestrates cross-functional reviews of all required enrollment forms.**  
+* [**Workflow Builder**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **orchestrates cross-functional reviews of all required enrollment forms.**  
 * **Document Generation dynamically populates forms based on specific program rules.**  
-* **Navigator provides a centralized repository for all approved program documentation.**  
+* **Agreement Manager provides a centralized repository for all approved program documentation.**  
 * **Conditional routing ensures Legal and Compliance review specific jurisdiction requirements.**  
 * **Standardized metadata tagging allows for rapid searching of enrollment criteria.**  
 * **Agreement Insights identify process friction to optimize the enrollment flow.**
@@ -89,7 +89,7 @@ The verification stage is currently a manual, document-heavy process that delays
 
 * [**Web Forms**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **capture accurate patient data with integrated conditional logic.**  
 * [**ID Verification**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **automates document validation using configurable risk thresholds.**  
-* [**Maestro Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **route applications automatically based on rule-based approval paths.**  
+* [**Workflow Builder Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **route applications automatically based on rule-based approval paths.**  
 * **SLA monitoring provides real-time visibility into verification cycle times.**  
 * **Automated notifications keep patients informed of their eligibility status.**  
 * **Centralized digital audit trails simplify regulatory reporting and compliance.**
@@ -124,7 +124,7 @@ The consent process is often the "make or break" point for patient enrollment, w
 * [**SMS Delivery**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **allows patients to sign authorizations instantly on mobile devices.**  
 * **Smart Forms ensure every required HIPAA field is completed correctly.**  
 * [**Identity Verification**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **provides high-assurance authentication for sensitive medical legal documents.**  
-* [**Maestro Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **trigger downstream enrollment tasks immediately upon consent completion.**  
+* [**Workflow Builder Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **trigger downstream enrollment tasks immediately upon consent completion.**  
 * **Digital audit trails provide a tamper-evident record for OIG compliance.**  
 * **Automatic expiration alerts notify managers when re-authorization is required soon.**
 
@@ -154,11 +154,11 @@ The final enrollment step often faces delays due to manual data entry and discon
 [Docusign IAM](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) automates the transition from "approved applicant" to "enrolled member" by syncing data and triggering fulfillment instantly.
 
 * [**Document Generation**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **creates personalized program cards and welcome letters instantly.**  
-* [**Maestro Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **push enrollment data directly into the CRM or HUB.**  
+* [**Workflow Builder Workflows**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **push enrollment data directly into the CRM or HUB.**  
 * **Digital "Wallets" allow patients to store program cards on smartphones.**  
 * **Automated email/SMS triggers provide patients with immediate enrollment confirmation.**  
 * **Integrations with fulfillment vendors automate the dispatch of physical kits.**  
-* [**Navigator**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **stores the final enrollment packet for instant future retrieval.**
+* [**Agreement Manager**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **stores the final enrollment packet for instant future retrieval.**
 
 ### **📈 Projected Outcome**
 
@@ -186,7 +186,7 @@ Post-enrollment support is often reactive and administratively heavy, leading to
 [Docusign IAM](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) provides a centralized, digital foundation for clinical interactions, ensuring all support activities are documented and actionable.
 
 * [**eSignature**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **with ID Verification secures all sensitive patient-provider documents.**  
-* [**Navigator**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **provides real-time dashboards for tracking key adherence terms.**  
+* [**Agreement Manager**](https://sites.google.com/docusign.com/hlss/needs-curation-ai-generated/life-sciences) **provides real-time dashboards for tracking key adherence terms.**  
 * **Automated workflows trigger alerts for mandatory follow-up call schedules.**  
 * **AI-extracted insights highlight potential treatment barriers from nurse notes.**  
 * **Tamper-evident seals ensure the integrity of all clinical intervention logs.**  

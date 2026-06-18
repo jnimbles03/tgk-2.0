@@ -42,7 +42,7 @@ CANONICAL_SPINES = {
         #   Self-service: client opens themselves → system identity → client signs → system/advisor data → advisor workspace
         #     (education student portal, fedgov UI claim, slgov self-service)
         # Identity at S2 is performed by the client (the recipient verifies)
-        # OR system orchestrates (Maestro/CLEAR for self-service flows).
+        # OR system orchestrates (Workflow Builder/CLEAR for self-service flows).
         "expected_sides": ["advisor|client", "client|system", "client", "advisor|system", "advisor"],
     },
     "intake": {
@@ -64,7 +64,7 @@ CANONICAL_SPINES = {
         # Portal Entry: the user (often client; sometimes an internal actor
         #   like a bank RM) logs in; CLEAR runs in background.
         # In-Session Action: the user initiates a sensitive action (transfer,
-        #   roster change, draw request). Maestro serves infrastructure but
+        #   roster change, draw request). Workflow Builder serves infrastructure but
         #   the ACTOR is the user from S1.
         # Chain of Custody: a reviewer (advisor-side) sees the unified
         #   binding record in Agreement Desk.
@@ -77,12 +77,12 @@ CANONICAL_SPINES = {
     "maintenance": {
         "scenes": ["Portal Entry", "Form", "Confirmation"],
         # Two maintenance variants:
-        #   Customer-driven: client logs in, Maestro serves form, advisor reviews
+        #   Customer-driven: client logs in, Workflow Builder serves form, advisor reviews
         #     and confirms. (Banking-deposits beneficiary update, wealth signer
         #     change, etc.)
-        #   Maestro-triggered: a renewal/recertification window fires; the
+        #   Workflow Builder-triggered: a renewal/recertification window fires; the
         #     workflow assembles a package; the customer signs; the advisor
-        #     confirms. S1 actor here is the system (Maestro), not the client.
+        #     confirms. S1 actor here is the system (Workflow Builder), not the client.
         #     (Procurement vendor renewal, slgov-recertification, etc.)
         "expected_sides": ["client|system", "client|system", "advisor"],
     },

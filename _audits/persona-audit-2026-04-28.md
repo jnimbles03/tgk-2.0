@@ -24,7 +24,7 @@
 **21 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 3
@@ -32,8 +32,8 @@
   - Assigned: `system` — Iris
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the draw request webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the draw request webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the transaction for anomalies."
@@ -49,19 +49,19 @@
 
 - **fraud-fabric** / Scene 2 / Beat 4
   - Narration: "Draw settled same day; full audit trail retained."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 0 / Beat 1
   - Narration: "Facility details and structure selections drive the package."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Maestro submission routes to document generation and approval queue."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder submission routes to document generation and approval queue."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the loan agreement template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the loan agreement template."
+  - Assigned: `system` — Workflow Builder
 
 _... and 11 more beats_ (full list available in audit data)
 
@@ -70,12 +70,12 @@ _... and 11 more beats_ (full list available in audit data)
 **23 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts the app login and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts the app login and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the external-transfer webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the external-transfer webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the transfer for fraud and compliance violations."
@@ -91,23 +91,23 @@ _... and 11 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 2 / Beat 4
   - Narration: "Defensible record — both halves of the chain on file."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **maintenance** / Scene 0 / Beat 1
-  - Narration: "Maestro recognizes the intent and invokes CLEAR."
+  - Narration: "Workflow Builder recognizes the intent and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **maintenance** / Scene 0 / Beat 4
   - Narration: "Authenticated session opens with the change form ready."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **maintenance** / Scene 1 / Beat 0
   - Narration: "Form opens with current beneficiary records pre-filled."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **maintenance** / Scene 1 / Beat 2
   - Narration: "Adaeze receives an in-app prompt to acknowledge."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 _... and 13 more beats_ (full list available in audit data)
 
@@ -120,7 +120,7 @@ _... and 13 more beats_ (full list available in audit data)
   - Assigned: `advisor` — Priya Das
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -129,15 +129,15 @@ _... and 13 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 3
   - Narration: "ID + selfie + biometric match."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 0
   - Narration: "Priya selects 'Release Official Transcript'."
   - Assigned: `advisor` — Priya Das
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the FERPA-authorization webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the FERPA-authorization webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Priya enters recipient details: graduate program, department."
@@ -170,8 +170,8 @@ _... and 29 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills from prior certification and claim record."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pre-fills from prior certification and claim record."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Iris pre-screens for anomalies or policy violations."
@@ -195,11 +195,11 @@ _... and 29 more beats_ (full list available in audit data)
 
 - **intake** / Scene 0 / Beat 3
   - Narration: "Availability and work-search selections branch the package."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 0 / Beat 4
   - Narration: "Taylor reviews the configured claim and submits."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 _... and 10 more beats_ (full list available in audit data)
 
@@ -208,12 +208,12 @@ _... and 10 more beats_ (full list available in audit data)
 **20 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts the login and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts the login and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the coverage-change webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the coverage-change webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the coverage change for underwriting violations."
@@ -229,23 +229,23 @@ _... and 10 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 2 / Beat 4
   - Narration: "Coverage change effective immediately; full audit trail retained."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Maestro submission routes to document generation and approval queue."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder submission routes to document generation and approval queue."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the HO3 application template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the HO3 application template."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 1
-  - Narration: "Maestro generates the binder."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder generates the binder."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 2
-  - Narration: "Maestro compiles the prior-claims disclosure."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder compiles the prior-claims disclosure."
+  - Assigned: `system` — Workflow Builder
 
 _... and 10 more beats_ (full list available in audit data)
 
@@ -254,7 +254,7 @@ _... and 10 more beats_ (full list available in audit data)
 **20 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts the login and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts the login and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 4
@@ -262,8 +262,8 @@ _... and 10 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the payment-redirect webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the payment-redirect webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the payment redirect for risk violations."
@@ -279,19 +279,19 @@ _... and 10 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 2 / Beat 4
   - Narration: "Payment redirect executed next business day; full audit trail retained"
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Maestro submission routes to document generation and beneficiary outre"
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder submission routes to document generation and beneficiary outre"
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the proof-of-loss template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the proof-of-loss template."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 1
-  - Narration: "Maestro generates the payment election form."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder generates the payment election form."
+  - Assigned: `system` — Workflow Builder
 
 _... and 10 more beats_ (full list available in audit data)
 
@@ -304,7 +304,7 @@ _... and 10 more beats_ (full list available in audit data)
   - Assigned: `advisor` — Priya Das
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts the login and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts the login and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -324,8 +324,8 @@ _... and 10 more beats_ (full list available in audit data)
   - Assigned: `advisor` — Priya Das
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the evidence-upload webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the evidence-upload webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Priya uploads repair-estimate photos and writes a status note."
@@ -346,7 +346,7 @@ _... and 37 more beats_ (full list available in audit data)
 **17 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -355,11 +355,11 @@ _... and 37 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 3
   - Narration: "ID + selfie + biometric match."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the SAE webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the SAE webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens for completeness."
@@ -374,8 +374,8 @@ _... and 37 more beats_ (full list available in audit data)
   - Assigned: `system` — Iris
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the right CTA variant."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the right CTA variant."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 2 / Beat 1
   - Narration: "CLEAR step-up initiates for license verification."
@@ -393,10 +393,10 @@ _... and 7 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 0
   - Narration: "Rosa enters her grantee portal login from her phone."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro invokes CLEAR at the portal login."
+  - Narration: "Workflow Builder invokes CLEAR at the portal login."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -416,12 +416,12 @@ _... and 7 more beats_ (full list available in audit data)
   - Assigned: `advisor` — Rosa Patel
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro presents the line-item attestation and expended-amount certifi"
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder presents the line-item attestation and expended-amount certifi"
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Rosa certifies the spend breakdown and planned Q2 expenses."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the request for financial anomalies or policy violati"
@@ -438,7 +438,7 @@ _... and 35 more beats_ (full list available in audit data)
 **15 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -447,11 +447,11 @@ _... and 35 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 3
   - Narration: "ID + selfie + biometric match."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the PA-request webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the PA-request webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens against formulary and clinical policy."
@@ -466,8 +466,8 @@ _... and 35 more beats_ (full list available in audit data)
   - Assigned: `system` — Iris
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the right Silver HMO enrollment variant."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the right Silver HMO enrollment variant."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 2 / Beat 1
   - Narration: "CLEAR step-up initiates for member identity verification."
@@ -484,16 +484,16 @@ _... and 5 more beats_ (full list available in audit data)
 **17 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro detects active Schedule II Rx on file."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder detects active Schedule II Rx on file."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 0 / Beat 2
   - Narration: "CLEAR session opens on Jordan's phone."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the refill webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the refill webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens for early-refill or interaction flags."
@@ -508,19 +508,19 @@ _... and 5 more beats_ (full list available in audit data)
   - Assigned: `system` — Iris
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Submit triggers Maestro packaging."
-  - Assigned: `system` — Maestro
+  - Narration: "Submit triggers Workflow Builder packaging."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro selects consent set per visit type."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder selects consent set per visit type."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 3 / Beat 3
   - Narration: "Iris in the rail."
   - Assigned: `system` — Iris
 
 - **maintenance** / Scene 0 / Beat 1
-  - Narration: "Maestro recognizes the intent and invokes CLEAR."
+  - Narration: "Workflow Builder recognizes the intent and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 _... and 7 more beats_ (full list available in audit data)
@@ -530,7 +530,7 @@ _... and 7 more beats_ (full list available in audit data)
 **10 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -539,11 +539,11 @@ _... and 7 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 3
   - Narration: "ID + selfie + biometric match."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the modification webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the modification webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens for validity."
@@ -559,11 +559,11 @@ _... and 7 more beats_ (full list available in audit data)
 
 - **intake** / Scene 0 / Beat 3
   - Narration: "She selects authorization status: requires patient consent."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the right HIPAA authorization template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the right HIPAA authorization template."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 2 / Beat 1
   - Narration: "CLEAR step-up initiates for patient identity verification."
@@ -582,8 +582,8 @@ _... and 7 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills the modification form."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pre-fills the modification form."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Iris pre-screens for zoning and fee implications."
@@ -598,12 +598,12 @@ _... and 7 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the application form and supporting docs."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the application form and supporting docs."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 4
   - Narration: "Packet ready for delivery."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 2 / Beat 2
   - Narration: "Ownership verified via CLEAR at signing time."
@@ -628,8 +628,8 @@ _... and 6 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills the update form."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pre-fills the update form."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris checks for report fraud patterns."
@@ -649,15 +649,15 @@ _... and 6 more beats_ (full list available in audit data)
 
 - **intake** / Scene 0 / Beat 3
   - Narration: "Photo upload and size estimate."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro auto-classifies: Streets · Pavement · Pothole."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder auto-classifies: Streets · Pavement · Pothole."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 1
   - Narration: "On-rotation crew assignment (Cedar Ave team) confirmed."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 _... and 5 more beats_ (full list available in audit data)
 
@@ -674,8 +674,8 @@ _... and 5 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills from the prior application."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pre-fills from the prior application."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Yolanda reports the change — a new dependent."
@@ -694,8 +694,8 @@ _... and 5 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the SNAP application + supporting docs."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the SNAP application + supporting docs."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 2 / Beat 2
   - Narration: "Identity verified via CLEAR at signing time."
@@ -716,7 +716,7 @@ _... and 6 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro invokes CLEAR at the portal login."
+  - Narration: "Workflow Builder invokes CLEAR at the portal login."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -736,7 +736,7 @@ _... and 6 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills the webform with CLEAR's document-type result."
+  - Narration: "Workflow Builder pre-fills the webform with CLEAR's document-type result."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 2
@@ -759,10 +759,10 @@ _... and 20 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 0
   - Narration: "Mei enters her licensee portal login from her phone."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro invokes CLEAR at the portal login."
+  - Narration: "Workflow Builder invokes CLEAR at the portal login."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -778,12 +778,12 @@ _... and 20 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro presents renewal confirmation and amendment options."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder presents renewal confirmation and amendment options."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Mei selects the outdoor seating amendment and updates the renewal."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the amendment for zoning and code conflicts."
@@ -804,7 +804,7 @@ _... and 19 more beats_ (full list available in audit data)
 **14 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro invokes CLEAR for member-portal step-up."
+  - Narration: "Workflow Builder invokes CLEAR for member-portal step-up."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -812,8 +812,8 @@ _... and 19 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the change-of-circumstance webform."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the change-of-circumstance webform."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens."
@@ -824,23 +824,23 @@ _... and 19 more beats_ (full list available in audit data)
   - Assigned: `system` — Iris
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Submit fires Maestro."
-  - Assigned: `system` — Maestro
+  - Narration: "Submit fires Workflow Builder."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro selects the exception verification template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder selects the exception verification template."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 3 / Beat 1
-  - Narration: "Activity log shows both Maestro fan-outs."
-  - Assigned: `system` — Maestro
+  - Narration: "Activity log shows both Workflow Builder fan-outs."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 3 / Beat 2
   - Narration: "Iris in the rail."
   - Assigned: `system` — Iris
 
 - **maintenance** / Scene 0 / Beat 1
-  - Narration: "Maestro reads the household-change policy and routes through CLEAR."
+  - Narration: "Workflow Builder reads the household-change policy and routes through CLEAR."
   - Assigned: `system` — CLEAR
 
 _... and 4 more beats_ (full list available in audit data)
@@ -854,7 +854,7 @@ _... and 4 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro routes Naomi through CLEAR."
+  - Narration: "Workflow Builder routes Naomi through CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -867,15 +867,15 @@ _... and 4 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 1 / Beat 0
   - Narration: "Naomi clicks \"Update Compliance Certificates\" in the portal."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro pre-fills the webform with Apex's current certificate data."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pre-fills the webform with Apex's current certificate data."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 2
   - Narration: "Naomi selects the certificate files and uploads them."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the uploaded certificates for policy anomalies."
@@ -900,7 +900,7 @@ _... and 17 more beats_ (full list available in audit data)
   - Assigned: `advisor` — Mira Sundar
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 0 / Beat 2
@@ -909,15 +909,15 @@ _... and 17 more beats_ (full list available in audit data)
 
 - **fraud-fabric** / Scene 0 / Beat 3
   - Narration: "ID + selfie + biometric match."
-  - Assigned: `system` — Maestro
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 0
   - Narration: "Mira opens \"New Transfer\" in the portal."
   - Assigned: `advisor` — Mira Sundar
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro renders the authorization webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder renders the authorization webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens."
@@ -942,12 +942,12 @@ _... and 21 more beats_ (full list available in audit data)
 **23 beats updated**
 
 - **fraud-fabric** / Scene 0 / Beat 1
-  - Narration: "Maestro intercepts the login and invokes CLEAR."
+  - Narration: "Workflow Builder intercepts the login and invokes CLEAR."
   - Assigned: `system` — CLEAR
 
 - **fraud-fabric** / Scene 1 / Beat 1
-  - Narration: "Maestro serves the rollover-instruction webform inline."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder serves the rollover-instruction webform inline."
+  - Assigned: `system` — Workflow Builder
 
 - **fraud-fabric** / Scene 1 / Beat 3
   - Narration: "Iris pre-screens the rollover for compliance and IRA-limit violations."
@@ -966,20 +966,20 @@ _... and 21 more beats_ (full list available in audit data)
   - Assigned: `system` — CLEAR
 
 - **intake** / Scene 0 / Beat 4
-  - Narration: "Maestro submission routes to account documents and trust-establishment"
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder submission routes to account documents and trust-establishment"
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 0
-  - Narration: "Maestro pulls the IRA Rollover Agreement template."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder pulls the IRA Rollover Agreement template."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 1
-  - Narration: "Maestro generates the Joint Account Agreement."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder generates the Joint Account Agreement."
+  - Assigned: `system` — Workflow Builder
 
 - **intake** / Scene 1 / Beat 2
-  - Narration: "Maestro drafts the Family Trust Establishment documents."
-  - Assigned: `system` — Maestro
+  - Narration: "Workflow Builder drafts the Family Trust Establishment documents."
+  - Assigned: `system` — Workflow Builder
 
 _... and 13 more beats_ (full list available in audit data)
 
@@ -1039,9 +1039,9 @@ The canonical 5-scene narration in the `VERTICALS` const (lines ~600-1670 in sto
 
 ### Decision Rationale
 
-The conservative auto-fix policy limits fixes to "unambiguous system mentions" only — proper nouns like Iris, CLEAR, Maestro where the beat narration actively describes them as protagonists (e.g., "Iris answers", "CLEAR verifies").
+The conservative auto-fix policy limits fixes to "unambiguous system mentions" only — proper nouns like Iris, CLEAR, Workflow Builder where the beat narration actively describes them as protagonists (e.g., "Iris answers", "CLEAR verifies").
 
-Found 186 candidate beats where narration names a system actor (Iris: 136, Navigator: 57, CLEAR: 54, Maestro: 31) but lacks an explicit `persona: { side: "system", name: "...", role: "..." }` block.
+Found 186 candidate beats where narration names a system actor (Iris: 136, Agreement Manager: 57, CLEAR: 54, Workflow Builder: 31) but lacks an explicit `persona: { side: "system", name: "...", role: "..." }` block.
 
 **Why no auto-fix?** 
 
@@ -1055,7 +1055,7 @@ Found 186 candidate beats where narration names a system actor (Iris: 136, Navig
 
 - **Scene 2 (IDENTITY):** Beat "CLEAR selected as the verification path" → Narration clearly shows CLEAR as protagonist; suggest `persona: {side: "system", name: "CLEAR", role: "Verification Path Selection"}`
 - **Scene 2 (IDENTITY):** Beat "ID scan and biometric match in progress" → CLEAR performing action; suggest system persona
-- **Scene 4 (DATA):** Beat "Navigator surfaces the executed IMA" → Iris explicitly surfaces; suggest `persona: {side: "system", name: "Iris", role: "Navigator Extraction"}`
+- **Scene 4 (DATA):** Beat "Agreement Manager surfaces the executed IMA" → Iris explicitly surfaces; suggest `persona: {side: "system", name: "Iris", role: "Agreement Manager Extraction"}`
 - **Scene 4 (DATA):** Beat "14 fields extracted from the IMA" → Iris extracts; suggest system persona
 - **Scene 4 (DATA):** Beat "Priya asks Iris about the fee structure" → Iris is interlocutor; should verify if beat-level persona needed (scene already has Priya advisor persona)
 - **Scene 4 (DATA):** Beat "Iris answers with inline citations" → Iris protagonist; suggest system persona
@@ -1064,34 +1064,34 @@ Found 186 candidate beats where narration names a system actor (Iris: 136, Navig
 
 #### Banking vertical
 
-- **Scene 1 (DEAL ROOM):** Beat "Maestro submission routes to document generation and approval queue" → Maestro protagonist; suggest `persona: {side: "system", name: "Maestro", role: "Submission Routing"}`
+- **Scene 1 (DEAL ROOM):** Beat "Workflow Builder submission routes to document generation and approval queue" → Workflow Builder protagonist; suggest `persona: {side: "system", name: "Workflow Builder", role: "Submission Routing"}`
 - **Scene 2 (IDENTITY):** Beats 1–4 mention CLEAR actions (selection, handoff, ID capture, biometric match) → 4 beats lacking CLEAR persona
-- **Scene 4 (DATA):** Beat "Navigator surfaces the executed loan agreement" → Navigator protagonist; suggest Iris/Navigator persona
+- **Scene 4 (DATA):** Beat "Agreement Manager surfaces the executed loan agreement" → Agreement Manager protagonist; suggest Iris/Agreement Manager persona
 - **Scene 4 (DATA):** Beats 2, 4–5 mention Iris extraction and counsel → 3 beats lacking Iris persona
 - **Scene 5 (WORKSPACE):** Beat "Iris tracks the facility in the agent rail" → Iris protagonist; suggest system persona
 
 #### Insurance vertical
 
-- **Scene 1 (INTAKE):** Beat "Maestro submission routes to..." → Maestro protagonist; suggest system persona
+- **Scene 1 (INTAKE):** Beat "Workflow Builder submission routes to..." → Workflow Builder protagonist; suggest system persona
 - **Scene 2 (IDENTITY):** Beats 1–4 mention CLEAR actions → 4 beats lacking CLEAR persona
-- **Scene 4 (DATA):** Beat "Navigator surfaces the executed binder" → Navigator/Iris protagonist; suggest system persona
+- **Scene 4 (DATA):** Beat "Agreement Manager surfaces the executed binder" → Agreement Manager/Iris protagonist; suggest system persona
 - **Scene 4 (DATA):** Beat "Marisol asks Iris about the water backup endorsement" → Iris protagonist; consider beat-level persona (scene has Marisol advisor persona)
 - **Scene 4 (DATA):** Beat "Iris answers with the endorsement language" → Iris protagonist; suggest system persona
 - **Scene 5 (WORKSPACE):** Beat "Iris tracks the policy in the agent rail" → Iris protagonist; suggest system persona
 
 #### Provider vertical
 
-- **Scene 1 (SELF-SERVICE PORTAL):** Beat "Submit triggers Maestro packaging" → Maestro protagonist; suggest system persona
+- **Scene 1 (SELF-SERVICE PORTAL):** Beat "Submit triggers Workflow Builder packaging" → Workflow Builder protagonist; suggest system persona
 - **Scene 2 (IDENTITY):** Beats 1–4 mention CLEAR actions and insurance match → 4 beats lacking CLEAR persona
-- **Scene 4 (DATA):** Beat "Navigator surfaces Jordan's patient record" → Navigator/Iris protagonist; suggest system persona
+- **Scene 4 (DATA):** Beat "Agreement Manager surfaces Jordan's patient record" → Agreement Manager/Iris protagonist; suggest system persona
 - **Scene 4 (DATA):** Beats 2, 4–5 mention Iris extraction and synthesis → 3 beats lacking Iris persona
 - **Scene 5 (WORKSPACE):** Beat "Iris monitors the care plan in the agent rail" → Iris protagonist; suggest system persona
 
 #### Life Sciences vertical
 
-- **Scene 1 (INTAKE):** Beat "Maestro fans out the activation packet" → Maestro protagonist; suggest system persona
+- **Scene 1 (INTAKE):** Beat "Workflow Builder fans out the activation packet" → Workflow Builder protagonist; suggest system persona
 - **Scene 2 (IDENTITY):** Beats 1–4 mention CLEAR actions (license verification, biometric) → 4 beats lacking CLEAR persona
-- **Scene 4 (DATA):** Beat "Navigator surfaces the executed CTA" → Navigator protagonist; suggest system persona
+- **Scene 4 (DATA):** Beat "Agreement Manager surfaces the executed CTA" → Agreement Manager protagonist; suggest system persona
 - **Scene 4 (DATA):** Beats 2, 4–5 mention Iris extraction and answers → 3 beats lacking Iris persona
 - **Scene 5 (WORKSPACE):** Beat "Iris tracks the study in the agent rail" → Iris protagonist; suggest system persona
 
@@ -1100,7 +1100,7 @@ Found 186 candidate beats where narration names a system actor (Iris: 136, Navig
 - **Scene 1 (SELF-SERVICE MARKETPLACE):** Beats mention marketplace; no explicit system protagonist
 - **Scene 2 (IDENTITY):** Beats 1–4 mention CLEAR actions and SSA match → 4 beats lacking CLEAR persona
 - **Scene 3 (SIGNING):** No system protagonists identified
-- **Scene 4 (DATA):** No explicit Navigator/Iris mention
+- **Scene 4 (DATA):** No explicit Agreement Manager/Iris mention
 - **Scene 5 (WORKSPACE):** No explicit Iris protagonist mention
 
 ---
@@ -1108,20 +1108,20 @@ Found 186 candidate beats where narration names a system actor (Iris: 136, Navig
 ### Breakdown by System
 
 **Iris:** 64 flagged beats  
-- Roles: Navigator extraction, data synthesis, agent rail, Q&A answering, field extraction  
+- Roles: Agreement Manager extraction, data synthesis, agent rail, Q&A answering, field extraction  
 - Pattern: "Iris surfaces", "Iris answers", "Iris asks", "Iris delivers", "Iris tracks"
 
 **CLEAR:** 42 flagged beats  
 - Roles: Identity verification, biometric match, screening (PEP/OFAC/address/insurance)  
 - Pattern: Verification path selection, mobile handoff, capture and match steps
 
-**Maestro:** 24 flagged beats  
+**Workflow Builder:** 24 flagged beats  
 - Roles: Document package assembly, submission routing, submission recognition  
-- Pattern: "Maestro assembles", "Maestro fires", "Maestro submission", "Maestro fans out"
+- Pattern: "Workflow Builder assembles", "Workflow Builder fires", "Workflow Builder submission", "Workflow Builder fans out"
 
-**Navigator:** 56 flagged beats  
+**Agreement Manager:** 56 flagged beats  
 - Roles: Document extraction and field surfacing  
-- Pattern: "Navigator surfaces", "Navigator extracts", "Navigator pulls"
+- Pattern: "Agreement Manager surfaces", "Agreement Manager extracts", "Agreement Manager pulls"
 
 ---
 
@@ -1129,7 +1129,7 @@ Found 186 candidate beats where narration names a system actor (Iris: 136, Navig
 
 1. **Priority:** Review Iris beats (64) — highest narrative frequency, most critical for demo story
 2. **Then:** CLEAR beats (42) — identity verification is present in all verticals
-3. **Then:** Maestro (24) and Navigator (56) — document orchestration and extraction
+3. **Then:** Workflow Builder (24) and Agreement Manager (56) — document orchestration and extraction
 4. **Action:** For each flagged beat, decide:
    - Is this beat's narration actively describing a system protagonist action? (YES → add persona)
    - Is this beat primarily describing human or cross-functional action? (NO → skip or add handoff persona)

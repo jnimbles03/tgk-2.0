@@ -17,7 +17,7 @@ COMPONENTS  →  SCENES  →  STORIES
 (28 building       (visual UI moments    (5-scene arcs that
  blocks: Web        like Agreement Desk,  tell a complete
  Forms, IDV,        CLEAR, Signing,        end-to-end use
- Maestro,           Navigator, Workspace)  case)
+ Workflow Builder,           Agreement Manager, Workspace)  case)
  Workspaces,
  Headless, etc.)
 ```
@@ -92,7 +92,7 @@ A rendered story = **5 files cooperating via URL params and `?preset=` iframes**
         │  For each scene, it iframes one scene template:
         ▼
 /story-templates/docusign-<scene>.html?preset=<key>&embed=1[&mode=…]
-        │  the visual UI moment (Agreement Desk, CLEAR, Signing, Navigator,
+        │  the visual UI moment (Agreement Desk, CLEAR, Signing, Agreement Manager,
         │  Workspace). Honors ?preset= via its own internal PRESETS map.
         ▼
 PRESETS lookup inside the scene template
@@ -124,7 +124,7 @@ Loaded in fixed order by the shell when no `?usecase=` is set:
 
 | # | Scene key | Iframe loaded | What it shows |
 |---|---|---|---|
-| 1 | `agreement_desk` | `/story-templates/docusign-agreement-desk.html` | Sender webform / Maestro intake. Visualizes invisible Maestro orchestration. |
+| 1 | `agreement_desk` | `/story-templates/docusign-agreement-desk.html` | Sender webform / Workflow Builder intake. Visualizes invisible Workflow Builder orchestration. |
 | 2 | `clear_idv` | `/story-templates/docusign-clear-idv.html` | Identity verification — desktop consent → mobile ID + selfie → biometric match. |
 | 3 | `signing` | `/story-templates/docusign-signing-ceremony.html` | Branded email, START tab, Adopt Signature, multi-recipient routing, certificate. |
 | 4 | `navigator` | `/story-templates/docusign-navigator.html` | Agreement Repository — extraction columns, AI assistant Q&A with citations. |
@@ -307,7 +307,7 @@ Override per-vertical via the admin localStorage key `tgkAdmin.beatToInternal` i
 - **Wizard primitive** — `/assets/wizard/{wizard.css,wizard.js}`. Generic "stage 1..N + back button" wizard. Used by picker.
 - **Demo-stage primitive** — `/assets/demo-stage/{css,js}`. Virtual clock + beat-snap scrubbing for sales/procurement deep-dives.
 - **Flipbooks** — `/flipbooks/`. MP4 → stills → HTML pipeline (`_extract_frames.py`, `_new_flipbook.py`). The sales-deepdive and procurement-deepdive usecases iframe stages from here.
-- **Future-state component mocks** — `/components/future-state/` (~100 files). Not yet wired into Navigator surfaces — see CANONICAL.md P3.
+- **Future-state component mocks** — `/components/future-state/` (~100 files). Not yet wired into Agreement Manager surfaces — see CANONICAL.md P3.
 
 ---
 

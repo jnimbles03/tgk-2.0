@@ -10,7 +10,7 @@ The goal of this doc: explain how a future scene, vignette, or Headless IAM dril
 
 ```
 Story  (vertical, e.g. fins / hls / ps / banking-deposits / wealth)
-  └── Scene  (one of 5 — Agreement Desk, CLEAR, Signing, Navigator, Workspace)
+  └── Scene  (one of 5 — Agreement Desk, CLEAR, Signing, Agreement Manager, Workspace)
         └── Vignette / hotspot  (a moment in the scene with narration + a target)
               └── Drill-down content  (currently: live iframe of a Docusign template)
 ```
