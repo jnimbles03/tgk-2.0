@@ -2,31 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agreement Manager — re-skinnable demo</title>
+<title>Agreement Manager — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  .nav-th,.nav-row{display:flex;align-items:center}
-  .nav-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
-  .nav-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
-  .nav-row.hot{background:var(--tenant-accent-soft)}
+  .app.has-rail .app-body{padding:0}
+  .nv-wrap{display:flex;height:100%}
+  .nv-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
+  .nv-agent{width:344px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .nv-agent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
+  .nv-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  .nv-th,.nv-row{display:flex;align-items:center}
+  .nv-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
+  .nv-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
+  .nv-row.hot{background:var(--tenant-accent-soft)}
   .c-doc{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
   .c-doc .fi{width:22px;height:26px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto;position:relative}
   .c-doc .fi:after{content:"";position:absolute;left:4px;right:4px;top:6px;height:2px;background:#C7C7D2;box-shadow:0 4px #C7C7D2,0 8px #C7C7D2}
-  .c-party{width:150px;flex:0 0 auto;font-size:12.5px;color:#555}
-  .c-val{width:110px;flex:0 0 auto;font-size:12.5px;color:#1a1a26;font-weight:600}
-  .c-ren{width:135px;flex:0 0 auto;font-size:12px}
+  .c-party{width:140px;flex:0 0 auto;font-size:12.5px;color:#555}
+  .c-val{width:104px;flex:0 0 auto;font-size:12.5px;color:#1a1a26;font-weight:600}
+  .c-ren{width:130px;flex:0 0 auto;font-size:12px}
   .c-ren .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:#EFEFF3;color:#555}
   .c-ren .tag.soon{background:#FDECEC;color:#C0392B;font-weight:600}
-  .c-exp{width:120px;flex:0 0 auto;font-size:12.5px;color:#555}
-  .c-kebab{width:30px;flex:0 0 auto;color:#bbb;text-align:right}
+  .c-exp{width:112px;flex:0 0 auto;font-size:12.5px;color:#555}
   .ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
 </style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
   '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Manager</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
@@ -40,38 +48,31 @@ const RAIL = '<div class="app-rail"><div class="grp">Insights</div>'+
   '<div class="it">+ New report</div></div>';
 
 function row(id,doc,party,val,ren,rensoon,exp){
-  return '<div class="nav-row" id="'+id+'"><div class="c-doc"><span class="fi"></span>'+doc+'</div>'+
+  return '<div class="nv-row" id="'+id+'"><div class="c-doc"><span class="fi"></span>'+doc+'</div>'+
     '<div class="c-party">'+party+'</div><div class="c-val">'+val+'</div>'+
     '<div class="c-ren"><span class="tag'+(rensoon?' soon':'')+'">'+ren+'</span></div>'+
-    '<div class="c-exp">'+exp+'</div><div class="c-kebab">⋮</div></div>'; }
+    '<div class="c-exp">'+exp+'</div></div>'; }
 
 const SCENES =
   '<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+RAIL+
-    '<div class="app-body">'+
-      '<div class="app-head"><h2 id="nv-title"></h2><span class="ai-pill">✦ AI-EXTRACTED</span>'+
-        '<div class="acts"><span class="add">Subscribe</span></div></div>'+
-      '<div class="nav-th"><span class="c-doc" style="padding-left:33px">Agreement</span><span class="c-party">Counterparty</span><span class="c-val">Value</span><span class="c-ren">Renewal type</span><span class="c-exp">Expiration</span><span class="c-kebab"></span></div>'+
-      '<div id="nv-rows"></div>'+
-    '</div>'+
-    '<div class="app-foot"><span class="pb">Powered by <b>Docusign</b></span><span class="rt"><span>Contact Us</span><span>Privacy</span><span>Trust</span></span></div>'+
-  '</div></section>'+
-  '<section class="de-scene" data-scene="handoff"><div class="ho">'+
-    '<div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p>'+
-    '<div class="chain"><div class="node">Agreement Manager insight</div><span class="arr">&rarr;</span>'+
-      '<div class="node lead">Renewal request</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+    '<div class="app-body"><div class="nv-wrap">'+
+      '<div class="nv-main">'+
+        '<div class="app-head"><h2 id="nv-title"></h2><span class="ai-pill">✦ AI-EXTRACTED</span></div>'+
+        '<div class="nv-th"><span class="c-doc" style="padding-left:33px">Agreement</span><span class="c-party">Counterparty</span><span class="c-val">Value</span><span class="c-ren">Renewal type</span><span class="c-exp">Expiration</span></div>'+
+        '<div id="nv-rows"></div>'+
+      '</div>'+
+      '<div class="nv-agent">'+
+        '<div class="phd"><span class="ai">✦</span> Ask Agreement Manager</div>'+
+        '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
+          '<div class="agc-input"><div class="box">Ask about renewals, value, or risk…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+      '</div>'+
+    '</div></div>'+
+  '</div></section>';
 
-DemoEngine.init({
-  meta:{ title:"Agreement Manager", productTag:"Agreement Manager", home:"index.html",
-    footnote:'<b>Faithful Agreement Manager repository, re-skinnable content.</b> The Docusign app, insights rail, AI-extracted agreements table and cursor path are the shared spine. Switching vertical swaps the co-brand, agreements, counterparties and narration. Same app-shell archetype drives CLM, Monitor, Agreement Manager and Search.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:30,
-    beats:[ {t:0,key:"open",sceneId:"app"},{t:6,key:"extract",sceneId:"app"},{t:13,key:"renewals",sceneId:"app"},{t:19,key:"alert",sceneId:"app"},{t:25,key:"handoff",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
-      {t:6,target:"#nv-row1",x:640,y:300,action:"move",sayKey:"extract"},
-      {t:13,target:"#nv-renewals",x:110,y:200,action:"click",sayKey:"renewals"},
-      {t:19,target:"#nv-soon",x:640,y:400,action:"move",sayKey:"alert"},
-      {t:25,x:640,y:300,action:"move"} ] },
+DemoEngine.interactive({
+  meta:{ title:"Agreement Manager — interactive", productTag:"Agreement Manager · Live", home:"index.html",
+    footnote:'<b>This panel is live.</b> Iris has read every agreement in the repository — click a question and it types a specific, cited answer from the portfolio, then offers the next action. Switch vertical to re-skin the agreements and counterparties.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally",
       theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -82,12 +83,20 @@ DemoEngine.init({
         ["nv-r2","Tally — Vendor NDA.docx","Fontara Inc","—","Option to renew",0,"Sep 2, 2026"],
         ["nv-soon","Tally — SaaS Order Form.docx","Atlas Corp","$128,400","Renews in 30d",1,"Aug 30, 2026"],
         ["nv-r4","Tally — Master Loan Agreement.pdf","TGK Capital","$2,500,000","Fixed term",0,"Dec 1, 2026"] ],
-      say:{ open:{eyebrow:"Agreement Manager",title:"Every signed agreement, in one place",body:"Tally's executed agreements are centralized in Agreement Manager — searchable, not buried in inboxes and drives."},
-        extract:{eyebrow:"Docusign Iris",title:"AI extracted the key terms",body:"Value, renewal type and expiration weren't keyed in — Iris read them straight out of each agreement."},
-        renewals:{eyebrow:"Insights",title:"Renewals surface themselves",body:"Dana opens the Renewals insight — Agreement Manager already knows what's coming due across the portfolio."},
-        alert:{eyebrow:"At risk",title:"One contract renews in 30 days",body:"The Atlas order form auto-renews in 30 days — flagged before it lapses or silently rolls over."},
-        handoff:{eyebrow:"Act on it",title:"Insight becomes action",body:"One click turns the renewal flag into a Workflow Builder renewal request — closing the loop to nCino."} },
-      handoff:{h:"From insight to action",p:"A flagged renewal kicks off a Workflow Builder renewal request automatically — the result writes back to the nCino core."} },
+      say:{ intro:{eyebrow:"Agreement Manager",title:"Ask the portfolio",body:"Tally's executed agreements are centralized and AI-extracted. Ask Iris what's renewing, what's at risk, or what to act on."},
+        acted:{eyebrow:"Insight becomes action",title:"Renewal request drafted",body:"The Atlas order-form flag became a Workflow Builder renewal request — the outcome writes back to nCino."} },
+      renewParty:"Atlas Corp", sorName:"nCino",
+      exchanges:[
+        {label:"What's renewing in the next 30 days?",
+         answer:"One agreement is inside the 30-day window:<br><br>• <b>Atlas Corp — SaaS Order Form</b> ($128,400), auto-renews <b>Aug 30, 2026</b>.<br><br>It's flagged before it silently rolls over. Nothing else renews until December."},
+        {label:"Which agreements auto-renew?",
+         answer:"Two renew automatically:<br><br>• Braun LLC — MSA (Evergreen, no end date)<br>• Atlas Corp — SaaS Order Form (renews in 30 days)<br><br>The Fontara NDA is option-to-renew; the TGK Capital loan is fixed-term through Dec 1, 2026."},
+        {label:"What's the total value tracked here?",
+         answer:"$2,658,400 across the four agreements. The largest is the <b>TGK Capital Master Loan Agreement</b> at $2,500,000 (fixed term). Every value was read straight from the documents by Iris — nothing keyed in by hand."},
+        {label:"Anything I should act on?", renew:true,
+         answer:"Yes — the <b>Atlas Corp SaaS Order Form</b> renews in 30 days. Left alone it auto-renews at the current rate. Want me to open a renewal request?",
+         card:'<span class="agc-accept" data-renew>✦ Start a Workflow Builder renewal request</span>'}
+      ] },
     healthcare:{ label:"Healthcare · Riverside",
       theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
@@ -97,12 +106,20 @@ DemoEngine.init({
         ["nv-r2","Riverside — Vendor MSA.docx","Medline","$84,000","Evergreen",0,"Sep 2, 2026"],
         ["nv-soon","Riverside — Payer Contract.pdf","Unity Health","$1,200,000","Renews in 30d",1,"Aug 30, 2026"],
         ["nv-r4","Riverside — Research Agreement.pdf","Helix Bio","$450,000","Fixed term",0,"Dec 1, 2026"] ],
-      say:{ open:{eyebrow:"Agreement Manager",title:"Every signed agreement, in one place",body:"Riverside's executed agreements are centralized in Agreement Manager — searchable, not buried in inboxes and drives."},
-        extract:{eyebrow:"Docusign Iris",title:"AI extracted the key terms",body:"Value, renewal type and expiration weren't keyed in — Iris read them straight out of each agreement."},
-        renewals:{eyebrow:"Insights",title:"Renewals surface themselves",body:"Dana opens the Renewals insight — Agreement Manager already knows what's coming due across payer and vendor contracts."},
-        alert:{eyebrow:"At risk",title:"A payer contract renews in 30 days",body:"The Unity Health contract renews in 30 days — flagged before it lapses or silently rolls over."},
-        handoff:{eyebrow:"Act on it",title:"Insight becomes action",body:"One click turns the renewal flag into a Workflow Builder renewal request — closing the loop to Epic."} },
-      handoff:{h:"From insight to action",p:"A flagged renewal kicks off a Workflow Builder renewal request automatically — the result writes back to the Epic chart."} },
+      say:{ intro:{eyebrow:"Agreement Manager",title:"Ask the portfolio",body:"Riverside's executed agreements are centralized and AI-extracted. Ask Iris what's renewing, what's at risk, or what to act on."},
+        acted:{eyebrow:"Insight becomes action",title:"Renewal request drafted",body:"The Unity Health flag became a Workflow Builder renewal request — the outcome writes back to Epic."} },
+      renewParty:"Unity Health", sorName:"Epic",
+      exchanges:[
+        {label:"What's renewing in the next 30 days?",
+         answer:"One agreement is inside the 30-day window:<br><br>• <b>Unity Health — Payer Contract</b> ($1,200,000), renews <b>Aug 30, 2026</b>.<br><br>It's flagged before it rolls over. Nothing else renews until December."},
+        {label:"Which agreements auto-renew?",
+         answer:"Two renew automatically:<br><br>• Kno2 — Business Associate Agreement (auto-renew)<br>• Unity Health — Payer Contract (renews in 30 days)<br><br>The Medline MSA is evergreen; the Helix Bio research agreement is fixed-term through Dec 1, 2026."},
+        {label:"What's the total value tracked here?",
+         answer:"$1,734,000 across the four agreements. The largest is the <b>Unity Health Payer Contract</b> at $1,200,000. Every value was read straight from the documents by Iris — nothing keyed in by hand."},
+        {label:"Anything I should act on?", renew:true,
+         answer:"Yes — the <b>Unity Health Payer Contract</b> renews in 30 days. Left alone it auto-renews at the current rate. Want me to open a renewal request?",
+         card:'<span class="agc-accept" data-renew>✦ Start a Workflow Builder renewal request</span>'}
+      ] },
     pubsec:{ label:"Public Sector · Gov",
       theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
       brand:{ name:"State Agency", mark:"G" }, url:"app.docusign.com — State Agency", sorBadge:"System of record · Salesforce",
@@ -112,24 +129,40 @@ DemoEngine.init({
         ["nv-r2","Grant Agreement — Safe Streets.pdf","Harbor Foundation","$1,800,000","Fixed term",0,"Sep 2, 2026"],
         ["nv-soon","IT Services Contract.pdf","Northwind Systems","$960,000","Renews in 30d",1,"Aug 30, 2026"],
         ["nv-r4","Facilities Lease.pdf","Civic Properties","$310,000","Option to renew",0,"Dec 1, 2026"] ],
-      say:{ open:{eyebrow:"Agreement Manager",title:"Every signed agreement, in one place",body:"The agency's executed contracts and grants are centralized in Agreement Manager — searchable, not buried in shared drives."},
-        extract:{eyebrow:"Docusign Iris",title:"AI extracted the key terms",body:"Value, renewal type and expiration weren't keyed in — Iris read them straight out of each agreement."},
-        renewals:{eyebrow:"Insights",title:"Renewals surface themselves",body:"The records team opens the Renewals insight — Agreement Manager already knows what's coming due across vendor and grant agreements."},
-        alert:{eyebrow:"At risk",title:"An IT contract renews in 30 days",body:"The Northwind contract renews in 30 days — flagged before it lapses or auto-renews without re-bid."},
-        handoff:{eyebrow:"Act on it",title:"Insight becomes action",body:"One click turns the renewal flag into a Workflow Builder renewal request — closing the loop to the agency system."} },
-      handoff:{h:"From insight to action",p:"A flagged renewal kicks off a Workflow Builder renewal request automatically — the result writes back to the agency's system of record."} }
+      say:{ intro:{eyebrow:"Agreement Manager",title:"Ask the portfolio",body:"The agency's executed contracts and grants are centralized and AI-extracted. Ask Iris what's renewing, what's at risk, or what to act on."},
+        acted:{eyebrow:"Insight becomes action",title:"Renewal request drafted",body:"The Northwind flag became a Workflow Builder renewal request — the outcome writes back to the agency system."} },
+      renewParty:"Northwind Systems", sorName:"the agency system",
+      exchanges:[
+        {label:"What's renewing in the next 30 days?",
+         answer:"One agreement is inside the 30-day window:<br><br>• <b>Northwind Systems — IT Services Contract</b> ($960,000), renews <b>Aug 30, 2026</b>.<br><br>It's flagged before it auto-renews without a re-bid. Nothing else renews until December."},
+        {label:"Which agreements auto-renew?",
+         answer:"Two renew automatically:<br><br>• Apex Services — Vendor Master Agreement (auto-renew)<br>• Northwind Systems — IT Services Contract (renews in 30 days)<br><br>The Civic Properties lease is option-to-renew; the Harbor Foundation grant is fixed-term."},
+        {label:"What's the total value tracked here?",
+         answer:"$3,310,000 across the four agreements. The largest is the <b>Safe Streets Grant Agreement</b> at $1,800,000. Every figure was read straight from the documents by Iris — nothing keyed in by hand."},
+        {label:"Anything I should act on?", renew:true,
+         answer:"Yes — the <b>Northwind IT Services Contract</b> renews in 30 days. Left alone it auto-renews without re-bid. Want me to open a renewal request?",
+         card:'<span class="agc-accept" data-renew>✦ Start a Workflow Builder renewal request</span>'}
+      ] }
   },
-  paintContent(p, root){
-    root.querySelector("#nv-cobrand").textContent=p.cobrand; root.querySelector("#nv-title").textContent=p.title;
-    root.querySelector("#nv-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-    root.querySelector("#nv-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],r[2],r[3],r[4],r[5],r[6])).join("");
-  },
-  onTime(time, p, root){
-    const r1=root.querySelector("#nv-row1"), soon=root.querySelector("#nv-soon"), ren=root.querySelector("#nv-renewals");
-    if(r1) r1.classList.toggle("hot", time>=6 && time<13);
-    if(soon) soon.classList.toggle("hot", time>=19 && time<25);
-    if(ren) ren.classList.toggle("on", time>=13);
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#nv-cobrand").textContent=p.cobrand; $("#nv-title").textContent=p.title;
+    $("#nv-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    $("#nv-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],r[2],r[3],r[4],r[5],r[6])).join("");
+    const soon=$("#nv-soon"); if(soon) soon.classList.add("hot");
+    const ren=root.querySelector("#nv-renewals"); if(ren) ren.classList.add("on");
+    api.narrate("intro"); api.progress(0); let done=0;
+    function bump(){ api.progress(Math.min(++done,4)); if(done>=4) api.done(); }
+    function startRenewal(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Renewal request started";
+      AgentChat.bubble($("#nv-chat"),"ai","Done — a Workflow Builder renewal request is drafted for the "+p.renewParty+" agreement and routed to Legal. The outcome writes back to "+p.sorName+".");
+      api.narrate("acted"); }
+    AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), hint:"Ask Agreement Manager", speed:13,
+      intro:"I'm Iris. I've read all four agreements in this view — ask me about renewals, total value, or what needs action.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
+        after:()=>{ bump(); if(ex.renew){ const b=$("#nv-chat").querySelector("[data-renew]"); if(b) b.onclick=()=>startRenewal(b); } } })) });
+    if(api.auto){ api.after(900,()=>{ const c=$("#nv-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(6000,()=>{ const chips=$("#nv-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
+      api.after(10500,()=>{ const b=$("#nv-chat").querySelector("[data-renew]"); if(b && !b.classList.contains("done")) b.click(); }); }
   }
 });
 </script>

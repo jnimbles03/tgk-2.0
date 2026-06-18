@@ -2,108 +2,96 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-Assisted Review — re-skinnable demo</title>
+<title>AI-Assisted Review — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/review.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  .rv-panel{padding:0}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
+</style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
-const SCENES='<section class="de-scene is-active" data-scene="rv"><div class="rv">'+
-  '<div class="rv-top"><span class="dslogo"><span class="dsmark"></span>Docusign</span><span class="ttl" id="rv-ttl"></span>'+
-    '<div class="right"><span class="send">Send for signature</span></div></div>'+
+const SCENES='<div class="rv">'+
+  '<div class="rv-top"><span class="dslogo"><span class="dsmark"></span>Docusign</span><span class="ttl" id="rv-ttl"></span><div class="right"><span class="send">Send for signature</span></div></div>'+
   '<div class="rv-body">'+
     '<div class="rv-doc"><div class="rv-page"><div class="h" id="rv-doctitle"></div>'+
       '<p id="rv-p1"></p>'+
       '<div class="rv-clause" id="rv-clause"><b id="rv-cnum"></b> <span id="rv-cbody"></span></div>'+
       '<p id="rv-p2"></p><p id="rv-p3"></p></div></div>'+
     '<div class="rv-panel"><div class="rv-phd"><span class="ai">✦</span> AI-Assisted Review</div>'+
-      '<div class="rv-chat" id="rv-chat">'+
-        '<div class="rv-msg user" id="rv-m0">Review this against our playbook.</div>'+
-        '<div class="rv-msg ai" id="rv-m1"><span id="rv-intro"></span>'+
-          '<div class="rv-issue" id="rv-issue1"><div class="top"><span class="sev hi">HIGH</span><span class="ti" id="rv-i1t"></span></div>'+
-            '<div class="ds" id="rv-i1d"></div><span class="accept" id="rv-accept">✦ Accept suggested redline</span></div>'+
-          '<div class="rv-issue" id="rv-issue2"><div class="top"><span class="sev md">MEDIUM</span><span class="ti" id="rv-i2t"></span></div>'+
-            '<div class="ds" id="rv-i2d"></div></div></div>'+
-        '<div class="rv-msg ai" id="rv-m2"><span id="rv-confirm"></span></div></div>'+
-      '<div class="rv-input"><div class="box">Ask AI to redline, summarize, or draft…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
-  '</div></div></section>'+
-  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">AI-Assisted Review</div><span class="arr">&rarr;</span><div class="node lead">Redlined &amp; aligned</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="rv-chat"></div><div class="agc-chips" id="rv-chips"></div>'+
+        '<div class="agc-input"><div class="box">Ask AI to redline, summarize, or draft…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div></div>'+
+  '</div></div>';
 
-DemoEngine.init({
-  meta:{ title:"AI-Assisted Review", productTag:"AI-Assisted Review", home:"index.html",
-    footnote:'<b>Faithful AI-Assisted Review, re-skinnable content.</b> The agreement, conversational AI panel, flagged issues and one-click redline are the shared spine. Switching vertical swaps the contract, the playbook and the issues. The same review surface lives inside Agreement Desk.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:28,
-    beats:[ {t:0,key:"open",sceneId:"rv"},{t:6,key:"analyze",sceneId:"rv"},{t:11,key:"findings",sceneId:"rv"},{t:16,key:"accept",sceneId:"rv"},{t:22,key:"done",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:700,y:300,action:"move"},
-      {t:6,x:1040,y:240,action:"move",sayKey:"analyze"},
-      {t:11,target:"#rv-issue1",action:"move",sayKey:"findings"},
-      {t:16,target:"#rv-accept",action:"click",sayKey:"accept"},
-      {t:22,x:640,y:300,action:"move"} ] },
+DemoEngine.interactive({
+  meta:{ title:"AI-Assisted Review — interactive", productTag:"AI-Assisted Review · Live", home:"index.html",
+    footnote:'<b>This panel is live.</b> Ask AI to review against your playbook — it types its findings, then you click <b>Accept redline</b> and watch the clause change in the document. Switch vertical to re-skin.' },
+  defaultPack:"banking", steps:3, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
-      persona:{ name:"Priya Raman", role:"Legal Counsel", side:"advisor" }, sorNode:"nCino core",
+      persona:{ name:"Priya Raman", role:"Legal Counsel", side:"advisor" },
       ttl:"Master Services Agreement — Atlas Corp · Review", doctitle:"MASTER SERVICES AGREEMENT",
-      p1:"This Master Services Agreement is entered into between Tally Bank (“Client”) and Atlas Corp (“Provider”) for the provision of the services described in the attached Statement of Work.",
-      cnum:"8. Limitation of Liability.", cbodyNormal:"Provider's aggregate liability under this Agreement shall be <span id=\"rv-risk\">unlimited for all claims arising hereunder</span>.",
-      cbodyFixed:"Provider's aggregate liability under this Agreement shall be <span class=\"rv-strike\">unlimited for all claims arising hereunder</span> <span class=\"rv-ins\">capped at the fees paid in the preceding twelve (12) months</span>.",
+      p1:"This Master Services Agreement is entered into between Tally Bank (“Client”) and Atlas Corp (“Provider”) for the services described in the attached Statement of Work.",
+      cnum:"8. Limitation of Liability.", riskText:"unlimited for all claims arising hereunder", fixText:"capped at the fees paid in the preceding twelve (12) months",
+      cpre:"Provider's aggregate liability under this Agreement shall be ",
       p2:"9. Term &amp; Renewal. This Agreement renews automatically for successive one-year terms unless either party provides notice of non-renewal.",
       p3:"10. Governing Law. This Agreement shall be governed by the laws of the State of Delaware.",
-      intro:"I reviewed this MSA against your <b>Vendor Contracting playbook</b>. Two issues need attention:",
-      i1t:"Unlimited liability — no cap", i1d:"Section 8 exposes the bank to uncapped liability. Your playbook requires a cap at 12 months of fees. I drafted the redline.",
-      i2t:"Auto-renewal without notice window", i2d:"Section 9 renews automatically with no defined opt-out window. Recommend a 30-day notice period.",
-      confirm:"Redline applied to Section 8. The liability cap now matches your playbook. One medium issue remains for your review.",
-      say:{ open:{eyebrow:"AI-Assisted Review",title:"AI reads the contract for you",body:"Priya opens the Atlas MSA. AI-Assisted Review is already analyzing it against the bank's playbook."},
-        analyze:{eyebrow:"Iris",title:"Checked against your playbook",body:"Not a generic scan — it reviews against Tally's own Vendor Contracting standards."},
-        findings:{eyebrow:"Findings",title:"Two issues, ranked by risk",body:"An uncapped-liability clause (high) and an open-ended auto-renewal (medium) — each explained."},
-        accept:{eyebrow:"One click",title:"Accept the drafted redline",body:"Priya accepts the suggested cap — the clause is redlined in place, no retyping."},
-        done:{eyebrow:"Aligned",title:"Contract aligned to policy",body:"The redline is applied and the agreement is ready to send — minutes, not a manual review cycle."} },
-      handoff:{h:"Reviewed, redlined, ready",p:"AI aligned the Atlas MSA to Tally's playbook and applied the redline — ready to send, logged to nCino."} },
+      say:{ intro:{eyebrow:"AI-Assisted Review",title:"Ask AI to review",body:"The Atlas MSA is open. Ask the assistant to review it against Tally's playbook — then accept its redline."},
+        fixed:{eyebrow:"Redlined",title:"Clause aligned to policy",body:"You accepted the redline — Section 8 now caps liability at 12 months of fees, matching the playbook."} },
+      exchanges:[
+        {label:"Review this MSA against our playbook", redline:true,
+         answer:"I reviewed it against your Vendor Contracting playbook. Two issues:\n\n• HIGH — Section 8 sets unlimited liability. Your playbook requires a 12-month fees cap.\n• MEDIUM — Section 9 auto-renews with no notice window.\n\nI've drafted the cap for Section 8.",
+         card:'<span class="agc-accept" data-accept>✦ Accept redline for Section 8</span>'},
+        {label:"Summarize the risks",
+         answer:"Two risks. The material one is Section 8 — uncapped liability exposes the bank to unlimited claims. The auto-renewal in Section 9 is minor. Capping Section 8 removes the primary exposure."},
+        {label:"Draft a tighter governing-law clause",
+         answer:"Suggested: “This Agreement shall be governed by the laws of the State of Delaware, without regard to its conflict-of-laws principles, and the parties consent to exclusive jurisdiction in the state and federal courts located therein.”"}
+      ] },
     healthcare:{ label:"Healthcare · Riverside", theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"System of record · Epic",
-      persona:{ name:"Priya Raman", role:"Compliance Counsel", side:"advisor" }, sorNode:"Epic chart",
+      persona:{ name:"Priya Raman", role:"Compliance Counsel", side:"advisor" },
       ttl:"Business Associate Agreement — Medline · Review", doctitle:"BUSINESS ASSOCIATE AGREEMENT",
-      p1:"This Business Associate Agreement is entered into between Riverside Health (“Covered Entity”) and Medline (“Business Associate”) governing the handling of Protected Health Information under HIPAA.",
-      cnum:"6. Breach Notification.", cbodyNormal:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within <span id=\"rv-risk\">ninety (90) days</span> of discovery.",
-      cbodyFixed:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within <span class=\"rv-strike\">ninety (90) days</span> <span class=\"rv-ins\">sixty (60) days</span> of discovery.",
+      p1:"This Business Associate Agreement is entered into between Riverside Health (“Covered Entity”) and Medline (“Business Associate”) governing Protected Health Information under HIPAA.",
+      cnum:"6. Breach Notification.", riskText:"ninety (90) days", fixText:"sixty (60) days",
+      cpre:"Business Associate shall notify Covered Entity of any breach of unsecured PHI within ",
       p2:"7. Subcontractors. Business Associate may engage subcontractors to perform services under this Agreement.",
       p3:"8. Term &amp; Termination. This Agreement remains in effect until terminated in accordance with its terms.",
-      intro:"I reviewed this BAA against your <b>HIPAA Compliance playbook</b>. Two issues need attention:",
-      i1t:"Breach notice exceeds 60 days", i1d:"Section 6 allows 90 days; HIPAA and your playbook require notification within 60 days. I drafted the redline.",
-      i2t:"No subcontractor flow-down clause", i2d:"Section 7 lets subcontractors be engaged without requiring them to accept the same PHI obligations. Add a flow-down requirement.",
-      confirm:"Redline applied to Section 6. Breach notification now meets the 60-day HIPAA requirement. One medium issue remains for your review.",
-      say:{ open:{eyebrow:"AI-Assisted Review",title:"AI reads the contract for you",body:"Priya opens the Medline BAA. AI-Assisted Review is already analyzing it against the HIPAA playbook."},
-        analyze:{eyebrow:"Iris",title:"Checked against your playbook",body:"Not a generic scan — it reviews against Riverside's own HIPAA compliance standards."},
-        findings:{eyebrow:"Findings",title:"Two issues, ranked by risk",body:"A breach-notice window that's too long (high) and a missing subcontractor flow-down (medium) — each explained."},
-        accept:{eyebrow:"One click",title:"Accept the drafted redline",body:"Priya accepts the 60-day fix — the clause is redlined in place, no retyping."},
-        done:{eyebrow:"Aligned",title:"Contract aligned to policy",body:"The redline is applied and the BAA is ready to send — minutes, not a manual review cycle."} },
-      handoff:{h:"Reviewed, redlined, ready",p:"AI aligned the Medline BAA to Riverside's HIPAA playbook and applied the redline — ready to send, logged to Epic."} }
+      say:{ intro:{eyebrow:"AI-Assisted Review",title:"Ask AI to review",body:"The Medline BAA is open. Ask the assistant to review it against the HIPAA playbook — then accept its redline."},
+        fixed:{eyebrow:"Redlined",title:"Clause aligned to policy",body:"You accepted the redline — Section 6 now requires 60-day breach notification, meeting HIPAA."} },
+      exchanges:[
+        {label:"Review this BAA against our playbook", redline:true,
+         answer:"I reviewed it against your HIPAA Compliance playbook. Two issues:\n\n• HIGH — Section 6 allows 90 days for breach notice; HIPAA and your playbook require 60.\n• MEDIUM — Section 7 has no subcontractor flow-down clause.\n\nI've drafted the fix for Section 6.",
+         card:'<span class="agc-accept" data-accept>✦ Accept redline for Section 6</span>'},
+        {label:"Summarize the risks",
+         answer:"Two risks. The material one is Section 6 — a 90-day breach window violates HIPAA's 60-day rule. The missing subcontractor flow-down in Section 7 is secondary. Fixing Section 6 resolves the compliance gap."},
+        {label:"Draft a subcontractor flow-down clause",
+         answer:"Suggested: “Business Associate shall ensure that any subcontractor that creates, receives, maintains, or transmits PHI on its behalf agrees in writing to the same restrictions and conditions that apply to Business Associate under this Agreement.”"}
+      ] }
   },
-  paintContent(p, root){
-    root.querySelector("#rv-ttl").textContent=p.ttl; root.querySelector("#rv-doctitle").textContent=p.doctitle;
-    root.querySelector("#rv-p1").textContent=p.p1; root.querySelector("#rv-p2").innerHTML=p.p2; root.querySelector("#rv-p3").innerHTML=p.p3;
-    root.querySelector("#rv-cnum").textContent=p.cnum; root.querySelector("#rv-cbody").innerHTML=p.cbodyNormal;
-    root.querySelector("#rv-intro").innerHTML=p.intro; root.querySelector("#rv-i1t").textContent=p.i1t; root.querySelector("#rv-i1d").textContent=p.i1d;
-    root.querySelector("#rv-i2t").textContent=p.i2t; root.querySelector("#rv-i2d").textContent=p.i2d; root.querySelector("#rv-confirm").innerHTML=p.confirm;
-    root.querySelector("#rv-clause").className="rv-clause"; root.querySelector("#rv-issue1").classList.remove("done");
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-  },
-  onTime(time, p, root){
-    root.querySelector("#rv-m0").classList.toggle("on", time>=2);
-    root.querySelector("#rv-m1").classList.toggle("on", time>=6.5);
-    root.querySelector("#rv-issue1").style.display = time>=11?"block":"none";
-    root.querySelector("#rv-issue2").style.display = time>=12.5?"block":"none";
-    // flag the risky clause once findings are shown
-    const cl=root.querySelector("#rv-clause"); const accepted=time>=16;
-    cl.classList.toggle("flag", time>=11 && !accepted); cl.classList.toggle("fixed", accepted);
-    root.querySelector("#rv-cbody").innerHTML = accepted ? p.cbodyFixed : p.cbodyNormal;
-    root.querySelector("#rv-issue1").classList.toggle("done", accepted);
-    const acc=root.querySelector("#rv-accept"); acc.textContent = accepted ? "✓ Redline accepted" : "✦ Accept suggested redline";
-    root.querySelector("#rv-m2").classList.toggle("on", time>=17.5);
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    $("#rv-ttl").textContent=p.ttl; $("#rv-doctitle").textContent=p.doctitle; $("#rv-p1").textContent=p.p1;
+    $("#rv-p2").innerHTML=p.p2; $("#rv-p3").innerHTML=p.p3; $("#rv-cnum").textContent=p.cnum;
+    $("#rv-cbody").innerHTML=p.cpre+'<span id="rv-risk">'+p.riskText+'</span>.'; $("#rv-clause").className="rv-clause";
+    api.narrate("intro"); api.progress(0); let done=0;
+    function applyRedline(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Redline accepted";
+      $("#rv-cbody").innerHTML=p.cpre+'<span class="rv-strike">'+p.riskText+'</span> <span class="rv-ins">'+p.fixText+'</span>.';
+      $("#rv-clause").classList.add("fixed");
+      AgentChat.bubble($("#rv-chat"),"ai","Done — the redline is applied to "+p.cnum.replace('.','')+". The clause now matches your playbook.");
+      api.narrate("fixed"); api.progress(Math.min(++done+1,3)); }
+    AgentChat.mount({ chatEl:$("#rv-chat"), chipsEl:$("#rv-chips"), hint:"Ask AI-Assisted Review", speed:13,
+      intro:"I can review this against your playbook, summarize risks, or draft language. What would you like?",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer.replace(/\n/g,"<br>"), card:ex.card,
+        after:()=>{ done++; api.progress(Math.min(done,3)); if(ex.redline){ const b=$("#rv-chat").querySelector("[data-accept]"); if(b) b.onclick=()=>applyRedline(b); } } })) });
+    if(api.auto){ api.after(900,()=>{ const c=$("#rv-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(5200,()=>{ const b=$("#rv-chat").querySelector("[data-accept]"); if(b && !b.classList.contains("done")) b.click(); }); }
   }
 });
 </script>

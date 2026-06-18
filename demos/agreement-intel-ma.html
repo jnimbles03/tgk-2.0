@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agreement Intelligence — M&amp;A Due Diligence · re-skinnable demo</title>
+<title>Agreement Intelligence — M&amp;A Due Diligence · interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./archetypes/dashboard.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   /* Authentic Docusign IAM / Agreement Manager chrome — palette + type from the real
      product frames (Vendor Renewals + IAM-for-Sales stage). */
@@ -51,46 +52,21 @@
   .tag.bad{background:#FDECEC;color:#C0392B;font-weight:600}
   .rk{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.3px;padding:2px 8px;border-radius:20px}
   .rk.hi{background:#FDECEC;color:#C0392B}.rk.md{background:#FBF0DD;color:#B07A1E}
-  /* dashboard chart + staggered alerts */
-  #mi-alerts .alert-row{opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
-  #mi-alerts .alert-row.show{opacity:1;transform:none}
-  #mi-alerts .alert-row{padding:11px 16px}
-  .alert-row .who b{font-weight:600;color:#130032}
-  .alert-row .who .sub{display:block;font-weight:400;color:#6e6189;font-size:11px;margin-top:1px}
-  .dash-body{background:#faf9fd}
-  .kpi .num{color:var(--ds-cobalt)}
-  .dash-head .badge{color:var(--ds-cobalt);background:#efe9ff}
-  .bars{display:flex;align-items:flex-end;gap:18px;height:96px;padding:6px 4px 0}
-  .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
-  .bars .b i{width:100%;max-width:46px;border-radius:4px 4px 0 0;background:var(--ds-cobalt)}
-  .bars .b.risk i{background:var(--ds-poppy)}
-  .bars .b span{font-size:10.5px;color:#6e6189;text-align:center;line-height:1.2}
-  /* relationships hierarchy + Iris prompt library */
-  .mi-rel{display:flex;gap:22px;height:100%}
-  .mi-tree{flex:1;min-width:0}
-  .tnode{background:#fff;border:1px solid #e8e3f5;border-radius:9px;padding:10px 14px;margin-bottom:8px}
-  .tnode .ti{font-size:13px;font-weight:600;color:#130032;display:flex;align-items:center;gap:9px}
-  .tnode .tsub{display:block;font-size:11.5px;color:#6e6189;margin-top:2px;padding-left:22px}
-  .tnode.root{border-color:var(--ds-cobalt);box-shadow:inset 3px 0 0 var(--ds-cobalt)}
-  .tkids{margin:0 0 10px 26px;border-left:1.5px dashed #d4cee2;padding-left:16px}
-  .tnode.flag{border-color:#F3C9C9;background:#FEF6F6}
-  .mi-prevail{background:#efe9ff;border-radius:9px;padding:11px 14px;margin-top:4px}
-  .mi-prevail .pvh{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--ds-cobalt);text-transform:uppercase;margin-bottom:4px}
-  .mi-prevail .pv{font-size:12px;color:#3a3a47;line-height:1.5}
-  .mi-prompt{width:352px;flex:0 0 auto;background:linear-gradient(180deg,#fafbff 0%,#f0ecff 100%);border:1px solid #e0dcef;border-radius:11px;padding:14px 15px;display:flex;flex-direction:column}
-  .mp-h{font-size:13px;font-weight:600;color:#1a1a3a;display:flex;align-items:center;gap:7px;margin-bottom:11px}
-  .mp-h .spark{color:#7c3aed}
-  .mp-chip{border:1px solid #c9bdf2;color:var(--ds-cobalt);background:#fff;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;line-height:1.4}
-  .mp-list{margin-top:9px;display:flex;flex-direction:column;gap:6px}
-  .mp-list .q{border:1px solid #e0dcef;border-radius:9px;padding:8px 11px;font-size:11.5px;color:#7a7a92;background:#fff}
-  .mp-result{margin-top:12px;background:#fff;border:1px solid #e0dcef;border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.55;color:#252423;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
-  .mp-result.on{opacity:1;transform:none}
-  .mp-result .src{display:block;margin-top:7px;font-size:10.5px;color:#7c3aed;font-style:italic}
+  /* ---- split layout: repository table + Ask Iris agent panel ---- */
+  .app.has-rail .app-body{padding:0}
+  .mi-wrap{display:flex;height:100%}
+  .mi-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:22px 26px;overflow:auto}
+  .mi-agent{width:352px;flex:0 0 auto;border-left:1px solid #e8e3f5;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .mi-agent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:600;color:#130032}
+  .mi-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#9d50ff 0%,#6e3aff 50%,#4C00FF 100%);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--ds-cobalt);color:var(--ds-cobalt);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .agc-accept.done{background:var(--ds-cobalt);color:#fff;cursor:default}
 </style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const LOOP = '<svg class="dsloop" viewBox="0 0 32 32"><rect x="4" y="12" width="13" height="13" rx="3" fill="#4C00FF"/><path d="M15 4a11.5 11.5 0 0 1 0 23 V18.5 a6.5 6.5 0 0 0 0-13Z" fill="#FF5252"/><rect x="11.5" y="11.5" width="6" height="6" rx="1" fill="#130032"/></svg>';
 const NAV = '<div class="app-nav"><span class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>'+
@@ -113,161 +89,97 @@ function row(r){
     '<div class="c-coc"><span class="tag'+(r[7]?' bad':'')+'">'+r[6]+'</span></div>'+
     '<div class="c-rk">'+(r[8]?'<span class="rk '+r[8]+'">'+(r[8]==='hi'?'HIGH':'MED')+'</span>':'')+'</div></div>';
 }
-function alertRow(a){
-  return '<div class="alert-row'+(a[0]==='hi'?' flag':'')+'"><span class="sev '+a[0]+'"></span>'+
-    '<span class="who"><b>'+a[1]+'</b><span class="sub">'+a[2]+'</span></span><span class="tm">'+a[3]+'</span></div>';
-}
 
 const SCENES =
-  // ---- repository ----
   '<section class="de-scene is-active" data-scene="repo"><div class="app has-rail">'+NAV+RAIL+
-    '<div class="app-body"><div class="app-head"><h2 id="mi-title"></h2><span class="ai-pill">✦ AI-EXTRACTED BY IRIS</span>'+
-        '<div class="acts"><span class="add">Custom report</span></div></div>'+
-      '<div class="mi-th"><span class="c-ag" style="padding-left:25px">Agreement</span><span class="c-cp">Counterparty</span>'+
-        '<span class="c-vl">Value</span><span class="c-as">Assignment</span><span class="c-coc">Change of control</span><span class="c-rk"></span></div>'+
-      '<div id="mi-rows"></div>'+
-    '</div>'+
-    '<div class="app-foot"><span class="pb">Powered by <b>Docusign</b></span><span class="rt"><span>Trust</span><span>Privacy</span></span></div>'+
-  '</div></section>'+
-  // ---- diligence dashboard ----
-  '<section class="de-scene" data-scene="dash"><div class="dash">'+NAV+RAIL+
-    '<div class="dash-body"><div class="dash-head"><h2>M&amp;A due diligence</h2><span class="badge" id="mi-dashbadge"></span></div>'+
-      '<div class="kpis">'+
-        '<div class="kpi"><div class="lab">Total contract value</div><div class="num" id="mi-k1"></div><div class="delta">across portfolio</div></div>'+
-        '<div class="kpi alert"><div class="lab">Revenue at risk</div><div class="num" id="mi-k2"></div><div class="delta">assignment &amp; change-of-control</div></div>'+
-        '<div class="kpi"><div class="lab">Change-of-control clauses</div><div class="num" id="mi-k3"></div><div class="delta">terminable on CoC</div></div>'+
-        '<div class="kpi"><div class="lab">Consent-to-assign required</div><div class="num" id="mi-k4"></div><div class="delta">blocks transfer</div></div>'+
+    '<div class="app-body"><div class="mi-wrap">'+
+      '<div class="mi-main">'+
+        '<div class="app-head"><h2 id="mi-title"></h2><span class="ai-pill">✦ AI-EXTRACTED BY IRIS</span>'+
+          '<div class="acts"><span class="add">Custom report</span></div></div>'+
+        '<div class="mi-th"><span class="c-ag" style="padding-left:25px">Agreement</span><span class="c-cp">Counterparty</span>'+
+          '<span class="c-vl">Value</span><span class="c-as">Assignment</span><span class="c-coc">Change of control</span><span class="c-rk"></span></div>'+
+        '<div id="mi-rows"></div>'+
       '</div>'+
-      '<div class="charts"><div class="chart" style="max-width:330px"><h4>Revenue at risk by clause</h4><div class="sub">Top exposure drivers</div>'+
-          '<div class="bars"><div class="b risk"><i style="height:84%"></i><span>Assignment consent</span></div>'+
-            '<div class="b risk"><i style="height:62%"></i><span>Change of control</span></div>'+
-            '<div class="b"><i style="height:34%"></i><span>Auto-renewal</span></div>'+
-            '<div class="b"><i style="height:22%"></i><span>Termination</span></div></div></div>'+
-        '<div class="alerts" style="flex:1"><div class="ah">High-risk agreements</div><div id="mi-alerts"></div></div>'+
+      '<div class="mi-agent">'+
+        '<div class="phd"><span class="ai">✦</span> Ask Iris</div>'+
+        '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="mi-chat"></div><div class="agc-chips" id="mi-chips"></div>'+
+          '<div class="agc-input"><div class="box">Ask about assignment, change-of-control, or risk…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
       '</div>'+
-    '</div>'+
-  '</div></section>'+
-  // ---- parties & relationships + Iris prompt library ----
-  '<section class="de-scene" data-scene="relate"><div class="app has-rail">'+NAV+RAIL+
-    '<div class="app-body"><div class="app-head"><h2>Parties &amp; relationships</h2><span class="ai-pill">✦ AI-BUILT HIERARCHY</span></div>'+
-      '<div class="mi-rel">'+
-        '<div class="mi-tree">'+
-          '<div class="tnode root"><span class="ti"><span class="dia"></span><span id="mi-t-root"></span></span><span class="tsub" id="mi-t-rootsub"></span></div>'+
-          '<div class="tkids">'+
-            '<div class="tnode"><span class="ti"><span class="dia"></span>Order Form — 2023</span><span class="tsub" id="mi-t-c1"></span></div>'+
-            '<div class="tnode"><span class="ti"><span class="dia"></span>Amendment #2 — Pricing</span><span class="tsub" id="mi-t-c2"></span></div>'+
-            '<div class="tnode flag"><span class="ti"><span class="dia"></span>Amendment #3 — Assignment</span><span class="tsub" id="mi-t-c3"></span></div>'+
-            '<div class="tnode"><span class="ti"><span class="dia"></span>Data Processing Addendum</span><span class="tsub" id="mi-t-c4"></span></div>'+
-          '</div>'+
-          '<div class="mi-prevail"><div class="pvh">Prevailing terms</div><div class="pv" id="mi-prevail"></div></div>'+
-        '</div>'+
-        '<div class="mi-prompt"><div class="mp-h"><span class="spark">✦</span> Iris Prompt Library</div>'+
-          '<div class="mp-chip" id="mi-prompt-chip"></div>'+
-          '<div class="mp-list"><div class="q">Summarize prevailing terms</div><div class="q">Extract key dates</div></div>'+
-          '<div class="mp-result" id="mi-prompt-result"></div>'+
-        '</div>'+
-      '</div>'+
-    '</div>'+
-  '</div></section>'+
-  // ---- integrate handoff ----
-  '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="mi-ho-h"></h2><p id="mi-ho-p"></p>'+
-    '<div class="chain"><div class="node">Iris extractions</div><span class="arr">&rarr;</span>'+
-      '<div class="node lead">API · data lake</div><span class="arr">&rarr;</span><div class="node" id="mi-ho-sor"></div></div></div></section>';
+    '</div></div>'+
+  '</div></section>';
 
-DemoEngine.init({
-  meta:{ title:"Agreement Intelligence — M&A Diligence", productTag:"Agreement Manager · Iris", home:"index.html",
-    footnote:'<b>Faithful Docusign IAM / Agreement Manager + Iris diligence flow, re-skinnable content.</b> The agreement repository, the M&amp;A risk dashboard, the AI-built contract hierarchy and the Iris prompt-library analysis are the shared spine. Switching vertical swaps the acquisition, the inherited contracts and the narration — the same app-shell archetype drives Agreement Manager, CLM and Monitor.' },
-  defaultPack:"amex", scenes:SCENES,
-  timeline:{ totalDuration:40,
-    beats:[ {t:0,key:"open",sceneId:"repo"},{t:6,key:"structure",sceneId:"dash"},{t:13,key:"prioritize",sceneId:"dash"},
-      {t:20,key:"relate",sceneId:"relate"},{t:27,key:"analyze",sceneId:"relate"},{t:34,key:"integrate",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:680,y:300,action:"move"},
-      {t:6,target:"#mi-k1",action:"move",sayKey:"structure"},
-      {t:13,target:"#mi-alerts",action:"move",sayKey:"prioritize"},
-      {t:20,target:"#mi-t-root",action:"move",sayKey:"relate"},
-      {t:27,target:"#mi-prompt-chip",action:"click",sayKey:"analyze"},
-      {t:34,x:640,y:300,action:"move"} ] },
+DemoEngine.interactive({
+  meta:{ title:"Agreement Intelligence — M&A Diligence · interactive", productTag:"Agreement Manager · Iris", home:"index.html",
+    footnote:'<b>This panel is live.</b> Iris has read every inherited agreement in the acquired portfolio — click a question and it types a specific, cited answer on assignment, change-of-control and revenue at risk, then offers to push the findings to the data lake. Switch vertical to re-skin the acquisition and its contracts.' },
+  defaultPack:"amex", steps:4, scenes:SCENES,
   packs:{
     amex:{ label:"AMEX × Center",
       theme:{ "--tenant-accent":"#006FCF","--tenant-accent-soft":"#E4F0FB","--tenant-ink":"#00175A" },
       brand:{ name:"American Express", mark:"A" }, url:"app.docusign.com — American Express", sorBadge:"Docusign Iris · Agreement AI",
       persona:{ name:"Lena Ortiz", role:"M&A Diligence Lead", side:"advisor" },
-      cobrand:"Center", title:"Center — inherited agreements",
+      cobrand:"Center", title:"Center — inherited agreements", lake:"AMEX data lake",
       rows:[ ["mi-r1","Cloud Infrastructure MSA","Cloudscale","$12.4M","Consent to assign",1,"Terminable on change of control",1,"hi"],
         ["mi-r2","Payment Processing Agreement","NorthPay","$9.8M","Freely assignable",0,"Notice only",0,""],
         ["mi-r3","Banking Partner Agreement","Tandem Bank","$6.2M","Consent to assign",1,"No CoC clause",0,"md"],
         ["mi-r4","Reseller Agreement","Vantage","$3.1M","Silent",0,"Notice only",0,""],
         ["mi-r5","Enterprise Customer MSA","Globex","$4.5M","Anti-assignment",1,"Terminable on change of control",1,"hi"] ],
-      dashbadge:"Center portfolio · 214 agreements",
-      kpis:{ k1:"$53.0M", k2:"$21.4M", k3:"38", k4:"24" },
-      alerts:[ ["hi","Cloudscale — Cloud Infrastructure MSA","Consent to assign + terminable on change of control","$12.4M"],
-        ["hi","Globex — Enterprise Customer MSA","Anti-assignment clause blocks transfer","$4.5M"],
-        ["md","Tandem Bank — Banking Partner Agreement","Consent to assign required","$6.2M"] ],
-      treeRoot:"Cloudscale — Cloud Infrastructure", treeRootSub:"Master Services Agreement · signed 2023 · $12.4M ACV",
-      tc1:"$12.4M annual commitment", tc2:"+8% uplift, effective 2024", tc3:"Consent-to-assign language added", tc4:"GDPR / CCPA processing terms",
-      prevail:"Liability capped at 12 months' fees · acquirer consent required to assign · counterparty may terminate on change of control.",
-      promptChip:"Run: annual pricing analysis across Center's vendor MSAs",
-      promptResult:"Across 41 vendor MSAs, blended annual uplift is 6.9%. Three contracts carry auto-renew with >7% escalators — about $4.2M of avoidable spend if renegotiated pre-close.<span class=\"src\">✦ Sources: Cloudscale OF-2024, NorthPay MSA §5, DataVault Amendment #1</span>",
-      handoff:{ h:"Diligence findings, in AMEX's own stack", p:"Iris extractions — assignment, change-of-control and value at risk — push to AMEX's data lake and BI tools through the API, so the integration team works from structured data, not PDFs.", sor:"AMEX data lake" },
-      say:{ open:{eyebrow:"Agreement Intelligence",title:"Center's contracts, no longer a black box",body:"American Express just closed Center. Every inherited agreement is centralized in Docusign IAM — and Iris has already read and structured them."},
-        structure:{eyebrow:"Docusign Iris",title:"Unstructured agreements become a diligence dashboard",body:"Assignment rights, change-of-control and revenue at risk, extracted across 214 agreements. Center's portfolio totals $53M in contract value."},
-        prioritize:{eyebrow:"Prioritize",title:"The contracts that threaten the deal",body:"$21.4M of revenue sits behind unfavorable assignment and change-of-control language — the riskiest agreements rise to the top."},
-        relate:{eyebrow:"Relationships",title:"Every amendment, in one hierarchy",body:"Iris rebuilds the Cloudscale contract family — MSA, order forms, amendments — so the prevailing terms are unambiguous."},
-        analyze:{eyebrow:"Prompt Library",title:"Ask the whole portfolio at once",body:"A configurable Iris prompt runs an annual pricing analysis across every vendor MSA — agentic analysis at portfolio scale."},
-        integrate:{eyebrow:"Integrate",title:"Findings flow into AMEX's systems",body:"Extracted data lands in AMEX's data lake and BI tools via the API — diligence output becomes integration-ready."} },
-    },
+      say:{ intro:{eyebrow:"Agreement Intelligence",title:"Center's contracts, no longer a black box",body:"American Express just closed Center. Every inherited agreement is centralized in Docusign IAM and Iris has already read and structured all 214 — ask it what threatens the deal."},
+        acted:{eyebrow:"Integrate",title:"Findings flow into AMEX's systems",body:"Iris pushed the assignment, change-of-control and revenue-at-risk extractions to the AMEX data lake via the API — diligence output is now integration-ready, not a stack of PDFs."} },
+      exchanges:[
+        {label:"How many contracts have change-of-control clauses?",
+         answer:"<b>38 of 214</b> inherited agreements carry a change-of-control clause that lets the counterparty terminate on the acquisition.<br><br>The two material ones in this view:<br>• <b>Cloudscale — Cloud Infrastructure MSA</b> ($12.4M)<br>• <b>Globex — Enterprise Customer MSA</b> ($4.5M)<br><br>Both are terminable on change of control."},
+        {label:"What revenue is at risk on assignment?",
+         answer:"<b>$21.4M</b> of the $53.0M portfolio sits behind unfavorable assignment or change-of-control language.<br><br>The biggest single driver is assignment-consent — Cloudscale's $12.4M MSA needs the counterparty's consent to transfer, and Globex's $4.5M MSA has an outright anti-assignment clause."},
+        {label:"Which counterparties block assignment?",
+         answer:"<b>24 agreements</b> require consent to assign or block it entirely. The three in this view:<br><br>• <b>Globex</b> — anti-assignment clause, blocks transfer outright<br>• <b>Cloudscale</b> — consent to assign required ($12.4M)<br>• <b>Tandem Bank</b> — consent to assign required ($6.2M)<br><br>NorthPay and Vantage transfer freely."},
+        {label:"Walk me through the Cloudscale contract family", push:true,
+         answer:"Iris rebuilt the <b>Cloudscale</b> hierarchy from four documents:<br><br>• MSA — signed 2023, $12.4M ACV (root)<br>• Order Form 2023 — $12.4M annual commitment<br>• Amendment #2 — +8% pricing uplift, 2024<br>• <b>Amendment #3 — added consent-to-assign language</b> (the flag)<br><br>Prevailing terms: liability capped at 12 months' fees, acquirer consent required to assign, counterparty may terminate on change of control. Want me to push these findings to the data lake?",
+         card:'<span class="agc-accept" data-push>✦ Push findings to the AMEX data lake</span>'}
+      ] },
     health:{ label:"Healthcare · Riverside",
       theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
       brand:{ name:"Riverside Health", mark:"R" }, url:"app.docusign.com — Riverside Health", sorBadge:"Docusign Iris · Agreement AI",
       persona:{ name:"Lena Ortiz", role:"Integration Counsel", side:"advisor" },
-      cobrand:"Summit Clinics", title:"Summit Clinics — inherited agreements",
+      cobrand:"Summit Clinics", title:"Summit Clinics — inherited agreements", lake:"Riverside data lake",
       rows:[ ["mi-r1","Payer Network Agreement","Unity Health","$8.6M","Consent to assign",1,"Terminable on change of control",1,"hi"],
         ["mi-r2","Medical Supply MSA","Medline","$5.4M","Freely assignable",0,"Notice only",0,""],
         ["mi-r3","EHR Platform Agreement","Cerner","$4.9M","Consent to assign",1,"No CoC clause",0,"md"],
         ["mi-r4","Lab Services Agreement","Quest","$2.3M","Silent",0,"Notice only",0,""],
         ["mi-r5","Staffing Agreement","Vitalis","$3.1M","Anti-assignment",1,"Terminable on change of control",1,"hi"] ],
-      dashbadge:"Summit portfolio · 138 agreements",
-      kpis:{ k1:"$31.4M", k2:"$13.0M", k3:"21", k4:"17" },
-      alerts:[ ["hi","Unity Health — Payer Network Agreement","Consent to assign + terminable on change of control","$8.6M"],
-        ["hi","Vitalis — Staffing Agreement","Anti-assignment clause blocks transfer","$3.1M"],
-        ["md","Cerner — EHR Platform Agreement","Consent to assign required","$4.9M"] ],
-      treeRoot:"Unity Health — Payer Network", treeRootSub:"Master Services Agreement · signed 2022 · $8.6M ACV",
-      tc1:"$8.6M annual commitment", tc2:"+6% uplift, effective 2024", tc3:"Consent-to-assign language added", tc4:"HIPAA / PHI processing terms",
-      prevail:"Liability capped at 12 months' fees · payer consent required to assign · counterparty may terminate on change of control.",
-      promptChip:"Run: annual pricing analysis across Summit's payer & vendor contracts",
-      promptResult:"Across 29 contracts, blended annual uplift is 5.8%. Two payer agreements carry auto-renew with >7% escalators — about $2.1M of avoidable spend if renegotiated pre-close.<span class=\"src\">✦ Sources: Unity OF-2024, Cerner MSA §5, Medline Amendment #1</span>",
-      handoff:{ h:"Diligence findings, in Riverside's own stack", p:"Iris extractions — assignment, change-of-control and value at risk — push to Riverside's data lake and BI tools through the API, so the integration team works from structured data, not PDFs.", sor:"Riverside data lake" },
-      say:{ open:{eyebrow:"Agreement Intelligence",title:"Summit's contracts, no longer a black box",body:"Riverside just closed Summit Clinics. Every inherited agreement is centralized in Docusign IAM — and Iris has already read and structured them."},
-        structure:{eyebrow:"Docusign Iris",title:"Unstructured agreements become a diligence dashboard",body:"Assignment rights, change-of-control and revenue at risk, extracted across 138 agreements. Summit's portfolio totals $31.4M in contract value."},
-        prioritize:{eyebrow:"Prioritize",title:"The contracts that threaten the deal",body:"$13M of revenue sits behind unfavorable assignment and change-of-control language — the riskiest agreements rise to the top."},
-        relate:{eyebrow:"Relationships",title:"Every amendment, in one hierarchy",body:"Iris rebuilds the Unity Health contract family — MSA, order forms, amendments — so the prevailing terms are unambiguous."},
-        analyze:{eyebrow:"Prompt Library",title:"Ask the whole portfolio at once",body:"A configurable Iris prompt runs an annual pricing analysis across every payer and vendor contract — agentic analysis at portfolio scale."},
-        integrate:{eyebrow:"Integrate",title:"Findings flow into Riverside's systems",body:"Extracted data lands in Riverside's data lake and BI tools via the API — diligence output becomes integration-ready."} },
-    }
+      say:{ intro:{eyebrow:"Agreement Intelligence",title:"Summit's contracts, no longer a black box",body:"Riverside just closed Summit Clinics. Every inherited agreement is centralized in Docusign IAM and Iris has already read and structured all 138 — ask it what threatens the deal."},
+        acted:{eyebrow:"Integrate",title:"Findings flow into Riverside's systems",body:"Iris pushed the assignment, change-of-control and revenue-at-risk extractions to the Riverside data lake via the API — diligence output is now integration-ready, not a stack of PDFs."} },
+      exchanges:[
+        {label:"How many contracts have change-of-control clauses?",
+         answer:"<b>21 of 138</b> inherited agreements carry a change-of-control clause that lets the counterparty terminate on the acquisition.<br><br>The two material ones in this view:<br>• <b>Unity Health — Payer Network Agreement</b> ($8.6M)<br>• <b>Vitalis — Staffing Agreement</b> ($3.1M)<br><br>Both are terminable on change of control."},
+        {label:"What revenue is at risk on assignment?",
+         answer:"<b>$13.0M</b> of the $31.4M portfolio sits behind unfavorable assignment or change-of-control language.<br><br>The biggest single driver is assignment-consent — the Unity Health $8.6M payer agreement needs consent to transfer, and Vitalis's $3.1M staffing MSA has an outright anti-assignment clause."},
+        {label:"Which counterparties block assignment?",
+         answer:"<b>17 agreements</b> require consent to assign or block it entirely. The three in this view:<br><br>• <b>Vitalis</b> — anti-assignment clause, blocks transfer outright<br>• <b>Unity Health</b> — consent to assign required ($8.6M)<br>• <b>Cerner</b> — consent to assign required ($4.9M)<br><br>Medline and Quest transfer freely."},
+        {label:"Walk me through the Unity Health contract family", push:true,
+         answer:"Iris rebuilt the <b>Unity Health</b> hierarchy from four documents:<br><br>• MSA — signed 2022, $8.6M ACV (root)<br>• Order Form 2023 — $8.6M annual commitment<br>• Amendment #2 — +6% pricing uplift, 2024<br>• <b>Amendment #3 — added consent-to-assign language</b> (the flag)<br><br>Prevailing terms: liability capped at 12 months' fees, payer consent required to assign, counterparty may terminate on change of control. Want me to push these findings to the data lake?",
+         card:'<span class="agc-accept" data-push>✦ Push findings to the Riverside data lake</span>'}
+      ] }
   },
-  paintContent(p, root){
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
     root.querySelectorAll(".mi-cobrand").forEach(e=>e.textContent=p.cobrand);
     root.querySelectorAll(".mi-av").forEach(e=>e.textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase());
-    root.querySelector("#mi-title").textContent=p.title;
-    root.querySelector("#mi-rows").innerHTML=p.rows.map(row).join("");
-    root.querySelector("#mi-dashbadge").textContent=p.dashbadge;
-    root.querySelector("#mi-k1").textContent=p.kpis.k1; root.querySelector("#mi-k2").textContent=p.kpis.k2;
-    root.querySelector("#mi-k3").textContent=p.kpis.k3; root.querySelector("#mi-k4").textContent=p.kpis.k4;
-    root.querySelector("#mi-alerts").innerHTML=p.alerts.map(alertRow).join("");
-    root.querySelector("#mi-t-root").textContent=p.treeRoot; root.querySelector("#mi-t-rootsub").textContent=p.treeRootSub;
-    root.querySelector("#mi-t-c1").textContent=p.tc1; root.querySelector("#mi-t-c2").textContent=p.tc2;
-    root.querySelector("#mi-t-c3").textContent=p.tc3; root.querySelector("#mi-t-c4").textContent=p.tc4;
-    root.querySelector("#mi-prevail").textContent=p.prevail;
-    root.querySelector("#mi-prompt-chip").textContent=p.promptChip;
-    root.querySelector("#mi-prompt-result").innerHTML=p.promptResult;
-    root.querySelector("#mi-ho-h").textContent=p.handoff.h; root.querySelector("#mi-ho-p").textContent=p.handoff.p;
-    root.querySelector("#mi-ho-sor").textContent=p.handoff.sor;
-  },
-  onTime(time, p, root){
-    ["mi-r1","mi-r5"].forEach(id=>{ const el=root.querySelector("#"+id); if(el) el.classList.toggle("risk", time>=3 && time<6); });
-    root.querySelectorAll("#mi-alerts .alert-row").forEach((n,i)=>n.classList.toggle("show", time>=13 + i*0.5));
-    const pr=root.querySelector("#mi-prompt-result"); if(pr) pr.classList.toggle("on", time>=28);
+    $("#mi-title").textContent=p.title;
+    $("#mi-rows").innerHTML=p.rows.map(row).join("");
+    root.querySelectorAll(".mi-row.risk").forEach(r=>r.classList.remove("risk"));
+    ["mi-r1","mi-r5"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.add("risk"); });
+    api.narrate("intro"); api.progress(0); let done=0;
+    function bump(){ api.progress(Math.min(++done,4)); if(done>=4) api.done(); }
+    function pushLake(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Findings pushed to the data lake";
+      AgentChat.bubble($("#mi-chat"),"ai","Done — assignment rights, change-of-control flags and the $"+(p.label==='AMEX × Center'?'21.4M':'13.0M')+" at risk are written to the "+p.lake+" via the API. The integration team now works from structured data, not PDFs.");
+      api.narrate("acted"); }
+    AgentChat.mount({ chatEl:$("#mi-chat"), chipsEl:$("#mi-chips"), hint:"Ask Iris", speed:13,
+      intro:"I'm Iris. I've read all "+p.rows.length+" agreements in this view and structured the full "+p.cobrand+" portfolio — ask me about change-of-control, revenue at risk, or who blocks assignment.",
+      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
+        after:()=>{ bump(); if(ex.push){ const b=$("#mi-chat").querySelector("[data-push]"); if(b) b.onclick=()=>pushLake(b); } } })) });
+    if(api.auto){ api.after(900,()=>{ const c=$("#mi-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(6500,()=>{ const chips=$("#mi-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
+      api.after(11500,()=>{ const b=$("#mi-chat").querySelector("[data-push]"); if(b && !b.classList.contains("done")) b.click(); }); }
   }
 });
 </script>
