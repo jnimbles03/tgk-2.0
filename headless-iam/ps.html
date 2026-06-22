@@ -177,6 +177,76 @@
     .kpis{grid-template-columns:repeat(2,1fr);}
     .iam-tray{width:100%;}
   }
+
+  /* ===================== APPROVAL QUEUE (shared component) =====================
+     Same markup + JS as fins / hls; remapped to the Cascade civic palette.
+     Each row expands on click to reveal who/what/amount/risk/linked agreement/
+     next step, with Approve / Route / Step-up affordances. Step-up + agreement
+     actions hand off to the existing openDemo() drilldowns. */
+  :root{
+    --apv-accent:var(--cc-blue);
+    --apv-accent-soft:var(--cc-blue-soft);
+    --apv-paper:var(--cc-paper);
+    --apv-ink:var(--cc-ink);
+    --apv-ink-2:var(--cc-ink);
+    --apv-ink-3:var(--cc-ink-soft);
+    --apv-rule:var(--cc-rule);
+    --apv-rule-soft:var(--cc-rule-soft);
+    --apv-bg-soft:var(--cc-cream);
+    --apv-ok:#1F6B3D; --apv-ok-soft:#DCEEDF;
+    --apv-warn:var(--cc-amber); --apv-warn-soft:#FBEDE2;
+    --apv-risk:#B0431F; --apv-risk-soft:#FBE3DA;
+    --apv-radius:8px;
+  }
+  .apv-item{border:1px solid var(--apv-rule);border-radius:var(--apv-radius);margin-top:10px;background:var(--apv-paper);overflow:hidden;transition:border-color 0.12s,box-shadow 0.12s;}
+  .apv-item:first-child{margin-top:0;}
+  .apv-item:hover{border-color:var(--apv-accent);}
+  .apv-item.open{border-color:var(--apv-accent);box-shadow:0 6px 18px rgba(27,58,107,0.1);}
+  .apv-item.resolved{opacity:0.72;}
+  .apv-item.resolved .apv-head{cursor:default;}
+  .apv-head{display:grid;grid-template-columns:8px 1fr auto 16px;gap:11px;align-items:center;padding:12px 14px;cursor:pointer;}
+  .apv-dot{width:8px;height:8px;border-radius:50%;background:var(--apv-ink-3);}
+  .apv-item[data-sev="risk"] .apv-dot{background:var(--apv-risk);}
+  .apv-item[data-sev="warn"] .apv-dot{background:var(--apv-warn);}
+  .apv-item[data-sev="ok"] .apv-dot{background:var(--apv-ok);}
+  .apv-hmeta{min-width:0;}
+  .apv-title{font-size:13px;font-weight:600;color:var(--apv-ink);line-height:1.3;}
+  .apv-sub{font-size:12px;color:var(--apv-ink-3);margin-top:2px;}
+  .apv-sub b{color:var(--apv-ink-2);font-weight:600;}
+  .apv-amt{font-size:13px;font-weight:700;color:var(--apv-accent);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  .apv-amt small{display:block;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:var(--apv-ink-3);margin-top:1px;}
+  .apv-chev{width:16px;height:16px;color:var(--apv-ink-3);transition:transform 0.18s;display:flex;align-items:center;justify-content:center;}
+  .apv-item.open .apv-chev{transform:rotate(180deg);color:var(--apv-accent);}
+  .apv-badge{display:inline-flex;align-items:center;font-size:9.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:10px;line-height:1.4;}
+  .apv-badge.risk{color:var(--apv-risk);background:var(--apv-risk-soft);}
+  .apv-badge.warn{color:var(--apv-warn);background:var(--apv-warn-soft);}
+  .apv-badge.ok{color:var(--apv-ok);background:var(--apv-ok-soft);}
+  .apv-badge.info{color:var(--apv-accent);background:var(--apv-accent-soft);}
+  .apv-drawer{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.22s ease;}
+  .apv-item.open .apv-drawer{grid-template-rows:1fr;}
+  .apv-drawer-in{overflow:hidden;min-height:0;}
+  .apv-detail{padding:2px 14px 14px;border-top:1px solid var(--apv-rule-soft);}
+  .apv-facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;padding:11px 0 4px;font-size:12px;}
+  .apv-facts dt{color:var(--apv-ink-3);font-weight:600;letter-spacing:0.02em;}
+  .apv-facts dd{margin:0;color:var(--apv-ink);font-weight:500;}
+  .apv-facts dd b{color:var(--apv-accent);font-weight:700;}
+  .apv-facts .risk-cell{color:var(--apv-risk);font-weight:600;}
+  .apv-link{color:var(--apv-accent);font-weight:600;cursor:pointer;border-bottom:1px dashed currentColor;}
+  .apv-link:hover{color:var(--apv-ink);}
+  .apv-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+  .apv-btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--apv-rule);background:var(--apv-paper);color:var(--apv-ink-2);display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:background 0.12s,border-color 0.12s,color 0.12s;}
+  .apv-btn:hover{border-color:var(--apv-accent);color:var(--apv-accent);}
+  .apv-btn.primary{background:var(--apv-accent);color:#fff;border-color:var(--apv-accent);}
+  .apv-btn.primary:hover{filter:brightness(1.1);color:#fff;}
+  .apv-btn.ds{background:#4B00E9;border-color:#4B00E9;color:#fff;}
+  .apv-btn.ds:hover{filter:brightness(1.1);color:#fff;}
+  .apv-btn.ds::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;}
+  .apv-resolution{margin-top:12px;font-size:12px;font-weight:600;color:var(--apv-ok);display:none;align-items:center;gap:7px;}
+  .apv-resolution::before{content:"\2713";font-weight:900;}
+  .apv-resolution.routed{color:var(--apv-accent);}
+  .apv-resolution.routed::before{content:"\2192";}
+  .apv-item.resolved .apv-resolution{display:inline-flex;}
+  .apv-item.resolved .apv-actions{display:none;}
 </style>
 </head>
 <body>
@@ -296,6 +366,15 @@
           </div>
         </div>
       </div>
+
+      <!-- Approvals / Action Queue — click a row to expand full detail -->
+      <div class="panel" aria-label="Approvals and action queue" style="margin-top:18px;">
+        <div class="panel-h">
+          <h3>Approvals &amp; Action Queue</h3>
+          <span class="panel-link" id="apvCount">—</span>
+        </div>
+        <div id="apvList"></div>
+      </div>
     </div>
 
     <footer class="ds-foot">
@@ -404,7 +483,141 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('iamTray').classList.contains('open')) return closeTray();
 });
 
+/* ===================== APPROVAL QUEUE (shared interaction) =====================
+   Same engine as fins / hls. Each public-sector queue item expands on click to
+   reveal who / what / amount / risk reason / linked agreement / next step, with
+   Approve / Route / Step-up affordances. Step-up + agreement actions hand off to
+   the existing openDemo() drilldowns. */
+const APV_QUEUE = [
+  { id:'permit-greenhaven', sev:'warn', badge:{cls:'warn',text:'Decision req'},
+    title:'Building permit — commercial tenant improvement', sub:'<b>Greenhaven Plaza</b> · Permit #BP-2026-1184',
+    amt:'$420K', amtLabel:'Job value',
+    facts:[
+      ['Applicant','Greenhaven Development LLC'],
+      ['Action','Approve commercial TI permit (Suites 200–240)'],
+      ['Valuation','<b>$420,000</b> declared · fees paid $6,310'],
+      ['Risk reason','<span class="risk-cell">Fire-marshal plan review conditional — egress note pending sign-off</span>'],
+      ['Linked agreement','Permit application packet + stamped plans'],
+      ['Next step','Approve with condition → issue permit on plan resubmission']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] },
+
+  { id:'snap-rivera', sev:'warn', badge:{cls:'warn',text:'Redetermination'},
+    title:'SNAP recertification — Rivera household', sub:'<b>Case #SN-4421</b> · Benefits',
+    amt:'$740/mo', amtLabel:'Allotment',
+    facts:[
+      ['Applicant','Maria Rivera (head of household, 4)'],
+      ['Action','Approve 12-month SNAP recertification'],
+      ['Amount','<b>$740 / month</b> proposed allotment'],
+      ['Risk reason','Income data verified against state wage source — within eligibility band'],
+      ['Linked agreement','Recertification webform + consent to verify'],
+      ['Next step','Approve → benefit issuance EBT next cycle']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] },
+
+  { id:'vendor-apex', sev:'risk', badge:{cls:'risk',text:'Step-up required'},
+    title:'Vendor recertification — Apex Services', sub:'<b>Vendor compliance</b> · annual',
+    amt:'IAL2', amtLabel:'Identity',
+    facts:[
+      ['Applicant','Apex Services Inc. (authorized signer: D. Okafor)'],
+      ['Action','Recertify vendor &amp; refresh debarment / SAM check'],
+      ['Amount','Active contracts <b>$1.2M</b> across 3 departments'],
+      ['Risk reason','<span class="risk-cell">Signer changed since last cycle → IAL2 identity step-up before recert</span>'],
+      ['Linked agreement','Master Services Agreement (2024) · recert addendum'],
+      ['Next step','Verify signer identity, then countersign recertification']
+    ],
+    linkDemo:'navigator', stepupDemo:'clear', signDemo:'signing', actions:['approve','route','stepup','sign','agreement'] },
+
+  { id:'procure-it', sev:'ok', badge:{cls:'info',text:'Award ready'},
+    title:'Procurement award — Greenhaven IT services', sub:'<b>RFP #IT-2026-07</b> · Procurement',
+    amt:'$880K', amtLabel:'Contract',
+    facts:[
+      ['Applicant','Greenhaven IT (lowest responsive bidder)'],
+      ['Action','Award 3-year managed services contract'],
+      ['Amount','<b>$880,000</b> total · $293K / yr'],
+      ['Risk reason','Bid tabulation complete · insurance &amp; bonding verified · no protests filed'],
+      ['Linked agreement','Notice of Award + contract for signature'],
+      ['Next step','Approve → tenant-branded signing ceremony']
+    ],
+    linkDemo:'navigator', signDemo:'signing', actions:['approve','route','sign','agreement'] },
+
+  { id:'variance-lot', sev:'warn', badge:{cls:'warn',text:'Board route'},
+    title:'Zoning variance — setback exception', sub:'<b>Parcel 18-204-009</b> · Planning',
+    amt:'4 ft', amtLabel:'Variance',
+    facts:[
+      ['Applicant','Helen Tan (homeowner)'],
+      ['Action','Recommend 4-ft side-yard setback variance'],
+      ['Amount','Reduces required setback 10 ft → 6 ft'],
+      ['Risk reason','Two neighbor objections on file — requires Planning Board hearing'],
+      ['Linked agreement','Variance application + staff report'],
+      ['Next step','Route to Planning Board with staff recommendation']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] }
+];
+
+function apvFactsHtml(facts){
+  return '<dl class="apv-facts">' + facts.map(f =>
+    `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('') + '</dl>';
+}
+function apvActionsHtml(item){
+  const a = item.actions || [];
+  let html = '<div class="apv-actions">';
+  if (a.includes('approve')) html += `<button class="apv-btn primary" onclick="apvResolve('${item.id}','approved', event)">Approve</button>`;
+  if (a.includes('route'))   html += `<button class="apv-btn" onclick="apvResolve('${item.id}','routed', event)">Route for review</button>`;
+  if (a.includes('sign') && item.signDemo)        html += `<button class="apv-btn ds" onclick="openDemo('${item.signDemo}', event)">Send for signature</button>`;
+  if (a.includes('stepup') && item.stepupDemo)    html += `<button class="apv-btn ds" onclick="openDemo('${item.stepupDemo}', event)">Verify identity</button>`;
+  if (a.includes('agreement') && item.linkDemo)   html += `<button class="apv-btn" onclick="openDemo('${item.linkDemo}', event)">View agreement</button>`;
+  html += '</div>';
+  html += '<div class="apv-resolution" id="apvres-' + item.id + '"></div>';
+  return html;
+}
+function renderApprovals(){
+  const list = document.getElementById('apvList'); if (!list) return;
+  list.innerHTML = APV_QUEUE.map(item => `
+    <div class="apv-item" data-sev="${item.sev}" id="apv-${item.id}">
+      <div class="apv-head" onclick="apvToggle('${item.id}')" role="button" tabindex="0" aria-expanded="false">
+        <span class="apv-dot" aria-hidden="true"></span>
+        <div class="apv-hmeta">
+          <div class="apv-title">${item.title}</div>
+          <div class="apv-sub">${item.sub} ${item.badge ? `· <span class="apv-badge ${item.badge.cls}">${item.badge.text}</span>` : ''}</div>
+        </div>
+        <div class="apv-amt">${item.amt}<small>${item.amtLabel||''}</small></div>
+        <span class="apv-chev" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+        </span>
+      </div>
+      <div class="apv-drawer"><div class="apv-drawer-in"><div class="apv-detail">
+        ${apvFactsHtml(item.facts)}
+        ${apvActionsHtml(item)}
+      </div></div></div>
+    </div>`).join('');
+  apvUpdateCount();
+}
+function apvToggle(id){
+  const el = document.getElementById('apv-' + id); if (!el || el.classList.contains('resolved')) return;
+  const open = el.classList.toggle('open');
+  const head = el.querySelector('.apv-head'); if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function apvResolve(id, kind, evt){
+  if (evt) evt.stopPropagation();
+  const el = document.getElementById('apv-' + id); if (!el) return;
+  const res = document.getElementById('apvres-' + id);
+  if (res){
+    res.classList.toggle('routed', kind === 'routed');
+    res.textContent = kind === 'approved' ? 'Approved · recorded to case file' : 'Routed for second review';
+  }
+  el.classList.add('resolved'); el.classList.remove('open');
+  el.setAttribute('data-sev', kind === 'approved' ? 'ok' : el.getAttribute('data-sev'));
+  apvUpdateCount();
+}
+function apvUpdateCount(){
+  const c = document.getElementById('apvCount'); if (!c) return;
+  const open = APV_QUEUE.filter(i => { const el = document.getElementById('apv-' + i.id); return el && !el.classList.contains('resolved'); }).length;
+  c.textContent = open ? open + ' pending' : 'All clear';
+}
+
 renderTray();
+renderApprovals();
 if (new URLSearchParams(location.search).get('stub') === '0') document.getElementById('stubBanner').style.display = 'none';
 const hash = location.hash.replace('#','').toLowerCase();
 if (hash){ const d = IAM_DEMOS.find(d => d.id === hash); if (d) openDemo(hash); }

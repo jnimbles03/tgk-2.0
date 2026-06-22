@@ -280,6 +280,79 @@
     .docket-table{grid-template-columns:1.4fr 1fr 0.9fr;}
     .iam-tray{width:100%;}
   }
+
+  /* ===================== APPROVAL QUEUE (shared component) =====================
+     Reusable click-to-expand approval / action queue. Same markup + JS across
+     fins / hls / ps; only the per-portal palette vars and the APV_QUEUE data
+     differ. Each row expands inline to reveal who/what/amount/risk/linked
+     agreement/next step, with Approve / Route / Step-up affordances. The
+     step-up + linked-agreement actions hand off to the existing openDemo()
+     drilldowns; Approve / Route resolve locally and need no demo. */
+  :root{
+    --apv-accent:var(--citi-navy);
+    --apv-accent-soft:var(--citi-navy-soft);
+    --apv-paper:var(--paper);
+    --apv-ink:var(--ink);
+    --apv-ink-2:var(--ink-2);
+    --apv-ink-3:var(--ink-3);
+    --apv-rule:var(--rule);
+    --apv-rule-soft:var(--rule-soft);
+    --apv-bg-soft:var(--bg-soft);
+    --apv-ok:var(--green); --apv-ok-soft:var(--green-soft);
+    --apv-warn:var(--orange); --apv-warn-soft:var(--orange-soft);
+    --apv-risk:var(--red); --apv-risk-soft:var(--red-soft);
+    --apv-radius:8px;
+  }
+  .apv-item{border:1px solid var(--apv-rule);border-radius:var(--apv-radius);margin-top:8px;background:var(--apv-paper);overflow:hidden;transition:border-color 0.12s,box-shadow 0.12s;}
+  .apv-item:first-child{margin-top:0;}
+  .apv-item:hover{border-color:var(--apv-accent);}
+  .apv-item.open{border-color:var(--apv-accent);box-shadow:0 6px 18px rgba(10,37,64,0.08);}
+  .apv-item.resolved{opacity:0.72;}
+  .apv-item.resolved .apv-head{cursor:default;}
+  .apv-head{display:grid;grid-template-columns:8px 1fr auto 16px;gap:11px;align-items:center;padding:11px 13px;cursor:pointer;}
+  .apv-dot{width:8px;height:8px;border-radius:50%;background:var(--apv-ink-3);}
+  .apv-item[data-sev="risk"] .apv-dot{background:var(--apv-risk);}
+  .apv-item[data-sev="warn"] .apv-dot{background:var(--apv-warn);}
+  .apv-item[data-sev="ok"] .apv-dot{background:var(--apv-ok);}
+  .apv-hmeta{min-width:0;}
+  .apv-title{font-size:13px;font-weight:600;color:var(--apv-ink);line-height:1.3;}
+  .apv-sub{font-size:11.5px;color:var(--apv-ink-3);margin-top:2px;}
+  .apv-sub b{color:var(--apv-ink-2);font-weight:600;}
+  .apv-amt{font-size:13px;font-weight:700;color:var(--apv-accent);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  .apv-amt small{display:block;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:var(--apv-ink-3);margin-top:1px;}
+  .apv-chev{width:16px;height:16px;color:var(--apv-ink-3);transition:transform 0.18s;display:flex;align-items:center;justify-content:center;}
+  .apv-item.open .apv-chev{transform:rotate(180deg);color:var(--apv-accent);}
+  .apv-badge{display:inline-flex;align-items:center;font-size:9.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:10px;line-height:1.4;}
+  .apv-badge.risk{color:var(--apv-risk);background:var(--apv-risk-soft);}
+  .apv-badge.warn{color:var(--apv-warn);background:var(--apv-warn-soft);}
+  .apv-badge.ok{color:var(--apv-ok);background:var(--apv-ok-soft);}
+  .apv-badge.info{color:var(--apv-accent);background:var(--apv-accent-soft);}
+  /* Expandable drawer: grid-rows trick = animatable height with no JS measuring */
+  .apv-drawer{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.22s ease;}
+  .apv-item.open .apv-drawer{grid-template-rows:1fr;}
+  .apv-drawer-in{overflow:hidden;min-height:0;}
+  .apv-detail{padding:2px 13px 13px;border-top:1px solid var(--apv-rule-soft);}
+  .apv-facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;padding:11px 0 4px;font-size:11.5px;}
+  .apv-facts dt{color:var(--apv-ink-3);font-weight:600;letter-spacing:0.02em;}
+  .apv-facts dd{margin:0;color:var(--apv-ink);font-weight:500;}
+  .apv-facts dd b{color:var(--apv-accent);font-weight:700;}
+  .apv-facts .risk-cell{color:var(--apv-risk);font-weight:600;}
+  .apv-link{color:var(--apv-accent);font-weight:600;cursor:pointer;border-bottom:1px dashed currentColor;}
+  .apv-link:hover{color:var(--apv-ink);}
+  .apv-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;}
+  .apv-btn{padding:7px 13px;border-radius:6px;font-size:11.5px;font-weight:600;border:1px solid var(--apv-rule);background:var(--apv-paper);color:var(--apv-ink-2);display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:background 0.12s,border-color 0.12s,color 0.12s;}
+  .apv-btn:hover{border-color:var(--apv-accent);color:var(--apv-accent);}
+  .apv-btn.primary{background:var(--apv-accent);color:#fff;border-color:var(--apv-accent);}
+  .apv-btn.primary:hover{filter:brightness(1.08);color:#fff;}
+  .apv-btn.ds{background:#4B00E9;border-color:#4B00E9;color:#fff;}
+  .apv-btn.ds:hover{filter:brightness(1.1);color:#fff;}
+  .apv-btn.ds::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;}
+  .apv-resolution{margin-top:11px;font-size:11.5px;font-weight:600;color:var(--apv-ok);display:none;align-items:center;gap:7px;}
+  .apv-resolution::before{content:"\2713";font-weight:900;}
+  .apv-resolution.routed{color:var(--apv-accent);}
+  .apv-resolution.routed::before{content:"\2192";}
+  .apv-item.resolved .apv-resolution{display:inline-flex;}
+  .apv-item.resolved .apv-actions{display:none;}
 </style>
 </head>
 <body>
@@ -547,6 +620,15 @@
         </div>
       </div>
 
+      <!-- Approvals / Action Queue — click a row to expand full detail -->
+      <div class="panel" aria-label="Approvals and action queue">
+        <div class="panel-h">
+          <h3>Approvals &amp; Action Queue</h3>
+          <span class="alert-pill" id="apvCount">—</span>
+        </div>
+        <div class="qa-list" id="apvList"></div>
+      </div>
+
     </div>
 
     <!-- ============== RIGHT COLUMN ============== -->
@@ -763,7 +845,147 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('iamTray').classList.contains('open')) return closeTray();
 });
 
+/* ===================== APPROVAL QUEUE (shared interaction) =====================
+   Same engine in fins / hls / ps. Each queue item expands on click to reveal a
+   labeled fact grid (who / what / amount / risk reason / linked agreement /
+   next step) plus realistic Approve / Route / Step-up affordances.
+   - facts[]   : [label, value] pairs (value may contain inline HTML).
+   - linkDemo  : optional demo id — renders a "View agreement" link + "Verify
+                 identity" step-up that open the existing openDemo() drilldowns.
+   - actions   : which affordances to show ('approve','route','stepup','agreement').
+   Approve / Route resolve the row locally; step-up + agreement hand off to the
+   live IAM drilldowns, so an AE can click straight from a queue item into the
+   matching Docusign moment. */
+const APV_QUEUE = [
+  { id:'wire-thompson', sev:'risk', badge:{cls:'risk',text:'Step-up required'},
+    title:'Outbound wire — $250,000', sub:'<b>R. Thompson</b> · Family Office · new payee',
+    amt:'$250K', amtLabel:'Wire',
+    facts:[
+      ['Requested by','Robert Thompson (account holder)'],
+      ['Action','Outbound wire to first-time beneficiary'],
+      ['Amount','<b>$250,000.00</b> · USD · same-day Fedwire'],
+      ['Risk reason','<span class="risk-cell">New payee + amount &gt; $100K threshold → IAL2 identity step-up</span>'],
+      ['Linked agreement','Wire Authorization &amp; Indemnity (2026)'],
+      ['Next step','Step-up the holder, then release to operations']
+    ],
+    linkDemo:'navigator', stepupDemo:'clear', actions:['approve','route','stepup','agreement'] },
+
+  { id:'margin-davis', sev:'warn', badge:{cls:'warn',text:'Approval req'},
+    title:'Margin line increase — $1.5M → $2.4M', sub:'<b>S. Davis</b> · Active Trading',
+    amt:'$2.4M', amtLabel:'New limit',
+    facts:[
+      ['Requested by','Sarah Davis (advised account)'],
+      ['Action','Raise margin borrowing limit by $900,000'],
+      ['Amount','<b>$2,400,000</b> proposed · 38% maintenance excess'],
+      ['Risk reason','Concentration: 41% single-issuer (NVDA). Within policy, flagged for advisor sign-off.'],
+      ['Linked agreement','Margin Account Agreement · Reg-T addendum'],
+      ['Next step','Advisor approves → e-sign updated terms']
+    ],
+    linkDemo:'navigator', signDemo:'signing', actions:['approve','route','sign','agreement'] },
+
+  { id:'beneficiary-morrison', sev:'warn', badge:{cls:'warn',text:'Action req'},
+    title:'Beneficiary update — add contingent', sub:'<b>J. Morrison</b> · Retirement Trust',
+    amt:'2 of 3', amtLabel:'Signers',
+    facts:[
+      ['Requested by','James Morrison (grantor)'],
+      ['Action','Add contingent beneficiary (spouse) to IRA'],
+      ['Amount','Affects <b>$8.4M</b> retirement trust'],
+      ['Risk reason','Spousal consent outstanding — 2 of 3 required signatures captured'],
+      ['Linked agreement','IRA Beneficiary Designation form'],
+      ['Next step','Route to co-trustee for the missing signature']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] },
+
+  { id:'account-chen', sev:'ok', badge:{cls:'info',text:'Processing'},
+    title:'New account — trust opener', sub:'<b>L. Chen</b> · Revocable Living Trust',
+    amt:'$3.2M', amtLabel:'Funding',
+    facts:[
+      ['Requested by','Lillian Chen (settlor)'],
+      ['Action','Open revocable living trust brokerage account'],
+      ['Amount','Initial funding <b>$3,200,000</b> (ACAT in transfer)'],
+      ['Risk reason','KYC clear · trust certification verified against authoritative source'],
+      ['Linked agreement','Trust Certification &amp; Account Agreement'],
+      ['Next step','Auto-completes once ACAT settles (T+2)']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] },
+
+  { id:'address-west', sev:'warn', badge:{cls:'warn',text:'Pending verification'},
+    title:'Address change — verification', sub:'<b>K. West</b> · Individual',
+    amt:'IAL2', amtLabel:'Identity',
+    facts:[
+      ['Requested by','Kanye West (account holder)'],
+      ['Action','Update address of record + distribution mailing'],
+      ['Amount','—'],
+      ['Risk reason','<span class="risk-cell">High-risk change after recent password reset → identity re-verification</span>'],
+      ['Linked agreement','Account Maintenance Request'],
+      ['Next step','Holder completes identity verification, then auto-applies']
+    ],
+    stepupDemo:'idverse', actions:['approve','route','stepup'] }
+];
+
+function apvFactsHtml(facts){
+  return '<dl class="apv-facts">' + facts.map(f =>
+    `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('') + '</dl>';
+}
+function apvActionsHtml(item){
+  const a = item.actions || [];
+  let html = '<div class="apv-actions">';
+  if (a.includes('approve')) html += `<button class="apv-btn primary" onclick="apvResolve('${item.id}','approved', event)">Approve</button>`;
+  if (a.includes('route'))   html += `<button class="apv-btn" onclick="apvResolve('${item.id}','routed', event)">Route for review</button>`;
+  if (a.includes('sign') && item.signDemo)        html += `<button class="apv-btn ds" onclick="openDemo('${item.signDemo}', event)">Send for signature</button>`;
+  if (a.includes('stepup') && item.stepupDemo)    html += `<button class="apv-btn ds" onclick="openDemo('${item.stepupDemo}', event)">Verify identity</button>`;
+  if (a.includes('agreement') && item.linkDemo)   html += `<button class="apv-btn" onclick="openDemo('${item.linkDemo}', event)">View agreement</button>`;
+  html += '</div>';
+  html += '<div class="apv-resolution" id="apvres-' + item.id + '"></div>';
+  return html;
+}
+function renderApprovals(){
+  const list = document.getElementById('apvList'); if (!list) return;
+  list.innerHTML = APV_QUEUE.map(item => `
+    <div class="apv-item" data-sev="${item.sev}" id="apv-${item.id}">
+      <div class="apv-head" onclick="apvToggle('${item.id}')" role="button" tabindex="0" aria-expanded="false">
+        <span class="apv-dot" aria-hidden="true"></span>
+        <div class="apv-hmeta">
+          <div class="apv-title">${item.title}</div>
+          <div class="apv-sub">${item.sub} ${item.badge ? `· <span class="apv-badge ${item.badge.cls}">${item.badge.text}</span>` : ''}</div>
+        </div>
+        <div class="apv-amt">${item.amt}<small>${item.amtLabel||''}</small></div>
+        <span class="apv-chev" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+        </span>
+      </div>
+      <div class="apv-drawer"><div class="apv-drawer-in"><div class="apv-detail">
+        ${apvFactsHtml(item.facts)}
+        ${apvActionsHtml(item)}
+      </div></div></div>
+    </div>`).join('');
+  apvUpdateCount();
+}
+function apvToggle(id){
+  const el = document.getElementById('apv-' + id); if (!el || el.classList.contains('resolved')) return;
+  const open = el.classList.toggle('open');
+  const head = el.querySelector('.apv-head'); if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function apvResolve(id, kind, evt){
+  if (evt) evt.stopPropagation();
+  const el = document.getElementById('apv-' + id); if (!el) return;
+  const res = document.getElementById('apvres-' + id);
+  if (res){
+    res.classList.toggle('routed', kind === 'routed');
+    res.textContent = kind === 'approved' ? 'Approved · queued to operations' : 'Routed for second review';
+  }
+  el.classList.add('resolved'); el.classList.remove('open');
+  el.setAttribute('data-sev', kind === 'approved' ? 'ok' : el.getAttribute('data-sev'));
+  apvUpdateCount();
+}
+function apvUpdateCount(){
+  const c = document.getElementById('apvCount'); if (!c) return;
+  const open = APV_QUEUE.filter(i => { const el = document.getElementById('apv-' + i.id); return el && !el.classList.contains('resolved'); }).length;
+  c.textContent = open ? open + ' Pending' : 'All clear';
+}
+
 renderTray();
+renderApprovals();
 const hash = location.hash.replace('#','').toLowerCase();
 if (hash){ const d = IAM_DEMOS.find(d => d.id === hash); if (d) openDemo(hash); }
 </script>
