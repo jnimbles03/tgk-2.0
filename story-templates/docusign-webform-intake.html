@@ -6,144 +6,193 @@
 <title>Webform intake · TGK 2.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
 <style>
   /*
     Webform intake template — used by ?usecase=intake Scene 1 and as the
     canonical Scene 1 override for 19 of 21 webform-archetype verticals.
-    Visual reference: Docusign Web Forms as embedded in Wealthscape Investor
-    (Maintenance Form Selector flow). Light gray page, white card, dark
-    portal header, green Next button, "Powered by Docusign" footer.
+    Visual reference (refreshed 2026-06-22): the standalone
+    demos/web-forms.html "Docusign Web Forms" look — a clean branded white
+    card on a soft lavender-gray page, a Docusign IAM logo + URL chip
+    header, multi-step sections that fade/slide between beats, typewriter
+    field-fill on text inputs, smart-dropdown "snap-in" on selects,
+    accent-tinted validation styling, and an animated success screen.
 
     Five internal states (s1–s5) animate the form-fill journey. The shell
     drives state via postMessage({type:"tgk:lockToBeat", sceneId:"s<N>"}).
+    showState()/replayState() map s1..s5 to those states unchanged; this
+    refresh only swaps the visual language layered on top of the same DOM
+    contract, so the shell beats still land on the matching form state.
 
     Per-vertical preset wiring varies the portal brand, the form labels,
-    and the "the workflow will package" preview.
+    the per-tenant accent colour, and the "the workflow will package"
+    preview.
 
     Hotspot anchors (data-hotspot on visible elements per state):
       s1 → form_question      (the entry question / first selection)
       s2 → form_doc_set       (selections that drive the doc set)
       s3 → form_signer        (client/signer information)
       s4 → form_review        (email details + review summary)
-      s5 → form_submit        (Submit / Preparing Document)
+      s5 → form_submit        (Submit / success screen)
   */
 
   :root {
-    --ink: #1F1A14; --ink-mid: #4F5460; --ink-soft: #6F7686;
-    --hair: #DDE1E8; --hair-strong: #C5CBD5;
-    --bg: #F3F0EC;
-    --green: #1FA35E;
-    --green-deep: #137A45;
-    --red: #D8262C;
+    --ink: #16121f; --ink-mid: #4F5460; --ink-soft: #6a6675;
+    --hair: #E4E2EC; --hair-strong: #DCDAE6;
+    --bg: #EEF1F6;
+    --red: #E11D2A;
     --link: #1857B5;
-    --header-ink: #0E1015;
-    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 18px rgba(0,0,0,0.04);
-    --shadow-modal: 0 8px 32px rgba(0,0,0,0.12);
+    --shadow-card: 0 18px 50px rgba(20,12,50,0.14);
+    /* Per-tenant accent — overridden per preset from JS (theme on the card). */
+    --accent: #4C00E9;
+    --accent-soft: rgba(76,0,233,0.12);
+    --accent-ink: #2c0b6b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Source Sans 3', -apple-system, system-ui, sans-serif;
+    font-family: 'Inter', 'Source Sans 3', -apple-system, system-ui, sans-serif;
     background: var(--bg); color: var(--ink); min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* === Tenant-portal top header (Wealthscape-style dark bar) === */
-  .portal-header {
-    background: var(--header-ink); color: white;
-    padding: 22px 32px; display: flex; align-items: center; gap: 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+  /* === Page + branded card (web-forms .wf-page / .wf-card) === */
+  .stage {
+    min-height: 100vh; padding: 34px 24px 60px;
+    display: flex; align-items: flex-start; justify-content: center;
   }
-  .portal-header .brand {
-    font-weight: 700; font-size: 22px; letter-spacing: -0.01em;
-  }
-  .portal-header .brand .accent { color: #5BD2A0; margin-right: 4px; }
-  .portal-header .module {
-    margin-left: auto;
-    font-size: 12px; color: rgba(255,255,255,0.55);
-    letter-spacing: 0.06em; text-transform: uppercase;
+  .frame {
+    width: 100%; max-width: 820px;
+    background: #fff; border-radius: 14px; box-shadow: var(--shadow-card);
+    overflow: hidden; display: flex; flex-direction: column;
   }
 
-  /* === Form area === */
-  .stage { padding: 36px 24px 80px; }
-  .frame {
-    max-width: 760px; margin: 0 auto;
-    background: white; border-radius: 4px; box-shadow: var(--shadow-card);
-    overflow: hidden;
+  /* Docusign IAM logo + URL chip header (replaces the old dark portal bar) */
+  .portal-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 34px 12px; background: #fff;
+  }
+  .portal-header .logo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 19px; font-weight: 700; color: #130032; letter-spacing: -0.3px;
+  }
+  .portal-header .logo .dsloop { width: 22px; height: 22px; flex: 0 0 auto; }
+  .portal-header .logo .iam {
+    background: linear-gradient(92deg,#7B2FF7,#FF2EA6);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-weight: 700; margin-left: 2px;
+  }
+  /* Tenant brand sits next to the product mark as a quiet chip. */
+  .portal-header .brand {
+    font-size: 13px; font-weight: 600; color: var(--accent-ink);
+    background: var(--accent-soft); border-radius: 7px; padding: 5px 11px;
+    letter-spacing: 0.01em;
+  }
+  .portal-header .brand .accent { display: none; }
+  .portal-header .module {
+    margin-left: auto;
+    background: #F2F2F6; border-radius: 8px; padding: 7px 14px;
+    font-size: 11.5px; color: #8a8794;
+    font-family: 'Space Mono', ui-monospace, Menlo, monospace;
+    max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-transform: none; letter-spacing: 0;
   }
 
   .demo-banner {
-    padding: 16px 24px; background: #EEEEEE; color: var(--ink-soft);
-    text-align: center; font-size: 14px; letter-spacing: 0.01em;
-    border-bottom: 1px solid var(--hair);
+    padding: 9px 24px; background: #F7F6FA; color: var(--ink-soft);
+    text-align: center; font-size: 12.5px; letter-spacing: 0.01em;
+    border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair);
   }
 
-  .form-body { padding: 38px 56px; min-height: 480px; }
+  /* The step stage — holds the five overlapping states. */
+  .form-body { padding: 26px 40px 6px; min-height: 430px; }
 
   h1 {
-    font-size: 26px; font-weight: 700; line-height: 1.2;
-    margin-bottom: 18px; color: var(--ink);
+    font-size: 25px; font-weight: 700; line-height: 1.2;
+    letter-spacing: -0.4px; margin-bottom: 14px; color: var(--ink);
   }
   h2 {
-    font-size: 22px; font-weight: 700; line-height: 1.25;
-    margin-bottom: 18px; color: var(--ink);
+    font-size: 25px; font-weight: 700; line-height: 1.22;
+    letter-spacing: -0.4px; margin-bottom: 16px; color: var(--ink);
   }
 
   .lede {
-    font-size: 15px; color: var(--ink-mid); line-height: 1.55;
-    margin-bottom: 22px;
+    font-size: 14.5px; color: var(--ink-soft); line-height: 1.55;
+    margin-bottom: 20px;
   }
   .lede + .lede { margin-top: -8px; }
 
   ul.bullets {
     list-style: disc; padding-left: 22px; margin: 0 0 22px;
-    font-size: 15px; color: var(--ink-mid); line-height: 1.7;
+    font-size: 14px; color: var(--ink-soft); line-height: 1.7;
   }
-  ul.bullets li::marker { color: var(--ink-mid); }
+  ul.bullets li::marker { color: var(--ink-soft); }
 
-  .field { margin-bottom: 22px; }
+  /* === Fields — web-forms .wf-field / .wf-box, with typewriter caret === */
+  .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
   .field label {
-    display: block; font-size: 14px; font-weight: 700;
-    color: var(--ink); margin-bottom: 8px;
+    display: block; font-size: 13px; font-weight: 600;
+    color: #3a3646; margin-bottom: 0;
   }
   .field label .req { color: var(--red); margin-left: 3px; }
+  .field .help {
+    font-size: 12.5px; color: var(--ink-soft); margin-top: -1px; margin-bottom: 1px;
+  }
+
+  /* Real inputs/selects styled as the wf-box. The native caret is hidden
+     so the animated accent caret (::after, driven by .typing) reads as a
+     typewriter; selects show a chevron and snap to .filled. */
   .field input[type="text"],
   .field input[type="email"],
   .field input[type="tel"],
   .field select,
   .field textarea {
-    width: 100%; padding: 11px 14px; font-size: 15px;
-    border: 1px solid var(--hair-strong); border-radius: 3px;
-    background: white; font-family: inherit; color: var(--ink);
+    width: 100%; height: 44px; padding: 0 14px; font-size: 14px;
+    border: 1.5px solid var(--hair-strong); border-radius: 9px;
+    background: #fff; font-family: inherit; color: #1a1622;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
+  .field textarea { height: auto; padding: 12px 14px; line-height: 1.5; }
+  .field input[type="text"] { caret-color: transparent; }
   .field input:focus, .field select:focus, .field textarea:focus {
-    outline: 2px solid #4F8EE6; outline-offset: -1px; border-color: #4F8EE6;
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
+  /* Filled / typing validation states (mirrors .wf-box.filled / .typing). */
+  .field.filled input, .field.filled select { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field.typing input { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .field select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234F5460' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a3a0b0' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 14px center;
-    padding-right: 36px;
+    padding-right: 36px; color: #1a1622;
   }
-  .field .help {
-    font-size: 13px; color: var(--ink-soft); margin-top: 6px;
+  /* Typewriter caret: a thin accent bar that blinks at the end of a
+     text field while .typing is on it. The host .field is positioned. */
+  .field { position: relative; }
+  .field .caret {
+    position: absolute; width: 1.5px; height: 18px; background: var(--accent);
+    bottom: 13px; opacity: 0; pointer-events: none;
+    transition: left 0.06s linear;
   }
+  .field.typing .caret { opacity: 1; animation: wf-blink 1s steps(1) infinite; }
+  @keyframes wf-blink { 50% { opacity: 0; } }
 
-  /* Checkbox list */
+  /* === Doc-set checkboxes (web-forms-flavoured rows) === */
   .check-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
   .check-item {
-    display: flex; gap: 12px; padding: 14px 0;
+    display: flex; gap: 12px; padding: 13px 0;
     border-bottom: 1px solid var(--hair);
   }
   .check-item:last-child { border-bottom: 0; }
   .check-item .box {
     width: 22px; height: 22px; flex-shrink: 0;
-    border: 2px solid var(--hair-strong); border-radius: 3px;
+    border: 1.5px solid var(--hair-strong); border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    background: white; transition: background 0.18s ease, border-color 0.18s ease;
+    background: white; transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   }
   .check-item.checked .box {
-    background: #4C00E9; border-color: #4C00E9;
+    background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
   .check-item.checked .box::after {
     content: ""; width: 12px; height: 7px;
@@ -151,109 +200,134 @@
     transform: rotate(-45deg) translateY(-2px);
   }
   .check-item .label {
-    font-size: 15px; color: var(--ink); font-weight: 600; line-height: 1.3;
+    font-size: 14.5px; color: var(--ink); font-weight: 600; line-height: 1.3;
   }
   .check-item .help {
-    font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;
+    font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;
   }
 
-  /* Review summary boxes */
+  /* === Review summary boxes === */
   .review-box {
-    border: 1px solid var(--hair); border-radius: 3px;
-    padding: 22px 26px; margin-bottom: 22px;
-    position: relative; background: white;
+    border: 1.5px solid var(--hair-strong); border-radius: 9px;
+    padding: 20px 24px; margin-bottom: 16px;
+    position: relative; background: #fff;
   }
   .review-box .edit {
-    position: absolute; top: 18px; right: 18px;
-    width: 26px; height: 26px; opacity: 0.4;
+    position: absolute; top: 16px; right: 16px;
+    width: 26px; height: 26px; opacity: 0.45;
     border: 1px solid var(--hair-strong); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 12px;
   }
   .review-box h3 {
-    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+    font-size: 15px; font-weight: 700; margin-bottom: 13px;
   }
-  .review-row { margin-bottom: 12px; }
+  .review-row { margin-bottom: 11px; }
   .review-row:last-child { margin-bottom: 0; }
-  .review-row .k { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-  .review-row .v { font-size: 14px; color: var(--ink-mid); }
+  .review-row .k { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .review-row .v { font-size: 14px; color: var(--ink-soft); }
 
   /* the workflow packaging callout (revealed at s2/s3) */
   .pkg-callout {
-    margin-top: 28px; padding: 18px 22px;
-    background: #F5F2FF; border-left: 3px solid #4C00E9;
-    border-radius: 0 3px 3px 0;
+    margin-top: 22px; padding: 16px 20px;
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    border-radius: 0 9px 9px 0;
     opacity: 0; transform: translateY(8px);
     transition: opacity 0.4s ease, transform 0.4s ease;
   }
   .pkg-callout.on { opacity: 1; transform: translateY(0); }
   .pkg-callout .pkg-tag {
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
-    text-transform: uppercase; color: #4C00E9; margin-bottom: 8px;
+    text-transform: uppercase; color: var(--accent-ink); margin-bottom: 8px;
   }
   .pkg-callout .pkg-list {
     list-style: none; padding: 0; margin: 0;
-    font-size: 14px; color: var(--ink); line-height: 1.7;
+    font-size: 13.5px; color: var(--ink); line-height: 1.7;
   }
   .pkg-callout .pkg-list li::before {
-    content: "✦"; color: #4C00E9; margin-right: 8px; font-size: 11px;
+    content: "✦"; color: var(--accent); margin-right: 8px; font-size: 11px;
   }
 
-  /* Action row */
+  /* === Footer / action row (web-forms .wf-foot + accent CTA) === */
   .actions {
-    display: flex; align-items: center; gap: 18px;
-    padding: 0 56px 32px; justify-content: flex-end;
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 40px 22px; justify-content: flex-end;
   }
   .actions .finish-later {
-    background: none; border: 0; padding: 8px 16px;
-    color: var(--ink-soft); font-size: 14px; cursor: pointer;
+    background: none; border: 0; padding: 8px 12px;
+    color: var(--ink-soft); font-size: 13.5px; cursor: pointer;
     font-family: inherit; margin-right: auto;
   }
   .actions .btn {
     font-family: inherit; font-size: 14px; font-weight: 700;
-    padding: 10px 28px; border-radius: 3px; cursor: pointer;
-    border: 1px solid; letter-spacing: 0.01em;
+    padding: 13px 30px; border-radius: 10px; cursor: pointer;
+    border: 1.5px solid; letter-spacing: 0.2px;
   }
   .actions .btn.back {
-    background: white; color: var(--ink-soft); border-color: var(--hair-strong);
+    background: #fff; color: var(--ink-soft); border-color: var(--hair-strong);
   }
   .actions .btn.next {
-    background: var(--green); color: white; border-color: var(--green);
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    box-shadow: 0 8px 20px var(--accent-soft);
   }
-  .actions .btn.next:hover { background: var(--green-deep); border-color: var(--green-deep); }
+  .actions .btn.next:hover { filter: brightness(0.94); }
 
   /* Footer */
   .footer {
-    text-align: center; padding: 22px;
-    font-size: 13px; color: var(--ink-soft);
-    display: flex; align-items: center; justify-content: center; gap: 14px;
+    text-align: center; padding: 16px 22px 24px;
+    font-size: 12.5px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 12px;
   }
   .footer .powered { display: flex; align-items: center; gap: 6px; }
+  .footer .powered b { color: #5d5969; font-weight: 600; }
   .footer .ds-badge {
     width: 14px; height: 14px;
     background: linear-gradient(135deg, #4C00E9 0%, #FF5252 100%);
-    border-radius: 2px;
+    border-radius: 3px;
   }
-  .footer a { color: var(--ink-mid); text-decoration: none; }
+  .footer a { color: var(--ink-soft); text-decoration: none; }
   .footer a:hover { text-decoration: underline; }
 
-  /* Preparing-document spinner state */
+  /* === Animated success screen (web-forms .wf-success) — s5 === */
   .preparing {
-    text-align: center; padding: 80px 24px;
-    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    text-align: center; padding: 56px 24px 64px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
   }
+  /* The spinner still exists as a fallback / "preparing" cue; the success
+     check is what reads once the package has sent. */
   .preparing .spinner {
     width: 42px; height: 42px; border-radius: 50%;
-    border: 3px solid #E1DDF7; border-top-color: #4C00E9;
-    animation: spin 0.9s linear infinite;
+    border: 3px solid var(--accent-soft); border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite; margin-bottom: 6px;
+    transition: opacity 0.3s ease;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .preparing .label { font-size: 16px; color: var(--ink); font-weight: 600; }
+  .preparing.done .spinner { display: none; }
+  .preparing .check {
+    width: 62px; height: 62px; border-radius: 50%;
+    background: #E7F6EC; display: none; align-items: center; justify-content: center;
+    margin-bottom: 14px; transform: scale(0.4); opacity: 0;
+  }
+  .preparing.done .check { display: flex; animation: wf-pop 0.5s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes wf-pop { to { transform: scale(1); opacity: 1; } }
+  .preparing .check svg {
+    width: 30px; height: 30px; stroke: #1F9D57; stroke-width: 2.6; fill: none;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 30; stroke-dashoffset: 30;
+  }
+  .preparing.done .check svg { animation: wf-draw 0.5s ease 0.3s forwards; }
+  @keyframes wf-draw { to { stroke-dashoffset: 0; } }
+  .preparing .label { font-size: 18px; color: var(--ink); font-weight: 700; letter-spacing: -0.3px; }
+  .preparing .sub {
+    font-size: 14px; color: var(--ink-soft); margin-top: 6px; max-width: 420px; line-height: 1.5;
+    opacity: 0; transition: opacity 0.4s ease 0.4s;
+  }
+  .preparing.done .sub { opacity: 1; }
 
   /* Toast — "package sent" notification at top */
   .toast {
     position: fixed; top: 22px; left: 50%; transform: translateX(-50%) translateY(-80px);
-    background: #103923; color: white; padding: 12px 20px; border-radius: 4px;
+    background: #103923; color: white; padding: 12px 20px; border-radius: 10px;
     font-size: 14px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,0.18);
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 50;
@@ -266,16 +340,32 @@
     display: flex; align-items: center; justify-content: center;
   }
 
-  /* State management — only the active state's body is visible */
-  .state { display: none; }
-  .state.on { display: block; }
+  /* === State management — only the active state's body is visible.
+     The active step fades/slides in to mirror the web-forms .wf-step
+     section-to-section transition; inactive states are display:none so
+     they neither show nor catch clicks (keeps the s1..s5 contract intact).
+
+     Freeze-safety: the active state's RESTING style is fully visible
+     (opacity:1, no transform). The entrance is a separate keyframe that
+     only travels from a faded/offset start back to that visible resting
+     state. Under ?interactive=1, _interactive.js pauses animations — but
+     because visibility is the resting style (not the animation end-state),
+     a paused/never-started step still shows. The keyframe is also an
+     infinite-free, short, one-shot polish layer. */
+  .form-body { position: relative; }
+  .state { display: none; opacity: 1; transform: none; }
+  .state.on { display: block; animation: wf-step-in 0.5s cubic-bezier(.2,.7,.2,1) 1; }
+  @keyframes wf-step-in {
+    0%   { opacity: 0; transform: translateY(26px); }
+    100% { opacity: 1; transform: none; }
+  }
 
   /* Highlight pulse for the focused element of the current beat */
   .focus-target { position: relative; }
   .focus-target::after {
     content: ""; position: absolute; inset: -6px;
-    border: 2px solid #4C00E9; border-radius: 6px;
-    box-shadow: 0 0 0 6px rgba(76,0,233,0.08);
+    border: 2px solid var(--accent); border-radius: 9px;
+    box-shadow: 0 0 0 6px var(--accent-soft);
     pointer-events: none; opacity: 0;
     animation: focus-pulse 2s ease-in-out infinite;
   }
@@ -284,18 +374,18 @@
     50% { opacity: 1; transform: scale(1.01); }
   }
 
-  /* Just-filled highlight — added 2026-05-06.
+  /* Just-filled highlight — added 2026-05-06, retuned to accent.
      When a field gets its value via the per-state replay, attach
      .just-filled for ~700ms to flash the field's outline so the eye
-     catches the new value landing. Removed automatically by the
-     animation reaching its end-state. */
+     catches the new value landing. */
   @keyframes just-filled-flash {
-    0%   { box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.0); background-color: rgba(75, 0, 233, 0.08); }
-    35%  { box-shadow: 0 0 0 3px rgba(75, 0, 233, 0.18); background-color: rgba(75, 0, 233, 0.06); }
-    100% { box-shadow: 0 0 0 0 rgba(75, 0, 233, 0.0); background-color: transparent; }
+    0%   { box-shadow: 0 0 0 0 var(--accent-soft); }
+    35%  { box-shadow: 0 0 0 4px var(--accent-soft); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
   }
   .just-filled {
     animation: just-filled-flash 0.7s ease-out 1;
+    border-radius: 9px;
   }
   /* Checkbox "just-checked" tick scale-in — when a check-item gets
      .checked, scale the inner box from 0.85 to 1 so it reads as a click. */
@@ -311,13 +401,16 @@
 </head>
 <body>
 
-<div class="portal-header">
-  <div class="brand"><span class="accent">▲</span><span id="brand-name">Hillside</span></div>
-  <div class="module" id="module-name">Maintenance Form Selector</div>
-</div>
-
 <div class="stage">
   <div class="frame">
+    <div class="portal-header">
+      <span class="logo">
+        <svg class="dsloop" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="12" width="13" height="13" rx="3" fill="#4C00FF"/><path d="M15 4a11.5 11.5 0 0 1 0 23 V18.5 a6.5 6.5 0 0 0 0-13Z" fill="#FF5252"/><rect x="11.5" y="11.5" width="6" height="6" rx="1" fill="#130032"/></svg>
+        docusign<span class="iam">IAM</span>
+      </span>
+      <div class="brand"><span class="accent">▲</span><span id="brand-name">Hillside</span></div>
+      <div class="module" id="module-name">Maintenance Form Selector</div>
+    </div>
     <div class="demo-banner">This form is for demonstration purposes only.</div>
 
     <!-- ============================================================
@@ -355,7 +448,7 @@
         </div>
 
         <div data-hotspot="form_doc_set">
-          <label style="display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;">Available documents <span style="font-weight:400;color:var(--ink-soft);font-size:13px;">— select up to 4 to include in the package</span></label>
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a3646;margin-bottom:8px;">Available documents <span style="font-weight:400;color:var(--ink-soft);font-size:12.5px;">— select up to 4 to include in the package</span></label>
           <div class="check-list" id="s2-checks"></div>
         </div>
 
@@ -375,18 +468,20 @@
         <p class="lede" id="s3-lede" style="margin-bottom:18px;">Tell the workflow who the package is going to. Identity gates the routing and the SMS step-up.</p>
 
         <div data-hotspot="form_signer">
-          <div class="field">
+          <div class="field" id="s3-name-field">
             <label>Primary Signer's Legal Name<span class="req">*</span></label>
-            <input type="text" id="s3-name" />
+            <input type="text" id="s3-name" autocomplete="off" />
+            <span class="caret" id="s3-name-caret"></span>
           </div>
-          <div class="field">
+          <div class="field" id="s3-email-field">
             <label>Primary Signer's Email Address<span class="req">*</span></label>
-            <input type="email" id="s3-email" placeholder="username@example.com" />
+            <input type="text" id="s3-email" placeholder="username@example.com" autocomplete="off" />
+            <span class="caret" id="s3-email-caret"></span>
           </div>
           <div class="field">
             <label>Mobile Number for SMS Authentication<span class="req">*</span></label>
             <div class="help">The number used below MUST have been previously associated and validated for that signer.</div>
-            <input type="tel" placeholder="(555) 555-0123" />
+            <input type="tel" placeholder="(555) 555-0123" autocomplete="off" />
           </div>
           <div class="field">
             <label>Number of Additional Signers Needed<span class="req">*</span></label>
@@ -441,9 +536,11 @@
          STATE s5 — Submit / Preparing Document
          ============================================================ -->
     <div class="state" data-state="s5">
-      <div class="preparing" data-hotspot="form_submit">
+      <div class="preparing" id="s5-preparing" data-hotspot="form_submit">
         <div class="spinner"></div>
+        <div class="check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></div>
         <div class="label" id="s5-label">Preparing package…</div>
+        <div class="sub" id="s5-sub">A copy has been sent to your email.</div>
       </div>
     </div>
 
@@ -456,7 +553,7 @@
   </div>
 
   <div class="footer">
-    <div class="powered"><div class="ds-badge"></div> Powered by Docusign</div>
+    <div class="powered"><div class="ds-badge"></div> Your responses are encrypted · <b>Powered by Docusign</b></div>
     <span>·</span><a href="#">Privacy</a>
     <span>·</span><a href="#">Terms</a>
   </div>
@@ -2108,6 +2205,36 @@
   else if (usecase === 'fraud-fabric') overlay = FRAUD_FABRIC_PRESETS[preset]  || null;
   const p = overlay ? Object.assign({}, basePreset, overlay) : basePreset;
 
+  /* === Per-tenant accent (refresh 2026-06-22) ===
+     The web-forms look themes the card with a per-tenant accent colour
+     used by the CTA, the filled-field glow, the typewriter caret, the
+     checkbox ticks and the package callout. We derive a distinct accent
+     per vertical family so each preset feels branded — without adding
+     colour fields to the preset data above. Default is Docusign indigo. */
+  const ACCENTS = {
+    wealth: '#4C00E9', 'wealth-discovery': '#5B21B6',
+    banking: '#2D55C9', 'banking-deposits': '#1D4ED8',
+    insurance: '#0E7490', 'insurance-life': '#0F766E', 'insurance-pc': '#0891B2',
+    provider: '#0E8C7F', 'provider-roi': '#047857', payor: '#7C3AED',
+    lifesciences: '#6D28D9', education: '#B45309', nonprofit: '#BE185D',
+    fedgov: '#1D4ED8', slgov: '#1D4ED8', 'slgov-311': '#0E7490',
+    'slgov-benefits': '#047857', 'slgov-recertification': '#0F766E',
+    'slgov-vendor-compliance': '#4338CA', 'slgov-employee-onboarding': '#6D28D9',
+    'slgov-licensing': '#B45309'
+  };
+  const hexToRgba = (hex, a) => {
+    const m = hex.replace('#', '');
+    const r = parseInt(m.slice(0, 2), 16), g = parseInt(m.slice(2, 4), 16), b = parseInt(m.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  };
+  const accent = ACCENTS[preset] || '#4C00E9';
+  const card = document.querySelector('.frame');
+  if (card) {
+    card.style.setProperty('--accent', accent);
+    card.style.setProperty('--accent-soft', hexToRgba(accent, 0.13));
+    card.style.setProperty('--accent-ink', accent);
+  }
+
   document.getElementById('brand-name').textContent = p.brand;
   document.getElementById('module-name').textContent = p.module;
   document.getElementById('s1-title').textContent = p.s1Title;
@@ -2187,6 +2314,49 @@
   }
   function _at(ms, fn) { _fillTimers.push(setTimeout(fn, ms)); }
 
+  /* Typewriter fill (refresh 2026-06-22) — mirrors the web-forms
+     character-by-character text-field fill with a traveling accent caret.
+     Types `text` into `input` starting at `startMs`, ~`per` ms/char, while
+     the host .field carries .typing (accent border + blinking caret). The
+     caret's x-position tracks the typed-text width measured against the
+     input's own font, so it reads like a real cursor advancing. Ends on
+     .filled (steady accent glow). All timers are tracked so re-entering
+     the state cancels an in-flight fill. Falls back gracefully if the
+     measuring canvas is unavailable: still ends with the full value. */
+  let _measureCtx = null;
+  function _measureWidth(input, str) {
+    try {
+      if (!_measureCtx) _measureCtx = document.createElement('canvas').getContext('2d');
+      const cs = getComputedStyle(input);
+      _measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      return _measureCtx.measureText(str).width;
+    } catch (_) { return 0; }
+  }
+  function _typewrite(input, caret, text, startMs, per) {
+    if (!input) return startMs;
+    const field = input.closest('.field');
+    const padLeft = 14; // matches .field input padding-left
+    const n = (text || '').length;
+    _at(startMs, () => {
+      input.value = '';
+      if (field) { field.classList.add('typing'); field.classList.remove('filled'); }
+      if (caret) caret.style.left = padLeft + 'px';
+    });
+    for (let i = 1; i <= n; i++) {
+      _at(startMs + i * per, () => {
+        const slice = text.slice(0, i);
+        input.value = slice;
+        if (caret) caret.style.left = (padLeft + _measureWidth(input, slice)) + 'px';
+      });
+    }
+    const endMs = startMs + (n + 1) * per;
+    _at(endMs, () => {
+      input.value = text;
+      if (field) { field.classList.remove('typing'); field.classList.add('filled'); }
+    });
+    return endMs;
+  }
+
   function replayState(sceneId) {
     _clearFillTimers();
 
@@ -2212,19 +2382,26 @@
     }
 
     if (sceneId === 's3') {
-      // Signer info — clear, then fill name/email/phone/signers in sequence.
+      // Signer info — clear, then fill name/email via typewriter and
+      // snap-in the phone + additional-signers select, in sequence. The
+      // typewriter reads as the signer's details being keyed in; the
+      // select/phone "snap in" like the web-forms smart dropdowns.
       const name = document.getElementById('s3-name');
       const email = document.getElementById('s3-email');
-      const tel = document.querySelector('#s3 input[type=tel]') || document.querySelector('input[type=tel]');
+      const nameCaret = document.getElementById('s3-name-caret');
+      const emailCaret = document.getElementById('s3-email-caret');
+      const tel = document.querySelector('[data-hotspot="form_signer"] input[type=tel]') || document.querySelector('input[type=tel]');
       const addl = document.querySelector('[data-hotspot="form_signer"] select');
-      if (name) name.value = '';
-      if (email) email.value = '';
-      if (tel) tel.value = '';
-      if (addl) addl.selectedIndex = 0;
-      _at(220, () => { if (name) { name.value = p.signerName; name.classList.add('just-filled'); } });
-      _at(420, () => { if (email) { email.value = p.signerEmail; email.classList.add('just-filled'); } });
-      _at(620, () => { if (tel) { tel.value = '(415) 555-0182'; tel.classList.add('just-filled'); } });
-      _at(820, () => { if (addl && addl.options.length > 1) addl.selectedIndex = 1; });
+      // Clear every field this state owns so re-entry replays from blank.
+      [name, email].forEach(el => { if (el) { el.value = ''; const f = el.closest('.field'); if (f) f.classList.remove('typing', 'filled'); } });
+      if (tel) { tel.value = ''; const tf = tel.closest('.field'); if (tf) tf.classList.remove('filled'); }
+      if (addl) { addl.selectedIndex = 0; const af = addl.closest('.field'); if (af) af.classList.remove('filled'); }
+      // Type the name, then the email, ~36ms/char.
+      const afterName = _typewrite(name, nameCaret, p.signerName || '', 220, 36);
+      const afterEmail = _typewrite(email, emailCaret, p.signerEmail || '', afterName + 160, 30);
+      // Snap-in the phone, then the additional-signers select.
+      _at(afterEmail + 180, () => { if (tel) { tel.value = '(415) 555-0182'; tel.classList.add('just-filled'); const tf = tel.closest('.field'); if (tf) tf.classList.add('filled'); } });
+      _at(afterEmail + 420, () => { if (addl && addl.options.length > 1) { addl.selectedIndex = 1; const af = addl.closest('.field'); if (af) af.classList.add('filled'); } });
     }
 
     if (sceneId === 's4') {
@@ -2238,22 +2415,40 @@
     /* s5 has its own animation kicked from showState below. */
   }
 
+  /* s5 timers kept separate from the field-fill timers so re-entering s5
+     cancels a prior in-flight "preparing → sent" sequence cleanly. */
+  const _s5Timers = [];
+  function _clearS5() { while (_s5Timers.length) clearTimeout(_s5Timers.pop()); }
+  function _s5at(ms, fn) { _s5Timers.push(setTimeout(fn, ms)); }
+
   function showState(sceneId) {
     const all = document.querySelectorAll('.state');
     all.forEach(el => el.classList.toggle('on', el.dataset.state === sceneId));
     const actions = document.getElementById('actions');
     actions.style.display = (sceneId === 's5') ? 'none' : '';
-    /* On s5, kick the spinner-then-toast sequence. */
+    /* On s5, run the preparing sequence, then resolve into the animated
+       success screen (web-forms .wf-success): the spinner is replaced by
+       the drawing checkmark and the success copy fades in, in step with
+       the "package sent" toast. */
+    _clearS5();
+    const prep = document.getElementById('s5-preparing');
     if (sceneId === 's5') {
       const lbl = document.getElementById('s5-label');
+      const sub = document.getElementById('s5-sub');
+      if (prep) prep.classList.remove('done');
       lbl.textContent = 'Preparing package…';
-      setTimeout(() => { lbl.textContent = 'Routing recipients…'; }, 700);
-      setTimeout(() => { lbl.textContent = 'Sending envelope…'; }, 1400);
-      setTimeout(() => {
+      // Success subtitle reuses the preset's confirmation toast copy so the
+      // success screen reads on-message per vertical (falls back to generic).
+      if (sub) sub.textContent = p.toast || 'A copy has been sent to your email.';
+      _s5at(700, () => { lbl.textContent = 'Routing recipients…'; });
+      _s5at(1400, () => { lbl.textContent = 'Sending envelope…'; });
+      _s5at(2100, () => {
         document.getElementById('toast').classList.add('on');
+        if (prep) prep.classList.add('done');   // draw the success check
         lbl.textContent = 'Package sent.';
-      }, 2100);
+      });
     } else {
+      if (prep) prep.classList.remove('done');
       document.getElementById('toast').classList.remove('on');
     }
     /* Replay the per-field fill for this state. */
