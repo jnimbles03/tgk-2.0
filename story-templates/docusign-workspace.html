@@ -2453,8 +2453,11 @@ function setupNewTask(p){
   _ntRoles = _presetRoles(p);
   const sel = document.getElementById('nt-assignee');
   if (!sel) return;
-  sel.innerHTML = _ntRoles.map((r, i) =>
-    `<option value="${i}">${r.person}${r.role ? ' — ' + r.role : ''}</option>`).join('');
+  sel.innerHTML = _ntRoles.map((r, i) => {
+    // Avoid "Name — Name" when a derived role's person equals its role label.
+    const showRole = r.role && r.role.toLowerCase() !== (r.person || '').toLowerCase();
+    return `<option value="${i}">${r.person}${showRole ? ' — ' + r.role : ''}</option>`;
+  }).join('');
   // Reset the form to its closed/empty state on each preset apply.
   const form = document.getElementById('newtask-form');
   const name = document.getElementById('nt-name');
@@ -2494,6 +2497,7 @@ function _initials(person){
     const r = _ntRoles[+document.getElementById('nt-assignee').value] || _ntRoles[0] || {};
     const status = document.getElementById('nt-status').value || 'Waiting';
     const initials = r.initials || _initials(r.person);
+    const roleSuffix = (r.role && r.role.toLowerCase() !== (r.person || '').toLowerCase()) ? ' · ' + r.role : '';
     // Append to the first task section so it joins the live task list.
     const body = document.getElementById('sec1-body');
     if (body) {
@@ -2503,7 +2507,7 @@ function _initials(person){
         `<div class="task-ic">${iconFor(taskName)}</div>
          <div class="task-mid">
            <div class="task-name">${taskName} <span class="task-chip status-assigned">${status}</span></div>
-           <div class="task-assignee"><span class="av">${initials}</span>Assigned to ${r.person || 'a workspace member'}${r.role ? ' · ' + r.role : ''}</div>
+           <div class="task-assignee"><span class="av">${initials}</span>Assigned to ${r.person || 'a workspace member'}${roleSuffix}</div>
          </div>
          <div class="task-progress"><div class="bar"><div class="fill" style="width:8%"></div></div><div class="lab">${status}</div></div>
          <button class="task-view">View</button>`;
@@ -2570,10 +2574,13 @@ function completeChecks(){
 /* Tabs */
 document.querySelectorAll('.ws-tab').forEach(t => t.addEventListener('click', () => {
   const key = t.dataset.tab;
-  if (key !== 'overview' && key !== 'tasks') return;
+  // 'documents' added 2026-06-22 alongside the existing overview/tasks views.
+  if (key !== 'overview' && key !== 'tasks' && key !== 'documents') return;
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === key));
   document.getElementById('view-overview').classList.toggle('on', key === 'overview');
   document.getElementById('view-tasks').classList.toggle('on', key === 'tasks');
+  const vd = document.getElementById('view-documents');
+  if (vd) vd.classList.toggle('on', key === 'documents');
 }));
 document.querySelectorAll('.rail-tab').forEach(rt => rt.addEventListener('click', () => {
   document.querySelectorAll('.rail-tab').forEach(x => x.classList.remove('active'));
@@ -2610,8 +2617,12 @@ function activateTab(tabKey){
     x.classList.toggle('active', x.dataset.tab === tabKey));
   const ov = document.getElementById('view-overview');
   const tk = document.getElementById('view-tasks');
+  const dc = document.getElementById('view-documents');
   if (ov) ov.classList.toggle('on', tabKey === 'overview');
   if (tk) tk.classList.toggle('on', tabKey === 'tasks');
+  /* Hide the additive Documents view when a scripted beat selects a tab,
+     so the scene flow never leaves it stuck open (it only opens on click). */
+  if (dc) dc.classList.toggle('on', tabKey === 'documents');
 }
 function _firstTaskName(){
   const el = document.querySelector('.task-name');
