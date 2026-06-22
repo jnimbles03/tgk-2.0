@@ -1421,6 +1421,10 @@ body.is-gb #gbPanel{display:block;}
     <button class="builder-mode-pill active" id="modeOotb" type="button">Out of the Box</button>
     <button class="builder-mode-pill" id="modeBespoke" type="button">Bespoke</button>
   </div>
+  <button class="topbar-link" type="button" id="advTimelineBtn" title="Open the advanced editing timeline (iMovie-style scene editor)">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 3.5v9M10.5 3.5v9" stroke="currentColor" stroke-width="1.3"/></svg>
+    Advanced timeline
+  </button>
   <div class="topbar-spacer"></div>
   <button class="topbar-link" type="button" id="adminBtn">Admin</button>
   <a class="topbar-link" href="/">
@@ -4629,7 +4633,11 @@ body.is-gb #gbPanel{display:block;}
           ticks++;
           if (errEl && errEl.classList.contains('active')) {
             clearInterval(iv); genB.disabled = false; genB.textContent = 'Generate URL';
-            out.appendChild(el('p', 'gb-error', esc(errEl.textContent || 'Generation failed.')));
+            const raw = errEl.textContent || 'Generation failed.';
+            const noBackend = /HTTP 0\b|status 0\b|Failed to fetch|NetworkError|ECONNREFUSED/i.test(raw);
+            out.appendChild(el('p', 'gb-error', noBackend
+              ? 'Link generation runs on the live builder’s backend (tgk-deux.replit.app). This static preview can’t mint a URL — open the live builder to generate the shareable link. Everything else here works offline.'
+              : esc(raw)));
             return;
           }
           const url = urlEl ? urlEl.textContent : '';
@@ -4650,7 +4658,7 @@ body.is-gb #gbPanel{display:block;}
             return;
           }
           if (ticks > 100) { clearInterval(iv); genB.disabled = false; genB.textContent = 'Generate URL';
-            out.appendChild(el('p', 'gb-error', 'Timed out waiting for the demo URL. Try again, or use Advanced timeline.')); }
+            out.appendChild(el('p', 'gb-error', 'No response from the link service. If you’re on the static preview, generate from the live builder (tgk-deux.replit.app); otherwise try again.')); }
         }, 300);
       }, 3);
     }
@@ -4878,9 +4886,18 @@ body.is-gb #gbPanel{display:block;}
     }
 
     function renderLaunch(archetypeKey) {
-      const demo = state.sub.demos[archetypeKey];
+      const demo = (state.sub && state.sub.demos) ? state.sub.demos[archetypeKey] : null;
       const arch = ARCHETYPES.find(a => a.key === archetypeKey);
       body.innerHTML = '';
+      if (!demo || !arch) {
+        // Defensive: a missing (sub × archetype) demo would otherwise throw on
+        // demo.title and break the last step. Degrade to a friendly message.
+        body.appendChild(el('div', 'ootb-eyebrow', 'Out of the Box'));
+        body.appendChild(el('h2', 'ootb-q', 'That demo isn’t wired up for this sub-vertical yet.'));
+        body.appendChild(el('p', 'ootb-sub', 'Pick a different story, or start over.'));
+        backBtn(3);
+        return;
+      }
       body.appendChild(el('div', 'ootb-eyebrow', 'Out of the Box · ' + esc(state.vertical.label) + ' · ' + esc(state.sub.label)));
       const card = el('div', 'ootb-launch');
       card.appendChild(el('div', 'ootb-launch-kicker',
@@ -4976,6 +4993,17 @@ body.is-gb #gbPanel{display:block;}
 
   pillOotb.addEventListener('click',    () => setMode('ootb'));
   pillBespoke.addEventListener('click', () => setMode('bespoke'));
+
+  // Always-visible entry to the advanced (iMovie-style) timeline: switch to
+  // Bespoke (both mode systems via the pill click) then drop straight into the
+  // Advanced view, instead of making the AE hunt for the in-wizard link.
+  const advBtn = document.getElementById('advTimelineBtn');
+  if (advBtn) advBtn.addEventListener('click', () => {
+    pillBespoke.click();
+    if (window.__guidedBespoke && typeof window.__guidedBespoke.setView === 'function') {
+      window.__guidedBespoke.setView('advanced');
+    }
+  });
 
   // Default: Out of the Box
   setMode('ootb');
