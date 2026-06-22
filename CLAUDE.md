@@ -2,10 +2,10 @@
 
 Durable, hard-won context for working in this repo — architecture, the
 builder/story-shell/demos systems, environments, conventions, and the parse/
-jsdom verification harness — lives in **`.claude/PROJECT_CONTEXT.md`**. Read it
-before non-trivial work, and keep it current as you learn more.
+jsdom verification harness — lives in **`PROJECT_CONTEXT.md`** (repo root). Read
+it before non-trivial work, and keep it current as you learn more.
 
-@.claude/PROJECT_CONTEXT.md
+@PROJECT_CONTEXT.md
 
 ## graphify
 
