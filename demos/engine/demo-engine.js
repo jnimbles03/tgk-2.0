@@ -73,7 +73,7 @@
     root.innerHTML =
       '<div class="de-top"><h1><span class="tag" id="de-tag"></span><span id="de-title"></span></h1>'+
         '<div class="de-picker"><span class="lbl">Vertical</span><span id="de-packbtns"></span>'+
-        (DEMO.meta && DEMO.meta.home ? '<a class="home" href="'+DEMO.meta.home+'">All demos</a>' : '')+'</div></div>'+
+        (function(){var href=((DEMO.meta&&DEMO.meta.home&&DEMO.meta.home!=="index.html")?DEMO.meta.home:"/builder.html");return '<a class="home" href="'+href+'">Back to Builder</a>';})()+'</div></div>'+
       '<div class="de-shell">'+
         '<aside class="de-side">'+
           '<div class="de-brand"><div class="mark" id="de-mark"></div><div><div class="bn" id="de-brand"></div><div class="pb" id="de-pb"></div></div></div>'+
@@ -259,7 +259,7 @@
     root.innerHTML =
       '<div class="de-top"><h1><span class="tag" id="de-tag"></span><span id="de-title"></span></h1>'+
         '<div class="de-picker"><span class="lbl">Vertical</span><span id="de-packbtns"></span>'+
-        (DEMO.meta&&DEMO.meta.home?'<a class="home" href="'+DEMO.meta.home+'">All demos</a>':'')+'</div></div>'+
+        (function(){var href=((DEMO.meta&&DEMO.meta.home&&DEMO.meta.home!=="index.html")?DEMO.meta.home:"/builder.html");return '<a class="home" href="'+href+'">Back to Builder</a>';})()+'</div></div>'+
       '<div class="de-shell"><aside class="de-side">'+
         '<div class="de-brand"><div class="mark" id="de-mark"></div><div><div class="bn" id="de-brand"></div><div class="pb" id="de-pb"></div></div></div>'+
         '<div class="de-persona" id="de-persona"><div class="avatar" id="de-av"></div><div><div class="nm" id="de-nm"></div><div class="rl" id="de-rl"></div></div></div>'+
@@ -289,6 +289,15 @@
       // cancelable timers — attract mode aborts a running self-run on interaction
       after(ms,fn){ const id=setTimeout(()=>{ this._timers=this._timers.filter(x=>x!==id); fn(); }, ms); this._timers.push(id); return id; },
       cancelAuto(){ this._timers.forEach(clearTimeout); this._timers=[]; },
+      autopilot(steps){ if(!(auto || this._forceAuto) || !Array.isArray(steps)) return;
+        steps.forEach(step=>{ if(!step || typeof step.at!=="number") return; this.after(step.at,()=>{
+          if(typeof step.run === "function") return step.run();
+          const scope = step.scope === "document" ? document : root;
+          const el = step.selector ? scope.querySelector(step.selector) : null;
+          if(!el) return;
+          if(step.event === "input" && "dispatchEvent" in el){ el.dispatchEvent(new Event("input", { bubbles:true })); return; }
+          if(typeof el.click === "function") el.click();
+        }); }); },
       narrate(key){ const s=DEMO.packs[pack].say[key]; if(!s)return;
         $("de-step").textContent=(s.eyebrow||"DEMO").toUpperCase(); $("de-head").textContent=s.title||""; $("de-lede").innerHTML="<p>"+(s.body||"")+"</p>"; },
       progress(i){ const tot=DEMO.steps||1, pips=$("de-pips");

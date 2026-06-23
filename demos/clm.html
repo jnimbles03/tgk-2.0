@@ -5,7 +5,6 @@
 <title>CLM (Contract Lifecycle) — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/clm.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   /* The CLM lifecycle visual is intact; we add an "Ask about this agreement"
@@ -67,7 +66,7 @@ const SCENES='<section class="de-scene is-active" data-scene="clm"><div class="c
 
 DemoEngine.interactive({
   meta:{ title:"CLM (Contract Lifecycle) — interactive", productTag:"CLM · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Iris has read this agreement and its AI Extractions — click a question and it types a specific, cited answer from the contract, then routes it for signature. Switch vertical to re-skin the agreement, parties and terms.' },
+    footnote:'<b>This panel is live.</b> Iris has read this agreement and its AI Extractions — click a question and it types a specific, cited answer from the contract, then routes it for signature. Switch vertical to re-skin the agreement, parties and terms. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -149,9 +148,11 @@ DemoEngine.interactive({
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
         after:()=>{ bump(); if(ex.route){ const b=$("#clm-chat").querySelector("[data-route]"); if(b) b.onclick=()=>routeForSignature(b); } } })) });
 
-    if(api.auto){ api.after(900,()=>{ const c=$("#clm-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(6000,()=>{ const chips=$("#clm-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
-      api.after(10500,()=>{ const b=$("#clm-chat").querySelector("[data-route]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#clm-chips .agc-chip' },
+      { at:6000, run:()=>{ const chips=$("#clm-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
+      { at:10500, run:()=>{ const b=$("#clm-chat").querySelector('[data-route]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

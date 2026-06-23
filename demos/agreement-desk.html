@@ -5,7 +5,6 @@
 <title>Agreement Desk — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   /* The Agreement Desk queue visual is intact; we add an "Ask the Desk Agent"
@@ -85,7 +84,7 @@ const SCENES='<section class="de-scene is-active" data-scene="app"><div class="a
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Desk — interactive", productTag:"Agreement Desk · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties.' },
+    footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -177,9 +176,11 @@ DemoEngine.interactive({
           if(ex.block){ const r=$("#ad-block"); if(r){ r.classList.add("hot"); } }
           if(ex.clear){ const b=$("#ad-chat").querySelector("[data-clear]"); if(b) b.onclick=()=>clearQueue(b); } } })) });
 
-    if(api.auto){ api.after(900,()=>{ const c=$("#ad-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(6000,()=>{ const chips=$("#ad-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
-      api.after(10500,()=>{ const b=$("#ad-chat").querySelector("[data-clear]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#ad-chips .agc-chip' },
+      { at:6000, run:()=>{ const chips=$("#ad-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
+      { at:10500, run:()=>{ const b=$("#ad-chat").querySelector('[data-clear]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

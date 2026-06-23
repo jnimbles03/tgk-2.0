@@ -37,7 +37,7 @@ function cites(arr){ return '<div style="font-size:10.5px;font-weight:700;letter
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Manager Agent (Search) — interactive", productTag:"Agreement Manager Agent · Live", home:"index.html",
-    footnote:'<b>This is live.</b> Click a question (or imagine typing your own) and Agreement Manager types out a specific, cited answer drawn from the agreement portfolio. Switch vertical to re-skin.' },
+    footnote:'<b>This is live.</b> Click a question (or imagine typing your own) and Agreement Manager types out a specific, cited answer drawn from the agreement portfolio. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:3, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -76,7 +76,9 @@ DemoEngine.interactive({
     AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), hint:"Ask a question", speed:13,
       intro:"Ask me anything about your agreements — I read the actual documents and cite my sources.",
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card, after:()=>{ done++; api.progress(Math.min(done,3)); } })) });
-    if(api.auto) api.after(900,()=>{ const c=$("#nv-chips").querySelector(".agc-chip"); c&&c.click(); });
+    api.autopilot([
+      { at:900, selector:'#nv-chips .agc-chip' }
+    ]);
   }
 });
 </script>
