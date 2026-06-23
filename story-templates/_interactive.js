@@ -21,6 +21,39 @@
    ============================================================ */
 (function () {
   'use strict';
+
+  /* Compatibility shim for shell-driven Docusign signing scenes.
+
+     The canonical signing scene key maps beats to internal states in
+     stories/_shared/story-shell.html, but some intake flows intentionally
+     reuse docusign-signing-ceremony.html under the alternate scene key
+     `envelope_deliver`. Older shells may not have a BEAT_TO_INTERNAL entry
+     for that key, which means they post tgk:lockToBeat with sceneId:null.
+
+     The signing template still receives the authoritative hotspot target
+     (review_doc/start_tab/adopt_sig/finished_status/download_signed), so this
+     shim lets the child template recover the right internal state locally.
+     It is inert for templates that do not expose window.applyScene. */
+  var SIGNING_TARGET_TO_SCENE = {
+    review_doc: 's1',
+    start_tab: 's2',
+    adopt_sig: 's4',
+    finished_status: 's5',
+    download_signed: 's5'
+  };
+
+  window.addEventListener('message', function (ev) {
+    var msg = ev.data;
+    if (!msg || typeof msg !== 'object' || msg.type !== 'tgk:lockToBeat') return;
+    if (msg.sceneId) return;
+    var inferred = SIGNING_TARGET_TO_SCENE[msg.target];
+    if (!inferred || typeof window.applyScene !== 'function') return;
+    try { window.applyScene({ id: inferred }); } catch (_) {}
+  });
+})();
+
+(function () {
+  'use strict';
   var params = new URLSearchParams(location.search);
   if (params.get('interactive') !== '1') return;
   if (window._tgkIaHandled) return;  // template has its own interactive mode
