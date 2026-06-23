@@ -2,64 +2,103 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Workspaces — re-skinnable demo</title>
+<title>Workspaces — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./archetypes/signing.css">
+<link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  /* Two-column interactive layout (mirrors navigator.html's nv-* spine). */
+  .app.has-rail .app-body{padding:0}
+  .ws-wrap{display:flex;height:100%}
+  .ws-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:18px 22px;overflow:auto}
+  .ws-agent{width:352px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .ws-agent .phd{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
+  .ws-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex:0 0 auto}
+  .ws-agent .phd .sub{font-size:11px;font-weight:500;color:#8a8a93;margin-left:auto;max-width:150px;text-align:right;line-height:1.3}
+  /* Rows become clickable documents; the focused one tints with the accent. */
+  .app-row{cursor:pointer}
+  .app-row.focus{background:var(--tenant-accent-soft);box-shadow:inset 3px 0 0 var(--tenant-accent)}
+  .app-row .nt{transition:color .15s}
+  .app-row:hover .nt{color:var(--tenant-accent)}
+  .ws-askhint{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;opacity:0;transition:opacity .15s}
+  .app-row:hover .ws-askhint,.app-row.focus .ws-askhint{opacity:1}
+  /* "New task" affordance + inline create/assign form (mirrors in-story Workspaces). */
+  .ws-tasksbar{display:flex;align-items:center;justify-content:space-between;margin:14px 0 4px}
+  .ws-tasksbar .lbl{font-size:11px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase}
+  .ws-newtask-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px dashed var(--tenant-accent);border-radius:7px;background:var(--tenant-accent-soft);color:var(--tenant-accent);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+  .ws-newtask-btn:hover{background:#fff}
+  .ws-newtask-btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.4;fill:none}
+  .ws-ntform{border:1px solid var(--tenant-accent);background:linear-gradient(180deg,var(--tenant-accent-soft),#fff);border-radius:9px;padding:14px 16px;margin:4px 0 8px}
+  .ws-ntform[hidden]{display:none}
+  .ws-ntform .nt-head{font-size:12.5px;font-weight:700;color:#1a1a26;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+  .ws-ntform .nt-head .mk{width:18px;height:18px;border-radius:5px;background:var(--tenant-accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .ws-ntform .nt-head .mk svg{width:11px;height:11px;stroke:#fff;stroke-width:2.4;fill:none}
+  .nt-grid{display:grid;grid-template-columns:1fr 190px 150px;gap:10px;align-items:end}
+  .nt-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .nt-field label{font-size:10px;font-weight:700;color:#9a9aa2;text-transform:uppercase;letter-spacing:.04em}
+  .nt-field input,.nt-field select{font-family:inherit;font-size:12.5px;color:#1a1a26;background:#fff;border:1px solid #D8D8E0;border-radius:6px;padding:8px 10px;width:100%}
+  .nt-field input:focus,.nt-field select:focus{outline:none;border-color:var(--tenant-accent);box-shadow:0 0 0 2px var(--tenant-accent-soft)}
+  .nt-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+  .nt-cancel{padding:7px 14px;border:1px solid #D8D8E0;border-radius:6px;background:#fff;font-size:12px;font-weight:500;color:#555;cursor:pointer;font-family:inherit}
+  .nt-create{padding:7px 16px;border:none;border-radius:6px;background:var(--tenant-accent);font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit}
+  .nt-create:disabled{opacity:.45;cursor:not-allowed}
+  /* A freshly created task row: highlight, assignee line + status chip. */
+  .app-row.row-new{animation:wsNewIn .45s cubic-bezier(.2,.8,.2,1)}
+  @keyframes wsNewIn{from{opacity:0;transform:translateY(-6px);background:var(--tenant-accent-soft)}to{opacity:1;transform:translateY(0)}}
+  .ws-assignee{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#777;margin-top:3px}
+  .ws-assignee .av{width:16px;height:16px;border-radius:50%;background:var(--tenant-accent-soft);color:var(--tenant-accent);font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .ws-chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .ws-chip.s-wait{background:#FFF4E0;color:#B57A12}
+  .ws-chip.s-prog{background:#E7EDFB;color:#2D55C9}
+  .ws-chip.s-ready{background:#E3F4EC;color:#1a7a44}
+</style>
 </head>
 <body>
 <div id="demo-root"></div>
 <script src="./engine/demo-engine.js"></script>
+<script src="./engine/agent-chat.js"></script>
 <script>
 const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
   '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreements</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Admin</span></div>'+
   '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="ws-cobrand"></span></span><span class="avatar" id="ws-av"></span></div></div>';
 
 const SCENES =
-  '<section class="de-scene is-active" data-scene="app"><div class="app">'+NAV+
-    '<div class="app-body">'+
-      '<div class="app-head"><h2 id="ws-title"></h2><span class="pill">Active</span>'+
-        '<div class="acts"><span class="lnk" id="ws-sharebtn"><svg viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="18" cy="7" r="2.4"/></svg>Share</span>'+
-        '<span class="lnk"><svg viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z"/></svg></span>'+
-        '<span class="add"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>Add ▾</span></div></div>'+
-      '<div class="app-filter"><div class="dd">All Templates <span class="chev">▾</span></div>'+
-        '<div class="search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><span id="ws-srch"></span></div></div>'+
-      '<div class="app-th"><span class="col-name" style="padding-left:29px">Name ⬍</span><span class="col-status">Status ⬍</span><span class="col-due">Due date ⬍</span><span class="col-act">Actions</span></div>'+
-      '<div id="ws-rows"></div>'+
-    '</div>'+
-    '<div class="app-foot"><span class="pb">Powered by <b>Docusign</b></span><span class="rt"><span>Contact Us</span><span>Terms of Use</span><span>Privacy</span><span>Trust</span></span></div>'+
-    // share modal
-    '<div class="app-modal" id="ws-modal"><div class="sheet"><div class="mhd">Manage access<span class="x">✕</span></div>'+
-      '<div class="mbd"><h3 id="ws-mtitle"></h3>'+
-        '<div class="prow"><div class="pf"><label>First Name</label><div class="inp" id="ws-pf">Jaime</div></div>'+
-          '<div class="pf"><label>Last Name</label><div class="inp">Lannister</div></div>'+
-          '<div class="pf"><label>Email</label><div class="inp">JaimeLannister.Demo@g…</div></div>'+
-          '<div class="prole" id="ws-role">Manage ▾</div></div>'+
-        '<div class="addp"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>Add New Person</div>'+
-        '<div class="pwa">People with access</div>'+
-        '<div class="acc"><span class="av" id="ws-oav"></span><span id="ws-owner"></span><span class="em" id="ws-oem"></span><span style="color:#444;font-size:12.5px;margin-left:18px">Manage ▾</span></div></div>'+
-      '<div class="mft"><span class="share" id="ws-msbtn">Share</span></div></div></div>'+
-  '</div></section>'+
-  '<section class="de-scene" data-scene="handoff"><div class="ho">'+
-    '<div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
-    '<h2 id="ho-h"></h2><p id="ho-p"></p>'+
-    '<div class="chain"><div class="node">Workspace</div><span class="arr">&rarr;</span>'+
-      '<div class="node lead">Every party · one audit trail</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
+  '<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+
+    '<div class="app-body"><div class="ws-wrap">'+
+      '<div class="ws-main">'+
+        '<div class="app-head" style="padding:0 0 4px"><h2 id="ws-title"></h2><span class="pill">Active</span></div>'+
+        '<div class="app-filter" style="padding-left:0"><div class="dd">All Templates <span class="chev">▾</span></div>'+
+          '<div class="search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><span id="ws-srch"></span></div></div>'+
+        // New task affordance + inline create/assign form
+        '<div class="ws-tasksbar"><span class="lbl">Documents &amp; tasks</span>'+
+          '<span class="ws-newtask-btn" id="ws-newtask-open"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New task</span></div>'+
+        '<div class="ws-ntform" id="ws-ntform" hidden>'+
+          '<div class="nt-head"><span class="mk"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Create a task and assign it</div>'+
+          '<div class="nt-grid">'+
+            '<div class="nt-field"><label for="ws-nt-name">Task</label><input type="text" id="ws-nt-name" placeholder="e.g. Upload signed W-9" autocomplete="off"></div>'+
+            '<div class="nt-field"><label for="ws-nt-assignee">Assign to</label><select id="ws-nt-assignee"></select></div>'+
+            '<div class="nt-field"><label for="ws-nt-status">Status</label><select id="ws-nt-status">'+
+              '<option value="Waiting">Waiting</option><option value="In progress">In progress</option><option value="Ready to send">Ready to send</option></select></div>'+
+          '</div>'+
+          '<div class="nt-actions"><button type="button" class="nt-cancel" id="ws-nt-cancel">Cancel</button>'+
+            '<button type="button" class="nt-create" id="ws-nt-create" disabled>Create &amp; assign</button></div>'+
+        '</div>'+
+        '<div class="app-th"><span class="col-name" style="padding-left:29px">Name ⬍</span><span class="col-status">Status ⬍</span><span class="col-due">Due date ⬍</span><span class="col-act">Actions</span></div>'+
+        '<div id="ws-rows"></div>'+
+      '</div>'+
+      '<div class="ws-agent">'+
+        '<div class="phd"><span class="ai">✦</span> <span id="ws-asklabel">Ask about this workspace</span><span class="sub" id="ws-askdoc"></span></div>'+
+        '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="ws-chat"></div><div class="agc-chips" id="ws-chips"></div>'+
+          '<div class="agc-input"><div class="box" id="ws-askbox">Click a document, then ask about it…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+      '</div>'+
+    '</div></div>'+
+  '</div></section>';
 
-DemoEngine.init({
-  meta:{ title:"Workspaces", productTag:"Workspaces", home:"index.html",
-    footnote:'<b>Faithful Workspaces hub, re-skinnable content.</b> The IAM app-shell + Manage-access modal + cursor path are the shared spine. Switching vertical swaps the co-brand, workspace, parties, agreements, accent and narration. Same archetype drives Agreement Manager, CLM, Monitor, Agreement Manager, Search and App Center.' },
-  defaultPack:"banking", scenes:SCENES,
-  timeline:{ totalDuration:32,
-    beats:[ {t:0,key:"open",sceneId:"app"},{t:7,key:"share",sceneId:"app"},{t:13,key:"access",sceneId:"app"},{t:19,key:"remind",sceneId:"app"},{t:26,key:"handoff",sceneId:"handoff"} ],
-    cursorTrack:[ {t:1.5,x:640,y:300,action:"move"},
-      {t:6,target:"#ws-sharebtn",action:"click",sayKey:"share"},
-      {t:10,target:"#ws-role",action:"move",sayKey:"access"},
-      {t:13,target:"#ws-role",action:"click"},
-      {t:15,target:"#ws-msbtn",action:"click",sayKey:"shared"},
-      {t:18,target:".app-row[data-row='1'] .remind",action:"move",sayKey:"remind"},
-      {t:20,target:".app-row[data-row='1'] .remind",action:"click"},
-      {t:26,x:640,y:300,action:"move",sayKey:"handoff"} ] },
+DemoEngine.interactive({
+  meta:{ title:"Workspaces — interactive", productTag:"Workspaces · Live", home:"index.html",
+    footnote:'<b>This workspace is live.</b> Every document is clickable — open one and the AI assistant types a specific, cited answer about that file. Create a task and assign it to a real party in the workspace. Switch vertical to re-skin the brand, parties, documents and questions.' },
+  defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally",
       theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -70,12 +109,50 @@ DemoEngine.init({
       rows:[ {n:"Pay Statement",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
         {n:"Complete with Docusign: Tally — Privacy Policy Acknowledgement",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
         {n:"Complete with Docusign: Tally — Investment Advisory Agreement",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
-      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole relationship",body:"Every agreement and upload for Sam's onboarding lives in a single Tally-branded workspace."},
-        share:{eyebrow:"Share",title:"Bring the right people in",body:"Sarah opens Manage access to add the parties — each with a precise role."},
-        access:{eyebrow:"Roles",title:"Manage vs. participate",body:"Co-signers get Participate; the banker keeps Manage. Access is explicit, not email forwarding."},
-        shared:{eyebrow:"Shared",title:"Everyone lands in the same place",body:"Invited parties see exactly their items — nothing else."},
-        remind:{eyebrow:"Nudge",title:"Chase only what's outstanding",body:"One click reminds the parties on the agreements still waiting for signature."},
-        handoff:{eyebrow:"Audit",title:"One trail across every party",body:"Every action, upload and signature is captured in one auditable workspace."} },
+      // People/roles available for task assignment (owner + the workspace parties).
+      roles:[ {role:"Owner",person:"Sarah Connelly",initials:"SC"},
+        {role:"Client",person:"Sam Smith",initials:"SS"},
+        {role:"Co-signer",person:"Jaime Lannister",initials:"JL"},
+        {role:"Tally Compliance",person:"Compliance Desk",initials:"TC"} ],
+      // Per-document canned questions → typewriter answers with source-ish citations.
+      docs:[
+        { match:"Pay Statement", file:"pay_statement.pdf", meta:"1 page · uploaded for income review", stat:"Waiting for upload",
+          ask:[
+            {label:"Why is this requested?",
+             answer:"The <b>Pay Statement</b> is requested to verify Sam's income for the suitability review. It's an upload request, not an envelope — <b>no signature</b> is needed, just the document. Until Sam uploads it, this item stays at <em>Waiting for upload</em>, due 3/31/2026.",
+             src:["Pay Statement","Client Onboarding — Sam Smith"]},
+            {label:"What is it used for downstream?",
+             answer:"It feeds the source-of-income basis the banker cites in the <b>Investment Advisory Agreement</b> suitability check. It's part of the compliance file but carries no open signing task once uploaded.",
+             src:["Pay Statement","Investment Advisory Agreement"]}
+          ]},
+        { match:"Privacy Policy", file:"tally_privacy_policy_acknowledgement.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+          ask:[
+            {label:"Who still has to sign this?",
+             answer:"The <b>Privacy Policy Acknowledgement</b> shows <em>0/2 done</em> — both Sam Smith and the co-signer Jaime Lannister still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+             src:["Privacy Policy Acknowledgement","Client Onboarding — Sam Smith"]},
+            {label:"What does Sam acknowledge here?",
+             answer:"It covers how Tally collects, shares, and safeguards Sam's nonpublic personal information under Reg S-P, plus opt-out rights for non-affiliate sharing. It's the privacy basis the <b>Investment Advisory Agreement</b> relies on, so it's sequenced first.",
+             src:["Privacy Policy Acknowledgement","Investment Advisory Agreement"]},
+            {label:"When is it due?",
+             answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope routed to Sam and the co-signer; once both sign, Sarah countersigns automatically and the item closes.",
+             src:["Privacy Policy Acknowledgement"]}
+          ]},
+        { match:"Investment Advisory", file:"tally_investment_advisory_agreement.pdf", meta:"Envelope · 0/2 done · 12 pages", stat:"Waiting for others",
+          ask:[
+            {label:"What fee schedule does this set?",
+             answer:"The <b>Investment Advisory Agreement</b> sets a tiered advisory fee — <em>1.0% on assets below $1M, 0.85% above</em> — billed quarterly in arrears, with a fiduciary acknowledgment. It references the <b>Privacy Policy Acknowledgement</b> Sam signs first.",
+             src:["Investment Advisory Agreement","Privacy Policy Acknowledgement"]},
+            {label:"What's blocking completion?",
+             answer:"It's at <em>0/2 done · Waiting for others</em> — neither Sam nor the co-signer has signed, and it's gated behind the Privacy Policy. Once both upstream signatures land, this envelope unlocks; due <b>4/2/2026</b>.",
+             src:["Investment Advisory Agreement","Privacy Policy Acknowledgement"]},
+            {label:"What happens after Sam signs?",
+             answer:"On Sam's signature the banker's countersignature applies automatically, the advisory relationship goes effective, and the full trail writes back to <b>nCino</b>. No re-keying — every field came from the documents in this workspace.",
+             src:["Investment Advisory Agreement"]}
+          ]}
+      ],
+      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole relationship",body:"Every agreement and upload for Sam's onboarding lives in a single Tally-branded workspace. Click any document to ask about it, or create a task and assign it to a party."},
+        doc:{eyebrow:"Document",title:"Open a document, ask anything",body:"The AI assistant has read this file — ask what it sets, who still has to sign, or what happens next, and it answers with citations."},
+        task:{eyebrow:"Tasks",title:"Assign work to a real party",body:"New tasks go to the people already in the workspace — Sam, the co-signer, or Compliance — each with a role and a status."} },
       handoff:{h:"Every party, one audit trail",p:"Documents, uploads and signatures stay in one Tally workspace — the full trail writes back to nCino."} },
     healthcare:{ label:"Healthcare · Riverside",
       theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
@@ -86,12 +163,48 @@ DemoEngine.init({
       rows:[ {n:"Insurance Card",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
         {n:"Complete with Docusign: Riverside — Consent to Treat",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
         {n:"Complete with Docusign: Riverside — HIPAA Authorization",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
-      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole intake",body:"Every consent and upload for Jordan's intake lives in a single Riverside-branded workspace."},
-        share:{eyebrow:"Share",title:"Bring the right people in",body:"Maria opens Manage access to add the patient and provider — each with a precise role."},
-        access:{eyebrow:"Roles",title:"Manage vs. participate",body:"The patient gets Participate; the coordinator keeps Manage. Access is explicit, HIPAA-minded."},
-        shared:{eyebrow:"Shared",title:"Everyone lands in the same place",body:"Invited parties see exactly their forms — nothing else."},
-        remind:{eyebrow:"Nudge",title:"Chase only what's outstanding",body:"One click reminds the parties on the consents still waiting for signature."},
-        handoff:{eyebrow:"Audit",title:"One trail across every party",body:"Every action, upload and signature is captured in one auditable workspace."} },
+      roles:[ {role:"Owner",person:"Maria Lopez",initials:"ML"},
+        {role:"Patient",person:"Jordan Kim",initials:"JK"},
+        {role:"Provider",person:"Dr. Alan Reyes",initials:"AR"},
+        {role:"Privacy Office",person:"HIM Desk",initials:"HD"} ],
+      docs:[
+        { match:"Insurance Card", file:"insurance_card.pdf", meta:"1 page · front & back image", stat:"Waiting for upload",
+          ask:[
+            {label:"Why is this requested?",
+             answer:"The <b>Insurance Card</b> is an upload request so Riverside can capture payer, plan and member ID for eligibility — <b>no signature</b> needed. Until Jordan uploads it, this stays at <em>Waiting for upload</em>, due 3/31/2026.",
+             src:["Insurance Card","Patient Onboarding — Jordan Kim"]},
+            {label:"What does it unblock?",
+             answer:"Coverage details on the card feed the benefits check that runs before treatment. It's informational, so it carries no open signing task once received and writes back to the <b>Epic chart</b>.",
+             src:["Insurance Card","Epic chart"]}
+          ]},
+        { match:"Consent to Treat", file:"riverside_consent_to_treat.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+          ask:[
+            {label:"Who still has to sign this?",
+             answer:"The <b>Consent to Treat</b> shows <em>0/2 done</em> — both Jordan Kim and the provider still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+             src:["Consent to Treat","Patient Onboarding — Jordan Kim"]},
+            {label:"What does Jordan consent to?",
+             answer:"It authorizes Riverside to provide evaluation and treatment, covers financial responsibility, and acknowledges the patient rights notice. It's sequenced alongside the <b>HIPAA Authorization</b> in Jordan's intake.",
+             src:["Consent to Treat","HIPAA Authorization"]},
+            {label:"When is it due?",
+             answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope; once Jordan and the provider sign, Maria countersigns automatically and the item closes.",
+             src:["Consent to Treat"]}
+          ]},
+        { match:"HIPAA Authorization", file:"riverside_hipaa_authorization.pdf", meta:"Envelope · 0/2 done · 2 pages", stat:"Waiting for others",
+          ask:[
+            {label:"What does this authorize?",
+             answer:"The <b>HIPAA Authorization</b> lets Riverside use and disclose Jordan's protected health information for the named purposes, with the recipients and an expiration spelled out. It's the privacy basis the <b>Consent to Treat</b> relies on.",
+             src:["HIPAA Authorization","Consent to Treat"]},
+            {label:"What's blocking completion?",
+             answer:"It's at <em>0/2 done · Waiting for others</em> — neither Jordan nor the provider has signed yet. Access is explicit and HIPAA-minded; due <b>4/2/2026</b>. One reminder nudges only these two parties.",
+             src:["HIPAA Authorization","Patient Onboarding — Jordan Kim"]},
+            {label:"What happens after Jordan signs?",
+             answer:"On Jordan's signature the authorization goes effective, the consent envelope unlocks, and the full trail writes back to the <b>Epic chart</b> — nothing keyed in by hand.",
+             src:["HIPAA Authorization","Epic chart"]}
+          ]}
+      ],
+      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole intake",body:"Every consent and upload for Jordan's intake lives in a single Riverside-branded workspace. Click any document to ask about it, or create a task and assign it to a party."},
+        doc:{eyebrow:"Document",title:"Open a form, ask anything",body:"The AI assistant has read this file — ask what it authorizes, who still has to sign, or what happens next, and it answers with citations."},
+        task:{eyebrow:"Tasks",title:"Assign work to a real party",body:"New tasks go to the people already in the workspace — Jordan, the provider, or the Privacy Office — each with a role and a status."} },
       handoff:{h:"Every party, one audit trail",p:"Consents, uploads and signatures stay in one Riverside workspace — the full trail writes back to Epic."} },
     pubsec:{ label:"Public Sector · Gov",
       theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
@@ -102,35 +215,180 @@ DemoEngine.init({
       rows:[ {n:"Proof of Income",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
         {n:"Complete with Docusign: State — Application & Attestation",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
         {n:"Complete with Docusign: State — Eligibility Authorization",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
-      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole case",body:"Every form and upload for Jordan's application lives in a single agency-branded workspace."},
-        share:{eyebrow:"Share",title:"Bring the right people in",body:"Maria opens Manage access to add the applicant and reviewer — each with a precise role."},
-        access:{eyebrow:"Roles",title:"Manage vs. participate",body:"The applicant gets Participate; the case manager keeps Manage. Access is explicit and auditable."},
-        shared:{eyebrow:"Shared",title:"Everyone lands in the same place",body:"Invited parties see exactly their items — nothing else."},
-        remind:{eyebrow:"Nudge",title:"Chase only what's outstanding",body:"One click reminds the parties on the forms still waiting for signature."},
-        handoff:{eyebrow:"Audit",title:"One trail across every party",body:"Every action, upload and signature is captured in one auditable workspace."} },
+      roles:[ {role:"Owner",person:"Maria Lopez",initials:"ML"},
+        {role:"Applicant",person:"Jordan Rivera",initials:"JR"},
+        {role:"Reviewer",person:"Eligibility Reviewer",initials:"ER"},
+        {role:"Records Office",person:"Records Desk",initials:"RD"} ],
+      docs:[
+        { match:"Proof of Income", file:"proof_of_income.pdf", meta:"1 page · uploaded for eligibility", stat:"Waiting for upload",
+          ask:[
+            {label:"Why is this requested?",
+             answer:"<b>Proof of Income</b> is an upload request so the agency can confirm Jordan's income against the program threshold — <b>no signature</b> needed. Until Jordan uploads it, this stays at <em>Waiting for upload</em>, due 3/31/2026.",
+             src:["Proof of Income","Application — Jordan Rivera"]},
+            {label:"What does it unblock?",
+             answer:"It supports the means test the reviewer runs on the <b>Eligibility Authorization</b>. It's informational, so it carries no open signing task once received and writes back to the agency system of record.",
+             src:["Proof of Income","Eligibility Authorization"]}
+          ]},
+        { match:"Application & Attestation", file:"state_application_attestation.pdf", meta:"Envelope · 0/2 done · 4 pages", stat:"Waiting for others",
+          ask:[
+            {label:"Who still has to sign this?",
+             answer:"The <b>Application &amp; Attestation</b> shows <em>0/2 done</em> — both Jordan Rivera and the reviewer still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+             src:["Application & Attestation","Application — Jordan Rivera"]},
+            {label:"What does Jordan attest to?",
+             answer:"Jordan attests the application is true and complete under penalty of perjury, consents to verification, and acknowledges program obligations. It's paired with the <b>Eligibility Authorization</b> in the case file.",
+             src:["Application & Attestation","Eligibility Authorization"]},
+            {label:"When is it due?",
+             answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope; once Jordan and the reviewer sign, the case manager countersigns automatically and the item closes.",
+             src:["Application & Attestation"]}
+          ]},
+        { match:"Eligibility Authorization", file:"state_eligibility_authorization.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+          ask:[
+            {label:"What does this authorize?",
+             answer:"The <b>Eligibility Authorization</b> lets the agency verify Jordan's income, identity and household against third-party sources for the determination, with the scope and duration named. It relies on the income proof Jordan uploads.",
+             src:["Eligibility Authorization","Proof of Income"]},
+            {label:"What's blocking completion?",
+             answer:"It's at <em>0/2 done · Waiting for others</em> — neither Jordan nor the reviewer has signed yet. Access is explicit and auditable; due <b>4/2/2026</b>. One reminder nudges only these two parties.",
+             src:["Eligibility Authorization","Application — Jordan Rivera"]},
+            {label:"What happens after Jordan signs?",
+             answer:"On Jordan's signature the authorization goes effective, the determination can proceed, and the full trail writes back to the agency system of record — nothing keyed in by hand.",
+             src:["Eligibility Authorization"]}
+          ]}
+      ],
+      say:{ open:{eyebrow:"Workspaces",title:"One space for the whole case",body:"Every form and upload for Jordan's application lives in a single agency-branded workspace. Click any document to ask about it, or create a task and assign it to a party."},
+        doc:{eyebrow:"Document",title:"Open a form, ask anything",body:"The AI assistant has read this file — ask what it authorizes, who still has to sign, or what happens next, and it answers with citations."},
+        task:{eyebrow:"Tasks",title:"Assign work to a real party",body:"New tasks go to the people already in the workspace — Jordan, the reviewer, or the Records Office — each with a role and a status."} },
       handoff:{h:"Every party, one audit trail",p:"Forms, uploads and signatures stay in one agency workspace — the full trail writes back to the system of record."} }
   },
-  paintContent(p, root){
-    root.querySelector("#ws-cobrand").textContent=p.cobrand; root.querySelector("#ws-title").textContent=p.title;
-    root.querySelector("#ws-srch").textContent=p.search; root.querySelector("#ws-mtitle").textContent="Share "+p.title;
-    root.querySelector("#ws-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-    root.querySelector("#ws-oav").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-    root.querySelector("#ws-owner").textContent=p.owner; root.querySelector("#ws-oem").textContent=p.oem;
-    root.querySelector("#ho-h").textContent=p.handoff.h; root.querySelector("#ho-p").textContent=p.handoff.p; root.querySelector("#ho-sor").textContent=p.sorNode;
-    root.querySelector("#ws-rows").innerHTML=p.rows.map((r,i)=>{
+  setup(p, root, api){
+    const $=s=>root.querySelector(s);
+    const initials=n=>(n||"·").split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"·";
+    // Active-pack holder + step counter live on the root so the ONE-TIME static
+    // control handlers (new-task form) always read the current pack after a re-skin,
+    // instead of closing over the pack from the first setup() call.
+    const S = root.__ws || (root.__ws = {});
+    S.p = p; S.done = 0;
+    function bump(){ S.done=Math.min(S.done+1,4); api.progress(S.done); if(S.done>=4) api.done(); }
+    function statusClass(s){ return s==="Ready to send"?"s-ready":(s==="In progress"?"s-prog":"s-wait"); }
+
+    // ---- brand / header ----
+    $("#ws-cobrand").textContent=p.cobrand; $("#ws-title").textContent=p.title; $("#ws-srch").textContent=p.search;
+    $("#ws-av").textContent=initials(p.persona.name);
+    $("#ws-asklabel").textContent="Ask about this workspace"; $("#ws-askdoc").textContent="";
+    $("#ws-askbox").textContent="Click a document, then ask about it…";
+
+    // ---- workspace rows (the documents) ----
+    function rowHTML(r,i){
       const status = r.st==="bar"
         ? '<div class="bar"><i style="--p:55%"></i></div><div class="st">'+r.stt+'</div>'
         : '<div class="done">'+r.stt.split(' · ')[0]+'</div><div class="st">'+r.stt.split(' · ')[1]+'</div>';
       const act = r.act==="view" ? '<span class="view">View</span>' : '<span class="remind">Remind</span>';
       return '<div class="app-row" data-row="'+i+'"><span class="col-name"><span class="ck'+(r.ck?' on':'')+'"></span>'+
-        '<span><span class="nt">'+r.n+'</span><br><span class="nsub">'+r.s+'</span></span></span>'+
-        '<span class="col-status">'+status+'</span><span class="col-due">'+r.due+'</span><span class="col-act">'+act+'</span></div>'; }).join("");
-  },
-  onTime(time, p, root){
-    const open = time>=7 && time<15.4;
-    root.querySelector("#ws-modal").classList.toggle("on",open);
-    const rows=root.querySelectorAll(".app-row");
-    rows.forEach((r,i)=>r.classList.toggle("hot", time>=18 && time<24 && i===1));
+        '<span><span class="nt">'+r.n+'</span> <span class="ws-askhint">✦ ASK</span><br><span class="nsub">'+r.s+'</span></span></span>'+
+        '<span class="col-status">'+status+'</span><span class="col-due">'+r.due+'</span><span class="col-act">'+act+'</span></div>';
+    }
+    // Re-rendering #ws-rows drops every prior row (incl. any created task rows) and
+    // their listeners, so the row click-handlers below are safe to re-bind per skin.
+    $("#ws-rows").innerHTML=p.rows.map((r,i)=>rowHTML(r,i)).join("");
+
+    // ---- map a row to its document Q&A pack by matching the row name ----
+    function docForRow(r){
+      const name=(r.n||"").toLowerCase();
+      return p.docs.find(d=>name.indexOf((d.match||"").toLowerCase())!==-1);
+    }
+
+    // ---- the Ask panel: a workspace-level chat, swappable to a focused document ----
+    function workspaceExchanges(){
+      return [
+        {label:"What's still outstanding?",
+         answer:"Across this workspace, the upload request is at <em>Waiting for upload</em> and both signing envelopes are at <em>0/2 done · Waiting for others</em>. Everything is in one place — invited parties see only their own items.",
+         after:bump},
+        {label:"How do reminders work here?",
+         answer:"A reminder nudges only the parties on a specific envelope that's still waiting — not everyone in the workspace. Click a signing document to ask who's left, then remind just them.",
+         after:bump}
+      ];
+    }
+    // Sources render as a reveal CARD (AgentChat appends ex.card after the
+    // typewriter finishes) — not concatenated into the typed answer string.
+    function srcCard(src){
+      if(!src||!src.length) return undefined;
+      return 'Sources: '+src.map(s=>'<span class="chip">'+s+'</span>').join('');
+    }
+    function docExchanges(d){
+      return d.ask.map(x=>({ label:x.label, user:x.label, answer:x.answer, card:srcCard(x.src), after:bump }));
+    }
+    function mountWorkspace(){
+      $("#ws-asklabel").textContent="Ask about this workspace";
+      $("#ws-askdoc").textContent=""; $("#ws-askbox").textContent="Click a document, then ask about it…";
+      AgentChat.mount({ chatEl:$("#ws-chat"), chipsEl:$("#ws-chips"), hint:"Ask the AI assistant", speed:13,
+        intro:"I'm the AI assistant for this workspace. Click any document to ask about that file — or ask me what's outstanding across the whole space.",
+        exchanges:workspaceExchanges() });
+    }
+    function focusRow(i){
+      const r=p.rows[i]; if(!r) return; const d=docForRow(r); if(!d) return;
+      root.querySelectorAll(".app-row").forEach(el=>el.classList.toggle("focus", +el.dataset.row===i));
+      $("#ws-asklabel").textContent="Ask about this document";
+      $("#ws-askdoc").textContent=d.file; $("#ws-askbox").textContent="Ask about "+d.file+"…";
+      api.narrate("doc");
+      // Re-mount AgentChat with this document's exchanges (re-callable on each row click).
+      AgentChat.mount({ chatEl:$("#ws-chat"), chipsEl:$("#ws-chips"), hint:"Ask about this document", speed:13,
+        intro:"Opened <b>"+r.n.replace(/^Complete with Docusign:\s*/,'')+"</b> — "+(d.meta||d.stat||"")+". Ask me about this file.",
+        exchanges:docExchanges(d) });
+      bump();
+    }
+    S.focusRow=focusRow;
+    root.querySelectorAll(".app-row").forEach(el=>{
+      el.addEventListener("click",e=>{ if(e.target.closest(".view,.remind")) return; focusRow(+el.dataset.row); });
+    });
+
+    // ---- New task: re-populate the assignee list for THIS pack, reset the form ----
+    const sel=$("#ws-nt-assignee");
+    sel.innerHTML=p.roles.map((r,i)=>{
+      const showRole = r.role && r.role.toLowerCase()!==(r.person||"").toLowerCase();
+      return '<option value="'+i+'">'+r.person+(showRole?' — '+r.role:'')+'</option>';
+    }).join("");
+    const ntForm=$("#ws-ntform"), ntName=$("#ws-nt-name"), ntCreate=$("#ws-nt-create");
+    ntForm.hidden=true; ntName.value=""; ntCreate.disabled=true;
+    S.syncCreate=()=>{ ntCreate.disabled=!ntName.value.trim(); };
+
+    // ---- Wire the persistent static controls EXACTLY ONCE (they survive re-skins).
+    //      Handlers read the live pack via S.p so the assignee is always current. ----
+    if(!root.__wsWired){
+      root.__wsWired=true;
+      $("#ws-newtask-open").addEventListener("click",()=>{ ntForm.hidden=false; ntName.focus(); });
+      $("#ws-nt-cancel").addEventListener("click",()=>{ ntForm.hidden=true; ntName.value=""; S.syncCreate(); });
+      ntName.addEventListener("input",()=>S.syncCreate());
+      ntName.addEventListener("keydown",e=>{ if(e.key==="Enter" && !ntCreate.disabled) ntCreate.click(); });
+      ntCreate.addEventListener("click",()=>{
+        const cur=S.p; const taskName=ntName.value.trim(); if(!taskName) return;
+        const r=cur.roles[+sel.value]||cur.roles[0]||{};
+        const status=$("#ws-nt-status").value||"Waiting";
+        const av=r.initials||initials(r.person);
+        const roleSuffix=(r.role && r.role.toLowerCase()!==(r.person||"").toLowerCase())?' · '+r.role:'';
+        const div=document.createElement("div");
+        div.className="app-row row-new";
+        div.innerHTML='<span class="col-name"><span class="ck"></span>'+
+          '<span><span class="nt">'+taskName+'</span> <span class="ws-chip '+statusClass(status)+'">'+status+'</span><br>'+
+          '<span class="ws-assignee"><span class="av">'+av+'</span>Assigned to '+(r.person||'a workspace member')+roleSuffix+'</span></span></span>'+
+          '<span class="col-status"><div class="st">'+status+'</div></span><span class="col-due">—</span><span class="col-act"><span class="view">Open</span></span>';
+        $("#ws-rows").appendChild(div);
+        div.scrollIntoView({behavior:"smooth",block:"nearest"});
+        api.narrate("task"); bump();
+        ntForm.hidden=true; ntName.value=""; S.syncCreate();
+      });
+    }
+    S.syncCreate();
+
+    // ---- progress + initial chat ----
+    api.narrate("open"); api.progress(0);
+    mountWorkspace();
+
+    // ---- auto / attract: open the first document, ask its first question, then create a task ----
+    if(api.auto){
+      api.after(900,()=>{ focusRow(0); });
+      api.after(2200,()=>{ const c=$("#ws-chips").querySelector(".agc-chip"); c&&c.click(); });
+      api.after(7000,()=>{ $("#ws-newtask-open").click(); ntName.value="Upload signed W-9"; S.syncCreate(); });
+      api.after(9000,()=>{ if(!ntCreate.disabled) ntCreate.click(); });
+    }
   }
 });
 </script>
