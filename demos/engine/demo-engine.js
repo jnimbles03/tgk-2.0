@@ -80,6 +80,7 @@
           '<div class="de-persona" id="de-persona"><div class="avatar" id="de-av"></div><div><div class="nm" id="de-nm"></div><div class="rl" id="de-rl"></div></div></div>'+
           '<div class="de-step" id="de-step"></div><div class="de-head" id="de-head"></div><div class="de-lede" id="de-lede"></div>'+
           '<div class="de-spacer"></div>'+
+          '<div class="de-livehint" id="de-livehint"><span class="dot"></span> Live — autopilot demo</div>'+
           '<div class="de-pips" id="de-pips"></div>'+
           '<div class="de-meta"><span id="de-counter"></span><span id="de-timer"></span></div>'+
           '<div class="de-trans"><button class="de-tbtn" id="de-restart" title="Restart">'+RESTART+'</button>'+
