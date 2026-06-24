@@ -332,33 +332,44 @@ async function runClassify(jobId) {
   try { system = loadPrompt('analyze'); }
   catch (e) { system = ''; }  // graceful if prompt file missing
 
-  const descriptions  = [];
+  const CLASSIFY_CONCURRENCY = 5;
+  const results  = new Array(frames.length);
   let   totalTokens   = 0;
   let   totalCalls    = 0;
 
-  for (let i = 0; i < frames.length; i++) {
-    const currPath = path.join(dir, 'keep', frames[i]);
-    const images   = [];
+  // Worker pool — each worker pulls the next unstarted frame index,
+  // calls the model, and writes its result into the pre-allocated
+  // results array so ordering is preserved on completion.
+  let nextIdx = 0;
+  const worker = async () => {
+    while (nextIdx < frames.length) {
+      const i = nextIdx++;
+      const currPath = path.join(dir, 'keep', frames[i]);
+      const images   = [];
 
-    if (i > 0) {
-      images.push({ path: path.join(dir, 'keep', frames[i - 1]) });
+      if (i > 0) {
+        images.push({ path: path.join(dir, 'keep', frames[i - 1]) });
+      }
+      images.push({ path: currPath });
+
+      const userPrompt = buildAnalyzePrompt(i, frames[i], inputMode, meta);
+
+      const r = await modelInvoke({
+        stage:  'analyze',
+        system,
+        user:   userPrompt,
+        images,
+        model:  'volume'
+      });
+
+      results[i] = { frame: i, filename: frames[i], description: r.text };
+      totalTokens += r.tokens || 0;
+      totalCalls++;
     }
-    images.push({ path: currPath });
+  };
 
-    const userPrompt = buildAnalyzePrompt(i, frames[i], inputMode, meta);
-
-    const r = await modelInvoke({
-      stage:  'analyze',
-      system,
-      user:   userPrompt,
-      images,
-      model:  'volume'
-    });
-
-    descriptions.push({ frame: i, filename: frames[i], description: r.text });
-    totalTokens += r.tokens || 0;
-    totalCalls++;
-  }
+  await Promise.all(Array.from({ length: CLASSIFY_CONCURRENCY }, () => worker()));
+  const descriptions = Array.from(results);
 
   jobStore.writeBlob(jobId, 'descriptions.json', { mode: visionMode, descriptions });
   // Stub-compatible: also write segments.json so extract/render see expected blobs.
