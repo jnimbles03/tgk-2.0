@@ -3,92 +3,165 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agreement Desk · Chain of Custody · TGK 2.0</title>
+<title>Chain of Custody · TGK 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap">
 <style>
   /*
-    Chain-of-custody view of Agreement Desk used by the fraud-fabric demo (Scene 3).
-    Surfaces the auth event (identity verification at portal login) and the in-portal transaction
-    submission as a single linked record — the "continuous identity thread" framing
-    from the original eMoney/Steve fraud-risk demo.
-
-    Agreement Desk is a PROXY INTERFACE for invisible workflow orchestration.
-    the workflow has been binding the events all along; this view makes that binding
-    visible.
+    Chain-of-custody view used by fraud-fabric demo (Scene 3).
+    Styled to match the webforms theme (Source Sans, gray bg, dark portal
+    header, white card, green accent, Powered by DocuSign footer).
 
     Hotspots key (in shell HOTSPOTS): portal_submit
     Mapped data-hotspot anchors below.
   */
   :root {
-    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-mist: #CBC2FF;
-    --ds-poppy: #FF5252; --ds-ecru: #F8F3F0;
-    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
-    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
-    --green: #1A8E5C; --green-bg: #E1F5EE;
-    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    --ink: #1F1A14; --ink-mid: #4F5460; --ink-soft: #6F7686;
+    --hair: #DDE1E8; --hair-strong: #C5CBD5;
+    --bg: #F4F5F7;
+    --green: #1FA35E;
+    --green-deep: #137A45;
+    --header-ink: #0E1015;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 18px rgba(0,0,0,0.04);
+    --shadow-modal: 0 8px 32px rgba(0,0,0,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
-  .frame { max-width: 1000px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
+  body {
+    font-family: 'Source Sans 3', -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
 
-  .header { padding: 14px 22px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
-  .header .brand { font-weight: 600; font-size: 14px; }
-  .header .breadcrumb { font-size: 12px; color: var(--ink-soft); margin-left: 4px; }
-  .ms-badge { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: var(--ds-cobalt); color: white; }
+  /* === Tenant-portal top header (Wealthscape-style dark bar) === */
+  .portal-header {
+    background: var(--header-ink); color: white;
+    padding: 22px 32px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .portal-header .brand {
+    font-weight: 700; font-size: 22px; letter-spacing: -0.01em;
+  }
+  .portal-header .brand .accent { color: #5BD2A0; margin-right: 4px; }
+  .portal-header .module {
+    margin-left: auto;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
 
-  .body { padding: 26px 22px; }
-  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 8px; }
-  h2 { font-size: 21px; font-weight: 600; margin-bottom: 6px; }
-  .lede { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.55; max-width: 660px; }
+  /* === Card area === */
+  .stage { padding: 36px 24px 80px; }
+  .frame {
+    max-width: 760px; margin: 0 auto;
+    background: white; border-radius: 4px; box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .body {
+    padding: 38px 56px;
+    min-height: 480px;
+  }
+
+  .ms-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 26px; font-weight: 700; line-height: 1.2;
+    margin-bottom: 18px; color: var(--ink);
+  }
+  .lede {
+    font-size: 15px; color: var(--ink-mid); line-height: 1.55;
+    margin-bottom: 22px;
+  }
 
   /* Session header — who, when, how */
-  .session-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 18px; }
-  .session-header .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--ds-deep-violet), var(--ds-cobalt)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .session-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; background: var(--bg);
+    border: 1px solid var(--hair); border-radius: 4px; margin-bottom: 18px;
+  }
+  .session-header .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--header-ink); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+  }
   .session-header .who { flex: 1; }
-  .session-header .name { font-weight: 600; font-size: 13.5px; }
-  .session-header .meta { font-size: 11.5px; color: var(--ink-soft); }
-  .session-header .verified { font-size: 11px; padding: 4px 9px; border-radius: 3px; background: var(--green-bg); color: var(--green); font-weight: 600; }
+  .session-header .name { font-weight: 700; font-size: 14px; }
+  .session-header .meta { font-size: 12px; color: var(--ink-soft); }
+  .session-header .verified {
+    font-size: 11px; padding: 4px 9px; border-radius: 3px;
+    background: #E1F5EE; color: var(--green); font-weight: 700;
+  }
 
   /* Linked-events visualizer */
-  .chain-row { display: grid; grid-template-columns: 1fr 50px 1fr; gap: 0; margin: 12px 0; align-items: center; }
-  .chain-card { background: white; border: 1px solid var(--hair); border-radius: 6px; padding: 14px 16px; box-shadow: var(--shadow-md); }
+  .chain-row { display: grid; grid-template-columns: 1fr 36px 1fr; gap: 0; margin: 12px 0; align-items: center; }
+  .chain-card {
+    background: white; border: 1px solid var(--hair); border-radius: 4px;
+    padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
   .chain-card.auth { border-left: 3px solid var(--green); }
-  .chain-card.txn  { border-left: 3px solid var(--ds-cobalt); }
-  .chain-card .pill { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-bottom: 6px; }
-  .chain-card.auth .pill { background: var(--green-bg); color: var(--green); }
-  .chain-card.txn  .pill { background: rgba(76,0,255,0.08); color: var(--ds-cobalt); }
-  .chain-card .ev-title { font-weight: 600; font-size: 13.5px; margin-bottom: 6px; }
-  .chain-card .ev-detail { font-size: 12px; color: var(--ink-mid); line-height: 1.45; }
+  .chain-card.txn  { border-left: 3px solid #4F8EE6; }
+  .chain-card .pill {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 3px; margin-bottom: 6px;
+  }
+  .chain-card.auth .pill { background: #E1F5EE; color: var(--green); }
+  .chain-card.txn  .pill { background: #E5F0FF; color: #1857B5; }
+  .chain-card .ev-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .chain-card .ev-detail { font-size: 13px; color: var(--ink-mid); line-height: 1.5; }
   .chain-card .ev-detail .row { padding: 2px 0; }
   .chain-card .ev-detail .k { color: var(--ink-soft); }
   .chain-arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .chain-arrow .line { width: 2px; height: 28px; background: var(--ds-cobalt); }
-  .chain-arrow .label { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-cobalt); writing-mode: horizontal-tb; text-align: center; max-width: 90px; line-height: 1.2; }
+  .chain-arrow .line { width: 2px; height: 28px; background: #4F8EE6; }
+  .chain-arrow .label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #4F8EE6;
+    writing-mode: horizontal-tb; text-align: center;
+    max-width: 90px; line-height: 1.2;
+  }
 
-  /* the AI assistant assessment */
-  .iris-row { padding: 14px 18px; background: var(--green-bg); border: 1px solid rgba(26,142,92,0.25); border-radius: 6px; margin: 18px 0; display: flex; align-items: flex-start; gap: 12px; }
-  .iris-row .iris-mark { width: 26px; height: 26px; border-radius: 6px; background: white; color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
-  .iris-row .iris-body { font-size: 12.5px; color: var(--ink-mid); line-height: 1.5; }
+  /* AI assessment */
+  .iris-row {
+    padding: 14px 18px; background: #E1F5EE;
+    border: 1px solid rgba(31,163,94,0.25); border-radius: 4px;
+    margin: 18px 0; display: flex; align-items: flex-start; gap: 12px;
+  }
+  .iris-row .iris-mark {
+    width: 26px; height: 26px; border-radius: 4px;
+    background: white; color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; flex-shrink: 0;
+  }
+  .iris-row .iris-body { font-size: 13px; color: var(--ink-mid); line-height: 1.5; }
   .iris-row .iris-body strong { color: var(--green); }
 
-  /* Audit footer */
-  .audit-footer { display: flex; gap: 16px; padding: 12px 18px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-top: 18px; align-items: center; }
-  .audit-footer .stamp { font-size: 11px; color: var(--ink-soft); }
-  .audit-footer .stamp strong { color: var(--ink); font-weight: 600; }
-  .audit-footer .icon { color: var(--green); font-size: 14px; font-weight: 700; }
-
-  /* Certificate of Completion — the payoff artifact. The point of fraud-fabric:
-     no signature / no click-to-agree, yet the same audit-grade record. */
-  .coc { margin-top: 22px; border: 1px solid var(--hair-strong); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-md); }
-  .coc-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--ds-deep-violet); color: var(--ds-ecru); }
+  /* Certificate of Completion — the payoff artifact */
+  .coc { margin-top: 22px; border: 1px solid var(--hair-strong); border-radius: 4px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .coc-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; background: var(--header-ink); color: #DDE1E8;
+  }
   .coc-seal { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
   .coc-head .ct { flex: 1; }
-  .coc-head .ct-title { font-size: 14px; font-weight: 600; letter-spacing: 0.01em; }
-  .coc-head .ct-sub { font-size: 11px; color: var(--ds-mist); margin-top: 1px; }
-  .coc-status { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--green); color: #fff; }
-  .coc-flag { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--green-bg); border-bottom: 1px solid var(--hair); font-size: 12px; color: var(--green); font-weight: 600; }
+  .coc-head .ct-title { font-size: 14px; font-weight: 600; letter-spacing: 0.01em; color: white; }
+  .coc-head .ct-sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+  .coc-status {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+    background: var(--green); color: #fff;
+  }
+  .coc-flag {
+    display: flex; align-items: center; gap: 8px; padding: 10px 18px;
+    background: #E1F5EE; border-bottom: 1px solid var(--hair);
+    font-size: 12px; color: var(--green); font-weight: 600;
+  }
   .coc-flag svg { flex-shrink: 0; }
   .coc-body { padding: 16px 18px; }
-  .coc-grid { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 12px; }
+  .coc-grid { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 13px; }
   .coc-grid .k { color: var(--ink-soft); }
   .coc-grid .v { color: var(--ink); }
   .coc-events { margin-top: 14px; border-top: 1px solid var(--hair); padding-top: 12px; }
@@ -97,26 +170,43 @@
   .coc-ev:last-child { border-bottom: none; }
   .coc-ev .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
   .coc-ev.auth .dot { background: var(--green); }
-  .coc-ev.txn .dot { background: var(--ds-cobalt); }
-  .coc-ev .et { font-weight: 600; font-size: 12.5px; }
-  .coc-ev .em { color: var(--ink-soft); font-size: 11px; margin-top: 1px; }
-  .coc-foot { padding: 12px 18px; background: var(--bg); border-top: 1px solid var(--hair); font-size: 11.5px; color: var(--ink-mid); line-height: 1.55; }
+  .coc-ev.txn .dot { background: #4F8EE6; }
+  .coc-ev .et { font-weight: 600; font-size: 13px; }
+  .coc-ev .em { color: var(--ink-soft); font-size: 12px; margin-top: 1px; }
+  .coc-foot {
+    padding: 14px 18px; background: var(--bg); border-top: 1px solid var(--hair);
+    font-size: 13px; color: var(--ink-mid); line-height: 1.55;
+  }
   .coc-foot strong { color: var(--ink); font-weight: 600; }
 
-  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+  /* Footer */
+  .footer {
+    text-align: center; padding: 22px;
+    font-size: 13px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+  }
+  .footer .powered { display: flex; align-items: center; gap: 6px; }
+  .footer .ds-badge {
+    width: 14px; height: 14px;
+    background: linear-gradient(135deg, #4C00E9 0%, #FF5252 100%);
+    border-radius: 2px;
+  }
+  .footer a { color: var(--ink-mid); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
+<div class="portal-header">
+  <div class="brand"><span class="accent">✦</span>Agreement Desk</div>
+  <div class="module">Chain of Custody · fraud-fabric</div>
+</div>
+
+<div class="stage">
 <div class="frame">
-  <div class="header">
-    <div class="brand" id="brand">Agreement Desk</div>
-    <div class="breadcrumb" id="breadcrumb">› Activity › Session</div>
-    <span class="ms-badge">the workflow proxy view</span>
-  </div>
   <div class="body">
-    <div class="ms-tag">Chain of custody</div>
-    <h2 id="title">Session activity — auth + transaction linked</h2>
+    <div class="ms-tag">Continuous identity thread</div>
+    <h2>Session activity — auth + transaction linked</h2>
     <div class="lede">
       Identity was verified by a standalone, Workflow Builder-invoked auth event — then bound to everything the customer did in the
       authenticated session. No signature. No click-to-agree. The workflow has been binding the auth event to the transaction
@@ -130,7 +220,7 @@
         <div class="name" id="customer">Customer</div>
         <div class="meta" id="customer-meta">Session ID · Date · Channel</div>
       </div>
-      <div class="verified"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified · identity verification</div>
+      <div class="verified"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified · ID proof</div>
     </div>
 
     <div class="chain-row">
@@ -195,13 +285,15 @@
         </div>
       </div>
       <div class="coc-foot">
-        <strong>The signature was never the product — the Certificate of Completion is.</strong> The same audit-grade, court-defensible record regulated teams have trusted for 20+ years, here issued from a standalone identity event bound to the transaction. If it is ever disputed, the full chain — auth event → in-session action — resolves to one envelope ID.
+        <strong>The signature was never the product — the Certificate of Completion is.</strong> The same audit-grade, court-defensible record regulated teams have trusted for 20+ years, here issued from a standalone identity event bound to the transaction.
       </div>
     </div>
   </div>
+  <div class="footer">
+    <div class="powered"><div class="ds-badge"></div> Powered by Docusign</div>
+  </div>
 </div>
-
-<div class="stub-banner">Stub · Chain of custody · fraud-fabric S3</div>
+</div>
 
 <script>
   const params = new URLSearchParams(location.search);
@@ -232,8 +324,6 @@
     nonprofit:            { tenant:'Harbor',           customer:'Rosa Patel',      idLabel:'NY DL ***8893',  authTime:'14:30 EST', txnTitle:'Quarterly grant drawdown',          txnDetail:'$30,000 Q2 disbursement · Safe Streets', txnTime:'14:35 EST' },
   };
   const p = PRESETS[preset] || PRESETS.wealth;
-  document.getElementById('brand').textContent = p.tenant + ' Agreement Desk';
-  document.getElementById('breadcrumb').textContent = '› Activity › ' + p.customer + ' session';
   document.getElementById('avatar').textContent = p.customer.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('customer').textContent = p.customer;
   document.getElementById('customer-meta').textContent = 'Session · ' + p.authTime + ' → ' + p.txnTime + ' · ' + p.tenant + ' portal';
@@ -245,8 +335,7 @@
   document.getElementById('txn-detail').innerHTML = '<span class="k">Detail:</span> ' + p.txnDetail;
   document.getElementById('txn-time').innerHTML = '<span class="k">Time:</span> ' + p.txnTime;
 
-  /* Certificate of Completion — deterministic envelope ID + session IP from the
-     customer so the artifact is stable per preset (no random churn on reload). */
+  /* Certificate of Completion — deterministic envelope ID + session IP */
   function _hash(s){ let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   const hv = _hash(p.customer + '|' + preset);
   const hex = hv.toString(16).toUpperCase().padStart(8, '0');
@@ -260,5 +349,38 @@
   document.getElementById('coc-ev2m').textContent    = p.txnTime + ' · identity inherited from auth · IP ' + ip;
 </script>
 
+<script>
+/* lockToBeat handler — advances visual state for the 5-beat narration */
+  let beatStep = -1;
+  const hotspots = ['session_header', 'witness_auth', 'witness_txn', 'iris_attribution', 'audit_record'];
+  
+  function highlightStep(step) {
+    hotspots.forEach((id, idx) => {
+      const el = document.querySelector(`[data-hotspot="${id}"]`);
+      if (el) {
+        el.style.transition = 'all 0.2s ease';
+        if (idx === step) {
+          el.style.border = '2px solid #4F8EE6';
+          el.style.boxShadow = '0 0 0 4px rgba(79,142,230,0.15)';
+          el.style.background = 'rgba(79,142,230,0.04)';
+        } else {
+          el.style.border = '';
+          el.style.boxShadow = '';
+          el.style.background = '';
+        }
+      }
+    });
+  }
+
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (m && m.type === 'tgk:lockToBeat') {
+      beatStep = Math.min(beatStep + 1, hotspots.length - 1);
+      if (beatStep < 0) beatStep = 0;
+      if (beatStep >= hotspots.length) beatStep = hotspots.length - 1;
+      highlightStep(beatStep);
+    }
+  });
+</script>
 </body>
 </html>

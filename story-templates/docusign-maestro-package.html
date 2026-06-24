@@ -4,65 +4,169 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>the workflow packaging · TGK 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap">
 <style>
   /*
     the workflow packaging stub used by intake-mechanics demo (Scene 2).
-    Visualizes the fan-out: webform selections → document set + pre-fill +
-    routing. The shell's hotspot system anchors via data-hotspot=.
+    Styled to match the webforms theme (Source Sans, gray bg, dark portal
+    header, white card, green accent, Powered by DocuSign footer).
+    Visualizes fan-out: webform selections → document set + pre-fill + routing.
+
     Hotspots key: maestro_package.
+    Mapped data-hotspot anchors below.
   */
   :root {
-    --ds-cobalt: #4C00FF; --ds-deep-violet: #26065D; --ds-mist: #CBC2FF;
-    --ink: #1F1A14; --ink-mid: #5F5E5A; --ink-soft: #8A8780;
-    --bg: #FAF7F2; --hair: #E4E8EE; --hair-strong: #C8CDD4;
-    --shadow-md: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    --ink: #1F1A14; --ink-mid: #4F5460; --ink-soft: #6F7686;
+    --hair: #DDE1E8; --hair-strong: #C5CBD5;
+    --bg: #F4F5F7;
+    --green: #1FA35E;
+    --green-deep: #137A45;
+    --header-ink: #0E1015;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 18px rgba(0,0,0,0.04);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px; min-height: 100vh; }
-  .frame { max-width: 880px; margin: 16px auto; background: white; border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--hair); }
-  .header { padding: 16px 24px; background: white; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 12px; }
-  .header .brand { font-weight: 600; font-size: 14px; }
-  .ms-badge { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; background: var(--ds-cobalt); color: white; }
+  body {
+    font-family: 'Source Sans 3', -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
 
-  .body { padding: 28px 24px; }
-  .ms-tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-cobalt); background: rgba(76,0,255,0.08); padding: 3px 9px; border-radius: 3px; margin-bottom: 10px; }
-  h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
-  .lede { font-size: 13px; color: var(--ink-mid); margin-bottom: 22px; line-height: 1.5; max-width: 600px; }
+  /* === Tenant-portal top header (Wealthscape-style dark bar) === */
+  .portal-header {
+    background: var(--header-ink); color: white;
+    padding: 22px 32px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .portal-header .brand {
+    font-weight: 700; font-size: 22px; letter-spacing: -0.01em;
+  }
+  .portal-header .brand .accent { color: #5BD2A0; margin-right: 4px; }
+  .portal-header .module {
+    margin-left: auto;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
 
-  .fanout-grid { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 20px; align-items: center; }
-  .fan-col { background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; padding: 14px 18px; }
-  .fan-col h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px; }
+  /* === Card area === */
+  .stage { padding: 36px 24px 80px; }
+  .frame {
+    max-width: 760px; margin: 0 auto;
+    background: white; border-radius: 4px; box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .body { padding: 38px 56px; min-height: 480px; }
+
+  .ms-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 26px; font-weight: 700; line-height: 1.2;
+    margin-bottom: 8px; color: var(--ink);
+  }
+  .lede {
+    font-size: 15px; color: var(--ink-mid); line-height: 1.55;
+    margin-bottom: 26px; max-width: 640px;
+  }
+
+  /* Fan-out visualizer */
+  .fanout-grid {
+    display: grid; grid-template-columns: 1fr 28px 1fr;
+    gap: 16px; align-items: center; margin-bottom: 22px;
+  }
+  .fan-col {
+    background: var(--bg); border: 1px solid var(--hair);
+    border-radius: 4px; padding: 14px 18px;
+  }
+  .fan-col h3 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px;
+  }
   .fan-col ul { list-style: none; }
-  .fan-col li { padding: 6px 0; font-size: 12.5px; color: var(--ink-mid); border-bottom: 1px solid var(--hair); }
+  .fan-col li {
+    padding: 6px 0; font-size: 13px; color: var(--ink-mid);
+    border-bottom: 1px solid var(--hair);
+  }
   .fan-col li:last-child { border-bottom: 0; }
-  .fan-col li::before { content: '✓ '; color: var(--ds-cobalt); font-weight: 700; margin-right: 4px; }
-  .arrow { font-size: 20px; color: var(--ds-cobalt); text-align: center; }
+  .fan-col li::before {
+    content: '✓ '; color: var(--green); font-weight: 700; margin-right: 4px;
+  }
+  .arrow { font-size: 16px; color: var(--ink-soft); text-align: center; }
 
+  /* Document list */
   .doc-list { margin: 22px 0; }
-  .doc-list h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px; }
-  .doc-tile { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: white; border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 8px; }
-  .doc-tile .icon { width: 28px; height: 36px; background: linear-gradient(180deg, white 0%, #F0EBE0 100%); border: 1px solid var(--hair-strong); border-radius: 2px; }
-  .doc-tile .name { font-size: 13px; font-weight: 500; flex: 1; }
-  .doc-tile .stage { font-size: 11px; color: var(--ds-cobalt); font-style: italic; }
+  .doc-list h3 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 10px;
+  }
+  .doc-tile {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; background: white;
+    border: 1px solid var(--hair); border-radius: 4px; margin-bottom: 8px;
+  }
+  .doc-tile .icon {
+    width: 26px; height: 34px;
+    background: linear-gradient(180deg, white 0%, #EEF0F2 100%);
+    border: 1px solid var(--hair-strong); border-radius: 2px;
+  }
+  .doc-tile .name { font-size: 13px; font-weight: 600; flex: 1; }
+  .doc-tile .stage {
+    font-size: 11px; color: var(--green); font-style: italic;
+  }
 
-  .recipient-row { display: flex; gap: 16px; padding: 12px 16px; background: var(--bg); border: 1px solid var(--hair); border-radius: 6px; margin-bottom: 8px; align-items: center; }
-  .recipient-row .num { width: 22px; height: 22px; border-radius: 50%; background: var(--ds-cobalt); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
-  .recipient-row .name { font-size: 12.5px; flex: 1; }
-  .recipient-row .role { font-size: 11px; color: var(--ink-soft); }
+  /* Recipient routing */
+  .recipient-row {
+    display: flex; gap: 14px; padding: 10px 14px;
+    background: var(--bg); border: 1px solid var(--hair);
+    border-radius: 4px; margin-bottom: 8px; align-items: center;
+  }
+  .recipient-row .num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--green); color: white;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .recipient-row .name { font-size: 13px; font-weight: 600; flex: 1; }
+  .recipient-row .role { font-size: 12px; color: var(--ink-soft); }
 
-  .ready-banner { margin-top: 22px; padding: 14px 18px; background: rgba(26,142,92,0.08); border: 1px solid rgba(26,142,92,0.25); border-radius: 6px; font-size: 13px; color: #1A8E5C; font-weight: 500; }
-  .stub-banner { position: fixed; bottom: 12px; right: 12px; background: #FBBF24; color: #1F1300; font: 600 10px/1.4 'Inter',sans-serif; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+  /* Ready banner */
+  .ready-banner {
+    margin-top: 22px; padding: 14px 18px;
+    background: #E1F5EE; border: 1px solid rgba(31,163,94,0.25);
+    border-radius: 4px; font-size: 14px; color: var(--green);
+    font-weight: 600;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 22px;
+    font-size: 13px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+  }
+  .footer .powered { display: flex; align-items: center; gap: 6px; }
+  .footer .ds-badge {
+    width: 14px; height: 14px;
+    background: linear-gradient(135deg, #4C00E9 0%, #FF5252 100%);
+    border-radius: 2px;
+  }
+  .footer a { color: var(--ink-mid); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
+<div class="portal-header">
+  <div class="brand"><span class="accent">✦</span>the workflow</div>
+  <div class="module">Package fan-out · intake mechanics</div>
+</div>
+
+<div class="stage">
 <div class="frame">
-  <div class="header">
-    <div class="brand">the workflow packaging · live</div>
-    <span class="ms-badge">workflow orchestration</span>
-  </div>
   <div class="body">
-    <div class="ms-tag">the workflow · Fan-out</div>
+    <div class="ms-tag">workflow orchestration · Fan-out</div>
     <h2 id="title">Packaging from intake selections</h2>
     <div class="lede">The webform's selections drive what goes into the envelope. The workflow pulls the right document templates, runs pre-fill from systems of record, builds recipient routing, and queues delivery — all in seconds.</div>
 
@@ -100,9 +204,11 @@
       ✓ Envelope packaged. Ready to deliver in tenant-branded ceremony.
     </div>
   </div>
+  <div class="footer">
+    <div class="powered"><div class="ds-badge"></div> Powered by Docusign</div>
+  </div>
 </div>
-
-<div class="stub-banner">Stub · the workflow packaging</div>
+</div>
 
 <script>
   const params = new URLSearchParams(location.search);
@@ -134,6 +240,36 @@
   document.getElementById('title').textContent = p.title;
   document.getElementById('docs').innerHTML = p.docs.map(d => `<div class="doc-tile"><div class="icon"></div><div class="name">${d}</div><div class="stage">pre-filled</div></div>`).join('');
   document.getElementById('recipients').innerHTML = p.recipients.map((r, i) => `<div class="recipient-row"><div class="num">${i+1}</div><div class="name">${r.n}</div><div class="role">${r.r}</div></div>`).join('');
+
+/* lockToBeat handler — advances visual state for the 5-beat narration */
+  let beatStep = -1;
+  const hotspots = ['package_selections', 'package_attachments', 'package_docs', 'package_recipients', 'package_ready'];
+  
+  function highlightStep(step) {
+    hotspots.forEach((id, idx) => {
+      const el = document.querySelector(`[data-hotspot="${id}"]`);
+      if (el) {
+        el.style.transition = 'all 0.2s ease';
+        if (idx === step) {
+          el.style.border = '2px solid #4F8EE6';
+          el.style.boxShadow = '0 0 0 4px rgba(79,142,230,0.15)';
+        } else {
+          el.style.border = '';
+          el.style.boxShadow = '';
+        }
+      }
+    });
+  }
+
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (m && m.type === 'tgk:lockToBeat') {
+      beatStep = Math.min(beatStep + 1, hotspots.length - 1);
+      if (beatStep < 0) beatStep = 0;
+      if (beatStep >= hotspots.length) beatStep = hotspots.length - 1;
+      highlightStep(beatStep);
+    }
+  });
 </script>
 
 <script src="/story-templates/_interactive.js"></script>
