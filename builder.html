@@ -2864,17 +2864,38 @@ body.is-gb #gbPanel{display:block;}
     document.getElementById('beatLedeInput').value = beat.beatLede || beat.lede || (_curBeat === 0 ? (scene.lede || '') : '');
   }
 
+  // The /api/builder/* list endpoints may return a bare array OR an object that
+  // wraps the list (e.g. the flipbooks manifest is {flipbooks:[…]}). These
+  // helpers extract the array and read name/path defensively, so a wrapped
+  // response never throws "(data || []).forEach is not a function".
+  function adminList(data) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object') {
+      for (const k of ['vignettes', 'flipbooks', 'components', 'items', 'files', 'list', 'results', 'data']) {
+        if (Array.isArray(data[k])) return data[k];
+      }
+    }
+    return [];
+  }
+  function adminName(v) { return (v && (v.name || v.title || v.slug || v.label)) || '(unnamed)'; }
+  function adminPath(v) { return (v && (v.path || v.url || v.embed_url || v.file)) || ''; }
+
   // ── C) Edit existing vignettes ──
   function initVignetteEditor() {
     fetch('/api/builder/vignettes').then(r => r.json()).then(data => {
       const grid = document.getElementById('vignettesGrid'); grid.innerHTML = '';
-      (data || []).forEach(v => {
+      const list = adminList(data);
+      if (!list.length && data && typeof data === 'object' && (data.error || data.message)) {
+        adminAlert(document.getElementById('vignetteListMessages'), 'error', 'Vignettes: ' + (data.error || data.message));
+      }
+      list.forEach(v => {
+        const nm = adminName(v), pa = adminPath(v);
         const card = document.createElement('div');
         card.className = 'vignette-card';
-        card.innerHTML = '<div class="vignette-thumb">FLIPBOOK</div><div class="vignette-info"><div class="vignette-name">' + v.name + '</div><div class="vignette-path">' + v.path + '</div></div>';
+        card.innerHTML = '<div class="vignette-thumb">FLIPBOOK</div><div class="vignette-info"><div class="vignette-name">' + nm + '</div><div class="vignette-path">' + pa + '</div></div>';
         card.addEventListener('click', () => {
-          document.getElementById('selectedVignetteName').textContent = v.name;
-          document.getElementById('vignettePath').value = v.path;
+          document.getElementById('selectedVignetteName').textContent = nm;
+          document.getElementById('vignettePath').value = pa;
           document.getElementById('vignetteEditorPanel').classList.add('active');
         });
         grid.appendChild(card);
@@ -2900,13 +2921,14 @@ body.is-gb #gbPanel{display:block;}
       fetch('/api/builder/components/' + typeSel.value).then(r => r.json()).then(data => {
         const grid = document.getElementById('componentGrid'); grid.innerHTML = '';
         const q = (filter.value || '').toLowerCase();
-        (data || []).filter(c => !q || c.name.toLowerCase().includes(q)).forEach(c => {
+        adminList(data).filter(c => !q || adminName(c).toLowerCase().includes(q)).forEach(c => {
+          const nm = adminName(c), pa = adminPath(c);
           const card = document.createElement('div');
           card.className = 'vignette-card';
-          card.innerHTML = '<div class="vignette-thumb">' + typeSel.value.toUpperCase().replace('-', ' ') + '</div><div class="vignette-info"><div class="vignette-name">' + c.name + '</div><div class="vignette-path">' + c.path + '</div></div>';
+          card.innerHTML = '<div class="vignette-thumb">' + typeSel.value.toUpperCase().replace('-', ' ') + '</div><div class="vignette-info"><div class="vignette-name">' + nm + '</div><div class="vignette-path">' + pa + '</div></div>';
           card.addEventListener('click', () => {
-            document.getElementById('selectedComponentName').textContent = c.name;
-            document.getElementById('componentPath').value = c.path;
+            document.getElementById('selectedComponentName').textContent = nm;
+            document.getElementById('componentPath').value = pa;
             document.getElementById('componentEditorPanel').classList.add('active');
           });
           grid.appendChild(card);
