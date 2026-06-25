@@ -254,7 +254,11 @@
     const Q = new URLSearchParams(location.search);
     const packKeys = Object.keys(DEMO.packs);
     let pack = Q.get("pack") && DEMO.packs[Q.get("pack")] ? Q.get("pack") : (DEMO.defaultPack || packKeys[0]);
-    const auto = Q.get("auto") === "1", ATTRACT = Q.get("attract") === "1";
+    // Autopilot: ?auto=1 self-runs once. Attract mode autoplays and hands control
+    // to the user on interaction (resumes after idle). A demo can opt into attract
+    // by default with `attract:true` in its config; ?attract=0 always disables it,
+    // ?attract=1 always forces it.
+    const auto = Q.get("auto") === "1", ATTRACT = Q.get("attract")==="1" || (Q.get("attract")!=="0" && DEMO.attract===true);
 
     const root = document.getElementById("demo-root"); root.className = "de-wrap";
     root.innerHTML =

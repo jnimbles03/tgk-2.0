@@ -4,15 +4,19 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agreement Manager — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
-<link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  .app.has-rail .app-body{padding:0}
-  .am-wrap{display:flex;height:100%}
-  .am-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .am-agent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .am-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
-  .am-row{padding:12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
+  /* Single-pane frame (mirrors navigator.html's .nvx): the DemoEngine narration
+     rail is the left "sidebar". This stage is ONE demo pane — the live-analysis
+     worksheet with an "Ask" chat strip folded in BENEATH it, not a separate
+     full-height agent column. */
+  .nvx{position:absolute;inset:0;display:flex;flex-direction:column;background:#EEF1F6;font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif}
+  .nvx-head{display:flex;align-items:center;gap:12px;padding:20px 30px 12px}
+  .nvx-head h2{font-size:19px;font-weight:600;color:#16121f;letter-spacing:-.01em;margin:0}
+  /* worksheet artifact — the scrolling card */
+  .am-table{flex:1;min-height:0;overflow:auto;margin:0 30px 14px;padding:16px 22px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05)}
+  .am-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1;display:flex;align-items:center}
+  .am-row{display:flex;align-items:center;padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
   .am-row.hot{background:var(--tenant-accent-soft)}
   .c-ag{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
   .c-ag .fi{width:20px;height:24px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto}
@@ -21,12 +25,17 @@
   .c-ai .v{display:inline-flex;align-items:center;gap:6px;font-weight:600}
   .c-ai .v.yes{color:#C0392B}.c-ai .v.no{color:#1f9d57}
   .am-aicol{display:inline-flex;align-items:center;gap:5px;color:var(--tenant-accent)}
-  .am-ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:8px}
+  .am-ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:auto}
   .am-summary{margin-top:18px;padding:14px 18px;border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:11px;font-size:13.5px;color:var(--tenant-ink);font-weight:600;display:flex;align-items:center;gap:10px}
-  .am-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .am-agent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .am-agent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
-  .am-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  /* the Ask strip — full-width band beneath the worksheet */
+  .nv-ask{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .nv-ask .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
+  .nv-ask .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  #am-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #am-chips .hint{display:none}
+  #am-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #am-chat{flex:1;min-height:0}
   .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
   .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
 </style>
@@ -36,40 +45,32 @@
 <script src="./engine/demo-engine.js"></script>
 <script src="./engine/agent-chat.js"></script>
 <script>
-const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
-  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Manager</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
-  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="am-cobrand"></span></span><span class="avatar" id="am-av"></span></div></div>';
-const RAIL='<div class="app-rail"><div class="grp">Insights</div><div class="it"><span class="ai">✦</span> Agreements</div>'+
-  '<div class="it on"><span class="ai">✦</span> Live analysis</div><div class="it">Renewals <span class="ct">12</span></div>'+
-  '<div class="grp">Worksheets</div><div class="it">M&amp;A audit</div><div class="it">Obligations</div><div class="it">+ New worksheet</div></div>';
-
 function row(id,ag,cp,a1,a2){
   return '<div class="am-row" id="'+id+'"><div class="c-ag"><span class="fi"></span>'+ag+'</div>'+
     '<div class="c-cp">'+cp+'</div>'+
     '<div class="c-ai"><span class="v '+a1+'">'+(a1==="yes"?"● Yes":"○ No")+'</span></div>'+
     '<div class="c-ai"><span class="v '+a2+'">'+(a2==="yes"?"● Yes":"○ No")+'</span></div></div>'; }
 
-const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+RAIL+
-  '<div class="app-body"><div class="am-wrap">'+
-    '<div class="am-main">'+
-      '<div class="app-head"><h2>Live analysis worksheet</h2><span class="am-ai-badge">✦ AGREEMENT MANAGER</span></div>'+
+const SCENES=
+  '<section class="de-scene is-active" data-scene="app"><div class="nvx">'+
+    '<div class="nvx-head"><h2>Live analysis worksheet</h2><span class="am-ai-badge">✦ AGREEMENT MANAGER</span></div>'+
+    '<div class="am-table">'+
       '<div class="am-th"><span class="c-ag" style="padding-left:31px">Agreement</span><span class="c-cp">Counterparty</span>'+
         '<span class="c-ai"><span class="am-aicol">✦ <span data-c1></span></span></span>'+
         '<span class="c-ai"><span class="am-aicol">✦ <span data-c2></span></span></span></div>'+
       '<div id="am-rows"></div>'+
       '<div class="am-summary" id="am-summary"><span style="font-size:16px">✦</span><span id="am-sumtext"></span></div>'+
     '</div>'+
-    '<div class="am-agent">'+
-      '<div class="phd"><span class="ai">✦</span> Ask Agreement Manager</div>'+
-      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="am-chat"></div><div class="agc-chips" id="am-chips"></div>'+
-        '<div class="agc-input"><div class="box">Ask one question across the portfolio…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '<div class="nv-ask">'+
+      '<div class="nv-ask-top"><span class="phd"><span class="ai">✦</span> Ask Agreement Manager</span><div id="am-chips"></div></div>'+
+      '<div class="agc-chat" id="am-chat"></div>'+
     '</div>'+
-  '</div></div></div></section>';
+  '</div></section>';
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Manager — interactive", productTag:"Agreement Manager · Live", home:"index.html",
     footnote:'<b>This panel is live.</b> Iris has run the worksheet across the whole portfolio — click a question and it types a specific, cited answer from the agreements on screen, then offers the next action. Switch vertical to re-skin the portfolio and the analysis questions. <code>?auto=1</code> self-runs.' },
-  defaultPack:"banking", steps:4, scenes:SCENES,
+  defaultPack:"banking", steps:4, attract:true, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
@@ -122,8 +123,6 @@ DemoEngine.interactive({
   },
   setup(p, root, api){
     const $=s=>root.querySelector(s);
-    $("#am-cobrand").textContent=p.cobrand;
-    $("#am-av").textContent=p.persona.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
     $("[data-c1]").textContent=p.c1; $("[data-c2]").textContent=p.c2;
     $("#am-sumtext").textContent=p.summary;
     $("#am-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],r[2],r[3],r[4])).join("");
@@ -135,16 +134,16 @@ DemoEngine.interactive({
       highlightFlagged();
       AgentChat.bubble($("#am-chat"),"ai","Done — the flagged agreements are bundled into a Workflow Builder review packet and routed to the team. The outcome writes back to "+p.sorName+".");
       api.narrate("acted"); }
-    AgentChat.mount({ chatEl:$("#am-chat"), chipsEl:$("#am-chips"), hint:"Ask Agreement Manager", speed:13,
+    AgentChat.mount({ chatEl:$("#am-chat"), chipsEl:$("#am-chips"), speed:13,
       intro:"I'm Iris. I've run this worksheet across all five agreements in the portfolio — ask me what's flagged, what auto-renews, or what needs action.",
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
         after:()=>{ bump(); if(ex.route){ const b=$("#am-chat").querySelector("[data-route]"); if(b) b.onclick=()=>startRoute(b); } } })) });
 
-    api.autopilot([
-      { at:900, selector:'#am-chips .agc-chip' },
-      { at:6000, run:()=>{ const chips=$("#am-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
-      { at:10500, run:()=>{ const b=$("#am-chat").querySelector('[data-route]'); if(b && !b.classList.contains('done')) b.click(); } }
-    ]);
+    if(api.auto){ // self-run: ask every question in turn, then route the flagged set (api.after → cancelable, attract-mode safe)
+      const sel='#am-chips .agc-chip', n=root.querySelectorAll(sel).length;
+      for(let i=0;i<n;i++){ api.after(900+i*6800, ()=>{ const c=root.querySelector(sel); c&&c.click(); }); }
+      api.after(900+n*6800+900, ()=>{ const b=root.querySelector('#am-chat [data-route]'); if(b && !b.classList.contains('done')) b.click(); });
+    }
   }
 });
 </script>

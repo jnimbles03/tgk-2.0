@@ -7,7 +7,25 @@
 <link rel="stylesheet" href="./archetypes/review.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  .rv-panel{padding:0}
+  /* Agreement-Manager-style frame: the DemoEngine narration rail is the left
+     "sidebar". This stage is ONE clean pane (matching navigator.html) — the
+     review document fills it, with an "Ask" chat strip folded in BENEATH it,
+     not a separate full-height agent column. The Docusign nav chrome is gone.
+     These rules override the shared review.css ROW layout for this demo only. */
+  .rv{background:#EEF1F6}
+  .rv-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  /* the document artifact — fills the pane and scrolls */
+  .rv-doc{flex:1;min-height:0;padding:22px 30px;overflow:auto}
+  .rv-page{max-width:680px;height:auto;min-height:100%}
+  /* the Ask strip — full-width band beneath the document */
+  .nv-ask{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .nv-ask .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
+  .nv-ask .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  #rv-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #rv-chips .hint{display:none}
+  #rv-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #rv-chat{flex:1;min-height:0}
   .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
   .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
 </style>
@@ -18,21 +36,21 @@
 <script src="./engine/agent-chat.js"></script>
 <script>
 const SCENES='<div class="rv">'+
-  '<div class="rv-top"><span class="dslogo"><span class="dsmark"></span>Docusign</span><span class="ttl" id="rv-ttl"></span><div class="right"><span class="send">Send for signature</span></div></div>'+
   '<div class="rv-body">'+
     '<div class="rv-doc"><div class="rv-page"><div class="h" id="rv-doctitle"></div>'+
       '<p id="rv-p1"></p>'+
       '<div class="rv-clause" id="rv-clause"><b id="rv-cnum"></b> <span id="rv-cbody"></span></div>'+
       '<p id="rv-p2"></p><p id="rv-p3"></p></div></div>'+
-    '<div class="rv-panel"><div class="rv-phd"><span class="ai">✦</span> AI-Assisted Review</div>'+
-      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="rv-chat"></div><div class="agc-chips" id="rv-chips"></div>'+
-        '<div class="agc-input"><div class="box">Ask AI to redline, summarize, or draft…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div></div>'+
+    '<div class="nv-ask">'+
+      '<div class="nv-ask-top"><span class="phd"><span class="ai">✦</span> Ask the reviewer</span><div id="rv-chips"></div></div>'+
+      '<div class="agc-chat" id="rv-chat"></div>'+
+    '</div>'+
   '</div></div>';
 
 DemoEngine.interactive({
   meta:{ title:"AI-Assisted Review — interactive", productTag:"AI-Assisted Review · Live", home:"index.html",
     footnote:'<b>This panel is live.</b> Ask AI to review against your playbook — it types its findings, then you click <b>Accept redline</b> and watch the clause change in the document. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
-  defaultPack:"banking", steps:3, scenes:SCENES,
+  defaultPack:"banking", steps:3, attract:true, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
@@ -77,7 +95,8 @@ DemoEngine.interactive({
   },
   setup(p, root, api){
     const $=s=>root.querySelector(s);
-    $("#rv-ttl").textContent=p.ttl; $("#rv-doctitle").textContent=p.doctitle; $("#rv-p1").textContent=p.p1;
+    const ttlEl=$("#rv-ttl"); if(ttlEl) ttlEl.textContent=p.ttl; /* nav-bar title removed with the chrome */
+    $("#rv-doctitle").textContent=p.doctitle; $("#rv-p1").textContent=p.p1;
     $("#rv-p2").innerHTML=p.p2; $("#rv-p3").innerHTML=p.p3; $("#rv-cnum").textContent=p.cnum;
     $("#rv-cbody").innerHTML=p.cpre+'<span id="rv-risk">'+p.riskText+'</span>.'; $("#rv-clause").className="rv-clause";
     api.narrate("intro"); api.progress(0); let done=0;
@@ -90,10 +109,11 @@ DemoEngine.interactive({
       intro:"I can review this against your playbook, summarize risks, or draft language. What would you like?",
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer.replace(/\n/g,"<br>"), card:ex.card,
         after:()=>{ done++; api.progress(Math.min(done,3)); if(ex.redline){ const b=$("#rv-chat").querySelector("[data-accept]"); if(b) b.onclick=()=>applyRedline(b); } } })) });
-    api.autopilot([
-      { at:900, selector:'#rv-chips .agc-chip' },
-      { at:5200, run:()=>{ const b=$("#rv-chat").querySelector('[data-accept]'); if(b && !b.classList.contains('done')) b.click(); } }
-    ]);
+    if(api.auto){ // self-run: ask every question in turn, then accept the redline (api.after → cancelable, attract-mode safe)
+      const sel='#rv-chips .agc-chip', n=root.querySelectorAll(sel).length;
+      for(let i=0;i<n;i++){ api.after(900+i*6800, ()=>{ const c=root.querySelector(sel); c&&c.click(); }); }
+      api.after(900+n*6800+900, ()=>{ const b=root.querySelector('#rv-chat [data-accept]'); if(b && !b.classList.contains('done')) b.click(); });
+    }
   }
 });
 </script>

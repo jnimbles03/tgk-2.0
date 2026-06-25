@@ -73,7 +73,7 @@ const SCENES =
 DemoEngine.interactive({
   meta:{ title:"Agreement Manager — interactive", productTag:"Agreement Manager · Live", home:"index.html",
     footnote:'<b>This panel is live.</b> Iris has read every agreement in the repository — click a question and it types a specific, cited answer from the portfolio, then offers the next action. Switch vertical to re-skin the agreements and counterparties. <code>?auto=1</code> self-runs.' },
-  defaultPack:"banking", steps:4, scenes:SCENES,
+  defaultPack:"banking", steps:4, attract:true, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally",
       theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -169,11 +169,11 @@ DemoEngine.interactive({
       intro:"I'm Iris. I've read all four agreements in this view — ask me about renewals, total value, or what needs action.",
       exchanges:p.exchanges.map((ex,i)=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
         after:()=>{ bump(); highlight(hiFor(ex,i)); if(ex.renew){ const b=$("#nv-chat").querySelector("[data-renew]"); if(b) b.onclick=()=>startRenewal(b); } } })) });
-    api.autopilot([
-      { at:900, selector:'#nv-chips .agc-chip' },
-      { at:6000, run:()=>{ const chips=$("#nv-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
-      { at:10500, run:()=>{ const b=$("#nv-chat").querySelector('[data-renew]'); if(b && !b.classList.contains('done')) b.click(); } }
-    ]);
+    if(api.auto){ // self-run: ask every question in turn, then fire the handoff (api.after → cancelable, attract-mode safe)
+      const sel='#nv-chips .agc-chip', n=root.querySelectorAll(sel).length;
+      for(let i=0;i<n;i++){ api.after(900+i*6800, ()=>{ const c=root.querySelector(sel); c&&c.click(); }); }
+      api.after(900+n*6800+900, ()=>{ const b=root.querySelector('#nv-chat [data-renew]'); if(b && !b.classList.contains('done')) b.click(); });
+    }
   }
 });
 </script>
