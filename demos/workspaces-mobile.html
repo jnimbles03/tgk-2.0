@@ -668,7 +668,25 @@ function typeInto(span, html, speed, done){
 const params = new URLSearchParams(location.search);
 let PACK_KEY = params.get("pack");
 if(!PACKS[PACK_KEY]) PACK_KEY = "banking";
-const PACK = PACKS[PACK_KEY];
+/* Honor the same tenant-override URL params the desktop engine applies
+   (DemoEngine.overridePack): ?accent / ?accentSoft / ?ink / ?brand / ?mark — so
+   embedded mobile demos (e.g. ?embed=1&brand=Helix%20Therapeutics&accent=%236D28D9&mark=H)
+   keep their tenant branding instead of falling back to the default pack. */
+function overridePack(p){
+  if(!params.has("accent") && !params.has("brand") && !params.has("mark") && !params.has("ink")) return p;
+  const c = JSON.parse(JSON.stringify(p));
+  const tint = (hex) => { const m=String(hex).replace('#',''); if(m.length<6) return hex;
+    const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16),mix=v=>Math.round(v+(255-v)*0.88);
+    return 'rgb('+mix(r)+','+mix(g)+','+mix(b)+')'; };
+  const accent=params.get("accent");
+  if(accent){ c.theme["--tenant-accent"]=accent; c.theme["--tenant-accent-soft"]=params.get("accentSoft")||tint(accent); }
+  if(params.get("ink")) c.theme["--tenant-ink"]=params.get("ink");
+  const brand=params.get("brand");
+  if(brand){ if(c.brand) c.brand.name=brand; c.cobrand=brand; }
+  if(params.get("mark") && c.brand) c.brand.mark=params.get("mark");
+  return c;
+}
+const PACK = overridePack(PACKS[PACK_KEY]);
 
 const State = {
   rows: PACK.rows.slice(),        // working copy (lets "New task" prepend)
