@@ -6,6 +6,31 @@
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/agent.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
+<style>
+  /* Web-Forms / Agreement-Manager-style frame: the DemoEngine narration rail is the
+     left "sidebar". This stage is ONE clean pane (the Salesforce opportunity record)
+     with an "Ask" chat strip folded in BENEATH it — not a separate full-height
+     Agentforce column. Overrides archetypes/agent.css (shared, not edited here). */
+  .sf{background:#EEF1F6}
+  /* drop the Salesforce nav chrome that was removed from the SCENES html */
+  .sf-top,.sf-tabs{display:none}
+  /* .sf-body stacks vertically: record artifact (flex:1, scrolls) over the Ask strip */
+  .sf-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;gap:0;background:#EEF1F6}
+  .sf-main{flex:1;min-height:0;padding:20px 30px 14px;overflow:auto;display:block}
+  /* neutralize the old full-height Agentforce side column → full-width bottom band host */
+  .af{position:static;width:auto;flex:0 0 auto;background:transparent;border-left:none;display:block}
+  .af-hd,.agc,.agc-input{display:none}
+  /* the Ask strip — full-width band beneath the record (copied from navigator.html) */
+  .nv-ask{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .nv-ask .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
+  .nv-ask .phd .astro{width:20px;height:20px;border-radius:50%;background:var(--tenant-accent);position:relative;flex:0 0 auto}
+  .nv-ask .phd .astro:after{content:"";position:absolute;left:5px;top:6px;right:5px;height:5px;border-radius:4px;background:rgba(255,255,255,.85)}
+  #af-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #af-chips .hint{display:none}
+  #af-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #af-chat{flex:1;min-height:0}
+</style>
 </head>
 <body>
 <div id="demo-root"></div>
@@ -13,10 +38,6 @@
 <script src="./engine/agent-chat.js"></script>
 <script>
 const SCENES='<div class="sf">'+
-  '<div class="sf-top"><span class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="app">Sales</span>'+
-    '<span class="search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>Search Salesforce</span>'+
-    '<span class="ic">★ ? ⚙ ▤</span><span class="av"></span></div>'+
-  '<div class="sf-tabs"><span class="t">Home</span><span class="t on">Opportunities</span><span class="t">Accounts</span><span class="t">Contacts</span><span class="t">Reports</span></div>'+
   '<div class="sf-body"><div class="sf-main">'+
     '<div class="sf-rec"><div class="eyebrow">Opportunity</div><div class="nm" id="sf-opp"></div>'+
       '<div class="sf-path"><span class="st done">Qualify</span><span class="st done">Meet</span><span class="st cur">Propose</span><span class="st">Negotiate</span><span class="st">Closed Won</span></div>'+
@@ -29,15 +50,15 @@ const SCENES='<div class="sf">'+
       '<div class="item" id="sf-a2"><span class="dot"></span><span>Sent for signature — counterparty notified</span><span class="tm">now</span></div>'+
       '<div class="item" id="sf-a3"><span class="dot"></span><span>Logged to Agreement Manager &amp; the opportunity</span><span class="tm">now</span></div></div>'+
   '</div>'+
-  '<div class="af"><div class="af-hd"><span class="astro"></span> Agentforce</div>'+
-    '<div class="agc"><div class="agc-chat" id="af-chat"></div><div class="agc-chips" id="af-chips"></div>'+
-      '<div class="agc-input"><div class="box">Message Agentforce…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div></div>'+
-  '</div></div>';
+  '<div class="af"><div class="nv-ask">'+
+    '<div class="nv-ask-top"><span class="phd"><span class="astro"></span> Agentforce</span><div id="af-chips"></div></div>'+
+    '<div class="agc-chat" id="af-chat"></div>'+
+  '</div></div></div></div>';
 
 DemoEngine.interactive({
   meta:{ title:"Docusign for Agentforce — interactive", productTag:"Agentforce · Live", home:"index.html",
     footnote:'<b>This panel is live.</b> Click a suggested prompt and watch Agentforce respond — it generates the agreement with Docusign, sends it for signature, and writes the activity back to the opportunity. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
-  defaultPack:"banking", steps:3, scenes:SCENES,
+  defaultPack:"banking", steps:3, attract:true, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"tally.lightning.force.com — Opportunities", sorBadge:"System of record · Salesforce",
@@ -83,9 +104,10 @@ DemoEngine.interactive({
         after:()=>{ done++; api.progress(Math.min(done,3));
           if(ex.activity){ setTimeout(()=>$("#sf-a1").classList.add("on"),150); setTimeout(()=>$("#sf-a2").classList.add("on"),650); setTimeout(()=>$("#sf-a3").classList.add("on"),1150); api.narrate("gen"); } } }))
     });
-    api.autopilot([
-      { at:900, selector:'#af-chips .agc-chip' }
-    ]);
+    if(api.auto){ // self-run: walk every suggested prompt in turn (api.after → cancelable, attract-mode safe)
+      const sel='#af-chips .agc-chip', n=root.querySelectorAll(sel).length;
+      for(let i=0;i<n;i++){ api.after(900+i*6800, ()=>{ const c=root.querySelector(sel); c&&c.click(); }); }
+    }
   }
 });
 </script>

@@ -4,26 +4,29 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agreement Desk — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
-<link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  /* The Agreement Desk queue visual is intact; we add an "Ask the Desk Agent"
-     assistant as a right-hand column. Modeled on navigator.html
-     (.nv-agent / .phd / .agc-accept), adapted to the desk layout. */
-  .app.has-deskrail .app-body{padding:0}
-  .ad-wrap{display:flex;height:100%}
-  .ad-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .ad-deskagent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .ad-deskagent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
-  .ad-deskagent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
-  .ad-agent{border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:18px}
-  .ad-agent .hd{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--tenant-accent);margin-bottom:9px}
-  .ad-email{background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #E8E8EE}
-  .ad-email .fr{font-size:12px;color:#888;margin-bottom:3px}
-  .ad-email .su{font-size:13px;font-weight:600;color:#1a1a26;margin-bottom:4px}
-  .ad-email .bd{font-size:12px;color:#555;line-height:1.45}
-  .ad-status{margin-top:9px;font-size:12.5px;font-weight:600;color:var(--tenant-accent);display:flex;align-items:center;gap:7px}
-  .ad-status .sp{width:auto;height:auto}
+  /* Web-Forms-style frame (matches navigator.html): the DemoEngine narration
+     rail is the left "sidebar". This stage is ONE demo pane — the Agreement
+     Desk queue table with an "Ask the Desk agent" chat strip folded in
+     BENEATH it, not a separate full-height agent column. */
+  .nvx{position:absolute;inset:0;display:flex;flex-direction:column;background:#EEF1F6;font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif}
+  .nvx-head{display:flex;align-items:center;gap:12px;padding:20px 30px 12px}
+  .nvx-head .ai-pill{margin-left:auto}
+  .nvx-mark{width:30px;height:30px;border-radius:7px;background:var(--tenant-accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto}
+  .nvx-h{display:flex;flex-direction:column;line-height:1.15}
+  .nvx-co{font-size:10.5px;font-weight:700;color:var(--tenant-accent);letter-spacing:.08em;text-transform:uppercase}
+  .nvx-head h2{font-size:19px;font-weight:600;color:#16121f;letter-spacing:-.01em;margin:0}
+  .nvx-table{flex:1;min-height:0;overflow:auto;margin:0 30px 14px;padding:16px 22px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05)}
+  /* the Ask strip — full-width band beneath the table */
+  .nv-ask{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .nv-ask .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
+  .nv-ask .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  #ad-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #ad-chips .hint{display:none}
+  #ad-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #ad-chat{flex:1;min-height:0}
   .ad-th,.ad-row{display:flex;align-items:center}
   .ad-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
   .ad-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .3s}
@@ -46,10 +49,6 @@
 <script src="./engine/demo-engine.js"></script>
 <script src="./engine/agent-chat.js"></script>
 <script>
-const NAV='<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
-  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Desk</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
-  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="ad-cobrand"></span></span><span class="avatar" id="ad-av"></span></div></div>';
-
 function row(req,typ,stage,own,id,cls){
   return '<div class="ad-row'+(cls?' '+cls:'')+'"'+(id?' id="'+id+'"':'')+'>'+
     '<span class="c-req"><span class="fi"></span>'+req+'</span>'+
@@ -62,30 +61,24 @@ function stagePill(s){ return ({intake:'<span class="pill intake">Intake</span>'
   appr:'<span class="pill appr">Approved</span>',
   block:'<span class="pill block">Blocked</span>'}[s]||s); }
 
-const SCENES='<section class="de-scene is-active" data-scene="app"><div class="app has-deskrail">'+NAV+
-  '<div class="app-body"><div class="ad-wrap">'+
-    '<div class="ad-main">'+
-      '<div class="app-head"><h2>Agreement Desk</h2><span class="ai-pill">✦ AI CONTRACT AGENT</span>'+
-        '<div class="acts"><span class="add">+ New request</span></div></div>'+
-      '<div class="ad-agent" id="ad-agent"><div class="hd">✦ AI Contract Agent · last inbound email</div>'+
-        '<div class="ad-email"><div class="fr" id="ad-from"></div><div class="su" id="ad-subj"></div><div class="bd" id="ad-body"></div></div>'+
-        '<div class="ad-status done" id="ad-status"><span class="sp" id="ad-statustext">✓ Request drafted from email and added to the queue below</span></div></div>'+
+const SCENES='<section class="de-scene is-active" data-scene="app"><div class="nvx">'+
+    '<div class="nvx-head"><span class="nvx-mark" id="ad-av"></span><div class="nvx-h"><span class="nvx-co" id="ad-cobrand"></span><h2>Agreement Desk</h2></div><span class="ai-pill">✦ AI CONTRACT AGENT</span></div>'+
+    '<div class="nvx-table">'+
       '<div class="ad-th"><span class="c-req" style="padding-left:29px">Request</span><span class="c-typ">Type</span><span class="c-stg">Stage</span><span class="c-own">Owner</span></div>'+
       '<div id="ad-rows"></div>'+
     '</div>'+
-    '<div class="ad-deskagent">'+
-      '<div class="phd"><span class="ai">✦</span> Ask the Desk Agent</div>'+
-      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="ad-chat"></div><div class="agc-chips" id="ad-chips"></div>'+
-        '<div class="agc-input"><div class="box">Ask about the queue, blockers, or custody…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '<div class="nv-ask">'+
+      '<div class="nv-ask-top"><span class="phd"><span class="ai">✦</span> Ask the Desk agent</span><div id="ad-chips"></div></div>'+
+      '<div class="agc-chat" id="ad-chat"></div>'+
     '</div>'+
-  '</div></div></div></section>'+
+  '</div></section>'+
   '<section class="de-scene" data-scene="handoff"><div class="ho"><div class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></div>'+
     '<h2 id="ho-h"></h2><p id="ho-p"></p><div class="chain"><div class="node">Desk queue</div><span class="arr">&rarr;</span><div class="node lead">Cleared &amp; routed</div><span class="arr">&rarr;</span><div class="node" id="ho-sor"></div></div></div></section>';
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Desk — interactive", productTag:"Agreement Desk · Live", home:"index.html",
     footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties. <code>?auto=1</code> self-runs.' },
-  defaultPack:"banking", steps:4, scenes:SCENES,
+  defaultPack:"banking", steps:4, attract:true, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
       brand:{ name:"Tally Bank", mark:"T" }, url:"app.docusign.com — Tally Bank", sorBadge:"System of record · nCino",
@@ -145,9 +138,10 @@ DemoEngine.interactive({
   },
   setup(p, root, api){
     const $=s=>root.querySelector(s);
-    // ---- render the Agreement Desk content (brand / email / queue) ----
+    // ---- render the Agreement Desk content (brand / queue) ----
+    // The inbound-email context now lives in the intro narration (left rail);
+    // the agent is folded into the "Ask the Desk agent" strip beneath the queue.
     $("#ad-cobrand").textContent=p.cobrand; $("#ad-av").textContent="AI";
-    $("#ad-from").textContent=p.from; $("#ad-subj").textContent=p.subj; $("#ad-body").textContent=p.body;
     $("#ad-rows").innerHTML=p.rows.map(r=>row(r[0],r[1],stagePill(r[2]),r[3],r[4],r[5])).join("");
     // reset scene state (app scene active, nothing routed yet)
     root.querySelectorAll(".de-scene").forEach(s=>s.classList.toggle("is-active", s.dataset.scene==="app"));
@@ -176,11 +170,11 @@ DemoEngine.interactive({
           if(ex.block){ const r=$("#ad-block"); if(r){ r.classList.add("hot"); } }
           if(ex.clear){ const b=$("#ad-chat").querySelector("[data-clear]"); if(b) b.onclick=()=>clearQueue(b); } } })) });
 
-    api.autopilot([
-      { at:900, selector:'#ad-chips .agc-chip' },
-      { at:6000, run:()=>{ const chips=$("#ad-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
-      { at:10500, run:()=>{ const b=$("#ad-chat").querySelector('[data-clear]'); if(b && !b.classList.contains('done')) b.click(); } }
-    ]);
+    if(api.auto){ // self-run: ask every question in turn, then clear & route the queue (api.after → cancelable, attract-mode safe)
+      const sel='#ad-chips .agc-chip', n=root.querySelectorAll(sel).length;
+      for(let i=0;i<n;i++){ api.after(900+i*6800, ()=>{ const c=root.querySelector(sel); c&&c.click(); }); }
+      api.after(900+n*6800+900, ()=>{ const b=root.querySelector('#ad-chat [data-clear]'); if(b && !b.classList.contains('done')) b.click(); });
+    }
   }
 });
 </script>
