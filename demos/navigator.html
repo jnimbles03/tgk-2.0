@@ -4,14 +4,21 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agreement Manager — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
-<link rel="stylesheet" href="./archetypes/app-shell.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  .app.has-rail .app-body{padding:0}
-  .nv-wrap{display:flex;height:100%}
-  .nv-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .nv-agent{width:344px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .nv-agent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
+  /* Web-Forms-style frame: two clean full-height panes (demo | interactive),
+     no Docusign top-nav / product-rail chrome. */
+  .nvx{position:absolute;inset:0;display:flex;background:#EEF1F6;font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif}
+  .nvx-demo{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+  .nvx-head{display:flex;align-items:center;gap:12px;padding:20px 30px 14px}
+  .nvx-head .ai-pill{margin-left:auto}
+  .nvx-mark{width:30px;height:30px;border-radius:7px;background:var(--tenant-accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto}
+  .nvx-h{display:flex;flex-direction:column;line-height:1.15}
+  .nvx-co{font-size:10.5px;font-weight:700;color:var(--tenant-accent);letter-spacing:.08em;text-transform:uppercase}
+  .nvx-head h2{font-size:19px;font-weight:600;color:#16121f;letter-spacing:-.01em;margin:0}
+  .nvx-table{flex:1;min-height:0;overflow:auto;margin:0 30px 30px;padding:16px 22px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05)}
+  .nv-agent{width:360px;flex:0 0 auto;border-left:1px solid #E1E1E8;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .nv-agent .phd{display:flex;align-items:center;gap:8px;padding:16px 18px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
   .nv-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
   .nv-th,.nv-row{display:flex;align-items:center}
   .nv-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
@@ -36,17 +43,6 @@
 <script src="./engine/demo-engine.js"></script>
 <script src="./engine/agent-chat.js"></script>
 <script>
-const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
-  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreement Manager</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Settings</span></div>'+
-  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="nv-cobrand"></span></span><span class="avatar" id="nv-av"></span></div></div>';
-const RAIL = '<div class="app-rail"><div class="grp">Insights</div>'+
-  '<div class="it"><span class="ai">✦</span> Agreements</div>'+
-  '<div class="it" id="nv-renewals"><span class="ai">✦</span> Renewals <span class="ct">12</span></div>'+
-  '<div class="it">My dashboard</div><div class="it">Signing insights</div>'+
-  '<div class="grp">Reports</div><div class="it">All <span class="ct">52</span></div>'+
-  '<div class="it">Agreement <span class="ct">8</span></div><div class="it">Recipient <span class="ct">7</span></div>'+
-  '<div class="it">+ New report</div></div>';
-
 function row(id,doc,party,val,ren,rensoon,exp){
   return '<div class="nv-row" id="'+id+'"><div class="c-doc"><span class="fi"></span>'+doc+'</div>'+
     '<div class="c-party">'+party+'</div><div class="c-val">'+val+'</div>'+
@@ -54,19 +50,19 @@ function row(id,doc,party,val,ren,rensoon,exp){
     '<div class="c-exp">'+exp+'</div></div>'; }
 
 const SCENES =
-  '<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+RAIL+
-    '<div class="app-body"><div class="nv-wrap">'+
-      '<div class="nv-main">'+
-        '<div class="app-head"><h2 id="nv-title"></h2><span class="ai-pill">✦ AI-EXTRACTED</span></div>'+
+  '<section class="de-scene is-active" data-scene="app"><div class="nvx">'+
+    '<div class="nvx-demo">'+
+      '<div class="nvx-head"><span class="nvx-mark" id="nv-av"></span><div class="nvx-h"><span class="nvx-co" id="nv-cobrand"></span><h2 id="nv-title"></h2></div><span class="ai-pill">✦ AI-EXTRACTED</span></div>'+
+      '<div class="nvx-table">'+
         '<div class="nv-th"><span class="c-doc" style="padding-left:33px">Agreement</span><span class="c-party">Counterparty</span><span class="c-val">Value</span><span class="c-ren">Renewal type</span><span class="c-exp">Expiration</span></div>'+
         '<div id="nv-rows"></div>'+
       '</div>'+
-      '<div class="nv-agent">'+
-        '<div class="phd"><span class="ai">✦</span> Ask Agreement Manager</div>'+
-        '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
-          '<div class="agc-input"><div class="box">Ask about renewals, value, or risk…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
-      '</div>'+
-    '</div></div>'+
+    '</div>'+
+    '<div class="nv-agent">'+
+      '<div class="phd"><span class="ai">✦</span> Ask Agreement Manager</div>'+
+      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
+        '<div class="agc-input"><div class="box">Ask about renewals, value, or risk…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '</div>'+
   '</div></section>';
 
 DemoEngine.interactive({
