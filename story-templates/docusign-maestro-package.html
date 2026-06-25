@@ -168,24 +168,20 @@
   <div class="body">
     <div class="ms-tag">workflow orchestration · Fan-out</div>
     <h2 id="title">Packaging from intake selections</h2>
-    <div class="lede">The webform's selections drive what goes into the envelope. The workflow pulls the right document templates, runs pre-fill from systems of record, builds recipient routing, and queues delivery — all in seconds.</div>
+    <div class="lede"><strong>A few webform answers fan out into a complete, ready-to-sign envelope.</strong> From the handful of selections on the left, the workflow automatically pulls the right document templates, pre-fills them from systems of record, and builds the recipient routing — in seconds.</div>
 
     <div class="fanout-grid">
       <div class="fan-col" data-hotspot="package_selections">
         <h3>From the webform</h3>
-        <ul id="selections">
-          <li>Configuration choice 1</li>
-          <li>Configuration choice 2</li>
-          <li>Configuration choice 3</li>
-        </ul>
+        <ul id="selections"></ul>
       </div>
       <div class="arrow">→</div>
       <div class="fan-col" data-hotspot="package_attachments">
-        <h3>the workflow attaches</h3>
+        <h3>The workflow adds automatically</h3>
         <ul id="attaches">
-          <li>Compliance disclosure</li>
-          <li>Custodian-specific add-on</li>
-          <li>Pre-fill from KYB / SOR</li>
+          <li>Compliance disclosures</li>
+          <li>Pre-fill from systems of record</li>
+          <li>Required add-ons &amp; schedules</li>
         </ul>
       </div>
     </div>
@@ -236,8 +232,37 @@
     education: { title: 'Packaging the Priya Shah financial-aid acceptance', docs: ['Award letter', 'Master Promissory Note', 'Entrance counseling cert', 'Parent-PLUS app', 'FERPA disclosure'], recipients: [{n:'Priya Shah', r:'1st'}, {n:'Parent (PLUS)', r:'2nd'}, {n:'Maple Ridge financial aid', r:'3rd'}] },
     nonprofit: { title: 'Packaging the Safe Streets grant', docs: ['Master grant agreement', 'SOW', 'Budget detail', 'Reporting requirements', 'Indemnification', 'Equity rider'], recipients: [{n:'Rosa Patel (Safe Streets ED)', r:'1st'}, {n:'Harbor Foundation', r:'2nd'}] },
   };
+  /* The handful of answers the client/advisor actually gave in the Scene-1
+     webform (docusign-webform-intake.html) — these are what "fan out". Kept in
+     step with that intake's per-vertical engagement + document selections so
+     Scene 2 reflects the real webform, not generic placeholders. */
+  const SELECTIONS = {
+    wealth: ['New sub-advisor engagement', 'Custodian: Charlton Schwab', 'Boutique RIA · $48M sleeve'],
+    banking: ['Working-capital facility', '$2.5M · secured', 'Personal guaranty required'],
+    insurance: ['HO3 homeowners binder', 'Property: 412 Briar Lane', 'Mortgagee on escrow'],
+    'insurance-life': ['Death-benefit claim', 'Whole life · $750k', 'Lump-sum payment election'],
+    'insurance-pc': ['First notice of loss', 'Commercial auto · I-78', 'Adjuster assignment'],
+    'banking-deposits': ['Joint account opening', 'Checking + high-yield savings', 'Same-day ACH funding'],
+    'wealth-discovery': ['Multi-account household', 'IRA + joint + family trust + advisory', 'Co-trustee included'],
+    provider: ['Provider network enrollment', 'PCP credentialing', 'CAQH + malpractice COI'],
+    lifesciences: ['Clinical site activation', 'HX-2104 · ARC site', 'IRB + sponsor counsel'],
+    payor: ['Integrated benefits enrollment', 'Medicaid + WIC + LIHEAP/SNAP', 'Multi-program bundle'],
+    'provider-roi': ['Release-of-information consent', 'HIPAA authorization', 'Records retrieval order'],
+    fedgov: ['Unemployment claim determination', 'Direct-deposit setup', 'Work-search agreement'],
+    slgov: ['Building-permit application', '1420 Oak Street', 'Plan check + fees'],
+    'slgov-311': ['311 service request', 'Cedar Ave · pothole', 'Crew dispatch'],
+    'slgov-benefits': ['SNAP application', 'Household eligibility', 'Verification asks'],
+    'slgov-recertification': ['Exception recertification', 'Audit-reason verification', 'Tailored recert packet'],
+    'slgov-vendor-compliance': ['New-vendor onboarding', 'W-9 + COI', 'DEI attestations'],
+    'slgov-employee-onboarding': ['Employee onboarding', 'Offer + I-9 + W-4', 'Benefits + equipment'],
+    'slgov-licensing': ['Business-license application', 'Avalon Café', 'Attestation + inspection'],
+    education: ['Financial-aid acceptance', 'Award + Master Promissory Note', 'Parent-PLUS + FERPA'],
+    nonprofit: ['Grant agreement', 'Safe Streets initiative', 'SOW + budget + equity rider'],
+  };
   const p = PRESETS[preset] || PRESETS.wealth;
+  const sel = SELECTIONS[preset] || SELECTIONS.wealth;
   document.getElementById('title').textContent = p.title;
+  document.getElementById('selections').innerHTML = sel.map(s => `<li>${s}</li>`).join('');
   document.getElementById('docs').innerHTML = p.docs.map(d => `<div class="doc-tile"><div class="icon"></div><div class="name">${d}</div><div class="stage">pre-filled</div></div>`).join('');
   document.getElementById('recipients').innerHTML = p.recipients.map((r, i) => `<div class="recipient-row"><div class="num">${i+1}</div><div class="name">${r.n}</div><div class="role">${r.r}</div></div>`).join('');
 
