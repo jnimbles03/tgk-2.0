@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F2F7">
+<title>Workspaces</title>
+<style>
+/* ============================================================
+   Workspaces — native-iOS mobile build (phone-first, no DemoEngine).
+   Vertical packs (banking / healthcare / pubsec) lifted verbatim from
+   demos/workspaces.html. Selected via ?pack=… (default banking); the
+   pack's --tenant-accent drives the whole theme.
+   ============================================================ */
+:root{
+  --tenant-accent:#2D55C9;
+  --tenant-accent-soft:#E7EDFB;
+  --tenant-ink:#0B1F4D;
+  --ios-bg:#F2F2F7;        /* grouped-list gray */
+  --ios-card:#FFFFFF;
+  --ios-sep:#C6C6C8;       /* hairline */
+  --ios-label:#1C1C1E;
+  --ios-label2:#8A8A8E;    /* secondary */
+  --ios-label3:#C7C7CC;    /* tertiary / chevron */
+  --ios-fill:#7676801F;    /* segmented track */
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+  --tabbar-h:50px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  background:var(--ios-bg);color:var(--ios-label);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-size:17px;line-height:1.4;
+}
+button,input,select,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+
+/* ── App frame: a single full-viewport stack ───────────────── */
+.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Screen stack (Workspace list + Ask AI live side by side; detail pushes over) ── */
+.screens{position:absolute;inset:0;bottom:var(--tabbar-h);display:flex;flex-direction:column;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;background:var(--ios-bg)}
+.screen[hidden]{display:none}
+
+/* The scrollable content region of any screen */
+.scroll{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:24px;
+}
+
+/* ===========================================================
+   LARGE-TITLE HEADER (iOS grouped style)
+   =========================================================== */
+.lt-head{
+  padding:calc(var(--safe-t) + 6px) 16px 8px;
+  background:var(--ios-bg);
+}
+.lt-top{display:flex;align-items:flex-start;gap:12px}
+.lt-titles{flex:1;min-width:0}
+.lt-title{
+  font-size:30px;line-height:1.12;font-weight:700;letter-spacing:-0.02em;
+  color:var(--ios-label);margin:0;
+}
+.lt-sub{
+  margin-top:4px;font-size:13px;color:var(--ios-label2);font-weight:400;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.lt-sub .dot{width:3px;height:3px;border-radius:50%;background:var(--ios-label3)}
+.lt-sub b{color:var(--tenant-accent);font-weight:600}
+.lt-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto;padding-top:2px}
+.lt-add{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--tenant-accent-soft);color:var(--tenant-accent);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,background .15s;
+}
+.lt-add:active{transform:scale(.9)}
+.lt-add svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.4;fill:none}
+.lt-avatar{
+  width:38px;height:38px;border-radius:50%;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:15px;font-weight:600;letter-spacing:.02em;
+  background:var(--tenant-accent);
+  box-shadow:0 1px 3px rgba(0,0,0,.12);
+}
+
+/* status pill on the active workspace */
+.lt-state{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:600;color:var(--tenant-accent);
+  background:var(--tenant-accent-soft);
+  padding:3px 9px;border-radius:20px;margin-top:8px;
+}
+.lt-state .glow{width:6px;height:6px;border-radius:50%;background:var(--tenant-accent)}
+
+/* ===========================================================
+   GROUPED INSET LIST
+   =========================================================== */
+.grp{margin:18px 16px 0}
+.grp-hd{
+  font-size:13px;font-weight:600;color:var(--ios-label2);
+  text-transform:uppercase;letter-spacing:.02em;
+  padding:0 4px 7px;
+}
+.grp-ft{font-size:13px;color:var(--ios-label2);padding:7px 4px 0;line-height:1.35}
+.card{
+  background:var(--ios-card);border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+
+/* a tappable row */
+.row{
+  display:flex;align-items:center;gap:12px;
+  min-height:60px;padding:10px 14px;
+  position:relative;background:var(--ios-card);
+  transition:background .12s;
+}
+.row:active{background:#E5E5EA}
+/* inset hairline divider (leading-inset, iOS style) */
+.row + .row::before{
+  content:"";position:absolute;left:60px;right:0;top:0;height:1px;
+  background:var(--ios-sep);transform:scaleY(.5);
+}
+.row-icon{
+  width:34px;height:34px;border-radius:9px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--tenant-accent-soft);color:var(--tenant-accent);
+}
+.row-icon svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none}
+.row-icon.doc{background:#FFE5E7;color:#E0202E}     /* signing envelope */
+.row-icon.up{background:var(--tenant-accent-soft);color:var(--tenant-accent)} /* upload */
+.row-body{flex:1;min-width:0}
+.row-title{
+  font-size:15px;font-weight:500;color:var(--ios-label);
+  line-height:1.25;overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.row-sub{
+  font-size:13px;color:var(--ios-label2);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.row-sub .assignee{display:inline-flex;align-items:center;gap:5px}
+.row-sub .av{
+  width:16px;height:16px;border-radius:50%;flex:0 0 auto;
+  background:var(--tenant-accent-soft);color:var(--tenant-accent);
+  font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;
+}
+.row-trail{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.chev{color:var(--ios-label3);font-size:18px;font-weight:600;line-height:1}
+.pill{
+  font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;
+  white-space:nowrap;
+}
+.pill.s-wait{background:#FFF4E0;color:#B57A12}
+.pill.s-prog{background:#E7EDFB;color:#2D55C9}
+.pill.s-ready{background:#E3F4EC;color:#1a7a44}
+
+/* newly created task: brief highlight + slide-in */
+.row.row-new{animation:rowIn .42s cubic-bezier(.2,.8,.2,1)}
+@keyframes rowIn{
+  0%{opacity:0;transform:translateY(-8px);background:var(--tenant-accent-soft)}
+  60%{background:var(--tenant-accent-soft)}
+  100%{opacity:1;transform:translateY(0);background:var(--ios-card)}
+}
+
+/* ===========================================================
+   DETAIL PUSH VIEW (slides in from the right)
+   =========================================================== */
+.detail{
+  position:absolute;inset:0;bottom:0;z-index:30;
+  background:var(--ios-bg);display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.32,.72,0,1);
+  will-change:transform;
+}
+.detail.in{transform:translateX(0)}
+/* iOS nav bar with back chevron */
+.navbar{
+  flex:0 0 auto;
+  padding-top:var(--safe-t);
+  background:rgba(249,249,249,.86);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:.5px solid rgba(0,0,0,.16);
+}
+.navbar-row{
+  height:44px;display:flex;align-items:center;justify-content:center;
+  position:relative;padding:0 8px;
+}
+.nav-back{
+  position:absolute;left:6px;top:0;height:44px;
+  display:flex;align-items:center;gap:2px;
+  color:var(--tenant-accent);font-size:17px;font-weight:400;
+  padding:0 6px;
+}
+.nav-back svg{width:13px;height:21px;stroke:var(--tenant-accent);stroke-width:2.6;fill:none}
+.nav-title{
+  font-size:17px;font-weight:600;color:var(--ios-label);
+  max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
+}
+
+/* doc header inside detail */
+.doc-hd{padding:16px 18px 6px;background:var(--ios-bg)}
+.doc-hd .dh-icon{
+  width:44px;height:44px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+  background:#FFE5E7;color:#E0202E;
+}
+.doc-hd.up .dh-icon{background:var(--tenant-accent-soft);color:var(--tenant-accent)}
+.doc-hd .dh-icon svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.7;fill:none}
+.doc-hd h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0;line-height:1.2}
+.doc-hd .dh-meta{font-size:13px;color:var(--ios-label2);margin-top:5px}
+.doc-hd .dh-stat{
+  display:inline-flex;align-items:center;gap:5px;margin-top:9px;
+  font-size:12px;font-weight:600;color:var(--tenant-accent);
+  background:var(--tenant-accent-soft);padding:3px 10px;border-radius:20px;
+}
+
+/* "Ask AI" banner above the chat */
+.ask-banner{
+  display:flex;align-items:center;gap:9px;
+  margin:14px 18px 2px;font-size:13px;font-weight:600;color:var(--ios-label2);
+}
+.ask-banner .ai{
+  width:24px;height:24px;border-radius:7px;flex:0 0 auto;
+  background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+
+/* ===========================================================
+   CHAT — iOS Messages bubbles
+   =========================================================== */
+.chat-wrap{flex:1;min-height:0;display:flex;flex-direction:column}
+.chat{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 14px 6px;display:flex;flex-direction:column;gap:3px;
+}
+.msg{
+  max-width:80%;padding:9px 14px;border-radius:20px;
+  font-size:15px;line-height:1.36;word-wrap:break-word;
+  animation:bubIn .22s ease-out;position:relative;
+}
+@keyframes bubIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+/* outgoing (user question) — accent, right */
+.msg.me{
+  align-self:flex-end;background:var(--tenant-accent);color:#fff;
+  border-bottom-right-radius:6px;margin-top:8px;
+}
+.msg.me b{color:#fff}
+/* incoming (AI answer) — gray, left */
+.msg.ai{
+  align-self:flex-start;background:#E9E9EB;color:var(--ios-label);
+  border-bottom-left-radius:6px;
+}
+.msg.ai b{font-weight:600;color:var(--ios-label)}
+.msg.ai em{font-style:normal;font-weight:600;color:var(--tenant-accent)}
+/* grouping: tighten consecutive same-side bubbles */
+.msg.ai + .msg.ai{margin-top:2px}
+
+/* intro / system note (subtle, centered) */
+.chat-intro{
+  align-self:center;max-width:90%;text-align:center;
+  font-size:13px;color:var(--ios-label2);line-height:1.4;
+  padding:6px 14px 10px;
+}
+.chat-intro b{color:var(--ios-label);font-weight:600}
+
+/* source citations under an answer bubble */
+.src{
+  align-self:flex-start;display:flex;flex-wrap:wrap;gap:6px;
+  margin:5px 0 4px 2px;animation:bubIn .22s ease-out;
+}
+.src .lbl{font-size:11px;color:var(--ios-label2);align-self:center;margin-right:1px}
+.src .chip{
+  font-size:11px;font-weight:600;color:var(--tenant-accent);
+  background:var(--tenant-accent-soft);padding:3px 9px;border-radius:8px;
+  display:inline-flex;align-items:center;gap:4px;
+}
+.src .chip::before{content:"";width:5px;height:5px;border-radius:1px;background:var(--tenant-accent)}
+
+/* typing indicator (three dots in a gray bubble) */
+.typing{
+  align-self:flex-start;background:#E9E9EB;border-bottom-left-radius:6px;
+  padding:13px 16px;border-radius:20px;display:flex;gap:4px;
+  animation:bubIn .22s ease-out;
+}
+.typing i{width:7px;height:7px;border-radius:50%;background:#9A9AA0;display:inline-block;animation:tdot 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.18s}
+.typing i:nth-child(3){animation-delay:.36s}
+@keyframes tdot{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.caret{display:inline-block;width:2px;height:1.05em;background:var(--tenant-accent);margin-left:1px;vertical-align:text-bottom;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* suggestion chips (horizontal, scrollable) at the bottom of the chat */
+.chips{
+  flex:0 0 auto;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:8px 14px 6px;scrollbar-width:none;
+}
+.chips::-webkit-scrollbar{display:none}
+.chip-sug{
+  flex:0 0 auto;white-space:nowrap;
+  font-size:14px;font-weight:500;color:var(--tenant-accent);
+  background:#fff;border:1px solid var(--tenant-accent-soft);
+  padding:9px 15px;border-radius:20px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);transition:transform .12s,background .12s;
+}
+.chip-sug:active{transform:scale(.95);background:var(--tenant-accent-soft)}
+.chips .hint{
+  flex:0 0 auto;align-self:center;font-size:12px;color:var(--ios-label3);
+  margin-right:2px;white-space:nowrap;
+}
+
+/* faux input bar at the very bottom of a chat (decorative, iOS look) */
+.chatbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:9px;
+  padding:8px 12px calc(8px + var(--safe-b));
+  background:rgba(249,249,249,.92);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:.5px solid rgba(0,0,0,.12);
+}
+.chatbar .field{
+  flex:1;min-width:0;font-size:15px;color:var(--ios-label2);
+  background:#fff;border:1px solid var(--ios-sep);border-radius:18px;
+  padding:8px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.chatbar .send{
+  width:32px;height:32px;border-radius:50%;flex:0 0 auto;
+  background:var(--tenant-accent);color:#fff;display:flex;align-items:center;justify-content:center;
+}
+.chatbar .send svg{width:18px;height:18px;stroke:#fff;stroke-width:2.4;fill:none}
+
+/* ===========================================================
+   BOTTOM TAB BAR (frosted, iOS)
+   =========================================================== */
+.tabbar{
+  position:absolute;left:0;right:0;bottom:0;z-index:20;
+  height:calc(var(--tabbar-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  display:flex;
+  background:rgba(249,249,249,.82);
+  backdrop-filter:saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(180%) blur(22px);
+  border-top:.5px solid rgba(0,0,0,.14);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:var(--ios-label2);font-size:10px;font-weight:500;letter-spacing:.01em;
+  transition:color .12s;
+}
+.tab svg{width:25px;height:25px;stroke:currentColor;stroke-width:1.7;fill:none}
+.tab.active{color:var(--tenant-accent)}
+.tab:active{opacity:.6}
+
+/* ===========================================================
+   NEW-TASK SHEET (iOS modal sheet, slides up)
+   =========================================================== */
+.scrim{
+  position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.34);
+  opacity:0;pointer-events:none;transition:opacity .28s;
+}
+.scrim.in{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:41;
+  background:var(--ios-bg);
+  border-radius:14px 14px 0 0;
+  transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);
+  padding-bottom:calc(14px + var(--safe-b));
+  box-shadow:0 -8px 30px rgba(0,0,0,.18);
+  max-height:90%;display:flex;flex-direction:column;
+}
+.sheet.in{transform:translateY(0)}
+.sheet-grab{width:36px;height:5px;border-radius:3px;background:#C7C7CC;margin:8px auto 2px}
+.sheet-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px 10px;
+}
+.sheet-nav .cancel{color:var(--tenant-accent);font-size:17px;font-weight:400}
+.sheet-nav .ttl{font-size:17px;font-weight:600}
+.sheet-nav .spacer{width:54px}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px}
+
+.field-grp{
+  background:var(--ios-card);border-radius:12px;overflow:hidden;margin-bottom:18px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.field-row{
+  display:flex;align-items:center;min-height:48px;padding:6px 14px;position:relative;
+}
+.field-row + .field-row::before{
+  content:"";position:absolute;left:14px;right:0;top:0;height:1px;background:var(--ios-sep);transform:scaleY(.5);
+}
+.field-row label{font-size:15px;color:var(--ios-label);flex:0 0 auto;width:96px}
+.field-row input{
+  flex:1;min-width:0;font-size:15px;border:none;background:transparent;outline:none;
+  padding:8px 0;text-align:right;color:var(--ios-label);
+}
+.field-row input::placeholder{color:var(--ios-label3)}
+.field-row select{
+  flex:1;min-width:0;font-size:15px;border:none;background:transparent;outline:none;
+  text-align:right;text-align-last:right;color:var(--tenant-accent);
+  -webkit-appearance:none;appearance:none;padding:8px 18px 8px 0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C7C7CC' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right center;
+}
+.field-grp .grp-cap{
+  font-size:13px;color:var(--ios-label2);padding:9px 16px 0;text-transform:uppercase;letter-spacing:.02em;font-weight:600;
+}
+
+/* segmented control (status) */
+.seg{
+  display:flex;background:var(--ios-fill);border-radius:9px;padding:2px;margin:0 0 18px;
+}
+.seg button{
+  flex:1;font-size:13px;font-weight:500;color:var(--ios-label);
+  padding:7px 4px;border-radius:7px;transition:background .15s,box-shadow .15s,font-weight .15s;
+}
+.seg button.on{
+  background:#fff;font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);
+}
+
+/* filled accent Add button */
+.btn-add{
+  width:100%;font-size:17px;font-weight:600;color:#fff;
+  background:var(--tenant-accent);border-radius:13px;padding:14px;
+  transition:opacity .15s,transform .12s;margin-top:2px;
+}
+.btn-add:active{transform:scale(.99)}
+.btn-add:disabled{opacity:.4}
+
+/* empty-state for Ask AI tab before any question */
+.ws-cap{font-size:13px;color:var(--ios-label2);padding:0 18px 4px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* =====================================================================
+   DATA — three vertical packs, lifted VERBATIM from demos/workspaces.html
+   (keys banking / healthcare / pubsec). Same theme, brand, persona,
+   cobrand, title, rows, per-document docs[].ask, roles, and the
+   workspace-level questions. So the mobile build reads identically.
+   ===================================================================== */
+const PACKS = {
+  banking:{ label:"Banking · Tally",
+    theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
+    brand:{ name:"Tally Bank", mark:"T" }, sorBadge:"System of record · nCino",
+    persona:{ name:"Sarah Connelly", role:"Relationship Manager" },
+    cobrand:"Tally", title:"Client Onboarding — Sam Smith",
+    rows:[ {n:"Pay Statement",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
+      {n:"Complete with Docusign: Tally — Privacy Policy Acknowledgement",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
+      {n:"Complete with Docusign: Tally — Investment Advisory Agreement",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
+    roles:[ {role:"Owner",person:"Sarah Connelly",initials:"SC"},
+      {role:"Client",person:"Sam Smith",initials:"SS"},
+      {role:"Co-signer",person:"Jaime Lannister",initials:"JL"},
+      {role:"Tally Compliance",person:"Compliance Desk",initials:"TC"} ],
+    docs:[
+      { match:"Pay Statement", file:"pay_statement.pdf", meta:"1 page · uploaded for income review", stat:"Waiting for upload",
+        ask:[
+          {label:"Why is this requested?",
+           answer:"The <b>Pay Statement</b> is requested to verify Sam's income for the suitability review. It's an upload request, not an envelope — <b>no signature</b> is needed, just the document. Until Sam uploads it, this item stays at <em>Waiting for upload</em>, due 3/31/2026.",
+           src:["Pay Statement","Client Onboarding — Sam Smith"]},
+          {label:"What is it used for downstream?",
+           answer:"It feeds the source-of-income basis the banker cites in the <b>Investment Advisory Agreement</b> suitability check. It's part of the compliance file but carries no open signing task once uploaded.",
+           src:["Pay Statement","Investment Advisory Agreement"]}
+        ]},
+      { match:"Privacy Policy", file:"tally_privacy_policy_acknowledgement.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+        ask:[
+          {label:"Who still has to sign this?",
+           answer:"The <b>Privacy Policy Acknowledgement</b> shows <em>0/2 done</em> — both Sam Smith and the co-signer Jaime Lannister still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+           src:["Privacy Policy Acknowledgement","Client Onboarding — Sam Smith"]},
+          {label:"What does Sam acknowledge here?",
+           answer:"It covers how Tally collects, shares, and safeguards Sam's nonpublic personal information under Reg S-P, plus opt-out rights for non-affiliate sharing. It's the privacy basis the <b>Investment Advisory Agreement</b> relies on, so it's sequenced first.",
+           src:["Privacy Policy Acknowledgement","Investment Advisory Agreement"]},
+          {label:"When is it due?",
+           answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope routed to Sam and the co-signer; once both sign, Sarah countersigns automatically and the item closes.",
+           src:["Privacy Policy Acknowledgement"]}
+        ]},
+      { match:"Investment Advisory", file:"tally_investment_advisory_agreement.pdf", meta:"Envelope · 0/2 done · 12 pages", stat:"Waiting for others",
+        ask:[
+          {label:"What fee schedule does this set?",
+           answer:"The <b>Investment Advisory Agreement</b> sets a tiered advisory fee — <em>1.0% on assets below $1M, 0.85% above</em> — billed quarterly in arrears, with a fiduciary acknowledgment. It references the <b>Privacy Policy Acknowledgement</b> Sam signs first.",
+           src:["Investment Advisory Agreement","Privacy Policy Acknowledgement"]},
+          {label:"What's blocking completion?",
+           answer:"It's at <em>0/2 done · Waiting for others</em> — neither Sam nor the co-signer has signed, and it's gated behind the Privacy Policy. Once both upstream signatures land, this envelope unlocks; due <b>4/2/2026</b>.",
+           src:["Investment Advisory Agreement","Privacy Policy Acknowledgement"]},
+          {label:"What happens after Sam signs?",
+           answer:"On Sam's signature the banker's countersignature applies automatically, the advisory relationship goes effective, and the full trail writes back to <b>nCino</b>. No re-keying — every field came from the documents in this workspace.",
+           src:["Investment Advisory Agreement"]}
+        ]}
+    ],
+    workspace:[
+      {label:"What's still outstanding?",
+       answer:"Across this workspace, the upload request is at <em>Waiting for upload</em> and both signing envelopes are at <em>0/2 done · Waiting for others</em>. Everything is in one place — invited parties see only their own items.",
+       src:["Client Onboarding — Sam Smith"]},
+      {label:"How do reminders work here?",
+       answer:"A reminder nudges only the parties on a specific envelope that's still waiting — not everyone in the workspace. Open a signing document to ask who's left, then remind just them.",
+       src:["Privacy Policy Acknowledgement","Investment Advisory Agreement"]}
+    ],
+    handoff:{h:"Every party, one audit trail",p:"Documents, uploads and signatures stay in one Tally workspace — the full trail writes back to nCino."} },
+
+  healthcare:{ label:"Healthcare · Riverside",
+    theme:{ "--tenant-accent":"#0E8C7F","--tenant-accent-soft":"#DFF3EF","--tenant-ink":"#08332E" },
+    brand:{ name:"Riverside Health", mark:"R" }, sorBadge:"System of record · Epic",
+    persona:{ name:"Maria Lopez", role:"Care Coordinator" },
+    cobrand:"Riverside", title:"Patient Onboarding — Jordan Kim",
+    rows:[ {n:"Insurance Card",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
+      {n:"Complete with Docusign: Riverside — Consent to Treat",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
+      {n:"Complete with Docusign: Riverside — HIPAA Authorization",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
+    roles:[ {role:"Owner",person:"Maria Lopez",initials:"ML"},
+      {role:"Patient",person:"Jordan Kim",initials:"JK"},
+      {role:"Provider",person:"Dr. Alan Reyes",initials:"AR"},
+      {role:"Privacy Office",person:"HIM Desk",initials:"HD"} ],
+    docs:[
+      { match:"Insurance Card", file:"insurance_card.pdf", meta:"1 page · front & back image", stat:"Waiting for upload",
+        ask:[
+          {label:"Why is this requested?",
+           answer:"The <b>Insurance Card</b> is an upload request so Riverside can capture payer, plan and member ID for eligibility — <b>no signature</b> needed. Until Jordan uploads it, this stays at <em>Waiting for upload</em>, due 3/31/2026.",
+           src:["Insurance Card","Patient Onboarding — Jordan Kim"]},
+          {label:"What does it unblock?",
+           answer:"Coverage details on the card feed the benefits check that runs before treatment. It's informational, so it carries no open signing task once received and writes back to the <b>Epic chart</b>.",
+           src:["Insurance Card","Epic chart"]}
+        ]},
+      { match:"Consent to Treat", file:"riverside_consent_to_treat.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+        ask:[
+          {label:"Who still has to sign this?",
+           answer:"The <b>Consent to Treat</b> shows <em>0/2 done</em> — both Jordan Kim and the provider still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+           src:["Consent to Treat","Patient Onboarding — Jordan Kim"]},
+          {label:"What does Jordan consent to?",
+           answer:"It authorizes Riverside to provide evaluation and treatment, covers financial responsibility, and acknowledges the patient rights notice. It's sequenced alongside the <b>HIPAA Authorization</b> in Jordan's intake.",
+           src:["Consent to Treat","HIPAA Authorization"]},
+          {label:"When is it due?",
+           answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope; once Jordan and the provider sign, Maria countersigns automatically and the item closes.",
+           src:["Consent to Treat"]}
+        ]},
+      { match:"HIPAA Authorization", file:"riverside_hipaa_authorization.pdf", meta:"Envelope · 0/2 done · 2 pages", stat:"Waiting for others",
+        ask:[
+          {label:"What does this authorize?",
+           answer:"The <b>HIPAA Authorization</b> lets Riverside use and disclose Jordan's protected health information for the named purposes, with the recipients and an expiration spelled out. It's the privacy basis the <b>Consent to Treat</b> relies on.",
+           src:["HIPAA Authorization","Consent to Treat"]},
+          {label:"What's blocking completion?",
+           answer:"It's at <em>0/2 done · Waiting for others</em> — neither Jordan nor the provider has signed yet. Access is explicit and HIPAA-minded; due <b>4/2/2026</b>. One reminder nudges only these two parties.",
+           src:["HIPAA Authorization","Patient Onboarding — Jordan Kim"]},
+          {label:"What happens after Jordan signs?",
+           answer:"On Jordan's signature the authorization goes effective, the consent envelope unlocks, and the full trail writes back to the <b>Epic chart</b> — nothing keyed in by hand.",
+           src:["HIPAA Authorization","Epic chart"]}
+        ]}
+    ],
+    workspace:[
+      {label:"What's still outstanding?",
+       answer:"Across this workspace, the upload request is at <em>Waiting for upload</em> and both signing envelopes are at <em>0/2 done · Waiting for others</em>. Everything is in one place — invited parties see only their own items.",
+       src:["Patient Onboarding — Jordan Kim"]},
+      {label:"How do reminders work here?",
+       answer:"A reminder nudges only the parties on a specific envelope that's still waiting — not everyone in the workspace. Open a signing document to ask who's left, then remind just them.",
+       src:["Consent to Treat","HIPAA Authorization"]}
+    ],
+    handoff:{h:"Every party, one audit trail",p:"Consents, uploads and signatures stay in one Riverside workspace — the full trail writes back to Epic."} },
+
+  pubsec:{ label:"Public Sector · Gov",
+    theme:{ "--tenant-accent":"#1D4ED8","--tenant-accent-soft":"#E6EDFB","--tenant-ink":"#13294B" },
+    brand:{ name:"State Agency", mark:"G" }, sorBadge:"System of record · Salesforce",
+    persona:{ name:"Maria Lopez", role:"Case Manager" },
+    cobrand:"State", title:"Application — Jordan Rivera",
+    rows:[ {n:"Proof of Income",s:"Upload Request",st:"bar",stt:"Waiting for upload",due:"3/31/2026",act:"view",ck:0},
+      {n:"Complete with Docusign: State — Application & Attestation",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1},
+      {n:"Complete with Docusign: State — Eligibility Authorization",s:"Envelope",st:"done",stt:"0/2 done · Waiting for others",due:"4/2/2026",act:"remind",ck:1} ],
+    roles:[ {role:"Owner",person:"Maria Lopez",initials:"ML"},
+      {role:"Applicant",person:"Jordan Rivera",initials:"JR"},
+      {role:"Reviewer",person:"Eligibility Reviewer",initials:"ER"},
+      {role:"Records Office",person:"Records Desk",initials:"RD"} ],
+    docs:[
+      { match:"Proof of Income", file:"proof_of_income.pdf", meta:"1 page · uploaded for eligibility", stat:"Waiting for upload",
+        ask:[
+          {label:"Why is this requested?",
+           answer:"<b>Proof of Income</b> is an upload request so the agency can confirm Jordan's income against the program threshold — <b>no signature</b> needed. Until Jordan uploads it, this stays at <em>Waiting for upload</em>, due 3/31/2026.",
+           src:["Proof of Income","Application — Jordan Rivera"]},
+          {label:"What does it unblock?",
+           answer:"It supports the means test the reviewer runs on the <b>Eligibility Authorization</b>. It's informational, so it carries no open signing task once received and writes back to the agency system of record.",
+           src:["Proof of Income","Eligibility Authorization"]}
+        ]},
+      { match:"Application & Attestation", file:"state_application_attestation.pdf", meta:"Envelope · 0/2 done · 4 pages", stat:"Waiting for others",
+        ask:[
+          {label:"Who still has to sign this?",
+           answer:"The <b>Application &amp; Attestation</b> shows <em>0/2 done</em> — both Jordan Rivera and the reviewer still need to sign. One reminder nudges only the parties on this envelope; nothing else in the workspace is touched.",
+           src:["Application & Attestation","Application — Jordan Rivera"]},
+          {label:"What does Jordan attest to?",
+           answer:"Jordan attests the application is true and complete under penalty of perjury, consents to verification, and acknowledges program obligations. It's paired with the <b>Eligibility Authorization</b> in the case file.",
+           src:["Application & Attestation","Eligibility Authorization"]},
+          {label:"When is it due?",
+           answer:"Due <b>4/2/2026</b>. It's a 2-signer envelope; once Jordan and the reviewer sign, the case manager countersigns automatically and the item closes.",
+           src:["Application & Attestation"]}
+        ]},
+      { match:"Eligibility Authorization", file:"state_eligibility_authorization.pdf", meta:"Envelope · 0/2 done · 3 pages", stat:"Waiting for others",
+        ask:[
+          {label:"What does this authorize?",
+           answer:"The <b>Eligibility Authorization</b> lets the agency verify Jordan's income, identity and household against third-party sources for the determination, with the scope and duration named. It relies on the income proof Jordan uploads.",
+           src:["Eligibility Authorization","Proof of Income"]},
+          {label:"What's blocking completion?",
+           answer:"It's at <em>0/2 done · Waiting for others</em> — neither Jordan nor the reviewer has signed yet. Access is explicit and auditable; due <b>4/2/2026</b>. One reminder nudges only these two parties.",
+           src:["Eligibility Authorization","Application — Jordan Rivera"]},
+          {label:"What happens after Jordan signs?",
+           answer:"On Jordan's signature the authorization goes effective, the determination can proceed, and the full trail writes back to the agency system of record — nothing keyed in by hand.",
+           src:["Eligibility Authorization"]}
+        ]}
+    ],
+    workspace:[
+      {label:"What's still outstanding?",
+       answer:"Across this workspace, the upload request is at <em>Waiting for upload</em> and both signing envelopes are at <em>0/2 done · Waiting for others</em>. Everything is in one place — invited parties see only their own items.",
+       src:["Application — Jordan Rivera"]},
+      {label:"How do reminders work here?",
+       answer:"A reminder nudges only the parties on a specific envelope that's still waiting — not everyone in the workspace. Open a signing document to ask who's left, then remind just them.",
+       src:["Application & Attestation","Eligibility Authorization"]}
+    ],
+    handoff:{h:"Every party, one audit trail",p:"Forms, uploads and signatures stay in one agency workspace — the full trail writes back to the system of record."} }
+};
+
+/* =====================================================================
+   SMALL HELPERS
+   ===================================================================== */
+function $(sel,ctx){ return (ctx||document).querySelector(sel); }
+function el(tag,cls,html){ const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; }
+function initials(n){ return (n||"·").split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"·"; }
+function statusClass(s){ return s==="Ready to send"?"s-ready":(s==="In progress"?"s-prog":"s-wait"); }
+function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* iOS-style SVG glyphs (SF-symbol-like, stroked) */
+const ICON = {
+  plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>',
+  send:'<svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  doc:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg>',
+  upload:'<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>',
+  folder:'<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  spark:'<svg viewBox="0 0 24 24"><path d="M12 3l1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6z"/></svg>'
+};
+
+/* =====================================================================
+   TYPEWRITER (char-by-char, iOS bubble). Mirrors the logic in
+   demos/engine/agent-chat.js (setInterval + caret) but renders into
+   our native iOS message bubble rather than the desktop .agc styles.
+   ===================================================================== */
+function typeInto(span, html, speed, done){
+  const caret = el("span","caret");
+  span.after(caret);
+  let i=0;
+  const scroller = span.closest(".chat");
+  const iv = setInterval(()=>{
+    i++;
+    span.innerHTML = html.slice(0,i);
+    if(scroller) scroller.scrollTop = scroller.scrollHeight;
+    if(i>=html.length){ clearInterval(iv); caret.remove(); if(done) done(); }
+  }, speed);
+  return iv;
+}
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const params = new URLSearchParams(location.search);
+let PACK_KEY = params.get("pack");
+if(!PACKS[PACK_KEY]) PACK_KEY = "banking";
+const PACK = PACKS[PACK_KEY];
+
+const State = {
+  rows: PACK.rows.slice(),        // working copy (lets "New task" prepend)
+  tab: "workspace",               // workspace | ask
+  chatBusy: false,
+  ntStatus: "Waiting"
+};
+
+/* =====================================================================
+   THEME — apply the selected pack's accent across the app
+   ===================================================================== */
+function applyTheme(){
+  const r = document.documentElement;
+  Object.keys(PACK.theme).forEach(k => r.style.setProperty(k, PACK.theme[k]));
+  const tc = $('meta[name="theme-color"]'); if(tc) tc.setAttribute("content", PACK.theme["--tenant-accent"]);
+}
+
+/* =====================================================================
+   ROW → DOC mapping (match by name, exactly like desktop docForRow)
+   ===================================================================== */
+function docForRow(r){
+  const name = (r.n||"").toLowerCase();
+  return PACK.docs.find(d => name.indexOf((d.match||"").toLowerCase()) !== -1);
+}
+function rowTitle(r){ return (r.n||"").replace(/^Complete with Docusign:\s*/,""); }
+function isUpload(r){ return r.st==="bar"; }
+
+/* =====================================================================
+   BUILD: app skeleton (screens + tab bar)
+   ===================================================================== */
+function buildApp(){
+  const app = $("#app");
+  app.innerHTML = "";
+
+  const screens = el("div","screens");
+
+  // — Workspace screen —
+  const wsScreen = el("section","screen"); wsScreen.id="screen-workspace";
+  wsScreen.appendChild(buildHeader());
+  const wsScroll = el("div","scroll");
+  wsScroll.appendChild(buildList());
+  wsScroll.appendChild(buildFooter());
+  wsScreen.appendChild(wsScroll);
+
+  // — Ask AI screen (workspace-level chat) —
+  const askScreen = el("section","screen"); askScreen.id="screen-ask"; askScreen.hidden=true;
+  askScreen.appendChild(buildAskHeader());
+  askScreen.appendChild(buildWorkspaceChat());
+
+  screens.appendChild(wsScreen);
+  screens.appendChild(askScreen);
+  app.appendChild(screens);
+
+  // — Tab bar —
+  app.appendChild(buildTabBar());
+}
+
+/* — Large-title header (Workspace tab) — */
+function buildHeader(){
+  const h = el("div","lt-head");
+  const top = el("div","lt-top");
+  const titles = el("div","lt-titles");
+  titles.appendChild(el("h1","lt-title", escapeHtml(PACK.title)));
+  const sub = el("div","lt-sub");
+  sub.innerHTML = '<b>'+escapeHtml(PACK.brand.name)+'</b><span class="dot"></span>'+
+                  escapeHtml(PACK.persona.name)+' · '+escapeHtml(PACK.persona.role);
+  titles.appendChild(sub);
+  titles.appendChild(stateBadge());
+  top.appendChild(titles);
+
+  const actions = el("div","lt-actions");
+  const add = el("button","lt-add", ICON.plus);
+  add.setAttribute("aria-label","Add task");
+  add.addEventListener("click", openSheet);
+  actions.appendChild(add);
+  const av = el("div","lt-avatar", escapeHtml(PACK.brand.mark || initials(PACK.brand.name)));
+  actions.appendChild(av);
+  top.appendChild(actions);
+
+  h.appendChild(top);
+  return h;
+}
+function stateBadge(){
+  const b = el("span","lt-state");
+  b.innerHTML = '<span class="glow"></span>Active · '+escapeHtml(PACK.cobrand);
+  return b;
+}
+
+/* — Grouped inset list of documents & tasks — */
+function buildList(){
+  const grp = el("div","grp"); grp.id="ws-grp";
+  grp.appendChild(el("div","grp-hd","Documents & tasks"));
+  const card = el("div","card"); card.id="ws-card";
+  renderRows(card);
+  grp.appendChild(card);
+  return grp;
+}
+function renderRows(card){
+  card.innerHTML = "";
+  State.rows.forEach((r,i)=> card.appendChild(rowEl(r,i)));
+}
+function rowEl(r, i){
+  const row = el("div","row");
+  row.dataset.idx = i;
+  if(r.__new) row.classList.add("row-new");
+
+  const upload = isUpload(r);
+  const icon = el("div","row-icon "+(upload?"up":"doc"), upload?ICON.upload:ICON.doc);
+  if(r.__task) icon.innerHTML = ICON.folder;
+  row.appendChild(icon);
+
+  const body = el("div","row-body");
+  body.appendChild(el("div","row-title", escapeHtml(rowTitle(r))));
+
+  // secondary line: assignee (created tasks) or type/status
+  let subHtml;
+  if(r.__task){
+    const av = r.__initials || "·";
+    subHtml = '<span class="assignee"><span class="av">'+escapeHtml(av)+'</span>'+
+              'Assigned to '+escapeHtml(r.__assignee||"a member")+
+              (r.__role?' · '+escapeHtml(r.__role):'')+'</span>';
+  } else {
+    subHtml = escapeHtml(r.s + ' · ' + r.stt);
+  }
+  body.appendChild(el("div","row-sub", subHtml));
+  row.appendChild(body);
+
+  // trailing: status pill + chevron (docs); pill only (tasks, no detail)
+  const trail = el("div","row-trail");
+  const statusText = r.__task ? r.__status : (upload ? "Waiting" : "0/2 · Waiting");
+  trail.appendChild(el("span","pill "+statusClass(r.__task?r.__status:(upload?"Waiting":"Waiting")), escapeHtml(statusText)));
+  if(!r.__task){
+    trail.appendChild(el("span","chev","›"));
+  }
+  row.appendChild(trail);
+
+  // tap → push detail (only real documents have a Q&A pack)
+  if(!r.__task && docForRow(r)){
+    row.addEventListener("click", ()=> openDetail(i));
+  }
+  return row;
+}
+
+/* — Footer note under the list — */
+function buildFooter(){
+  const grp = el("div","grp");
+  grp.appendChild(el("div","grp-ft",
+    '<b style="color:var(--ios-label)">'+escapeHtml(PACK.handoff.h)+'.</b> '+escapeHtml(PACK.handoff.p)));
+  return grp;
+}
+
+/* — Ask AI screen header (large title) — */
+function buildAskHeader(){
+  const h = el("div","lt-head");
+  const top = el("div","lt-top");
+  const titles = el("div","lt-titles");
+  titles.appendChild(el("h1","lt-title","Ask AI"));
+  const sub = el("div","lt-sub");
+  sub.innerHTML = 'Workspace assistant<span class="dot"></span><b>'+escapeHtml(PACK.brand.name)+'</b>';
+  titles.appendChild(sub);
+  top.appendChild(titles);
+  const actions = el("div","lt-actions");
+  const av = el("div","lt-avatar","✦"); av.style.background="linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082)";
+  actions.appendChild(av);
+  top.appendChild(actions);
+  h.appendChild(top);
+  return h;
+}
+
+/* =====================================================================
+   CHAT BUILDERS — Workspace-level + per-document
+   ===================================================================== */
+/* a fresh chat structure: <div.chat-wrap><div.chat/><div.chips/><div.chatbar/></div> */
+function makeChat(introHtml, exchanges, placeholder){
+  const wrap = el("div","chat-wrap");
+  const chat = el("div","chat");
+  if(introHtml){
+    chat.appendChild(el("div","chat-intro", introHtml));
+  }
+  wrap.appendChild(chat);
+
+  const chips = el("div","chips");
+  wrap.appendChild(chips);
+
+  const bar = el("div","chatbar");
+  bar.innerHTML = '<div class="field">'+escapeHtml(placeholder||"Ask the assistant…")+'</div>'+
+                  '<div class="send">'+ICON.send+'</div>';
+  wrap.appendChild(bar);
+
+  // local busy flag per chat instance
+  const ctx = { chat, chips, busy:false, exchanges:exchanges.map(e=>({...e,used:false})) };
+  renderChips(ctx);
+  return wrap;
+}
+function renderChips(ctx){
+  ctx.chips.innerHTML = "";
+  const remaining = ctx.exchanges.filter(e=>!e.used);
+  if(!remaining.length){
+    ctx.chips.appendChild(el("span","hint","All answered ✓"));
+    return;
+  }
+  ctx.chips.appendChild(el("span","hint","Suggested"));
+  remaining.forEach(ex=>{
+    const c = el("button","chip-sug", null);
+    c.textContent = ex.label;
+    c.addEventListener("click", ()=> runExchange(ctx, ex));
+    ctx.chips.appendChild(c);
+  });
+}
+function runExchange(ctx, ex){
+  if(ctx.busy) return;
+  ctx.busy = true; ex.used = true;
+  renderChips(ctx);
+
+  // outgoing question bubble (accent, right)
+  const me = el("div","msg me", escapeHtml(ex.user || ex.label));
+  ctx.chat.appendChild(me);
+  ctx.chat.scrollTop = ctx.chat.scrollHeight;
+
+  // typing indicator
+  const typing = el("div","typing","<i></i><i></i><i></i>");
+  ctx.chat.appendChild(typing);
+  ctx.chat.scrollTop = ctx.chat.scrollHeight;
+
+  setTimeout(()=>{
+    typing.remove();
+    // incoming answer bubble (gray, left) — typed in
+    const ai = el("div","msg ai", null);
+    const span = el("span", null, "");
+    ai.appendChild(span);
+    ctx.chat.appendChild(ai);
+    ctx.chat.scrollTop = ctx.chat.scrollHeight;
+
+    typeInto(span, ex.answer, 13, ()=>{
+      // source citation chips under the answer
+      if(ex.src && ex.src.length){
+        const src = el("div","src", '<span class="lbl">Sources</span>');
+        ex.src.forEach(s=> src.appendChild(el("span","chip", escapeHtml(s))));
+        ctx.chat.appendChild(src);
+      }
+      ctx.busy = false;
+      renderChips(ctx);
+      ctx.chat.scrollTop = ctx.chat.scrollHeight;
+    });
+  }, 620);
+}
+
+/* Workspace-level chat (Ask AI tab) */
+function buildWorkspaceChat(){
+  const intro = "I'm the AI assistant for this workspace. Ask what's outstanding across the whole space, or open a document to ask about that file.";
+  return makeChat(intro, PACK.workspace, "Ask about this workspace…");
+}
+
+/* =====================================================================
+   DETAIL PUSH VIEW (per-document)
+   ===================================================================== */
+function openDetail(idx){
+  const r = State.rows[idx];
+  const d = docForRow(r);
+  if(!d) return;
+  const upload = isUpload(r);
+
+  const detail = el("div","detail");
+
+  // nav bar
+  const nav = el("div","navbar");
+  const navrow = el("div","navbar-row");
+  const back = el("button","nav-back", ICON.back + '<span>Workspace</span>');
+  navrow.appendChild(back);
+  navrow.appendChild(el("div","nav-title", escapeHtml(rowTitle(r))));
+  nav.appendChild(navrow);
+  detail.appendChild(nav);
+
+  // doc header block (sits above the chat scroller, inside the chat-wrap flex column)
+  const top = el("div", null);
+
+  const hd = el("div","doc-hd"+(upload?" up":""));
+  hd.innerHTML = '<div class="dh-icon">'+(upload?ICON.upload:ICON.doc)+'</div>'+
+                 '<h1>'+escapeHtml(rowTitle(r))+'</h1>'+
+                 '<div class="dh-meta">'+escapeHtml(d.meta || d.stat || "")+'</div>'+
+                 '<div class="dh-stat">'+escapeHtml(d.stat || r.stt)+'</div>';
+  top.appendChild(hd);
+
+  const banner = el("div","ask-banner");
+  banner.innerHTML = '<span class="ai">✦</span>Ask about this document';
+  top.appendChild(banner);
+
+  // build the doc chat and graft its parts
+  const docExchanges = d.ask.map(x=>({ label:x.label, user:x.label, answer:x.answer, src:x.src }));
+  const chatWrap = makeChat(
+    'Opened <b>'+escapeHtml(rowTitle(r))+'</b> — '+escapeHtml(d.meta || d.stat || "")+'. Ask me about this file.',
+    docExchanges,
+    "Ask about "+d.file+"…"
+  );
+  // place the doc-header block above the chat scroller (inside the same flex column)
+  chatWrap.insertBefore(top, chatWrap.firstChild);
+  detail.appendChild(chatWrap);
+
+  $("#app").appendChild(detail);
+  // animate in
+  requestAnimationFrame(()=> requestAnimationFrame(()=> detail.classList.add("in")));
+
+  function close(){
+    detail.classList.remove("in");
+    setTimeout(()=> detail.remove(), 320);
+  }
+  back.addEventListener("click", close);
+}
+
+/* =====================================================================
+   BOTTOM TAB BAR (Workspace | Ask AI)
+   ===================================================================== */
+function buildTabBar(){
+  const bar = el("div","tabbar");
+
+  const tWs = el("button","tab active");
+  tWs.id="tab-workspace";
+  tWs.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Workspace</span>';
+  tWs.addEventListener("click", ()=> setTab("workspace"));
+
+  const tAsk = el("button","tab");
+  tAsk.id="tab-ask";
+  tAsk.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/><path d="M9.5 9.5h5M9.5 13h3"/></svg><span>Ask AI</span>';
+  tAsk.addEventListener("click", ()=> setTab("ask"));
+
+  bar.appendChild(tWs);
+  bar.appendChild(tAsk);
+  return bar;
+}
+function setTab(t){
+  State.tab = t;
+  const ws = t==="workspace";
+  $("#screen-workspace").hidden = !ws;
+  $("#screen-ask").hidden = ws;
+  $("#tab-workspace").classList.toggle("active", ws);
+  $("#tab-ask").classList.toggle("active", !ws);
+}
+
+/* =====================================================================
+   NEW-TASK SHEET (iOS modal)
+   ===================================================================== */
+let sheetEls = null;
+function buildSheet(){
+  const scrim = el("div","scrim"); scrim.id="nt-scrim";
+  const sheet = el("div","sheet"); sheet.id="nt-sheet";
+
+  sheet.appendChild(el("div","sheet-grab"));
+
+  const nav = el("div","sheet-nav");
+  const cancel = el("button","cancel","Cancel");
+  nav.appendChild(cancel);
+  nav.appendChild(el("div","ttl","New Task"));
+  nav.appendChild(el("div","spacer"));
+  sheet.appendChild(nav);
+
+  const bodyWrap = el("div","sheet-body");
+
+  // Task name + Assignee group
+  const grp = el("div","field-grp");
+  const rowName = el("div","field-row");
+  rowName.innerHTML = '<label for="nt-name">Task</label>'+
+    '<input type="text" id="nt-name" placeholder="e.g. Upload signed W-9" autocomplete="off">';
+  grp.appendChild(rowName);
+  const rowAssign = el("div","field-row");
+  const sel = el("select", null, null); sel.id="nt-assignee";
+  PACK.roles.forEach((r,i)=>{
+    const showRole = r.role && r.role.toLowerCase() !== (r.person||"").toLowerCase();
+    const opt = el("option", null, escapeHtml(r.person + (showRole?' — '+r.role:'')));
+    opt.value = i;
+    sel.appendChild(opt);
+  });
+  rowAssign.appendChild(el("label",null,"Assign to"));
+  rowAssign.appendChild(sel);
+  grp.appendChild(rowAssign);
+  bodyWrap.appendChild(grp);
+
+  // Status segmented control
+  bodyWrap.appendChild(el("div","grp-cap","Status"));
+  const seg = el("div","seg");
+  ["Waiting","In progress","Ready to send"].forEach((s,i)=>{
+    const b = el("button", i===0?"on":"", escapeHtml(s));
+    b.dataset.val = s;
+    b.addEventListener("click", ()=>{
+      seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      State.ntStatus = s;
+    });
+    seg.appendChild(b);
+  });
+  bodyWrap.appendChild(seg);
+
+  // Add button
+  const addBtn = el("button","btn-add","Add Task"); addBtn.id="nt-add"; addBtn.disabled=true;
+  bodyWrap.appendChild(addBtn);
+
+  sheet.appendChild(bodyWrap);
+
+  $("#app").appendChild(scrim);
+  $("#app").appendChild(sheet);
+
+  const nameInput = $("#nt-name");
+  nameInput.addEventListener("input", ()=>{ addBtn.disabled = !nameInput.value.trim(); });
+  nameInput.addEventListener("keydown", e=>{ if(e.key==="Enter" && !addBtn.disabled) addBtn.click(); });
+  cancel.addEventListener("click", closeSheet);
+  scrim.addEventListener("click", closeSheet);
+  addBtn.addEventListener("click", submitTask);
+
+  sheetEls = { scrim, sheet, sel, nameInput, addBtn, seg };
+}
+function openSheet(){
+  if(!sheetEls) buildSheet();
+  // reset
+  State.ntStatus = "Waiting";
+  sheetEls.nameInput.value = "";
+  sheetEls.addBtn.disabled = true;
+  sheetEls.sel.selectedIndex = Math.min(1, PACK.roles.length-1); // default to first non-owner party
+  sheetEls.seg.querySelectorAll("button").forEach((b,i)=> b.classList.toggle("on", i===0));
+  sheetEls.scrim.classList.add("in");
+  requestAnimationFrame(()=> sheetEls.sheet.classList.add("in"));
+  setTimeout(()=> sheetEls.nameInput.focus(), 320);
+}
+function closeSheet(){
+  if(!sheetEls) return;
+  sheetEls.sheet.classList.remove("in");
+  sheetEls.scrim.classList.remove("in");
+}
+function submitTask(){
+  const name = sheetEls.nameInput.value.trim();
+  if(!name) return;
+  const r = PACK.roles[+sheetEls.sel.value] || PACK.roles[0] || {};
+  const status = State.ntStatus || "Waiting";
+  const showRole = r.role && r.role.toLowerCase() !== (r.person||"").toLowerCase();
+
+  const task = {
+    n: name, s:"Task", st:"task", stt:status, due:"—",
+    __task:true,
+    __assignee: r.person || "a member",
+    __role: showRole ? r.role : "",
+    __initials: r.initials || initials(r.person),
+    __status: status,
+    __new: true
+  };
+  // prepend to the list (newest task on top)
+  State.rows.unshift(task);
+
+  closeSheet();
+  setTab("workspace");
+  const card = $("#ws-card");
+  renderRows(card);
+  // clear the one-shot "new" flag after the animation so re-renders don't replay it
+  setTimeout(()=>{ task.__new=false; }, 500);
+  const firstRow = card.querySelector(".row");
+  if(firstRow) firstRow.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+applyTheme();
+buildApp();
+</script>
+</body>
+</html>
