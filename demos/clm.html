@@ -5,17 +5,16 @@
 <title>CLM (Contract Lifecycle) — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/clm.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   /* The CLM lifecycle visual is intact; we add an "Ask about this agreement"
      AI-Extractions assistant as a right-hand column. Modeled on navigator.html
-     (.nv-agent / .phd / .agc-accept), adapted to the CLM layout. */
-  .clm-agent{width:322px;flex:0 0 auto;border-left:1px solid #E5E5EA;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .clm-doc{flex:1 1 600px;background:#E9E9EC;padding:20px;overflow:hidden}
+  .clm-agent{width:280px;flex:0 0 auto;border-left:1px solid #E5E5EA;display:flex;flex-direction:column;background:#fff;min-height:0}
   .clm-agent .phd{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid #EFEFF1;font-size:12.5px;font-weight:700;color:#1a1a26}
   .clm-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
-  .clm-doc{flex:1;min-width:0}
-  .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+  .clm-doc{flex:1 1 600px;background:#E9E9EC;padding:20px;overflow:hidden}
+  .clm-agent{width:280px;flex:0 0 auto;border-left:1px solid #E5E5EA;display:flex;flex-direction:column;background:#fff;min-height:0}
   .agc-accept.done{background:var(--tenant-accent);color:#fff;cursor:default}
 </style>
 </head>
@@ -67,7 +66,7 @@ const SCENES='<section class="de-scene is-active" data-scene="clm"><div class="c
 
 DemoEngine.interactive({
   meta:{ title:"CLM (Contract Lifecycle) — interactive", productTag:"CLM · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Iris has read this agreement and its AI Extractions — click a question and it types a specific, cited answer from the contract, then routes it for signature. Switch vertical to re-skin the agreement, parties and terms.' },
+    footnote:'<b>This panel is live.</b> Iris has read this agreement and its AI Extractions — click a question and it types a specific, cited answer from the contract, then routes it for signature. Switch vertical to re-skin the agreement, parties and terms. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -149,9 +148,11 @@ DemoEngine.interactive({
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
         after:()=>{ bump(); if(ex.route){ const b=$("#clm-chat").querySelector("[data-route]"); if(b) b.onclick=()=>routeForSignature(b); } } })) });
 
-    if(api.auto){ api.after(900,()=>{ const c=$("#clm-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(6000,()=>{ const chips=$("#clm-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
-      api.after(10500,()=>{ const b=$("#clm-chat").querySelector("[data-route]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#clm-chips .agc-chip' },
+      { at:6000, run:()=>{ const chips=$("#clm-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
+      { at:10500, run:()=>{ const b=$("#clm-chat").querySelector('[data-route]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

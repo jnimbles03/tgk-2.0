@@ -5,13 +5,12 @@
 <title>Agreement Manager — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   .app.has-rail .app-body{padding:0}
   .am-wrap{display:flex;height:100%}
-  .am-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .am-th,.am-row{display:flex;align-items:center}
+  .am-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
+  .am-agent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
   .am-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
   .am-row{padding:12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
   .am-row.hot{background:var(--tenant-accent-soft)}
@@ -24,8 +23,8 @@
   .am-aicol{display:inline-flex;align-items:center;gap:5px;color:var(--tenant-accent)}
   .am-ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--tenant-accent);background:var(--tenant-accent-soft);padding:2px 8px;border-radius:20px;margin-left:8px}
   .am-summary{margin-top:18px;padding:14px 18px;border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:11px;font-size:13.5px;color:var(--tenant-ink);font-weight:600;display:flex;align-items:center;gap:10px}
-  /* agent ask panel (modeled on navigator.html .nv-agent) */
-  .am-agent{width:344px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .am-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
+  .am-agent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
   .am-agent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
   .am-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
   .agc-accept{display:inline-flex;align-items:center;gap:6px;margin-top:9px;border:1px solid var(--tenant-accent);color:var(--tenant-accent);background:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
@@ -69,7 +68,7 @@ const SCENES='<section class="de-scene is-active" data-scene="app"><div class="a
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Manager — interactive", productTag:"Agreement Manager · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Iris has run the worksheet across the whole portfolio — click a question and it types a specific, cited answer from the agreements on screen, then offers the next action. Switch vertical to re-skin the portfolio and the analysis questions.' },
+    footnote:'<b>This panel is live.</b> Iris has run the worksheet across the whole portfolio — click a question and it types a specific, cited answer from the agreements on screen, then offers the next action. Switch vertical to re-skin the portfolio and the analysis questions. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -141,9 +140,11 @@ DemoEngine.interactive({
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
         after:()=>{ bump(); if(ex.route){ const b=$("#am-chat").querySelector("[data-route]"); if(b) b.onclick=()=>startRoute(b); } } })) });
 
-    if(api.auto){ api.after(900,()=>{ const c=$("#am-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(6000,()=>{ const chips=$("#am-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
-      api.after(10500,()=>{ const b=$("#am-chat").querySelector("[data-route]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#am-chips .agc-chip' },
+      { at:6000, run:()=>{ const chips=$("#am-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
+      { at:10500, run:()=>{ const b=$("#am-chat").querySelector('[data-route]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

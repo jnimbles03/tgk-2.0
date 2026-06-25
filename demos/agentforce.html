@@ -36,7 +36,7 @@ const SCENES='<div class="sf">'+
 
 DemoEngine.interactive({
   meta:{ title:"Docusign for Agentforce — interactive", productTag:"Agentforce · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Click a suggested prompt and watch Agentforce respond — it generates the agreement with Docusign, sends it for signature, and writes the activity back to the opportunity. Switch vertical to re-skin.' },
+    footnote:'<b>This panel is live.</b> Click a suggested prompt and watch Agentforce respond — it generates the agreement with Docusign, sends it for signature, and writes the activity back to the opportunity. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:3, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -83,7 +83,9 @@ DemoEngine.interactive({
         after:()=>{ done++; api.progress(Math.min(done,3));
           if(ex.activity){ setTimeout(()=>$("#sf-a1").classList.add("on"),150); setTimeout(()=>$("#sf-a2").classList.add("on"),650); setTimeout(()=>$("#sf-a3").classList.add("on"),1150); api.narrate("gen"); } } }))
     });
-    if(api.auto) api.after(900,()=>{ const c=$("#af-chips").querySelector(".agc-chip"); c&&c.click(); });
+    api.autopilot([
+      { at:900, selector:'#af-chips .agc-chip' }
+    ]);
   }
 });
 </script>

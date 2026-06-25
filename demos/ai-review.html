@@ -31,7 +31,7 @@ const SCENES='<div class="rv">'+
 
 DemoEngine.interactive({
   meta:{ title:"AI-Assisted Review — interactive", productTag:"AI-Assisted Review · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Ask AI to review against your playbook — it types its findings, then you click <b>Accept redline</b> and watch the clause change in the document. Switch vertical to re-skin.' },
+    footnote:'<b>This panel is live.</b> Ask AI to review against your playbook — it types its findings, then you click <b>Accept redline</b> and watch the clause change in the document. Switch vertical to re-skin. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:3, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -90,8 +90,10 @@ DemoEngine.interactive({
       intro:"I can review this against your playbook, summarize risks, or draft language. What would you like?",
       exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer.replace(/\n/g,"<br>"), card:ex.card,
         after:()=>{ done++; api.progress(Math.min(done,3)); if(ex.redline){ const b=$("#rv-chat").querySelector("[data-accept]"); if(b) b.onclick=()=>applyRedline(b); } } })) });
-    if(api.auto){ api.after(900,()=>{ const c=$("#rv-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(5200,()=>{ const b=$("#rv-chat").querySelector("[data-accept]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#rv-chips .agc-chip' },
+      { at:5200, run:()=>{ const b=$("#rv-chat").querySelector('[data-accept]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

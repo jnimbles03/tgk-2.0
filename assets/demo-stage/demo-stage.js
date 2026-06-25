@@ -168,6 +168,33 @@
 
     if (isEmbed) document.body.classList.add("embed");
 
+    if (!isEmbed && !document.querySelector('a[href="/builder.html"]')) {
+      var back = document.createElement('a');
+      back.href = '/builder.html';
+      back.target = '_top';
+      back.textContent = 'Back to Builder';
+      back.className = 'tgk-back-builder';
+      back.setAttribute('aria-label', 'Back to Builder');
+      back.style.cssText = [
+        'position:fixed',
+        'top:12px',
+        'right:12px',
+        'z-index:9999',
+        'display:inline-flex',
+        'align-items:center',
+        'gap:8px',
+        'padding:10px 14px',
+        'border-radius:999px',
+        'background:rgba(13,5,36,.92)',
+        'color:#fff',
+        'text-decoration:none',
+        'font:600 13px/1.1 Inter,system-ui,sans-serif',
+        'border:1px solid rgba(255,255,255,.16)',
+        'box-shadow:0 6px 20px rgba(0,0,0,.24)'
+      ].join(';');
+      document.body.appendChild(back);
+    }
+
     // Decide mode: video-backed or scenes-backed
     var hasVideoAttr = root.hasAttribute("data-video");
     var hasScenes = !!root.querySelector(".ds-scene");

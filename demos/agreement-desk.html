@@ -5,7 +5,6 @@
 <title>Agreement Desk — interactive</title>
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./archetypes/app-shell.css">
-<link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
   /* The Agreement Desk queue visual is intact; we add an "Ask the Desk Agent"
@@ -13,8 +12,8 @@
      (.nv-agent / .phd / .agc-accept), adapted to the desk layout. */
   .app.has-deskrail .app-body{padding:0}
   .ad-wrap{display:flex;height:100%}
-  .ad-main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
-  .ad-deskagent{width:344px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
+  .ad-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:24px 28px;overflow:auto}
+  .ad-deskagent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
   .ad-deskagent .phd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
   .ad-deskagent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
   .ad-agent{border:1px solid var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:18px}
@@ -85,7 +84,7 @@ const SCENES='<section class="de-scene is-active" data-scene="app"><div class="a
 
 DemoEngine.interactive({
   meta:{ title:"Agreement Desk — interactive", productTag:"Agreement Desk · Live", home:"index.html",
-    footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties.' },
+    footnote:'<b>This panel is live.</b> Iris runs the Agreement Desk — it has read every request in the queue and the chain of custody behind each one. Click a question and it types a specific, cited answer, then clears the queue. Switch vertical to re-skin the requests and parties. <code>?auto=1</code> self-runs.' },
   defaultPack:"banking", steps:4, scenes:SCENES,
   packs:{
     banking:{ label:"Banking · Tally", theme:{ "--tenant-accent":"#2D55C9","--tenant-accent-soft":"#E7EDFB","--tenant-ink":"#0B1F4D" },
@@ -177,9 +176,11 @@ DemoEngine.interactive({
           if(ex.block){ const r=$("#ad-block"); if(r){ r.classList.add("hot"); } }
           if(ex.clear){ const b=$("#ad-chat").querySelector("[data-clear]"); if(b) b.onclick=()=>clearQueue(b); } } })) });
 
-    if(api.auto){ api.after(900,()=>{ const c=$("#ad-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(6000,()=>{ const chips=$("#ad-chips").querySelectorAll(".agc-chip"); chips[chips.length-1]&&chips[chips.length-1].click(); });
-      api.after(10500,()=>{ const b=$("#ad-chat").querySelector("[data-clear]"); if(b && !b.classList.contains("done")) b.click(); }); }
+    api.autopilot([
+      { at:900, selector:'#ad-chips .agc-chip' },
+      { at:6000, run:()=>{ const chips=$("#ad-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
+      { at:10500, run:()=>{ const b=$("#ad-chat").querySelector('[data-clear]'); if(b && !b.classList.contains('done')) b.click(); } }
+    ]);
   }
 });
 </script>

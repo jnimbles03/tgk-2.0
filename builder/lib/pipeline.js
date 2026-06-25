@@ -332,33 +332,54 @@ async function runClassify(jobId) {
   try { system = loadPrompt('analyze'); }
   catch (e) { system = ''; }  // graceful if prompt file missing
 
-  const descriptions  = [];
+  const CLASSIFY_CONCURRENCY = 5;
+  const results  = new Array(frames.length);
   let   totalTokens   = 0;
   let   totalCalls    = 0;
+  let   analyzed      = 0;
 
-  for (let i = 0; i < frames.length; i++) {
-    const currPath = path.join(dir, 'keep', frames[i]);
-    const images   = [];
+  // Progress timer — writes status to job-meta.json every 2s so the
+  // frontend poll endpoint shows frames_analyzed / frame_count.
+  const progressTimer = setInterval(() => {
+    jobStore.updateStage(jobId, 'classify', { frames_analyzed: analyzed, frame_count: frames.length });
+  }, 2000);
 
-    if (i > 0) {
-      images.push({ path: path.join(dir, 'keep', frames[i - 1]) });
+  // Worker pool — each worker pulls the next unstarted frame index,
+  // calls the model, and writes its result into the pre-allocated
+  // results array so ordering is preserved on completion.
+  let nextIdx = 0;
+  const worker = async () => {
+    while (nextIdx < frames.length) {
+      const i = nextIdx++;
+      const currPath = path.join(dir, 'keep', frames[i]);
+      const images   = [];
+
+      if (i > 0) {
+        images.push({ path: path.join(dir, 'keep', frames[i - 1]) });
+      }
+      images.push({ path: currPath });
+
+      const userPrompt = buildAnalyzePrompt(i, frames[i], inputMode, meta);
+
+      const r = await modelInvoke({
+        stage:  'analyze',
+        system,
+        user:   userPrompt,
+        images,
+        model:  'volume'
+      });
+
+      results[i] = { frame: i, filename: frames[i], description: r.text };
+      totalTokens += r.tokens || 0;
+      totalCalls++;
+      analyzed++;
     }
-    images.push({ path: currPath });
+  };
 
-    const userPrompt = buildAnalyzePrompt(i, frames[i], inputMode, meta);
+  await Promise.all(Array.from({ length: CLASSIFY_CONCURRENCY }, () => worker()));
+  clearInterval(progressTimer);
 
-    const r = await modelInvoke({
-      stage:  'analyze',
-      system,
-      user:   userPrompt,
-      images,
-      model:  'volume'
-    });
-
-    descriptions.push({ frame: i, filename: frames[i], description: r.text });
-    totalTokens += r.tokens || 0;
-    totalCalls++;
-  }
+  const descriptions = Array.from(results);
 
   jobStore.writeBlob(jobId, 'descriptions.json', { mode: visionMode, descriptions });
   // Stub-compatible: also write segments.json so extract/render see expected blobs.
@@ -554,10 +575,29 @@ const STAGE_RUNNERS = {
   assemble: (jobId) => runAssemble(jobId, require('./job-store'))
 };
 
+const STAGE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes per stage
+
 async function runStage(jobId, stage) {
   const fn = STAGE_RUNNERS[stage];
   if (!fn) throw new Error(`Unknown stage: ${stage}`);
-  return fn(jobId);
+
+  try {
+    const result = await Promise.race([
+      fn(jobId),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(
+          Object.assign(new Error(`Stage "${stage}" exceeded ${STAGE_TIMEOUT_MS / 1000}s timeout — failing`), { _timeout: true })
+        ), STAGE_TIMEOUT_MS)
+      )
+    ]);
+    return result;
+  } catch (err) {
+    if (err._timeout) {
+      failStage(jobId, stage, 'timeout', err.message);
+      return { ok: false, stage, reason_category: 'timeout', reason: err.message };
+    }
+    throw err;
+  }
 }
 
 module.exports = {
