@@ -20,14 +20,23 @@
 <link rel="stylesheet" href="./archetypes/signing.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  /* Two-column interactive layout (mirrors navigator.html's nv-* spine). */
-  .app.has-rail .app-body{padding:0}
-  .ws-wrap{display:flex;height:100%}
-  .ws-main{flex:1 1 600px;min-width:0;display:flex;flex-direction:column;padding:18px 22px;overflow:auto}
-  .ws-agent{width:280px;flex:0 0 auto;border-left:1px solid #ECECF0;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .ws-agent .phd{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
+  /* One-column interactive layout (mirrors navigator.html's nv-* spine):
+     the DemoEngine narration rail is the left "sidebar"; this stage is ONE pane —
+     the workspace content stacked OVER a full-width "Ask" strip BENEATH it, with
+     no Docusign top-nav / product-rail chrome. */
+  .ws-wrap{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+  .ws-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:18px 30px 8px;overflow:auto}
+  /* The Ask strip — full-width band beneath the workspace content (navigator's .nv-ask recipe). */
+  .ws-agent{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .ws-agent .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .ws-agent .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
   .ws-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex:0 0 auto}
-  .ws-agent .phd .sub{font-size:11px;font-weight:500;color:#8a8a93;margin-left:auto;max-width:150px;text-align:right;line-height:1.3}
+  .ws-agent .phd .sub{font-size:11px;font-weight:500;color:#8a8a93;max-width:260px;line-height:1.3}
+  /* chips laid out horizontally in the header row; chat fills the rest */
+  #ws-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #ws-chips .hint{display:none}
+  #ws-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #ws-chat{flex:1;min-height:0}
   /* Rows become clickable documents; the focused one tints with the accent. */
   .app-row{cursor:pointer}
   .app-row.focus{background:var(--tenant-accent-soft);box-shadow:inset 3px 0 0 var(--tenant-accent)}
@@ -105,13 +114,8 @@
 <script src="./engine/demo-engine.js"></script>
 <script src="./engine/agent-chat.js"></script>
 <script>
-const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></span>Docusign</span>'+
-  '<div class="tabs"><span class="tb">Home</span><span class="tb on">Agreements</span><span class="tb">Templates</span><span class="tb">Reports</span><span class="tb">Admin</span></div>'+
-  '<div class="right"><span class="hlp">?</span><span class="cobrand"><span class="cm"></span><span id="ws-cobrand"></span></span><span class="avatar" id="ws-av"></span></div></div>';
-
 const SCENES =
-  '<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+
-    '<div class="app-body"><div class="ws-wrap">'+
+  '<section class="de-scene is-active" data-scene="app"><div class="ws-wrap">'+
       '<div class="ws-mtabs"><button type="button" id="ws-mt-ws" class="on">Workspace</button><button type="button" id="ws-mt-ask">Ask the AI</button></div>'+
       '<div class="ws-main">'+
         '<div class="app-head" style="padding:0 0 4px"><h2 id="ws-title"></h2><span class="pill">Active</span></div>'+
@@ -135,18 +139,16 @@ const SCENES =
         '<div id="ws-rows"></div>'+
       '</div>'+
       '<div class="ws-agent">'+
-        '<div class="phd"><span class="ai">✦</span> <span id="ws-asklabel">Ask about this workspace</span><span class="sub" id="ws-askdoc"></span></div>'+
-        '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="ws-chat"></div><div class="agc-chips" id="ws-chips"></div>'+
-          '<div class="agc-input"><div class="box" id="ws-askbox">Click a document, then ask about it…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+        '<div class="nv-ask-top"><span class="phd"><span class="ai">✦</span> <span id="ws-asklabel">Ask about this workspace</span> <span class="sub" id="ws-askdoc"></span></span><div id="ws-chips"></div></div>'+
+        '<div class="agc-chat" id="ws-chat"></div>'+
       '</div>'+
-    '</div></div>'+
-  '</div></section>';
+    '</div></section>';
 
 
 DemoEngine.interactive({
   meta:{ title:"Workspaces — interactive", productTag:"Workspaces · Live", home:"index.html",
     footnote:'<b>This workspace is live.</b> Every document is clickable — open one and the AI assistant types a specific, cited answer about that file. Create a task and assign it to a real party in the workspace. Switch vertical to re-skin the brand, parties, documents and questions.' },
-  defaultPack:"banking", steps:4, scenes:SCENES,
+  defaultPack:"banking", steps:4, attract:true, scenes:SCENES,
 
   packs:{
     banking:{ label:"Banking · Tally",
@@ -320,10 +322,13 @@ DemoEngine.interactive({
     function statusClass(s){ return s==="Ready to send"?"s-ready":(s==="In progress"?"s-prog":"s-wait"); }
 
     // ---- brand / header ----
-    $("#ws-cobrand").textContent=p.cobrand; $("#ws-title").textContent=p.title; $("#ws-srch").textContent=p.search;
-    $("#ws-av").textContent=initials(p.persona.name);
+    // (#ws-cobrand / #ws-av lived in the removed top-nav chrome; #ws-askbox in the
+    //  removed decorative input — guard them so setup() never throws if absent.)
+    const cobrandEl=$("#ws-cobrand"); if(cobrandEl) cobrandEl.textContent=p.cobrand;
+    $("#ws-title").textContent=p.title; $("#ws-srch").textContent=p.search;
+    const avEl=$("#ws-av"); if(avEl) avEl.textContent=initials(p.persona.name);
     $("#ws-asklabel").textContent="Ask about this workspace"; $("#ws-askdoc").textContent="";
-    $("#ws-askbox").textContent="Click a document, then ask about it…";
+    const askbox=$("#ws-askbox"); if(askbox) askbox.textContent="Click a document, then ask about it…";
 
     // ---- mobile Workspace/Ask toggle (only visible ≤700px via CSS) ----
     const _wrap=root.querySelector(".ws-wrap"), _mtWs=$("#ws-mt-ws"), _mtAsk=$("#ws-mt-ask");
@@ -372,7 +377,7 @@ DemoEngine.interactive({
     }
     function mountWorkspace(){
       $("#ws-asklabel").textContent="Ask about this workspace";
-      $("#ws-askdoc").textContent=""; $("#ws-askbox").textContent="Click a document, then ask about it…";
+      $("#ws-askdoc").textContent=""; { const b=$("#ws-askbox"); if(b) b.textContent="Click a document, then ask about it…"; }
       AgentChat.mount({ chatEl:$("#ws-chat"), chipsEl:$("#ws-chips"), hint:"Ask the AI assistant", speed:13,
         intro:"I'm the AI assistant for this workspace. Click any document to ask about that file — or ask me what's outstanding across the whole space.",
         exchanges:workspaceExchanges() });
@@ -381,7 +386,7 @@ DemoEngine.interactive({
       const r=p.rows[i]; if(!r) return; const d=docForRow(r); if(!d) return;
       root.querySelectorAll(".app-row").forEach(el=>el.classList.toggle("focus", +el.dataset.row===i));
       $("#ws-asklabel").textContent="Ask about this document";
-      $("#ws-askdoc").textContent=d.file; $("#ws-askbox").textContent="Ask about "+d.file+"…";
+      $("#ws-askdoc").textContent=d.file; { const b=$("#ws-askbox"); if(b) b.textContent="Ask about "+d.file+"…"; }
       api.narrate("doc");
       // Re-mount AgentChat with this document's exchanges (re-callable on each row click).
       AgentChat.mount({ chatEl:$("#ws-chat"), chipsEl:$("#ws-chips"), hint:"Ask about this document", speed:13,
@@ -440,12 +445,18 @@ DemoEngine.interactive({
     api.narrate("open"); api.progress(0);
     mountWorkspace();
 
-    // ---- auto / attract: open the first document, ask its first question, then create a task ----
-    if(api.auto){
-      api.after(900,()=>{ focusRow(0); });
-      api.after(2200,()=>{ const c=$("#ws-chips").querySelector(".agc-chip"); c&&c.click(); });
-      api.after(7000,()=>{ $("#ws-newtask-open").click(); ntName.value="Upload signed W-9"; S.syncCreate(); });
-      api.after(9000,()=>{ if(!ntCreate.disabled) ntCreate.click(); });
+    // ---- auto / attract: self-run — ask every question chip in turn. Clicking the
+    //      first remaining chip each time is correct: AgentChat marks a used exchange
+    //      and re-renders, so the first chip is always the next unanswered question.
+    //      (api.after → cancelable timers, attract-mode safe.) ----
+    if(api.auto){ // self-run: ask a workspace question, open a document and ask about it, then create &
+      //          assign a task — the workspace's signature actions (api.after → cancelable, attract-safe)
+      const sel='#ws-chips .agc-chip', chip=()=>root.querySelector(sel);
+      api.after(900,  ()=>{ const c=chip(); c&&c.click(); });               // ask a workspace-level question
+      api.after(8200, ()=>{ focusRow(0); });                               // open the first document (switches to its Q&A)
+      api.after(10000,()=>{ const c=chip(); c&&c.click(); });              // ask about that document
+      api.after(17500,()=>{ $("#ws-newtask-open").click(); ntName.value="Upload signed W-9"; S.syncCreate(); }); // new task
+      api.after(20000,()=>{ if(!ntCreate.disabled) ntCreate.click(); });   // assign & add it to the workspace
     }
   }
 });
