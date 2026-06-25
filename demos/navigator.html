@@ -6,23 +6,31 @@
 <link rel="stylesheet" href="./engine/demo-engine.css">
 <link rel="stylesheet" href="./engine/agent-chat.css">
 <style>
-  /* Web-Forms-style frame: two clean full-height panes (demo | interactive),
-     no Docusign top-nav / product-rail chrome. */
-  .nvx{position:absolute;inset:0;display:flex;background:#EEF1F6;font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif}
-  .nvx-demo{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-  .nvx-head{display:flex;align-items:center;gap:12px;padding:20px 30px 14px}
+  /* Web-Forms-style frame: the DemoEngine narration rail is the left "sidebar".
+     This stage is ONE demo pane (matching Web Forms' single right pane) — the
+     agreements table with an "Ask" chat strip folded in BENEATH it, not a
+     separate full-height agent column. */
+  .nvx{position:absolute;inset:0;display:flex;flex-direction:column;background:#EEF1F6;font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif}
+  .nvx-head{display:flex;align-items:center;gap:12px;padding:20px 30px 12px}
   .nvx-head .ai-pill{margin-left:auto}
   .nvx-mark{width:30px;height:30px;border-radius:7px;background:var(--tenant-accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto}
   .nvx-h{display:flex;flex-direction:column;line-height:1.15}
   .nvx-co{font-size:10.5px;font-weight:700;color:var(--tenant-accent);letter-spacing:.08em;text-transform:uppercase}
   .nvx-head h2{font-size:19px;font-weight:600;color:#16121f;letter-spacing:-.01em;margin:0}
-  .nvx-table{flex:1;min-height:0;overflow:auto;margin:0 30px 30px;padding:16px 22px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05)}
-  .nv-agent{width:360px;flex:0 0 auto;border-left:1px solid #E1E1E8;display:flex;flex-direction:column;background:#fff;min-height:0}
-  .nv-agent .phd{display:flex;align-items:center;gap:8px;padding:16px 18px;border-bottom:1px solid #EFEFF1;font-size:13px;font-weight:700;color:#1a1a26}
-  .nv-agent .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  .nvx-table{flex:1;min-height:0;overflow:auto;margin:0 30px 14px;padding:16px 22px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05)}
+  /* the Ask strip — full-width band beneath the table */
+  .nv-ask{flex:0 0 auto;height:248px;margin:0 30px 26px;background:#fff;border:1px solid #E7E7EC;border-radius:14px;box-shadow:0 10px 30px rgba(20,12,50,.05);display:flex;flex-direction:column;overflow:hidden}
+  .nv-ask-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:13px 18px 11px;border-bottom:1px solid #EFEFF1}
+  .nv-ask .phd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#1a1a26;flex:0 0 auto;margin-right:6px}
+  .nv-ask .phd .ai{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#FFD600,#E0202E 45%,#4B0082);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+  #nv-chips{display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;padding:0;border-top:none}
+  #nv-chips .hint{display:none}
+  #nv-chips .agc-chip{padding:6px 12px;font-size:11.5px}
+  #nv-chat{flex:1;min-height:0}
+  .nv-row.lit{box-shadow:inset 3px 0 0 var(--tenant-accent),0 2px 12px rgba(20,12,50,.08);background:var(--tenant-accent-soft)}
   .nv-th,.nv-row{display:flex;align-items:center}
   .nv-th{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#9a9aa2;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #EDEDF1}
-  .nv-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .2s}
+  .nv-row{padding:13px 12px;border-bottom:1px solid #F1F1F4;transition:background .2s,box-shadow .25s}
   .nv-row.hot{background:var(--tenant-accent-soft)}
   .c-doc{flex:1;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;color:#1a1a26}
   .c-doc .fi{width:22px;height:26px;border:1.5px solid #C7C7D2;border-radius:3px;flex:0 0 auto;position:relative}
@@ -51,17 +59,14 @@ function row(id,doc,party,val,ren,rensoon,exp){
 
 const SCENES =
   '<section class="de-scene is-active" data-scene="app"><div class="nvx">'+
-    '<div class="nvx-demo">'+
-      '<div class="nvx-head"><span class="nvx-mark" id="nv-av"></span><div class="nvx-h"><span class="nvx-co" id="nv-cobrand"></span><h2 id="nv-title"></h2></div><span class="ai-pill">✦ AI-EXTRACTED</span></div>'+
-      '<div class="nvx-table">'+
-        '<div class="nv-th"><span class="c-doc" style="padding-left:33px">Agreement</span><span class="c-party">Counterparty</span><span class="c-val">Value</span><span class="c-ren">Renewal type</span><span class="c-exp">Expiration</span></div>'+
-        '<div id="nv-rows"></div>'+
-      '</div>'+
+    '<div class="nvx-head"><span class="nvx-mark" id="nv-av"></span><div class="nvx-h"><span class="nvx-co" id="nv-cobrand"></span><h2 id="nv-title"></h2></div><span class="ai-pill">✦ AI-EXTRACTED</span></div>'+
+    '<div class="nvx-table">'+
+      '<div class="nv-th"><span class="c-doc" style="padding-left:33px">Agreement</span><span class="c-party">Counterparty</span><span class="c-val">Value</span><span class="c-ren">Renewal type</span><span class="c-exp">Expiration</span></div>'+
+      '<div id="nv-rows"></div>'+
     '</div>'+
-    '<div class="nv-agent">'+
-      '<div class="phd"><span class="ai">✦</span> Ask Agreement Manager</div>'+
-      '<div class="agc" style="flex:1;min-height:0"><div class="agc-chat" id="nv-chat"></div><div class="agc-chips" id="nv-chips"></div>'+
-        '<div class="agc-input"><div class="box">Ask about renewals, value, or risk…</div><div class="go"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg></div></div></div>'+
+    '<div class="nv-ask">'+
+      '<div class="nv-ask-top"><span class="phd"><span class="ai">✦</span> Ask Agreement Manager</span><div id="nv-chips"></div></div>'+
+      '<div class="agc-chat" id="nv-chat"></div>'+
     '</div>'+
   '</div></section>';
 
@@ -152,10 +157,18 @@ DemoEngine.interactive({
     function startRenewal(btn){ if(btn.classList.contains("done"))return; btn.classList.add("done"); btn.textContent="✓ Renewal request started";
       AgentChat.bubble($("#nv-chat"),"ai","Done — a Workflow Builder renewal request is drafted for the "+p.renewParty+" agreement and routed to Legal. The outcome writes back to "+p.sorName+".");
       api.narrate("acted"); }
-    AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), hint:"Ask Agreement Manager", speed:13,
+    /* light up the agreement row(s) an answer is about — the table is the evidence */
+    function highlight(ids){
+      root.querySelectorAll(".nv-row.lit").forEach(r=>r.classList.remove("lit"));
+      (ids||[]).forEach(id=>{ const el=root.querySelector("#"+id); if(el) el.classList.add("lit"); });
+      const first = ids && ids[0] && root.querySelector("#"+ids[0]);
+      if(first && first.scrollIntoView) first.scrollIntoView({block:"nearest"});
+    }
+    function hiFor(ex,i){ if(ex.hi) return ex.hi; if(ex.renew||i===0) return ["nv-soon"]; if(i===1) return ["nv-row1","nv-soon"]; return []; }
+    AgentChat.mount({ chatEl:$("#nv-chat"), chipsEl:$("#nv-chips"), speed:13,
       intro:"I'm Iris. I've read all four agreements in this view — ask me about renewals, total value, or what needs action.",
-      exchanges:p.exchanges.map(ex=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
-        after:()=>{ bump(); if(ex.renew){ const b=$("#nv-chat").querySelector("[data-renew]"); if(b) b.onclick=()=>startRenewal(b); } } })) });
+      exchanges:p.exchanges.map((ex,i)=>({ label:ex.label, user:ex.label, answer:ex.answer, card:ex.card,
+        after:()=>{ bump(); highlight(hiFor(ex,i)); if(ex.renew){ const b=$("#nv-chat").querySelector("[data-renew]"); if(b) b.onclick=()=>startRenewal(b); } } })) });
     api.autopilot([
       { at:900, selector:'#nv-chips .agc-chip' },
       { at:6000, run:()=>{ const chips=$("#nv-chips").querySelectorAll('.agc-chip'); chips[chips.length-1]&&chips[chips.length-1].click(); } },
