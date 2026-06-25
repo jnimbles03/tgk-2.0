@@ -53,6 +53,39 @@
   .ws-chip.s-wait{background:#FFF4E0;color:#B57A12}
   .ws-chip.s-prog{background:#E7EDFB;color:#2D55C9}
   .ws-chip.s-ready{background:#E3F4EC;color:#1a7a44}
+  /* ── Mobile Workspace/Ask toggle (hidden on desktop) ── */
+  .ws-mtabs{display:none;gap:6px;padding:9px 12px;border-bottom:1px solid #ECECF0;background:#fff;position:sticky;top:0;z-index:6}
+  .ws-mtabs button{flex:1;font-family:inherit;font-size:13px;font-weight:600;padding:10px;border-radius:8px;border:1px solid #E1E1E8;background:#fff;color:#555;cursor:pointer}
+  .ws-mtabs button.on{background:var(--tenant-accent);color:#fff;border-color:var(--tenant-accent)}
+  /* ── iPhone reflow: stop shrinking the fixed 1280 canvas; lay out native + stacked ── */
+  @media (max-width:700px){
+    .de-side,.de-foot,.de-stagebar{display:none!important}
+    .de-shell{grid-template-columns:1fr;gap:0}
+    .de-stageframe{padding:0;border:none;border-radius:0;background:#fff}
+    .de-stage{aspect-ratio:auto;height:auto;min-height:560px;border-radius:0;overflow:visible;background:#fff}
+    .de-canvas{position:static!important;width:100%!important;height:auto!important;transform:none!important}
+    .de-scene{position:static;opacity:1;transition:none}
+    .de-scene:not(.is-active){display:none}
+    .app,.app.has-rail{position:static;height:auto;inset:auto}
+    .app-body,.app.has-rail .app-body{position:static;inset:auto;left:0;top:0;right:0;bottom:0;height:auto;padding:0}
+    .app-nav{height:50px;padding:0 14px;gap:10px}
+    .app-nav .tabs,.app-nav .right .hlp{display:none}
+    .ws-mtabs{display:flex}
+    .ws-wrap{flex-direction:column;height:auto}
+    .ws-main,.ws-agent{width:100%;border-left:none;min-height:0}
+    .ws-main{padding:14px 14px 28px}
+    .ws-agent{display:none;border-top:1px solid #ECECF0}
+    .ws-wrap.m-ask .ws-main{display:none}
+    .ws-wrap.m-ask .ws-agent{display:flex}
+    .ws-agent .phd{padding:14px 16px;font-size:14px}
+    .ws-agent .agc-chat{min-height:52vh}
+    .ws-agent .agc-chip{padding:11px 14px;font-size:13px}
+    .app-row{padding:15px 10px}
+    .app-row .nt{font-size:14px}
+    .app-row .col-due,.app-filter{display:none}
+    .nt-grid{grid-template-columns:1fr;gap:12px}
+    .ws-newtask-btn{font-size:13px;padding:9px 14px}
+  }
 </style>
 
 </head>
@@ -68,6 +101,7 @@ const NAV = '<div class="app-nav"><span class="dslogo"><span class="dsmark"></sp
 const SCENES =
   '<section class="de-scene is-active" data-scene="app"><div class="app has-rail">'+NAV+
     '<div class="app-body"><div class="ws-wrap">'+
+      '<div class="ws-mtabs"><button type="button" id="ws-mt-ws" class="on">Workspace</button><button type="button" id="ws-mt-ask">Ask the AI</button></div>'+
       '<div class="ws-main">'+
         '<div class="app-head" style="padding:0 0 4px"><h2 id="ws-title"></h2><span class="pill">Active</span></div>'+
         '<div class="app-filter" style="padding-left:0"><div class="dd">All Templates <span class="chev">▾</span></div>'+
@@ -280,6 +314,11 @@ DemoEngine.interactive({
     $("#ws-asklabel").textContent="Ask about this workspace"; $("#ws-askdoc").textContent="";
     $("#ws-askbox").textContent="Click a document, then ask about it…";
 
+    // ---- mobile Workspace/Ask toggle (only visible ≤700px via CSS) ----
+    const _wrap=root.querySelector(".ws-wrap"), _mtWs=$("#ws-mt-ws"), _mtAsk=$("#ws-mt-ask");
+    function mView(v){ const ask=v==="ask"; if(_wrap)_wrap.classList.toggle("m-ask",ask); if(_mtWs)_mtWs.classList.toggle("on",!ask); if(_mtAsk)_mtAsk.classList.toggle("on",ask); }
+    S.mView=mView; mView("ws");
+
     // ---- workspace rows (the documents) ----
     function rowHTML(r,i){
       const status = r.st==="bar"
@@ -338,6 +377,7 @@ DemoEngine.interactive({
         intro:"Opened <b>"+r.n.replace(/^Complete with Docusign:\s*/,'')+"</b> — "+(d.meta||d.stat||"")+". Ask me about this file.",
         exchanges:docExchanges(d) });
       bump();
+      mView("ask");   // on a phone, flip to the answer pane so the reply is visible
     }
     S.focusRow=focusRow;
     root.querySelectorAll(".app-row").forEach(el=>{
@@ -358,6 +398,9 @@ DemoEngine.interactive({
     //      Handlers read the live pack via S.p so the assignee is always current. ----
     if(!root.__wsWired){
       root.__wsWired=true;
+      const mtWs=$("#ws-mt-ws"), mtAsk=$("#ws-mt-ask");
+      if(mtWs) mtWs.addEventListener("click",()=>S.mView&&S.mView("ws"));
+      if(mtAsk) mtAsk.addEventListener("click",()=>S.mView&&S.mView("ask"));
       $("#ws-newtask-open").addEventListener("click",()=>{ ntForm.hidden=false; ntName.focus(); });
       $("#ws-nt-cancel").addEventListener("click",()=>{ ntForm.hidden=true; ntName.value=""; S.syncCreate(); });
       ntName.addEventListener("input",()=>S.syncCreate());
