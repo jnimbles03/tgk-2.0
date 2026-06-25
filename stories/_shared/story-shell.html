@@ -399,13 +399,17 @@
   .hint-row .speed-picker .sp:hover{background:#F3F1EC;color:var(--ink);}
   .hint-row .speed-picker .sp.on{background:var(--ds-purple);color:#fff;}
   /* ── Autopilot status pill (lives in the existing hint-row — no new chrome) ── */
-  .hint-row .ap-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:10.5px;}
-  .hint-row .ap-status .ap-dot{width:7px;height:7px;border-radius:50%;background:#4C00FF;flex-shrink:0;}
-  .hint-row .ap-status[data-state="gate"],.hint-row .ap-status[data-state="exploring"]{color:#B25A00;}
+  .hint-row .ap-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:10.5px;--ap-glow:rgba(76,0,255,.45);}
+  .hint-row .ap-status .ap-dot{width:7px;height:7px;border-radius:50%;background:#4C00FF;flex-shrink:0;animation:apDotPulse 1.7s ease-out infinite;}
+  /* "Live" pulse — mirrors the demo engine's autopilot affordance (de-pulse) so the
+     story player's autopilot reads as actively running rather than a static legacy label. */
+  @keyframes apDotPulse{0%{box-shadow:0 0 0 0 var(--ap-glow);}70%{box-shadow:0 0 0 7px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+  @media (prefers-reduced-motion: reduce){ .hint-row .ap-status .ap-dot{animation:none;} }
+  .hint-row .ap-status[data-state="gate"],.hint-row .ap-status[data-state="exploring"]{color:#B25A00;--ap-glow:rgba(178,90,0,.45);}
   .hint-row .ap-status[data-state="gate"] .ap-dot,.hint-row .ap-status[data-state="exploring"] .ap-dot{background:#B25A00;}
-  .hint-row .ap-status[data-state="resuming"]{color:#4C00FF;}
-  .hint-row .ap-status[data-state="complete"]{color:#0A7A3A;}
-  .hint-row .ap-status[data-state="complete"] .ap-dot{background:#0A7A3A;}
+  .hint-row .ap-status[data-state="resuming"]{color:#4C00FF;--ap-glow:rgba(76,0,255,.45);}
+  .hint-row .ap-status[data-state="complete"]{color:#0A7A3A;--ap-glow:rgba(10,122,58,.45);}
+  .hint-row .ap-status[data-state="complete"] .ap-dot{background:#0A7A3A;animation:none;}
   .hint-row .ap-status .ap-continue{margin-left:4px;font:inherit;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#fff;background:#4C00FF;border:none;border-radius:5px;padding:3px 9px;cursor:pointer;}
   .hint-row .ap-status .ap-continue:hover{background:#3a00c0;}
   /* ── Autopilot hotspot detail (shown in the rail while exploring) ── */
