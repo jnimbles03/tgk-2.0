@@ -80,7 +80,7 @@
           '<div class="de-persona" id="de-persona"><div class="avatar" id="de-av"></div><div><div class="nm" id="de-nm"></div><div class="rl" id="de-rl"></div></div></div>'+
           '<div class="de-step" id="de-step"></div><div class="de-head" id="de-head"></div><div class="de-lede" id="de-lede"></div>'+
           '<div class="de-spacer"></div>'+
-          '<div class="de-livehint" id="de-livehint"><span class="dot"></span> Live — autopilot demo</div>'+
+          '<div class="de-livehint" id="de-livehint" data-live="off"><span class="dot"></span><span id="de-live-t">Live — autopilot demo</span></div>'+
           '<div class="de-pips" id="de-pips"></div>'+
           '<div class="de-meta"><span id="de-counter"></span><span id="de-timer"></span></div>'+
           '<div class="de-trans"><button class="de-tbtn" id="de-restart" title="Restart">'+RESTART+'</button>'+
@@ -91,7 +91,11 @@
             '<span class="dots"><i></i><i></i><i></i></span><span id="de-url"></span><span class="sor" id="de-sor"></span></div>'+
           '<div class="de-stage" id="de-stage"><div class="de-canvas" id="de-canvas">'+
             DEMO.scenes + '<div class="de-cursor" id="de-cursor">'+CURSOR+'</div>'+
-          '</div></div></div>'+
+          '</div>'+
+          '<button class="de-startveil" id="de-startveil" hidden aria-label="Start the demo">'+
+            '<span class="pp"><svg viewBox="0 0 24 24"><polygon points="8 5 19 12 8 19 8 5"/></svg></span>'+
+            '<span class="lb">Start the demo</span><span class="sb">Your turn — click to begin</span></button>'+
+          '</div></div>'+
       '</div>'+
       (DEMO.meta && DEMO.meta.footnote ? '<div class="de-foot">'+DEMO.meta.footnote+'</div>' : '');
 
@@ -220,11 +224,16 @@
 
     // ---- transport ----
     function setUI(){ $("de-playlbl").textContent=playing?"Pause":"Play"; $("de-playicon").innerHTML=playing?PAUSE:PLAY; }
+    // "Live pill" states for the movie path: armed (kickoff — your turn to start),
+    // auto (autopilot playing), manual (paused — you have the wheel), done (replay).
+    function liveInit(state){ const el=$("de-livehint"); if(!el) return;
+      el.dataset.live = state==="armed" ? "nudge" : state;
+      const tx=$("de-live-t"); if(tx) tx.textContent=({armed:"Your turn — press play to start",auto:"Autopilot — playing",manual:"Paused — you have the wheel",done:"Replay anytime"})[state]||"Live — autopilot demo"; }
     const EMBED=Q.get("embed")==="1", LOOP=EMBED||Q.get("loop")==="1";
     function step(now){ if(!playing) return; if(!lastTick) lastTick=now; t+=(now-lastTick)/1000; lastTick=now;
-      if(t>=DUR){ if(LOOP){ t=0; lastTick=now; paintAll(); raf=requestAnimationFrame(step); return; } t=DUR; playing=false; setUI(); paintAll(); return; } paintAll(); raf=requestAnimationFrame(step); }
-    function play(){ if(playing) return; if(t>=DUR) t=0; playing=true; lastTick=0; setUI(); if(soundOn) playClip(curAudioKey); raf=requestAnimationFrame(step); }
-    function pause(){ playing=false; cancelAnimationFrame(raf); lastTick=0; setUI(); if(audioEl){ try{ audioEl.pause(); }catch(_){} } }
+      if(t>=DUR){ if(LOOP){ t=0; lastTick=now; paintAll(); raf=requestAnimationFrame(step); return; } t=DUR; playing=false; setUI(); paintAll(); liveInit("done"); return; } paintAll(); raf=requestAnimationFrame(step); }
+    function play(){ if(playing) return; if(t>=DUR) t=0; playing=true; lastTick=0; setUI(); const pb=$("de-play"); if(pb) pb.classList.remove("de-nudge"); const veil=$("de-startveil"); if(veil) veil.setAttribute("hidden",""); liveInit("auto"); if(soundOn) playClip(curAudioKey); raf=requestAnimationFrame(step); }
+    function pause(){ playing=false; cancelAnimationFrame(raf); lastTick=0; setUI(); liveInit("manual"); if(audioEl){ try{ audioEl.pause(); }catch(_){} } }
     function restart(){ curAudioKey=null; t=0; paintAll(); if(!playing) play(); }
     function rescale(){ const st=$("de-stage"); $("de-canvas").style.transform="scale("+(st.clientWidth/1280)+")"; }
 
@@ -237,7 +246,24 @@
 
     if(EMBED){ root.classList.add("de-embed"); document.body.classList.add("de-embed"); }
     applyPack(); rescale(); paintAll();
-    if(Q.has("t")){ t=Math.max(0,Math.min(DUR,parseFloat(Q.get("t"))||0)); paintAll(); }
+    // Kickoff: the movie opens paused on beat 1 with the Live pill "armed" and the
+    // Play button nudged; the viewer's first gesture (Play / Space / click the stage)
+    // starts the autopilot — "you do the first action, then it runs." This is the
+    // default for the standalone/clean-share view (what a customer opens); in-page
+    // embeds keep their established autoplay so existing drilldowns/previews are
+    // unchanged. attract=0 → a static first-beat preview (pool thumbnails);
+    // kickoff=1 → force the gate even when embedded (the pool's single-vignette share);
+    // autostart=1 / attract=1 / loop=1 → force immediate autoplay; ?t= seeks.
+    const STATIC = Q.get("attract")==="0";
+    const FORCE_AUTO = Q.get("autostart")==="1" || Q.get("attract")==="1" || Q.get("loop")==="1";
+    const KICKOFF = Q.get("kickoff")==="1" || (!EMBED && !FORCE_AUTO);
+    function armKickoff(){ liveInit("armed"); const pb=$("de-play"); if(pb) pb.classList.add("de-nudge");
+      const veil=$("de-startveil"); if(veil) veil.removeAttribute("hidden");
+      const go=()=>{ $("de-stage").removeEventListener("pointerdown",go); if(!playing) play(); };
+      $("de-stage").addEventListener("pointerdown",go,{passive:true}); }
+    if(Q.has("t")){ t=Math.max(0,Math.min(DUR,parseFloat(Q.get("t"))||0)); paintAll(); liveInit("manual"); }
+    else if(STATIC){ /* static first-beat preview — no autostart (pool thumbnails) */ }
+    else if(KICKOFF){ armKickoff(); }
     else { setTimeout(()=>play(), EMBED?150:700); }
 
     return { play, pause, restart, seek:(s)=>{ t=s; paintAll(); } };
@@ -289,7 +315,7 @@
 
     const api = {
       get pack(){ return DEMO.packs[pack]; },
-      _forceAuto:false, _driving:false, _timers:[],
+      _forceAuto:false, _driving:false, _armed:false, _timers:[],
       get auto(){ return auto || this._forceAuto; },
       // cancelable timers — attract mode aborts a running self-run on interaction
       after(ms,fn){ const id=setTimeout(()=>{ this._timers=this._timers.filter(x=>x!==id); fn(); }, ms); this._timers.push(id); return id; },
@@ -313,8 +339,8 @@
         $("de-counter").textContent="Complete"; },
       // "Live pill" autopilot affordance: auto = driving, nudge = paused at an
       // interactive spot (your turn), manual = the user has taken the wheel.
-      live(state){ const el=$("de-livehint"); if(!el)return; el.dataset.live=state;
-        const t=$("de-live-t"); if(t) t.textContent=({auto:"Autopilot — interact to take over",nudge:"Your turn — click to try",manual:"You have the wheel · resumes when idle"})[state]||"Live — interact with the demo"; }
+      live(state){ const el=$("de-livehint"); if(!el)return; el.dataset.live = state==="armed" ? "nudge" : state;
+        const t=$("de-live-t"); if(t) t.textContent=({armed:"Your turn — make the first move",auto:"Autopilot — interact to take over",nudge:"Your turn — click to try",manual:"You have the wheel · resumes when idle"})[state]||"Live — interact with the demo"; }
     };
 
     function applyPack(){
@@ -331,25 +357,46 @@
     document.querySelectorAll(".de-vbtn").forEach(b=>b.addEventListener("click",()=>{ api.cancelAuto(); pack=b.dataset.pack; applyPack(); }));
     $("de-reset").addEventListener("click", ()=>{ api.cancelAuto(); applyPack(); });
 
-    // Pause-and-nudge: while autopiloting, when AgentChat shows its question
-    // chips (an interactive spot) the pill flips to "your turn" and the chips
-    // get a pulsing ring; while a question is being answered it reads "driving".
-    let _ring=null;
+    // Pause-and-nudge + KICKOFF. The demo opens ARMED — autopilot off, the first
+    // interactive spot (the question chips) nudged — and the viewer's first
+    // action kicks it off; from there autopilot drives the rest, yields the wheel
+    // on a later interaction, and re-arms after idle.
+    let _ring=null, _chipBox=null;
     const clearRing=()=>{ if(_ring){ _ring.classList.remove("de-nudge"); _ring=null; } };
-    document.addEventListener("agc:chips", e=>{ if(!api._driving) return;
-      api.live("nudge"); const cb=e.detail&&e.detail.chipBox; if(cb){ clearRing(); cb.classList.add("de-nudge"); _ring=cb; } });
+    document.addEventListener("agc:chips", e=>{ _chipBox=(e.detail&&e.detail.chipBox)||_chipBox;
+      if(!(api._armed||api._driving)) return;
+      api.live(api._armed?"armed":"nudge"); const cb=e.detail&&e.detail.chipBox; if(cb){ clearRing(); cb.classList.add("de-nudge"); _ring=cb; } });
     document.addEventListener("agc:answer", ()=>{ clearRing(); if(api._driving) api.live("auto"); });
 
     if(ATTRACT){
-      // Activity-driven attract loop: autoplay; on interaction hand control to the
-      // user; after idle (reset on each interaction) resume; cycle when left alone.
+      const EMBED=Q.get("embed")==="1";
+      // Kickoff gate: standalone (a customer opening the clean share) or ?kickoff=1 →
+      // the demo opens ARMED and waits for the viewer's first question, then autopilot
+      // drives the rest. Ambient embeds (the looping discovery tiles, ?embed=1&loop=1)
+      // auto-run from the start so they keep moving — no waiting for a click.
+      const GATE = Q.get("kickoff")==="1" || (!EMBED && Q.get("loop")!=="1");
       const IDLE=(parseInt(Q.get("idle"),10)||22)*1000, CYCLE=(parseInt(Q.get("cycle"),10)||42)*1000;
       let idleT, cycleT;
-      const runAuto=()=>{ api._driving=true; api.live("auto"); api._forceAuto=true; applyPack(); api._forceAuto=false; };
-      const loop=()=>{ clearTimeout(cycleT); cycleT=setTimeout(()=>{ runAuto(); loop(); }, CYCLE); };
-      const onInteract=()=>{ api._driving=false; api.cancelAuto(); clearRing(); api.live("manual"); clearTimeout(cycleT); clearTimeout(idleT); idleT=setTimeout(()=>{ runAuto(); loop(); }, IDLE); };
+      // After kickoff, walk the rest: ask the first remaining question every STEP
+      // ms, then fire the handoff button (if the demo has one) once chips run out.
+      function driveRest(){ const STEP=6800;
+        const tick=()=>{ if(!api._driving) return;
+          const chip=_chipBox&&_chipBox.querySelector(".agc-chip");
+          if(chip){ chip.click(); api.after(STEP,tick); }
+          else { const h=canvas.querySelector("[data-renew],[data-clear],[data-accept],[data-route]");
+            if(h&&!h.classList.contains("done")) api.after(1400,()=>{ if(api._driving) h.click(); }); } };
+        api.after(STEP,tick);
+      }
+      const arm=()=>{ api._armed=true; api._driving=false; api.cancelAuto(); clearRing(); applyPack(); api.live("armed"); };
+      const kickoff=()=>{ if(!api._armed) return; api._armed=false; api._driving=true; clearRing(); api.live("auto"); driveRest(); };
+      // cycle re-render only loops the ambient tiles; the gated share waits instead.
+      const cycle=()=>{ if(GATE) return; clearTimeout(cycleT); cycleT=setTimeout(resume, CYCLE); };
+      const resume=()=>{ arm(); if(!GATE) kickoff(); cycle(); };
+      const onInteract=()=>{ if(api._armed) return;   // (in gated mode the first chip click kicks off via agc:answer)
+        api._driving=false; api.cancelAuto(); clearRing(); api.live("manual"); clearTimeout(cycleT); clearTimeout(idleT); idleT=setTimeout(resume, IDLE); };
       ["pointerdown","keydown","wheel","touchstart"].forEach(ev=>$("de-stage").addEventListener(ev,onInteract,{passive:true}));
-      runAuto(); loop();
+      document.addEventListener("agc:answer", ()=>{ if(api._armed) kickoff(); });
+      resume();
     } else if(auto){
       api._driving=true; api.live("auto"); applyPack();
     } else {
