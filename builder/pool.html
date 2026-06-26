@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vignette pool · TGK 2.0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+<style>
+  :root{
+    --accent:#4C00E9; --accent-soft:#EEE7FD; --ink:#16121f; --ink-mid:#4f4b5a; --ink-soft:#8a8694;
+    --hair:#E7E4F0; --bg:#F4F3F8; --card:#fff; --ok:#0A7A3A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .top{padding:26px 28px 18px;border-bottom:1px solid var(--hair);background:#fff}
+  .top h1{font-size:23px;font-weight:800;letter-spacing:-.02em}
+  .top p{font-size:13.5px;color:var(--ink-mid);margin-top:5px;max-width:720px}
+  .top p b{color:var(--ink);font-weight:600}
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:0;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+  /* left: filters + grid */
+  .main{padding:20px 24px 80px}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .search{flex:1 1 220px;min-width:180px;height:38px;border:1.5px solid var(--hair);border-radius:10px;padding:0 13px;font:inherit;font-size:13.5px;background:#fff}
+  .search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .chip{font-size:12px;font-weight:600;color:var(--ink-mid);background:#fff;border:1.5px solid var(--hair);border-radius:18px;padding:5px 12px;cursor:pointer;transition:all .12s}
+  .chip:hover{border-color:#cfc7e6}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .chip-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);align-self:center;margin-right:2px}
+  .count{font-size:12px;color:var(--ink-soft);margin-bottom:12px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+  .v{background:var(--card);border:1.5px solid var(--hair);border-radius:14px;padding:15px 16px 13px;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s}
+  .v:hover{border-color:#cfc7e6;box-shadow:0 8px 24px rgba(20,16,40,.06)}
+  .v.added{border-color:var(--accent);box-shadow:0 8px 24px rgba(76,0,233,.12)}
+  .v .mark{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .v .prod{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .v h3{font-size:15px;font-weight:700;margin-top:1px}
+  .v .blurb{font-size:12.5px;color:var(--ink-mid);margin-top:6px;flex:1;line-height:1.45}
+  .v .caps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .v .cap{font-size:9.5px;font-weight:600;color:var(--ink-soft);background:var(--bg);border-radius:12px;padding:2px 8px}
+  .v .acts{display:flex;gap:8px;margin-top:12px}
+  .v .acts a,.v .acts button{flex:1;font:inherit;font-size:12px;font-weight:700;padding:8px;border-radius:9px;cursor:pointer;text-align:center;text-decoration:none;border:1.5px solid var(--accent);transition:all .12s}
+  .v .acts .preview{color:var(--accent);background:#fff}
+  .v .acts .preview:hover{background:var(--accent-soft)}
+  .v .acts .add{color:#fff;background:var(--accent)}
+  .v.added .acts .add{background:var(--ok);border-color:var(--ok)}
+
+  /* right: brand + tray + generate */
+  .side{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;border-left:1px solid var(--hair);background:#fff;padding:20px 18px 40px}
+  .side h2{font-size:13px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 12px}
+  .brand-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+  .brand-row label{font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .brand-row input,.brand-row select{height:36px;border:1.5px solid var(--hair);border-radius:9px;padding:0 11px;font:inherit;font-size:13px;background:#fff}
+  .brand-row.color{flex-direction:row;align-items:center;gap:9px}
+  .brand-row.color input[type=color]{width:38px;height:36px;padding:2px;border-radius:9px;cursor:pointer}
+  .brand-row.color .hex{flex:1}
+  .tray{margin-top:8px;border-top:1px solid var(--hair);padding-top:14px}
+  .tray .empty{font-size:12.5px;color:var(--ink-soft);padding:8px 0}
+  .titem{display:flex;align-items:center;gap:8px;padding:8px 9px;background:var(--bg);border-radius:9px;margin-bottom:7px}
+  .titem .n{width:18px;height:18px;border-radius:5px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .titem .nm{flex:1;font-size:12.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .titem .mv{font:inherit;font-size:13px;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
+  .titem .mv:hover{color:var(--accent)}
+  .titem .rm{font:inherit;font-size:14px;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
+  .titem .rm:hover{color:#C0392B}
+  .gen{margin-top:16px}
+  .gen .go{width:100%;font:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s}
+  .gen .go:disabled{background:#cfc7e6;cursor:default}
+  .gen .go:not(:disabled):hover{filter:brightness(.94)}
+  .out{margin-top:12px;display:none}
+  .out.on{display:block}
+  .out .lbl{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+  .out .url{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:var(--bg);border:1px solid var(--hair);border-radius:8px;padding:9px 11px;word-break:break-all;color:var(--ink-mid);max-height:140px;overflow:auto}
+  .out .copy{margin-top:7px;font:inherit;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:none;border-radius:8px;padding:7px 12px;cursor:pointer}
+  .out .hint{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>The vignette pool</h1>
+  <p><b>One library, every building block.</b> Filter the pool, preview any vignette branded for your tenant, then pick <b>one</b> to share it on its own — or <b>several</b> and they play in sequence as a story. No scenes, no timeline.</p>
+</div>
+
+<div class="layout">
+  <div class="main">
+    <div class="filters">
+      <input class="search" id="search" type="text" placeholder="Search vignettes…" autocomplete="off" />
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="count" id="count"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <aside class="side">
+    <h2>Brand</h2>
+    <div class="brand-row"><label>Tenant name</label><input id="b-brand" type="text" placeholder="e.g. Meridian" /></div>
+    <div class="brand-row color"><input id="b-accent" type="color" value="#4C00E9" /><input id="b-hex" class="hex" type="text" value="#4C00E9" /></div>
+    <div class="brand-row"><label>Mark (1–2 letters)</label><input id="b-mark" type="text" maxlength="2" placeholder="M" /></div>
+    <div class="brand-row"><label>Vertical pack</label>
+      <select id="b-pack"><option value="">(demo default)</option><option value="banking">Banking</option><option value="healthcare">Healthcare</option><option value="pubsec">Public sector</option></select>
+    </div>
+
+    <h2 style="margin-top:18px">Your demo</h2>
+    <div class="tray" id="tray"></div>
+
+    <div class="gen">
+      <button class="go" id="go" disabled>Generate share link</button>
+      <div class="out" id="out">
+        <div class="lbl" id="out-lbl">Share link</div>
+        <div class="url" id="out-url"></div>
+        <button class="copy" id="copy">Copy</button>
+        <div class="hint" id="out-hint"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script src="./vignette-pool.js"></script>
+<script>
+const POOL = window.VIGNETTE_POOL, FACETS = window.VIGNETTE_POOL_FACETS;
+const grid = document.getElementById('grid'), chipsEl = document.getElementById('chips');
+const searchEl = document.getElementById('search'), countEl = document.getElementById('count');
+let selected = [];                 // ordered list of vignette ids
+let activeCaps = new Set(), activeVert = null;
+
+/* ---- brand params ---- */
+function brand(){
+  const o = {};
+  const name = document.getElementById('b-brand').value.trim();
+  const accent = document.getElementById('b-hex').value.trim();
+  const mark = document.getElementById('b-mark').value.trim();
+  const pack = document.getElementById('b-pack').value;
+  if (name) o.brand = name;
+  if (accent && /^#?[0-9a-fA-F]{6}$/.test(accent)) o.accent = accent.startsWith('#') ? accent : '#'+accent;
+  if (mark) o.mark = mark;
+  if (pack) o.pack = pack;
+  return o;
+}
+function qs(extra){
+  const b = Object.assign({ embed:'1' }, brand(), extra||{});
+  return Object.entries(b).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+}
+function vignetteUrl(v){ return '../demos/' + v.file + '?' + qs(); }
+
+/* keep the color picker + hex field in sync */
+const accentPick = document.getElementById('b-accent'), hexField = document.getElementById('b-hex');
+accentPick.addEventListener('input', () => { hexField.value = accentPick.value; });
+hexField.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(hexField.value)) accentPick.value = hexField.value; });
+
+/* ---- filter chips ---- */
+function buildChips(){
+  chipsEl.innerHTML = '';
+  const vlab = {financial:'Financial',insurance:'Insurance',healthcare:'Healthcare','public-sector':'Public sector',legal:'Legal',hr:'HR'};
+  const vrow = document.createElement('span'); vrow.className='chip-label'; vrow.textContent='Vertical'; chipsEl.appendChild(vrow);
+  FACETS.verticals.forEach(vt => {
+    const c = document.createElement('button'); c.className='chip'; c.textContent = vlab[vt]||vt;
+    c.addEventListener('click', () => { activeVert = activeVert===vt ? null : vt; sync(); });
+    c.dataset.vert = vt; chipsEl.appendChild(c);
+  });
+  const crow = document.createElement('span'); crow.className='chip-label'; crow.style.marginLeft='6px'; crow.textContent='Capability'; chipsEl.appendChild(crow);
+  FACETS.caps.forEach(cap => {
+    const c = document.createElement('button'); c.className='chip'; c.textContent = cap;
+    c.addEventListener('click', () => { activeCaps.has(cap) ? activeCaps.delete(cap) : activeCaps.add(cap); sync(); });
+    c.dataset.cap = cap; chipsEl.appendChild(c);
+  });
+}
+function sync(){
+  chipsEl.querySelectorAll('.chip').forEach(c => {
+    if (c.dataset.vert) c.classList.toggle('on', activeVert===c.dataset.vert);
+    if (c.dataset.cap)  c.classList.toggle('on', activeCaps.has(c.dataset.cap));
+  });
+  render();
+}
+
+/* ---- grid ---- */
+function matches(v){
+  const q = searchEl.value.trim().toLowerCase();
+  if (q && !(v.label+' '+v.product+' '+v.blurb+' '+v.caps.join(' ')).toLowerCase().includes(q)) return false;
+  if (activeVert && !window.vignetteAppliesToVertical(v, activeVert)) return false;
+  for (const cap of activeCaps) if (!v.caps.includes(cap)) return false;
+  return true;
+}
+function render(){
+  const list = POOL.filter(matches);
+  countEl.textContent = list.length + ' of ' + POOL.length + ' vignettes';
+  grid.innerHTML = '';
+  list.forEach(v => {
+    const added = selected.includes(v.id);
+    const el = document.createElement('div');
+    el.className = 'v' + (added ? ' added' : '');
+    el.innerHTML =
+      '<div class="mark">'+(v.label[0]||'•')+'</div>'+
+      '<div class="prod">'+v.product+'</div><h3>'+v.label+'</h3>'+
+      '<div class="blurb">'+v.blurb+'</div>'+
+      '<div class="caps">'+v.caps.map(c=>'<span class="cap">'+c+'</span>').join('')+'</div>'+
+      '<div class="acts"><a class="preview" target="_blank" rel="noopener">Preview</a>'+
+        '<button class="add">'+(added?'✓ Added':'+ Add')+'</button></div>';
+    el.querySelector('.preview').href = vignetteUrl(v);
+    el.querySelector('.add').addEventListener('click', () => {
+      const i = selected.indexOf(v.id);
+      if (i>=0) selected.splice(i,1); else selected.push(v.id);
+      render(); renderTray();
+    });
+    grid.appendChild(el);
+  });
+}
+
+/* ---- tray (ordered selection) ---- */
+const trayEl = document.getElementById('tray'), goBtn = document.getElementById('go');
+function renderTray(){
+  if (!selected.length){ trayEl.innerHTML = '<div class="empty">Nothing picked yet — add vignettes from the pool.</div>'; goBtn.disabled = true; document.getElementById('out').classList.remove('on'); return; }
+  goBtn.disabled = false;
+  trayEl.innerHTML = '';
+  selected.forEach((id, i) => {
+    const v = POOL.find(x => x.id===id); if (!v) return;
+    const row = document.createElement('div'); row.className='titem';
+    row.innerHTML = '<div class="n">'+(i+1)+'</div><div class="nm">'+v.label+'</div>'+
+      '<button class="mv" title="Up">↑</button><button class="mv" title="Down">↓</button><button class="rm" title="Remove">✕</button>';
+    const [up, down] = row.querySelectorAll('.mv');
+    up.addEventListener('click', () => { if (i>0){ [selected[i-1],selected[i]]=[selected[i],selected[i-1]]; renderTray(); } });
+    down.addEventListener('click', () => { if (i<selected.length-1){ [selected[i+1],selected[i]]=[selected[i],selected[i+1]]; renderTray(); } });
+    row.querySelector('.rm').addEventListener('click', () => { selected.splice(i,1); render(); renderTray(); });
+    trayEl.appendChild(row);
+  });
+}
+
+/* ---- generate share link ---- */
+goBtn.addEventListener('click', () => {
+  const out = document.getElementById('out'), urlEl = document.getElementById('out-url'), hint = document.getElementById('out-hint'), lbl = document.getElementById('out-lbl');
+  out.classList.add('on');
+  if (selected.length === 1){
+    const v = POOL.find(x => x.id===selected[0]);
+    lbl.textContent = 'Single vignette link';
+    urlEl.textContent = new URL(vignetteUrl(v), location.href).href;
+    hint.textContent = 'Opens the branded vignette on its own — autopilot drives it, the prospect can take the wheel.';
+  } else {
+    lbl.textContent = 'Story playlist link (' + selected.length + ' vignettes)';
+    const params = qs({ v: selected.join(',') });
+    urlEl.textContent = new URL('./play.html?' + params, location.href).href;
+    hint.textContent = 'A playlist of the picked vignettes, in order. (The playlist player reads ?v=…; that’s the next build — for now this is the link spec.)';
+  }
+});
+document.getElementById('copy').addEventListener('click', () => {
+  const t = document.getElementById('out-url').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(t);
+  const b = document.getElementById('copy'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy', 1400);
+});
+
+searchEl.addEventListener('input', render);
+buildChips(); render(); renderTray();
+</script>
+</body>
+</html>
