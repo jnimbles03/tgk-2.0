@@ -4439,6 +4439,9 @@ loadIDBTemplateOverrides().then((count) => {
   if (count > 0) {
     showOverrideBanner(Object.keys(TEMPLATE_BLOB_URLS));
     goTo(idx, {force:true, silent:true});
+    // goTo cleared the hold — re-arm the cold-open kickoff unless the viewer
+    // has already started (same fix as the async usecase path below).
+    if (!playing && !calibrateMode) engageHold();
   }
 });
 
@@ -4495,6 +4498,12 @@ loadIDBTemplateOverrides().then((count) => {
          of whatever the user is currently looking at. */
       idx = 0; hotIdx = 0;
       goTo(0, {force:true, silent:true});
+      /* goTo cleared the hold flag — re-arm the cold-open kickoff for the
+         freshly-loaded usecase scenes, but only if the viewer hasn't already
+         started (don't yank an in-progress autoplay back to a hold). Without
+         this, async usecase flows (e.g. ?vertical=banking&usecase=intake) lose
+         the hold the moment the bundle lands and sit frozen — nothing to kick. */
+      if (!playing && !calibrateMode) engageHold();
     })
     .catch(e => console.warn("[tgk] usecase async load failed:", e));
 })();
