@@ -8,249 +8,248 @@
 <style>
   :root{
     --accent:#4C00E9; --accent-soft:#EEE7FD; --ink:#16121f; --ink-mid:#4f4b5a; --ink-soft:#8a8694;
-    --hair:#E7E4F0; --bg:#F4F3F8; --card:#fff; --ok:#0A7A3A;
+    --hair:#E7E4F0; --bg:#F4F3F8; --card:#fff; --ok:#0A7A3A; --tl-h:188px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
-  .top{padding:26px 28px 18px;border-bottom:1px solid var(--hair);background:#fff}
-  .top h1{font-size:23px;font-weight:800;letter-spacing:-.02em}
-  .top p{font-size:13.5px;color:var(--ink-mid);margin-top:5px;max-width:720px}
-  .top p b{color:var(--ink);font-weight:600}
-  .layout{display:grid;grid-template-columns:1fr 340px;gap:0;align-items:start}
-  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+  html,body{height:100%}
+  body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-  /* left: filters + grid */
-  .main{padding:20px 24px 80px}
-  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .top{padding:18px 26px 14px;border-bottom:1px solid var(--hair);background:#fff;flex:0 0 auto}
+  .top h1{font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .top p{font-size:13px;color:var(--ink-mid);margin-top:3px;max-width:760px}
+  .top p b{color:var(--ink);font-weight:600}
+
+  .main{flex:1 1 auto;overflow:auto;padding:18px 24px 24px}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
   .search{flex:1 1 220px;min-width:180px;height:38px;border:1.5px solid var(--hair);border-radius:10px;padding:0 13px;font:inherit;font-size:13.5px;background:#fff}
   .search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
   .chip{font-size:12px;font-weight:600;color:var(--ink-mid);background:#fff;border:1.5px solid var(--hair);border-radius:18px;padding:5px 12px;cursor:pointer;transition:all .12s}
   .chip:hover{border-color:#cfc7e6}
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   .chip-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);align-self:center;margin-right:2px}
-  .count{font-size:12px;color:var(--ink-soft);margin-bottom:12px}
+  .count{font-size:12px;color:var(--ink-soft);margin-bottom:10px}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
-  .v{background:var(--card);border:1.5px solid var(--hair);border-radius:14px;padding:15px 16px 13px;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(244px,1fr));gap:13px}
+  .v{background:var(--card);border:1.5px solid var(--hair);border-radius:14px;padding:14px 15px 12px;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s;cursor:grab}
   .v:hover{border-color:#cfc7e6;box-shadow:0 8px 24px rgba(20,16,40,.06)}
   .v.added{border-color:var(--accent);box-shadow:0 8px 24px rgba(76,0,233,.12)}
-  .v .mark{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .v .mark{width:28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
   .v .prod{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
-  .v h3{font-size:15px;font-weight:700;margin-top:1px}
-  .v .blurb{font-size:12.5px;color:var(--ink-mid);margin-top:6px;flex:1;line-height:1.45}
-  .v .caps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .v h3{font-size:14.5px;font-weight:700;margin-top:1px}
+  .v .blurb{font-size:12px;color:var(--ink-mid);margin-top:5px;flex:1;line-height:1.4}
+  .v .caps{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
   .v .cap{font-size:9.5px;font-weight:600;color:var(--ink-soft);background:var(--bg);border-radius:12px;padding:2px 8px}
-  .v .acts{display:flex;gap:8px;margin-top:12px}
+  .v .acts{display:flex;gap:8px;margin-top:11px}
   .v .acts a,.v .acts button{flex:1;font:inherit;font-size:12px;font-weight:700;padding:8px;border-radius:9px;cursor:pointer;text-align:center;text-decoration:none;border:1.5px solid var(--accent);transition:all .12s}
   .v .acts .preview{color:var(--accent);background:#fff}
   .v .acts .preview:hover{background:var(--accent-soft)}
   .v .acts .add{color:#fff;background:var(--accent)}
   .v.added .acts .add{background:var(--ok);border-color:var(--ok)}
 
-  /* right: brand + tray + generate */
-  .side{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;border-left:1px solid var(--hair);background:#fff;padding:20px 18px 40px}
-  .side h2{font-size:13px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 12px}
-  .brand-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-  .brand-row label{font-size:11px;font-weight:600;color:var(--ink-soft)}
-  .brand-row input,.brand-row select{height:36px;border:1.5px solid var(--hair);border-radius:9px;padding:0 11px;font:inherit;font-size:13px;background:#fff}
-  .brand-row.color{flex-direction:row;align-items:center;gap:9px}
-  .brand-row.color input[type=color]{width:38px;height:36px;padding:2px;border-radius:9px;cursor:pointer}
-  .brand-row.color .hex{flex:1}
-  .tray{margin-top:8px;border-top:1px solid var(--hair);padding-top:14px}
-  .tray .empty{font-size:12.5px;color:var(--ink-soft);padding:8px 0}
-  .titem{display:flex;align-items:center;gap:8px;padding:8px 9px;background:var(--bg);border-radius:9px;margin-bottom:7px}
-  .titem .n{width:18px;height:18px;border-radius:5px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-  .titem .nm{flex:1;font-size:12.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .titem .mv{font:inherit;font-size:13px;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
-  .titem .mv:hover{color:var(--accent)}
-  .titem .rm{font:inherit;font-size:14px;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
-  .titem .rm:hover{color:#C0392B}
-  .gen{margin-top:16px}
-  .gen .go{width:100%;font:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s}
-  .gen .go:disabled{background:#cfc7e6;cursor:default}
-  .gen .go:not(:disabled):hover{filter:brightness(.94)}
-  .out{margin-top:12px;display:none}
-  .out.on{display:block}
-  .out .lbl{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-  .out .url{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:var(--bg);border:1px solid var(--hair);border-radius:8px;padding:9px 11px;word-break:break-all;color:var(--ink-mid);max-height:140px;overflow:auto}
-  .out .copy{margin-top:7px;font:inherit;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:none;border-radius:8px;padding:7px 12px;cursor:pointer}
-  .out .hint{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4}
+  /* ---- bottom timeline bar ---- */
+  .tl-bar{flex:0 0 auto;border-top:1px solid var(--hair);background:#fff;box-shadow:0 -8px 24px rgba(20,16,40,.05);display:flex;align-items:stretch;gap:14px;padding:12px 18px;height:var(--tl-h)}
+  .brandbox{flex:0 0 196px;display:flex;flex-direction:column;gap:7px;border-right:1px solid var(--hair);padding-right:14px}
+  .brandbox .bh{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .brandbox input,.brandbox select{height:30px;border:1.5px solid var(--hair);border-radius:8px;padding:0 9px;font:inherit;font-size:12.5px;background:#fff}
+  .brow{display:flex;gap:6px}
+  .brow input[type=color]{width:32px;height:30px;padding:2px;border-radius:8px;cursor:pointer;flex:0 0 auto}
+  .brow .hex{flex:1;min-width:0}
+
+  .tl-wrap{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+  .tl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .tl-head .th{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .tl-head .sub{font-size:11px;color:var(--ink-soft)}
+  .tl{flex:1 1 auto;display:flex;gap:10px;align-items:stretch;overflow-x:auto;overflow-y:hidden;padding:2px 2px 6px;border:1.5px dashed var(--hair);border-radius:11px;background:var(--bg)}
+  .tl.drop{border-color:var(--accent);background:var(--accent-soft)}
+  .tl .empty{margin:auto;font-size:12.5px;color:var(--ink-soft);padding:0 16px;text-align:center}
+  .titem{flex:0 0 156px;position:relative;background:#fff;border:1.5px solid var(--hair);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;cursor:grab}
+  .titem.dragging{opacity:.45}
+  .titem .thumb{position:relative;width:100%;height:86px;background:#EEF1F6;overflow:hidden;flex:0 0 auto}
+  .titem .thumb iframe{position:absolute;top:0;left:0;width:1280px;height:720px;border:0;transform:scale(0.1218);transform-origin:top left;pointer-events:none}
+  .titem .thumb .seq{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:5px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2}
+  .titem .thumb .rm{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:5px;background:rgba(20,16,30,.55);color:#fff;font-size:11px;border:none;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center}
+  .titem .thumb .rm:hover{background:#C0392B}
+  .titem .lab{padding:7px 9px;font-size:11.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .titem .lab small{display:block;font-size:9.5px;font-weight:500;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+
+  .genbox{flex:0 0 168px;display:flex;flex-direction:column;gap:8px;border-left:1px solid var(--hair);padding-left:14px;justify-content:center}
+  .genbox .go{font:inherit;font-size:13.5px;font-weight:700;padding:11px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s}
+  .genbox .go:disabled{background:#cfc7e6;cursor:default}
+  .genbox .go:not(:disabled):hover{filter:brightness(.94)}
+  .genbox .copy{font:inherit;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:none;border-radius:9px;padding:8px;cursor:pointer;display:none}
+  .genbox .copy.on{display:block}
+  .genbox .lspec{font-size:10px;color:var(--ink-soft);line-height:1.35;display:none}
+  .genbox .lspec.on{display:block}
+
+  /* link modal */
+  .modal{position:fixed;inset:0;background:rgba(20,16,30,.4);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.on{display:flex}
+  .modal .box{background:#fff;border-radius:16px;padding:22px;max-width:560px;width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h3{font-size:16px;font-weight:800}
+  .modal .url{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--bg);border:1px solid var(--hair);border-radius:10px;padding:12px;word-break:break-all;color:var(--ink-mid);margin:12px 0}
+  .modal .row{display:flex;gap:10px}
+  .modal .row button{font:inherit;font-size:13px;font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;border:none}
+  .modal .row .c{background:var(--accent);color:#fff}
+  .modal .row .x{background:var(--bg);color:var(--ink-mid)}
+  .modal .hint{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.45}
 </style>
 </head>
 <body>
 <div class="top">
   <h1>The vignette pool</h1>
-  <p><b>One library, every building block.</b> Filter the pool, preview any vignette branded for your tenant, then pick <b>one</b> to share it on its own — or <b>several</b> and they play in sequence as a story. No scenes, no timeline.</p>
+  <p><b>One library, every building block.</b> Filter and browse, then drag vignettes into the timeline below (or hit Add). Reorder by dragging the thumbnails. One vignette = a standalone branded link; several = a story that plays them in order.</p>
 </div>
 
-<div class="layout">
-  <div class="main">
-    <div class="filters">
-      <input class="search" id="search" type="text" placeholder="Search vignettes…" autocomplete="off" />
-    </div>
-    <div class="chips" id="chips"></div>
-    <div class="count" id="count"></div>
-    <div class="grid" id="grid"></div>
+<div class="main">
+  <div class="filters"><input class="search" id="search" type="text" placeholder="Search vignettes…" autocomplete="off" /></div>
+  <div class="chips" id="chips"></div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="tl-bar">
+  <div class="brandbox">
+    <div class="bh">Brand</div>
+    <input id="b-brand" type="text" placeholder="Tenant name" />
+    <div class="brow"><input id="b-accent" type="color" value="#4C00E9" /><input id="b-hex" class="hex" type="text" value="#4C00E9" /></div>
+    <input id="b-mark" type="text" maxlength="2" placeholder="Mark (M)" />
+    <select id="b-pack"><option value="">Pack: demo default</option><option value="banking">Pack: Banking</option><option value="healthcare">Pack: Healthcare</option><option value="pubsec">Pack: Public sector</option></select>
   </div>
 
-  <aside class="side">
-    <h2>Brand</h2>
-    <div class="brand-row"><label>Tenant name</label><input id="b-brand" type="text" placeholder="e.g. Meridian" /></div>
-    <div class="brand-row color"><input id="b-accent" type="color" value="#4C00E9" /><input id="b-hex" class="hex" type="text" value="#4C00E9" /></div>
-    <div class="brand-row"><label>Mark (1–2 letters)</label><input id="b-mark" type="text" maxlength="2" placeholder="M" /></div>
-    <div class="brand-row"><label>Vertical pack</label>
-      <select id="b-pack"><option value="">(demo default)</option><option value="banking">Banking</option><option value="healthcare">Healthcare</option><option value="pubsec">Public sector</option></select>
-    </div>
+  <div class="tl-wrap">
+    <div class="tl-head"><span class="th">Timeline</span><span class="sub" id="tl-sub">drag thumbnails to reorder</span></div>
+    <div class="tl" id="tl"><div class="empty">Drag vignettes here (or click <b>+ Add</b>) to build your demo.</div></div>
+  </div>
 
-    <h2 style="margin-top:18px">Your demo</h2>
-    <div class="tray" id="tray"></div>
-
-    <div class="gen">
-      <button class="go" id="go" disabled>Generate share link</button>
-      <div class="out" id="out">
-        <div class="lbl" id="out-lbl">Share link</div>
-        <div class="url" id="out-url"></div>
-        <button class="copy" id="copy">Copy</button>
-        <div class="hint" id="out-hint"></div>
-      </div>
-    </div>
-  </aside>
+  <div class="genbox">
+    <button class="go" id="go" disabled>Generate link</button>
+    <button class="copy" id="copy">Copy link</button>
+    <div class="lspec" id="lspec"></div>
+  </div>
 </div>
+
+<div class="modal" id="modal"><div class="box">
+  <h3 id="m-title">Share link</h3>
+  <div class="url" id="m-url"></div>
+  <div class="row"><button class="c" id="m-copy">Copy</button><a class="c" id="m-open" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Open preview</a><button class="x" id="m-close">Close</button></div>
+  <div class="hint" id="m-hint"></div>
+</div></div>
 
 <script src="./vignette-pool.js"></script>
 <script>
 const POOL = window.VIGNETTE_POOL, FACETS = window.VIGNETTE_POOL_FACETS;
-const grid = document.getElementById('grid'), chipsEl = document.getElementById('chips');
-const searchEl = document.getElementById('search'), countEl = document.getElementById('count');
-let selected = [];                 // ordered list of vignette ids
-let activeCaps = new Set(), activeVert = null;
+const grid=document.getElementById('grid'), chipsEl=document.getElementById('chips');
+const searchEl=document.getElementById('search'), countEl=document.getElementById('count');
+const tlEl=document.getElementById('tl'), goBtn=document.getElementById('go');
+let selected=[];                  // ordered vignette ids
+let activeCaps=new Set(), activeVert=null;
 
-/* ---- brand params ---- */
+/* ---- brand → query string ---- */
 function brand(){
-  const o = {};
-  const name = document.getElementById('b-brand').value.trim();
-  const accent = document.getElementById('b-hex').value.trim();
-  const mark = document.getElementById('b-mark').value.trim();
-  const pack = document.getElementById('b-pack').value;
-  if (name) o.brand = name;
-  if (accent && /^#?[0-9a-fA-F]{6}$/.test(accent)) o.accent = accent.startsWith('#') ? accent : '#'+accent;
-  if (mark) o.mark = mark;
-  if (pack) o.pack = pack;
-  return o;
+  const o={}; const name=document.getElementById('b-brand').value.trim();
+  const accent=document.getElementById('b-hex').value.trim(); const mark=document.getElementById('b-mark').value.trim();
+  const pack=document.getElementById('b-pack').value;
+  if(name)o.brand=name;
+  if(accent&&/^#?[0-9a-fA-F]{6}$/.test(accent))o.accent=accent.startsWith('#')?accent:'#'+accent;
+  if(mark)o.mark=mark; if(pack)o.pack=pack; return o;
 }
-function qs(extra){
-  const b = Object.assign({ embed:'1' }, brand(), extra||{});
-  return Object.entries(b).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
-}
-function vignetteUrl(v){ return '../demos/' + v.file + '?' + qs(); }
-
-/* keep the color picker + hex field in sync */
-const accentPick = document.getElementById('b-accent'), hexField = document.getElementById('b-hex');
-accentPick.addEventListener('input', () => { hexField.value = accentPick.value; });
-hexField.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(hexField.value)) accentPick.value = hexField.value; });
+function qs(extra){ const b=Object.assign({embed:'1'},brand(),extra||{}); return Object.entries(b).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&'); }
+function vignetteUrl(v,opts){ return '../demos/'+v.file+'?'+qs(opts); }
+const accentPick=document.getElementById('b-accent'), hexField=document.getElementById('b-hex');
+accentPick.addEventListener('input',()=>{hexField.value=accentPick.value; refreshThumbs();});
+hexField.addEventListener('input',()=>{ if(/^#[0-9a-fA-F]{6}$/.test(hexField.value)){accentPick.value=hexField.value; refreshThumbs();} });
+['b-brand','b-mark','b-pack'].forEach(id=>document.getElementById(id).addEventListener('change',refreshThumbs));
 
 /* ---- filter chips ---- */
 function buildChips(){
-  chipsEl.innerHTML = '';
-  const vlab = {financial:'Financial',insurance:'Insurance',healthcare:'Healthcare','public-sector':'Public sector',legal:'Legal',hr:'HR'};
-  const vrow = document.createElement('span'); vrow.className='chip-label'; vrow.textContent='Vertical'; chipsEl.appendChild(vrow);
-  FACETS.verticals.forEach(vt => {
-    const c = document.createElement('button'); c.className='chip'; c.textContent = vlab[vt]||vt;
-    c.addEventListener('click', () => { activeVert = activeVert===vt ? null : vt; sync(); });
-    c.dataset.vert = vt; chipsEl.appendChild(c);
-  });
-  const crow = document.createElement('span'); crow.className='chip-label'; crow.style.marginLeft='6px'; crow.textContent='Capability'; chipsEl.appendChild(crow);
-  FACETS.caps.forEach(cap => {
-    const c = document.createElement('button'); c.className='chip'; c.textContent = cap;
-    c.addEventListener('click', () => { activeCaps.has(cap) ? activeCaps.delete(cap) : activeCaps.add(cap); sync(); });
-    c.dataset.cap = cap; chipsEl.appendChild(c);
-  });
+  chipsEl.innerHTML='';
+  const vlab={financial:'Financial',insurance:'Insurance',healthcare:'Healthcare','public-sector':'Public sector',legal:'Legal',hr:'HR'};
+  const vl=document.createElement('span'); vl.className='chip-label'; vl.textContent='Vertical'; chipsEl.appendChild(vl);
+  FACETS.verticals.forEach(vt=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=vlab[vt]||vt; c.dataset.vert=vt;
+    c.addEventListener('click',()=>{activeVert=activeVert===vt?null:vt; sync();}); chipsEl.appendChild(c); });
+  const cl=document.createElement('span'); cl.className='chip-label'; cl.style.marginLeft='6px'; cl.textContent='Capability'; chipsEl.appendChild(cl);
+  FACETS.caps.forEach(cap=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=cap; c.dataset.cap=cap;
+    c.addEventListener('click',()=>{activeCaps.has(cap)?activeCaps.delete(cap):activeCaps.add(cap); sync();}); chipsEl.appendChild(c); });
 }
-function sync(){
-  chipsEl.querySelectorAll('.chip').forEach(c => {
-    if (c.dataset.vert) c.classList.toggle('on', activeVert===c.dataset.vert);
-    if (c.dataset.cap)  c.classList.toggle('on', activeCaps.has(c.dataset.cap));
-  });
-  render();
-}
+function sync(){ chipsEl.querySelectorAll('.chip').forEach(c=>{ if(c.dataset.vert)c.classList.toggle('on',activeVert===c.dataset.vert); if(c.dataset.cap)c.classList.toggle('on',activeCaps.has(c.dataset.cap)); }); render(); }
 
-/* ---- grid ---- */
+/* ---- pool grid ---- */
 function matches(v){
-  const q = searchEl.value.trim().toLowerCase();
-  if (q && !(v.label+' '+v.product+' '+v.blurb+' '+v.caps.join(' ')).toLowerCase().includes(q)) return false;
-  if (activeVert && !window.vignetteAppliesToVertical(v, activeVert)) return false;
-  for (const cap of activeCaps) if (!v.caps.includes(cap)) return false;
+  const q=searchEl.value.trim().toLowerCase();
+  if(q&&!(v.label+' '+v.product+' '+v.blurb+' '+v.caps.join(' ')).toLowerCase().includes(q))return false;
+  if(activeVert&&!window.vignetteAppliesToVertical(v,activeVert))return false;
+  for(const cap of activeCaps) if(!v.caps.includes(cap))return false;
   return true;
 }
 function render(){
-  const list = POOL.filter(matches);
-  countEl.textContent = list.length + ' of ' + POOL.length + ' vignettes';
-  grid.innerHTML = '';
-  list.forEach(v => {
-    const added = selected.includes(v.id);
-    const el = document.createElement('div');
-    el.className = 'v' + (added ? ' added' : '');
-    el.innerHTML =
-      '<div class="mark">'+(v.label[0]||'•')+'</div>'+
-      '<div class="prod">'+v.product+'</div><h3>'+v.label+'</h3>'+
-      '<div class="blurb">'+v.blurb+'</div>'+
-      '<div class="caps">'+v.caps.map(c=>'<span class="cap">'+c+'</span>').join('')+'</div>'+
-      '<div class="acts"><a class="preview" target="_blank" rel="noopener">Preview</a>'+
-        '<button class="add">'+(added?'✓ Added':'+ Add')+'</button></div>';
-    el.querySelector('.preview').href = vignetteUrl(v);
-    el.querySelector('.add').addEventListener('click', () => {
-      const i = selected.indexOf(v.id);
-      if (i>=0) selected.splice(i,1); else selected.push(v.id);
-      render(); renderTray();
-    });
+  const list=POOL.filter(matches);
+  countEl.textContent=list.length+' of '+POOL.length+' vignettes';
+  grid.innerHTML='';
+  list.forEach(v=>{
+    const added=selected.includes(v.id);
+    const el=document.createElement('div'); el.className='v'+(added?' added':''); el.draggable=true; el.dataset.id=v.id;
+    el.innerHTML='<div class="mark">'+(v.label[0]||'•')+'</div><div class="prod">'+v.product+'</div><h3>'+v.label+'</h3>'+
+      '<div class="blurb">'+v.blurb+'</div><div class="caps">'+v.caps.map(c=>'<span class="cap">'+c+'</span>').join('')+'</div>'+
+      '<div class="acts"><a class="preview" target="_blank" rel="noopener">Preview</a><button class="add">'+(added?'✓ Added':'+ Add')+'</button></div>';
+    el.querySelector('.preview').href=vignetteUrl(v);
+    el.querySelector('.add').addEventListener('click',()=>toggle(v.id));
+    el.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain','POOL:'+v.id); e.dataTransfer.effectAllowed='copy'; });
     grid.appendChild(el);
   });
 }
+function toggle(id){ const i=selected.indexOf(id); if(i>=0)selected.splice(i,1); else selected.push(id); render(); renderTL(); }
 
-/* ---- tray (ordered selection) ---- */
-const trayEl = document.getElementById('tray'), goBtn = document.getElementById('go');
-function renderTray(){
-  if (!selected.length){ trayEl.innerHTML = '<div class="empty">Nothing picked yet — add vignettes from the pool.</div>'; goBtn.disabled = true; document.getElementById('out').classList.remove('on'); return; }
-  goBtn.disabled = false;
-  trayEl.innerHTML = '';
-  selected.forEach((id, i) => {
-    const v = POOL.find(x => x.id===id); if (!v) return;
-    const row = document.createElement('div'); row.className='titem';
-    row.innerHTML = '<div class="n">'+(i+1)+'</div><div class="nm">'+v.label+'</div>'+
-      '<button class="mv" title="Up">↑</button><button class="mv" title="Down">↓</button><button class="rm" title="Remove">✕</button>';
-    const [up, down] = row.querySelectorAll('.mv');
-    up.addEventListener('click', () => { if (i>0){ [selected[i-1],selected[i]]=[selected[i],selected[i-1]]; renderTray(); } });
-    down.addEventListener('click', () => { if (i<selected.length-1){ [selected[i+1],selected[i]]=[selected[i],selected[i+1]]; renderTray(); } });
-    row.querySelector('.rm').addEventListener('click', () => { selected.splice(i,1); render(); renderTray(); });
-    trayEl.appendChild(row);
+/* ---- timeline (drag to reorder, live thumbnails) ---- */
+let dragFrom=null;
+function renderTL(){
+  if(!selected.length){ tlEl.innerHTML='<div class="empty">Drag vignettes here (or click <b>+ Add</b>) to build your demo.</div>'; goBtn.disabled=true; document.getElementById('copy').classList.remove('on'); document.getElementById('lspec').classList.remove('on'); document.getElementById('tl-sub').textContent='drag thumbnails to reorder'; return; }
+  goBtn.disabled=false;
+  document.getElementById('tl-sub').textContent=selected.length+(selected.length===1?' vignette':' vignettes · drag to reorder');
+  tlEl.innerHTML='';
+  selected.forEach((id,i)=>{
+    const v=POOL.find(x=>x.id===id); if(!v)return;
+    const it=document.createElement('div'); it.className='titem'; it.draggable=true; it.dataset.i=i;
+    it.innerHTML='<div class="thumb"><span class="seq">'+(i+1)+'</span><button class="rm" title="Remove">✕</button>'+
+      '<iframe loading="lazy" src="'+vignetteUrl(v,{attract:'0'})+'"></iframe></div>'+
+      '<div class="lab">'+v.label+'<small>'+v.product+'</small></div>';
+    it.querySelector('.rm').addEventListener('click',e=>{e.stopPropagation(); selected.splice(i,1); render(); renderTL();});
+    it.addEventListener('dragstart',e=>{ dragFrom=i; it.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','TL:'+i); });
+    it.addEventListener('dragend',()=>{ dragFrom=null; it.classList.remove('dragging'); });
+    it.addEventListener('dragover',e=>{ e.preventDefault(); });
+    it.addEventListener('drop',e=>{ e.preventDefault(); if(dragFrom===null)return; const to=i; if(to!==dragFrom){ const [m]=selected.splice(dragFrom,1); selected.splice(to,0,m); renderTL(); } });
+    tlEl.appendChild(it);
   });
 }
+/* drop from the pool grid onto the timeline appends */
+tlEl.addEventListener('dragover',e=>{ e.preventDefault(); tlEl.classList.add('drop'); });
+tlEl.addEventListener('dragleave',()=>tlEl.classList.remove('drop'));
+tlEl.addEventListener('drop',e=>{ tlEl.classList.remove('drop'); const d=e.dataTransfer.getData('text/plain')||''; if(d.startsWith('POOL:')){ const id=d.slice(5); if(!selected.includes(id)){ selected.push(id); render(); renderTL(); } } });
+/* re-point thumbnail iframes when the brand changes (debounced) */
+let rt; function refreshThumbs(){ clearTimeout(rt); rt=setTimeout(renderTL,400); }
 
-/* ---- generate share link ---- */
-goBtn.addEventListener('click', () => {
-  const out = document.getElementById('out'), urlEl = document.getElementById('out-url'), hint = document.getElementById('out-hint'), lbl = document.getElementById('out-lbl');
-  out.classList.add('on');
-  if (selected.length === 1){
-    const v = POOL.find(x => x.id===selected[0]);
-    lbl.textContent = 'Single vignette link';
-    urlEl.textContent = new URL(vignetteUrl(v), location.href).href;
-    hint.textContent = 'Opens the branded vignette on its own — autopilot drives it, the prospect can take the wheel.';
-  } else {
-    lbl.textContent = 'Story playlist link (' + selected.length + ' vignettes)';
-    const params = qs({ v: selected.join(',') });
-    urlEl.textContent = new URL('./play.html?' + params, location.href).href;
-    hint.textContent = 'A playlist of the picked vignettes, in order. (The playlist player reads ?v=…; that’s the next build — for now this is the link spec.)';
-  }
+/* ---- generate ---- */
+goBtn.addEventListener('click',()=>{
+  const modal=document.getElementById('modal');
+  let url,hint,title;
+  if(selected.length===1){ const v=POOL.find(x=>x.id===selected[0]); title='Single vignette link';
+    url=new URL(vignetteUrl(v),location.href).href; hint='Opens the branded vignette on its own — autopilot drives it; the prospect can take the wheel.'; }
+  else { title='Story playlist ('+selected.length+' vignettes)';
+    url=new URL('./play.html?'+qs({v:selected.join(',')}),location.href).href;
+    hint='Plays the picked vignettes in order. The playlist player (play.html, reads ?v=…) is the next build — this is the link spec.'; }
+  document.getElementById('m-title').textContent=title;
+  document.getElementById('m-url').textContent=url;
+  document.getElementById('m-open').href=url;
+  document.getElementById('m-hint').textContent=hint;
+  document.getElementById('m-open').style.display = selected.length===1 ? 'inline-flex':'none';
+  modal.classList.add('on');
 });
-document.getElementById('copy').addEventListener('click', () => {
-  const t = document.getElementById('out-url').textContent;
-  if (navigator.clipboard) navigator.clipboard.writeText(t);
-  const b = document.getElementById('copy'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy', 1400);
-});
+document.getElementById('m-close').addEventListener('click',()=>document.getElementById('modal').classList.remove('on'));
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal')document.getElementById('modal').classList.remove('on'); });
+document.getElementById('m-copy').addEventListener('click',()=>{ const t=document.getElementById('m-url').textContent; if(navigator.clipboard)navigator.clipboard.writeText(t); const b=document.getElementById('m-copy'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy',1400); });
 
-searchEl.addEventListener('input', render);
-buildChips(); render(); renderTray();
+searchEl.addEventListener('input',render);
+buildChips(); render(); renderTL();
 </script>
 </body>
 </html>
