@@ -3160,7 +3160,7 @@ const ALLOWED_RATES = [1, 1.5, 2];
    1× displayed ≈ old 1.75× effective. The hint row + speed picker keep
    the familiar labels; the demo just plays faster. Bumping this constant
    later is the single-touch way to globally retune pacing. */
-const SPEED_MULTIPLIER = 1.75;
+const SPEED_MULTIPLIER = 1.25;
 
 /* Cold-open default is 1× now (was 1.5×) — combined with the multiplier
    above, that puts cold-open at 1.75× effective, which matches the speed
@@ -4396,6 +4396,15 @@ $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
 // scene-change pop; engageHold idempotently keeps it up and adds the
 // pulse to the play toggle.
 engageHold();
+
+/* Auto-start — begin autoplay a beat after cold-boot instead of waiting for the
+   viewer to press Space. A real gesture before the timer fires releases the hold
+   itself (releaseHoldAndResume guards on holdingForGesture), so this only kicks
+   in when the viewer does nothing. Skipped in calibrate mode and while a splash
+   is holding; ?autostart=0 opts out. */
+if (!calibrateMode && params.get('autostart') !== '0') {
+  setTimeout(() => { if (holdingForGesture && !_splashWaiting) releaseHoldAndResume(); }, 1000);
+}
 
 /* Pull any admin-uploaded template overrides out of IndexedDB, then re-render
    the current scene so the iframe swaps to the override Blob URL. */
