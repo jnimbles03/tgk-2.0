@@ -4397,6 +4397,15 @@ $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
 // pulse to the play toggle.
 engageHold();
 
+/* Auto-start — begin autoplay a beat after cold-boot instead of waiting for the
+   viewer to press Space. A real gesture before the timer fires releases the hold
+   itself (releaseHoldAndResume guards on holdingForGesture), so this only kicks
+   in when the viewer does nothing. Skipped in calibrate mode and while a splash
+   is holding; ?autostart=0 opts out. */
+if (!calibrateMode && params.get('autostart') !== '0') {
+  setTimeout(() => { if (holdingForGesture && !_splashWaiting) releaseHoldAndResume(); }, 1000);
+}
+
 /* Pull any admin-uploaded template overrides out of IndexedDB, then re-render
    the current scene so the iframe swaps to the override Blob URL. */
 loadIDBTemplateOverrides().then((count) => {
