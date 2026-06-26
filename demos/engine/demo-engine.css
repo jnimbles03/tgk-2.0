@@ -92,9 +92,14 @@ body.de-embed{padding:0;background:#fff;overflow:hidden}
 .de-embed .de-shell{grid-template-columns:1fr;gap:0}
 .de-embed .de-stageframe{border:none;border-radius:0;padding:0;background:#fff}
 .de-embed .de-stage{border-radius:0}
-.de-livehint{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:var(--tenant-accent);margin-bottom:12px}
-.de-livehint .dot{width:8px;height:8px;border-radius:50%;background:var(--tenant-accent);animation:de-pulse 1.7s infinite}
-@keyframes de-pulse{0%{box-shadow:0 0 0 0 var(--tenant-accent-soft)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+/* Live "autopilot" pill — flips color/label by state (off/auto = accent,
+   nudge = amber "your turn", manual = green "you have the wheel"). */
+.de-livehint{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.01em;color:var(--tenant-accent);background:var(--tenant-accent-soft);border-radius:20px;padding:5px 12px;margin-bottom:12px;transition:color .2s,background .2s}
+.de-livehint .dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:0 0 auto;animation:de-pulse 1.7s infinite}
+.de-livehint[data-live="nudge"]{color:#B25A00;background:#FBEFD9}
+.de-livehint[data-live="manual"]{color:#0A7A3A;background:#E4F8EC}
+@keyframes de-pulse{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion: reduce){.de-livehint .dot{animation:none}}
 /* shared handoff / close scene (every demo uses this as its final beat) */
 .ho{position:absolute;inset:0;background:linear-gradient(160deg,#fff,var(--tenant-accent-soft) 130%);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-brand);text-align:center;padding:0 60px}
 .ho .chk{width:84px;height:84px;border-radius:50%;background:var(--tenant-accent);display:flex;align-items:center;justify-content:center;margin-bottom:26px;box-shadow:0 12px 34px var(--tenant-accent-soft)}

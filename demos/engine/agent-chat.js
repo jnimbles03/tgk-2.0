@@ -29,11 +29,14 @@ window.AgentChat = (function(){
     opts.exchanges.forEach(e=>e.used=false);
     function renderChips(){
       chipBox.innerHTML = '<div class="hint">'+(opts.hint||"Try a suggestion")+'</div>';
-      opts.exchanges.forEach(ex=>{ if(ex.used)return; const b=document.createElement("div"); b.className="agc-chip"; b.textContent=ex.label;
+      let any=false;
+      opts.exchanges.forEach(ex=>{ if(ex.used)return; any=true; const b=document.createElement("div"); b.className="agc-chip"; b.textContent=ex.label;
         b.onclick=()=>{ if(busy)return; run(ex); }; chipBox.appendChild(b); });
+      /* tell the engine an interactive spot is waiting (autopilot pause-and-nudge) */
+      if(any) document.dispatchEvent(new CustomEvent("agc:chips",{detail:{chipBox:chipBox}}));
     }
     function run(ex){
-      busy=true; ex.used=true; chipBox.innerHTML='<div class="hint">'+(opts.hint||"")+'</div>';
+      busy=true; ex.used=true; document.dispatchEvent(new CustomEvent("agc:answer")); chipBox.innerHTML='<div class="hint">'+(opts.hint||"")+'</div>';
       bubble(chat,"user",ex.user||ex.label);
       const t=thinking(chat);
       setTimeout(()=>{ t.remove(); const ai=bubble(chat,"ai","");

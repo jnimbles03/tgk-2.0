@@ -269,7 +269,7 @@
         '<div class="de-brand"><div class="mark" id="de-mark"></div><div><div class="bn" id="de-brand"></div><div class="pb" id="de-pb"></div></div></div>'+
         '<div class="de-persona" id="de-persona"><div class="avatar" id="de-av"></div><div><div class="nm" id="de-nm"></div><div class="rl" id="de-rl"></div></div></div>'+
         '<div class="de-step" id="de-step"></div><div class="de-head" id="de-head"></div><div class="de-lede" id="de-lede"></div>'+
-        '<div class="de-spacer"></div><div class="de-livehint" id="de-livehint"><span class="dot"></span> Live — interact with the demo</div>'+
+        '<div class="de-spacer"></div><div class="de-livehint" id="de-livehint" data-live="off"><span class="dot"></span><span id="de-live-t">Live — interact with the demo</span></div>'+
         '<div class="de-pips" id="de-pips"></div><div class="de-meta"><span id="de-counter"></span><span></span></div>'+
         '<div class="de-trans"><button class="de-tbtn play" id="de-reset"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg><span>Reset</span></button></div>'+
       '</aside>'+
@@ -289,7 +289,7 @@
 
     const api = {
       get pack(){ return DEMO.packs[pack]; },
-      _forceAuto:false, _timers:[],
+      _forceAuto:false, _driving:false, _timers:[],
       get auto(){ return auto || this._forceAuto; },
       // cancelable timers — attract mode aborts a running self-run on interaction
       after(ms,fn){ const id=setTimeout(()=>{ this._timers=this._timers.filter(x=>x!==id); fn(); }, ms); this._timers.push(id); return id; },
@@ -310,7 +310,11 @@
         [...pips.children].forEach((n,k)=>{ n.className="de-pip"+(k<i?" done":k===i?" on":""); });
         $("de-counter").textContent="Step "+Math.min(i+1,tot)+" of "+tot; },
       done(key){ const pips=$("de-pips"); [...pips.children].forEach(n=>n.className="de-pip done"); if(key) this.narrate(key);
-        $("de-counter").textContent="Complete"; }
+        $("de-counter").textContent="Complete"; },
+      // "Live pill" autopilot affordance: auto = driving, nudge = paused at an
+      // interactive spot (your turn), manual = the user has taken the wheel.
+      live(state){ const el=$("de-livehint"); if(!el)return; el.dataset.live=state;
+        const t=$("de-live-t"); if(t) t.textContent=({auto:"Autopilot — interact to take over",nudge:"Your turn — click to try",manual:"You have the wheel · resumes when idle"})[state]||"Live — interact with the demo"; }
     };
 
     function applyPack(){
@@ -327,17 +331,27 @@
     document.querySelectorAll(".de-vbtn").forEach(b=>b.addEventListener("click",()=>{ api.cancelAuto(); pack=b.dataset.pack; applyPack(); }));
     $("de-reset").addEventListener("click", ()=>{ api.cancelAuto(); applyPack(); });
 
+    // Pause-and-nudge: while autopiloting, when AgentChat shows its question
+    // chips (an interactive spot) the pill flips to "your turn" and the chips
+    // get a pulsing ring; while a question is being answered it reads "driving".
+    let _ring=null;
+    const clearRing=()=>{ if(_ring){ _ring.classList.remove("de-nudge"); _ring=null; } };
+    document.addEventListener("agc:chips", e=>{ if(!api._driving) return;
+      api.live("nudge"); const cb=e.detail&&e.detail.chipBox; if(cb){ clearRing(); cb.classList.add("de-nudge"); _ring=cb; } });
+    document.addEventListener("agc:answer", ()=>{ clearRing(); if(api._driving) api.live("auto"); });
+
     if(ATTRACT){
       // Activity-driven attract loop: autoplay; on interaction hand control to the
       // user; after idle (reset on each interaction) resume; cycle when left alone.
       const IDLE=(parseInt(Q.get("idle"),10)||22)*1000, CYCLE=(parseInt(Q.get("cycle"),10)||42)*1000;
       let idleT, cycleT;
-      const runAuto=()=>{ api._forceAuto=true; applyPack(); api._forceAuto=false; };
+      const runAuto=()=>{ api._driving=true; api.live("auto"); api._forceAuto=true; applyPack(); api._forceAuto=false; };
       const loop=()=>{ clearTimeout(cycleT); cycleT=setTimeout(()=>{ runAuto(); loop(); }, CYCLE); };
-      const onInteract=()=>{ api.cancelAuto(); clearTimeout(cycleT); clearTimeout(idleT); idleT=setTimeout(()=>{ runAuto(); loop(); }, IDLE); };
+      const onInteract=()=>{ api._driving=false; api.cancelAuto(); clearRing(); api.live("manual"); clearTimeout(cycleT); clearTimeout(idleT); idleT=setTimeout(()=>{ runAuto(); loop(); }, IDLE); };
       ["pointerdown","keydown","wheel","touchstart"].forEach(ev=>$("de-stage").addEventListener(ev,onInteract,{passive:true}));
-      $("de-livehint").innerHTML='<span class="dot"></span> Auto-playing — interact to take over';
       runAuto(); loop();
+    } else if(auto){
+      api._driving=true; api.live("auto"); applyPack();
     } else {
       applyPack();
     }
