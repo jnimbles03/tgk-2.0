@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Autopilot style picker · TGK 2.0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+<style>
+  :root{
+    --accent:#4C00E9; --accent-2:#7B2FF7; --accent-soft:#EEE7FD;
+    --amber:#B25A00; --amber-soft:#FBEFD9;
+    --ink:#16121f; --ink-mid:#4f4b5a; --ink-soft:#8a8694;
+    --hair:#E7E4F0; --bg:#F4F3F8; --card:#fff;
+    --ok:#0A7A3A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 90px}
+  header h1{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  header .sub{font-size:15px;color:var(--ink-mid);margin-top:10px;max-width:760px}
+  header .sub b{color:var(--ink);font-weight:600}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .legend span{font-size:11.5px;font-weight:600;color:var(--ink-mid);background:#fff;border:1px solid var(--hair);border-radius:20px;padding:5px 12px;display:inline-flex;align-items:center;gap:7px}
+  .legend i{width:8px;height:8px;border-radius:50%}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:20px;margin-top:26px}
+
+  .card{background:var(--card);border:1.5px solid var(--hair);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s,transform .2s}
+  .card.sel{border-color:var(--accent);box-shadow:0 14px 40px rgba(76,0,233,.16)}
+  .card-h{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:10px}
+  .card-h .n{width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px}
+  .card-h h2{font-size:15.5px;font-weight:700}
+  .card-h p{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.45}
+
+  /* The shared mini-demo stage every option drives */
+  .stage{position:relative;margin:0 14px;height:208px;border-radius:12px;background:linear-gradient(180deg,#FbFaFE,#F3F1FA);border:1px solid var(--hair);overflow:hidden}
+  .doc{position:absolute;left:18px;right:18px;top:16px}
+  .doc .ttl{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.02em}
+  .doc .ttl .pill{font-size:9px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:20px;padding:2px 7px;margin-left:6px}
+  .fld{margin-top:9px}
+  .fld label{font-size:9.5px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:3px}
+  .fld .box{height:26px;border:1.4px solid var(--hair);border-radius:7px;background:#fff;font-size:11px;color:var(--ink);display:flex;align-items:center;padding:0 9px;overflow:hidden;white-space:nowrap;transition:border-color .2s,box-shadow .2s}
+  .fld .box .car{width:1.4px;height:13px;background:var(--accent);margin-left:1px;opacity:0}
+  .fld.fill .box{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .fld.typing .box .car{opacity:1;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  /* the interactive target — the "Ask" chip */
+  .ask{position:absolute;left:18px;bottom:14px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);background:#fff;border:1.4px solid var(--accent);border-radius:18px;padding:7px 13px;cursor:pointer;user-select:none;transition:transform .12s,box-shadow .2s,background .15s}
+  .ask:active{transform:scale(.97)}
+  .ask .sp{font-size:11px}
+  .ask.answered{background:var(--accent);color:#fff}
+  .answer{position:absolute;left:18px;right:18px;bottom:14px;background:var(--accent-soft);border-radius:10px 10px 10px 3px;padding:8px 11px;font-size:10.5px;color:var(--ink);opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s;pointer-events:none}
+  .answer.on{opacity:1;transform:none}
+
+  /* ghost cursor used by some options */
+  .ghost{position:absolute;width:18px;height:18px;left:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .3s;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+  .ghost svg{width:18px;height:18px;display:block}
+  .ghost.on{opacity:1}
+
+  .card-f{padding:14px 18px 16px;margin-top:auto}
+  .pick{width:100%;font-family:inherit;font-size:13px;font-weight:700;padding:10px;border-radius:10px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer;transition:background .15s,color .15s}
+  .pick:hover{background:var(--accent-soft)}
+  .card.sel .pick{background:var(--accent);color:#fff}
+  .card.sel .pick::before{content:"✓ "}
+
+  /* ============ OPTION-SPECIFIC AFFORDANCES ============ */
+  /* generic state badge baseline */
+  .badge{position:absolute;z-index:9;display:inline-flex;align-items:center;gap:6px;font-weight:700;border-radius:20px;transition:all .25s}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+  /* opt1 — Live pill + ring */
+  .o1 .badge{top:12px;right:12px;font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;background:#fff;border:1px solid var(--hair);color:var(--accent)}
+  .o1 .badge .dot{animation:pulse 1.6s infinite}
+  .o1[data-st="nudge"] .badge,.o1[data-st="manual"] .badge{color:var(--amber);border-color:var(--amber-soft);background:var(--amber-soft)}
+  .o1[data-st="nudge"] .ask{box-shadow:0 0 0 0 rgba(178,90,0,.5);animation:ring 1.4s infinite}
+  @keyframes ring{0%{box-shadow:0 0 0 0 rgba(178,90,0,.45)}70%{box-shadow:0 0 0 9px rgba(178,90,0,0)}100%{box-shadow:0 0 0 0 rgba(178,90,0,0)}}
+
+  /* opt2 — Drive progress bar */
+  .o2 .drivebar{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(76,0,233,.1);z-index:9}
+  .o2 .drivebar .fillb{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s linear}
+  .o2 .drivebar .head{position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;background:#fff;border:2.5px solid var(--accent);transform:translate(-50%,-50%);transition:left .25s linear;box-shadow:0 1px 4px rgba(76,0,233,.4)}
+  .o2[data-st="nudge"] .drivebar .head{animation:pulse 1s infinite;border-color:var(--amber)}
+  .o2[data-st="nudge"] .drivebar .fillb{background:var(--amber)}
+  .o2 .chip{bottom:54px;left:50%;transform:translateX(-50%) translateY(8px);opacity:0;font-size:10.5px;padding:6px 12px;background:#111;color:#fff;border-radius:8px;z-index:10}
+  .o2[data-st="nudge"] .chip{opacity:1;transform:translateX(-50%)}
+
+  /* opt3 — Tesla corner HUD */
+  .o3 .hud{position:absolute;right:12px;top:12px;z-index:9;width:128px;background:rgba(20,16,30,.92);backdrop-filter:blur(6px);border-radius:12px;padding:10px 11px;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .o3 .hud .row{display:flex;align-items:center;gap:7px}
+  .o3 .hud .wheel{width:22px;height:22px;border-radius:50%;border:2.5px solid #7CFFB2;position:relative;flex:0 0 auto;transition:border-color .25s}
+  .o3 .hud .wheel::after{content:"";position:absolute;inset:5px;border-radius:50%;border:2px solid #7CFFB2;opacity:.5}
+  .o3 .hud .lab{font-size:9.5px;font-weight:700;line-height:1.2}
+  .o3 .hud .lab small{display:block;font-size:8px;font-weight:500;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em}
+  .o3 .hud .track{height:3px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:9px;overflow:hidden}
+  .o3 .hud .track i{display:block;height:100%;width:0;background:#7CFFB2;transition:width .25s linear}
+  .o3 .hud .take{margin-top:8px;font-size:8.5px;font-weight:700;text-align:center;color:#0c0c14;background:#7CFFB2;border-radius:6px;padding:4px;letter-spacing:.02em}
+  .o3[data-st="nudge"] .hud{background:rgba(60,40,0,.92)}
+  .o3[data-st="nudge"] .hud .wheel{border-color:#FFC24B}.o3[data-st="nudge"] .hud .wheel::after{border-color:#FFC24B}
+  .o3[data-st="nudge"] .hud .track i{background:#FFC24B}
+  .o3[data-st="nudge"] .hud .take{background:#FFC24B}
+
+  /* opt4 — Spotlight + arrow nudge */
+  .o4 .scrim{position:absolute;inset:0;background:rgba(20,16,30,.46);opacity:0;transition:opacity .3s;z-index:7;pointer-events:none}
+  .o4[data-st="nudge"] .scrim{opacity:1}
+  .o4[data-st="nudge"] .ask{z-index:9;box-shadow:0 0 0 4px rgba(255,255,255,.85),0 0 30px 6px rgba(124,255,178,.5)}
+  .o4 .arrow{position:absolute;z-index:9;font-size:18px;opacity:0;transition:opacity .3s;color:#fff;left:120px;bottom:12px}
+  .o4[data-st="nudge"] .arrow{opacity:1;animation:bounceX 1s infinite}
+  @keyframes bounceX{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+  .o4 .tag{top:12px;left:12px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;background:#fff;border:1px solid var(--hair);color:var(--ink-soft);z-index:9}
+  .o4[data-st="nudge"] .tag,.o4[data-st="manual"] .tag{color:var(--amber);border-color:var(--amber-soft);background:var(--amber-soft)}
+
+  /* opt5 — Coach toast */
+  .o5 .minidot{position:absolute;top:13px;right:13px;width:9px;height:9px;border-radius:50%;background:var(--accent);z-index:9;animation:pulse 1.6s infinite}
+  .o5[data-st="nudge"] .minidot{background:var(--amber)}
+  .o5 .toast{left:14px;right:14px;bottom:12px;transform:translateY(70px);opacity:0;background:#fff;border:1px solid var(--hair);box-shadow:0 10px 30px rgba(20,16,40,.18);border-radius:12px;padding:10px 12px;z-index:10;display:flex;align-items:center;gap:9px;border-radius:12px}
+  .o5[data-st="nudge"] .toast{transform:none;opacity:1}
+  .o5 .toast .emo{font-size:16px;flex:0 0 auto}
+  .o5 .toast .tx{font-size:10.5px;color:var(--ink);line-height:1.35}
+  .o5 .toast .tx b{font-weight:700}
+  .o5 .toast .tx small{display:block;color:var(--ink-soft);font-size:9px;margin-top:1px}
+
+  @keyframes pulse{0%{box-shadow:0 0 0 0 currentColor;opacity:1}70%{box-shadow:0 0 0 6px transparent;opacity:.7}100%{box-shadow:0 0 0 0 transparent;opacity:1}}
+
+  .selbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(90px);background:#16121f;color:#fff;border-radius:14px;padding:13px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 14px 44px rgba(0,0,0,.3);z-index:50;transition:transform .35s cubic-bezier(.2,.9,.3,1);max-width:92vw}
+  .selbar.on{transform:translateX(-50%)}
+  .selbar .lab{font-size:13.5px}
+  .selbar .lab b{font-weight:700}
+  .selbar .lab small{display:block;color:rgba(255,255,255,.6);font-size:11px;margin-top:1px}
+  .selbar .x{margin-left:auto;font-size:12px;color:rgba(255,255,255,.55);cursor:pointer;background:none;border:none;font-family:inherit}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>How should every demo drive itself?</h1>
+    <p class="sub"><b>Autopilot for demos — Tesla-style.</b> Each demo runs itself end to end. The moment it reaches a spot you can actually click, it <b>pauses and nudges you to try</b> — and you can take the wheel at any time, then hand it back. Pick the treatment below; whichever you choose becomes the standard across <b>every</b> generated demo. Each card is live — watch it drive, pause at the <b>Ask</b> chip, then click the chip to take over.</p>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i> Autopilot driving</span>
+      <span><i style="background:var(--amber)"></i> Paused · your turn</span>
+      <span><i style="background:var(--ok)"></i> You took the wheel</span>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="selbar" id="selbar">
+  <div class="lab">Selected: <b id="sel-name">—</b><small id="sel-note">Tell me to roll this out and I'll wire it into every demo.</small></div>
+  <button class="x" id="sel-x">dismiss</button>
+</div>
+
+<script>
+const CURSOR = '<svg viewBox="0 0 24 24" fill="#16121f" stroke="#fff" stroke-width="1.5"><path d="M5 3l5 16 2.5-6.5L19 10z"/></svg>';
+
+const OPTIONS = [
+  { id:'pill',     cls:'o1', name:'Live pill + ring',
+    desc:'A small status pill flips state; the clickable spot gets a pulsing ring. Closest to a quiet status indicator.' },
+  { id:'drivebar', cls:'o2', name:'Drive progress bar',
+    desc:'A transport bar with a moving “car” fills as it plays, parks and pulses at the interactive step.' },
+  { id:'hud',      cls:'o3', name:'Tesla corner HUD',
+    desc:'A dashboard card — “Autopilot engaged”, a progress ring, “Tap to take over” — that turns amber: your turn.' },
+  { id:'spotlight',cls:'o4', name:'Spotlight + nudge',
+    desc:'Minimal until it matters: it dims everything and spotlights the one thing to click, with an arrow.' },
+  { id:'toast',    cls:'o5', name:'Coach toast',
+    desc:'Stays out of the way, then a friendly toast slides up: “Your move — try this. Autopilot paused.”' },
+];
+
+const grid = document.getElementById('grid');
+
+function stageHTML(){
+  return ''+
+    '<div class="ghost">'+CURSOR+'</div>'+
+    '<div class="scrim"></div>'+
+    '<div class="doc">'+
+      '<div class="ttl">Agreement Manager <span class="pill">✦ AI</span></div>'+
+      '<div class="fld" data-f="0"><label>Counterparty</label><div class="box"><span class="v"></span><span class="car"></span></div></div>'+
+      '<div class="fld" data-f="1"><label>Renewal</label><div class="box"><span class="v"></span><span class="car"></span></div></div>'+
+    '</div>'+
+    '<div class="ask"><span class="sp">✦</span><span class="ask-t">Ask a question</span></div>'+
+    '<div class="answer">Atlas Corp — renews Aug 30. Flagged before it auto-renews.</div>'+
+    '<span class="badge"><span class="dot"></span><span class="badge-t">Autopilot</span></span>'+
+    /* opt2 */ '<div class="drivebar"><div class="fillb"></div><div class="head"></div></div><span class="badge chip">Take the wheel — click the step</span>'+
+    /* opt3 */ '<div class="hud"><div class="row"><div class="wheel"></div><div class="lab"><small>Status</small><span class="hud-t">Autopilot engaged</span></div></div><div class="track"><i></i></div><div class="take">Tap to take over</div></div>'+
+    /* opt4 */ '<span class="arrow">➤</span><span class="badge tag">Auto</span>'+
+    /* opt5 */ '<div class="minidot"></div><div class="toast"><span class="emo">👋</span><div class="tx"><b>Your move — try the Ask chip.</b><small>Autopilot paused · it’ll resume if you don’t</small></div></div>';
+}
+
+const FILLS = [['Counterparty','Atlas Corp'],['Renewal','Auto-renews Aug 30']];
+
+OPTIONS.forEach(opt=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML =
+    '<div class="card-h"><div class="n">'+(OPTIONS.indexOf(opt)+1)+'</div><div><h2>'+opt.name+'</h2><p>'+opt.desc+'</p></div></div>'+
+    '<div class="stage '+opt.cls+'" data-st="drive"></div>'+
+    '<div class="card-f"><button class="pick">Use this style</button></div>';
+  const stage = card.querySelector('.stage');
+  stage.innerHTML = stageHTML();
+  grid.appendChild(card);
+  drive(stage, opt);
+  card.querySelector('.pick').addEventListener('click', ()=> select(opt, card));
+});
+
+/* ---- the shared autopilot lifecycle each card runs on a loop ---- */
+function drive(stage, opt){
+  const $ = s => stage.querySelector(s);
+  const flds = [...stage.querySelectorAll('.fld')];
+  const ask = $('.ask'), answer = $('.answer'), ghost = $('.ghost');
+  const badgeT = $('.badge-t'), badge = $('.badge'), hudT = $('.hud-t'), tag = $('.tag .badge-t')||$('.tag');
+  let timers = [], tookWheel = false;
+  const T = (ms,fn)=>{ const id=setTimeout(fn,ms); timers.push(id); };
+  const clearAll = ()=> { timers.forEach(clearTimeout); timers=[]; };
+
+  function setSt(st){ stage.dataset.st = st;
+    if(badgeT){ badgeT.textContent = st==='drive'?'Autopilot':(st==='manual'?'You’re driving':'Your turn'); }
+    if(hudT){ hudT.textContent = st==='drive'?'Autopilot engaged':(st==='manual'?'You have the wheel':'Hands on — your turn'); }
+    const take = $('.take'); if(take) take.textContent = st==='manual'?'Resume autopilot ▸':'Tap to take over';
+    const tg = $('.tag'); if(tg){ const t=tg.querySelector('.badge-t')||tg; }
+    const tagt = stage.querySelector('.tag'); if(tagt){ tagt.lastChild.textContent = st==='drive'?'Auto':'Manual'; }
+  }
+  function moveGhost(el){ if(!ghost) return; const s=stage.getBoundingClientRect(), r=el.getBoundingClientRect();
+    ghost.classList.add('on'); ghost.style.left=(r.left-s.left+r.width*0.5)+'px'; ghost.style.top=(r.top-s.top+r.height*0.5)+'px'; }
+  function fill(i){ const f=flds[i]; if(!f) return; f.classList.add('typing'); moveGhost(f);
+    const v=f.querySelector('.v'), txt=FILLS[i][1]; let n=0;
+    const iv=setInterval(()=>{ v.textContent=txt.slice(0,++n); if(n>=txt.length){clearInterval(iv); f.classList.remove('typing'); f.classList.add('fill');}}, 45); timers.push(iv); }
+  function progress(p){ const fb=$('.fillb'), hd=$('.head'), tr=$('.track i');
+    if(fb) fb.style.width=p+'%'; if(hd) hd.style.left=p+'%'; if(tr) tr.style.width=p+'%'; }
+
+  function takeWheel(){ // user clicked the Ask chip
+    tookWheel = true; clearAll(); setSt('manual');
+    ask.classList.add('answered'); answer.classList.add('on'); if(ghost) ghost.classList.remove('on');
+    T(2600, ()=> reset());
+  }
+  ask.addEventListener('click', ()=>{ if(stage.dataset.st!=='manual') takeWheel(); });
+
+  function reset(){ clearAll(); tookWheel=false; setSt('drive');
+    flds.forEach(f=>{ f.classList.remove('fill','typing'); f.querySelector('.v').textContent=''; });
+    ask.classList.remove('answered'); answer.classList.remove('on'); progress(0); if(ghost) ghost.classList.remove('on');
+    run();
+  }
+  function run(){
+    setSt('drive'); progress(8);
+    T(500,  ()=>{ fill(0); progress(34); });
+    T(2200, ()=>{ fill(1); progress(66); });
+    T(3900, ()=>{ progress(90); moveGhost(ask); setSt('nudge'); });   // reach interactive → pause + nudge
+    T(8500, ()=>{ if(!tookWheel){ // auto-resumes / completes itself if you don't grab the wheel
+        ask.classList.add('answered'); answer.classList.add('on'); progress(100); setSt('drive');
+        T(2200, ()=> reset());
+    }});
+  }
+  // stagger starts so the grid feels alive, not synchronized
+  T(300 + OPTIONS.indexOf(opt)*450, run);
+}
+
+/* ---- selection ---- */
+const selbar = document.getElementById('selbar');
+function select(opt, card){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+  card.classList.add('sel');
+  document.getElementById('sel-name').textContent = opt.name;
+  selbar.classList.add('on');
+  try{ localStorage.setItem('tgk.autopilotStyle', opt.id); }catch(e){}
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+document.getElementById('sel-x').addEventListener('click', ()=> selbar.classList.remove('on'));
+/* restore a prior pick */
+try{ const prev=localStorage.getItem('tgk.autopilotStyle');
+  if(prev){ const i=OPTIONS.findIndex(o=>o.id===prev); if(i>=0){ const c=grid.children[i]; if(c){ c.classList.add('sel'); document.getElementById('sel-name').textContent=OPTIONS[i].name; selbar.classList.add('on'); } } }
+}catch(e){}
+</script>
+</body>
+</html>
