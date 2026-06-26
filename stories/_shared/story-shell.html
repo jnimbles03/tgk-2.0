@@ -423,6 +423,11 @@
   .stage iframe.fading{opacity:0;}
 
   .hotspot-layer{position:absolute;inset:0;pointer-events:none;z-index:10;}
+  /* Kickoff catcher — transparent, above the iframe, only while holding. cursor
+     hints it's clickable; the scene shows through (lead-mode card/hint do the cueing). */
+  .kickoff-catch{position:absolute;inset:0;z-index:15;background:transparent;cursor:pointer;}
+  .kickoff-catch[hidden]{display:none;}
+  body.calibrate .kickoff-catch{display:none !important;}
   .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
   .hotspot.on{opacity:1;}
   /* The pulsing dot is hidden during normal playback — replaced by .shell-cursor
@@ -675,6 +680,11 @@
     <section class="stage" id="stage">
       <iframe id="scene" src="" title="Scene"></iframe>
       <div class="hotspot-layer" id="hotspot-layer"></div>
+      <!-- Kickoff catcher: a transparent layer shown ONLY while holding for the
+           viewer's first gesture. The scene plays in the iframe above, so clicks
+           on the scene content don't bubble to #stage — this catcher makes a click
+           anywhere on the stage (including over the scene) the kickoff gesture. -->
+      <div class="kickoff-catch" id="kickoff-catch" hidden></div>
     </section>
   </div>
 </div>
@@ -3829,6 +3839,18 @@ function exitLeadMode(){
     if (shell && shell.classList.contains('lead-mode')) exitLeadMode();
   };
   stage.addEventListener('click', onStageClick);
+  // The kickoff catcher sits above the scene iframe while holding. A click on it
+  // is the viewer's first action: dismiss any splash AND release the hold. We
+  // stopPropagation so it doesn't also re-fire onStageClick as the click bubbles.
+  const catcher = document.getElementById('kickoff-catch');
+  if (catcher) catcher.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (_splashWaiting) {
+      try { frame.contentWindow.postMessage({ type: 'tgk:dismissSplash' }, '*'); } catch (_) {}
+      _splashWaiting = false;
+    }
+    if (holdingForGesture) releaseHoldAndResume();
+  });
   // No mouseenter dismiss — would accidentally trip the cold-open
   // hold the moment the user moves the cursor onto the stage.
 })();
@@ -4106,6 +4128,10 @@ function setHoldVisuals(on){
   if (sb) sb.classList.toggle('is-handoff-pending', !!on);
   const tog = $('play-toggle');
   if (tog) tog.classList.toggle('needs-action', !!on);
+  // Show the kickoff catcher while holding so a click over the scene (which
+  // otherwise lands inside the iframe) still begins/resumes the demo.
+  const cat = document.getElementById('kickoff-catch');
+  if (cat) cat.hidden = !on;
 }
 
 /* Engage the hold. Pauses autoplay if it was running, expands lead-mode
