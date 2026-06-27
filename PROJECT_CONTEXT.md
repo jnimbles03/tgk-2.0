@@ -96,6 +96,13 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
 - Config maps: `SCENE_KEYS`, `USECASE_SCENE_KEYS`, `USECASE_TEMPLATE_FILES`,
   `USECASE_TEMPLATE_MODES`, `BEAT_TO_INTERNAL`, `SCENE1_TEMPLATE_OVERRIDE`.
 - `?usecase=auth-fabric` aliases to `fraud-fabric`.
+- `?usecase=bookend-los` is **FINS Bet 1** ("Customer Experience Platform"): the
+  `banking` (Meridian) story re-lensed so each of the 5 canonical scenes shows
+  Docusign **bookending the LOS (nCino)** — Web Forms *before* · workflow builder
+  *around* · eSignature *at* · integrations *after* · Workspaces for *everything
+  else*. Reuses the default templates/visuals (narration-only override in the
+  `tgk-usecases` bundle) and shows a persistent `#bet1-bookend` thesis rail
+  (clones `#ff-thesis`). The builder's **BET 1 · Best-in-class CX** card launches it.
 - **Fraud-fabric** = a 3-scene **change-of-address** flow (standardized across all
   verticals): portal-shell (CLEAR/IDV at entry) → webform-intake (no signature,
   inherits the biometric proof) → `docusign-maestro-address-change.html` (the
