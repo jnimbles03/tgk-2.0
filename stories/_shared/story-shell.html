@@ -3231,6 +3231,11 @@ function postBeatToFrame(){
       playbackRate: playbackRate,
       personaSide: persona ? (persona.side || "system") : "system"
     }, "*");
+    // While holding the cold-open on an interactive-webform scene, arm the
+    // form: the viewer picks an option and hits Next, which posts tgk:kickoff.
+    if (holdingForGesture && _isKickoffScene()) {
+      frame.contentWindow.postMessage({ type: "tgk:armKickoff" }, "*");
+    }
   } catch (e) { /* iframe not ready — will be retried on iframe load */ }
 }
 
@@ -3284,6 +3289,16 @@ window.addEventListener("message", (ev) => {
   }
   if (msg.type === "tgk:splashDismissed") {
     _splashWaiting = false;
+  }
+  // KICKOFF: the viewer completed the webform's first action (selection + Next).
+  // Release the cold-open hold and start autoplay from s2 — advancing past s1
+  // (which they just did by hand) so it isn't re-dwelt or cleared back to blank.
+  if (msg.type === "tgk:kickoff" && holdingForGesture) {
+    holdingForGesture = false;
+    setHoldVisuals(false);
+    exitLeadMode();
+    if (!playing) togglePlay();                          // start autoplay
+    advance({ fromTick: true, suppressScenePop: true }); // step s1 -> s2, syncs the iframe
   }
   // AUTOPILOT: the prospect clicked a live hotspot inside the stage scene.
   if (msg.type === "tgk:grabWheel" && autopilotState !== 'auto') enterExploring(msg);
@@ -4123,15 +4138,30 @@ function isPersonaSwitchAhead(){
    toggle and glows the persona avatar so the viewer knows where to
    click. No more separate handoff-cue text DOM; the expanded persona
    card IS the cue. */
+// An interactive-webform scene (intake "Document Intelligence" flows) lets the
+// viewer drive the FIRST action itself — pick an option and hit Next — rather
+// than the generic click-to-begin. The scene posts tgk:kickoff on Next.
+function _isKickoffScene(){
+  const s = SCENES[idx];
+  return !!(s && s.sceneKey === 'webform_intake');
+}
 function setHoldVisuals(on){
   const sb = document.getElementById('sidebar');
   if (sb) sb.classList.toggle('is-handoff-pending', !!on);
   const tog = $('play-toggle');
   if (tog) tog.classList.toggle('needs-action', !!on);
-  // Show the kickoff catcher while holding so a click over the scene (which
-  // otherwise lands inside the iframe) still begins/resumes the demo.
+  // Kickoff catcher: a click anywhere on the stage begins the demo — EXCEPT on
+  // an interactive-webform scene, where the form must stay clickable so the
+  // viewer can make the selection and hit Next (which posts tgk:kickoff).
   const cat = document.getElementById('kickoff-catch');
-  if (cat) cat.hidden = !on;
+  if (cat) cat.hidden = !on || _isKickoffScene();
+  // Cue text matches the gesture for this scene.
+  if (on) {
+    const lh = document.getElementById('lead-hint');
+    if (lh) lh.innerHTML = _isKickoffScene()
+      ? 'Select an option and hit <kbd>Next</kbd> to begin'
+      : 'Click or press <kbd>Space</kbd> to begin';
+  }
 }
 
 /* Engage the hold. Pauses autoplay if it was running, expands lead-mode

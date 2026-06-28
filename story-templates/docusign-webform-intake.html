@@ -271,6 +271,18 @@
     box-shadow: 0 8px 20px var(--accent-soft);
   }
   .actions .btn.next:hover { filter: brightness(0.94); }
+  /* Kickoff cues — while the story shell hands the viewer the first action
+     (select an option + Next), pulse Next and ring the select. */
+  .actions .btn.next.await-next { animation: wf-kick 1.5s ease-out infinite; }
+  @keyframes wf-kick {
+    0% { box-shadow: 0 0 0 0 var(--accent-soft); }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .field.await-pick select { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field.shake { animation: wf-shake 0.4s; }
+  @keyframes wf-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  @media (prefers-reduced-motion: reduce) { .actions .btn.next.await-next, .field.shake { animation: none; } }
 
   /* Footer */
   .footer {
@@ -2449,9 +2461,41 @@
     replayState(sceneId);
   }
 
+  /* === Interactive kickoff (added 2026-06-28) ===========================
+     The story shell holds the cold-open on this webform and posts
+     tgk:armKickoff. Instead of autoplaying s1, we hand the viewer the first
+     action: pick the engagement type and click Next. That Next click posts
+     tgk:kickoff back to the shell, which releases the hold and starts
+     autoplay from s2 — "you make the first move, then it drives." */
+  let _kickoffArmed = false;
+  const _s1sel = document.getElementById('s1-select');
+  const _nextBtn = document.querySelector('#actions .btn.next');
+  function _armKickoff() {
+    _kickoffArmed = true;
+    showState('s1');
+    if (_s1sel) { _s1sel.selectedIndex = 0; const f = _s1sel.closest('.field'); if (f) f.classList.add('await-pick'); }
+    if (_nextBtn) _nextBtn.classList.add('await-next');
+  }
+  function _fireKickoff() {
+    if (!_kickoffArmed) return;
+    // Require a real selection first — the whole point is the viewer's choice.
+    if (_s1sel && _s1sel.selectedIndex <= 0) {
+      const f = _s1sel.closest('.field');
+      if (f) { f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); }
+      return;
+    }
+    _kickoffArmed = false;
+    if (_s1sel) { const f = _s1sel.closest('.field'); if (f) f.classList.remove('await-pick'); }
+    if (_nextBtn) _nextBtn.classList.remove('await-next');
+    try { parent.postMessage({ type: 'tgk:kickoff' }, '*'); } catch (_) {}
+  }
+  if (_nextBtn) _nextBtn.addEventListener('click', () => { if (_kickoffArmed) _fireKickoff(); });
+
   window.addEventListener('message', (e) => {
     const m = e.data;
-    if (!m || m.type !== 'tgk:lockToBeat') return;
+    if (!m) return;
+    if (m.type === 'tgk:armKickoff') { _armKickoff(); return; }
+    if (m.type !== 'tgk:lockToBeat') return;
     const sid = m.sceneId;
     if (sid && /^s[1-5]$/.test(sid)) showState(sid);
   });
