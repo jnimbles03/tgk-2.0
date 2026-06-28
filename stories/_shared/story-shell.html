@@ -461,10 +461,13 @@
     color:#A78BFA;margin-bottom:22px;
   }
   .thesis-splash .ts-kicker svg{width:18px;height:18px;flex:0 0 auto;}
-  .thesis-splash .ts-body{font-size:22px;line-height:1.5;color:rgba(248,243,240,0.92);font-weight:400;}
-  .thesis-splash .ts-body strong{color:#fff;font-weight:700;}
-  .thesis-splash .ts-body em{font-style:italic;color:rgba(248,243,240,0.99);}
-  /* Blinking typewriter caret while the body types. */
+  /* Three short, punchy statements typed in one after another (not a wall of
+     copy). Each line reserves its height so nothing jumps as it types. */
+  .thesis-splash .ts-lines{display:flex;flex-direction:column;gap:28px;}
+  .thesis-splash .ts-line{font-size:30px;line-height:1.34;color:rgba(248,243,240,0.95);font-weight:500;min-height:1.34em;}
+  .thesis-splash .ts-line strong{color:#fff;font-weight:700;}
+  .thesis-splash .ts-line em{font-style:italic;color:#fff;}
+  /* Blinking typewriter caret while a line types. */
   .thesis-splash .ts-cursor{display:inline-block;width:2px;height:1.05em;vertical-align:-0.14em;margin-left:2px;background:#A78BFA;animation:tsBlink 1s steps(1) infinite;}
   @keyframes tsBlink{50%{opacity:0;}}
   .thesis-splash .ts-go{
@@ -750,7 +753,7 @@
       <div class="thesis-splash" id="thesis-splash" aria-hidden="true">
         <div class="ts-card">
           <div class="ts-kicker" id="ts-kicker"></div>
-          <div class="ts-body" id="ts-body"></div>
+          <div class="ts-lines" id="ts-lines"></div>
           <div class="ts-go">Click or press <kbd>Space</kbd> to begin</div>
         </div>
       </div>
@@ -3199,11 +3202,26 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
    that into the splash. Dismissed by the first gesture (handled in togglePlay /
    releaseHoldAndResume). ?thesis=rail restores the old always-on rail callout. */
 let _tsTypeTimer = null;
+/* The splash carries three short, punchy statements (per thesis flow) typed in
+   one after another, rather than a paragraph. Keyed by usecase; ?thesis=rail
+   still uses the long-form rail copy. */
+const THESIS_LINES = {
+  'bookend-los': [
+    'Meridian keeps <strong>nCino</strong> — the brains of the loan.',
+    'Docusign wraps it: cleaner <strong>intake</strong>, <strong>orchestration</strong>, <strong>completion</strong>.',
+    'Modernize the experience. <strong>No rip-and-replace.</strong>'
+  ],
+  'fraud-fabric': [
+    'A low-risk-looking action is a classic fraud target.',
+    'Don’t add friction — <strong>bind identity to the action</strong>.',
+    'Verified login and the change become <strong>one chain</strong>.'
+  ]
+};
 /* Tag-aware typewriter (same approach as the workspace Iris rail): reveals one
    character at a time but emits whole HTML tags at once so <strong>/<em> render
-   cleanly. Reserves the final height first so the centered card doesn't jump. */
-function _tsType(html, el){
-  if (_tsTypeTimer) { clearTimeout(_tsTypeTimer); _tsTypeTimer = null; }
+   cleanly. Reserves the line's height first so nothing jumps. Calls done() when
+   the line finishes. Deliberately slow — this is a read-aloud kickoff line. */
+function _tsType(html, el, done){
   el.innerHTML = html;
   const reserve = el.offsetHeight;
   if (reserve) el.style.minHeight = reserve + 'px';
@@ -3214,6 +3232,7 @@ function _tsType(html, el){
     if (i >= html.length) {
       const c = el.querySelector('.ts-cursor'); if (c) c.remove();
       _tsTypeTimer = null;
+      if (done) done();
       return;
     }
     if (html[i] === '<') {
@@ -3225,12 +3244,33 @@ function _tsType(html, el){
       i++;
     }
     const ch = html[i - 1];
-    let delay = 12 + Math.random() * 8;
-    if (/[.?!]/.test(ch)) delay = 200;
-    else if (ch === ',' || ch === ';' || ch === ':') delay = 110;
+    let delay = 34 + Math.random() * 24;
+    if (/[.?!]/.test(ch)) delay = 360;
+    else if (ch === ',' || ch === ';' || ch === ':') delay = 210;
     _tsTypeTimer = setTimeout(tick, delay);
   };
   tick();
+}
+/* Type a list of statements in sequence, one .ts-line each, with a beat of
+   pause between. Reserves the full block height up front so the centered card
+   holds still. */
+function _tsTypeLines(lines, container){
+  if (_tsTypeTimer) { clearTimeout(_tsTypeTimer); _tsTypeTimer = null; }
+  container.innerHTML = '';
+  const els = lines.map(() => {
+    const d = document.createElement('div'); d.className = 'ts-line';
+    container.appendChild(d); return d;
+  });
+  els.forEach((d, k) => { d.innerHTML = lines[k]; });   // reserve full height
+  const reserve = container.offsetHeight;
+  if (reserve) container.style.minHeight = reserve + 'px';
+  els.forEach(d => { d.innerHTML = ''; });
+  let k = 0;
+  const next = () => {
+    if (k >= lines.length) return;
+    _tsType(lines[k], els[k], () => { k++; _tsTypeTimer = setTimeout(next, 750); });
+  };
+  next();
 }
 function dismissThesisSplash(){
   const s = document.getElementById('thesis-splash');
@@ -3253,7 +3293,9 @@ function dismissThesisSplash(){
   if (!splash || !k || !b) return;
   $('ts-kicker').innerHTML = k.innerHTML;
   splash.classList.add('on');
-  _tsType(b.innerHTML, $('ts-body'));   // typewriter the thesis in
+  // Three punchy statements typed in sequence; fall back to the rail paragraph.
+  const lines = THESIS_LINES[usecase] || [b.innerHTML];
+  _tsTypeLines(lines, $('ts-lines'));
   splash.addEventListener('click', () => {
     if (holdingForGesture) releaseHoldAndResume();   // dismiss happens in togglePlay
     else if (!playing) togglePlay();
