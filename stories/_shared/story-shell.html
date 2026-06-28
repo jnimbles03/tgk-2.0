@@ -444,31 +444,37 @@
   /* Thesis kickoff splash — intro overlay carrying the per-flow thesis, shown
      over the stage at cold-open and dismissed by the first gesture. Replaces
      the always-on rail callout so the narration rail stays clean. */
+  /* Solid dark inkwell, matching the workspace MasterCard splash (.mc-splash).
+     Light text on the deep navy/purple; the body types in via _tsType. */
   .thesis-splash{
     position:absolute;inset:0;z-index:16;display:none;cursor:pointer;
     align-items:center;justify-content:center;padding:7% 9%;
-    background:radial-gradient(120% 110% at 50% 26%, rgba(75,0,233,0.12), rgba(243,240,236,0.97));
-    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    background:var(--ds-inkwell,#130032);
     animation:thesisSplashIn 0.5s ease both;
   }
   @keyframes thesisSplashIn{from{opacity:0;}to{opacity:1;}}
   .thesis-splash.on{display:flex;}
-  .thesis-splash .ts-card{max-width:600px;text-align:center;}
+  .thesis-splash .ts-card{max-width:640px;text-align:center;}
   .thesis-splash .ts-kicker{
     display:inline-flex;align-items:center;gap:9px;justify-content:center;
-    font-size:13px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
-    color:var(--ds-purple,#4B00E9);margin-bottom:20px;
+    font-size:13px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;
+    color:#A78BFA;margin-bottom:22px;
   }
   .thesis-splash .ts-kicker svg{width:18px;height:18px;flex:0 0 auto;}
-  .thesis-splash .ts-body{font-size:21px;line-height:1.5;color:var(--ink-mid);font-weight:400;}
-  .thesis-splash .ts-body strong{color:var(--ink);font-weight:700;}
+  .thesis-splash .ts-body{font-size:22px;line-height:1.5;color:rgba(248,243,240,0.92);font-weight:400;}
+  .thesis-splash .ts-body strong{color:#fff;font-weight:700;}
+  .thesis-splash .ts-body em{font-style:italic;color:rgba(248,243,240,0.99);}
+  /* Blinking typewriter caret while the body types. */
+  .thesis-splash .ts-cursor{display:inline-block;width:2px;height:1.05em;vertical-align:-0.14em;margin-left:2px;background:#A78BFA;animation:tsBlink 1s steps(1) infinite;}
+  @keyframes tsBlink{50%{opacity:0;}}
   .thesis-splash .ts-go{
-    margin-top:30px;font-size:12px;font-weight:700;letter-spacing:0.10em;
-    text-transform:uppercase;color:var(--ink-faint);
+    margin-top:34px;font-size:12px;font-weight:700;letter-spacing:0.12em;
+    text-transform:uppercase;color:rgba(248,243,240,0.6);
   }
   .thesis-splash .ts-go kbd{
-    font:inherit;background:var(--bg-muted,#F7F6F4);border:1px solid var(--hair,#E4E4E7);
-    border-radius:5px;padding:2px 7px;color:var(--ink-soft);
+    font-family:ui-monospace,monospace;font-size:10.5px;
+    background:rgba(248,243,240,0.12);border:1px solid rgba(248,243,240,0.22);
+    border-radius:5px;padding:3px 8px;color:rgba(248,243,240,0.92);
   }
   .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
   .hotspot.on{opacity:1;}
@@ -3192,9 +3198,44 @@ document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
    elements stay hidden and just hold the source copy (kicker + body); we clone
    that into the splash. Dismissed by the first gesture (handled in togglePlay /
    releaseHoldAndResume). ?thesis=rail restores the old always-on rail callout. */
+let _tsTypeTimer = null;
+/* Tag-aware typewriter (same approach as the workspace Iris rail): reveals one
+   character at a time but emits whole HTML tags at once so <strong>/<em> render
+   cleanly. Reserves the final height first so the centered card doesn't jump. */
+function _tsType(html, el){
+  if (_tsTypeTimer) { clearTimeout(_tsTypeTimer); _tsTypeTimer = null; }
+  el.innerHTML = html;
+  const reserve = el.offsetHeight;
+  if (reserve) el.style.minHeight = reserve + 'px';
+  el.innerHTML = '<span class="ts-stream"></span><span class="ts-cursor"></span>';
+  const stream = el.querySelector('.ts-stream');
+  let i = 0;
+  const tick = () => {
+    if (i >= html.length) {
+      const c = el.querySelector('.ts-cursor'); if (c) c.remove();
+      _tsTypeTimer = null;
+      return;
+    }
+    if (html[i] === '<') {
+      const close = html.indexOf('>', i);
+      stream.innerHTML += html.slice(i, close + 1);
+      i = close + 1;
+    } else {
+      stream.innerHTML += html[i];
+      i++;
+    }
+    const ch = html[i - 1];
+    let delay = 12 + Math.random() * 8;
+    if (/[.?!]/.test(ch)) delay = 200;
+    else if (ch === ',' || ch === ';' || ch === ':') delay = 110;
+    _tsTypeTimer = setTimeout(tick, delay);
+  };
+  tick();
+}
 function dismissThesisSplash(){
   const s = document.getElementById('thesis-splash');
   if (s) s.classList.remove('on');
+  if (_tsTypeTimer) { clearTimeout(_tsTypeTimer); _tsTypeTimer = null; }
 }
 (function setupThesis(){
   const railMode = new URLSearchParams(location.search).get('thesis') === 'rail';
@@ -3211,8 +3252,8 @@ function dismissThesisSplash(){
   const b = src && src.querySelector('.ff-body');
   if (!splash || !k || !b) return;
   $('ts-kicker').innerHTML = k.innerHTML;
-  $('ts-body').innerHTML = b.innerHTML;
   splash.classList.add('on');
+  _tsType(b.innerHTML, $('ts-body'));   // typewriter the thesis in
   splash.addEventListener('click', () => {
     if (holdingForGesture) releaseHoldAndResume();   // dismiss happens in togglePlay
     else if (!playing) togglePlay();
