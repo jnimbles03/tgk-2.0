@@ -3188,7 +3188,15 @@ let _apLastGrab = null;
 /* The status pill + all autopilot behavior stay dormant unless THIS demo
    (the loaded vertical) actually declares an explore beat. Demos with none
    are visually + behaviorally byte-for-byte identical to before. */
-const _apEnabled = SCENES.some(sc => sc.hotspots && sc.hotspots.some(h => h && h.beatExplore));
+/* let (not const): when a usecase bundle arrives via the async fetch path and
+   SCENES is rebuilt in place, this is recomputed so explore beats that only
+   exist in the late-loaded usecase still arm the machine + reveal the pill. */
+let _apEnabled = SCENES.some(sc => sc.hotspots && sc.hotspots.some(h => h && h.beatExplore));
+function _apRefreshEnabled(){
+  _apEnabled = SCENES.some(sc => sc.hotspots && sc.hotspots.some(h => h && h.beatExplore));
+  const w = document.getElementById('autopilot-status');
+  if (w) w.hidden = !_apEnabled;
+}
 (function _apInitStatus(){ const w = document.getElementById('autopilot-status'); if (w && _apEnabled) w.hidden = false; })();
 /* Autoplay speed multiplier. Allowed values: 1, 1.5, 2. Persisted in
    localStorage so the choice survives vertical switches and page reloads.
@@ -3332,7 +3340,15 @@ window.addEventListener("message", (ev) => {
     advance({ fromTick: true, suppressScenePop: true }); // step s1 -> s2, syncs the iframe
   }
   // AUTOPILOT: the prospect clicked a live hotspot inside the stage scene.
-  if (msg.type === "tgk:grabWheel" && autopilotState !== 'auto') enterExploring(msg);
+  /* tgk:grabWheel = an explicit gesture (click/key) inside the stage iframe.
+     Route it through onUserInteraction so it takes the wheel at the gate and
+     resets the idle clock while exploring/resuming — reusing the _apLastGrab
+     detail enterGate pre-loaded (don't pass the content-less msg, which would
+     blank the card). tgk:userActive = passive movement inside the iframe; it
+     only counts once the viewer already has the wheel, so cursor drift can
+     never grab from the gate. */
+  if (msg.type === "tgk:grabWheel") onUserInteraction();
+  if (msg.type === "tgk:userActive" && (autopilotState === 'exploring' || autopilotState === 'resuming')) onUserInteraction();
   // tgk:beatDone is intentionally NOT wired to advance() under the
   // persona-locked model. The shell's autoplay tick is the single
   // authoritative clock — letting the iframe advance independently
@@ -3958,6 +3974,10 @@ function enterGate(){
   _apClearTimers();
   autopilotState = 'gate';
   const beat = SCENES[idx] && SCENES[idx].hotspots[hotIdx];
+  /* Pre-load the detail card with this beat's hotspot copy so the moment the
+     viewer takes the wheel (click/key at the gate) they get context, not a
+     blank panel. */
+  _apLastGrab = (beat && beat.beatHotspots && beat.beatHotspots[0]) || _apLastGrab;
   postGateToFrame(true);                        // tell the stage to glow hotspots
   setAutopilotStatus('YOUR MOVE', { showContinue: true });
   const ms = ((beat && beat.beatGateMs) || AP_DEFAULT_GATE_MS) / Math.max(0.1, playbackRate);
@@ -3996,7 +4016,12 @@ function _apAdvanceFromAutopilot(){
    so cursor movement can never grab or hold the wheel. */
 function onUserInteraction(){
   if (autopilotState === 'auto') return false;
-  if (autopilotState === 'exploring'){
+  if (autopilotState === 'gate'){
+    /* The nudge worked — the viewer clicked/typed at the gate. Hand them the
+       wheel instead of swallowing it, so playback waits while they explore and
+       only resumes (via the idle countdown) once they go quiet. */
+    enterExploring(_apLastGrab);
+  } else if (autopilotState === 'exploring'){
     if (_apIdleTimer) { clearTimeout(_apIdleTimer); _apIdleTimer = setTimeout(enterResuming, AP_IDLE_MS); }
   } else if (autopilotState === 'resuming'){
     enterExploring(_apLastGrab);
@@ -4006,6 +4031,26 @@ function onUserInteraction(){
 (function wireApContinue(){
   const c = document.getElementById('ap-continue');
   if (c) c.addEventListener('click', () => { if (autopilotState !== 'auto') _apAdvanceFromAutopilot(); });
+})();
+/* Passive pointer movement counts as "the viewer is still here" — but ONLY
+   once they've taken the wheel (exploring) or while the resume countdown is
+   running. It deliberately does NOT act at the gate or in plain autoplay, so
+   idle cursor drift can never grab or hold playback (clicks/keys still do
+   that). Effect: while the user keeps moving the mouse, the idle clock keeps
+   resetting and the "RESUMING IN…" countdown is held off; the countdown only
+   begins once they actually go quiet. Throttled so a moving cursor doesn't
+   spam the reset. */
+(function wireApPassiveActivity(){
+  let last = 0;
+  const onMove = () => {
+    if (autopilotState !== 'exploring' && autopilotState !== 'resuming') return;
+    const now = performance.now();
+    if (now - last < 200) return;
+    last = now;
+    onUserInteraction();
+  };
+  document.addEventListener('mousemove', onMove, { passive: true });
+  document.addEventListener('touchmove', onMove, { passive: true });
 })();
 /* Beat-advance guard. A user click, an iframe tgk:beatDone, and the
    autoplay tick can all reach advance()/rewind() within a few ms of each
@@ -4542,6 +4587,12 @@ loadIDBTemplateOverrides().then((count) => {
           beatHead: s.beats && s.beats[j] ? s.beats[j].head : null,
           beatLede: s.beats && s.beats[j] ? s.beats[j].lede : null,
           beatPersona: s.beats && s.beats[j] ? s.beats[j].persona : null,
+          /* Autopilot opt-in — MUST mirror the initial SCENES build (≈line 3096)
+             or explore beats authored in a usecase silently vanish on this
+             async path (the only path that actually loads usecases). */
+          beatExplore:  s.beats && s.beats[j] ? !!s.beats[j].explore : false,
+          beatGateMs:   s.beats && s.beats[j] ? (s.beats[j].gateMs || null) : null,
+          beatHotspots: s.beats && s.beats[j] ? (s.beats[j].hotspots || null) : null,
         }));
         SCENES.push({
           tag: s.tag,
@@ -4558,6 +4609,7 @@ loadIDBTemplateOverrides().then((count) => {
          so the late-arriving usecase bundle doesn't pop lead-mode on top
          of whatever the user is currently looking at. */
       idx = 0; hotIdx = 0;
+      _apRefreshEnabled();   // late-loaded usecase may be what introduces explore beats
       goTo(0, {force:true, silent:true});
       /* goTo cleared the hold flag — re-arm the cold-open kickoff for the
          freshly-loaded usecase scenes, but only if the viewer hasn't already
@@ -5577,9 +5629,9 @@ loadIDBTemplateOverrides().then((count) => {
               "lede": "<p>Conditions precedent, collateral exceptions, multi-party sign-offs — the messy, document-heavy work no linear LOS screen handles.</p><p><em>For everything else, there's Workspaces</em>: Meridian, TGK, and closing counsel see one real-time state. No email threads.</p>",
               "beats": [
                 { "head": "Patrick gets Workspace access.", "lede": "<p>A Meridian-branded email invites him in. One click — no new account.</p>", "persona": { "side": "client", "name": "Patrick Meyer", "role": "CEO · TGK Holdings" } },
-                { "head": "All parties see the same real-time state.", "lede": "<p>Overview shows the closing checklist. Tasks shows what's open for each side — bank, borrower, counsel.</p>" },
+                { "head": "All parties see the same real-time state.", "lede": "<p>Overview shows the closing checklist. Tasks shows what's open for each side — bank, borrower, counsel.</p>", "explore": true, "gateMs": 7000, "hotspots": [{ "sel": "[data-hotspot=\"tabs_strip\"]", "eyebrow": "Your move", "title": "Open the worklist", "body": "Overview is the closing checklist; Tasks shows what's open for each side — bank, borrower, counsel. Click around — autopilot waits while you explore, and resumes once you're idle." }] },
                 { "head": "Exception items collaborate in one place.", "lede": "<p>An outstanding UCC filing, an updated collateral appraisal, a guaranty rider — handled async, with documents attached, not buried in inboxes.</p>" },
-                { "head": "Status flows back to nCino.", "lede": "<p>As conditions clear, the workflow updates nCino — it reflects the cleared closing without manual chase.</p>" },
+                { "head": "Status flows back to nCino.", "lede": "<p>As conditions clear, the workflow updates nCino — it reflects the cleared closing without manual chase.</p>", "explore": true, "gateMs": 7000, "hotspots": [{ "sel": "[data-hotspot=\"agent_status\"]", "eyebrow": "Your move", "title": "Drill into a condition", "body": "Open a task and watch the agent run its checks. Take your time — when you stop typing and moving the mouse, autopilot counts down and picks the story back up." }] },
                 { "head": "Facility closed — every party in one Workspace.", "lede": "<p>Conditions met, documents executed, data synced to nCino, full audit trail. nCino decided the documents; Docusign delivered the experience that finalized the loan.</p>" }
               ],
               "persona": { "side": "advisor", "name": "Lloyd Blankfine", "role": "Commercial Relationship Manager · Meridian" }

@@ -2873,6 +2873,32 @@ window.addEventListener("message", (ev) => {
     if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
   }
 });
+
+/* ── Autopilot interaction bridge ──────────────────────────────────────────
+   Mouse/key events inside this iframe never reach the parent shell, so the
+   shell's autopilot "take the wheel / stay alive" logic can't see them on its
+   own. Forward two distinct signals:
+     • tgk:grabWheel — an explicit gesture (click / keypress). The shell takes
+       the wheel when this lands on an explore-gated beat ("YOUR MOVE"), and
+       treats it as activity while exploring/resuming.
+     • tgk:userActive — passive cursor movement, throttled. The shell only
+       honors it once the viewer already has the wheel, so it keeps the
+       "RESUMING IN…" countdown at bay while they're moving the mouse — but it
+       can never grab playback from the gate.
+   The shell ignores both during normal autoplay, so this is inert until a
+   gate actually holds. */
+(function tgkAutopilotBridge(){
+  function post(type){ try { parent.postMessage({ type: type }, "*"); } catch (e) {} }
+  window.addEventListener("pointerdown", function(){ post("tgk:grabWheel"); }, true);
+  window.addEventListener("keydown",     function(){ post("tgk:grabWheel"); }, true);
+  var last = 0;
+  window.addEventListener("mousemove", function(){
+    var now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (now - last < 200) return;
+    last = now;
+    post("tgk:userActive");
+  }, { passive: true, capture: true });
+})();
 </script>
 </body>
 </html>
