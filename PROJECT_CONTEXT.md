@@ -107,12 +107,20 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   (narration-only override in the `tgk-usecases` bundle) and shows a persistent
   `#bet1-bookend` thesis rail (clones `#ff-thesis`). The builder's **BET 1 ·
   Best-in-class CX** card launches it.
-- **Fraud-fabric** = a 3-scene **change-of-address** flow (standardized across all
-  verticals): portal-shell (CLEAR/IDV at entry) → webform-intake (no signature,
-  inherits the biometric proof) → `docusign-maestro-address-change.html` (the
-  "Workflow Builder" vignette). Thesis (rendered as a persistent rail callout
-  `#ff-thesis`): a low-risk-looking action still needs **portal auth bound to
-  portal action**.
+- **Fraud-fabric** (and **BET 2**, = `?usecase=auth-fabric` → fraud-fabric) = a
+  **4-scene change-of-address** flow (standardized across all verticals):
+  portal-shell (CLEAR/IDV at entry) → **industry portal** → webform-intake (no
+  signature, inherits the biometric proof) → `docusign-maestro-address-change.html`
+  (the "Workflow Builder" vignette). **Scene 2 (industry portal)** embeds the real
+  **headless-iam** page for the vertical's industry (`fins`/`hls`/`ps`, mapped in
+  `_headlessPortalFor`) via `?story=1`; that page's story-embed bridge shows a
+  **"Start request"** CTA (`data-hotspot="portal_action"`) that posts
+  `tgk:portalContinue`, advancing the story to the webform. The portal scene is
+  **synthesized + spliced in** (not in the bundle) by `spliceFraudFabricPortal`,
+  called from BOTH the initial scene resolution AND the async-rebuild path (the
+  one that actually loads the bundle — easy to miss); it renumbers the bundle's
+  `OF 3` tags to `OF 4`. Thesis (persistent rail callout `#ff-thesis`): a
+  low-risk-looking action still needs **portal auth bound to portal action**.
 - **Narration rail** = persona chip + `step-label` + `headline` + `lede`
   (multi-paragraph ledes recede via `.lede p + p`). `?splash=1` shows the
   MasterCard-style intro splash (`.mc-splash`, in `docusign-workspace.html`).

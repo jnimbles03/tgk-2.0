@@ -835,6 +835,18 @@ const HOTSPOTS = {
     {target:"ms_outcome", x:"82%", y:"50%", tip:"Updated in seconds — identity-bound, zero signature",   sub:"No re-keying, audit-complete",            side:"left"}
   ],
 
+  /* === Hotspots for the fraud-fabric industry-portal landing ===
+     The headless-iam portal page is embedded as the post-IDV scene. It has no
+     tgk:rect listener of its own EXCEPT the story-embed bridge, which answers
+     for the injected "Start request" CTA (data-hotspot="portal_action"). Beats
+     1-2 use x/y fallbacks over the portal body; the final beat anchors the
+     cursor on the CTA the viewer clicks to invoke the webform. */
+  industry_portal: [
+    {target:"portal_home",   x:"50%", y:"34%", tip:"You're in your industry portal — identity bound", sub:"The surface your team uses daily", side:"top"},
+    {target:"portal_action", x:"50%", y:"13%", tip:"A flagged action is waiting",                      sub:"Action queue · address change",   side:"bottom"},
+    {target:"portal_action", x:"50%", y:"13%", tip:"Tap the action — the workflow serves the form",    sub:"Webform inline · identity bound", side:"bottom"}
+  ],
+
   /* === Hotspots for ?usecase=intake (3 or 4 scenes) ===
      Webform → workflow packages → Envelope delivered (+ optional shared workspace tail).
      The explicit alternative to Agreement Desk inbound. */
@@ -2297,7 +2309,12 @@ const USECASE_SCENE_KEYS = {
      around, eSignature at the agreement moment, integrations after, Workspaces
      for everything else. Narration lives in VERTICALS.banking.usecases. */
   "bookend-los":  ["agreement_desk","clear_idv","signing","navigator","workspace"],
-  "fraud-fabric": ["portal_clear_idv","webform_intake","portal_submit"],
+  /* fraud-fabric now lands the verified user in their real industry portal
+     (the headless-iam demo page) BEFORE the webform: sign-in/IDV → industry
+     portal → click the flagged action → webform → workflow. The portal scene
+     is synthesized + inserted at runtime (see scenesSource), and its template
+     resolves per industry (fins/hls/ps) in srcForUsecaseScene. */
+  "fraud-fabric": ["portal_clear_idv","industry_portal","webform_intake","portal_submit"],
   "intake-3":     ["webform_intake","maestro_package","envelope_deliver"],
   "intake-4":     ["webform_intake","maestro_package","envelope_deliver","workspace"],
   /* maintenance = customer-initiated sensitive change in the authenticated portal.
@@ -2327,6 +2344,7 @@ const USECASE_TEMPLATE_FILES = {
   "bookend-los": TEMPLATE_FILES,
   "fraud-fabric": [
     "/story-templates/docusign-portal-shell.html",
+    "/headless-iam/fins.html",  /* index 1 = industry portal — resolved per industry in srcForUsecaseScene */
     "/story-templates/docusign-webform-intake.html",
     "/story-templates/docusign-maestro-address-change.html"
   ],
@@ -2360,7 +2378,7 @@ const USECASE_TEMPLATE_FILES = {
    render different modes (e.g. portal-shell for clear-idv-login vs
    action-webform; agreement-desk for chain-of-custody vs default intake). */
 const USECASE_TEMPLATE_MODES = {
-  "fraud-fabric": ["clear-idv-login", null, null],
+  "fraud-fabric": ["clear-idv-login", null, null, null],
   "intake-3":    [null, null, null],
   "intake-4":    [null, null, null, null],
   maintenance:   ["clear-idv-login", null, "approval-queue"],
@@ -2644,7 +2662,23 @@ function srcForScene(i, vertical, splash){
    USECASE_TEMPLATE_MODES has one for that scene index. The same template can
    thus play different roles per scene (portal-shell login vs webform mode;
    agreement-desk inbox vs chain-of-custody). */
+/* Map a vertical to its headless-iam industry portal page. */
+function _headlessPortalFor(vertical){
+  const p = (vertical && vertical.preset) || "";
+  const ps  = ["fedgov","slgov","education","nonprofit"];
+  const hls = ["provider","lifesciences","payor"];
+  const key = ps.indexOf(p) !== -1 ? "ps" : (hls.indexOf(p) !== -1 ? "hls" : "fins");
+  return "/headless-iam/" + key + ".html";
+}
 function srcForUsecaseScene(i, vertical, usecaseKey, splash){
+  /* fraud-fabric scene 2 = the real industry portal (headless-iam page),
+     embedded in story mode (?story=1) so its bridge shows the "Start request"
+     CTA and advances the story on click. */
+  if (usecaseKey === "fraud-fabric" && i === 1) {
+    return _headlessPortalFor(vertical) + "?story=1&preset=" + encodeURIComponent(vertical.preset || "") +
+      "&t-name=" + encodeURIComponent(vertical.tenant || "") +
+      "&tenant-color=" + encodeURIComponent(vertical.tenantColor || "#4C00FF");
+  }
   /* Admin override for this (vertical, usecase, sceneIdx) wins. */
   const sceneOv = lookupSceneOverride(usecaseKey, i);
   const files = USECASE_TEMPLATE_FILES[usecaseKey] || TEMPLATE_FILES;
@@ -2883,10 +2917,43 @@ const v = VERTICALS[verticalKey] || VERTICALS.wealth;
    This is the "Scene 5 promoted to standalone" pattern — Workspace cold-open
    with no 5-scene prelude. Verticals that author a richer dedicated
    v.usecases.workspaces block override the synthesis. */
+/* fraud-fabric: splice the industry-portal landing in as scene 2 so the
+   verified user lands in their real portal (the headless-iam page) before the
+   webform. The bundle ships 3 scenes (login → webform → workflow); we
+   synthesize the portal scene generically (tenant-parameterized) and renumber
+   the "OF 3" tags to "OF 4" — no per-vertical bundle edits. Defined as a
+   declaration so BOTH the initial resolution and the async-rebuild path
+   (which is what actually loads usecases) can call it. */
+function spliceFraudFabricPortal(scenes, vert){
+  if (!Array.isArray(scenes) || scenes.length !== 3) return scenes;
+  const _retag = (sc, n) => Object.assign({}, sc, {
+    tag: (sc.tag || "").replace(/SCENE\s+\d+\s+OF\s+3/i, "SCENE " + n + " OF 4")
+  });
+  const s = scenes;
+  const signer = (s[0] && s[0].persona && s[0].persona.name) || "You";
+  const tenant = (vert && vert.tenant) || "your institution";
+  const portalScene = {
+    tag: "SCENE 2 OF 4 · AUTHENTICATED PORTAL · YOUR INDUSTRY HOME",
+    head: "You land in " + tenant + "’s portal — identity already bound to the session.",
+    persona: { side: "client", name: signer, role: "Authenticated · " + tenant },
+    sceneKey: "industry_portal",
+    lede: "<p>The verified session drops you into <span class=\"em\">" + tenant + "’s</span> portal — the same surface your team uses every day. Docusign added the identity layer <em>around</em> it; nothing was ripped out.</p><p>A flagged action is waiting. Tap it and the workflow serves the request form inline — no second login, identity already bound.</p>",
+    beats: [
+      { head: "You’re in " + tenant + "’s portal, identity verified.", lede: "<p>The portal you already use — now with verified identity bound to the session for sensitive actions.</p>" },
+      { head: "A flagged action needs you.", lede: "<p>The action queue surfaces the request that needs attention — ready to start with one tap.</p>" },
+      { head: "Tap the action — the workflow serves the form.", lede: "<p>One click invokes the request webform inline, inheriting the session’s biometric proof. No second verification.</p>" }
+    ]
+  };
+  return [_retag(s[0], 1), portalScene, _retag(s[1], 3), _retag(s[2], 4)];
+}
 const usecaseObj = (usecase !== "default") ? (v.usecases?.[usecase]) : null;
 let scenesSource;
 if (usecaseObj?.scenes) {
-  scenesSource = usecaseObj.scenes;
+  /* fraud-fabric: splice the industry-portal landing in as scene 2 (helper is
+     reused by the async-rebuild path too, so it survives the late bundle load). */
+  scenesSource = (usecase === "fraud-fabric")
+    ? spliceFraudFabricPortal(usecaseObj.scenes, v)
+    : usecaseObj.scenes;
 } else if (usecase === "workspaces" && Array.isArray(v.scenes) && v.scenes[4]) {
   /* Synthesize a one-scene story from canonical Scene 5. Re-tag for clarity. */
   const s5 = v.scenes[4];
@@ -3353,6 +3420,13 @@ window.addEventListener("message", (ev) => {
      never grab from the gate. */
   if (msg.type === "tgk:grabWheel") onUserInteraction();
   if (msg.type === "tgk:userActive" && (autopilotState === 'exploring' || autopilotState === 'resuming')) onUserInteraction();
+  /* tgk:portalContinue = the viewer clicked the "Start request" CTA in the
+     embedded industry-portal scene (fraud-fabric). Advance to the next scene
+     (the webform). Guarded to the portal scene so no other flow can trip it. */
+  if (msg.type === "tgk:portalContinue" && SCENES[idx] && SCENES[idx].sceneKey === "industry_portal") {
+    goTo(Math.min(SCENES.length - 1, idx + 1), { force: true });
+    if (playing) { cancelAnimationFrame(raf); raf = requestAnimationFrame(tickTimer); }
+  }
   // tgk:beatDone is intentionally NOT wired to advance() under the
   // persona-locked model. The shell's autoplay tick is the single
   // authoritative clock — letting the iframe advance independently
@@ -4576,8 +4650,12 @@ loadIDBTemplateOverrides().then((count) => {
       /* Re-resolve scenesSource against the now-populated usecases and
          rebuild SCENES in place. We can't re-assign the const, so we splice
          into the existing array. */
-      const fresh = VERTICALS[verticalKey]?.usecases?.[usecase]?.scenes;
+      let fresh = VERTICALS[verticalKey]?.usecases?.[usecase]?.scenes;
       if (!fresh) return;
+      /* Same fraud-fabric portal splice as the initial path — the bundle only
+         lands here (async), so without this the portal scene would be missing
+         its narration and the flow would be a beat short. */
+      if (usecase === "fraud-fabric") fresh = spliceFraudFabricPortal(fresh, v);
       const newSceneKey = (usecase === "intake")
         ? (fresh.length >= 4 ? "intake-4" : "intake-3")
         : usecase;
