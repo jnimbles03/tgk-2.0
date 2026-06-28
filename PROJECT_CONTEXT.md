@@ -51,6 +51,14 @@ is a *separate* AI-worksheet demo, distinct from `demos/navigator.html`.
 `index.html` (root `/`) and `picker.html` both **redirect to `/builder.html`**
 (picker was retired). Don't reintroduce links to the picker.
 
+> **Emerging — one-pool builder.** `builder/pool.html` + `builder/vignette-pool.js`
+> are a rethink of the builder as a **single filterable library** of the 21
+> vignettes → pick/brand/arrange on a drag/drop timeline (live `?embed=1&attract=0`
+> branded thumbnails) → share link. Single pick → `../demos/<file>?embed=1&kickoff=1&<brand>`;
+> multiple → `./play.html?v=id1,id2&<brand>`. The playlist player **`play.html` is
+> not built yet** (the multi link is a spec). `vignetteAppliesToVertical()` + facets
+> drive the filters. Demos are the canonical building block; ids match `demo-catalog.js`.
+
 ## 5. `builder.html` internals
 
 Two pickers + an advanced editor, all in one file (~5000 lines, two inline
@@ -105,6 +113,27 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
 - **Narration rail** = persona chip + `step-label` + `headline` + `lede`
   (multi-paragraph ledes recede via `.lede p + p`). `?splash=1` shows the
   MasterCard-style intro splash (`.mc-splash`, in `docusign-workspace.html`).
+- **Autopilot kickoff — the viewer starts the demo.** The story opens **held**
+  (autoplay off, lead-mode card up, hint "Click or press Space to begin"); the
+  viewer's first gesture calls `releaseHoldAndResume` → autoplay. State =
+  `holdingForGesture`/`engageHold`; pace = `scene.duration/numBeats × playbackRate ×
+  SPEED_MULTIPLIER` (1.25); the `.ap-status` "Live pill" shows AUTOPILOT / YOUR MOVE.
+  `?autostart=1` restores the old ~1s auto-begin.
+  - **Kickoff catcher** (`#kickoff-catch`, in `setHoldVisuals`) — a transparent
+    overlay shown *only* while holding so a click anywhere on the stage (incl. over
+    the scene **iframe**, whose clicks don't bubble to `#stage`) begins it. Hidden
+    in calibrate mode.
+  - **Webform select+Next kickoff.** On `webform_intake` scenes (intake /
+    "Document Intelligence" usecases — `_isKickoffScene()`) the catcher is
+    suppressed so the form stays usable; the shell posts `tgk:armKickoff`, the
+    template's **Next** posts `tgk:kickoff` (requires a real selection), and the
+    shell releases the hold and advances to **s2** so the viewer's pick isn't
+    re-dwelt/cleared. Wiring lives in `docusign-webform-intake.html`.
+  - **Async-usecase gotcha (caused two "won't kick off" bugs).**
+    `asyncLoadUsecasesIfNeeded` (usecase not in the inline bundle, e.g.
+    `?vertical=banking&usecase=intake`) and the IDB template-override path rebuild
+    `SCENES` and call `goTo(...)`, which **clears `holdingForGesture`** — they must
+    re-`engageHold()` (guarded `!playing`) or the cold-open silently freezes.
 - `story-templates/*` are a **separate system** from `demos/*` — don't confuse
   them. Dead templates already removed/ignored: `docusign-webform.html` (deleted),
   `portal.html`, `docusign-maestro-loop.html`, `docusign-ehr-desktop.html` (only
@@ -122,6 +151,20 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
 - **Every agent demo is interactive** (click a canned question → typewriter
   answer): `navigator, agreement-manager, agreement-intel-ma,
   agreement-intel-sf-draft, clm, agreement-desk, ai-review, search, agentforce`.
+- **Autopilot kickoff / "Live pill"** (mirrors the story §6; *separate* code).
+  The status pill is `.de-livehint` (`data-live`: off/auto/nudge/manual). A
+  shared/standalone demo opens waiting for the viewer's first action, then drives:
+  - *Interactive (agent) demos* open **armed** — the question chips get the amber
+    "your turn" ring; the first chip click kicks off `driveRest` (walks the
+    remaining chips + any `[data-renew/clear/accept/route]` handoff). Ambient
+    embeds (`?embed=1&loop=1`, the discovery-page tiles) **auto-run** instead.
+    Gate: `kickoff=1 || (!embed && loop≠1)`. `AgentChat.renderChips()` dispatches
+    `agc:chips`, `run()` dispatches `agc:answer`; the engine listens to drive both.
+  - *Movie (`init`) demos* open paused on beat 1 with a center-stage **"Start the
+    demo"** veil (`#de-startveil`) + nudged Play; first gesture plays it. `attract=0`
+    → static first-beat preview (pool thumbnails); `kickoff=1` forces the gate when
+    embedded (pool single-share); `autostart=1`/`attract=1`/`loop=1` force autoplay;
+    `?t=` seeks. Discovery pages embed with `loop=1`, so they're unaffected.
 - **In-story agent moments** use a *different* bespoke pattern (not AgentChat):
   `renderIrisQA` / `askIris` / `typeIris` (+ `.iris-q` / `.iris-answer-panel` /
   source chips) — present in `docusign-workspace.html`,
@@ -158,9 +201,14 @@ These files contain a real browser `navigator.*` — leave it alone.
 
 ## 10. graphify
 
-Knowledge graph in `graphify-out/`. For codebase questions run
-`graphify query "<q>"` first (or `path`/`explain`); use `graphify-out/wiki/` for
-navigation. After modifying code, run `graphify update .` (AST-only, no API cost).
+Knowledge graph in `graphify-out/` — **gitignored / regenerable**, so it's empty
+in a fresh container and must be rebuilt per session (`/graphify`). The default
+rebuild here is **AST/code-only** (the ~61 `.js`/`.py`/`.json` files): it maps the
+builder library, server, `demo-engine.js`, and the audit/flipbook scripts but
+**does NOT index the 450 HTML demos/stories** (those are the costly ~80-subagent
+semantic build — opt in only when needed). No `wiki/` is generated. For codebase
+questions run `graphify query "<q>"` (or `path`/`explain`). After modifying code,
+`graphify update .` (AST-only, no API cost).
 
 ## 11. Subagent caution
 
