@@ -109,6 +109,18 @@
     animation: leadPop 0.30s cubic-bezier(.34, 1.45, .64, 1);
     will-change: transform;
   }
+  /* ===================== Per-beat attention handoff =====================
+     On every beat the eye is led in two quick steps: (1) the HEADLINE cues
+     first — a fast rise+brighten that catches peripheral vision so the viewer
+     reads the short headline; (2) the lede follows a beat later, then the
+     synthetic cursor glides to the live hotspot and pulses, pulling attention
+     back to the stage where the UI actually animates. Lean narration (lead
+     paragraph only) keeps step 1 a sub-second read so the handoff feels
+     natural. The two cue animations are re-triggered each beat in JS. */
+  @keyframes railCueHead { 0% { opacity:0.2; transform:translateY(6px); } 100% { opacity:1; transform:translateY(0); } }
+  @keyframes railCueLede { 0% { opacity:0;   transform:translateY(5px); } 100% { opacity:0.85; transform:translateY(0); } }
+  .headline.cue { animation: railCueHead 0.40s cubic-bezier(.2,.85,.3,1); will-change:transform,opacity; }
+  .lede.cue     { animation: railCueLede 0.52s 0.12s both cubic-bezier(.2,.85,.3,1); will-change:transform,opacity; }
   .brand-slot{margin-bottom:20px;display:flex;align-items:center;gap:10px;}
   .brand-slot .ds{display:flex;align-items:center;gap:7px;font-weight:700;font-size:20px;color:var(--ds-inkwell);letter-spacing:-0.01em;text-decoration:none;transition:opacity 0.15s;cursor:pointer;}
   .brand-slot .ds:hover{opacity:0.7;}
@@ -3451,6 +3463,29 @@ window.addEventListener("resize", () => {
   });
 });
 
+/* Keep the narration rail lean. Dense scenes carry multi-paragraph ledes
+   (orientation beats especially); show only the LEAD paragraph so the sidebar
+   doesn't get text-heavy. Single-paragraph / raw ledes pass through unchanged,
+   and the full copy stays in the data — ?verbose=1 restores the long form. */
+let _railVerbose = (new URLSearchParams(location.search).get('verbose') === '1');
+function _slimLede(html){
+  if (_railVerbose || !html) return html;
+  const m = String(html).match(/<p\b[^>]*>[\s\S]*?<\/p>/i);
+  return m ? m[0] : html;
+}
+/* Re-trigger the per-beat rail cue (headline rises/brightens first, lede
+   follows ~120ms later). CSS animations don't re-fire on re-render, so we drop
+   the class, force a reflow, and re-add it. The cursor's glide+pulse to the
+   stage hotspot then completes the rail→demo handoff. */
+function _railCue(){
+  ['headline', 'lede'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('cue');
+    void el.offsetWidth;
+    el.classList.add('cue');
+  });
+}
 function renderSidebar(scene, i){
   // Clear the end-of-story flag whenever the cursor lands anywhere
   // other than the last beat. Otherwise navigating away from the end
@@ -3489,16 +3524,18 @@ function renderSidebar(scene, i){
   if (playing) {
     $('step-label').textContent = scene.tag;
     $('headline').textContent = head;
-    $('lede').innerHTML = lede;
+    $('lede').innerHTML = _slimLede(lede);
     renderPersona(persona, { orientation: isOrientation });
+    _railCue();
   } else {
     sidebar.classList.add('fade');
     setTimeout(() => {
       $('step-label').textContent = scene.tag;
       $('headline').textContent = head;
-      $('lede').innerHTML = lede;
+      $('lede').innerHTML = _slimLede(lede);
       renderPersona(persona, { orientation: isOrientation });
       sidebar.classList.remove('fade');
+      _railCue();
     }, 180);
   }
   document.querySelectorAll('#scene-tabs .t').forEach((t, k) => t.classList.toggle('on', k === i));
