@@ -25,10 +25,15 @@ broken/buggy" reports — confirm which URL before chasing a code bug.
 
 ## 2. Workflow
 
-- Develop on the feature branch (this session: `claude/eager-brown-pdqsfx`),
-  open **draft PRs to `main`**. The repo has **no PR CI configured** — `get_check_runs`
-  returns empty; the "pending" status is just an empty status set.
+- Develop on a per-task feature branch (`claude/<topic>`), open **draft PRs to
+  `main`**. The repo has **no PR CI configured** — `get_check_runs` returns empty;
+  the "pending" status is just an empty status set. One small change per PR; the
+  user reviews + merges fast (often within a minute), so branch off fresh `main`
+  each time.
 - Pages deploys from `main`, so merged work is live within a minute or two.
+- **GitHub MCP rate-limits easily** during a busy session (`get_review_comments`
+  → "API rate limit already exceeded"). Don't block on it — note it and let the
+  hourly PR self-check re-poll once it resets.
 
 ## 3. Product naming (see root CLAUDE.md for the full rule)
 
@@ -95,6 +100,20 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   exactly when editing a template** or you break autoplay/calibration.
 - Config maps: `SCENE_KEYS`, `USECASE_SCENE_KEYS`, `USECASE_TEMPLATE_FILES`,
   `USECASE_TEMPLATE_MODES`, `BEAT_TO_INTERNAL`, `SCENE1_TEMPLATE_OVERRIDE`.
+- **Usecase narration loads from an EXTERNAL file, not the inline bundle — and
+  there's an async-rebuild path that bites repeatedly.** `story-shell` ships a
+  huge inline `<script id="tgk-usecases">` JSON block, but it sits *after* the
+  code that reads it, so `loadInlineUsecases` finds nothing — **the inline bundle
+  is dead on first load.** The real loader is the async
+  `fetch("/_audits/usecase-narrations-2026-04-27.json")`, which then **rebuilds
+  `SCENES` in place** (`SCENES.length=0; fresh.forEach(...)`) and re-renders. Two
+  consequences: (1) to add/change a usecase you must edit the **external** JSON
+  (editing only the inline bundle has zero live effect — keep them in sync);
+  (2) any per-scene logic added to the INITIAL scene build — new beat fields
+  (`beatExplore`/`beatGateMs`/`beatHotspots`), the fraud-fabric portal splice,
+  recomputing `_apEnabled` — **must be mirrored in the async-rebuild path** or it
+  silently vanishes once the bundle lands. (This caused: bookend-los explore
+  beats not arming, the portal scene showing webform narration.)
 - `?usecase=auth-fabric` aliases to `fraud-fabric`.
 - `?usecase=bookend-los` is **FINS Bet 1** ("Customer Experience Platform"): the
   `banking` (Meridian) story re-lensed so each of the 5 canonical scenes shows
@@ -124,9 +143,29 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   `OF 3` tags to `OF 4`. Thesis (`#ff-thesis` copy — a low-risk-looking action
   still needs **portal auth bound to portal action**) is shown as the
   **kickoff splash** (`#thesis-splash`), not a persistent rail callout.
-- **Narration rail** = persona chip + `step-label` + `headline` + `lede`
-  (multi-paragraph ledes recede via `.lede p + p`). `?splash=1` shows the
-  MasterCard-style intro splash (`.mc-splash`, in `docusign-workspace.html`).
+- **Narration rail** = persona chip + `step-label` + `headline` + `lede`. Kept
+  **lean**: `_slimLede` renders only the lead paragraph of a multi-paragraph
+  lede (full copy stays in data; `?verbose=1` restores it). Each beat runs
+  `_railCue` — the headline rises/brightens first (eye to the rail), the lede
+  follows ~120ms later, then the synthetic shell cursor glides to the hotspot
+  (eye back to the demo): a deliberate rail→demo attention handoff.
+- **Thesis kickoff splash** (`#thesis-splash`, over the stage): per-flow theses
+  (`bookend-los`/`fraud-fabric`) render here at cold-open instead of as an
+  always-on rail callout. Solid `--ds-inkwell` bg, three short punchy
+  `THESIS_LINES` (per usecase) typed in sequence via `_tsTypeLines`/`_tsType`
+  (the tag-aware typewriter, same idea as `typeIris`), dismissed by the first
+  gesture (hooked in `togglePlay`). `?thesis=rail` restores the old rail callout.
+  Separate from `?splash=1`, the MasterCard Scene-5 splash (`.mc-splash`, in
+  `docusign-workspace.html`).
+- **Autopilot explore machine** (`autopilotState`: `auto→gate→exploring→
+  resuming`): a beat with `explore:true` HOLDS at the end of its dwell ("YOUR
+  MOVE"); a click/key takes the wheel ("YOU HAVE THE WHEEL"); after the viewer
+  goes idle (no click/key/mousemove) a "RESUMING IN 3/2/1" countdown advances.
+  Iframe events don't reach the parent, so `docusign-workspace.html` forwards
+  `tgk:grabWheel` (click/key → grab) and `tgk:userActive` (throttled mousemove →
+  stay-alive, never grabs at the gate) via postMessage. Active only when some
+  beat has `explore:true` (`_apEnabled`, recomputed after async rebuild). BET 1's
+  Scene 5 (Workspace) marks beats 1 & 3 as explore.
 - `story-templates/*` are a **separate system** from `demos/*` — don't confuse
   them. Dead templates already removed/ignored: `docusign-webform.html` (deleted),
   `portal.html`, `docusign-maestro-loop.html`, `docusign-ehr-desktop.html` (only
@@ -151,6 +190,21 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   interactivity to an in-story template, **replicate the workspace Iris pattern**,
   keep it additive, and don't disturb the beat-sync.
 - `builder/lib/demo-catalog.js` maps demo keys → files/labels (keys keep old slugs).
+- **IDV reusable components** (recreated in CSS/SVG — no binary assets, reskinnable):
+  - `.facescan` — cyan low-poly **biometric face-mesh scanner** for face-scan
+    steps. Palette is intentionally FIXED (the IDV partner's capture UI, not the
+    tenant brand). Lives in `demos/engine/demo-engine.css` (shared by `idv-*`
+    demos) and is inlined in `docusign-clear-idv.html` (S6 "Take a selfie"),
+    `docusign-portal-shell.html` (the "Verifying your identity" step), and
+    `demos/idv-idverse.html` (liveness). idv-clear/idme/apple-wallet/risk have no
+    biometric face-scan step and are left alone.
+  - `.idev` — Docusign **"Identity Verification Details" passport evidence panel**
+    (guilloché security print + portrait + MRZ + extracted fields), opened by a
+    `[data-idev-open]` "View ID Evidence" trigger on clear-idv's S7. **Signer-
+    driven**: the shell sends the IDV scene's persona name on `tgk:lockToBeat`
+    (`signerName`); `applySigner` fills the header / first+last / MRZ / note
+    email. Per-preset `SIGNERS` default for standalone viewing;
+    `?signer=<name>&signerGender=` overrides for direct links.
 
 ## 8. Headless IAM (`headless-iam/{fins,hls,ps}.html`)
 
@@ -177,6 +231,16 @@ These files contain a real browser `navigator.*` — leave it alone.
 - When editing scene/workspace templates, also grep-confirm the preserved
   `showState`/`showWorkspaceState`, `s1..s5`, `tgk:lockToBeat`/`tgk:queryRect`,
   and the `data-hotspot` anchors are still present.
+- **Headless screenshots** (for visual/behavioral changes) — Chromium is
+  pre-installed (`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`) and
+  `playwright-core` installs cleanly (`npm i playwright-core --no-save --prefix
+  /tmp/pw`). Serve the repo root with a tiny node static server, load
+  `story-shell.html?...`, drive via the scene tabs (`#scene-tabs .t`) or
+  `postMessage({type:'tgk:lockToBeat',sceneId})`, and screenshot. Gotcha:
+  `SCENES`/`goTo`/`idx`/`_apEnabled` are module-scoped (**not on `window`**) —
+  assert against the DOM (`#step-label`, `#lede`, element classes) or click the
+  UI, don't read internals. Used this session to verify the IDV face-mesh +
+  evidence panel, the fraud-fabric portal landing, and the thesis splash.
 
 ## 10. graphify
 
