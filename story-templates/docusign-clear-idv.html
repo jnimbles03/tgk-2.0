@@ -440,7 +440,7 @@
             </svg>
             <div class="fs-brackets"><i></i><i></i><i></i><i></i></div>
             <div class="fs-scan"></div>
-            <div class="fs-label"><span class="fs-status">FACE DETECTED</span><span class="fs-name">VERIFYING IDENTITY</span></div>
+            <div class="fs-label"><span class="fs-status">FACE DETECTED</span><span class="fs-name" id="fs-name">VERIFYING IDENTITY</span></div>
           </div>
           <h3>Take a selfie</h3>
           <div class="s6-sub">Your selfie is like your password. We'll use this to unlock your profile.</div>
@@ -487,7 +487,7 @@
     <div class="idev-body">
       <div class="idev-pass">
         <span class="ok"><svg viewBox="0 0 24 24"><polyline points="5 12 10 17 20 7"/></svg></span>
-        <div class="who"><b>Camille Martin passed identity verification</b><div class="sub">Verified by AriadNext · government passport + biometric selfie match</div></div>
+        <div class="who"><b id="idev-who">Camille Martin passed identity verification</b><div class="sub">Verified by AriadNext · government passport + biometric selfie match</div></div>
       </div>
       <div class="idev-meta">
         <div><div class="lab">Type of ID</div><div class="val">Passport</div></div>
@@ -497,17 +497,17 @@
         <div class="country">UNITED STATES<br>OF AMERICA</div>
         <div class="face"><div class="hair"></div><div class="head"></div><div class="shoulder"></div></div>
         <div class="scanlines"></div>
-        <div class="mrz">P&lt;USAMARTIN&lt;&lt;CAMILLE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>13456789&lt;1USA6502247F2908&lt;&lt;&lt;&lt;&lt;&lt;&lt;06</div>
+        <div class="mrz" id="idev-mrz">P&lt;USAMARTIN&lt;&lt;CAMILLE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>13456789&lt;1USA6502247F2908&lt;&lt;&lt;&lt;&lt;&lt;&lt;06</div>
       </div>
       <div class="idev-fields">
-        <div class="row"><span class="k">Last name</span><span class="v">Martin</span></div>
-        <div class="row"><span class="k">First name</span><span class="v">Camille</span></div>
+        <div class="row"><span class="k">Last name</span><span class="v" id="idev-last">Martin</span></div>
+        <div class="row"><span class="k">First name</span><span class="v" id="idev-first">Camille</span></div>
         <div class="row"><span class="k">Date of birth</span><span class="v">02/24/1965</span></div>
         <div class="row"><span class="k">Nationality</span><span class="v">USA</span></div>
         <div class="row"><span class="k">Place of birth</span><span class="v">Oregon, USA</span></div>
-        <div class="row"><span class="k">Gender</span><span class="v">Female</span></div>
+        <div class="row"><span class="k">Gender</span><span class="v" id="idev-gender">Female</span></div>
       </div>
-      <div class="idev-note">This identity verification was done on Camille Martin (c.martin@gmail.com) for Envelope ID F77923AF4D0940E196CEAD4FD6B7ADFB.</div>
+      <div class="idev-note" id="idev-note">This identity verification was done on Camille Martin (c.martin@gmail.com) for Envelope ID F77923AF4D0940E196CEAD4FD6B7ADFB.</div>
     </div>
     <div class="idev-foot">
       <button class="done" data-idev-close>Done</button>
@@ -540,6 +540,48 @@ const ORDER = ["wealth","banking","insurance","provider","lifesciences","payor",
 
 const MARK_SVG = `<svg viewBox="0 0 24 24" fill="none" width="100%" height="100%"><path d="M4 18L14 4L18 9L11 18H4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 18L8 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
 
+/* Per-preset default signer — the representative story signer for that
+   vertical. Only used for standalone viewing; in-story the shell passes the
+   actual scene signer via tgk:lockToBeat { signerName } so the evidence panel
+   and face-scan label follow whoever is verifying in that specific story. */
+const SIGNERS = {
+  wealth:      {name:"Patrick Meyer",   gender:"Male"},
+  banking:     {name:"Patrick Meyer",   gender:"Male"},
+  insurance:   {name:"Elena Ramirez",   gender:"Female"},
+  provider:    {name:"Anita Kim",       gender:"Female"},
+  lifesciences:{name:"Marcus Torres",   gender:"Male"},
+  payor:       {name:"Eric Chen",       gender:"Male"},
+  fedgov:      {name:"Taylor Cheney",   gender:"Female"},
+  slgov:       {name:"Maria Lopez",     gender:"Female"},
+  education:   {name:"Priya Shah",      gender:"Female"},
+  nonprofit:   {name:"Yolanda Carter",  gender:"Female"}
+};
+/* Apply a signer to the face-scan label + the ID-evidence passport panel.
+   Only the identity (name → header, first/last fields, MRZ, note email) and
+   optional gender change; the rest of the passport stays sample/illustrative. */
+function applySigner(fullName, gender){
+  if (!fullName) return;
+  const clean = String(fullName).replace(/^(Dr\.?|Mr\.?|Mrs\.?|Ms\.?|Prof\.?)\s+/i, '').trim();
+  const parts = clean.split(/\s+/);
+  const first = parts[0] || clean;
+  const last  = parts.length > 1 ? parts[parts.length - 1] : '';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('fs-name', clean.toUpperCase());
+  set('idev-who', clean + ' passed identity verification');
+  set('idev-first', first);
+  set('idev-last', last || '—');
+  if (gender) set('idev-gender', gender);
+  const az = s => (s || '').toUpperCase().replace(/[^A-Z]/g, '');
+  const mrz1 = ('P<USA' + az(last) + '<<' + az(first)).padEnd(44, '<').slice(0, 44);
+  const mrzEl = document.getElementById('idev-mrz');
+  if (mrzEl) mrzEl.innerHTML = mrz1.replace(/</g, '&lt;') + '<br>13456789&lt;1USA6502247' + (gender === 'Male' ? 'M' : 'F') + '2908&lt;&lt;&lt;&lt;&lt;&lt;&lt;06';
+  const email = (first + '.' + (last || first)).toLowerCase().replace(/[^a-z.]/g, '') + '@gmail.com';
+  set('idev-note', 'This identity verification was done on ' + clean + ' (' + email + ') for Envelope ID F77923AF4D0940E196CEAD4FD6B7ADFB.');
+}
+/* Set once an explicit signer arrives (shell or ?signer=) so a later
+   applyPreset (preset switch) doesn't clobber the story's real signer. */
+let _signerLocked = false;
+
 function applyPreset(key){
   const p = PRESETS[key]; if (!p) return;
   const r = document.documentElement.style;
@@ -552,6 +594,7 @@ function applyPreset(key){
   document.getElementById('tn-wm-d').textContent = p.name;
   document.getElementById('tn-wm-m').textContent = p.name;
   document.getElementById('tn-wm-s3').textContent = p.name;
+  if (!_signerLocked && SIGNERS[key]) applySigner(SIGNERS[key].name, SIGNERS[key].gender);
 }
 
 const SCENES = [
@@ -665,6 +708,12 @@ function presetFromURL(){
 const initial = presetFromURL();
 sel.value = initial;
 applyPreset(initial);
+/* Standalone/direct override: ?signer=<name> (&signerGender=Male|Female). */
+(function(){
+  const q = new URLSearchParams(location.search);
+  const sg = q.get("signer");
+  if (sg) { _signerLocked = true; applySigner(sg, q.get("signerGender")); }
+})();
 sel.addEventListener("change", () => {
   applyPreset(sel.value);
   history.replaceState(null, "", "?preset=" + sel.value);
@@ -711,6 +760,9 @@ window.addEventListener("message", (ev) => {
   if (!msg || typeof msg !== "object" || typeof msg.type !== "string") return;
   if (msg.type === "tgk:lockToBeat") {
     shellDriven = true;
+    /* Follow the story's signer: the shell sends the IDV scene's persona name
+       so the face-scan label + evidence passport read the right person. */
+    if (msg.signerName) { _signerLocked = true; applySigner(msg.signerName, msg.signerGender); }
     const sc = SCENES.find(s => s.id === msg.sceneId);
     if (sc) applyScene(sc);
     if (msg.target) requestAnimationFrame(() => _tgkSendRect(msg.target));
