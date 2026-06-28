@@ -440,6 +440,36 @@
   .kickoff-catch{position:absolute;inset:0;z-index:15;background:transparent;cursor:pointer;}
   .kickoff-catch[hidden]{display:none;}
   body.calibrate .kickoff-catch{display:none !important;}
+
+  /* Thesis kickoff splash — intro overlay carrying the per-flow thesis, shown
+     over the stage at cold-open and dismissed by the first gesture. Replaces
+     the always-on rail callout so the narration rail stays clean. */
+  .thesis-splash{
+    position:absolute;inset:0;z-index:16;display:none;cursor:pointer;
+    align-items:center;justify-content:center;padding:7% 9%;
+    background:radial-gradient(120% 110% at 50% 26%, rgba(75,0,233,0.12), rgba(243,240,236,0.97));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    animation:thesisSplashIn 0.5s ease both;
+  }
+  @keyframes thesisSplashIn{from{opacity:0;}to{opacity:1;}}
+  .thesis-splash.on{display:flex;}
+  .thesis-splash .ts-card{max-width:600px;text-align:center;}
+  .thesis-splash .ts-kicker{
+    display:inline-flex;align-items:center;gap:9px;justify-content:center;
+    font-size:13px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--ds-purple,#4B00E9);margin-bottom:20px;
+  }
+  .thesis-splash .ts-kicker svg{width:18px;height:18px;flex:0 0 auto;}
+  .thesis-splash .ts-body{font-size:21px;line-height:1.5;color:var(--ink-mid);font-weight:400;}
+  .thesis-splash .ts-body strong{color:var(--ink);font-weight:700;}
+  .thesis-splash .ts-go{
+    margin-top:30px;font-size:12px;font-weight:700;letter-spacing:0.10em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+  .thesis-splash .ts-go kbd{
+    font:inherit;background:var(--bg-muted,#F7F6F4);border:1px solid var(--hair,#E4E4E7);
+    border-radius:5px;padding:2px 7px;color:var(--ink-soft);
+  }
   .hotspot{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.35s ease, transform 0.35s ease;}
   .hotspot.on{opacity:1;}
   /* The pulsing dot is hidden during normal playback — replaced by .shell-cursor
@@ -707,6 +737,17 @@
            on the scene content don't bubble to #stage — this catcher makes a click
            anywhere on the stage (including over the scene) the kickoff gesture. -->
       <div class="kickoff-catch" id="kickoff-catch" hidden></div>
+      <!-- Thesis kickoff splash — the per-flow thesis (fraud-fabric /
+           bookend-los) shown as an intro overlay over the stage at cold-open,
+           instead of living permanently in the narration rail. Dismissed by
+           the same first gesture that starts the demo. -->
+      <div class="thesis-splash" id="thesis-splash" aria-hidden="true">
+        <div class="ts-card">
+          <div class="ts-kicker" id="ts-kicker"></div>
+          <div class="ts-body" id="ts-body"></div>
+          <div class="ts-go">Click or press <kbd>Space</kbd> to begin</div>
+        </div>
+      </div>
     </section>
   </div>
 </div>
@@ -3146,12 +3187,38 @@ if (_custMark) {
 $('vertical-chip').textContent = v.label;
 document.title = `${v.tenant} ${v.subtitle} — Docusign IAM demo`;
 
-/* Fraud-fabric thesis callout — surface the can't-miss point (low-risk-by-
-   reputation actions still need portal auth bound to portal action) for the
-   whole fraud-fabric run. Hidden for every other usecase. */
-(function(){ const ff = $('ff-thesis'); if (ff) ff.hidden = (usecase !== 'fraud-fabric'); })();
-/* Bet 1 bookend thesis callout — shown only for ?usecase=bookend-los. */
-(function(){ const bk = $('bet1-bookend'); if (bk) bk.hidden = (usecase !== 'bookend-los'); })();
+/* Per-flow thesis (fraud-fabric / bookend-los) is presented as a KICKOFF
+   SPLASH over the stage at cold-open — not a permanent rail callout. The rail
+   elements stay hidden and just hold the source copy (kicker + body); we clone
+   that into the splash. Dismissed by the first gesture (handled in togglePlay /
+   releaseHoldAndResume). ?thesis=rail restores the old always-on rail callout. */
+function dismissThesisSplash(){
+  const s = document.getElementById('thesis-splash');
+  if (s) s.classList.remove('on');
+}
+(function setupThesis(){
+  const railMode = new URLSearchParams(location.search).get('thesis') === 'rail';
+  const srcId = usecase === 'fraud-fabric' ? 'ff-thesis'
+              : usecase === 'bookend-los'  ? 'bet1-bookend'
+              : null;
+  // In splash mode the rail callouts never show; only un-hide for legacy rail mode.
+  ['ff-thesis', 'bet1-bookend'].forEach(id => {
+    const el = $(id); if (el) el.hidden = !(railMode && id === srcId);
+  });
+  if (!srcId || railMode || calibrateMode) return;
+  const src = $(srcId), splash = $('thesis-splash');
+  const k = src && src.querySelector('.ff-kicker');
+  const b = src && src.querySelector('.ff-body');
+  if (!splash || !k || !b) return;
+  $('ts-kicker').innerHTML = k.innerHTML;
+  $('ts-body').innerHTML = b.innerHTML;
+  splash.classList.add('on');
+  splash.addEventListener('click', () => {
+    if (holdingForGesture) releaseHoldAndResume();   // dismiss happens in togglePlay
+    else if (!playing) togglePlay();
+    else dismissThesisSplash();
+  });
+})();
 
 /* TGK Capital co-brand REMOVED 2026-04-30 — TGK Capital is now a
    character inside the wealth + banking storylines (the firm being
@@ -4458,6 +4525,9 @@ function updateArrowsHint(){
     : 'scrub beats';
 }
 function togglePlay(){
+  // The thesis kickoff splash (if any) clears the moment the demo starts —
+  // covers every start path (click, Space, arrow, kickoff release).
+  dismissThesisSplash();
   // End-of-story restart (ported 2026-05-06): if we paused at the last
   // beat via the end-of-demo prompt and the viewer hits Space, jump back
   // to S1/B1 with skipBreak semantics (no persona sweep on the wraparound)

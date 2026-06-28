@@ -104,9 +104,11 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   document package, the **workflow builder** orchestrates identity and then
   *finalizes the loan beyond what nCino offers natively*, eSignature completes,
   Workspaces for everything else. Reuses the default templates/visuals
-  (narration-only override in the `tgk-usecases` bundle) and shows a persistent
-  `#bet1-bookend` thesis rail (clones `#ff-thesis`). The builder's **BET 1 ·
-  Best-in-class CX** card launches it.
+  (narration-only override in the `tgk-usecases` bundle). Its thesis
+  (`#bet1-bookend` copy) is shown as a **kickoff splash** over the stage
+  (`#thesis-splash`), dismissed by the first gesture — **not** a persistent
+  rail callout (`?thesis=rail` restores the old always-on rail). The builder's
+  **BET 1 · Best-in-class CX** card launches it.
 - **Fraud-fabric** (and **BET 2**, = `?usecase=auth-fabric` → fraud-fabric) = a
   **4-scene change-of-address** flow (standardized across all verticals):
   portal-shell (CLEAR/IDV at entry) → **industry portal** → webform-intake (no
@@ -119,8 +121,9 @@ Two pickers + an advanced editor, all in one file (~5000 lines, two inline
   **synthesized + spliced in** (not in the bundle) by `spliceFraudFabricPortal`,
   called from BOTH the initial scene resolution AND the async-rebuild path (the
   one that actually loads the bundle — easy to miss); it renumbers the bundle's
-  `OF 3` tags to `OF 4`. Thesis (persistent rail callout `#ff-thesis`): a
-  low-risk-looking action still needs **portal auth bound to portal action**.
+  `OF 3` tags to `OF 4`. Thesis (`#ff-thesis` copy — a low-risk-looking action
+  still needs **portal auth bound to portal action**) is shown as the
+  **kickoff splash** (`#thesis-splash`), not a persistent rail callout.
 - **Narration rail** = persona chip + `step-label` + `headline` + `lede`
   (multi-paragraph ledes recede via `.lede p + p`). `?splash=1` shows the
   MasterCard-style intro splash (`.mc-splash`, in `docusign-workspace.html`).
