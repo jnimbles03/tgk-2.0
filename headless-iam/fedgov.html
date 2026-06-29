@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DOL · Federal Procurement System</title>
+<meta name="description" content="DOL's ServiceNow-based federal procurement portal, with all 13 Docusign IAM moments embedded as CX bolted onto the procurement workflow.">
+
+<!--
+  Headless IAM · Phase 1 — FEDGOV
+  ============================================================
+  Federal procurement portal themed on ServiceNow — the agency's
+  procurement system handles the operations/logic; Docusign IAM
+  bolts on identity, signing, workflow, and CX.
+  Tenant: Department of Labor (DOL). User: procurement officer.
+  Pattern: /headless-iam/ps.html
+-->
+
+<style>
+  /* Federal palette — official navy + gold + white */
+  :root {
+    --fed-navy:#0A2540;
+    --fed-navy-deep:#06182A;
+    --fed-navy-soft:#D6E0EB;
+    --fed-paper:#FFFFFF;
+    --fed-bg:#F0F2F5;
+    --fed-ink:#1B1F26;
+    --fed-ink-soft:#5E6775;
+    --fed-rule:#D0D5DD;
+    --fed-rule-soft:#E4E7EC;
+    --fed-gold:#B8860B;
+    --fed-amber:#C97D2E;
+    --fed-radius:10px;
+    --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;
+    --serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    --mono:'SF Mono','Menlo','Consolas',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{font-family:var(--ui);color:var(--fed-ink);background:var(--fed-bg);-webkit-font-smoothing:antialiased;line-height:1.45;font-size:14px;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;}
+
+  .app{display:grid;grid-template-rows:56px 1fr;grid-template-columns:240px 1fr;grid-template-areas:"topbar topbar" "sidebar canvas";min-height:100vh;}
+  .topbar{grid-area:topbar;background:var(--fed-paper);border-bottom:1px solid var(--fed-rule);display:flex;align-items:center;padding:0 20px;gap:16px;z-index:10;}
+  .sidebar{grid-area:sidebar;background:var(--fed-paper);border-right:1px solid var(--fed-rule);display:flex;flex-direction:column;}
+  .canvas{grid-area:canvas;overflow-y:auto;}
+
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-size:18px;font-weight:600;color:var(--fed-navy);letter-spacing:-0.01em;}
+  .brand-mark{width:24px;height:24px;display:block;}
+  .topbar-search{flex:1;max-width:520px;margin:0 24px;position:relative;}
+  .topbar-search input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--fed-rule);border-radius:6px;background:var(--fed-bg);font-size:13px;color:var(--fed-ink);}
+  .topbar-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--fed-ink-soft);}
+  .topbar-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+  .icon-btn{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--fed-ink-soft);position:relative;}
+  .icon-btn:hover{background:var(--fed-bg);color:var(--fed-ink);}
+  .icon-btn .dot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--fed-amber);}
+  .employee{display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid var(--fed-rule);font-size:13px;}
+  .employee .meta strong{display:block;font-weight:600;color:var(--fed-ink);}
+  .employee .meta span{font-size:11px;color:var(--fed-ink-soft);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--fed-navy-soft);color:var(--fed-navy);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;}
+
+  .sb-section{padding:14px 12px 6px;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;color:var(--fed-ink-soft);}
+  .sb-nav{display:flex;flex-direction:column;padding:0 8px;gap:1px;}
+  .sb-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--fed-ink);cursor:pointer;}
+  .sb-link:hover{background:var(--fed-bg);}
+  .sb-link.active{background:var(--fed-navy-soft);color:var(--fed-navy);font-weight:600;}
+  .sb-link svg{flex-shrink:0;color:var(--fed-ink-soft);}
+  .sb-link.active svg{color:var(--fed-navy);}
+  .sb-badge{margin-left:auto;font-size:11px;background:var(--fed-bg);color:var(--fed-ink-soft);padding:1px 7px;border-radius:10px;font-weight:600;}
+  .sb-link.active .sb-badge{background:var(--fed-paper);color:var(--fed-navy);}
+
+  .sb-iam-cta{margin:14px 12px 12px;padding:12px;background:linear-gradient(135deg,#F0F2F5 0%,#D6E0EB 100%);border:1px solid var(--fed-rule);border-radius:var(--fed-radius);cursor:pointer;transition:border-color 0.15s,transform 0.15s;}
+  .sb-iam-cta:hover{border-color:var(--fed-navy);transform:translateY(-1px);}
+  .sb-iam-cta-row{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;color:var(--fed-navy);margin-bottom:6px;}
+  .sb-iam-cta-title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--fed-ink);line-height:1.25;margin-bottom:4px;}
+  .sb-iam-cta-sub{font-size:11.5px;color:var(--fed-ink-soft);line-height:1.4;}
+  .sb-iam-count{display:inline-block;background:var(--fed-navy);color:var(--fed-paper);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px;letter-spacing:0;}
+
+  .sb-foot{margin-top:auto;padding:14px 20px;border-top:1px solid var(--fed-rule);font-size:11px;color:var(--fed-ink-soft);display:flex;align-items:center;gap:6px;}
+  .sb-foot a{color:var(--fed-navy);font-weight:500;}
+
+  .canvas-inner{padding:24px 28px 60px;max-width:1320px;}
+  .canvas-h{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px;}
+  .canvas-h h1{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-0.012em;margin:0 0 4px;}
+  .canvas-h .sub{font-size:13px;color:var(--fed-ink-soft);}
+  .canvas-h .actions{display:flex;gap:8px;}
+  .btn{padding:8px 14px;border-radius:6px;font-size:13px;font-weight:500;border:1px solid var(--fed-rule);background:var(--fed-paper);color:var(--fed-ink);}
+  .btn:hover{border-color:var(--fed-ink-soft);}
+  .btn.primary{background:var(--fed-navy);color:var(--fed-paper);border-color:var(--fed-navy);}
+  .btn.primary:hover{background:var(--fed-navy-deep);}
+
+  .stub{margin:0 0 18px;padding:10px 14px;background:#FFF7E1;border:1px solid #E5C97A;border-radius:6px;font-size:12px;color:#6B5018;display:flex;gap:8px;align-items:flex-start;}
+  .stub svg{flex-shrink:0;margin-top:1px;}
+  .stub b{color:#4D3A0E;}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi{background:var(--fed-paper);border:1px solid var(--fed-rule);border-radius:var(--fed-radius);padding:14px 16px;}
+  .kpi-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--fed-ink-soft);margin-bottom:6px;}
+  .kpi-val{font-family:var(--serif);font-size:24px;font-weight:500;color:var(--fed-ink);letter-spacing:-0.01em;line-height:1;}
+  .kpi-delta{font-size:11px;color:var(--fed-navy);margin-top:4px;}
+  .kpi-delta.down{color:var(--fed-amber);}
+
+  .work{display:grid;grid-template-columns:2fr 1fr;gap:18px;}
+  .panel{background:var(--fed-paper);border:1px solid var(--fed-rule);border-radius:var(--fed-radius);padding:18px 20px;}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-h h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:0;}
+  .panel-h .panel-link{font-size:12px;color:var(--fed-navy);font-weight:500;}
+
+  .task{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--fed-rule-soft);}
+  .task:last-child{border-bottom:0;}
+  .task-icon{width:32px;height:32px;border-radius:6px;background:var(--fed-navy-soft);display:flex;align-items:center;justify-content:center;color:var(--fed-navy);}
+  .task-icon.urgent{background:#FBEDE2;color:var(--fed-amber);}
+  .task-icon.action{background:#EDE5D2;color:var(--fed-gold);}
+  .task-meta{min-width:0;}
+  .task-title{font-size:13px;font-weight:500;color:var(--fed-ink);margin-bottom:2px;}
+  .task-sub{font-size:12px;color:var(--fed-ink-soft);}
+  .task-sub b{color:var(--fed-ink);font-weight:500;}
+  .task-cta{font-size:12px;color:var(--fed-navy);font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--fed-rule);cursor:pointer;display:flex;align-items:center;gap:5px;background:var(--fed-paper);}
+  .task-cta:hover{border-color:var(--fed-navy);}
+  .task-cta.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--fed-navy);box-shadow:0 0 0 0 rgba(10,37,64,0.4);animation:livePulse 2s infinite;}
+  @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(10,37,64,0.4);}70%{box-shadow:0 0 0 6px rgba(10,37,64,0);}100%{box-shadow:0 0 0 0 rgba(10,37,64,0);}}
+
+  .feed{display:flex;flex-direction:column;gap:12px;}
+  .feed-row{display:flex;gap:10px;font-size:12.5px;color:var(--fed-ink);line-height:1.5;}
+  .feed-time{flex-shrink:0;width:48px;color:var(--fed-ink-soft);font-size:11px;font-family:var(--mono);padding-top:1px;}
+  .feed-row b{font-weight:500;}
+
+  .scrim{position:fixed;inset:0;background:rgba(6,24,42,0.5);backdrop-filter:blur(2px);z-index:50;display:none;}
+  .scrim.open{display:block;}
+  .iam-tray{position:fixed;top:0;right:0;width:480px;max-width:96vw;height:100vh;background:var(--fed-paper);border-left:1px solid var(--fed-rule);box-shadow:-20px 0 60px rgba(0,0,0,0.18);z-index:51;transform:translateX(105%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;}
+  .iam-tray.open{transform:translateX(0);}
+  .iam-tray-h{padding:18px 22px;border-bottom:1px solid var(--fed-rule);display:flex;align-items:center;gap:14px;}
+  .iam-tray-h .ds-mark{width:28px;height:28px;border-radius:6px;background:#4B00E9;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .iam-tray-h .meta{flex:1;}
+  .iam-tray-h .meta-eyebrow{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;color:var(--fed-ink-soft);margin-bottom:2px;}
+  .iam-tray-h h2{font-family:var(--serif);font-size:18px;font-weight:600;margin:0;letter-spacing:-0.01em;}
+  .iam-tray-h .close{padding:6px 8px;border-radius:6px;color:var(--fed-ink-soft);}
+  .iam-tray-h .close:hover{background:var(--fed-bg);color:var(--fed-ink);}
+
+  .iam-list{flex:1;overflow-y:auto;padding:14px 22px 22px;}
+  .iam-section{margin-top:14px;}
+  .iam-section:first-child{margin-top:0;}
+  .iam-section-h{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;color:var(--fed-ink-soft);margin-bottom:8px;padding:0 4px;}
+  .iam-card{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:11px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;}
+  .iam-card:hover{background:var(--fed-bg);border-color:var(--fed-rule);}
+  .iam-card.stub{cursor:default;opacity:0.55;}
+  .iam-card.stub:hover{background:transparent;border-color:transparent;}
+  .iam-icon{width:36px;height:36px;border-radius:8px;background:var(--fed-navy-soft);color:var(--fed-navy);display:flex;align-items:center;justify-content:center;}
+  .iam-num{font-size:10px;letter-spacing:0.1em;font-weight:700;color:var(--fed-navy);}
+  .iam-title{font-size:13.5px;font-weight:600;color:var(--fed-ink);line-height:1.3;}
+  .iam-sub{font-size:11.5px;color:var(--fed-ink-soft);line-height:1.4;margin-top:1px;}
+  .iam-status{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:4px;}
+  .iam-status.live{background:#DCEEDF;color:#1F6B3D;}
+  .iam-status.stub{background:#F2EAD6;color:#7A5A1E;}
+
+  .dd{position:fixed;inset:0;background:rgba(6,24,42,0.6);backdrop-filter:blur(3px);z-index:60;display:none;align-items:stretch;justify-content:center;padding:24px;}
+  .dd.open{display:flex;}
+  .dd-frame{width:100%;max-width:1320px;background:var(--fed-paper);border-radius:var(--fed-radius);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,0.4);}
+  .dd-bar{padding:12px 18px;border-bottom:1px solid var(--fed-rule);display:flex;align-items:center;gap:14px;}
+  .dd-bar .crumb{font-size:12px;color:var(--fed-ink-soft);}
+  .dd-bar .crumb b{color:var(--fed-navy);font-weight:600;}
+  .dd-bar .title{font-family:var(--serif);font-size:16px;font-weight:600;flex:1;}
+  .dd-bar button{width:30px;height:30px;border:1px solid var(--fed-rule);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--fed-ink-soft);}
+  .dd-bar button:hover{border-color:var(--fed-navy);color:var(--fed-navy);}
+  .dd-body{flex:1;background:var(--fed-bg);position:relative;min-height:600px;}
+  .dd-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .dd-stub{height:100%;min-height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:40px;color:var(--fed-ink-soft);}
+  .dd-stub h3{font-family:var(--serif);font-size:22px;font-weight:500;color:var(--fed-ink);margin:0;}
+  .dd-stub p{max-width:480px;line-height:1.55;margin:0;}
+  .dd-stub .moments{font-size:12px;font-family:var(--mono);background:var(--fed-bg);padding:8px 12px;border-radius:6px;margin-top:4px;}
+
+  .ds-foot{padding:16px 28px;border-top:1px solid var(--fed-rule);font-size:11px;color:var(--fed-ink-soft);display:flex;align-items:center;justify-content:space-between;}
+  .ds-foot .powered{display:inline-flex;align-items:center;gap:6px;}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;grid-template-areas:"topbar" "canvas";}
+    .sidebar{display:none;}
+    .work{grid-template-columns:1fr;}
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .iam-tray{width:100%;}
+  }
+
+  /* ===================== APPROVAL QUEUE (shared component) =====================
+     Each row expands on click to reveal who/what/amount/risk/linked agreement/
+     next step, with Approve / Route / Step-up affordances. Step-up + agreement
+     actions hand off to the existing openDemo() drilldowns. */
+  :root{
+    --apv-accent:var(--fed-navy);
+    --apv-accent-soft:var(--fed-navy-soft);
+    --apv-paper:var(--fed-paper);
+    --apv-ink:var(--fed-ink);
+    --apv-ink-2:var(--fed-ink);
+    --apv-ink-3:var(--fed-ink-soft);
+    --apv-rule:var(--fed-rule);
+    --apv-rule-soft:var(--fed-rule-soft);
+    --apv-bg-soft:var(--fed-bg);
+    --apv-ok:#1F6B3D; --apv-ok-soft:#DCEEDF;
+    --apv-warn:var(--fed-amber); --apv-warn-soft:#FBEDE2;
+    --apv-risk:#B0431F; --apv-risk-soft:#FBE3DA;
+    --apv-radius:8px;
+  }
+  .apv-item{border:1px solid var(--apv-rule);border-radius:var(--apv-radius);margin-top:10px;background:var(--apv-paper);overflow:hidden;transition:border-color 0.12s,box-shadow 0.12s;}
+  .apv-item:first-child{margin-top:0;}
+  .apv-item:hover{border-color:var(--apv-accent);}
+  .apv-item.open{border-color:var(--apv-accent);box-shadow:0 6px 18px rgba(10,37,64,0.1);}
+  .apv-item.resolved{opacity:0.72;}
+  .apv-item.resolved .apv-head{cursor:default;}
+  .apv-head{display:grid;grid-template-columns:8px 1fr auto 16px;gap:11px;align-items:center;padding:12px 14px;cursor:pointer;}
+  .apv-dot{width:8px;height:8px;border-radius:50%;background:var(--apv-ink-3);}
+  .apv-item[data-sev="risk"] .apv-dot{background:var(--apv-risk);}
+  .apv-item[data-sev="warn"] .apv-dot{background:var(--apv-warn);}
+  .apv-item[data-sev="ok"] .apv-dot{background:var(--apv-ok);}
+  .apv-hmeta{min-width:0;}
+  .apv-title{font-size:13px;font-weight:600;color:var(--apv-ink);line-height:1.3;}
+  .apv-sub{font-size:12px;color:var(--apv-ink-3);margin-top:2px;}
+  .apv-sub b{color:var(--apv-ink-2);font-weight:600;}
+  .apv-amt{font-size:13px;font-weight:700;color:var(--apv-accent);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  .apv-amt small{display:block;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:var(--apv-ink-3);margin-top:1px;}
+  .apv-chev{width:16px;height:16px;color:var(--apv-ink-3);transition:transform 0.18s;display:flex;align-items:center;justify-content:center;}
+  .apv-item.open .apv-chev{transform:rotate(180deg);color:var(--apv-accent);}
+  .apv-badge{display:inline-flex;align-items:center;font-size:9.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:10px;line-height:1.4;}
+  .apv-badge.risk{color:var(--apv-risk);background:var(--apv-risk-soft);}
+  .apv-badge.warn{color:var(--apv-warn);background:var(--apv-warn-soft);}
+  .apv-badge.ok{color:var(--apv-ok);background:var(--apv-ok-soft);}
+  .apv-badge.info{color:var(--apv-accent);background:var(--apv-accent-soft);}
+  .apv-drawer{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.22s ease;}
+  .apv-item.open .apv-drawer{grid-template-rows:1fr;}
+  .apv-drawer-in{overflow:hidden;min-height:0;}
+  .apv-detail{padding:2px 14px 14px;border-top:1px solid var(--apv-rule-soft);}
+  .apv-facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;padding:11px 0 4px;font-size:12px;}
+  .apv-facts dt{color:var(--apv-ink-3);font-weight:600;letter-spacing:0.02em;}
+  .apv-facts dd{margin:0;color:var(--apv-ink);font-weight:500;}
+  .apv-facts dd b{color:var(--apv-accent);font-weight:700;}
+  .apv-facts .risk-cell{color:var(--apv-risk);font-weight:600;}
+  .apv-link{color:var(--apv-accent);font-weight:600;cursor:pointer;border-bottom:1px dashed currentColor;}
+  .apv-link:hover{color:var(--apv-ink);}
+  .apv-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+  .apv-btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--apv-rule);background:var(--apv-paper);color:var(--apv-ink-2);display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:background 0.12s,border-color 0.12s,color 0.12s;}
+  .apv-btn:hover{border-color:var(--apv-accent);color:var(--apv-accent);}
+  .apv-btn.primary{background:var(--apv-accent);color:#fff;border-color:var(--apv-accent);}
+  .apv-btn.primary:hover{filter:brightness(1.1);color:#fff;}
+  .apv-btn.ds{background:#4B00E9;border-color:#4B00E9;color:#fff;}
+  .apv-btn.ds:hover{filter:brightness(1.1);color:#fff;}
+  .apv-btn.ds::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;}
+  .apv-resolution{margin-top:12px;font-size:12px;font-weight:600;color:var(--apv-ok);display:none;align-items:center;gap:7px;}
+  .apv-resolution::before{content:"\2713";font-weight:900;}
+  .apv-resolution.routed{color:var(--apv-accent);}
+  .apv-resolution.routed::before{content:"\2192";}
+  .apv-item.resolved .apv-resolution{display:inline-flex;}
+  .apv-item.resolved .apv-actions{display:none;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="/headless-iam/fedgov.html" aria-label="DOL Federal Procurement home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
+        <path d="M14 2 L26 8 V20 L14 26 L2 20 V8 Z" fill="var(--fed-navy)"/>
+        <path d="M14 8 V18" stroke="var(--fed-paper)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M9 13 H19" stroke="var(--fed-paper)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <circle cx="14" cy="14" r="1.5" fill="var(--fed-gold)"/>
+      </svg>
+      DOL Procurement
+    </a>
+    <div class="topbar-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="m11 11 3 3"/></svg>
+      <input type="text" placeholder="Search RFPs, vendors, contracts" aria-label="Search">
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" aria-label="Notifications">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5a4.5 4.5 0 0 1 9 0v3l1.5 2H2L3.5 9.5z"/><path d="M6 12a2 2 0 0 0 4 0"/></svg>
+        <span class="dot"></span>
+      </button>
+      <div class="employee">
+        <div class="avatar" aria-hidden="true">JC</div>
+        <div class="meta"><strong>Julia Chen</strong><span>Procurement Officer</span></div>
+      </div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="sb-section">Procurement Workspace</div>
+    <nav class="sb-nav" aria-label="Primary">
+      <a class="sb-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l5-5 5 5v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>Dashboard</a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="11" height="10" rx="1.2"/><path d="M5.5 6.5h5M5.5 9.5h3"/></svg>Requisitions<span class="sb-badge">22</span></a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.4"/><path d="M3 13c.7-2.4 2.7-3.6 5-3.6S12.3 10.6 13 13"/></svg>Vendors</a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"/></svg>RFPs<span class="sb-badge">8</span></a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="11" height="8" rx="1"/><path d="M5.5 5V3.5h5V5"/></svg>Contract Awards</a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2 L13 4 V8 C13 11, 10.6 13, 8 14 C5.4 13, 3 11, 3 8 V4 Z"/><path d="M6 8.5 L7.4 10 L10.2 7.2"/></svg>FAR Compliance</a>
+      <a class="sb-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11 L6 9 L9 11 L14 5"/></svg>Reports</a>
+    </nav>
+
+    <div class="sb-iam-cta" onclick="openTray()">
+      <div class="sb-iam-cta-row"><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect width="12" height="12" rx="2"/></svg>IAM Demos<span class="sb-iam-count">13</span></div>
+      <div class="sb-iam-cta-title">Docusign CX, bolted onto your procurement system.</div>
+      <div class="sb-iam-cta-sub">Click any demo to see the CX layer in action.</div>
+    </div>
+
+    <div class="sb-foot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8.2v0.2" stroke-linecap="round"/></svg>DOL Procurement — <a href="/headless-iam/">Switch tenant</a></div>
+  </aside>
+
+  <main class="canvas">
+    <div class="canvas-inner">
+      <div class="canvas-h">
+        <div><h1>Good morning, Julia.</h1><div class="sub">Thursday, June 25 · 8 procurement actions need your attention today.</div></div>
+        <div class="actions">
+          <button class="btn">Filter</button>
+          <button class="btn primary" onclick="openTray()">Run an IAM demo</button>
+        </div>
+      </div>
+
+      <div class="stub" id="stubBanner">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#B8923A" stroke-width="1.4"><circle cx="7" cy="7" r="6"/><path d="M7 4v3.5M7 9.5v0.5" stroke-linecap="round"/></svg>
+        <div><b>Internal demo surface.</b> DOL &rsquo;s ServiceNow procurement portal — the system handles operations/logic; Docusign IAM bolts on identity, signing, workflow, and CX. Click any &ldquo;Open IAM&rdquo; chip to drill in.</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Active solicitations</div><div class="kpi-val">18</div><div class="kpi-delta">+ 3 this week</div></div>
+        <div class="kpi"><div class="kpi-label">Contracts under mgmt</div><div class="kpi-val">142</div><div class="kpi-delta">$47M total value</div></div>
+        <div class="kpi"><div class="kpi-label">Vendor clearances due</div><div class="kpi-val">12</div><div class="kpi-delta down">5 within 30 days</div></div>
+        <div class="kpi"><div class="kpi-label">Awards in process</div><div class="kpi-val">7</div><div class="kpi-delta">3 awaiting signature</div></div>
+      </div>
+
+      <div class="work">
+        <div class="panel">
+          <div class="panel-h"><h3>Today&rsquo;s procurement queue</h3><a class="panel-link" href="#">View all &rarr;</a></div>
+
+          <div class="task">
+            <div class="task-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="11" height="10" rx="1.2"/><path d="M5.5 6.5h5M5.5 9.5h3"/></svg></div>
+            <div class="task-meta"><div class="task-title">RFP #DOL-2026-0842 — Workforce training platform</div><div class="task-sub"><b>Procurement</b> · Evaluation period; 3 bids received; award recommendation in review</div></div>
+            <button class="task-cta live" onclick="openDemo('webforms', event)">Open IAM &rarr;</button>
+          </div>
+
+          <div class="task">
+            <div class="task-icon urgent"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 L13 4 V8 C13 11, 10.6 13, 8 14 C5.4 13, 3 11, 3 8 V4 Z" stroke-linejoin="round" fill="none"/><path d="M6 8.5 L7.4 10 L10.2 7.2" fill="none" stroke-linecap="round"/></svg></div>
+            <div class="task-meta"><div class="task-title">Vendor DataTrust Solutions — SAM.gov clearance expired</div><div class="task-sub"><b>Vendor compliance</b> · identity verification step-up required before award</div></div>
+            <button class="task-cta live" onclick="openDemo('clear', event)">Open IAM &rarr;</button>
+          </div>
+
+          <div class="task">
+            <div class="task-icon action"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="4" r="1.5"/><circle cx="12" cy="4" r="1.5"/><circle cx="8" cy="12" r="1.5"/><path d="M5.5 4h5M4 5.5l3 5M12 5.5l-3 5"/></svg></div>
+            <div class="task-meta"><div class="task-title">Contract onboarding — IT services award package (6 docs)</div><div class="task-sub"><b>Contract Admin</b> · the workflow fan-out across procurement, legal, finance</div></div>
+            <button class="task-cta live" onclick="openDemo('maestro', event)">Open IAM &rarr;</button>
+          </div>
+
+          <div class="task">
+            <div class="task-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12 C7 10, 9 7, 12 4 C13 3, 13.6 3, 14 3.4 C14.4 3.8, 14.4 4.4, 13.4 5.4 C10.4 8.4, 7.4 10.4, 4 12 Z" fill="none" stroke-linejoin="round"/></svg></div>
+            <div class="task-meta"><div class="task-title">Contract award — Meridian IT services, $2.4M</div><div class="task-sub"><b>Award</b> · FAR-compliant signing ceremony needed for award notice</div></div>
+            <button class="task-cta live" onclick="openDemo('signing', event)">Open IAM &rarr;</button>
+          </div>
+
+          <div class="task">
+            <div class="task-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5" fill="none"/><path d="m11 11 3 3" fill="none" stroke-linecap="round"/></svg></div>
+            <div class="task-meta"><div class="task-title">Audit: find prior-year labor category pricing in award docs</div><div class="task-sub"><b>Compliance</b> · Search the agreement repository across procurement records</div></div>
+            <button class="task-cta live" onclick="openDemo('navigator', event)">Open IAM &rarr;</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><h3>Recent activity</h3></div>
+          <div class="feed">
+            <div class="feed-row"><div class="feed-time">10:22</div><div><b>Workflow</b> dispatched award package for RFP #DOL-2026-0842.</div></div>
+            <div class="feed-row"><div class="feed-time">10:07</div><div><b>identity verification</b> cleared DataTrust authorized signer at IAL2.</div></div>
+            <div class="feed-row"><div class="feed-time">9:52</div><div><b>Monitor</b> flagged off-hours access to contract file C-4421.</div></div>
+            <div class="feed-row"><div class="feed-time">9:34</div><div><b>Agreement Repository</b> pulled 14 clauses from DataTrust 2024 contract.</div></div>
+            <div class="feed-row"><div class="feed-time">9:18</div><div><b>Webform</b> intake submitted: IT services requisition by OCIO.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approvals / Action Queue — click a row to expand full detail -->
+      <div class="panel" aria-label="Approvals and action queue" style="margin-top:18px;">
+        <div class="panel-h">
+          <h3>Approvals &amp; Action Queue</h3>
+          <span class="panel-link" id="apvCount">—</span>
+        </div>
+        <div id="apvList"></div>
+      </div>
+    </div>
+
+    <footer class="ds-foot">
+      <span>DOL Procurement System · Authorized personnel only · FAR §4.6 applies</span>
+      <span class="powered">Powered by Docusign IAM<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect width="14" height="14" rx="2" fill="#4B00E9"/><path d="M4 7 L6.5 9.5 L10 5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeTray()"></div>
+<aside class="iam-tray" id="iamTray" aria-hidden="true">
+  <div class="iam-tray-h">
+    <div class="ds-mark" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7 L6 10 L11 5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="meta"><div class="meta-eyebrow">Docusign · Embedded in DOL Procurement</div><h2>All 13 IAM demos</h2></div>
+    <button class="close" onclick="closeTray()" aria-label="Close demos tray"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="iam-list" id="iamList"></div>
+</aside>
+
+<div class="dd" id="drilldown" role="dialog" aria-modal="true">
+  <div class="dd-frame">
+    <div class="dd-bar">
+      <div class="crumb"><b>DOL Procurement</b> &nbsp;/&nbsp; IAM Demos &nbsp;/&nbsp; <span id="ddCrumb">—</span></div>
+      <div class="title" id="ddTitle">—</div>
+      <button onclick="closeDemo()" aria-label="Close demo"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="dd-body" id="ddBody"></div>
+  </div>
+</div>
+
+<script>
+const TENANT = { slug:'fedgov', label:'DOL Procurement' };
+const IAM_DEMOS = [
+  { id:'webforms',  num:'01', title:'Web Forms',                 sub:'Procurement intake forms — requisitions, vendor applications.', section:'Intake & orchestration', template:'/story-templates/docusign-webform-intake.html?preset=fedgov&interactive=1' },
+  { id:'maestro',   num:'02', title:'the workflow Workflow Templates', sub:'Multi-department orchestration: procurement, legal, finance.', section:'Intake & orchestration', template:'/story-templates/docusign-maestro-package.html?preset=fedgov&interactive=1' },
+  { id:'clear',     num:'03', title:'identity verification · IAL2',              sub:'Identity step-up for vendor clearance and FAR compliance.', section:'Identity', template:'/story-templates/docusign-clear-idv.html?preset=fedgov&interactive=1' },
+  { id:'idme',      num:'04', title:'ID.me · Member Authentication', sub:'Federal contractor portal step-up auth with agency credentials.', section:'Identity' },
+  { id:'idverse',   num:'05', title:'IDVerse',                   sub:'Document + selfie verification for vendor representatives.', section:'Identity' },
+  { id:'signing',   num:'06', title:'Signing Ceremony',          sub:'FAR-compliant signing for procurement awards, contracts, modifications.', section:'Agreement execution', template:'/story-templates/docusign-signing-ceremony.html?preset=fedgov&interactive=1' },
+  { id:'navigator', num:'07', title:'the agreement repository',                 sub:'Search executed procurement contracts across agencies.', section:'Data & discovery', template:'/story-templates/docusign-navigator.html?preset=fedgov&interactive=1' },
+  { id:'iris',      num:'08', title:'AI-Assisted Review',  sub:'The AI assistant drafts compliance summaries and identifies FAR obligations.', section:'Data & discovery' },
+  { id:'workspace', num:'09', title:'Workspaces',                sub:'Multi-agency persistent collaboration around a procurement case.', section:'Collaboration', template:'/story-templates/docusign-workspace.html?preset=fedgov' },
+  { id:'monitor',   num:'10', title:'Docusign Monitor',          sub:'Anomaly detection on procurement document access and signings.', section:'Risk & monitoring' },
+  { id:'dataverify',num:'11', title:'Data Verification External', sub:'Verifies submitted vendor data against SAM.gov and federal sources.', section:'Risk & monitoring' },
+  { id:'iamsales',  num:'12', title:'IAM for Sales · Agentforce', sub:'Vendor-relationship origination from Salesforce Public Sector Solutions.', section:'Vertical extensions', template:'/story-templates/docusign-agents.html?preset=fedgov&interactive=1' },
+  { id:'clm',       num:'13', title:'CLM · Procurement',         sub:'Lifecycle management for procurement contracts and modifications.', section:'Vertical extensions' }
+];
+
+function iconForDemo(id){
+  switch(id){
+    case 'webforms':   return '<rect x="2.5" y="3" width="11" height="10" rx="1.2"/><path d="M5.5 6.5h5M5.5 9.5h3"/>';
+    case 'maestro':    return '<circle cx="4" cy="4" r="1.5"/><circle cx="12" cy="4" r="1.5"/><circle cx="8" cy="12" r="1.5"/><path d="M5.5 4h5M4 5.5l3 5M12 5.5l-3 5"/>';
+    case 'clear':      return '<path d="M8 2 L13 4 V8 C13 11, 10.6 13, 8 14 C5.4 13, 3 11, 3 8 V4 Z"/><path d="M6 8.5 L7.4 10 L10.2 7.2"/>';
+    case 'idme':       return '<circle cx="8" cy="6" r="2.4"/><path d="M3 13c.7-2.4 2.7-3.6 5-3.6S12.3 10.6 13 13"/>';
+    case 'idverse':    return '<rect x="2.5" y="3.5" width="11" height="9" rx="1.4"/><path d="M5.5 7h5M5.5 9.5h3"/>';
+    case 'signing':    return '<path d="M4 12 C7 10, 9 7, 12 4 C13 3, 13.6 3, 14 3.4 C14.4 3.8, 14.4 4.4, 13.4 5.4 C10.4 8.4, 7.4 10.4, 4 12 Z"/>';
+    case 'navigator':  return '<circle cx="7" cy="7" r="4.5"/><path d="m11 11 3 3"/>';
+    case 'iris':       return '<path d="M8 3 L9.6 6.4 L13.2 6.8 L10.6 9.2 L11.2 12.8 L8 11 L4.8 12.8 L5.4 9.2 L2.8 6.8 L6.4 6.4 Z"/>';
+    case 'workspace':  return '<circle cx="6" cy="7" r="2"/><circle cx="11" cy="7" r="2"/><path d="M3 13c.4-2 1.6-3 3-3 M14 13c-.4-2-1.6-3-3-3"/>';
+    case 'monitor':    return '<path d="M2.5 11 L6 11 L8 5 L10.5 13 L12 9 L13.5 9"/>';
+    case 'dataverify': return '<path d="M3 3.5h10v6c0 2-2 3.5-5 4.5C5 13 3 11.5 3 9.5z"/><path d="M6 8L7.5 9.5L10 7"/>';
+    case 'iamsales':   return '<rect x="2.5" y="5" width="11" height="8" rx="1"/><path d="M5.5 5V3.5h5V5"/><path d="M2.5 9h11"/>';
+    case 'clm':        return '<path d="M4 2.5h6L13 5.5v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1z"/><path d="M5.5 8h5M5.5 10.5h3"/>';
+    default:           return '<circle cx="8" cy="8" r="5"/>';
+  }
+}
+
+function renderTray() {
+  const list = document.getElementById('iamList');
+  const sections = [], map = new Map();
+  IAM_DEMOS.forEach(d => { if (!map.has(d.section)) { map.set(d.section, []); sections.push(d.section); } map.get(d.section).push(d); });
+  list.innerHTML = sections.map(sec => `
+    <div class="iam-section">
+      <div class="iam-section-h">${sec}</div>
+      ${map.get(sec).map(d => {
+        const live = !!d.template;
+        return `
+          <div class="iam-card ${live ? '' : 'stub'}" ${live ? `onclick="openDemo('${d.id}', event)"` : ''}>
+            <div class="iam-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${iconForDemo(d.id)}</svg></div>
+            <div class="iam-meta"><div class="iam-num">${d.num}</div><div class="iam-title">${d.title}</div><div class="iam-sub">${d.sub}</div></div>
+            <div class="iam-status ${live ? 'live' : 'stub'}">${live ? 'Live' : 'Stub'}</div>
+          </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function openTray(){ document.getElementById('iamTray').classList.add('open'); document.getElementById('iamTray').setAttribute('aria-hidden','false'); document.getElementById('scrim').classList.add('open'); }
+function closeTray(){ document.getElementById('iamTray').classList.remove('open'); document.getElementById('iamTray').setAttribute('aria-hidden','true'); document.getElementById('scrim').classList.remove('open'); }
+function openDemo(id, evt){
+  if (evt) evt.stopPropagation();
+  const demo = IAM_DEMOS.find(d => d.id === id); if (!demo) return;
+  document.getElementById('ddCrumb').textContent = demo.section;
+  document.getElementById('ddTitle').textContent = demo.title;
+  const body = document.getElementById('ddBody');
+  body.innerHTML = demo.template
+    ? `<iframe src="${demo.template}" title="${demo.title}"></iframe>`
+    : `<div class="dd-stub"><h3>${demo.title}</h3><p>${demo.sub}</p><p>This demo is a Phase 2 build — live template will iframe in here once authored.</p><span class="moments">Demo id: ${demo.id}</span></div>`;
+  document.getElementById('drilldown').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  closeTray();
+}
+function closeDemo(){ document.getElementById('drilldown').classList.remove('open'); document.getElementById('ddBody').innerHTML = ''; document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('drilldown').classList.contains('open')) return closeDemo();
+  if (document.getElementById('iamTray').classList.contains('open')) return closeTray();
+});
+
+/* ===================== APPROVAL QUEUE (shared interaction) =====================
+   Same engine as ps.html. Each federal procurement queue item expands on click to
+   reveal who / what / amount / risk reason / linked agreement / next step, with
+   Approve / Route / Step-up affordances. Step-up + agreement actions hand off to
+   the existing openDemo() drilldowns. */
+const APV_QUEUE = [
+  { id:'rfp-dol-0842', sev:'warn', badge:{cls:'warn',text:'Decision req'},
+    title:'RFP #DOL-2026-0842 — Workforce training platform', sub:'<b>OCIO</b> · RFP #DOL-2026-0842',
+    amt:'$8.2M', amtLabel:'Est. value',
+    facts:[
+      ['Requesting agency','DOL · Office of the CIO'],
+      ['Action','Award to lowest responsive bidder (Meridian IT)'],
+      ['Est. value','<b>$8,200,000</b> total · $2.73M / yr (3 yr base + 2 option)'],
+      ['Risk reason','<span class="risk-cell">One bid protest filed by runner-up — legal review in progress</span>'],
+      ['Linked agreement','RFP evaluation matrix + award recommendation memo'],
+      ['Next step','Approve with protest hold → route to OFPP for concurrence']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] },
+
+  { id:'vendor-datatrust', sev:'risk', badge:{cls:'risk',text:'Step-up required'},
+    title:'Vendor DataTrust Solutions — SAM.gov clearance expired', sub:'<b>Vendor compliance</b> · annual re-cert',
+    amt:'IAL2', amtLabel:'Identity',
+    facts:[
+      ['Applicant','DataTrust Solutions Inc. (authorized signer: S. Kapoor)'],
+      ['Action','Re-certify vendor & refresh SAM.gov / FAR registration'],
+      ['Amount','Active contracts <b>$3.4M</b> across 2 DOL agencies'],
+      ['Risk reason','<span class="risk-cell">Authorized signer changed since last cycle → IAL2 identity step-up required</span>'],
+      ['Linked agreement','GSA Schedule contract (2024) · recert addendum'],
+      ['Next step','Verify signer identity, then countersign recertification']
+    ],
+    linkDemo:'navigator', stepupDemo:'clear', signDemo:'signing', actions:['approve','route','stepup','sign','agreement'] },
+
+  { id:'award-meridian', sev:'warn', badge:{cls:'warn',text:'Award ready'},
+    title:'Contract award — Meridian IT services', sub:'<b>Award #AW-2026-009</b> · IT Services',
+    amt:'$2.4M', amtLabel:'Contract value',
+    facts:[
+      ['Awardee','Meridian Information Technology (small business, 8(a))'],
+      ['Action','Approve award & send FAR-compliant signing ceremony'],
+      ['Amount','<b>$2,400,000</b> total · $800K / yr (3 year)'],
+      ['Risk reason','Small business set-aside verified · price reasonableness approved · no protests'],
+      ['Linked agreement','Notice of Award + contract for signature'],
+      ['Next step','Approve → Docusign signing ceremony (FAR §4.2 compliant)']
+    ],
+    linkDemo:'navigator', signDemo:'signing', actions:['approve','route','sign','agreement'] },
+
+  { id:'mod-dollar-threshold', sev:'ok', badge:{cls:'info',text:'Modification'},
+    title:'Contract mod — DataTrust labor rate adjustment', sub:'<b>Mod #MOD-2026-003</b> · Admin',
+    amt:'$187K', amtLabel:'Increase',
+    facts:[
+      ['Vendor','DataTrust Solutions Inc.'],
+      ['Action','Approve labor rate adjustment (Section B — CLIN 0001)'],
+      ['Amount','<b>$187,000</b> increase (3.2% escalation per contract terms)'],
+      ['Risk reason','Within allowable escalation · CO approved · funding certified'],
+      ['Linked agreement','Bilateral modification + revised pricing schedule'],
+      ['Next step','Approve → Docusign signing for CO and vendor signatory']
+    ],
+    linkDemo:'navigator', signDemo:'signing', actions:['approve','route','sign','agreement'] },
+
+  { id:'procure-grants-mgmt', sev:'warn', badge:{cls:'warn',text:'Board route'},
+    title:'Grant management platform — sole source justification', sub:'<b>Procurement</b> · Grants Management',
+    amt:'$1.1M', amtLabel:'Est. value',
+    facts:[
+      ['Requesting agency','DOL · Employment & Training Administration'],
+      ['Action','Review sole source justification for grant management SaaS'],
+      ['Amount','<b>$1,100,000</b> total · $275K / yr (4 year)'],
+      ['Risk reason','Sole source requires OFPP waiver — documentation package attached'],
+      ['Linked agreement','Justification & Approval (J&A) + draft PWS'],
+      ['Next step','Route to OFPP with sole source J&A for concurrence']
+    ],
+    linkDemo:'navigator', actions:['approve','route','agreement'] }
+];
+
+function apvFactsHtml(facts){
+  return '<dl class="apv-facts">' + facts.map(f =>
+    `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('') + '</dl>';
+}
+function apvActionsHtml(item){
+  const a = item.actions || [];
+  let html = '<div class="apv-actions">';
+  if (a.includes('approve')) html += `<button class="apv-btn primary" onclick="apvResolve('${item.id}','approved', event)">Approve</button>`;
+  if (a.includes('route'))   html += `<button class="apv-btn" onclick="apvResolve('${item.id}','routed', event)">Route for review</button>`;
+  if (a.includes('sign') && item.signDemo)        html += `<button class="apv-btn ds" onclick="openDemo('${item.signDemo}', event)">Send for signature</button>`;
+  if (a.includes('stepup') && item.stepupDemo)    html += `<button class="apv-btn ds" onclick="openDemo('${item.stepupDemo}', event)">Verify identity</button>`;
+  if (a.includes('agreement') && item.linkDemo)   html += `<button class="apv-btn" onclick="openDemo('${item.linkDemo}', event)">View agreement</button>`;
+  html += '</div>';
+  html += '<div class="apv-resolution" id="apvres-' + item.id + '"></div>';
+  return html;
+}
+function renderApprovals(){
+  const list = document.getElementById('apvList'); if (!list) return;
+  list.innerHTML = APV_QUEUE.map(item => `
+    <div class="apv-item" data-sev="${item.sev}" id="apv-${item.id}">
+      <div class="apv-head" onclick="apvToggle('${item.id}')" role="button" tabindex="0" aria-expanded="false">
+        <span class="apv-dot" aria-hidden="true"></span>
+        <div class="apv-hmeta"><div class="apv-title">${item.title}</div><div class="apv-sub">${item.sub}</div></div>
+        <div class="apv-amt">${item.amt}<small>${item.amtLabel}</small></div>
+        <span class="apv-chev"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5 L6 7.5 L9 4.5"/></svg></span>
+      </div>
+      <div class="apv-drawer"><div class="apv-drawer-in">
+        <div class="apv-detail">
+          <div style="margin-bottom:6px;"><span class="apv-badge ${item.badge.cls}">${item.badge.text}</span></div>
+          ${apvFactsHtml(item.facts)}
+          ${apvActionsHtml(item)}
+        </div>
+      </div></div>
+    </div>`).join('');
+  document.getElementById('apvCount').textContent = APV_QUEUE.length + ' pending';
+}
+function apvToggle(id){
+  const el = document.getElementById('apv-'+id); if (!el || el.classList.contains('resolved')) return;
+  el.classList.toggle('open');
+  el.querySelector('[aria-expanded]').setAttribute('aria-expanded', el.classList.contains('open'));
+}
+function apvResolve(id, type, evt){
+  if (evt) evt.stopPropagation();
+  const el = document.getElementById('apv-'+id); if (!el) return;
+  el.classList.add('resolved'); el.classList.remove('open');
+  const res = document.getElementById('apvres-'+id);
+  if (res) { res.style.display = 'inline-flex'; if (type === 'routed') res.classList.add('routed'); }
+  document.getElementById('apvCount').textContent = document.querySelectorAll('.apv-item:not(.resolved)').length + ' pending';
+}
+renderTray();
+renderApprovals();
+if (new URLSearchParams(location.search).get('stub') === '0') document.getElementById('stubBanner').style.display = 'none';
+const hash = location.hash.replace('#','').toLowerCase();
+if (hash){ const d = IAM_DEMOS.find(d => d.id === hash); if (d) openDemo(hash); }
+</script>
+
+<!-- Story-embed bridge: active only inside story-shell (?story=1). Shows a
+     single "Start request" CTA the viewer clicks to invoke the fraud-fabric
+     webform; the click advances the parent story. Inert in the standalone demo. -->
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  if (q.get("story") !== "1") return;
+  document.documentElement.classList.add("tgk-story-embed");
+  var css = document.createElement("style");
+  css.textContent =
+    "#tgk-story-cta{position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(10,37,64,.16);border-left:4px solid #B8860B;border-radius:11px;padding:11px 15px;box-shadow:0 14px 38px rgba(10,37,64,.22);font:500 13.5px/1.3 system-ui,-apple-system,sans-serif;color:#1C2030;max-width:92vw}"+
+    "#tgk-story-cta .d{width:9px;height:9px;border-radius:50%;background:#B8860B;box-shadow:0 0 0 4px rgba(184,134,11,.18);flex:0 0 auto}"+
+    "#tgk-story-cta .t b{font-weight:700}"+
+    "#tgk-story-cta button{background:#0A2540;color:#fff;border:none;border-radius:8px;padding:9px 15px;font-weight:700;font-size:12.5px;cursor:pointer;white-space:nowrap}"+
+    "#tgk-story-cta button:hover{background:#06182A}"+
+    ".tgk-story-embed .fab,.tgk-story-embed .iam-tray{display:none!important}";
+  document.head.appendChild(css);
+  var bar = document.createElement("div");
+  bar.id = "tgk-story-cta";
+  bar.setAttribute("data-hotspot","portal_action");
+  bar.innerHTML = "\x3cspan class=\"d\">\x3c/span>\x3cspan class=\"t\">Action required \xb7 \x3cb>Contract award pending \u2014 Meridian IT\x3c/b>\x3c/span>\x3cbutton type=\"button\">Start award process \u2192\x3c/button>";
+  function go(){ try{ parent.postMessage({type:"tgk:portalContinue"}, "*"); }catch(e){} }
+  function mount(){ bar.querySelector("button").addEventListener("click", go); (document.body||document.documentElement).appendChild(bar); }
+  if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
+  function sendRect(t){ if(t!=="portal_action") return; var el=document.getElementById("tgk-story-cta"); if(!el) return; var r=el.getBoundingClientRect(); try{ parent.postMessage({type:"tgk:rect",target:"portal_action",rect:{x:r.left,y:r.top,w:r.width,h:r.height},viewport:{w:innerWidth,h:innerHeight}}, "*"); }catch(e){} }
+  window.addEventListener("message", function(ev){ var m=ev.data; if(!m||typeof m!=="object"||typeof m.type!=="string") return; if(m.type==="tgk:lockToBeat"||m.type==="tgk:queryRect"){ if(m.target) requestAnimationFrame(function(){ sendRect(m.target); }); } });
+})();
+</script>
+</body>
+</html>
