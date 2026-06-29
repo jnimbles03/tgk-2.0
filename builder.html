@@ -2991,6 +2991,27 @@ body.is-gb #gbPanel{display:block;}
     'nonprofit':           { tenant: 'Harbor',      color: '#FFB86B', sor: 'Salesforce Nonprofit Cloud',          moment: '"$120k grant deployed in days, not months, with full audit trail."', customer: 'Safe Streets Initiative — $120k grantee onboarding' }
   };
 
+  function resolveTenantLogoSrc() {
+    if (logoDataUrl) return logoDataUrl;
+    const industry = $('f-industry')?.value || 'banking';
+    if (industry === 'banking' || industry === 'banking-deposits') {
+      return 'assets/brand/TGK%20Credit%20Union%20Logo.png';
+    }
+    return '';
+  }
+
+  function applyIndustryDefaults() {
+    const industry = $('f-industry')?.value || 'banking';
+    const d = INDUSTRY_DEFAULTS[industry] || INDUSTRY_DEFAULTS.banking;
+    if ($('f-tenant') && d.tenant) $('f-tenant').value = d.tenant;
+    if ($('f-customer') && d.customer) $('f-customer').value = d.customer;
+    if ($('f-color') && d.color) $('f-color').value = d.color;
+    if ($('f-sor') && d.sor) $('f-sor').value = d.sor;
+    if ($('f-moment') && d.moment) $('f-moment').value = d.moment;
+    renderLogoPreview();
+    renderCustomerLogoPreview();
+  }
+
   // ============================================================
   // Logo upload
   // ============================================================
