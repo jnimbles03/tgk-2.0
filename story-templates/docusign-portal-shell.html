@@ -70,6 +70,7 @@
     box-shadow:
       inset 0 0 0 11px #0B0B0F,
       inset 0 0 0 13px #2A2A30,
+      0 24px 64px rgba(19,0,50,0.22),
       var(--shadow-lg);
     position: relative;
     overflow: hidden;
@@ -80,7 +81,7 @@
     inset: 13px 13px 13px 13px;
     border-radius: 32px;
     overflow: hidden;
-    background: #fff;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FBF9F6 100%);
     display: flex;
     flex-direction: column;
   }
@@ -124,10 +125,13 @@
   /* ============ Tenant brand chrome (app mode) ============ */
   .app-brand {
     flex-shrink: 0;
-    padding: 14px 24px 8px;
+    padding: 16px 24px 14px;
     display: flex; align-items: center; gap: 8px;
     font-size: 17px; font-weight: 600;
     color: var(--ds-inkwell);
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(19,0,50,0.06);
   }
   .app-brand .mark {
     width: 22px; height: 22px;
@@ -139,6 +143,9 @@
     margin-left: auto;
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 11px; color: var(--ink-soft); font-weight: 500;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(76,0,255,0.06);
   }
   .app-brand .ds-bug .dot { width: 14px; height: 14px; border-radius: 3px; background: var(--ds-cobalt); position: relative; }
   .app-brand .ds-bug .dot::after { content: ""; position: absolute; left: 3px; top: 3px; width: 6px; height: 6px; background: var(--ds-poppy); border-radius: 1px; }
@@ -213,7 +220,31 @@
   .powered .ds-bug-sm::after { content: ""; position: absolute; left: 2px; top: 2px; width: 4px; height: 4px; background: var(--ds-poppy); border-radius: 1px; }
 
   /* ============ s1 — Tenant portal sign-in ============ */
-  .signin-wrap { padding-top: 8px; }
+  .signin-wrap {
+    margin: 14px 14px 0;
+    padding: 20px 20px 18px;
+    background: #fff;
+    border: 1px solid rgba(19,0,50,0.08);
+    border-radius: 22px;
+    box-shadow: 0 14px 38px rgba(19,0,50,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+  .signin-wrap .panel-head { margin-bottom: 16px; }
+  .signin-wrap .panel-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(76,0,255,0.07);
+    color: var(--ds-inkwell);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .signin-wrap .panel-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ds-cobalt); box-shadow: 0 0 0 3px rgba(76,0,255,0.10); }
+  .signin-wrap .panel-sub { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
   .signin-wrap .greet { font-size: 13px; color: var(--ink-soft); margin-bottom: 4px; }
   .signin-wrap .field { margin-bottom: 14px; }
   .signin-wrap label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mid); margin-bottom: 6px; }
@@ -225,6 +256,8 @@
   .signin-wrap .row { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
   .signin-wrap .row .remember { font-size: 13px; color: var(--ink-mid); }
   .signin-wrap .row .forgot { font-size: 13px; color: var(--ds-cobalt); font-weight: 500; }
+  .signin-wrap .trust { margin-top: 12px; text-align: center; color: var(--ink-soft); }
+  .signin-wrap .trust strong { color: var(--ds-inkwell); }
 
   /* ============ s2 — workflow step-up modal (overlays s1) ============ */
   .stepup-overlay {
@@ -508,8 +541,12 @@
       <!-- ====== STATE s1 — Tenant portal sign-in ====== -->
       <div class="state on" data-state="s1">
         <div class="signin-wrap">
-          <div class="greet" id="greet-line">Welcome back to <span id="brand-tenant">Tenant</span></div>
-          <h1 class="disp" id="signin-name">Sign in</h1>
+          <div class="panel-head">
+            <div class="panel-badge">Secure portal</div>
+            <div class="greet" id="greet-line">Welcome back to <span id="brand-tenant">Tenant</span></div>
+            <h1 class="disp" id="signin-name">Sign in</h1>
+            <div class="panel-sub">Identity first. Then the portal opens.</div>
+          </div>
 
           <div class="field" data-hotspot="login_username">
             <label>Email</label>
@@ -528,6 +565,7 @@
 
           <button class="btn-primary" data-hotspot="login_submit">Sign in</button>
           <button class="btn-secondary">Use Face ID</button>
+          <div class="trust"><strong>Powered by Docusign</strong> · identity bound to the session</div>
         </div>
       </div>
 
@@ -681,7 +719,7 @@
       ctaText: 'Continue your in-portal action'
     },
     banking: {
-      tenant: 'Meridian', wordmark: 'Meridian', portal: 'commercial portal',
+      tenant: 'TGK Credit Union', wordmark: 'TGK Credit Union', portal: 'commercial portal',
       customer: 'Diana Holbrook — Atlas Manufacturing',
       first: 'Diana', email: 'diana@atlasmfg.com',
       domain: 'meridian-commercial.example.com',

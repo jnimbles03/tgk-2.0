@@ -1470,19 +1470,19 @@ body.is-gb #gbPanel{display:block;}
           <div class="ootb-option" onclick="ootbSector('pubsec')">Public Sector</div>
         </div>
         <div class="ootb-subsector" id="subsectorFins" hidden>
-          <div class="ootb-sub-label">Financial Services — pick a strategic bet</div>
+          <div class="ootb-sub-label">FINS BETS 1–3 — pick the story you want to sell</div>
           <div class="ootb-grid">
             <button class="ootb-card" type="button" onclick="finsBetLaunch('cx5')">
               <div class="ootb-card-label">BET 1 · Best-in-class CX</div>
-              <div class="ootb-card-desc">Bookend the LOS — keep nCino, modernize the experience around it.</div>
+              <div class="ootb-card-desc">Keep nCino as the brain. Docusign owns intake, orchestration, and completion.</div>
             </button>
             <button class="ootb-card" type="button" onclick="finsBetLaunch('fraud')">
               <div class="ootb-card-label">BET 2 · Fraud Fabric</div>
-              <div class="ootb-card-desc">Chain-of-custody + CLEAR at the door + signing.</div>
+              <div class="ootb-card-desc">Identity at the door — CLEAR, chain-of-custody, and signing bound together.</div>
             </button>
             <button class="ootb-card" type="button" onclick="finsBetExpand()">
               <div class="ootb-card-label">BET 3 · Agreement Intelligence</div>
-              <div class="ootb-card-desc">Agreement Manager · Hierarchy · AI-Assisted Review.</div>
+              <div class="ootb-card-desc">Agreement Manager, hierarchy, and AI review across the contract book.</div>
             </button>
           </div>
           <div id="subAgi" hidden style="margin-top:14px">
@@ -1634,7 +1634,7 @@ body.is-gb #gbPanel{display:block;}
             <select class="field-select" id="f-industry" required>
               <option value="wealth">Wealth — Hillside × Aster Capital</option>
               <option value="wealth-discovery">Wealth Discovery — Cypress × Holcomb</option>
-              <option value="banking">Commercial Banking — Meridian × Atlas</option>
+              <option value="banking">Commercial Banking — TGK Credit Union × Atlas</option>
               <option value="banking-deposits">Banking Deposits — Cedar × Williams</option>
               <option value="insurance">Insurance — Sentinel × Ramirez</option>
               <option value="insurance-life">Life Insurance — Beacon × Whitfield</option>
@@ -2973,7 +2973,7 @@ body.is-gb #gbPanel{display:block;}
   const INDUSTRY_DEFAULTS = {
     'wealth':              { tenant: 'Hillside',    color: '#3FDA99', sor: 'Salesforce FSC',                      moment: '"$5M household opened in 15 minutes, fully paperless."', customer: 'Aster Capital — IRA rollover, $5M household' },
     'wealth-discovery':    { tenant: 'Cypress',     color: '#5BA1B8', sor: 'Salesforce FSC',                      moment: '"Family trust + IRA rollover + joint taxable, all in one onboarding."', customer: 'Holcomb Family — multi-account onboarding' },
-    'banking':             { tenant: 'Meridian',    color: '#2D8EFF', sor: 'nCino on Salesforce',                 moment: '"Commercial credit facility closed digitally, no overnight courier."', customer: 'Atlas Manufacturing — $2.5M working capital' },
+    'banking':             { tenant: 'TGK Credit Union', color: '#2D8EFF', sor: 'nCino on Salesforce',                 moment: '"Commercial credit facility closed digitally, no overnight courier."', customer: 'Atlas Manufacturing — $2.5M working capital' },
     'banking-deposits':    { tenant: 'Cedar',       color: '#6BB6FF', sor: 'nCino on Salesforce',                 moment: '"New joint checking account opened, paperless, in branch."', customer: 'Williams household — joint checking' },
     'insurance':           { tenant: 'Sentinel',    color: '#F2B3C2', sor: 'Guidewire PolicyCenter',              moment: '"HO3 binding completed in one envelope, signed at the kitchen table."', customer: 'Ramirez Family — HO3 binding' },
     'insurance-life':      { tenant: 'Beacon',      color: '#B189D9', sor: 'Guidewire PolicyCenter',              moment: '"Death claim paid in 5 days, beneficiary verified once."', customer: 'Whitfield Family — death claim' },
@@ -2991,43 +2991,6 @@ body.is-gb #gbPanel{display:block;}
     'nonprofit':           { tenant: 'Harbor',      color: '#FFB86B', sor: 'Salesforce Nonprofit Cloud',          moment: '"$120k grant deployed in days, not months, with full audit trail."', customer: 'Safe Streets Initiative — $120k grantee onboarding' }
   };
 
-  function applyIndustryDefaults() {
-    const v = $('f-industry').value;
-    const d = INDUSTRY_DEFAULTS[v];
-    if (!d) return;
-    if (!$('f-tenant').dataset.touched)   $('f-tenant').value   = d.tenant;
-    if (!$('f-customer').dataset.touched) $('f-customer').value = d.customer;
-    if (!$('f-sor').dataset.touched)      $('f-sor').value      = d.sor;
-    if (!$('f-moment').dataset.touched)   $('f-moment').value   = d.moment;
-    if (!$('f-color').dataset.touched) {
-      $('f-color').value = d.color;
-      $('swatchPreview').style.background = d.color;
-    }
-  }
-
-  ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => {
-    const el = $(id);
-    el.addEventListener('input', () => { el.dataset.touched = '1'; });
-  });
-
-  $('f-industry').addEventListener('change', applyIndustryDefaults);
-  $('btnApplyDefaults').addEventListener('click', () => {
-    ['f-tenant','f-customer','f-sor','f-moment','f-color'].forEach(id => delete $(id).dataset.touched);
-    applyIndustryDefaults();
-  });
-
-  $('f-color').addEventListener('input', e => {
-    const v = e.target.value.trim();
-    if (/^#[0-9A-Fa-f]{6}$/.test(v)) $('swatchPreview').style.background = v;
-  });
-  $('f-color-preset').addEventListener('change', e => {
-    const v = e.target.value;
-    if (!v) return;
-    $('f-color').value = v;
-    $('f-color').dataset.touched = '1';
-    $('swatchPreview').style.background = v;
-  });
-
   // ============================================================
   // Logo upload
   // ============================================================
@@ -3036,8 +2999,9 @@ body.is-gb #gbPanel{display:block;}
 
   function renderLogoPreview() {
     const box = $('logoPreview');
-    if (logoDataUrl) {
-      box.innerHTML = `<img src="${logoDataUrl}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;">`;
+    const src = resolveTenantLogoSrc();
+    if (src) {
+      box.innerHTML = `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;">`;
       box.style.borderStyle = 'solid';
       box.style.background = 'white';
     } else {
@@ -3198,7 +3162,7 @@ body.is-gb #gbPanel{display:block;}
       tenant,
       customer: customer.startsWith('×') ? customer : '× ' + customer,
       tenantColor: color,
-      tenantLogo: logoDataUrl || null,
+      tenantLogo: resolveTenantLogoSrc(),
       customerLogo: customerLogoDataUrl || null,
       preset: 'custom',
       sor,
@@ -3211,7 +3175,7 @@ body.is-gb #gbPanel{display:block;}
         sourceVertical: industry,
         shell,
         sceneCount: scenes.length,
-        hasLogo: !!logoDataUrl,
+        hasLogo: !!resolveTenantLogoSrc(),
         hasCustomerLogo: !!customerLogoDataUrl
       }
     };
@@ -3235,7 +3199,7 @@ body.is-gb #gbPanel{display:block;}
       const custLogoSize = customerLogoDataUrl ? Math.round(customerLogoDataUrl.length * 0.75 / 1024) : 0;
       $('resultMeta').textContent =
         `Token ${token} · expires in ${expiresInDays} days · ${shell} · scaffolded from ${industry}` +
-        (logoDataUrl ? ` · tenant logo ~${logoSize} KB` : '') +
+        (logoDataUrl ? ` · tenant logo ~${logoSize} KB` : (resolveTenantLogoSrc() ? ' · tenant logo default asset' : '')) +
         (customerLogoDataUrl ? ` · customer logo ~${custLogoSize} KB` : '');
       $('resultPanel').classList.add('active');
       $('submitStatus').textContent = 'Saved.';
@@ -4291,7 +4255,7 @@ body.is-gb #gbPanel{display:block;}
        canonically tenant-branded pages — no timeline or brand steps. */
     const IMMERSIVE_SUBS = [
       { key: 'wealth',       label: 'Wealth',            clu: 'fins', hdesc: 'The advisor desktop — identity and agreement drill-downs in context.',          wdesc: 'Hillside × TGK Capital — sub-advisor onboarding workspace.' },
-      { key: 'banking',      label: 'Banking',           clu: 'fins', hdesc: 'Origination and step-up identity inside the bank’s native digital shell.',      wdesc: 'Meridian × TGK Holdings — working-capital facility workspace.' },
+      { key: 'banking',      label: 'Banking',           clu: 'fins', hdesc: 'Origination and step-up identity inside the bank’s native digital shell.',      wdesc: 'TGK Credit Union × TGK Holdings — working-capital facility workspace.' },
       { key: 'insurance',    label: 'Insurance',         clu: 'fins', hdesc: 'Bind, claim, endorsement — step-up identity inside the carrier portal.',        wdesc: 'Sentinel × Ramirez family — HO3 policy binding workspace.' },
       { key: 'provider',     label: 'Provider',          clu: 'hls',  hdesc: 'Patient intake and consent inside the EHR’s native UX.',                        wdesc: 'Riverside × Jordan Kim — new-patient onboarding workspace.' },
       { key: 'payor',        label: 'Payer',             clu: 'hls',  hdesc: 'Member enrollment and plan-change identity inside the payer portal.',           wdesc: 'Unity × Marcus Chen — Silver HMO enrollment workspace.' },
@@ -4751,11 +4715,11 @@ body.is-gb #gbPanel{display:block;}
         subs: [
           { key: 'banking', label: 'Banking / Credit Union', desc: 'Commercial lending, deposits, consumer accounts.',
             demos: {
-              full:      { url: SHELL + '?vertical=banking', title: 'Commercial Lending — Working Capital Facility', cast: 'Meridian × Atlas Manufacturing — $2.5M facility origination' },
+              full:      { url: SHELL + '?vertical=banking', title: 'Commercial Lending — Working Capital Facility', cast: 'TGK Credit Union × Atlas Manufacturing — $2.5M facility origination' },
               maintenance:{ url: SHELL + '?vertical=banking-deposits&usecase=maintenance', title: 'Account Maintenance', cast: 'Cedar Federal × Williams Household — joint-account beneficiary update' },
-              fraud:     { url: SHELL + '?vertical=banking&usecase=auth-fabric', title: 'Commercial Fraud / Risk Management', cast: 'Meridian × TGK Holdings — change of address on file · identity verification at entry' },
-              docintel:  { url: SHELL + '?vertical=banking&usecase=intake', title: 'Document Intelligence — Credit Facility Intake', cast: 'Meridian × TGK Holdings — credit facility origination from intake webform' },
-              workspaces:{ url: '/story-templates/docusign-workspace.html?preset=banking&splash=1', title: 'Workspaces — Commercial Lending', cast: 'Meridian × TGK Holdings — $2.5M working-capital facility workspace' },
+              fraud:     { url: SHELL + '?vertical=banking&usecase=auth-fabric', title: 'Commercial Fraud / Risk Management', cast: 'TGK Credit Union × TGK Holdings — change of address on file · identity verification at entry' },
+              docintel:  { url: SHELL + '?vertical=banking&usecase=intake', title: 'Document Intelligence — Credit Facility Intake', cast: 'TGK Credit Union × TGK Holdings — credit facility origination from intake webform' },
+              workspaces:{ url: '/story-templates/docusign-workspace.html?preset=banking&splash=1', title: 'Workspaces — Commercial Lending', cast: 'TGK Credit Union × TGK Holdings — $2.5M working-capital facility workspace' },
               headless:  { url: '/headless-iam/fins.html?vertical=banking', title: 'Headless IAM — Banking', cast: 'Origination and step-up identity inside the bank’s native digital shell' } } },
           { key: 'insurance', label: 'Insurance', desc: 'P&C and Commercial — binding, claims, endorsements.',
             demos: {
@@ -4885,7 +4849,7 @@ body.is-gb #gbPanel{display:block;}
     function renderFinsAccel() {
       body.appendChild(el('div', 'ootb-group-label', 'FINS Acceleration'));
       const grid = el('div', 'ootb-grid');
-      grid.appendChild(finsBetCard('BET 1 · Best-in-class CX', 'The full 5-scene story — intake to workspace. Primary point solution: Meridian Commercial portal + Workflow Builder orchestration, with Agreement Desk as the negotiation surface.',
+      grid.appendChild(finsBetCard('BET 1 · Best-in-class CX', 'The full 5-scene story — intake to workspace. Primary point solution: TGK Credit Union commercial portal + Workflow Builder orchestration, with Agreement Desk as the negotiation surface.',
         () => window.open(SHELL + '?vertical=banking', '_blank')));
       grid.appendChild(finsBetCard('BET 2 · Fraud Fabric', 'Identity at the door — change of address on file, identity-bound, no signature.',
         () => window.open(SHELL + '?vertical=banking&usecase=auth-fabric', '_blank')));

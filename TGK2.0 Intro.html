@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TGK 2.0 — AE Intro</title>
+  <style>
+    :root {
+      --bg: #071019;
+      --bg2: #0b1623;
+      --card: rgba(10, 18, 28, 0.78);
+      --card-2: rgba(16, 28, 42, 0.88);
+      --line: rgba(148, 177, 206, 0.18);
+      --line-strong: rgba(148, 177, 206, 0.28);
+      --text: #edf4fb;
+      --muted: #a8bdd3;
+      --soft: #7f9ab4;
+      --accent: #4da3ff;
+      --accent2: #7cf0c5;
+      --good: #75f7ab;
+      --warn: #ffd66e;
+      --shadow: 0 18px 70px rgba(0,0,0,.35);
+      --radius: 24px;
+      --radius-sm: 16px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 12%, rgba(77,163,255,.22), transparent 45%),
+        radial-gradient(900px 560px at 80% 18%, rgba(124,240,197,.16), transparent 42%),
+        radial-gradient(900px 560px at 50% 100%, rgba(255,214,110,.08), transparent 45%),
+        linear-gradient(180deg, #061019 0%, #08121b 48%, #060c14 100%);
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      width: min(1280px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 42px;
+    }
+
+    .shell {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(10,17,27,.86), rgba(7,13,20,.76));
+      backdrop-filter: blur(18px);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      display: grid;
+      place-items: center;
+      padding: 7px;
+      flex: none;
+    }
+
+    .mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: #bee3ff;
+      background: rgba(77,163,255,.12);
+      border: 1px solid rgba(77,163,255,.22);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 10px 0 0;
+      font-size: clamp(32px, 4.5vw, 60px);
+      line-height: .95;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      max-width: 70ch;
+      color: var(--muted);
+      font-size: clamp(15px, 1.6vw, 18px);
+      line-height: 1.55;
+    }
+
+    .hero {
+      padding: 26px 24px 22px;
+      display: grid;
+      grid-template-columns: 1.25fr .95fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-left, .hero-right, .card, .quote, .mini {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--card), rgba(7,13,20,.78));
+      border-radius: var(--radius);
+    }
+
+    .hero-left {
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-left::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -35% auto;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle at 35% 35%, rgba(77,163,255,.3), transparent 60%);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .storyline {
+      display: grid;
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .line {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chip {
+      flex: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #dff0ff;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-weight: 800;
+    }
+
+    .line strong { color: var(--text); }
+
+    .hero-right {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .visual {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+    }
+
+    .label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-weight: 700;
+    }
+
+    .lego {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+    }
+
+    .brick-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .brick {
+      min-height: 74px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow: hidden;
+      padding: 12px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+    }
+
+    .brick::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.26);
+      box-shadow: 28px 0 0 rgba(255,255,255,.26), 56px 0 0 rgba(255,255,255,.26);
+      opacity: .8;
+    }
+
+    .brick .b-label {
+      position: relative;
+      z-index: 1;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .brick .b-mini {
+      position: relative;
+      z-index: 1;
+      font-size: 11px;
+      color: rgba(255,255,255,.82);
+      opacity: .86;
+    }
+
+    .b-shell { background: linear-gradient(135deg, #2979ff, #5aa7ff); }
+    .b-scenes { background: linear-gradient(135deg, #0fb8a1, #5de0bf); }
+    .b-brand { background: linear-gradient(135deg, #f0a62a, #ffd76a); color: #17202a; }
+    .b-brand .b-mini { color: rgba(23,32,42,.8); }
+    .b-work { background: linear-gradient(135deg, #965dff, #c29bff); }
+    .b-workflow { background: linear-gradient(135deg, #ff7c6d, #ffb0a6); color: #20151a; }
+    .b-workflow .b-mini { color: rgba(32,21,26,.75); }
+
+    .arrow-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .arrow {
+      width: 100%;
+      height: 10px;
+      border-bottom: 2px solid rgba(124,240,197,.35);
+      position: relative;
+    }
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -5px;
+      border-left: 8px solid rgba(124,240,197,.55);
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+    }
+
+    .iMovie {
+      padding: 14px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+
+    .filmstrip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .frame {
+      aspect-ratio: 1.12;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(16,26,38,.95), rgba(11,18,28,.95));
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .frame::before,
+    .frame::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 7px;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.12),
+        rgba(255,255,255,.12) 7px,
+        transparent 7px,
+        transparent 14px
+      );
+      opacity: .6;
+    }
+    .frame::before { left: 0; }
+    .frame::after { right: 0; }
+
+    .frame .num {
+      display: inline-flex;
+      width: fit-content;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(255,255,255,.08);
+      color: #d8e8f5;
+    }
+
+    .frame .txt {
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .frame .txt strong { color: var(--text); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      padding: 0 24px 24px;
+    }
+
+    .card {
+      padding: 20px;
+      min-height: 100%;
+    }
+
+    .card h3,
+    .quote h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .card p,
+    .quote p,
+    .card li {
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .card ul {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      margin-top: 7px;
+      background: var(--accent2);
+      flex: none;
+      box-shadow: 0 0 0 4px rgba(124,240,197,.09);
+    }
+
+    .quote {
+      margin: 0 24px 24px;
+      padding: 22px;
+    }
+
+    .quote-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .quote-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      padding: 16px;
+      min-height: 100%;
+      display: grid;
+      gap: 12px;
+    }
+
+    .quote-card .kicker {
+      color: var(--soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 800;
+    }
+
+    .quote-card .copy {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #f0f6fb;
+    }
+
+    .quote-card button,
+    .copy-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+
+    .quote-card button:hover,
+    .copy-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.09); }
+    .quote-card button:active,
+    .copy-btn:active { transform: translateY(0); }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px 24px;
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .mono {
+      font-family: var(--mono);
+      color: #dbe9f5;
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .quote-grid { grid-template-columns: 1fr; }
+      .filmstrip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .brick-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100vw - 18px, 1280px); padding-top: 9px; }
+      .topbar, .hero, .grid-2, .quote, .footer { padding-left: 16px; padding-right: 16px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .title { font-size: 38px; }
+      .subtitle { font-size: 15px; }
+      .filmstrip { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">
+            <img src="assets/brand/TGK%20Credit%20Union%20Logo.png" alt="TGK Credit Union Logo" />
+          </div>
+          <div class="brand-copy">
+            <div class="eyebrow">TGK 2.0 for AEs</div>
+            <h1 class="title">Built like LEGO.<br/>Edited like iMovie.</h1>
+            <p class="subtitle">
+              TGK 2.0 turns demos into reusable blocks — so the team can spin up any vertical fast,
+              then cut the story live instead of rebuilding it from scratch.
+            </p>
+          </div>
+        </div>
+        <button class="copy-btn" id="copyHero">Copy intro</button>
+      </div>
+
+      <section class="hero">
+        <div class="hero-left">
+          <div class="label">
+            <span>How it works</span>
+            <span class="mono">OOTB → custom → polished</span>
+          </div>
+          <div class="storyline">
+            <div class="line"><div class="chip">1</div><div><strong>LEGO blocks.</strong> Shell, scenes, branding, workflows, and templates snap together cleanly — no demo-jenga, no one-off rebuilds.</div></div>
+            <div class="line"><div class="chip">2</div><div><strong>Out-of-the-box speed.</strong> That block system let us spin up a demo for any vertical quickly and still make it feel customer-specific.</div></div>
+            <div class="line"><div class="chip">3</div><div><strong>iMovie layer.</strong> Once the blocks were in place, AEs could rearrange the story in real time — cut, polish, and present like an editor, not an engineer.</div></div>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="visual">
+            <div class="label">
+              <span>Block system</span>
+              <span>Reusable parts</span>
+            </div>
+            <div class="lego">
+              <div class="brick-row">
+                <div class="brick b-shell"><div class="b-label">Shell</div><div class="b-mini">Chrome + structure</div></div>
+                <div class="brick b-scenes"><div class="b-label">Scenes</div><div class="b-mini">Story beats</div></div>
+                <div class="brick b-brand"><div class="b-label">Brand</div><div class="b-mini">Color + logo</div></div>
+              </div>
+              <div class="arrow-row"><span>snap together</span><div class="arrow"></div><span>any vertical</span></div>
+              <div class="brick-row">
+                <div class="brick b-work"><div class="b-label">Workflow</div><div class="b-mini">Intake → action</div></div>
+                <div class="brick b-workflow"><div class="b-label">Completion</div><div class="b-mini">Sign, send, done</div></div>
+                <div class="brick b-shell"><div class="b-label">Demo</div><div class="b-mini">Looks bespoke</div></div>
+              </div>
+            </div>
+            <div class="iMovie">
+              <div class="label">
+                <span>iMovie layer</span>
+                <span>AE control</span>
+              </div>
+              <div class="filmstrip">
+                <div class="frame"><span class="num">Scene 1</span><div class="txt"><strong>Open the story.</strong><br/>Set the business problem.</div></div>
+                <div class="frame"><span class="num">Scene 2</span><div class="txt"><strong>Show the flow.</strong><br/>Move through the key steps.</div></div>
+                <div class="frame"><span class="num">Scene 3</span><div class="txt"><strong>Swap the brand.</strong><br/>Match the customer context.</div></div>
+                <div class="frame"><span class="num">Scene 4</span><div class="txt"><strong>Reveal the value.</strong><br/>Make the point product-like.</div></div>
+                <div class="frame"><span class="num">Scene 5</span><div class="txt"><strong>Land the close.</strong><br/>Leave them with a next step.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <article class="card">
+          <h3>The short version</h3>
+          <p>
+            TGK 2.0 is a demo platform built from reusable blocks. That let the team go from a vertical idea
+            to a usable out-of-the-box flow fast — then keep polishing the story without starting over.
+          </p>
+          <ul>
+            <li><span class="dot"></span><span>Fast vertical spin-up, because the parts are already there.</span></li>
+            <li><span class="dot"></span><span>Consistent quality, because the shell and flows are standardized.</span></li>
+            <li><span class="dot"></span><span>Custom feel, because the AE can still tune the narrative.</span></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>What that means for AEs</h3>
+          <p>
+            You’re not assembling a demo from raw lumber. You’re pulling the right bricks off the shelf and building a
+            story that fits the customer — quickly enough to keep momentum, polished enough to keep attention.
+          </p>
+          <ul>
+            <li><span class="dot"></span><span>Less setup friction.</span></li>
+            <li><span class="dot"></span><span>More time for discovery and tailoring.</span></li>
+            <li><span class="dot"></span><span>A better-looking demo in less time.</span></li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="quote">
+        <h3>Three ways to say it</h3>
+        <div class="quote-grid">
+          <div class="quote-card">
+            <div class="kicker">Spoken intro</div>
+            <div class="copy" id="spokenCopy">TGK 2.0 started as a LEGO kit for demos — reusable blocks for the shell, scenes, branding, and workflows that let us spin up an out-of-the-box experience for any vertical fast. Then we added the iMovie layer on top, so AEs can cut and polish the story in real time.</div>
+            <button data-copy-target="spokenCopy">Copy spoken intro</button>
+          </div>
+          <div class="quote-card">
+            <div class="kicker">Slide version</div>
+            <div class="copy" id="slideCopy">TGK 2.0: the demo LEGO kit that became an iMovie engine.</div>
+            <button data-copy-target="slideCopy">Copy slide line</button>
+          </div>
+          <div class="quote-card">
+            <div class="kicker">Witty AE line</div>
+            <div class="copy" id="wittyCopy">We turned demos into LEGO blocks instead of one-off sculpture projects — so AEs can build fast, look custom, and still land the story cleanly.</div>
+            <button data-copy-target="wittyCopy">Copy witty line</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        <div>
+          <span class="mono">TGK2.0 Intro</span> — built as a single HTML page for easy sharing and quick AE onboarding.
+        </div>
+        <div id="status">Ready.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const heroText = `TGK 2.0 started as a LEGO kit for demos — reusable blocks for the shell, scenes, branding, and workflows that let us spin up an out-of-the-box experience for any vertical fast. Then we added the iMovie layer on top, so AEs can cut and polish the story in real time.`;
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Copied.');
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', 'true');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        setStatus('Copied.');
+      }
+    }
+
+    function setStatus(msg) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      clearTimeout(window.__statusTimer);
+      window.__statusTimer = setTimeout(() => { el.textContent = 'Ready.'; }, 1400);
+    }
+
+    document.getElementById('copyHero').addEventListener('click', () => copyText(heroText));
+    document.querySelectorAll('[data-copy-target]').forEach(btn => {
+      btn.addEventListener('click', () => copyText(document.getElementById(btn.dataset.copyTarget).textContent.trim()));
+    });
+  </script>
+</body>
+</html>
