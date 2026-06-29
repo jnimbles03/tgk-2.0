@@ -364,7 +364,23 @@
      because visibility is the resting style (not the animation end-state),
      a paused/never-started step still shows. The keyframe is also an
      infinite-free, short, one-shot polish layer. */
+  /* === States === */
   .form-body { position: relative; }
+  /* Syncing indicator for data-arrival animation (Idea 4) */
+  .syncing-indicator{
+    display:flex;align-items:center;gap:10px;
+    padding:18px 0;font-size:14px;color:var(--ink-soft);
+    opacity:0;transition:opacity 0.25s ease;
+  }
+  .syncing-indicator.on{opacity:1;}
+  .syncing-indicator .spin{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--accent-soft);border-top-color:var(--accent);
+    animation:si-spin 0.7s linear infinite;flex-shrink:0;
+  }
+  @keyframes si-spin{to{transform:rotate(360deg);}}
+  .syncing-indicator .si-label{font-weight:500;color:var(--ink-mid);}
+
   .state { display: none; opacity: 1; transform: none; }
   .state.on { display: block; animation: wf-step-in 0.5s cubic-bezier(.2,.7,.2,1) 1; }
   @keyframes wf-step-in {
@@ -461,6 +477,11 @@
 
         <div data-hotspot="form_doc_set">
           <label style="display:block;font-size:13px;font-weight:600;color:#3a3646;margin-bottom:8px;">Available documents <span style="font-weight:400;color:var(--ink-soft);font-size:12.5px;">— select up to 4 to include in the package</span></label>
+          <!-- Syncing indicator: shown briefly before data arrives from CRM (Idea 4) -->
+          <div class="syncing-indicator" id="s2-sync">
+            <div class="spin"></div>
+            <span class="si-label">Syncing from Meridian's CRM…</span>
+          </div>
           <div class="check-list" id="s2-checks"></div>
         </div>
 
@@ -480,6 +501,11 @@
         <p class="lede" id="s3-lede" style="margin-bottom:18px;">Tell the workflow who the package is going to. Identity gates the routing and the SMS step-up.</p>
 
         <div data-hotspot="form_signer">
+          <!-- Syncing indicator: shown briefly before signer data arrives from CRM (Idea 4) -->
+          <div class="syncing-indicator" id="s3-sync">
+            <div class="spin"></div>
+            <span class="si-label">Fetching client profile…</span>
+          </div>
           <div class="field" id="s3-name-field">
             <label>Primary Signer's Legal Name<span class="req">*</span></label>
             <input type="text" id="s3-name" autocomplete="off" />
@@ -2376,14 +2402,20 @@
     if (sceneId === 's2') {
       // Engagement type was just selected — show the chosen option. Doc
       // checkboxes start unchecked then tick one-by-one with a small
-      // stagger so it reads as sequential clicks.
+      // stagger so it reads as sequential clicks. First show a syncing
+      // indicator to simulate data arriving from CRM (Idea 4).
       const s2sel = document.getElementById('s2-select-1');
       if (s2sel) s2sel.textContent = '— Select —';
-      _at(250, () => { if (s2sel) s2sel.textContent = p.engagementOptions[0]; });
+      const sync2 = document.getElementById('s2-sync');
+      if (sync2) sync2.classList.add('on');
+      _at(600, () => {
+        if (sync2) sync2.classList.remove('on');
+        if (s2sel) s2sel.textContent = p.engagementOptions[0];
+      });
       const checks = document.querySelectorAll('#s2-checks .check-item');
       checks.forEach(el => el.classList.remove('checked'));
       checks.forEach((el, i) => {
-        if (p.checked[i]) _at(450 + i * 180, () => el.classList.add('checked'));
+        if (p.checked[i]) _at(800 + i * 180, () => el.classList.add('checked'));
       });
     }
 
@@ -2392,6 +2424,9 @@
       // snap-in the phone + additional-signers select, in sequence. The
       // typewriter reads as the signer's details being keyed in; the
       // select/phone "snap in" like the web-forms smart dropdowns.
+      // First show a syncing indicator to simulate fetching from CRM (Idea 4).
+      const sync3 = document.getElementById('s3-sync');
+      if (sync3) sync3.classList.add('on');
       const name = document.getElementById('s3-name');
       const email = document.getElementById('s3-email');
       const nameCaret = document.getElementById('s3-name-caret');
@@ -2402,12 +2437,16 @@
       [name, email].forEach(el => { if (el) { el.value = ''; const f = el.closest('.field'); if (f) f.classList.remove('typing', 'filled'); } });
       if (tel) { tel.value = ''; const tf = tel.closest('.field'); if (tf) tf.classList.remove('filled'); }
       if (addl) { addl.selectedIndex = 0; const af = addl.closest('.field'); if (af) af.classList.remove('filled'); }
-      // Type the name, then the email, ~36ms/char.
-      const afterName = _typewrite(name, nameCaret, p.signerName || '', 220, 36);
-      const afterEmail = _typewrite(email, emailCaret, p.signerEmail || '', afterName + 160, 30);
-      // Snap-in the phone, then the additional-signers select.
-      _at(afterEmail + 180, () => { if (tel) { tel.value = '(415) 555-0182'; tel.classList.add('just-filled'); const tf = tel.closest('.field'); if (tf) tf.classList.add('filled'); } });
-      _at(afterEmail + 420, () => { if (addl && addl.options.length > 1) { addl.selectedIndex = 1; const af = addl.closest('.field'); if (af) af.classList.add('filled'); } });
+      // Show syncing for 600ms, then start the typewriter (Idea 4)
+      _at(600, () => {
+        if (sync3) sync3.classList.remove('on');
+        // Type the name, then the email, ~36ms/char.
+        const afterName = _typewrite(name, nameCaret, p.signerName || '', 0, 36);
+        const afterEmail = _typewrite(email, emailCaret, p.signerEmail || '', afterName + 160, 30);
+        // Snap-in the phone, then the additional-signers select.
+        _at(afterEmail + 180, () => { if (tel) { tel.value = '(415) 555-0182'; tel.classList.add('just-filled'); const tf = tel.closest('.field'); if (tf) tf.classList.add('filled'); } });
+        _at(afterEmail + 420, () => { if (addl && addl.options.length > 1) { addl.selectedIndex = 1; const af = addl.closest('.field'); if (af) af.classList.add('filled'); } });
+      });
     }
 
     if (sceneId === 's4') {

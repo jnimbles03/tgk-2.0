@@ -464,7 +464,7 @@
   /* Three short, punchy statements typed in one after another (not a wall of
      copy). Each line reserves its height so nothing jumps as it types. */
   .thesis-splash .ts-lines{display:flex;flex-direction:column;gap:28px;}
-  .thesis-splash .ts-line{font-size:30px;line-height:1.34;color:rgba(248,243,240,0.95);font-weight:500;min-height:1.34em;}
+  .thesis-splash .ts-line{font-size:30px;line-height:1.34;color:rgba(248,243,240,0.95);font-weight:500;min-height:1.34em;white-space:nowrap;}
   .thesis-splash .ts-line strong{color:#fff;font-weight:700;}
   .thesis-splash .ts-line em{font-style:italic;color:#fff;}
   /* Blinking typewriter caret while a line types. */
@@ -532,6 +532,100 @@
   .hotspot .tip.top::before{top:100%;left:50%;height:24px;width:1px;transform:translateX(-50%);}
   .hotspot .tip.bottom::before{bottom:100%;left:50%;height:24px;width:1px;transform:translateX(-50%);}
   .hotspot .tip .sub{font-size:10.5px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+
+  /* ── Processing transition overlay (Idea 1: system time) ──
+     Full-stage overlay with spinner + status label. Shown between scene
+     boundaries when a beat declares transition:{ms, label, smsHandoff}.
+     The overlay fades in, holds for the specified duration, then fades out
+     before goTo() swaps the iframe. smsHandoff variant shows a phone-mockup
+     notification instead of the generic spinner.                             */
+  .processing-overlay{
+    position:absolute;inset:0;z-index:50;
+    background:rgba(19,0,50,0.72);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;
+    opacity:0;transition:opacity 0.35s ease;
+    pointer-events:none;
+  }
+  .processing-overlay.on{opacity:1;pointer-events:auto;}
+  .processing-overlay .spinner{
+    width:40px;height:40px;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.18);
+    border-top-color:#fff;
+    animation:po-spin 0.8s linear infinite;
+  }
+  @keyframes po-spin{to{transform:rotate(360deg);}}
+  .processing-overlay .status{
+    font-size:15px;font-weight:600;color:#fff;
+    text-align:center;line-height:1.45;max-width:340px;
+    letter-spacing:0.01em;
+  }
+  .processing-overlay .status-sub{
+    font-size:12.5px;font-weight:400;color:rgba(255,255,255,0.58);
+    text-align:center;max-width:300px;line-height:1.5;
+  }
+  /* SMS handoff variant — phone mockup with notification */
+  .processing-overlay.sms-handoff{background:rgba(19,0,50,0.85);}
+  .processing-overlay .phone-mock{
+    width:180px;height:360px;
+    background:#1c1c1e;border-radius:32px;
+    border:2px solid rgba(255,255,255,0.15);
+    position:relative;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .processing-overlay .phone-mock .notch{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    width:60px;height:6px;background:#000;border-radius:3px;
+    z-index:2;
+  }
+  .processing-overlay .phone-mock .screen{
+    position:absolute;inset:0;
+    background:#fff;padding:44px 16px 16px;
+  }
+  .processing-overlay .phone-mock .lock-screen{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);
+    display:flex;flex-direction:column;justify-content:center;
+    padding:50px 20px 20px;gap:16px;
+    opacity:1;transition:opacity 0.5s ease;
+  }
+  .processing-overlay .phone-mock .lock-screen.dim{opacity:1;}
+  .processing-overlay .phone-mock .lock-screen .time{
+    font-size:48px;font-weight:200;color:#fff;
+    text-align:center;letter-spacing:2px;
+    font-family:var(--ui-font);
+  }
+  .processing-overlay .phone-mock .lock-screen .notification{
+    background:rgba(255,255,255,0.13);
+    backdrop-filter:blur(10px);
+    border-radius:14px;padding:14px 16px;
+    border-left:3px solid var(--citi-blue);
+    animation:notif-slide 0.6s cubic-bezier(.2,.8,.3,1) forwards;
+    opacity:0;transform:translateY(20px);
+  }
+  @keyframes notif-slide{
+    to{opacity:1;transform:translateY(0);}
+  }
+  .processing-overlay .phone-mock .lock-screen .notification .app{
+    font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);
+    text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;
+  }
+  .processing-overlay .phone-mock .lock-screen .notification .title{
+    font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;
+  }
+  .processing-overlay .phone-mock .lock-screen .notification .body{
+    font-size:12px;color:rgba(255,255,255,0.7);line-height:1.4;
+  }
+  /* Tap-to-open instruction */
+  .processing-overlay .tap-hint{
+    font-size:12px;color:rgba(255,255,255,0.45);
+    text-align:center;margin-top:-6px;
+    animation:tap-pulse 2s ease-in-out infinite;
+  }
+  @keyframes tap-pulse{
+    0%,100%{opacity:0.35;}
+    50%{opacity:0.85;}
+  }
 
   /* ===================== Tablet / small laptop ===================== */
   @media (max-width:980px){
@@ -741,7 +835,7 @@
     <section class="stage" id="stage">
       <iframe id="scene" src="" title="Scene"></iframe>
       <div class="hotspot-layer" id="hotspot-layer"></div>
-      <!-- Kickoff catcher: a transparent layer shown ONLY while holding for the
+<!-- Kickoff catcher: a transparent layer shown ONLY while holding for the
            viewer's first gesture. The scene plays in the iframe above, so clicks
            on the scene content don't bubble to #stage — this catcher makes a click
            anywhere on the stage (including over the scene) the kickoff gesture. -->
@@ -757,6 +851,25 @@
           <div class="ts-go">Click or press <kbd>Space</kbd> to begin</div>
         </div>
       </div>
+      <!-- Processing transition overlay (Idea 1 + Idea 5) -->
+      <div class="processing-overlay" id="processing-overlay">
+        <div class="spinner"></div>
+        <div class="status" id="po-status">Processing…</div>
+        <div class="status-sub" id="po-sub"></div>
+      </div>
+      <!-- SMS handoff phone mockup (hidden; shown via .sms-handoff on overlay) -->
+      <div class="phone-mock" id="phone-mock" hidden>
+        <div class="notch"></div>
+        <div class="lock-screen" id="phone-screen">
+          <div class="time">9:41</div>
+          <div class="notification" id="sms-notification">
+            <div class="app">Meridian Bank</div>
+            <div class="title" id="sms-title">Identity Verification</div>
+            <div class="body" id="sms-body">Patrick, please verify your identity to release the loan package. No app needed — tap to open.</div>
+          </div>
+        </div>
+      </div>
+      <div class="tap-hint" id="tap-hint" hidden>⟳ SMS sent to Patrick's phone</div>
     </section>
   </div>
 </div>
@@ -1027,8 +1140,10 @@ const VERTICALS = {
          {head:"Lloyd opens the credit facility intake.", lede:`<p>"New Credit Origination" webform. Lloyd selects TGK Holdings — existing KYC, active borrower.</p>`},
          {head:"Facility details and structure drive the package.", lede:`<p>$2.5M, working capital, 364-day revolving, receivables + inventory collateral, Patrick guarantor. The workflow pre-populates document requirements.</p>`},
          {head:"Pre-fill from Meridian's CRM.", lede:`<p>Borrower data, clean UCC search, SBA flag — all in the form from prior relationships.</p>`},
-         {head:"Document package selected.", lede:`<p>Loan Agreement, Security Agreement, UCC-1, Personal Guaranty, Affidavit of Collateral Status — all checked by default.</p>`},
-         {head:"Submitted — package routes for approval.", lede:`<p>The workflow fans out the five-document package and routes to Abby Cohan and closing counsel.</p>`}
+         {head:"Document package selected.", lede:`<p>Loan Agreement, Security Agreement, UCC-1, Personal Guaranty, Affidavit of Collateral Status — all checked by default.</p>`,
+         explore:true, beatGateMs:8000, hotspots:[{sel:'[data-hotspot="form_doc_set"]', eyebrow:'Select documents', title:'Pick which docs to include', body:'The viewer checks which documents should be in the package. The workflow builds the envelope from their selection — fewer docs, faster signing.'}]},
+         {head:"Submitted — package routes for approval.", lede:`<p>The workflow fans out the five-document package and routes to Abby Cohan and closing counsel.</p>`,
+         transition:{ms:4500, label:"Workflow assembling package…", subtitle:"Routing verification request to Patrick's phone", smsHandoff:true}}
        ]},
       {tag:"SCENE 2 OF 5 · IDENTITY", head:"TGK's guarantor completes identity verification.",
        persona:{side:"client", name:"Patrick Meyer", role:"CEO · TGK Holdings"},
@@ -1038,7 +1153,8 @@ const VERTICALS = {
          {head:"Identity verification selected — PEP and OFAC run.", lede:`<p>One tap. ID match plus PEP, OFAC, and adverse media screens in a single pass.</p>`},
          {head:"Mobile handoff.", lede:`<p>Patrick enters his number. The verification session opens on his device — no app download.</p>`},
          {head:"ID and biometric captured.", lede:`<p>Selfie matched against government ID. Compliance screens post back in seconds.</p>`},
-         {head:"Patrick verified — loan package unlocked.", lede:`<p>All screens cleared. The four-document package is released and signing opens.</p>`}
+         {head:"Patrick verified — loan package unlocked.", lede:`<p>All screens cleared. The four-document package is released and signing opens.</p>`,
+         transition:{ms:3000, label:"Envelope unlocking…", subtitle:"Preparing signing ceremony for Patrick"}}
        ]},
       {tag:"SCENE 3 OF 5 · SIGNING", head:"Patrick signs the loan package — four documents, one ceremony.",
        persona:{side:"client", name:"Patrick Meyer", role:"CEO · TGK Holdings"},
@@ -4234,6 +4350,65 @@ function _apReset(){               // hard reset to plain autoplay (scene jumps)
   _apDetail(false);
   if (_apEnabled) postGateToFrame(false);
 }
+/* ── Processing transition overlay (Idea 1: system time) ──────────────────
+   Shows between scenes when the current beat declares transition:{ms, label,
+   subtitle, smsHandoff}. The overlay pauses autoplay, displays a spinner +
+   status text (or a phone-mockup for SMS handoffs), waits the specified
+   duration, then resumes the advance.                                      */
+let _processingTransition = false;
+let _processingTimer = null;
+function showProcessingOverlay(t){
+  if (!t || !t.ms) return false;
+  _processingTransition = true;
+  if (playing) togglePlay();                      // pause autoplay
+  const overlay = document.getElementById('processing-overlay');
+  const status  = document.getElementById('po-status');
+  const sub     = document.getElementById('po-sub');
+  if (!overlay) return false;
+  // Clear prior state
+  overlay.classList.remove('sms-handoff');
+  document.getElementById('phone-mock').hidden = true;
+  document.getElementById('tap-hint').hidden = true;
+  const spinner = overlay.querySelector('.spinner');
+  if (spinner) spinner.hidden = false;
+  status.textContent = t.label || 'Processing…';
+  if (t.subtitle) { sub.textContent = t.subtitle; sub.hidden = false; } else sub.hidden = true;
+  if (t.smsHandoff) {
+    overlay.classList.add('sms-handoff');
+    document.getElementById('phone-mock').hidden = false;
+    document.getElementById('tap-hint').hidden = false;
+    if (spinner) spinner.hidden = true;
+    status.textContent = t.label || 'SMS sent to Patrick\'s phone';
+  }
+  overlay.classList.add('on');
+  // Auto-advance after transition.ms (scaled by playbackRate so the delay
+  // feels consistent at faster speeds). Minimum 800ms so fast 2× doesn't
+  // flash the overlay.
+  const scaledMs = Math.max(800, Math.round(t.ms / Math.max(0.1, playbackRate)));
+  _processingTimer = setTimeout(resumeAfterTransition, scaledMs);
+  return true;
+}
+function resumeAfterTransition(){
+  _processingTransition = false;
+  _processingTimer = null;
+  const overlay = document.getElementById('processing-overlay');
+  if (overlay) overlay.classList.remove('on');
+  document.getElementById('phone-mock').hidden = true;
+  document.getElementById('tap-hint').hidden = true;
+  // Advance to next scene — pass fromTransition so advance() knows not to
+  // show the overlay again.
+  advance({ suppressScenePop: true, fromTransition: true, fromTick: true });
+  // Resume autoplay since we paused it when entering the overlay
+  if (!playing) togglePlay();
+}
+function hideProcessingOverlay(){
+  _processingTransition = false;
+  if (_processingTimer) { clearTimeout(_processingTimer); _processingTimer = null; }
+  const overlay = document.getElementById('processing-overlay');
+  if (overlay) overlay.classList.remove('on');
+  document.getElementById('phone-mock').hidden = true;
+  document.getElementById('tap-hint').hidden = true;
+}
 function enterGate(){
   if (_splashWaiting) return;                   // a splash hold takes precedence
   _apClearTimers();
@@ -4352,7 +4527,17 @@ function advance(opts){
     exitLeadMode();
   }
   else if (idx < SCENES.length - 1) {
-    // Scene boundary. Use silent flag during autoplay-driven advances
+    // Scene boundary. Check for processing transition (Idea 1).
+    const currentBeat = scene.hotspots[hotIdx];
+    if (currentBeat && currentBeat.transition && !opts.fromTransition) {
+      hideProcessingOverlay();
+      if (!showProcessingOverlay(currentBeat.transition)) {
+        // Fall through if overlay failed — noop, shouldn't happen
+        goTo(idx + 1, { silent: !!opts.suppressScenePop });
+      }
+      return;
+    }
+    // Use silent flag during autoplay-driven advances
     // so the editorial pop doesn't fire when nothing's actually changing
     // about the persona — autoplay should glide across scene boundaries.
     goTo(idx + 1, { silent: !!opts.suppressScenePop });
@@ -4548,6 +4733,7 @@ function showToast(msg, ms){
 
 function tickTimer(){
   if (!playing || autopilotState !== 'auto') return;   // a held autopilot state stops the clock
+  if (_processingTransition) return;                    // processing overlay holds the clock
   const scene = SCENES[idx];
   // Per-beat duration so autoplay distributes scene.duration across all
   // beats — used to advance one beat per (scene.duration / beats) ms.
