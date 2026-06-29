@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TGK 30-Minute Punchlist</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(17, 22, 39, 0.92);
+      --panel-2: rgba(22, 27, 48, 0.94);
+      --line: rgba(255,255,255,0.10);
+      --text: #f4f7ff;
+      --muted: rgba(244,247,255,0.70);
+      --soft: rgba(255,255,255,0.05);
+      --accent: #7c5cff;
+      --accent-2: #35d0c8;
+      --good: #41d392;
+      --warn: #ffcf5a;
+      --bad: #ff6d73;
+      --shadow: 0 26px 85px rgba(0,0,0,0.36);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(124,92,255,0.25), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(53,208,200,0.16), transparent 22%),
+        radial-gradient(circle at 50% 95%, rgba(255,109,115,0.08), transparent 28%),
+        linear-gradient(180deg, #080b14 0%, #0b1020 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      opacity: 0.22;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.02));
+    }
+
+    .shell {
+      position: relative;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+      min-height: 100vh;
+    }
+
+    .hero, .panel, .sidebar, .card, .box {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel), rgba(17, 22, 39, 0.76));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      grid-column: 1 / -1;
+      border-radius: 28px;
+      padding: 22px 24px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: .02em;
+      width: fit-content;
+    }
+
+    .eyebrow i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--good);
+      display: inline-block;
+      box-shadow: 0 0 0 4px rgba(65, 211, 146, 0.12);
+    }
+
+    h1 {
+      margin: 10px 0 10px;
+      font-size: clamp(30px, 4vw, 56px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 80ch;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .hero-meta {
+      min-width: 260px;
+      text-align: right;
+      display: grid;
+      gap: 10px;
+      justify-items: end;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--text);
+      width: fit-content;
+    }
+
+    .pill strong { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; }
+    .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 4px rgba(53,208,200,0.12); }
+
+    .left {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border-radius: 24px;
+      padding: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head .sub {
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .slot {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 10px 8px;
+      background: rgba(255,255,255,0.04);
+      min-height: 58px;
+      display: grid;
+      gap: 2px;
+      align-content: center;
+    }
+
+    .slot .t {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-family: var(--mono);
+    }
+
+    .slot .d {
+      font-size: 12px;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .slot.done { border-color: rgba(65,211,146,0.55); background: rgba(65,211,146,0.10); }
+    .slot.done .t { color: rgba(65,211,146,0.95); }
+    .slot.active { border-color: rgba(124,92,255,0.80); background: rgba(124,92,255,0.16); }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      border-radius: 20px;
+      padding: 16px;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(124,92,255,0.34);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-head h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .card-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .tag {
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      height: fit-content;
+    }
+
+    .mini-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .mini code {
+      font-family: var(--mono);
+      color: var(--accent-2);
+      font-size: 11px;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .choice {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 14px;
+      min-height: 46px;
+      padding: 11px 10px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .choice:hover { transform: translateY(-1px); }
+    .choice[data-active="true"] { border-color: rgba(124,92,255,0.82); background: rgba(124,92,255,0.18); }
+    .choice.fix[data-active="true"] { border-color: rgba(255,109,115,0.90); background: rgba(255,109,115,0.16); }
+    .choice.verify[data-active="true"] { border-color: rgba(255,207,90,0.90); background: rgba(255,207,90,0.16); }
+    .choice.defer[data-active="true"] { border-color: rgba(65,211,146,0.90); background: rgba(65,211,146,0.16); }
+
+    .notes {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .notes label {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,0.20);
+      color: var(--text);
+      padding: 12px 13px;
+      font: inherit;
+      min-height: 76px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: rgba(124,92,255,0.9);
+      box-shadow: 0 0 0 4px rgba(124,92,255,0.16);
+    }
+
+    .sidebar {
+      border-radius: 24px;
+      overflow: hidden;
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      height: fit-content;
+    }
+
+    .sidebar-inner {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary {
+      border-radius: 20px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(124,92,255,0.15), rgba(255,255,255,0.04));
+      border: 1px solid var(--line);
+    }
+
+    .summary h3, .summary h4 {
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .summary p, .summary li {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .progress {
+      margin-top: 12px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: inherit;
+      transition: width .2s ease;
+    }
+
+    .todo-list {
+      display: grid;
+      gap: 8px;
+      max-height: 290px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .todo {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      display: grid;
+      gap: 6px;
+    }
+
+    .todo strong { font-size: 14px; }
+    .todo span { color: var(--muted); font-size: 13px; line-height: 1.42; }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 14px;
+      min-height: 46px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary {
+      background: linear-gradient(180deg, rgba(124,92,255,1), rgba(102,76,232,1));
+      border-color: rgba(124,92,255,0.95);
+    }
+    .btn.secondary:hover { border-color: rgba(53,208,200,0.70); }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .filter[data-active="true"] {
+      border-color: rgba(53,208,200,0.9);
+      background: rgba(53,208,200,0.14);
+    }
+
+    .footer {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 2px 2px 14px;
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+
+    @media (max-width: 1080px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .hero { flex-direction: column; align-items: start; }
+      .hero-meta { justify-items: start; text-align: left; min-width: unset; }
+    }
+
+    @media (max-width: 720px) {
+      .shell { padding: 12px; }
+      .hero, .panel, .sidebar { border-radius: 22px; }
+      .timeline { grid-template-columns: 1fr 1fr; }
+      .choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div>
+        <div class="eyebrow"><i></i> 30-minute TGK decision pass</div>
+        <h1>One click pass.<br>Six calls. Thirty minutes.</h1>
+        <p>
+          This is the fast version: each item has a default move, a hard stop, and a note field.
+          Make the call, capture one sentence if needed, and move on. The right side tells you what’s left.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <div class="pill" id="statusPill"><span class="dot"></span><strong>0 / 6</strong> decided</div>
+        <div class="pill"><strong>Mode:</strong> 5 min per card</div>
+      </div>
+    </header>
+
+    <main class="left">
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>30-minute ladder</h2>
+            <div class="sub">you can finish this in one sitting</div>
+          </div>
+          <div class="sub"><span class="kbd">1</span> to <span class="kbd">6</span> · click a card to focus it</div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2 id="focusTitle">Start with the first risk</h2>
+            <div class="sub" id="focusSub">the pass is ordered for speed, not aesthetics</div>
+          </div>
+          <div class="sub" id="focusCount">1 / 6</div>
+        </div>
+        <div class="stack" id="riskStack"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Decision filter</h2>
+            <div class="sub">hide noise; review only the calls you care about</div>
+          </div>
+        </div>
+        <div class="filter-row" id="filters">
+          <button class="filter" data-mode="all" data-active="true">All</button>
+          <button class="filter" data-mode="fix-now">Fix now</button>
+          <button class="filter" data-mode="verify">Verify</button>
+          <button class="filter" data-mode="defer">Defer</button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <section class="summary">
+          <h3>What to do next</h3>
+          <p id="summaryText">Make decisions on the first card. The summary will tighten itself as you go.</p>
+          <div class="progress"><div id="progressBar"></div></div>
+        </section>
+
+        <section class="summary">
+          <h4>Decision log</h4>
+          <div class="todo-list" id="todoList"></div>
+        </section>
+
+        <section class="summary">
+          <h4>Controls</h4>
+          <div class="actions">
+            <button class="btn primary" id="copyBtn">Copy the plan</button>
+            <button class="btn secondary" id="resetBtn">Reset decisions</button>
+          </div>
+          <p style="margin-top:10px;">The goal is speed, not perfection. If a card takes more than 5 minutes, mark it <strong>Verify</strong> and move on.</p>
+        </section>
+      </div>
+    </aside>
+
+    <footer class="footer">
+      <div>Built for a 30-minute pass: decide, note, move.</div>
+      <div><span id="updatedAt">not saved yet</span></div>
+    </footer>
+  </div>
+
+  <script>
+    const risks = [
+      {
+        id: 'overlay',
+        minute: '0–5m',
+        title: 'Remove debug overlays',
+        tag: 'P1 · visual',
+        short: 'Any red annotation boxes or audit traces in the default path make the build look unfinished immediately.',
+        files: 'builder.html',
+        default: 'fix-now',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+      {
+        id: 'beats',
+        minute: '5–10m',
+        title: 'Audit beat mappings',
+        tag: 'P1 · flow',
+        short: 'Missing scene-to-beat mappings can break the story shell in ways that only show up during live demos.',
+        files: 'stories/_shared/story-shell.html',
+        default: 'fix-now',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+      {
+        id: 'copy',
+        minute: '10–15m',
+        title: 'Tighten CTA and copy',
+        tag: 'P2 · clarity',
+        short: 'The top of the page should say what this is, what happens next, and why the user should care.',
+        files: 'builder.html',
+        default: 'verify',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+      {
+        id: 'panel',
+        minute: '15–20m',
+        title: 'Integrate the side panel',
+        tag: 'P2 · UX',
+        short: 'If the assistant rail feels bolted on, it weakens the whole narrative. It needs to support the current step or get out of the way.',
+        files: 'builder.html',
+        default: 'verify',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+      {
+        id: 'smoke',
+        minute: '20–25m',
+        title: 'Smoke test the flow',
+        tag: 'P1 · qa',
+        short: 'Default load, selection paths, CTA, no-override mode, and at least one mapped beat path all need a clean pass.',
+        files: 'builder.html + story-shell.html',
+        default: 'verify',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+      {
+        id: 'deploy',
+        minute: '25–30m',
+        title: 'Redeploy the live build',
+        tag: 'P0 · release',
+        short: 'Do not ship stale assets. Only refresh the live build after the smoke test is clean.',
+        files: 'deploy target',
+        default: 'defer',
+        choices: [
+          { key: 'fix-now', label: 'Fix now', tone: 'fix' },
+          { key: 'verify', label: 'Verify', tone: 'verify' },
+          { key: 'defer', label: 'Defer', tone: 'defer' },
+        ],
+      },
+    ];
+
+    const storeKey = 'tgkPunchlist30m';
+    const state = JSON.parse(localStorage.getItem(storeKey) || '{}');
+    let filter = 'all';
+    let focusIndex = 0;
+
+    if (Object.keys(state).length === 0) {
+      risks.forEach(r => { state[r.id] = 'fix-now'; });
+      save();
+    }
+
+    const $ = id => document.getElementById(id);
+
+    function save() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      $('updatedAt').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function decisionLabel(value) {
+      return value === 'fix-now' ? 'Fix now' : value === 'verify' ? 'Verify' : value === 'Defer';
+    }
+
+    function setDecision(id, value) {
+      state[id] = value;
+      save();
+      render();
+    }
+
+    function setNote(id, note) {
+      state[`note_${id}`] = note;
+      save();
+    }
+
+    function setFocus(index) {
+      focusIndex = index;
+      render();
+      document.querySelector('.stack').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+
+    function renderTimeline() {
+      const decided = risks.filter(r => state[r.id]).length;
+      $('statusPill').innerHTML = `<span class="dot"></span><strong>${decided} / ${risks.length}</strong> decided`;
+      $('progressBar').style.width = `${Math.round((decided / risks.length) * 100)}%`;
+
+      $('timeline').innerHTML = risks.map((r, i) => {
+        const cls = [state[r.id] ? 'done' : '', i === focusIndex ? 'active' : ''].filter(Boolean).join(' ');
+        return `
+          <button class="slot ${cls}" data-focus="${i}">
+            <div class="t">${r.minute}</div>
+            <div class="d">${r.title}</div>
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('[data-focus]').forEach(btn => {
+        btn.addEventListener('click', () => setFocus(Number(btn.dataset.focus)));
+      });
+    }
+
+    function renderStack() {
+      const risk = risks[focusIndex];
+      $('focusTitle').textContent = risk.title;
+      $('focusSub').textContent = `${risk.minute} · ${risk.files}`;
+      $('focusCount').textContent = `${focusIndex + 1} / ${risks.length}`;
+
+      const visible = risks.map((r, i) => {
+        const show = filter === 'all' || state[r.id] === filter;
+        if (!show) return '';
+        const active = i === focusIndex ? 'true' : 'false';
+        const current = state[r.id] || '';
+        return `
+          <article class="card" data-id="${r.id}" style="outline:${i === focusIndex ? '1px solid rgba(124,92,255,.38)' : 'none'}">
+            <div class="card-head">
+              <div>
+                <h3>${r.title}</h3>
+                <p>${r.short}</p>
+              </div>
+              <div class="tag">${r.tag}</div>
+            </div>
+            <div class="mini-meta">
+              <div class="mini"><code>${r.minute}</code> 5 minute slot</div>
+              <div class="mini"><code>${r.files}</code> exact file</div>
+            </div>
+            <div class="choices">
+              ${r.choices.map(c => `<button class="choice ${c.tone}" data-risk="${r.id}" data-value="${c.key}" data-active="${current === c.key ? 'true' : 'false'}">${c.label}</button>`).join('')}
+            </div>
+            <div class="notes">
+              <label for="note-${r.id}">One-line note</label>
+              <textarea id="note-${r.id}" placeholder="Optional. Keep it short.">${state[`note_${r.id}`] || ''}</textarea>
+            </div>
+          </article>
+        `;
+      }).join('');
+      $('riskStack').innerHTML = visible || '<div class="card">No items match this filter.</div>';
+
+      document.querySelectorAll('.choice').forEach(btn => {
+        btn.addEventListener('click', () => setDecision(btn.dataset.risk, btn.dataset.value));
+      });
+
+      document.querySelectorAll('textarea').forEach(area => {
+        area.addEventListener('input', () => setNote(area.id.replace('note-', ''), area.value));
+      });
+    }
+
+    function renderLog() {
+      const log = risks.map(r => {
+        const note = (state[`note_${r.id}`] || '').trim();
+        return `
+          <div class="todo">
+            <strong>${r.title} — ${decisionLabel(state[r.id] || r.default)}</strong>
+            <span>${note || r.short}</span>
+          </div>
+        `;
+      }).join('');
+      $('todoList').innerHTML = log;
+
+      const decided = risks.filter(r => state[r.id]).length;
+      const fixNow = risks.filter(r => state[r.id] === 'fix-now').length;
+      const verify = risks.filter(r => state[r.id] === 'verify').length;
+      const defer = risks.filter(r => state[r.id] === 'defer').length;
+
+      if (decided === 0) {
+        $('summaryText').textContent = 'Start at the top. Default move is already on each card, so this should be quick.';
+      } else if (decided < risks.length) {
+        $('summaryText').textContent = `${risks.length - decided} card${risks.length - decided === 1 ? '' : 's'} left. Current split: ${fixNow} fix now, ${verify} verify, ${defer} defer.`;
+      } else {
+        $('summaryText').textContent = `Done. ${fixNow} fix now, ${verify} verify, ${defer} defer. Copy this and execute.`;
+      }
+    }
+
+    function renderFilters() {
+      document.querySelectorAll('.filter').forEach(btn => {
+        btn.dataset.active = btn.dataset.mode === filter ? 'true' : 'false';
+      });
+    }
+
+    function render() {
+      renderTimeline();
+      renderStack();
+      renderLog();
+      renderFilters();
+    }
+
+    document.querySelectorAll('.filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filter = btn.dataset.mode;
+        render();
+      });
+    });
+
+    $('copyBtn').addEventListener('click', async () => {
+      const text = risks.map(r => {
+        const note = (state[`note_${r.id}`] || '').trim();
+        return `${r.minute} — ${r.title}: ${decisionLabel(state[r.id] || r.default)}${note ? ` — ${note}` : ''}`;
+      }).join('\n');
+      await navigator.clipboard.writeText(text);
+      const old = $('copyBtn').textContent;
+      $('copyBtn').textContent = 'Copied';
+      setTimeout(() => $('copyBtn').textContent = old, 900);
+    });
+
+    $('resetBtn').addEventListener('click', () => {
+      Object.keys(state).forEach(k => delete state[k]);
+      localStorage.removeItem(storeKey);
+      focusIndex = 0;
+      render();
+      $('updatedAt').textContent = 'reset just now';
+    });
+
+    render();
+    save();
+  </script>
+</body>
+</html>

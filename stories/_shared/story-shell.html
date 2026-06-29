@@ -62,9 +62,9 @@
   .body::before{
     content:"";
     flex-shrink:0;
-    width:24%;
-    max-width:420px;
-    min-width:320px;
+    width:22%;
+    max-width:360px;
+    min-width:280px;
   }
 
   /* Sidebar default state = collapsed rail. Story has already retreated;
@@ -252,8 +252,8 @@
     transition:opacity 0.22s ease, font-size 0.26s cubic-bezier(.4,0,.2,1), letter-spacing 0.26s cubic-bezier(.4,0,.2,1), margin-bottom 0.26s cubic-bezier(.4,0,.2,1);
   }
   .headline{
-    font-family:var(--ui-font);font-size:19px;font-weight:700;
-    color:var(--ink);letter-spacing:-0.012em;line-height:1.26;margin-bottom:16px;
+    font-family:var(--ui-font);font-size:20px;font-weight:700;
+    color:var(--ink);letter-spacing:-0.012em;line-height:1.32;margin-bottom:14px;
     /* font-style/font-family/font-weight aren't smoothly interpolatable —
        they snap on the property-change frame. Removing them from the
        transition list lets the size/spacing motion read as one clean
@@ -2579,6 +2579,9 @@ const USECASE_TEMPLATE_MODES = {
 const BEAT_TO_INTERNAL = {
   agreement_desk: ["s1", "s2", "s2", "s3", "s3"],   // submit → arrives → click row → docs tab → send
   clear_idv:      ["s1", "s2", "s3", "s6", "s7"],   // consent → choose identity verification → phone → mobile selfie → verified
+  portal_submit:  ["s1", "s2", "s3", "s4", "s5"],   // confirmation → audit trail → Iris flag → review → handoff
+  maestro_package:["s1", "s2", "s3", "s4", "s5"],   // doc assembly → recipient routing → envelope ready
+  envelope_deliver:["s1", "s2", "s3", "s4", "s5"],   // branded email → review/sign → handoff
   /* Signing: beat-to-internal corrected 2026-05-06. The 1:1 mapping
      drifted out of sync with the hotspot labels — beat 2 ("adopt_sig")
      was landing on s3 (field-fill) instead of s4 (Adopt modal), and
@@ -3202,8 +3205,35 @@ if (calibrateMode) document.body.classList.add('calibrate');
 /* Mutable shadow of HOTSPOTS used when in calibrate mode so drag edits can be exported */
 const LIVE = JSON.parse(JSON.stringify(HOTSPOTS));
 
-// Apply tenant + subtitle
-const $ = (id) => document.getElementById(id);
+/* Expose Story Shell API for cross-frame automation / autopilot. */
+window.Tgkshell = {
+  narrator: {
+    goTo: (i) => goTo(i, {force:true}),
+    next: () => { if(currentBeat < beats.length - 1) goTo(currentBeat + 1); },
+    prev: () => { if(currentBeat > 0) goTo(currentBeat - 1); }
+  },
+  autopilot: (steps) => {
+    if (!Array.isArray(steps)) return;
+    steps.forEach(step => {
+      setTimeout(() => {
+        if (typeof step.run === 'function') return step.run();
+        // Trigger scene-specific interactions if specified
+        if (step.selector) {
+          const el = document.querySelector(step.selector);
+          if (el) el.click();
+        }
+      }, step.at);
+    });
+  }
+};
+// Map spacebar to the shell transport logic
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    togglePlay(); // Assumed existing function in the shell
+  }
+});
+
 // Render the tenant mark — uploaded logo if the picker provided one
 // (cfg.tenantLogo is a base64 dataURL stored on v.tenantLogo by
 // loadCustomVertical above), otherwise fall back to the default

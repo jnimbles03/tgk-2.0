@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TGK 2.0 — Demo Builder</title>
+<title>TGK 2.0 — Guided Demo</title>
 <link rel="icon" type="image/svg+xml" href="/assets/brand/DSIcon_favicon_LightMode_96x96.svg">
 <style>
   @font-face { font-family: "DSIndigo"; src: url("https://docucdn-a.akamaihd.net/olive/fonts/3.1.0/DSIndigo-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
@@ -1416,10 +1416,10 @@ body.is-gb #gbPanel{display:block;}
     <img src="/assets/brand/DS_Logo_White_RGB_150x33.svg" alt="Docusign">
   </a>
   <div class="topbar-sep"></div>
-  <span class="topbar-badge">Demo Builder</span>
-  <div class="builder-mode-toggle" role="group" aria-label="Builder mode">
-    <button class="builder-mode-pill active" id="modeOotb" type="button">Out of the Box</button>
-    <button class="builder-mode-pill" id="modeBespoke" type="button">Bespoke</button>
+  <span class="topbar-badge">TGK 2.0</span>
+  <div class="builder-mode-toggle" role="group" aria-label="View mode">
+    <button class="builder-mode-pill active" id="modeOotb" type="button">Guided</button>
+    <button class="builder-mode-pill" id="modeBespoke" type="button">Advanced</button>
   </div>
   <button class="topbar-link" type="button" id="advTimelineBtn" title="Open the advanced editing timeline (iMovie-style scene editor)">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 3.5v9M10.5 3.5v9" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -1431,17 +1431,17 @@ body.is-gb #gbPanel{display:block;}
 <script src="/assets/admin-auth/admin-auth.js"></script>
 
 <!-- ══════════════════ OotB WIZARD ══════════════════ -->
-<div class="ootb-wizard" id="ootbWizard">
+    <div class="ootb-wizard" id="ootbWizard">
   <div class="ootb-inner">
-    <div class="ootb-eyebrow">Out of the Box</div>
-    <h1 class="ootb-title">Which vertical are you selling to?</h1>
+    <div class="ootb-eyebrow">Guided setup</div>
+    <h1 class="ootb-title">Pick the audience, then we’ll shape the demo.</h1>
 
     <div class="ootb-options" id="ootbPrimaryOptions">
 
       <!-- Option A: Vertical demo -->
       <div class="ootb-option" id="optVertical" onclick="ootbSelect('vertical')">
-        <div class="ootb-option-name">Vertical demo</div>
-        <div class="ootb-option-desc">Industry-flavored portal — financial, healthcare, government, legal, HR</div>
+          <div class="ootb-option-name">Vertical demo</div>
+          <div class="ootb-option-desc">Choose an industry story — financial, healthcare, government, legal, or HR.</div>
       </div>
 
       <!-- Option B: Product spotlight -->
@@ -1614,8 +1614,8 @@ body.is-gb #gbPanel{display:block;}
       <div id="ootbBody"></div>
     </div>
 
-    <!-- ══ GUIDED BESPOKE: wizard over the real builder state (body.is-gb) ══ -->
-    <div class="ootb-panel" id="gbPanel" role="region" aria-label="Guided Bespoke demo builder">
+    <!-- ══ GUIDED MODE: wizard over the real builder state (body.is-gb) ══ -->
+    <div class="ootb-panel" id="gbPanel" role="region" aria-label="Guided demo builder">
       <div id="gbBody"></div>
     </div>
 
@@ -1784,8 +1784,8 @@ body.is-gb #gbPanel{display:block;}
     <div class="stage-panel is-active" id="stage1">
       <div class="stage-header">
         <div class="stage-header-eyebrow">Step 1 of 2</div>
-        <h2>Build your demo</h2>
-        <p class="stage-header-sub">Start from a sequence (or blank), or open an existing demo by subvertical — then arrange scenes from the library on the timeline. Click any scene to edit its narration.</p>
+        <h2>Assemble the demo</h2>
+        <p class="stage-header-sub">Start from a sequence or open an existing demo, then drag scenes onto the timeline. Click a scene to edit the details that make it land.</p>
       </div>
       <div class="stage-body">
         <div class="start-bar">
@@ -1826,11 +1826,11 @@ body.is-gb #gbPanel{display:block;}
           <div class="panel-section pool-section" id="poolSection">
             <div class="panel-section-head">
               <span class="panel-section-title">
-                Scene library
+                Scene blocks
                 <span class="scene-count-pill" id="poolCount">13</span>
               </span>
               <span class="ph-right">
-                <span class="panel-section-meta" id="poolMeta">Scene templates · loading flipbook vignettes…</span>
+                <span class="panel-section-meta" id="poolMeta">Scene blocks · loading flipbook vignettes…</span>
                 <button type="button" class="pool-collapse" id="poolCollapse" aria-label="Collapse / expand the scene library" title="Collapse / expand">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
@@ -1864,7 +1864,7 @@ body.is-gb #gbPanel{display:block;}
                 Timeline
                 <span class="scene-count-pill" id="sceneCount">0</span>
               </span>
-              <span class="panel-section-meta">Click a scene to edit narration</span>
+              <span class="panel-section-meta">Click a scene to edit its details</span>
             </div>
             <div class="panel-section-body">
               <div class="filmstrip-wrap" id="filmstripWrap" aria-label="Demo timeline">
@@ -3537,7 +3537,12 @@ body.is-gb #gbPanel{display:block;}
     async function loadFlipbookManifest() {
       const meta = document.getElementById('poolMeta');
       try {
-        const r = await fetch('/flipbooks/manifest.json', { cache: 'no-store' });
+        if (location.protocol === 'file:') {
+          if (meta) meta.textContent = 'Scene blocks · 13 canonical blocks';
+          return;
+        }
+        const manifestUrl = new URL('flipbooks/manifest.json', location.href);
+        const r = await fetch(manifestUrl, { cache: 'no-store' });
         if (!r.ok) {
           if (meta) meta.textContent = 'Scene templates · flipbook manifest unavailable on this deploy';
           return;
@@ -3574,7 +3579,7 @@ body.is-gb #gbPanel{display:block;}
             : 'Scene templates + ' + fbs.length + ' flipbook vignette' + (fbs.length === 1 ? '' : 's');
         }
       } catch (_) {
-        if (meta) meta.textContent = 'Scene templates · flipbook manifest fetch failed';
+        if (meta) meta.textContent = 'Scene blocks · 13 canonical blocks';
       }
     }
 
@@ -4254,13 +4259,13 @@ body.is-gb #gbPanel{display:block;}
   }
 
   // ============================================================
-  // Guided Bespoke (additive, 2026-06-12)
+  // Advanced builder (additive, 2026-06-12)
   // ============================================================
-  // The default Bespoke surface: a 4-step wizard (Start → Scenes → Brand →
-  // Generate) that drives the SAME state the Advanced view edits — timeline
+  // The default Advanced surface: a 4-step wizard (Start → Scenes → Brand →
+  // Generate) that drives the same state the timeline editor uses — timeline
   // via window.__timeline, branding via the real f-* fields, output via the
   // real #btnGenerate handler. The full timeline/pool shell survives as the
-  // "Advanced timeline" view (tgkBespokeView=advanced; audit deep-links
+  // Advanced timeline view (tgkBespokeView=advanced; audit deep-links
   // default to it). Exposes window.__guidedBespoke {apply, setView} which
   // the mode-switch below calls.
   (function initGuidedBespoke() {
@@ -4313,7 +4318,8 @@ body.is-gb #gbPanel{display:block;}
 
     function header(step, q, sub) {
       const row = el('div', 'gb-headrow');
-      row.appendChild(el('div', 'ootb-eyebrow', 'Bespoke · Guided'));
+      row.appendChild(el('div', 'ootb-eyebrow', 'Advanced'));
+      if (step === 1) body.appendChild(el('p', 'ootb-sub', 'Choose a starting point. The builder will carry the rest.'));
       const prog = el('div', 'gb-progress');
       for (let i = 1; i <= 4; i++) prog.appendChild(el('span', 'gb-dot' + (i <= step ? ' on' : '')));
       row.appendChild(prog);
@@ -4324,6 +4330,7 @@ body.is-gb #gbPanel{display:block;}
       body.appendChild(row);
       body.appendChild(el('h2', 'ootb-q', esc(q)));
       if (sub) body.appendChild(el('p', 'ootb-sub', esc(sub)));
+      if (step === 1) body.appendChild(el('p', 'ootb-sub', 'Choose a starting point. The builder will carry the rest.'));
     }
     function ctaRow(nextLabel, onNext, backStep) {
       const row = el('div', 'gb-cta-row');
@@ -4340,7 +4347,7 @@ body.is-gb #gbPanel{display:block;}
 
     // ── Step 1: Start ──
     function renderStart() {
-      header(1, 'What IAM demo story shall we draft for your customer?', 'Drag n’ drop demo vignettes from the media pool into the timeline. Reorder as needed. You’ll be asked to brand and upload a logo after this step.');
+      header(1, 'Start a new demo', 'Pick a starting point. Then arrange scenes and brand the experience.');
       const startCard = (o) => {
         const c = el('button', 'ootb-card'); c.type = 'button';
         c.appendChild(el('div', 'ootb-card-label', esc(o.label)));
@@ -4838,9 +4845,10 @@ body.is-gb #gbPanel{display:block;}
     }
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function header(step, q, sub) {
-      body.appendChild(el('div', 'ootb-eyebrow', 'Out of the Box · Question ' + step + ' of 3'));
+      body.appendChild(el('div', 'ootb-eyebrow', 'Guided · Question ' + step + ' of 3'));
       body.appendChild(el('h2', 'ootb-q', esc(q)));
       if (sub) body.appendChild(el('p', 'ootb-sub', esc(sub)));
+      if (step === 1) body.appendChild(el('p', 'ootb-sub', 'Choose a starting point. The builder will carry the rest.'));
     }
     function cards(items, onPick, cls) {
       const grid = el('div', 'ootb-grid' + (cls ? ' ' + cls : ''));
@@ -4877,8 +4885,8 @@ body.is-gb #gbPanel{display:block;}
     function renderFinsAccel() {
       body.appendChild(el('div', 'ootb-group-label', 'FINS Acceleration'));
       const grid = el('div', 'ootb-grid');
-      grid.appendChild(finsBetCard('BET 1 · Best-in-class CX', 'Bookend the LOS — keep nCino, modernize the experience around it.',
-        () => window.open(SHELL + '?vertical=banking&usecase=bookend-los', '_blank')));
+      grid.appendChild(finsBetCard('BET 1 · Best-in-class CX', 'The full 5-scene story — intake to workspace. Primary point solution: Meridian Commercial portal + Workflow Builder orchestration, with Agreement Desk as the negotiation surface.',
+        () => window.open(SHELL + '?vertical=banking', '_blank')));
       grid.appendChild(finsBetCard('BET 2 · Fraud Fabric', 'Identity at the door — change of address on file, identity-bound, no signature.',
         () => window.open(SHELL + '?vertical=banking&usecase=auth-fabric', '_blank')));
       grid.appendChild(finsBetCard('BET 3 · Agreement Intelligence', 'Agreement Manager · Hierarchy · AI-Assisted Review.',
@@ -4889,14 +4897,14 @@ body.is-gb #gbPanel{display:block;}
     function renderStep(step) {
       body.innerHTML = '';
       if (step === 1) {
-        header(1, 'Which vertical are you selling into?', 'Pick the customer’s industry. You’ll then be offered to select the sub-vertical and demo type.');
+        header(1, 'Pick the customer’s industry', 'Choose the audience first. We’ll shape the rest of the demo around it.');
         cards(OOTB_MAP, it => { state.vertical = it; state.sub = null; renderStep(2); });
       } else if (step === 2) {
-        header(2, 'Which sub-vertical within ' + state.vertical.label + '?', 'Each sub-vertical has its own cast of personas to tell the IAM story.');
+        header(2, 'Pick the sub-vertical', 'Narrow the story to the audience you need.');
         cards(state.vertical.subs, it => { state.sub = it; renderStep(3); });
         backBtn(1);
       } else if (step === 3) {
-        header(3, 'What story will resonate with your customer?', 'Six demo experiences (and three FINS "Bets"), all staged on the ' + state.sub.label + ' cast.');
+        header(3, 'Pick the demo path', 'Choose the story you want to show.');
         cards(ARCHETYPES.map(a => ({ label: a.label, desc: a.desc, key: a.key, agentic: a.agentic })), it => renderLaunch(it.key));
         if (state.vertical && state.vertical.key === 'fins') renderFinsAccel();
         backBtn(2);
