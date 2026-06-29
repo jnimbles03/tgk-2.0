@@ -4111,7 +4111,13 @@ function goTo(i, opts = {}){
   if (swappedScene) {
     frame.classList.add('fading');
     setTimeout(() => {
-      frame.src = scene.src;
+      const nextSrc = (usecase === "default")
+        ? srcForScene(i, v, splashOn)
+        : srcForUsecaseScene(i, v, usecaseKey, splashOn);
+      if (!nextSrc) {
+        console.warn('TGK story shell: empty scene src for', { i, preset: v && v.preset, usecase, usecaseKey });
+      }
+      frame.src = nextSrc || 'about:blank';
       // Once the new template's DOM and message listener are ready, re-post
       // the beat so the iframe lands locked to beat 0 instead of running its
       // own auto-loop for a moment.
