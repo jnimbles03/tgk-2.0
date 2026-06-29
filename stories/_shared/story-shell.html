@@ -3461,7 +3461,7 @@ function dismissThesisSplash(){
 // For canonical Scene 1, if SCENE1_TEMPLATE_OVERRIDE applies for this vertical,
 // also override the hotspot key so click anchors target the override iframe's
 // data-hotspot attributes (webform-intake) rather than agreement_desk's.
-const SCENES = scenesSource.map((s, i) => {
+var SCENES = scenesSource.map((s, i) => {
   let sceneKey = s.sceneKey || ACTIVE_SCENE_KEYS[i] || SCENE_KEYS[i] || "agreement_desk";
   if (i === 0 && usecase === "default") {
     const o = SCENE1_TEMPLATE_OVERRIDE[v.preset];
@@ -5008,17 +5008,21 @@ window.addEventListener('keydown', (e) => {
 });
 
 /* Cold-boot — land on S1/B1 with the persona card expanded and
-   autoplay off. The hold waits indefinitely for the viewer's first
-   gesture (click on stage / Space / Enter / →), at which point
-   releaseHoldAndResume collapses the panel and starts autoplay at
-   the chosen playbackRate (defaults to 1.5×). */
-goTo(0, {force:true});
-$('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
-// Engage the cold-open hold AFTER the initial render. goTo cleared the
-// hold flag, so we re-arm it here. Lead-mode is already up from goTo's
-// scene-change pop; engageHold idempotently keeps it up and adds the
-// pulse to the play toggle.
-engageHold();
+   autoplay off. Defer the initial render until window load so every
+   runtime binding is definitely initialized before we try to draw. */
+window.addEventListener('load', () => {
+  try {
+    goTo(0, {force:true});
+    $('timer').textContent = `00:00 / ${fmt(SCENES[0].duration)}`;
+    // Engage the cold-open hold AFTER the initial render. goTo cleared the
+    // hold flag, so we re-arm it here. Lead-mode is already up from goTo's
+    // scene-change pop; engageHold idempotently keeps it up and adds the
+    // pulse to the play toggle.
+    engageHold();
+  } catch (e) {
+    console.error('TGK story shell boot failed', e);
+  }
+});
 
 /* Kickoff — the story opens HELD (autopilot off) and waits for the viewer to make
    the first move: a click on the stage, Space / Enter / →. That first gesture calls
