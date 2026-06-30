@@ -81,7 +81,7 @@
   .email-body{padding:34px 40px 38px;color:#1A1A1D;font-size:14px;line-height:1.58;}
   .email-body p{margin-bottom:14px;}
   .email-body .cta-wrap{text-align:center;margin:26px 0;}
-  .email-cta{display:inline-block;background:var(--tn-primary);color:#fff;padding:12px 26px;border-radius:4px;font-size:14px;font-weight:500;animation:ctaPulse 1.4s ease-in-out 1.2s 2;}
+  .email-cta{display:inline-block;background:var(--tn-primary);color:#fff;padding:12px 26px;border-radius:4px;font-size:14px;font-weight:500;animation:ctaPulse 1.4s ease-in-out 1.2s 2;cursor:pointer;border:none;appearance:none;}
   @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}50%{box-shadow:0 0 0 8px var(--tn-accent);}}
   .email-sig{margin-top:24px;}
   .email-sig .name{font-weight:600;color:#1A1A1D;}
@@ -805,7 +805,7 @@
       <div class="email-body">
         <p id="email-greeting">Hello,</p>
         <p id="email-body-p1"></p>
-        <div class="cta-wrap"><a class="email-cta" id="email-cta" data-hotspot="access_workspace">Access your workspace</a></div>
+        <div class="cta-wrap"><button type="button" class="email-cta" id="email-cta" data-hotspot="access_workspace">Access your workspace</button></div>
         <p id="email-body-p2"></p>
         <p>Thank you,</p>
         <div class="email-sig">
@@ -2665,8 +2665,45 @@ function _hideAllOverlays() {
 function showWorkspaceState(sceneId){
   /* First beat message → switch off the autoplay email-fade animation
      and let JS take over visibility entirely. */
+  if (sceneId === 's1') {
+    const cta = document.getElementById('email-cta');
+    if (cta && !cta.__tgkWorkspaceHooked) {
+      cta.__tgkWorkspaceHooked = true;
+      cta.addEventListener('click', () => showWorkspaceState('s2'));
+      cta.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showWorkspaceState('s2');
+        }
+      });
+      cta.setAttribute('role', 'button');
+      cta.setAttribute('tabindex', '0');
+    }
+  }
   if (!document.body.classList.contains('beat-driven')) {
     document.body.classList.add('beat-driven');
+  }
+  const cta = document.getElementById('email-cta');
+  if (cta && !cta.__tgkWorkspaceClickBound) {
+    cta.__tgkWorkspaceClickBound = true;
+    const openWorkspace = () => {
+      const emailNow = document.getElementById('email-scene');
+      const wsNow = document.querySelector('.workspace');
+      if (emailNow) emailNow.style.display = 'none';
+      if (wsNow) {
+        wsNow.style.display = 'flex';
+        wsNow.style.opacity = '1';
+        wsNow.style.pointerEvents = '';
+      }
+      showWorkspaceState('s2');
+    };
+    cta.addEventListener('click', openWorkspace);
+    cta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openWorkspace();
+      }
+    });
   }
   /* Replay only on state CHANGE — avoid double-firing if shell sends
      the same sceneId twice. */
@@ -2847,6 +2884,30 @@ sel.addEventListener('change', () => {
   /* Tell the shell that a splash is up so it can pause autoplay and
      re-route Space to dismissal. */
   parent.postMessage({ type: 'tgk:splashShown' }, '*');
+})();
+
+(function bindWorkspaceCta(){
+  const cta = document.getElementById('email-cta');
+  if (!cta || cta.__tgkWorkspaceBootBound) return;
+  cta.__tgkWorkspaceBootBound = true;
+  const openWorkspace = () => {
+    const emailNow = document.getElementById('email-scene');
+    const wsNow = document.querySelector('.workspace');
+    if (emailNow) emailNow.style.display = 'none';
+    if (wsNow) {
+      wsNow.style.display = 'flex';
+      wsNow.style.opacity = '1';
+      wsNow.style.pointerEvents = '';
+    }
+    showWorkspaceState('s2');
+  };
+  cta.addEventListener('click', openWorkspace);
+  cta.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openWorkspace();
+    }
+  });
 })();
 
 /* =============================================================
